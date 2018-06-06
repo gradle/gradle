@@ -30,6 +30,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -147,7 +148,10 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> {
             def snapshot = new StringValueSnapshot(it.toString())
-            1 * store.put(snapshot, _)
+            def hasher = new DefaultBuildCacheHasher()
+            snapshot.appendToHasher(hasher)
+            def keyHash = hasher.hash()
+            1 * store.put(keyHash, _)
             snapshot
         }
         1 * store.get(_) >> null
@@ -178,6 +182,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
     void "if cache expired, re-executes the rule"() {
         withToUpperCaseRule()
         def snapshot
+        def keyHash
         def id = new Id('Alicia')
 
         when:
@@ -186,13 +191,16 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> {
             snapshot = new StringValueSnapshot(it.toString())
+            def hasher = new DefaultBuildCacheHasher()
+            snapshot.appendToHasher(hasher)
+            keyHash = hasher.hash()
             snapshot
         }
         1 * store.get(_) >> Stub(CrossBuildCachingRuleExecutor.CachedEntry) {
             getResult() >> new Result(length: 123)
         }
         1 * validator.isValid(_, _) >> false
-        1 * store.put({ it == snapshot }, { it.timestamp == timeProvider.currentTime })
+        1 * store.put({ it == keyHash }, { it.timestamp == timeProvider.currentTime })
         0 * _
         result.length == 6
     }

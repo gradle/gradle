@@ -17,6 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 
 class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
     String getDefaultStatus() {
@@ -194,4 +198,180 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
+    def 'can cache rules having a custom type attribute as parameter'() {
+        repository {
+            'org.test:projectA:1.0'()
+        }
+        buildFile << """
+
+import javax.inject.Inject
+
+@CacheableRule
+class AttributeCachedRule implements ComponentMetadataRule {
+
+    Attribute targetAttribute
+
+    @Inject
+    AttributeCachedRule(Attribute attribute) {
+        this.targetAttribute = attribute
+    }
+    
+    void execute(ComponentMetadataContext context) {
+        println 'Attribute rule executed'
+    }
+}
+
+class Thing implements Named, Serializable { 
+    String name
+    
+    int hashCode() {
+        return name.hashCode()
+    }
+    
+    boolean equals(Object other) {
+        if (other instanceof Thing) {
+            return ((Thing)other).name.equals(name)
+        }
+        return false;
+    }
+    
+    String toString() {
+        return 'Thing[' + name + ']'
+    }
+}
+
+def thing = Attribute.of(Thing)
+
+dependencies {
+    components {
+        all(AttributeCachedRule) {
+            params(thing)
+        }
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+        outputContains('Attribute rule executed')
+
+        and:
+        succeeds 'resolve'
+        outputDoesNotContain('Attribute rule executed')
+    }
+
+    @Ignore
+    @ToBeImplemented
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def 'can cache rules setting custom type attributes'() {
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        def expectedStatus = useIvy() ? 'integration' : 'release'
+
+        buildFile << """
+
+import javax.inject.Inject
+
+@CacheableRule
+class AttributeCachedRule implements ComponentMetadataRule {
+
+    Attribute targetAttribute
+
+    @Inject
+    AttributeCachedRule(Attribute attribute) {
+        this.targetAttribute = attribute
+    }
+    
+    void execute(ComponentMetadataContext context) {
+        println 'Attribute rule executed'
+        context.details.withVariant('api') {
+            attributes {
+                attribute(targetAttribute, new Thing(name: 'Foo'))
+            }
+        }
+        context.details.withVariant('runtime') {
+            attributes {
+                attribute(targetAttribute, new Thing(name: 'Bar'))
+            }
+        }
+    }
+}
+
+class Thing implements Named, Serializable { 
+    String name
+    
+    int hashCode() {
+        return name.hashCode()
+    }
+    
+    boolean equals(Object other) {
+        if (other instanceof Thing) {
+            return ((Thing)other).name.equals(name)
+        }
+        return false;
+    }
+    
+    String toString() {
+        return 'Thing[' + name + ']'
+    }
+}
+
+def thing = Attribute.of(Thing)
+
+configurations {
+    conf {
+        attributes {
+            attribute thing, new Thing(name: 'Bar')
+        }
+    }
+}
+
+dependencies {
+    components {
+        all(AttributeCachedRule) {
+            params(thing)
+        }
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'checkDeps'
+        outputContains('Attribute rule executed')
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:projectA:1.0') {
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Thing[Bar]'])
+                }
+            }
+        }
+
+
+        and:
+        succeeds 'checkDeps'
+        outputDoesNotContain('Attribute rule executed')
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:projectA:1.0') {
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Thing[Bar]'])
+                }
+            }
+        }
+    }
 }

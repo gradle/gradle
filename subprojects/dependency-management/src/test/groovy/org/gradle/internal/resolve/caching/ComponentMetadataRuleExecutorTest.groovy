@@ -37,6 +37,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -102,6 +103,9 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         def hashValue = Mock(HashValue)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
+        def hasher = new DefaultBuildCacheHasher()
+        inputsSnapshot.appendToHasher(hasher)
+        def keyHash = hasher.hash()
         def cachedResult = Mock(ModuleComponentResolveMetadata)
         Multimap<String, ImplicitInputRecord<?, ?>> implicits = HashMultimap.create()
         def record = Mock(ImplicitInputRecord)
@@ -124,7 +128,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         1 * key.contentHash >> hashValue
         1 * hashValue.asBigInteger() >> new BigInteger("42")
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
-        1 * store.get(inputsSnapshot) >> cachedEntry
+        1 * store.get(keyHash) >> cachedEntry
         if (expired) {
             // should check that the recorded service call returns the same value
             1 * record.getInput() >> '124'
@@ -147,7 +151,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             }
             1 * onCacheMiss.transform(key) >> details
             1 * detailsToResult.transform(details) >> Mock(ModuleComponentResolveMetadata)
-            1 * store.put(inputsSnapshot, _)
+            1 * store.put(keyHash, _)
         }
         if (ruleClass == TestSupplierWithService && reexecute) {
             1 * someService.provide()
