@@ -19,7 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.reflect.TypeOf
