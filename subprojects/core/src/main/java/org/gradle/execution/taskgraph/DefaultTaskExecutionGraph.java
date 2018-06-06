@@ -297,11 +297,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {
 
-        private final DefaultTaskExecutionGraph taskExecutionGraph;
+        private final TaskExecutionGraph taskExecutionGraph;
         private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
         private final GradleInternal gradleInternal;
 
-        private NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph taskExecutionGraph, ListenerBroadcast<TaskExecutionGraphListener> graphListeners, GradleInternal gradleInternal) {
+        private NotifyTaskGraphWhenReady(TaskExecutionGraph taskExecutionGraph, ListenerBroadcast<TaskExecutionGraphListener> graphListeners, GradleInternal gradleInternal) {
             this.taskExecutionGraph = taskExecutionGraph;
             this.graphListeners = graphListeners;
             this.gradleInternal = gradleInternal;
