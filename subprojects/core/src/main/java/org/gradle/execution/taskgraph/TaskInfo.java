@@ -135,21 +135,17 @@ public abstract class TaskInfo extends WorkInfo {
 
     @Override
     public Iterable<WorkInfo> getAllSuccessors() {
-        return Iterables.concat(getMustSuccessors(), getFinalizingSuccessors(), super.getAllSuccessors());
-    }
-    @Override
-    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
         return Iterables.concat(
-            super.getAllSuccessorsInReverseOrder(),
-            mustSuccessors.descendingSet(),
-            finalizingSuccessors.descendingSet(),
-            shouldSuccessors.descendingSet()
+            super.getAllSuccessors(),
+            getMustSuccessors(),
+            getFinalizingSuccessors(),
+            getShouldSuccessors()
         );
     }
 
     @Override
-    public boolean hasSuccessor(WorkInfo successor) {
-        if (super.hasSuccessor(successor)) {
+    public boolean hasHardSuccessor(WorkInfo successor) {
+        if (super.hasHardSuccessor(successor)) {
             return true;
         }
         if (!(successor instanceof TaskInfo)) {

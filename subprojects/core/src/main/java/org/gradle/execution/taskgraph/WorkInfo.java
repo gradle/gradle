@@ -167,13 +167,11 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
         return getDependencySuccessors();
     }
 
+    /**
+     * Returns if the node has the given node as a hard successor, i.e. a non-removable relationship.
+     */
     @OverridingMethodsMustInvokeSuper
-    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
-        return getDependencySuccessors().descendingSet();
-    }
-
-    @OverridingMethodsMustInvokeSuper
-    public boolean hasSuccessor(WorkInfo successor) {
+    public boolean hasHardSuccessor(WorkInfo successor) {
         return getDependencySuccessors().contains(successor);
     }
 }

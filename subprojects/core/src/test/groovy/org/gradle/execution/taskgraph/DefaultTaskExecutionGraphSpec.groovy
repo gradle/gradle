@@ -515,7 +515,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     }
 
     def newTask(String name) {
-        def mock = Mock(TaskInternal)
+        def mock = Mock(TaskInternal, name: name)
         _ * mock.name >> name
         _ * mock.identityPath >> project.identityPath.child(name)
         _ * mock.project >> project

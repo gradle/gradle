@@ -298,12 +298,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, workInfoInVisitingSegment);
                 takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, workInfo);
 
-                for (WorkInfo successor : workInfo.getAllSuccessorsInReverseOrder()) {
+                for (WorkInfo successor : Lists.reverse(Lists.newArrayList(workInfo.getAllSuccessors()))) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
                             GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
-                            System.out.printf("Removing edge %s -> %s%n", toBeRemoved.from, toBeRemoved.to);
                             // Should run after edges only exist between tasks, so this cast is safe
                             TaskInfo sourceTask = (TaskInfo) toBeRemoved.from;
                             TaskInfo targetTask = (TaskInfo) toBeRemoved.to;
@@ -507,7 +506,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             @Override
             public void getNodeValues(WorkInfo node, Collection<? super Object> values, Collection<? super WorkInfo> connectedNodes) {
                 for (WorkInfo dependency : firstCycle) {
-                    if (node.hasSuccessor(dependency)) {
+                    if (node.hasHardSuccessor(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
