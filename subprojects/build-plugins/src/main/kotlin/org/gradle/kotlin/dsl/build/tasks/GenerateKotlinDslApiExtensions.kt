@@ -25,6 +25,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -33,6 +34,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.codegen.generateKotlinDslApiExtensionsSourceTo
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import java.io.Closeable
 import java.io.File
 import java.util.*
 
@@ -104,30 +106,32 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
     private
     fun runIsolated() = project.run {
         val kotlinDslDependency = dependencies.create("org.gradle:gradle-kotlin-dsl:${versions["kotlin-dsl"]}")
-        println("Dependency: $kotlinDslDependency")
         val kotlinDslClasspath = configurations.detachedConfiguration(kotlinDslDependency).files
-        println("Classpath: $kotlinDslClasspath")
         val loaderFactory = serviceOf<ClassLoaderFactory>()
         val loader = loaderFactory.createIsolatedClassLoader(DefaultClassPath.of(kotlinDslClasspath))
-        val generatorClass = loader.loadClass("org.gradle.kotlin.dsl.codegen.ApiExtensionsGenerator")
-        val generatorMethod = generatorClass.getMethod(
-            "generateKotlinDslApiExtensionsSourceTo",
-            File::class.java,
-            List::class.java,
-            List::class.java,
-            List::class.java,
-            List::class.java,
-            List::class.java
-        )
-        generatorMethod.invoke(
-            null,
-            outputFile,
-            classes.toList(),
-            classpath.toList(),
-            includes.get(),
-            excludes.get(),
-            parameterNamesIndices.toList()
-        )
+        try {
+            val generatorClass = loader.loadClass("org.gradle.kotlin.dsl.codegen.ApiExtensionsGenerator")
+            val generatorMethod = generatorClass.getMethod(
+                "generateKotlinDslApiExtensionsSourceTo",
+                File::class.java,
+                List::class.java,
+                List::class.java,
+                List::class.java,
+                List::class.java,
+                List::class.java
+            )
+            generatorMethod.invoke(
+                null,
+                outputFile,
+                classes.toList(),
+                classpath.toList(),
+                includes.get(),
+                excludes.get(),
+                parameterNamesIndices.toList()
+            )
+        } finally {
+            (loader as Closeable).close()
+        }
     }
 
     private
