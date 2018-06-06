@@ -1,4 +1,4 @@
-import build.futureKotlin
+import build.*
 
 plugins {
     id("public-kotlin-dsl-module")
@@ -44,6 +44,8 @@ dependencies {
     testImplementation(files(writeTestKitPluginClasspath))
 }
 
+
+withParallelTests()
 
 val customInstallation by rootProject.tasks
 tasks {
