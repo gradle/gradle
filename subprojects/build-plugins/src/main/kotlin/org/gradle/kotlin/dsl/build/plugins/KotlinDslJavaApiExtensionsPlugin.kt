@@ -82,7 +82,6 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
                     }
                 }
                 getByName<Jar>("jar") {
-                    from(extensionsSourceSet.kotlin.sourceDirectories)
                     from(extensionsSourceSet.output)
                     dependsOn(extensionsSourceSet.classesTaskName)
                 }

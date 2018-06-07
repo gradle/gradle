@@ -22,7 +22,7 @@ import org.gradle.kotlin.dsl.support.unzipTo
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.hasItem
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -141,10 +141,7 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
             unzipTo(extract, existing("build/libs/gradle-api-extensions.jar"))
             assertThat(
                 extract.walkTopDown().filter { it.isFile }.map { it.relativeTo(extract).path }.toList(),
-                hasItems(*listOf(
-                    "org/gradle/api/kotlin/GeneratedGradleApiExtensionsMainKotlinDslApiExtensions.kt",
-                    "org/gradle/api/kotlin/GeneratedGradleApiExtensionsMainKotlinDslApiExtensionsKt.class")
-                    .map { it.replace('/', File.separatorChar) }.toTypedArray()))
+                hasItem("org/gradle/api/kotlin/GeneratedGradleApiExtensionsMainKotlinDslApiExtensionsKt.class".replace('/', File.separatorChar)))
         }
     }
 }

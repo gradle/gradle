@@ -220,7 +220,6 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 extract.walkTopDown().filter { it.isFile }.map { it.relativeTo(extract).path }.toList(),
                 hasItems(*listOf(
                     "some/example/Some.class",
-                    "org/gradle/api/kotlin/GeneratedSomeExampleMainKotlinDslApiExtensions.kt",
                     "org/gradle/api/kotlin/GeneratedSomeExampleMainKotlinDslApiExtensionsKt.class")
                     .map { it.replace('/', File.separatorChar) }.toTypedArray()))
         }
