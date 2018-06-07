@@ -30,7 +30,7 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.addCandidate(artifact)
 
         then:
-        1 * publications.add(artifact)
+        publication.defaultArtifactProvider.get() == artifact
     }
 
     def "adds war artifact to publication"() {
@@ -40,7 +40,7 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.addCandidate(artifact)
 
         then:
-        1 * publications.add(artifact)
+        publication.defaultArtifactProvider.get() == artifact
     }
 
     def "adds ear artifact to publication"() {
@@ -50,20 +50,35 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.addCandidate(artifact)
 
         then:
-        1 * publications.add(artifact)
+        publication.defaultArtifactProvider.get() == artifact
+    }
+
+    def "adds other type to publication"() {
+        def artifact = artifact("zip")
+
+        when:
+        publication.addCandidate(artifact)
+
+        then:
+        publication.defaultArtifactProvider.get() == artifact
     }
 
     def "prefers war over jar artifact"() {
         def jar = artifact("jar")
         def war = artifact("war")
 
-        given:
+        when:
         publication.addCandidate(jar)
+
+        then:
+        publication.defaultArtifactProvider.get() == jar
 
         when:
         publication.addCandidate(war)
+        def defaultArtifact = publication.defaultArtifactProvider.get()
 
         then:
+        defaultArtifact == war
         1 * publications.remove(jar)
         1 * publications.add(war)
 
@@ -71,20 +86,25 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.addCandidate(jar)
 
         then:
-        0 * publications._
+        publication.defaultArtifactProvider.get() == war
     }
 
     def "prefers ear over jar artifact"() {
         def jar = artifact("jar")
         def ear = artifact("ear")
 
-        given:
+        when:
         publication.addCandidate(jar)
+
+        then:
+        publication.defaultArtifactProvider.get() == jar
 
         when:
         publication.addCandidate(ear)
+        def defaultArtifact = publication.defaultArtifactProvider.get()
 
         then:
+        defaultArtifact == ear
         1 * publications.remove(jar)
         1 * publications.add(ear)
 
@@ -92,20 +112,25 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.addCandidate(jar)
 
         then:
-        0 * publications._
+        publication.defaultArtifactProvider.get() == ear
     }
 
     def "prefers ear over war artifact"() {
         def war = artifact("war")
         def ear = artifact("ear")
 
-        given:
+        when:
         publication.addCandidate(war)
+
+        then:
+        publication.defaultArtifactProvider.get() == war
 
         when:
         publication.addCandidate(ear)
+        def defaultArtifact = publication.defaultArtifactProvider.get()
 
         then:
+        defaultArtifact == ear
         1 * publications.remove(war)
         1 * publications.add(ear)
 
@@ -113,28 +138,132 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.addCandidate(war)
 
         then:
-        0 * publications._
+        publication.defaultArtifactProvider.get() == ear
     }
 
-    def "adds other types of artifacts"() {
+    def "always adds other types of artifacts when the default is a jar/war/ear"() {
         def jar = artifact("jar")
         def exe = artifact("exe")
 
-        given:
+        when:
         publication.addCandidate(jar)
+
+        then:
+        publication.defaultArtifactProvider.get() == jar
+
+        when:
+        publication.addCandidate(exe)
+        def defaultArtifact = publication.defaultArtifactProvider.get()
+
+        then:
+        defaultArtifact == jar
+        1 * publications.add(jar)
+        1 * publications.add(exe)
+    }
+
+    def "always adds other types of artifacts when the default is not a jar/war/ear"() {
+        def zip = artifact("zip")
+        def exe = artifact("exe")
+
+        when:
+        publication.addCandidate(zip)
+
+        then:
+        publication.defaultArtifactProvider.get() == zip
+
+        when:
+        publication.addCandidate(exe)
+        def defaultArtifact = publication.defaultArtifactProvider.get()
+
+        then:
+        defaultArtifact == zip
+        1 * publications.add(zip)
+        1 * publications.add(exe)
+    }
+
+    def "other artifacts are not removed by jar/war"() {
+        def exe = artifact("exe")
+        def jar = artifact("jar")
+        def war = artifact("war")
 
         when:
         publication.addCandidate(exe)
 
         then:
-        1 * publications.add(exe)
+        publication.defaultArtifactProvider.get() == exe
+
+        when:
+        publication.addCandidate(jar)
+
+        then:
+        publication.defaultArtifactProvider.get() == exe
+
+        then:
+        0 * publications.remove(exe)
+
+        when:
+        publication.addCandidate(war)
+
+        then:
+        publication.defaultArtifactProvider.get() == exe
+
+        then:
+        0 * publications.remove(exe)
+    }
+
+    def "other artifacts are removed by ear"() {
+        def exe = artifact("exe")
+        def ear = artifact("ear")
+
+        when:
+        publication.addCandidate(exe)
+        def defaultArtifact = publication.defaultArtifactProvider.get()
+
+        then:
+        defaultArtifact == exe
+
+        when:
+        publication.addCandidate(ear)
+        defaultArtifact = publication.defaultArtifactProvider.get()
+
+        then:
+        defaultArtifact == ear
+        1 * publications.remove(exe)
+        1 * publications.add(ear)
+    }
+
+    def "current default is cached after realizing the provider"() {
+        def jar = artifact("jar")
+        def war = artifact("war")
+
+        when:
+        publication.addCandidate(jar)
+
+        then:
+        publication.defaultArtifactProvider.get() == jar
+
+        when:
+        publication.addCandidate(war)
+
+        then:
+        publication.defaultArtifactProvider.get() == war
+
+        then:
+        1 * publications.remove(jar)
+        1 * publications.add(war)
+
+        then:
+        publication.defaultArtifactProvider.get() == war
+
+        and:
         0 * publications._
     }
 
     def PublishArtifact artifact(String type) {
-        PublishArtifact artifact = Mock()
-        _ * artifact.toString() >> type
-        _ * artifact.type >> type
+        PublishArtifact artifact = Stub() {
+            toString() >> type
+            getType() >> type
+        }
         return artifact
     }
 }

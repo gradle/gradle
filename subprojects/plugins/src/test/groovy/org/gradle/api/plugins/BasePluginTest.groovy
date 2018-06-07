@@ -203,6 +203,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(BasePlugin)
         project.configurations.create("custom").artifacts.add(artifact)
+        project.evaluate()
 
         then:
         project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)

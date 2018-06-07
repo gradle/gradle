@@ -76,9 +76,10 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
     def "adds tasks"() {
         when:
         project.pluginManager.apply(WarPlugin)
+        project.evaluate()
 
         then:
-        def task = project.tasks[WarPlugin.WAR_TASK_NAME]
+        def task = project.tasks.getByName(WarPlugin.WAR_TASK_NAME)
         task instanceof War
         dependsOn(JavaPlugin.CLASSES_TASK_NAME).matches(task)
         task.destinationDir == project.libsDir
@@ -146,6 +147,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
+        project.evaluate()
 
         then:
         archiveConfiguration.getAllArtifacts().size() == 1

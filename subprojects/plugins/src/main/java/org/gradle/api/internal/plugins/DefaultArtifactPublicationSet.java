@@ -15,44 +15,98 @@
  */
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.provider.Provider;
+
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Set;
 
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
 public class DefaultArtifactPublicationSet {
-    private final PublishArtifactSet artifacts;
-    private PublishArtifact defaultArtifact;
+    private final PublishArtifactSet artifactStore;
+    private DefaultArtifactProvider defaultArtifactProvider;
 
-    public DefaultArtifactPublicationSet(PublishArtifactSet artifacts) {
-        this.artifacts = artifacts;
+    public DefaultArtifactPublicationSet(PublishArtifactSet artifactStore) {
+        this.artifactStore = artifactStore;
     }
 
     public void addCandidate(PublishArtifact artifact) {
-        String thisType = artifact.getType();
-
-        if (defaultArtifact == null) {
-            artifacts.add(artifact);
-            defaultArtifact = artifact;
-            return;
+        if (defaultArtifactProvider == null) {
+            defaultArtifactProvider = new DefaultArtifactProvider(artifact);
         }
 
-        String currentType = defaultArtifact.getType();
-        if (thisType.equals("ear")) {
-            replaceCurrent(artifact);
-        } else if (thisType.equals("war")) {
-            if (currentType.equals("jar")) {
-                replaceCurrent(artifact);
-            }
-        } else if (!thisType.equals("jar")) {
-            artifacts.add(artifact);
-        }
+        defaultArtifactProvider.addCandidate(artifact);
     }
 
-    private void replaceCurrent(PublishArtifact artifact) {
-        artifacts.remove(defaultArtifact);
-        artifacts.add(artifact);
-        defaultArtifact = artifact;
+    public DefaultArtifactProvider getDefaultArtifactProvider() {
+        return defaultArtifactProvider;
+    }
+
+    private class DefaultArtifactProvider extends AbstractProvider<PublishArtifact> implements Provider<PublishArtifact> {
+        private final Set<PublishArtifact> artifacts;
+        private PublishArtifact currentDefault;
+
+        DefaultArtifactProvider(PublishArtifact... candidates) {
+            artifacts = Sets.newLinkedHashSet(Arrays.asList(candidates));
+        }
+
+        void addCandidate(PublishArtifact artifact) {
+            if (artifact != null) {
+                // invalidate the current cached result any time a new artifact is added
+                if (artifacts.add(artifact)) {
+                    currentDefault = null;
+                }
+            }
+        }
+
+        @Nullable
+        @Override
+        public Class<PublishArtifact> getType() {
+            return PublishArtifact.class;
+        }
+
+        @Nullable
+        @Override
+        public PublishArtifact getOrNull() {
+            return getDefaultArtifact();
+        }
+
+        private PublishArtifact getDefaultArtifact() {
+            if (currentDefault == null) {
+                for (PublishArtifact artifact : artifacts) {
+                    if (currentDefault == null) {
+                        currentDefault = artifact;
+                        continue;
+                    }
+                    String newType = artifact.getType();
+                    String currentType = currentDefault.getType();
+                    if (newType.equals("ear")) {
+                        replaceCurrent(artifact);
+                    } else if (newType.equals("war")) {
+                        if (currentType.equals("jar")) {
+                            replaceCurrent(artifact);
+                        }
+                    } else if (!newType.equals("jar")) {
+                        // we need to do this add so that we can ensure that artifacts are added in the correct order
+                        artifactStore.add(currentDefault);
+                        artifactStore.add(artifact);
+                    }
+                }
+            }
+
+            return currentDefault;
+        }
+
+        private void replaceCurrent(PublishArtifact artifact) {
+            artifactStore.remove(currentDefault);
+            artifactStore.add(artifact);
+            currentDefault = artifact;
+        }
     }
 }
