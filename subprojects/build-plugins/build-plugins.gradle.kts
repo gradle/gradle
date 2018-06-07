@@ -2,34 +2,21 @@ import build.*
 
 plugins {
     id("public-kotlin-dsl-module")
+    `java-gradle-plugin`
 }
 
 base {
     archivesBaseName = "gradle-kotlin-dsl-build-plugins"
 }
 
-
-val processResources: ProcessResources by tasks
-val writeKotlinDslProviderVersion by tasks.creating(WriteProperties::class) {
-    outputFile = processResources.destinationDir.resolve("${base.archivesBaseName}-versions.properties")
-    property("kotlin-dsl", version)
-}
-processResources.dependsOn(writeKotlinDslProviderVersion)
-
-
-val writeTestKitPluginClasspath by tasks.creating {
-    val main by java.sourceSets
-    val outputDir = file("$buildDir/$name")
-    val testResources = file("src/test/resources")
-    inputs.files(main.runtimeClasspath)
-    inputs.dir(testResources)
-    outputs.dir(outputDir)
-    doLast {
-        outputDir.mkdirs()
-        file("$outputDir/plugin-classpath.txt").writeText(main.runtimeClasspath.plus(testResources).joinToString("\n"))
+gradlePlugin {
+    (plugins) {
+        "java-api-extensions" {
+            id = "org.gradle.kotlin.dsl.build.java-api-extensions"
+            implementationClass = "org.gradle.kotlin.dsl.build.plugins.KotlinDslJavaApiExtensionsPlugin"
+        }
     }
 }
-
 
 dependencies {
 
@@ -41,11 +28,16 @@ dependencies {
 
     testImplementation(project(":provider"))
     testImplementation(project(":test-fixtures"))
-    testImplementation(files(writeTestKitPluginClasspath))
 }
 
 
-withParallelTests()
+val processResources: ProcessResources by tasks
+val writeKotlinDslProviderVersion by tasks.creating(WriteProperties::class) {
+    outputFile = processResources.destinationDir.resolve("${base.archivesBaseName}-versions.properties")
+    property("kotlin-dsl", version)
+}
+processResources.dependsOn(writeKotlinDslProviderVersion)
+
 
 val customInstallation by rootProject.tasks
 tasks {
@@ -53,3 +45,6 @@ tasks {
         dependsOn(customInstallation)
     }
 }
+
+
+withParallelTests()

@@ -20,21 +20,12 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
 import org.gradle.testkit.runner.BuildResult
 
-import java.io.File
-
 
 abstract class AbstractBuildPluginTest : AbstractIntegrationTest() {
 
     protected
     fun run(vararg arguments: String): BuildResult =
         gradleRunnerForArguments(*arguments).apply {
-            withPluginClasspath(testKitPluginClasspath)
+            withPluginClasspath()
         }.build()
-}
-
-
-private
-val testKitPluginClasspath: List<File> by lazy {
-    AbstractBuildPluginTest::class.java.classLoader.getResourceAsStream("plugin-classpath.txt")
-        .bufferedReader().readLines().map { File(it) }
 }
