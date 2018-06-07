@@ -46,8 +46,10 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
+def publicJavaProjects = ProjectGroups.INSTANCE.getPublicJavaProjects(project)
 
 evaluationDependsOn ":docs"
+publicJavaProjects.each { evaluationDependsOn it.path }
 
 ext {
     zipRootFolder = "gradle-$version"
@@ -126,6 +128,20 @@ task srcZip(type: Zip) {
             include 'gradlew.bat'
             include 'version.txt'
             include 'released-versions.json'
+        }
+    }
+    publicJavaProjects.each { project ->
+        project.sourceSets.each { SourceSet sourceSet ->
+            from(sourceSet.allSource) {
+                includeEmptyDirs = false
+                def buildDirCanonicalPath = project.buildDir.canonicalPath
+                eachFile { details ->
+                    if (!details.file.canonicalPath.startsWith(buildDirCanonicalPath)) {
+                        details.exclude()
+                    }
+                }
+                into("$zipRootFolder/subprojects/${project.name}/src/main/generated")
+            }
         }
     }
 }
