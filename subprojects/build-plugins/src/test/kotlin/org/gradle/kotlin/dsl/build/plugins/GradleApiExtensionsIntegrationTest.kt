@@ -20,8 +20,10 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.support.unzipTo
 
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItems
+import org.junit.Assert.assertThat
 import org.junit.Test
 
 import java.io.File
@@ -107,7 +109,7 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
         run("generateKotlinDslApiExtensions")
 
         existing("build/generated-sources").walkTopDown().single { it.isFile }.let {
-            Assert.assertThat(it.name, CoreMatchers.equalTo("GeneratedGradleApiExtensionsMainKotlinDslApiExtensions.kt"))
+            assertThat(it.name, equalTo("GeneratedGradleApiExtensionsMainKotlinDslApiExtensions.kt"))
             val extensions = listOf(
                 """
                 fun <S : T, T : Any> org.gradle.api.DomainObjectSet<T>.`withType`(`type`: kotlin.reflect.KClass<S>): org.gradle.api.DomainObjectSet<S> =
@@ -128,16 +130,16 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
                 fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`createLater`(`name`: String, `type`: kotlin.reflect.KClass<T>, `configurationAction`: T.() -> Unit): org.gradle.api.tasks.TaskProvider<T> =
                     `createLater`(`name`, `type`.java, `configurationAction`)
                 """)
-            Assert.assertThat(it.readText(), CoreMatchers.allOf(extensions.map { containsMultiLineString(it) }))
+            assertThat(it.readText(), allOf(extensions.map { containsMultiLineString(it) }))
         }
 
         run("assemble")
 
         existing("extract").let { extract ->
             unzipTo(extract, existing("build/libs/gradle-api-extensions.jar"))
-            Assert.assertThat(
+            assertThat(
                 extract.walkTopDown().filter { it.isFile }.map { it.relativeTo(extract).path }.toList(),
-                CoreMatchers.hasItems(*listOf(
+                hasItems(*listOf(
                     "org/gradle/kotlin/dsl/GeneratedGradleApiExtensionsMainKotlinDslApiExtensions.kt",
                     "org/gradle/kotlin/dsl/GeneratedGradleApiExtensionsMainKotlinDslApiExtensionsKt.class")
                     .map { it.replace('/', File.separatorChar) }.toTypedArray()))
