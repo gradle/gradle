@@ -82,11 +82,9 @@ class InterpreterTest : TestWithTempFiles() {
         }
         val parentScope = mock<ClassLoaderScope>()
         val targetScopeExportClassLoader = mock<ClassLoader>()
-        val targetScopeLocalClassLoader = mock<ClassLoader>()
         val targetScope = mock<ClassLoaderScope> {
             on { parent } doReturn parentScope
             on { exportClassLoader } doReturn targetScopeExportClassLoader
-            on { localClassLoader } doReturn targetScopeLocalClassLoader
         }
 
         val classLoaders = mutableListOf<URLClassLoader>()
@@ -101,9 +99,10 @@ class InterpreterTest : TestWithTempFiles() {
                     eq(stage1TemplateId),
                     eq(sourceHash),
                     same(parentClassLoader),
+                    isNull(),
                     any())
             } doAnswer {
-                it.getArgument<(File) -> Unit>(3).invoke(stage1CacheDir)
+                it.getArgument<(File) -> Unit>(4).invoke(stage1CacheDir)
                 stage1CacheDir
             }
 
@@ -111,10 +110,11 @@ class InterpreterTest : TestWithTempFiles() {
                 cachedDirFor(
                     eq(stage2TemplateId),
                     eq(sourceHash),
-                    same(targetScopeLocalClassLoader),
+                    same(targetScopeExportClassLoader),
+                    isNull(),
                     any())
             } doAnswer {
-                it.getArgument<(File) -> Unit>(3).invoke(stage2CacheDir)
+                it.getArgument<(File) -> Unit>(4).invoke(stage2CacheDir)
                 stage2CacheDir
             }
 

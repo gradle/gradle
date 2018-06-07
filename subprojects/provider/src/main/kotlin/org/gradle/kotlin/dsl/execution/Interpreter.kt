@@ -34,7 +34,6 @@ import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
-import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -86,6 +85,7 @@ class Interpreter(val host: Host) {
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
+            accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
         ): File
 
@@ -227,7 +227,12 @@ class Interpreter(val host: Host) {
             scriptSource.fileName!!
 
         val cachedDir =
-            host.cachedDirFor(templateId, sourceHash, parentClassLoader) { cachedDir ->
+            host.cachedDirFor(
+                templateId,
+                sourceHash,
+                parentClassLoader,
+                null
+            ) { cachedDir ->
 
                 logCompilationOf(templateId, scriptSource)
 
@@ -407,8 +412,16 @@ class Interpreter(val host: Host) {
             val targetScope =
                 scriptHost.targetScope
 
+            val parentClassLoader =
+                targetScope.exportClassLoader
+
             val cacheDir =
-                host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
+                host.cachedDirFor(
+                    scriptTemplateId,
+                    sourceHash,
+                    parentClassLoader,
+                    accessorsClassPath
+                ) { outputDir ->
 
                     logCompilationOf(scriptTemplateId, scriptHost.scriptSource)
 

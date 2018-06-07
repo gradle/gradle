@@ -348,14 +348,7 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresAccessors()) {
-            ALOAD(Vars.ProgramHost)
-            ALOAD(Vars.ScriptHost)
-            invokeHost(
-                "accessorsClassPathFor",
-                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)Lorg/gradle/internal/classpath/ClassPath;"
-            )
-        } else ACONST_NULL()
+        if (requiresAccessors()) emitAccessorsClassPathForScriptHost() else ACONST_NULL()
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +
@@ -370,6 +363,16 @@ class ResidualProgramCompiler(
     private
     fun requiresAccessors() =
         programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
+
+    private
+    fun MethodVisitor.emitAccessorsClassPathForScriptHost() {
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.ScriptHost)
+        invokeHost(
+            "accessorsClassPathFor",
+            "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)Lorg/gradle/internal/classpath/ClassPath;"
+        )
+    }
 
     private
     fun ClassVisitor.overrideExecute(methodBody: MethodVisitor.() -> Unit) {

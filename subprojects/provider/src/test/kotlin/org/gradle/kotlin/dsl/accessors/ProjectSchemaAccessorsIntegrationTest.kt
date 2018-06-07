@@ -16,7 +16,6 @@ import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -76,7 +75,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         build("tasks")
     }
 
-    @Ignore("partial-evaluator-wip")
     @Test
     fun `conflicting extensions across build runs`() {
 

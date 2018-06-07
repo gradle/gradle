@@ -180,22 +180,30 @@ class StandardKotlinScriptEvaluator(
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
+            accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
-        ): File =
-            try {
-                cacheDirFor(cacheKeyPrefix + templateId + sourceHash + parentClassLoader) {
-                    initializer(baseDir)
-                }
-            } catch (e: CacheOpenException) {
-                throw e.cause as? ScriptCompilationException ?: e
+        ): File = try {
+
+            val baseCacheKey =
+                cacheKeyPrefix + templateId + sourceHash + parentClassLoader
+
+            val effectiveCacheKey =
+                accessorsClassPath?.let { baseCacheKey + it }
+                    ?: baseCacheKey
+
+            cacheDirFor(effectiveCacheKey) {
+                initializer(baseDir)
             }
+        } catch (e: CacheOpenException) {
+            throw e.cause as? ScriptCompilationException ?: e
+        }
 
         private
         fun cacheDirFor(cacheKeySpec: CacheKeyBuilder.CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
             scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
 
         private
-        val cacheProperties = mapOf("version" to "7")
+        val cacheProperties = mapOf("version" to "8")
 
         private
         val cacheKeyPrefix =
