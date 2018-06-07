@@ -205,4 +205,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     public boolean hasHardSuccessor(WorkInfo successor) {
         return dependencySuccessors.contains(successor);
     }
+
+    @Override
+    public abstract String toString();
 }

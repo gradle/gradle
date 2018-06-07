@@ -573,6 +573,8 @@ allprojects {
         output.count("Transforming") == 0
     }
 
+    // FIXME lptr
+    @Ignore
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << """

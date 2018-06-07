@@ -111,6 +111,4 @@ public abstract class TaskInfo extends WorkInfo {
         return getMustSuccessors().contains(successor)
             || getFinalizingSuccessors().contains(successor);
     }
-
-    abstract public String toString();
 }

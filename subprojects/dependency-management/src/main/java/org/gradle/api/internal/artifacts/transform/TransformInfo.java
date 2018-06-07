@@ -21,8 +21,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -34,8 +36,10 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,27 +47,27 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
-    private final UserCodeBackedTransformer artifactTransformer;
+    protected final UserCodeBackedTransformer artifactTransformer;
     private List<File> result;
-    protected Throwable failure;
+    private Throwable failure;
 
     public static TransformInfo from(
         List<UserCodeBackedTransformer> transformerChain,
         BuildableSingleResolvedArtifactSet artifact,
         BuildOperationExecutor buildOperationExecutor
     ) {
-        ListIterator<UserCodeBackedTransformer> iterator = transformerChain.listIterator(transformerChain.size());
+        Iterator<UserCodeBackedTransformer> iterator = transformerChain.iterator();
         TransformInfo current;
         TransformInfo previous = null;
         do {
-            UserCodeBackedTransformer transformer = iterator.previous();
+            UserCodeBackedTransformer transformer = iterator.next();
             if (previous == null) {
                 current = new InitialTransformInfo(transformer, artifact, buildOperationExecutor);
             } else {
                 current = new ChainedTransformInfo(transformer, previous);
             }
             previous = current;
-        } while (iterator.hasPrevious());
+        } while (iterator.hasNext());
         return current;
     }
 
@@ -72,20 +76,49 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
     }
 
     public void execute() {
-        ImmutableList.Builder<File> builder = ImmutableList.builder();
-        for (File inputFile : getInputFiles()) {
+        ResolvedTransformInputs inputs = resolveInputs();
+        if (inputs.failure != null) {
+            failure = inputs.failure;
+        } else {
             try {
-                List<File> transformerResult = artifactTransformer.transform(inputFile);
-                builder.addAll(transformerResult);
+                ImmutableList.Builder<File> builder = ImmutableList.builder();
+                for (File inputFile : inputs.files) {
+                    List<File> transformerResult = artifactTransformer.transform(inputFile);
+                    builder.addAll(transformerResult);
+                }
+                result = builder.build();
             } catch (Exception e) {
                 failure = e;
-                break;
             }
         }
-        result = builder.build();
     }
 
-    protected abstract Iterable<File> getInputFiles();
+    protected abstract ResolvedTransformInputs resolveInputs();
+
+    @Override
+    public String toString() {
+        return artifactTransformer.getDisplayName();
+    }
+
+    private class ResolvedTransformInputs {
+        private final Collection<File> files;
+        private final Throwable failure;
+
+        public ResolvedTransformInputs(Collection<File> files) {
+            this.files = files;
+            this.failure = null;
+        }
+
+        public ResolvedTransformInputs(Throwable failure) {
+            this.files = Collections.emptySet();
+            this.failure = failure;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Input files: %s, failure: %s", files, failure);
+        }
+    }
 
     @Override
     public List<File> getResult() {
@@ -147,24 +180,42 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
         }
 
         @Override
-        protected Iterable<File> getInputFiles() {
+        protected ResolvedTransformInputs resolveInputs() {
             ResolveArtifacts resolveArtifacts = new ResolveArtifacts(artifactSet);
             buildOperationExecutor.runAll(resolveArtifacts);
-            ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+            ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
             resolveArtifacts.getResult().visit(visitor);
-            ResolvedArtifact artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-            return ImmutableList.of(artifact.getFile());
+            Set<Throwable> failures = visitor.getFailures();
+            if (!failures.isEmpty()) {
+                Throwable failure;
+                if (failures.size() == 1 && Iterables.getOnlyElement(failures) instanceof ResolveException) {
+                    failure = Iterables.getOnlyElement(failures);
+                } else {
+                    failure = new DefaultLenientConfiguration.ArtifactResolveException("artifacts", artifactTransformer.getDisplayName(), "artifact transform", failures);
+                }
+                return new ResolvedTransformInputs(failure);
+            } else {
+                ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
+                return new ResolvedTransformInputs(ImmutableList.of(artifact.getFile()));
+            }
         }
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
-            for (WorkInfo dependency : getDependencies(dependencyResolver)) {
+            Set<WorkInfo> dependencies = getDependencies(dependencyResolver);
+            for (WorkInfo dependency : dependencies) {
                 addDependencySuccessor(dependency);
+                processHardSuccessor.execute(dependency);
             }
         }
 
         private Set<WorkInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
             return dependencyResolver.resolveDependenciesFor(null, artifactSet.getBuildDependencies());
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s on %s", super.toString(), artifactSet.getArtifactId().getDisplayName());
         }
     }
 
@@ -177,25 +228,25 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
         }
 
         @Override
-        public void execute() {
+        protected ResolvedTransformInputs resolveInputs() {
             Throwable previousFailure = previousTransform.getFailure();
             if (previousFailure != null) {
-                this.failure = previousFailure;
-            } else {
-                super.execute();
+                return new ResolvedTransformInputs(previousFailure);
             }
-        }
-
-        @Override
-        protected Iterable<File> getInputFiles() {
             List<File> inputFiles = previousTransform.getResult();
             assert inputFiles != null;
-            return inputFiles;
+            return new ResolvedTransformInputs(inputFiles);
         }
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
             addDependencySuccessor(previousTransform);
+            processHardSuccessor.execute(previousTransform);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s -> %s", super.toString(), previousTransform);
         }
     }
 
