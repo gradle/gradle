@@ -11,7 +11,7 @@ accordingly and delete the patch script.
 changeBuildType("Gradle_Check_SanityCheck") {
     params {
         add {
-            param("system.java9Home", "%linux.java8.oracle.64bit%")
+            param("system.java9Home", "%linux.java9.oracle.64bit%")
         }
     }
 }
