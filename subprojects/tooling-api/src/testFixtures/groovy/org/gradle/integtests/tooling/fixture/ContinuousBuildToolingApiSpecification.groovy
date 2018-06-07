@@ -183,8 +183,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         } finally {
             if (!success) {
                 println "Polling lasted ${(long) ((System.nanoTime() - pollingStartNanos) / 1000000L)} ms measured with monotonic clock"
-                requestJstackForBuildProcess()
-            }
+                requestJstackForBuildProcess() }
         }
 
         def executionOutput = new ExecutionOutput(stdout.toString(), stderr.toString())
