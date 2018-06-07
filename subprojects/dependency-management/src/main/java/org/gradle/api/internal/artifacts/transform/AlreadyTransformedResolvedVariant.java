@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -28,29 +28,29 @@ import java.io.File;
 import java.util.Map;
 
 /**
- * Transformed artifact set that performs the transformation itself when requested.
+ * Transformed artifact set that uses the result of an already executed transformation.
  */
-public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
+public class AlreadyTransformedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
+    private final Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults;
 
-    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform) {
+    public AlreadyTransformedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformer transform, Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults) {
         this.delegate = delegate;
-        this.attributes = target;
+        this.attributes = attributes;
         this.transform = transform;
+        this.preCalculatedResults = preCalculatedResults;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults = Maps.newConcurrentMap();
-        Map<File, TransformFileOperation> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
-        return new TransformCompletion(result, attributes, artifactResults, fileResults);
+        Completion delegateCompletion = delegate.startVisit(actions, listener);
+        return new TransformCompletion(delegateCompletion, attributes, preCalculatedResults, ImmutableMap.<File, TransformFileOperation>of());
     }
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        delegate.collectBuildDependencies(visitor);
+        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate));
     }
 }

@@ -101,7 +101,11 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             AttributeContainerInternal attributes = result.getRight().attributes;
             ArtifactTransformer transformer = result.getRight().transformer;
             Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults = transformOperationRegistry.getResults(artifacts, transformer);
-            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer, preCalculatedResults);
+            if (preCalculatedResults == null) {
+                return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer);
+            } else {
+                return new AlreadyTransformedResolvedVariant(artifacts, attributes, transformer, preCalculatedResults);
+            }
         }
 
         if (!candidates.isEmpty()) {
