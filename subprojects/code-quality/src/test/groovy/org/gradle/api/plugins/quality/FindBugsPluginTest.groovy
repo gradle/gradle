@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.artifacts.transform.TransformInfo
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
@@ -23,9 +22,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.Matchers.hasItem
-import static org.hamcrest.Matchers.hasItems
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class FindBugsPluginTest extends AbstractProjectBuilderSpec {
@@ -189,9 +186,9 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             reportLevel == 'high'
             visitors == ['org.gradle.Class']
             omitVisitors == ['org.gradle.Interface']
-            TransformInfo.getInputFiles.singleFile == project.file("include.txt")
-            TransformInfo.getInputFiles.singleFile == project.file("exclude.txt")
-            TransformInfo.getInputFiles.singleFile == project.file("baselineBugs.txt")
+            includeFilterConfig.inputFiles.singleFile == project.file("include.txt")
+            excludeFilterConfig.inputFiles.singleFile == project.file("exclude.txt")
+            excludeBugsFilterConfig.inputFiles.singleFile == project.file("baselineBugs.txt")
             includeFilter == project.file("include.txt")
             excludeFilter == project.file("exclude.txt")
             excludeBugsFilter == project.file("baselineBugs.txt")
@@ -230,9 +227,9 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             reportLevel == 'high'
             visitors == ['org.gradle.Class']
             omitVisitors == ['org.gradle.Interface']
-            TransformInfo.getInputFiles.singleFile == project.file("include.txt")
-            TransformInfo.getInputFiles.singleFile == project.file("exclude.txt")
-            TransformInfo.getInputFiles.singleFile == project.file("baselineBugs.txt")
+            includeFilterConfig.inputFiles.singleFile == project.file("include.txt")
+            excludeFilterConfig.inputFiles.singleFile == project.file("exclude.txt")
+            excludeBugsFilterConfig.inputFiles.singleFile == project.file("baselineBugs.txt")
             includeFilter == project.file("include.txt")
             excludeFilter == project.file("exclude.txt")
             excludeBugsFilter == project.file("baselineBugs.txt")
@@ -268,7 +265,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         project.findbugs.includeFilter == project.file("filter.txt")
-        TransformInfo.getInputFiles.singleFile == project.file("filter.txt")
+        project.findbugs.includeFilterConfig.inputFiles.singleFile == project.file("filter.txt")
     }
 
     def "can use legacy excludeFilter extension property"() {
@@ -278,7 +275,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         project.findbugs.excludeFilter == project.file("filter.txt")
-        TransformInfo.getInputFiles.singleFile == project.file("filter.txt")
+        project.findbugs.excludeFilterConfig.inputFiles.singleFile == project.file("filter.txt")
     }
 
     def "can use legacy excludeBugsFilter extension property"() {
@@ -288,6 +285,6 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         project.findbugs.excludeBugsFilter == project.file("filter.txt")
-        TransformInfo.getInputFiles.singleFile == project.file("filter.txt")
+        project.findbugs.excludeBugsFilterConfig.inputFiles.singleFile == project.file("filter.txt")
     }
 }
