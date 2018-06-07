@@ -133,6 +133,69 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         journal.assertExists()
     }
 
+    def "redownloads deleted HTTP script plugin resources"() {
+        given:
+        def uuid = UUID.randomUUID()
+        def uniqueFileName = "external-${uuid}.gradle"
+        def script = file(uniqueFileName) << """
+            task customTask
+        """
+        buildFile << """
+            apply from: '$server.uri/$uniqueFileName'
+            defaultTasks 'customTask'
+        """
+        server.expectGet("/$uniqueFileName", script)
+
+        when:
+        succeeds()
+
+        then:
+        def resources = findFiles(cacheDir, "resources-*/**/$uniqueFileName")
+        resources.size() == 1
+
+        when:
+        assert resources[0].delete()
+        server.expectGet("/$uniqueFileName", script)
+
+        and:
+        succeeds()
+
+        then:
+        resources[0].assertExists()
+    }
+
+    def "redownloads deleted uri backed text resources"() {
+        given:
+        def uuid = UUID.randomUUID()
+        def resourceFile = file("test.txt") << "Hello, Gradle!"
+        def uniqueFileName = "my-uri-text-resource-${uuid}.txt"
+        server.expectGet("/$uniqueFileName", resourceFile)
+        buildFile << """
+            task uriText {
+                doLast {
+                    print resources.text.fromUri("http://localhost:$server.port/$uniqueFileName").asString()
+                }
+            }
+        """
+
+        when:
+        succeeds 'uriText'
+
+        then:
+        def resources = findFiles(cacheDir, "resources-*/**/$uniqueFileName")
+        resources.size() == 1
+
+        when:
+        assert resources[0].delete()
+        server.expectGet("/$uniqueFileName", resourceFile)
+
+        and:
+        succeeds 'uriText'
+
+        then:
+        resources[0].assertExists()
+    }
+
     private TestFile getJournal() {
         def journal = findFiles(cacheDir, "metadata-*/" + IndexedCacheBackedFileAccessTimeJournal.CACHE_NAME + ".bin")
         journal.size() == 1
