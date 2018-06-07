@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformResultRegistry;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformResultRegistry;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
+import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
-import org.gradle.api.internal.artifacts.transform.TransformInfoResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -73,8 +73,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return new DefaultArtifactTransformResultRegistry(buildOperationExecutor);
         }
 
-        TransformInfoResolver createTransformInfoResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
-            return new TransformInfoResolver(transformOperationRegistry);
+        TransformInfoDependencyResolver createTransformInfoResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
+            return new TransformInfoDependencyResolver(transformOperationRegistry);
         }
 
         TransformInfoExecutor createTransformInfoExecutor() {

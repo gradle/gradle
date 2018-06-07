@@ -20,13 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 
-public interface WorkResolver<T> {
+public interface WorkDependencyResolver<T> {
     /**
-     * Resolves an {@link Object} to a specific work item.
+     * Resolves dependencies to a specific type.
      */
     boolean resolve(Task task, Object node, Action<? super T> resolveAction);
 
-    WorkResolver<Task> TASK_AS_TASK = new WorkResolver<Task>() {
+    /**
+     * Resolves dependencies to {@link Task} objects.
+     */
+    WorkDependencyResolver<Task> TASK_AS_TASK = new WorkDependencyResolver<Task>() {
         @Override
         public boolean resolve(Task originalTask, Object node, Action<? super Task> resolveAction) {
             if (node instanceof TaskDependency) {

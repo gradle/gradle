@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
 class CachingTaskDependencyResolveContextTest extends Specification {
-    private final CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext([WorkResolver.TASK_AS_TASK])
+    private final CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext([WorkDependencyResolver.TASK_AS_TASK])
     private final Task task = Mock()
     private final Task target = Mock()
     private final TaskDependencyInternal dependency = Mock()

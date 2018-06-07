@@ -27,7 +27,7 @@ import java.util.Set;
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
     public Set<? extends Task> getDependencies(@Nullable Task task) {
         CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(
-            Collections.singleton(WorkResolver.TASK_AS_TASK));
+            Collections.singleton(WorkDependencyResolver.TASK_AS_TASK));
         return context.getDependencies(task, this);
     }
 }

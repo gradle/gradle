@@ -56,7 +56,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def executorFactory = Mock(ExecutorFactory)
     def thisBuild = project.gradle
     def taskInfoFactory = new TaskInfoFactory(thisBuild, Stub(IncludedBuildTaskGraph))
-    def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkResolver(taskInfoFactory)])
+    def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
     def taskGraph = new DefaultTaskExecutionGraph(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []

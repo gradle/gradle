@@ -21,10 +21,13 @@ import org.gradle.api.Task;
 
 import javax.annotation.Nonnull;
 
-public class TaskInfoWorkResolver implements WorkInfoResolver {
+/**
+ * Resolves dependencies to {@link TaskInfo} objects. Uses the same logic as {@link #TASK_AS_TASK}.
+ */
+public class TaskInfoWorkDependencyResolver implements WorkInfoDependencyResolver {
     private final TaskInfoFactory taskInfoFactory;
 
-    public TaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
+    public TaskInfoWorkDependencyResolver(TaskInfoFactory taskInfoFactory) {
         this.taskInfoFactory = taskInfoFactory;
     }
 

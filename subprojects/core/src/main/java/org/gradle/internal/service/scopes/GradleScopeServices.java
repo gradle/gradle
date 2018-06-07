@@ -57,10 +57,10 @@ import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.LocalTaskInfoExecutor;
 import org.gradle.execution.taskgraph.TaskDependencyResolver;
 import org.gradle.execution.taskgraph.TaskInfoFactory;
-import org.gradle.execution.taskgraph.TaskInfoWorkResolver;
+import org.gradle.execution.taskgraph.TaskInfoWorkDependencyResolver;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
 import org.gradle.execution.taskgraph.WorkInfoExecutor;
-import org.gradle.execution.taskgraph.WorkInfoResolver;
 import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
@@ -163,11 +163,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskInfoFactory(gradle, includedBuildTaskGraph);
     }
 
-    TaskInfoWorkResolver createTaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
-        return new TaskInfoWorkResolver(taskInfoFactory);
+    TaskInfoWorkDependencyResolver createTaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
+        return new TaskInfoWorkDependencyResolver(taskInfoFactory);
     }
 
-    TaskDependencyResolver createTaskDependencyResolver(List<WorkInfoResolver> workResolvers) {
+    TaskDependencyResolver createTaskDependencyResolver(List<WorkInfoDependencyResolver> workResolvers) {
         return new TaskDependencyResolver(workResolvers);
     }
 

@@ -52,7 +52,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         def taskInfoFactory = new TaskInfoFactory(project.gradle, Stub(IncludedBuildTaskGraph))
-        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkResolver(taskInfoFactory)])
+        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
         executionPlan = new DefaultTaskExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskInfoFactory, dependencyResolver)
     }
 

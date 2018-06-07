@@ -16,7 +16,10 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.internal.tasks.WorkResolver;
+import org.gradle.api.internal.tasks.WorkDependencyResolver;
 
-public interface WorkInfoResolver extends WorkResolver<WorkInfo> {
+/**
+ * Resolves dependencies to {@link WorkInfo} objects.
+ */
+public interface WorkInfoDependencyResolver extends WorkDependencyResolver<WorkInfo> {
 }

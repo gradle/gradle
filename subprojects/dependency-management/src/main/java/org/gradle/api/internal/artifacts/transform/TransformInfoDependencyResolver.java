@@ -20,14 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.execution.taskgraph.WorkInfo;
-import org.gradle.execution.taskgraph.WorkInfoResolver;
+import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
 
 import java.util.Map;
 
-public class TransformInfoResolver implements WorkInfoResolver {
+/**
+ * Resolves dependencies to {@link TransformInfo} objects.
+ */
+public class TransformInfoDependencyResolver implements WorkInfoDependencyResolver {
     private final ArtifactTransformResultRegistry transformOperationRegistry;
 
-    public TransformInfoResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
+    public TransformInfoDependencyResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
         this.transformOperationRegistry = transformOperationRegistry;
     }
 

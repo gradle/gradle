@@ -26,10 +26,10 @@ import java.util.Set;
 
 @NonNullApi
 public class TaskDependencyResolver {
-    private final List<WorkInfoResolver> workResolvers;
+    private final List<WorkInfoDependencyResolver> workResolvers;
     private CachingTaskDependencyResolveContext<WorkInfo> context;
 
-    public TaskDependencyResolver(List<WorkInfoResolver> workResolvers) {
+    public TaskDependencyResolver(List<WorkInfoDependencyResolver> workResolvers) {
         this.workResolvers = workResolvers;
         this.context = createTaskDependencyResolverContext(workResolvers);
     }
@@ -38,7 +38,7 @@ public class TaskDependencyResolver {
         context = createTaskDependencyResolverContext(workResolvers);
     }
 
-    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkInfoResolver> workResolvers) {
+    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkInfoDependencyResolver> workResolvers) {
         return new CachingTaskDependencyResolveContext<WorkInfo>(workResolvers);
     }
 
