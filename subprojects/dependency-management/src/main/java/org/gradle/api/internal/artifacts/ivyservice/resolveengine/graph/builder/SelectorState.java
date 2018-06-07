@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -40,7 +40,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
-import java.util.List;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONSTRAINT;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED;
@@ -68,7 +68,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final ResolvedVersionConstraint versionConstraint;
     private final VersionSelectorScheme versionSelectorScheme;
     private final ImmutableAttributesFactory attributesFactory;
-    private final List<ComponentSelectionDescriptorInternal> dependencyReasons = Lists.newArrayListWithExpectedSize(2);
+    private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
@@ -96,8 +96,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (reason != null) {
             dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
         }
-        // We intentionally use a fast data structure here (list) because de-duplication is going
-        // to happen only if the component happens to be selected
         dependencyReasons.add(dependencyDescriptor);
     }
 
