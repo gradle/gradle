@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factories;
@@ -82,6 +83,20 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
             return Iterators.emptyIterator();
         }
         return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType, pathIsAbsolute, includeAdded);
+    }
+
+    @Override
+    public boolean accept(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        if (includeAdded && hashCode != null && getHash().equals(oldSnapshot.getHash())) {
+            return true;
+        }
+        Iterator<TaskStateChange> iterator = compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), title, pathIsAbsolute, includeAdded);
+        while (iterator.hasNext()) {
+            if (!visitor.visitChange(iterator.next())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

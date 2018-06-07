@@ -44,18 +44,21 @@ public abstract class AbstractPropertyTaskStateChanges<V> extends SimpleTaskStat
     protected void addAllChanges(final List<TaskStateChange> changes) {
         SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
             @Override
-            public void removed(String previousProperty) {
+            public boolean removed(String previousProperty) {
                 changes.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, previousProperty, task));
+                return true;
             }
 
             @Override
-            public void added(String currentProperty) {
+            public boolean added(String currentProperty) {
                 changes.add(new DescriptiveChange("%s property '%s' has been added for %s", title, currentProperty, task));
+                return true;
             }
 
             @Override
-            public void updated(String property, V previous, V current) {
+            public boolean updated(String property, V previous, V current) {
                 // Ignore
+                return true;
             }
         });
     }

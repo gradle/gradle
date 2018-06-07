@@ -48,18 +48,21 @@ class SortedMapDiffUtilTest extends Specification {
         Map result = [added: [], removed: [], updated: []]
         SortedMapDiffUtil.diff(previousMap, currentMap, new PropertyDiffListener<String, String>() {
             @Override
-            void removed(String previousProperty) {
+            boolean removed(String previousProperty) {
                 result.removed.add(previousProperty)
+                return true
             }
 
             @Override
-            void added(String currentProperty) {
+            boolean added(String currentProperty) {
                 result.added.add(currentProperty)
+                return true
             }
 
             @Override
-            void updated(String property, String previousValue, String currentValue) {
+            boolean updated(String property, String previousValue, String currentValue) {
                 result.updated.add(property)
+                return true
             }
         })
         return result

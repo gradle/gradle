@@ -21,8 +21,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.Iterator;
-
 @NonNullApi
 public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFileTaskStateChanges(TaskExecution previous, TaskExecution current) {
@@ -35,7 +33,7 @@ public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStat
     }
 
     @Override
-    public Iterator<TaskStateChange> iterator() {
-        return getFileChanges(true);
+    public boolean accept(TaskStateChangeVisitor visitor) {
+        return accept(visitor, true);
     }
 }

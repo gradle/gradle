@@ -25,7 +25,7 @@ public class SortedMapDiffUtil {
 
     private SortedMapDiffUtil() {}
 
-    public static <K, V> void diff(SortedMap<K, V> previous, SortedMap<K, V> current, PropertyDiffListener<K, V> diffListener) {
+    public static <K, V> boolean diff(SortedMap<K, V> previous, SortedMap<K, V> current, PropertyDiffListener<K, V> diffListener) {
         Iterator<Map.Entry<K, V>> currentEntries = current.entrySet().iterator();
         Iterator<Map.Entry<K, V>> previousEntries = previous.entrySet().iterator();
         Comparator<? super K> comparator = previous.comparator();
@@ -38,23 +38,33 @@ public class SortedMapDiffUtil {
                 K currentProperty = currentEntry.getKey();
                 int compared = comparator.compare(previousProperty, currentProperty);
                 if (compared < 0) {
-                    diffListener.removed(previousProperty);
+                    if (!diffListener.removed(previousProperty)) {
+                        return false;
+                    }
                     if (previousEntries.hasNext()) {
                         previousEntry = previousEntries.next();
                     } else {
-                        diffListener.added(currentProperty);
+                        if (!diffListener.added(currentProperty)) {
+                            return false;
+                        }
                         break;
                     }
                 } else if (compared > 0) {
-                    diffListener.added(currentProperty);
+                    if (!diffListener.added(currentProperty)) {
+                        return false;
+                    }
                     if (currentEntries.hasNext()) {
                         currentEntry = currentEntries.next();
                     } else {
-                        diffListener.removed(previousProperty);
+                        if (!diffListener.removed(previousProperty)) {
+                            return false;
+                        }
                         break;
                     }
                 } else {
-                    diffListener.updated(previousProperty, previousEntry.getValue(), currentEntry.getValue());
+                    if (!diffListener.updated(previousProperty, previousEntry.getValue(), currentEntry.getValue())) {
+                        return false;
+                    }
                     if (previousEntries.hasNext() && currentEntries.hasNext()) {
                         previousEntry = previousEntries.next();
                         currentEntry = currentEntries.next();
@@ -66,11 +76,16 @@ public class SortedMapDiffUtil {
         }
 
         while (currentEntries.hasNext()) {
-            diffListener.added(currentEntries.next().getKey());
+            if (!diffListener.added(currentEntries.next().getKey())) {
+                return false;
+            }
         }
 
         while(previousEntries.hasNext()) {
-            diffListener.removed(previousEntries.next().getKey());
+            if (!diffListener.removed(previousEntries.next().getKey())) {
+                return false;
+            }
         }
+        return true;
     }
 }

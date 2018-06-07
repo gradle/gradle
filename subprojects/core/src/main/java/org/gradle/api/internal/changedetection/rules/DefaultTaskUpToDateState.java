@@ -53,8 +53,10 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
         this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
     }
 
-    private static TaskStateChanges caching(Iterable<TaskStateChange> wrapped) {
-        return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+    private static TaskStateChanges caching(TaskStateChanges wrapped) {
+        // TODO wolfs: implement caching for visitor TaskStateChange
+//        return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+        return wrapped;
     }
 
     @Override

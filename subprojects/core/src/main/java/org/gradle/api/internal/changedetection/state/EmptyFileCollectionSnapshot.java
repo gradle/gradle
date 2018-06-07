@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -46,6 +47,16 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
                 return FileChange.removed(entry.getKey(), title, entry.getValue().getType());
             }
         });
+    }
+
+    @Override
+    public boolean accept(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        for (Map.Entry<String, FileContentSnapshot> entry : oldSnapshot.getContentSnapshots().entrySet()) {
+            if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.rules;
 
 public interface PropertyDiffListener<K, V> {
-    void removed(K previousProperty);
+    boolean removed(K previousProperty);
 
-    void added(K currentProperty);
+    boolean added(K currentProperty);
 
-    void updated(K property, V previous, V current);
+    boolean updated(K property, V previous, V current);
 }

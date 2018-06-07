@@ -17,17 +17,12 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 @NonNullApi
-public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, Iterable<TaskStateChange> {
+public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final String title;
@@ -48,34 +43,23 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
 
     protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
 
-    protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
-        final List<Iterator<TaskStateChange>> iterators = new ArrayList<Iterator<TaskStateChange>>();
-        SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {
+    protected boolean accept(final TaskStateChangeVisitor visitor, final boolean includeAdded) {
+        return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {
             @Override
-            public void removed(String previousProperty) {
+            public boolean removed(String previousProperty) {
+                return true;
             }
 
             @Override
-            public void added(String currentProperty) {
+            public boolean added(String currentProperty) {
+                return true;
             }
 
             @Override
-            public void updated(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
+            public boolean updated(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
                 String propertyTitle = title + " property '" + property + "'";
-                iterators.add(currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded));
+                return currentSnapshot.accept(previousSnapshot, propertyTitle, includeAdded, visitor);
             }
         });
-
-        return Iterators.concat(iterators.iterator());
-    }
-
-    @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
-        for (TaskStateChange taskStateChange : this) {
-            if (!visitor.visitChange(taskStateChange)) {
-                return false;
-            }
-        }
-        return true;
     }
 }
