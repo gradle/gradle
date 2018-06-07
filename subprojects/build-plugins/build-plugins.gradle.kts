@@ -23,7 +23,7 @@ dependencies {
     compileOnly(gradleApi())
     compileOnly(project(":provider"))
 
-    implementation("com.thoughtworks.qdox:qdox:2.0-M8")
+    implementation("com.thoughtworks.qdox:qdox:2.0-M9")
     implementation(futureKotlin("gradle-plugin"))
 
     testImplementation(project(":provider"))
