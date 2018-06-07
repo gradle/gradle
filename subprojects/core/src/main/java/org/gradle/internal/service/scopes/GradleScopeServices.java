@@ -30,6 +30,8 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskInfoWorkResolver;
+import org.gradle.api.internal.tasks.WorkResolver;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -57,6 +59,8 @@ import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskDependencyResolver;
 import org.gradle.execution.taskgraph.TaskInfoFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.execution.taskgraph.WorkInfo;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
@@ -159,8 +163,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskInfoFactory(gradle, includedBuildTaskGraph);
     }
 
-    TaskDependencyResolver createTaskDependencyResolver(TaskInfoFactory taskInfoFactory) {
-        return new TaskDependencyResolver(taskInfoFactory);
+    WorkResolver<WorkInfo> createTaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
+        return new TaskInfoWorkResolver(taskInfoFactory);
+    }
+
+    TaskDependencyResolver createTaskDependencyResolver(List<WorkResolver> workResolvers) {
+        return new TaskDependencyResolver(Cast.<List<WorkResolver<WorkInfo>>>uncheckedCast(workResolvers));
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {

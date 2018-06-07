@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskInfoWorkResolver
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
@@ -53,7 +54,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, root.gradle, Stub(IncludedBuildTaskGraph))
+        def taskInfoFactory = new TaskInfoFactory(root.gradle, Stub(IncludedBuildTaskGraph))
+        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkResolver(taskInfoFactory)])
+        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, root.gradle, taskInfoFactory, dependencyResolver)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true

@@ -21,9 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.execution.taskgraph.TaskInfoFactory;
-import org.gradle.execution.taskgraph.WorkInfo;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -104,7 +101,7 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
             } else {
                 boolean handled = false;
                 for (WorkResolver<T> workResolver : workResolvers) {
-                    if (workResolver.resolve(task, node, connectedNodes, new Action<T>() {
+                    if (workResolver.resolve(task, node, new Action<T>() {
                         @Override
                         public void execute(T resolvedValue) {
                             values.add(resolvedValue);
@@ -120,51 +117,5 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
                 }
             }
         }
-    }
-
-    public interface WorkResolver<T> {
-        boolean resolve(Task task, Object node, Collection<Object> connectedNodes, Action<? super T> resolveAction);
-    }
-
-    public static class TaskResolver implements WorkResolver<Task> {
-        @Override
-        public boolean resolve(Task task, Object node, Collection<Object> connectedNodes, Action<? super Task> resolveAction) {
-            return resolveToTask(task, node, connectedNodes, resolveAction);
-        }
-    }
-
-    public static class TaskInfoResolver implements WorkResolver<WorkInfo> {
-        private final TaskInfoFactory taskInfoFactory;
-
-        public TaskInfoResolver(TaskInfoFactory taskInfoFactory) {
-            this.taskInfoFactory = taskInfoFactory;
-        }
-
-        @Override
-        public boolean resolve(Task task, Object node, Collection<Object> connectedNodes, final Action<? super WorkInfo> resolveAction) {
-            return resolveToTask(task, node, connectedNodes, new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    resolveAction.execute(taskInfoFactory.getOrCreateNode(task));
-                }
-            });
-        }
-    }
-
-    private static boolean resolveToTask(@Nullable Task originalTask, Object node, Collection<Object> connectedNodes, Action<? super Task> resolveAction) {
-        if (node instanceof TaskDependency) {
-            TaskDependency taskDependency = (TaskDependency) node;
-            for (Task dependencyTask : taskDependency.getDependencies(originalTask)) {
-                resolveAction.execute(dependencyTask);
-            }
-        } else if (node instanceof Task) {
-            resolveAction.execute((Task) node);
-        } else if (node instanceof TaskReferenceInternal) {
-            Task task = ((TaskReferenceInternal) node).resolveTask();
-            resolveAction.execute(task);
-        } else {
-            return false;
-        }
-        return true;
     }
 }

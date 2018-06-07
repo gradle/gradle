@@ -19,29 +19,28 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext.WorkResolver;
+import org.gradle.api.internal.tasks.WorkResolver;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 @NonNullApi
 public class TaskDependencyResolver {
+    private final List<WorkResolver<WorkInfo>> workResolvers;
     private CachingTaskDependencyResolveContext<WorkInfo> context;
-    private final TaskInfoFactory taskInfoFactory;
 
-    public TaskDependencyResolver(TaskInfoFactory taskInfoFactory) {
-        this.taskInfoFactory = taskInfoFactory;
-        this.context = createTaskDependencyResolverContext(taskInfoFactory);
+    public TaskDependencyResolver(List<WorkResolver<WorkInfo>> workResolvers) {
+        this.workResolvers = workResolvers;
+        this.context = createTaskDependencyResolverContext(workResolvers);
     }
 
     public void clear() {
-        context = createTaskDependencyResolverContext(taskInfoFactory);
+        context = createTaskDependencyResolverContext(workResolvers);
     }
 
-    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(final TaskInfoFactory taskInfoFactory) {
-        return new CachingTaskDependencyResolveContext<WorkInfo>(
-            Collections.<WorkResolver<WorkInfo>>singleton(new CachingTaskDependencyResolveContext.TaskInfoResolver(taskInfoFactory)));
+    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkResolver<WorkInfo>> workResolvers) {
+        return new CachingTaskDependencyResolveContext<WorkInfo>(workResolvers);
     }
 
     public Set<WorkInfo> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
