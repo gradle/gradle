@@ -42,7 +42,6 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -103,11 +102,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, IncludedBuildTaskGraph taskGraph) {
+    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
-        nodeFactory = new TaskInfoFactory(gradle, taskGraph);
-        dependencyResolver = new TaskDependencyResolver(nodeFactory);
+        this.nodeFactory = taskInfoFactory;
+        this.dependencyResolver = dependencyResolver;
     }
 
     @Override

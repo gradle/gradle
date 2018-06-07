@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -80,14 +79,24 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
 
-    public DefaultTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuterFactory, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, IncludedBuildTaskGraph includedBuildTaskGraph) {
+    public DefaultTaskExecutionGraph(
+        ListenerManager listenerManager,
+        TaskPlanExecutor taskPlanExecutor,
+        Factory<? extends TaskExecuter> taskExecuterFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        WorkerLeaseService workerLeaseService,
+        ResourceLockCoordinationService coordinationService,
+        GradleInternal gradleInternal,
+        TaskInfoFactory taskInfoFactory,
+        TaskDependencyResolver dependencyResolver
+    ) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuterFactory = taskExecuterFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.coordinationService = coordinationService;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal, includedBuildTaskGraph);
+        this.taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
     @Override
