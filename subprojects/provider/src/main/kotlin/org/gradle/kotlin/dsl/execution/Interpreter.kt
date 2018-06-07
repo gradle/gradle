@@ -415,6 +415,9 @@ class Interpreter(val host: Host) {
             val parentClassLoader =
                 targetScope.exportClassLoader
 
+            val scriptSource =
+                scriptHost.scriptSource
+
             val cacheDir =
                 host.cachedDirFor(
                     scriptTemplateId,
@@ -423,7 +426,7 @@ class Interpreter(val host: Host) {
                     accessorsClassPath
                 ) { outputDir ->
 
-                    logCompilationOf(scriptTemplateId, scriptHost.scriptSource)
+                    logCompilationOf(scriptTemplateId, scriptSource)
 
                     val targetScopeClassPath =
                         host.compilationClassPathOf(targetScope)
@@ -433,7 +436,7 @@ class Interpreter(val host: Host) {
                             targetScopeClassPath + it
                         } ?: targetScopeClassPath
 
-                    scriptHost.scriptSource.withLocationAwareExceptionHandling {
+                    scriptSource.withLocationAwareExceptionHandling {
                         ResidualProgramCompiler(
                             outputDir,
                             compilationClassPath,
@@ -448,7 +451,7 @@ class Interpreter(val host: Host) {
                     }
                 }
 
-            logClassLoadingOf(scriptTemplateId, scriptHost.scriptSource)
+            logClassLoadingOf(scriptTemplateId, scriptSource)
 
             return loadClassInChildScopeOf(
                 targetScope,
@@ -555,6 +558,21 @@ private
 fun logCompilationOf(templateId: String, source: ScriptSource) {
     interpreterLogger.debug("Compiling $templateId from ${source.displayName}")
 }
+
+
+/* TODO:partial-evaluator put progress logging back
+private
+fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
+    val operation = progressLoggerFactory
+        .newOperation(this::class.java)
+        .start("Compiling script into cache", "Compiling $description into local compilation cache")
+    try {
+        return action()
+    } finally {
+        operation.completed()
+    }
+}
+*/
 
 
 private

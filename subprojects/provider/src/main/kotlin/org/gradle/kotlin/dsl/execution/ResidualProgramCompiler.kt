@@ -512,20 +512,6 @@ class ResidualProgramCompiler(
                 else path
             })
 
-    /* TODO:partial-evaluator put progress logging back
-    private
-    fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
-        val operation = progressLoggerFactory
-            .newOperation(this::class.java)
-            .start("Compiling script into cache", "Compiling $description into local compilation cache")
-        try {
-            return action()
-        } finally {
-            operation.completed()
-        }
-    }
-    */
-
     private
     fun scriptFileFor(source: ProgramSource, stage: String) =
         uniqueScriptFileFor(source.path, stage).apply {
