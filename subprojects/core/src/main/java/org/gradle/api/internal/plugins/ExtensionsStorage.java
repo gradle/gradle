@@ -65,7 +65,10 @@ public class ExtensionsStorage {
 
     public <T> T configureExtension(String name, Action<? super T> action) {
         ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
-        return extensionHolder.configure(action);
+        if (extensionHolder != null) {
+            return extensionHolder.configure(action);
+        }
+        throw unknownExtensionException(name);
     }
 
     public <T> void configureExtension(TypeOf<T> type, Action<? super T> action) {
@@ -122,8 +125,7 @@ public class ExtensionsStorage {
         if (extension != null) {
             return extension;
         }
-        throw new UnknownDomainObjectException(
-            "Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+        throw unknownExtensionException(name);
     }
 
     public Object findByName(String name) {
@@ -151,6 +153,14 @@ public class ExtensionsStorage {
 
     private <T> boolean isDeferredConfigurable(T extension) {
         return extension.getClass().isAnnotationPresent(DeferredConfigurable.class);
+    }
+
+    /**
+     * Doesn't actually return anything. Always throws a {@link UnknownDomainObjectException}.
+     * @return Nothing.
+     */
+    private UnknownDomainObjectException unknownExtensionException(final String name) {
+        throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
 
     private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {

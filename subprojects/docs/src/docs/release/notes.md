@@ -4,7 +4,7 @@ Here are the new features introduced in this Gradle release.
 
 ### Command line args supported by JavaExec
 
-Since Gradle 4.9, the command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, 
+Since Gradle 4.9, the command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`,
 you don't need to hardcode it into the build script - you can just run `gradle run --args 'foo --bar'` (see [application plugin](userguide/application_plugin.html) for more information).
 
 <!--
@@ -62,6 +62,7 @@ We would like to thank the following community members for making contributions 
 - [Theodore Ni](https://github.com/tjni) Suppress redundant warning message (gradle/gradle#5544)
 - [Lars Grefer](https://github.com/larsgrefer) Remove dependencies between `javadoc` tasks of dependent Java projects (gradle/gradle#5221)
 - [Aaron Hill](https://github.com/Aaron1011) Continue executing tests if irreplaceable security manager is installed (gradle/gradle#5324)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) Throw `UnknownDomainObjectException` instead of `NullPointerException` when extension isn't found (gradle/gradle#5547)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
