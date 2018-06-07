@@ -80,6 +80,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
 
     @Override
     public CachedArtifact lookup(ArtifactAtRepositoryKey key) {
+        assertKeyNotNull(key);
+
         CachedArtifact inMemoryCachedArtifact = inMemoryCache.get(key);
         if (inMemoryCachedArtifact != null) {
             return inMemoryCachedArtifact;

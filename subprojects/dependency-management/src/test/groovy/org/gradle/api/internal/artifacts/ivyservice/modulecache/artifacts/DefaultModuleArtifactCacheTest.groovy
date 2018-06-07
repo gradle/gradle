@@ -18,34 +18,30 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 class DefaultModuleArtifactCacheTest extends Specification {
 
-    CacheLockingManager cacheLockingManager = Mock()
-    BuildCommencedTimeProvider timeProvider = Mock()
-    ArtifactAtRepositoryKey key = Mock()
-    ExternalResourceMetaData metaData = Mock()
-    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
+    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider()
 
-    PersistentIndexedCache persistentIndexedCache = Mock()
+    CacheLockingManager cacheLockingManager = Mock(CacheLockingManager)
+    BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)
+    PersistentIndexedCache persistentIndexedCache = Mock(PersistentIndexedCache)
+    CachedArtifact cachedArtifact = Stub(CachedArtifact)
 
-    DefaultModuleArtifactCache index
-    String persistentCacheFile
-    CachedArtifact cachedArtifact = Mock()
-
-
-    def setup() {
-        persistentCacheFile = "cacheFile"
-        index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager)
-    }
+    String persistentCacheFile = "cacheFile"
+    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager)
 
     def "storing null artifactFile not supported"() {
+        given:
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
+
         when:
         index.store(key, null, 0)
 
@@ -56,22 +52,24 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def "artifact key must be provided"() {
         when:
-        index.store(null, Mock(File), 0)
+        index.store(null, Stub(File), 0)
+
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "key cannot be null"
     }
 
     def "stored artifact is put into persistentIndexedCache"() {
-        setup:
+        given:
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier));
-        def testFile = folder.createFile("aTestFile");
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
+        def testFile = folder.createFile("aTestFile")
+
         when:
         index.store(key, testFile, BigInteger.TEN)
 
         then:
-        1 * cacheLockingManager.useCache("store into artifact resolution cache \'cacheFile\'", _) >> {descr, action -> action.run()}
+        1 * cacheLockingManager.useCache(_) >> { Runnable action -> action.run() }
         1 * timeProvider.currentTime >> 123
         1 * persistentIndexedCache.put(key, _) >> { k, v ->
             assert v.cachedAt == 123
@@ -83,13 +81,14 @@ class DefaultModuleArtifactCacheTest extends Specification {
     def "lookup key must not be null"() {
         when:
         index.lookup(null)
+
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "key cannot be null"
     }
 
     def "loads missing CachedArtifact from persistentIndexedCache"() {
-        setup:
+        given:
         def key = createEntryInPersistentCache()
         _ * cachedArtifact.missing >> true
 
@@ -102,12 +101,14 @@ class DefaultModuleArtifactCacheTest extends Specification {
     }
 
     def "loads CachedArtifact with file ref from persistentIndexedCache"() {
-        setup:
+        given:
         def key = createEntryInPersistentCache()
         _ * cachedArtifact.missing >> false
-        File cachedFile = Mock()
-        cachedFile.exists() >> true;
+        File cachedFile = Stub(File) {
+            exists() >> true
+        }
         cachedArtifact.getCachedFile() >> cachedFile
+
         when:
         def fromCache = index.lookup(key)
 
@@ -119,9 +120,9 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def createEntryInPersistentCache() {
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        1 * cacheLockingManager.useCache("lookup from artifact resolution cache \'cacheFile\'", _) >> {descr, factory -> factory.create()}
-        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier));
-        1 * persistentIndexedCache.get(key) >> cachedArtifact;
+        1 * cacheLockingManager.useCache(_) >> { Factory<?> factory -> factory.create()}
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
+        1 * persistentIndexedCache.get(key) >> cachedArtifact
         key
     }
 }
