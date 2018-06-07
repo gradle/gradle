@@ -35,12 +35,13 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
+@Suppress("unused")
 class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
         apply<GeneratedSourcesLayoutPlugin>()
-        apply(plugin = "kotlin")
+        apply(plugin = "org.jetbrains.kotlin.jvm")
 
         val kotlinDslApiExtensions = project.container(KotlinDslApiExtensionsSet::class.java) { name ->
             KotlinDslApiExtensionsSet(project, name)
