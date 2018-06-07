@@ -21,11 +21,14 @@ import com.google.gson.stream.JsonReader
 import library
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ComponentMetadataContext
+import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.DirectDependenciesMetadata
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
 import java.io.File
+import javax.inject.Inject
+import kotlin.reflect.KClass
 
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
@@ -33,54 +36,32 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
         dependencies {
             components {
                 // Gradle distribution - minify: remove unused transitive dependencies
-                withLibraryDependencies(library("maven3")) {
-                    removeAll {
-                        it.name != "maven-settings-builder" &&
-                            it.name != "maven-model" &&
-                            it.name != "maven-model-builder" &&
-                            it.name != "maven-artifact" &&
-                            it.name != "maven-aether-provider" &&
-                            it.group != "org.sonatype.aether"
-                    }
-                }
-                withLibraryDependencies(library("awsS3_core")) {
-                    removeAll { it.name == "jackson-dataformat-cbor" }
-                }
-                withLibraryDependencies(library("jgit")) {
-                    removeAll { it.group == "com.googlecode.javaewah" }
-                }
-                withLibraryDependencies(library("maven3_wagon_http_shared4")) {
-                    removeAll { it.group == "org.jsoup" }
-                }
-                withLibraryDependencies(library("aether_connector")) {
-                    removeAll { it.group == "org.sonatype.sisu" }
-                }
-                withLibraryDependencies(library("maven3_compat")) {
-                    removeAll { it.group == "org.sonatype.sisu" }
-                }
-                withLibraryDependencies(library("maven3_plugin_api")) {
-                    removeAll { it.group == "org.sonatype.sisu" }
-                }
+                withModule(library("maven3"), MavenDependencyCleaningRule::class.java)
+                withLibraryDependencies(library("awsS3_core"), DependencyRemovalByNameRule::class, setOf("jackson-dataformat-cbor"))
+                withLibraryDependencies(library("jgit"), DependencyRemovalByGroupRule::class, setOf("com.googlecode.javaewah"))
+                withLibraryDependencies(library("maven3_wagon_http_shared4"), DependencyRemovalByGroupRule::class, setOf("org.jsoup"))
+                withLibraryDependencies(library("aether_connector"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+                withLibraryDependencies(library("maven3_compat"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+                withLibraryDependencies(library("maven3_plugin_api"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
 
                 // Read capabilities declared in capabilities.json
                 readCapabilitiesFromJson()
 
-                replaceCglibNodepWithCglib("org.spockframework:spock-core")
-                replaceCglibNodepWithCglib("org.jmock:jmock-legacy")
+                withModule("org.spockframework:spock-core", ReplaceCglibNodepWithCglibRule::class.java)
+                withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
-                downgradeIvy("org.codehaus.groovy:groovy-all")
-                downgradeTestNG("org.codehaus.groovy:groovy-all")
+                withModule("org.codehaus.groovy:groovy-all", DowngradeIvyRule::class.java)
+                withModule("org.codehaus.groovy:groovy-all", DowngradeTestNGRule::class.java)
 
-                downgradeXmlApis("jaxen:jaxen")
-                downgradeXmlApis("jdom:jdom")
-                downgradeXmlApis("xalan:xalan")
-                downgradeXmlApis("jaxen:jaxen")
+                withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
+                withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
+                withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
+                withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
 
                 // Test dependencies - minify: remove unused transitive dependencies
-                withLibraryDependencies("org.littleshoot:littleproxy") {
-                    removeAll { it.name == "barchart-udt-bundle" || it.name == "guava" || it.name == "commons-cli" }
-                }
+                withLibraryDependencies("org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
+                    setOf("barchart-udt-bundle", "guava", "commons-cli"))
             }
         }
     }
@@ -113,6 +94,20 @@ inline
 fun <reified T> Gson.fromJson(json: JsonReader) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)
 
 
+open class CapabilityRule @Inject constructor(
+    val name: String,
+    val version: String
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withCapabilities {
+                addCapability("org.gradle.internal.capability", name, version)
+            }
+        }
+    }
+}
+
+
 class CapabilitySpec {
     lateinit var name: String
     lateinit var providedBy: List<String>
@@ -135,26 +130,18 @@ class CapabilitySpec {
 
     private
     fun ComponentMetadataHandler.declareSyntheticCapability(provider: String, version: String) {
-        @Suppress("DEPRECATION")
-        withModule(provider) {
-            allVariants {
-                withCapabilities {
-                    addCapability("org.gradle.internal.capability", name, version)
-                }
-            }
-        }
+        withModule(provider, CapabilityRule::class.java, {
+            params(name)
+            params(version)
+        })
     }
 
     private
     fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
-        @Suppress("DEPRECATION")
-        withModule(module) {
-            allVariants {
-                withCapabilities {
-                    addCapability("org.gradle.internal.capability", name, "${providedBy.size + 1}")
-                }
-            }
-        }
+        withModule(module, CapabilityRule::class.java, {
+            params(name)
+            params("${providedBy.size + 1}")
+        })
     }
 
     /**
@@ -176,22 +163,60 @@ class CapabilitySpec {
 }
 
 
-fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
-    @Suppress("DEPRECATION")
-    withModule(module) {
-        allVariants {
+open class DependencyRemovalByNameRule @Inject constructor(
+    val moduleToRemove: Set<String>
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencies {
-                action()
+                removeAll { moduleToRemove.contains(it.name) }
             }
         }
     }
 }
 
 
-fun ComponentMetadataHandler.downgradeIvy(module: String) {
-    @Suppress("DEPRECATION")
-    withModule(module) {
-        allVariants {
+open class DependencyRemovalByGroupRule @Inject constructor(
+    val groupsToRemove: Set<String>
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll { groupsToRemove.contains(it.group) }
+            }
+        }
+    }
+}
+
+
+open class MavenDependencyCleaningRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll {
+                    it.name != "maven-settings-builder" &&
+                        it.name != "maven-model" &&
+                        it.name != "maven-model-builder" &&
+                        it.name != "maven-artifact" &&
+                        it.name != "maven-aether-provider" &&
+                        it.group != "org.sonatype.aether"
+                }
+            }
+        }
+    }
+}
+
+
+fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KClass<out ComponentMetadataRule>, modulesToRemove: Set<String>) {
+    withModule(module, kClass.java, {
+        params(modulesToRemove)
+    })
+}
+
+
+open class DowngradeIvyRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencyConstraints {
                 filter { it.group == "org.apache.ivy" }.forEach {
                     it.version { prefer("2.2.0") }
@@ -203,10 +228,9 @@ fun ComponentMetadataHandler.downgradeIvy(module: String) {
 }
 
 
-fun ComponentMetadataHandler.downgradeTestNG(module: String) {
-    @Suppress("DEPRECATION")
-    withModule(module) {
-        allVariants {
+open class DowngradeTestNGRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencyConstraints {
                 filter { it.group == "org.testng" }.forEach {
                     it.version { prefer("6.3.1") }
@@ -218,10 +242,9 @@ fun ComponentMetadataHandler.downgradeTestNG(module: String) {
 }
 
 
-fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
-    @Suppress("DEPRECATION")
-    withModule(module) {
-        allVariants {
+open class DowngradeXmlApisRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencies {
                 filter { it.group == "xml-apis" }.forEach {
                     it.version { prefer("1.4.01") }
@@ -233,10 +256,9 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
 }
 
 
-fun ComponentMetadataHandler.replaceCglibNodepWithCglib(module: String) {
-    @Suppress("DEPRECATION")
-    withModule(module) {
-        allVariants {
+open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencies {
                 filter { it.name == "cglib-nodep" }.forEach {
                     add("${it.group}:cglib:3.2.6")
