@@ -40,7 +40,6 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        apply<GeneratedSourcesLayoutPlugin>()
         apply(plugin = "org.jetbrains.kotlin.jvm")
 
         val kotlinDslApiExtensions = project.container(KotlinDslApiExtensionsSet::class.java) { name ->
@@ -103,7 +102,6 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
             it.outputFile.set(extensionsSet.javaParameterNamesOutputFile)
         }
 
-
     private
     fun Project.registerKotlinDslApiExtensionsTaskFor(
         extensionsSet: KotlinDslApiExtensionsSet,
@@ -127,13 +125,17 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
                 it.excludes.set(extensionsSet.excludes)
                 it.parameterNamesIndices.from(files(parameterNamesTasks.map { it.get() }))
 
-                it.outputDirectory.set(generatedSourcesLayout.sourcesOutputDirFor(extensionsSourceSet, "kotlinDslExtensions"))
+                it.outputDirectory.set(sourcesOutputDirFor(extensionsSourceSet, "kotlinDslExtensions"))
 
                 it.dependsOn(sourceSet.output)
             }.also { task ->
                 extensionsSourceSet.kotlin.srcDir(files(provider { task.get().outputDirectory }).apply { builtBy(task) })
             }
         }
+
+    private
+    fun Project.sourcesOutputDirFor(sourceSet: SourceSet, identifier: String) =
+        layout.buildDirectory.dir("generated-sources/${sourceSet.name}/$identifier")
 }
 
 
