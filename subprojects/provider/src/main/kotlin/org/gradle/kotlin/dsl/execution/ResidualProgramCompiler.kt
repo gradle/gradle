@@ -231,7 +231,7 @@ class ResidualProgramCompiler(
             // val collector = PluginRequestCollector(scriptSource)
             emitPluginRequestCollectorInstantiation()
 
-            // ${plugins}(temp.createSpec(lineNumber))
+            // ${precompiledPluginsBlock}(collector.createSpec(lineNumber))
             NEW(precompiledPluginsBlock)
             emitPluginRequestCollectorCreateSpecFor(program)
             INVOKESPECIAL(
