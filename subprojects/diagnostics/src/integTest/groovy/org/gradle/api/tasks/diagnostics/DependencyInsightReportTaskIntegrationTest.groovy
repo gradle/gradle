@@ -1929,6 +1929,49 @@ org:foo:${displayVersion} -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
+    def "doesn't report duplicate reasins"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.3").publish()
+        mavenRepo.module("org", "foo", "1.4").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+        mavenRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.1,1.3]').publish()
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation 'org:foo:[1.1,1.3]'
+                implementation 'org:bar:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        outputContains """org:foo:1.3
+   variant "default+runtime" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested : didn't match versions 2.0, 1.5, 1.4
+
+org:foo:[1.1,1.3] -> 1.3
++--- compileClasspath
+\\--- org:bar:1.0
+     \\--- compileClasspath
+"""
+    }
+
     def "does't mix rejected versions on different constraints"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
