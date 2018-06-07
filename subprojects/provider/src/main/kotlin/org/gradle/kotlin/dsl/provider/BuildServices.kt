@@ -76,7 +76,8 @@ object BuildServices {
         scriptSourceHasher: ScriptSourceHasher,
         classPathHasher: ClasspathHasher,
         scriptCache: ScriptCache,
-        implicitImports: ImplicitImports
+        implicitImports: ImplicitImports,
+        progressLoggerFactory: ProgressLoggerFactory
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -90,7 +91,8 @@ object BuildServices {
             scriptSourceHasher,
             classPathHasher,
             scriptCache,
-            implicitImports)
+            implicitImports,
+            progressLoggerFactory)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

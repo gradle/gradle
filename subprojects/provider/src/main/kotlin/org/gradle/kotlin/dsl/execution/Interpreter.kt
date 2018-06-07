@@ -89,6 +89,10 @@ class Interpreter(val host: Host) {
             initializer: (File) -> Unit
         ): File
 
+        fun startCompilerOperation(
+            description: String
+        ): AutoCloseable
+
         fun compilationClassPathOf(
             classLoaderScope: ClassLoaderScope
         ): ClassPath
@@ -234,45 +238,45 @@ class Interpreter(val host: Host) {
                 null
             ) { cachedDir ->
 
-                logCompilationOf(templateId, scriptSource)
+                startCompilerOperationFor(scriptSource, templateId).use {
 
-                val outputDir =
-                    stage1SubDirOf(cachedDir).apply { mkdir() }
+                    val outputDir =
+                        stage1SubDirOf(cachedDir).apply { mkdir() }
 
-                val sourceText =
-                    scriptSource.resource!!.text
+                    val sourceText =
+                        scriptSource.resource!!.text
 
-                val programSource =
-                    ProgramSource(scriptPath, sourceText)
+                    val programSource =
+                        ProgramSource(scriptPath, sourceText)
 
-                val program =
-                    ProgramParser.parse(programSource, programKind, programTarget)
+                    val program =
+                        ProgramParser.parse(programSource, programKind, programTarget)
 
-                val residualProgram =
-                    PartialEvaluator(programKind, programTarget).reduce(program)
+                    val residualProgram =
+                        PartialEvaluator(programKind, programTarget).reduce(program)
 
-                scriptSource.withLocationAwareExceptionHandling {
-                    residualProgramCompilerFor(
-                        sourceHash,
-                        outputDir,
-                        targetScope.parent,
-                        programKind,
-                        programTarget
-                    ).compile(residualProgram)
+                    scriptSource.withLocationAwareExceptionHandling {
+                        residualProgramCompilerFor(
+                            sourceHash,
+                            outputDir,
+                            targetScope.parent,
+                            programKind,
+                            programTarget
+                        ).compile(residualProgram)
+                    }
                 }
             }
 
         val classesDir =
             stage1SubDirOf(cachedDir)
 
-        logClassLoadingOf(templateId, scriptSource)
-
         return loadClassInChildScopeOf(
             baseScope,
             scriptPath,
             classesDir,
             templateId,
-            null)
+            null,
+            scriptSource)
     }
 
     private
@@ -285,15 +289,19 @@ class Interpreter(val host: Host) {
         scriptPath: String,
         classesDir: File,
         scriptTemplateId: String,
-        accessorsClassPath: ClassPath?
-    ): Class<*> =
+        accessorsClassPath: ClassPath?,
+        scriptSource: ScriptSource
+    ): Class<*> {
 
-        host.loadClassInChildScopeOf(
+        logClassLoadingOf(scriptTemplateId, scriptSource)
+
+        return host.loadClassInChildScopeOf(
             baseScope,
             childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
             className = "Program")
+    }
 
     private
     fun residualProgramCompilerFor(
@@ -426,39 +434,39 @@ class Interpreter(val host: Host) {
                     accessorsClassPath
                 ) { outputDir ->
 
-                    logCompilationOf(scriptTemplateId, scriptSource)
+                    startCompilerOperationFor(scriptSource, scriptTemplateId).use {
 
-                    val targetScopeClassPath =
-                        host.compilationClassPathOf(targetScope)
+                        val targetScopeClassPath =
+                            host.compilationClassPathOf(targetScope)
 
-                    val compilationClassPath =
-                        accessorsClassPath?.let {
-                            targetScopeClassPath + it
-                        } ?: targetScopeClassPath
+                        val compilationClassPath =
+                            accessorsClassPath?.let {
+                                targetScopeClassPath + it
+                            } ?: targetScopeClassPath
 
-                    scriptSource.withLocationAwareExceptionHandling {
-                        ResidualProgramCompiler(
-                            outputDir,
-                            compilationClassPath,
-                            sourceHash,
-                            programKind,
-                            programTarget,
-                            host.implicitImports
-                        ).emitStage2ProgramFor(
-                            File(scriptPath),
-                            originalScriptPath
-                        )
+                        scriptSource.withLocationAwareExceptionHandling {
+                            ResidualProgramCompiler(
+                                outputDir,
+                                compilationClassPath,
+                                sourceHash,
+                                programKind,
+                                programTarget,
+                                host.implicitImports
+                            ).emitStage2ProgramFor(
+                                File(scriptPath),
+                                originalScriptPath
+                            )
+                        }
                     }
                 }
-
-            logClassLoadingOf(scriptTemplateId, scriptSource)
 
             return loadClassInChildScopeOf(
                 targetScope,
                 originalScriptPath,
                 cacheDir,
                 scriptTemplateId,
-                accessorsClassPath)
+                accessorsClassPath,
+                scriptSource)
         }
 
         open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
@@ -472,6 +480,12 @@ class Interpreter(val host: Host) {
         fun instantiate(specializedProgram: Class<*>) =
             specializedProgram.getDeclaredConstructor().newInstance() as ExecutableProgram
     }
+
+    private
+    fun startCompilerOperationFor(scriptSource: ScriptSource, scriptTemplateId: String): AutoCloseable {
+        logCompilationOf(scriptTemplateId, scriptSource)
+        return host.startCompilerOperation(scriptSource.displayName)
+    }
 }
 
 
@@ -480,12 +494,12 @@ fun templateIdFor(programTarget: ProgramTarget, programKind: ProgramKind, stage:
     programTarget.name + "/" + programKind.name + "/" + stage
 
 
-internal
+private
 fun classLoaderScopeIdFor(scriptPath: String, stage: String) =
     "kotlin-dsl:$scriptPath:$stage"
 
 
-internal
+private
 fun locationAwareExceptionHandlingFor(e: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource): Nothing {
     val targetException = maybeUnwrapInvocationTargetException(e)
     val locationAware = locationAwareExceptionFor(targetException, scriptClass, scriptSource)
@@ -526,7 +540,7 @@ fun locationAwareExceptionFor(
 }
 
 
-internal
+private
 inline fun <T> ScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
     try {
         action()
@@ -558,21 +572,6 @@ private
 fun logCompilationOf(templateId: String, source: ScriptSource) {
     interpreterLogger.debug("Compiling $templateId from ${source.displayName}")
 }
-
-
-/* TODO:partial-evaluator put progress logging back
-private
-fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
-    val operation = progressLoggerFactory
-        .newOperation(this::class.java)
-        .start("Compiling script into cache", "Compiling $description into local compilation cache")
-    try {
-        return action()
-    } finally {
-        operation.completed()
-    }
-}
-*/
 
 
 private

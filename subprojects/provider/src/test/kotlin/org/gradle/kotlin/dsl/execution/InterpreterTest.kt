@@ -69,12 +69,15 @@ class InterpreterTest : TestWithTempFiles() {
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 
-        val resource = mock<TextResource> {
+        val scriptSourceResource = mock<TextResource> {
             on { getText() } doReturn text
         }
+        val scriptSourceDisplayName = "source display name"
+
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
-            on { getResource() } doReturn resource
+            on { resource } doReturn scriptSourceResource
+            on { displayName } doReturn scriptSourceDisplayName
         }
         val parentClassLoader = mock<ClassLoader>()
         val baseScope = mock<ClassLoaderScope> {
@@ -87,12 +90,16 @@ class InterpreterTest : TestWithTempFiles() {
             on { exportClassLoader } doReturn targetScopeExportClassLoader
         }
 
+        val compilerOperation = mock<AutoCloseable>()
+
         val classLoaders = mutableListOf<URLClassLoader>()
 
         val stage1CacheDir = root.resolve("stage1").apply { mkdir() }
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
         val host = mock<Interpreter.Host> {
+
+            on { startCompilerOperation(any()) } doReturn compilerOperation
 
             on {
                 cachedDirFor(
@@ -154,14 +161,18 @@ class InterpreterTest : TestWithTempFiles() {
                     true)
             }
 
-            inOrder(host) {
+            inOrder(host, compilerOperation) {
 
                 val stage1ProgramId =
                     ProgramId(stage1TemplateId, sourceHash, parentClassLoader)
 
                 verify(host).cachedClassFor(stage1ProgramId)
 
+                verify(host).startCompilerOperation(scriptSourceDisplayName)
+
                 verify(host).compilationClassPathOf(parentScope)
+
+                verify(compilerOperation).close()
 
                 verify(host).loadClassInChildScopeOf(
                     baseScope,
@@ -179,7 +190,11 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).cachedClassFor(stage2ProgramId)
 
+                verify(host).startCompilerOperation(scriptSourceDisplayName)
+
                 verify(host).compilationClassPathOf(targetScope)
+
+                verify(compilerOperation).close()
 
                 verify(host).loadClassInChildScopeOf(
                     targetScope,

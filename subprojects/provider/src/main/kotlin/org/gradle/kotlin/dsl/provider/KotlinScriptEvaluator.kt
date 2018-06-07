@@ -33,6 +33,7 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
@@ -82,7 +83,8 @@ class StandardKotlinScriptEvaluator(
     private val scriptSourceHasher: ScriptSourceHasher,
     private val classPathHasher: ClasspathHasher,
     private val scriptCache: ScriptCache,
-    private val implicitImports: ImplicitImports
+    private val implicitImports: ImplicitImports,
+    private val progressLoggerFactory: ProgressLoggerFactory
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -137,6 +139,13 @@ class StandardKotlinScriptEvaluator(
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override fun startCompilerOperation(description: String): AutoCloseable {
+            val operation = progressLoggerFactory
+                .newOperation(KotlinScriptEvaluator::class.java)
+                .start("Compiling script into cache", "Compiling $description into local compilation cache")
+            return AutoCloseable { operation.completed() }
+        }
 
         override fun hashOf(classPath: ClassPath): HashCode =
             classPathHasher.hash(classPath)
