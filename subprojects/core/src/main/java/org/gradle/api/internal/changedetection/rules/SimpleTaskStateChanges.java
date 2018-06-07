@@ -32,4 +32,18 @@ abstract class SimpleTaskStateChanges implements TaskStateChanges {
     }
 
     protected abstract void addAllChanges(List<TaskStateChange> changes);
+
+    @Override
+    public boolean accept(TaskStateChangeVisitor visitor) {
+        if (changes == null) {
+            changes = new ArrayList<TaskStateChange>();
+            addAllChanges(changes);
+        }
+        for (TaskStateChange taskStateChange : changes) {
+            if (!visitor.visitChange(taskStateChange)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

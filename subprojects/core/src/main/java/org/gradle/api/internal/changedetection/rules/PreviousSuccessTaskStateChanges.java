@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-
-import java.util.Iterator;
 
 @NonNullApi
 public class PreviousSuccessTaskStateChanges implements TaskStateChanges {
@@ -32,11 +29,10 @@ public class PreviousSuccessTaskStateChanges implements TaskStateChanges {
     }
 
     @Override
-    public Iterator<TaskStateChange> iterator() {
-        if (previousExecution.isSuccessful()) {
-            return Iterators.emptyIterator();
-        } else {
-            return Iterators.singletonIterator(PREVIOUS_FAILURE);
+    public boolean accept(TaskStateChangeVisitor visitor) {
+        if (!previousExecution.isSuccessful()) {
+            return visitor.visitChange(PREVIOUS_FAILURE);
         }
+        return true;
     }
 }

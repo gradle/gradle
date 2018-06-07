@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @NonNullApi
-public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
+public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, Iterable<TaskStateChange> {
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final String title;
@@ -67,5 +67,15 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         });
 
         return Iterators.concat(iterators.iterator());
+    }
+
+    @Override
+    public boolean accept(TaskStateChangeVisitor visitor) {
+        for (TaskStateChange taskStateChange : this) {
+            if (!visitor.visitChange(taskStateChange)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.AbstractIterator;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-
-import java.util.Iterator;
 
 public class ErrorHandlingTaskStateChanges implements TaskStateChanges {
     private final Task task;
@@ -32,25 +29,11 @@ public class ErrorHandlingTaskStateChanges implements TaskStateChanges {
     }
 
     @Override
-    public Iterator<TaskStateChange> iterator() {
-        final Iterator<TaskStateChange> iterator;
+    public boolean accept(TaskStateChangeVisitor visitor) {
         try {
-            iterator = delegate.iterator();
+            return delegate.accept(visitor);
         } catch (Exception ex) {
             throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
         }
-        return new AbstractIterator<TaskStateChange>() {
-            @Override
-            protected TaskStateChange computeNext() {
-                try {
-                    if (iterator.hasNext()) {
-                        return iterator.next();
-                    }
-                } catch (Exception ex) {
-                    throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
-                }
-                return endOfData();
-            }
-        };
     }
 }

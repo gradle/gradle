@@ -29,7 +29,7 @@ public interface TaskUpToDateState {
     /**
      * Returns changes to input files only.
      */
-    TaskStateChanges getInputFilesChanges();
+    Iterable<TaskStateChange> getInputFilesChanges();
 
     /**
      * Returns if any output files have been changed, added or removed.
@@ -39,10 +39,10 @@ public interface TaskUpToDateState {
     /**
      * Returns any change to task inputs or outputs.
      */
-    TaskStateChanges getAllTaskChanges();
+    Iterable<TaskStateChange> getAllTaskChanges();
 
     /**
      * Returns changes that would force an incremental task to fully rebuild.
      */
-    TaskStateChanges getRebuildChanges();
+    Iterable<TaskStateChange> getRebuildChanges();
 }

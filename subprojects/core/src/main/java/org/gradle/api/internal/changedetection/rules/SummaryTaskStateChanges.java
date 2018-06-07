@@ -16,55 +16,51 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.AbstractIterator;
-
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Provides an efficient summary of the changes, without doing too much unnecessary work.
+ * - Will only emit changes of a single type (from a single delegate change set)
+ */
 class SummaryTaskStateChanges implements TaskStateChanges {
-    private final int maxReportedChanges;
     private final List<TaskStateChanges> sources;
 
 
-    public SummaryTaskStateChanges(int maxReportedChanges, TaskStateChanges... sources) {
-        this.maxReportedChanges = maxReportedChanges;
+    public SummaryTaskStateChanges(TaskStateChanges... sources) {
         this.sources = Arrays.asList(sources);
     }
 
-    /**
-     * Provides an efficient summary of the changes, without doing too much unnecessary work.
-     * - Will only emit changes of a single type (from a single delegate change set)
-     * - Will return no more than the specified maximum of number of changes
-     */
-    public Iterator<TaskStateChange> iterator() {
-
-        return new AbstractIterator<TaskStateChange>() {
-            Iterator<TaskStateChange> changes;
-            int count;
-
-            @Override
-            protected TaskStateChange computeNext() {
-                if (changes == null) {
-                    changes = firstDirtyIterator();
-                }
-
-                if (count < maxReportedChanges && changes != null && changes.hasNext()) {
-                    count++;
-                    return changes.next();
-                }
-                return endOfData();
-            }
-        };
-    }
-
-    private Iterator<TaskStateChange> firstDirtyIterator() {
+    @Override
+    public boolean accept(TaskStateChangeVisitor visitor) {
+        ChangeDetectingVisitor changeDetectingVisitor = new ChangeDetectingVisitor(visitor);
         for (TaskStateChanges source : sources) {
-            Iterator<TaskStateChange> sourceIterator = source.iterator();
-            if (sourceIterator.hasNext()) {
-                return sourceIterator;
+            if (!source.accept(changeDetectingVisitor)) {
+                return false;
+            }
+            if (changeDetectingVisitor.isChangesDetected()) {
+                return true;
             }
         }
-        return null;
+        return true;
+    }
+
+    private static class ChangeDetectingVisitor implements TaskStateChangeVisitor {
+        private final TaskStateChangeVisitor delegate;
+        private boolean changesDetected;
+
+        public ChangeDetectingVisitor(TaskStateChangeVisitor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean visitChange(TaskStateChange change) {
+            changesDetected = true;
+            return delegate.visitChange(change);
+        }
+
+        public boolean isChangesDetected() {
+            return changesDetected;
+        }
     }
 }

@@ -18,35 +18,33 @@
 
 package org.gradle.api.internal.changedetection.rules
 
-import spock.lang.Specification;
+import spock.lang.Specification
 
-public class SimpleTaskStateChangesTest extends Specification {
+class SimpleTaskStateChangesTest extends Specification {
     def simpleTaskStateChanges = new TestSimpleTaskStateChanges()
     def change1 = Mock(TaskStateChange)
     def change2 = Mock(TaskStateChange)
+    def visitor = new CollectingTaskStateChangeVisitor()
 
     def "fires all changes"() {
         when:
-        final iterator = simpleTaskStateChanges.iterator()
+        simpleTaskStateChanges.accept(visitor)
 
         then:
-        iterator.hasNext()
-        iterator.next() == change1
-        iterator.hasNext()
-        iterator.next() == change2
+        visitor.changes == [change1, change2]
     }
 
     def "caches all changes"() {
         when:
-        simpleTaskStateChanges.iterator().next()
-        simpleTaskStateChanges.iterator().next()
+        simpleTaskStateChanges.accept(new CollectingTaskStateChangeVisitor())
+        simpleTaskStateChanges.accept(visitor)
 
         then:
         simpleTaskStateChanges.addAllCount == 1
     }
 
     private class TestSimpleTaskStateChanges extends SimpleTaskStateChanges {
-        int addAllCount;
+        int addAllCount
         @Override
         protected void addAllChanges(List<TaskStateChange> changes) {
             changes.addAll([change1, change2])

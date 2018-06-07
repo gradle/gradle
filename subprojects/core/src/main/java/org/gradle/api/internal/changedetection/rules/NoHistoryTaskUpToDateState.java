@@ -19,27 +19,19 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 
-import java.util.Iterator;
-
 @NonNullApi
 public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
 
     public static final NoHistoryTaskUpToDateState INSTANCE = new NoHistoryTaskUpToDateState();
 
-    private final TaskStateChanges noHistoryTaskStateChanges;
+    private final Iterable<TaskStateChange> noHistoryTaskStateChanges;
 
     private NoHistoryTaskUpToDateState() {
-        final ImmutableList<TaskStateChange> changes = ImmutableList.<TaskStateChange>of(new DescriptiveChange("No history is available."));
-        noHistoryTaskStateChanges = new TaskStateChanges() {
-            @Override
-            public Iterator<TaskStateChange> iterator() {
-                return changes.iterator();
-            }
-        };
+        noHistoryTaskStateChanges = ImmutableList.<TaskStateChange>of(new DescriptiveChange("No history is available."));
     }
 
     @Override
-    public TaskStateChanges getInputFilesChanges() {
+    public Iterable<TaskStateChange> getInputFilesChanges() {
         throw new UnsupportedOperationException("Input file changes can only be queried when task history is available.");
     }
 
@@ -49,12 +41,12 @@ public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public TaskStateChanges getAllTaskChanges() {
+    public Iterable<TaskStateChange> getAllTaskChanges() {
         return noHistoryTaskStateChanges;
     }
 
     @Override
-    public TaskStateChanges getRebuildChanges() {
+    public Iterable<TaskStateChange> getRebuildChanges() {
         return noHistoryTaskStateChanges;
     }
 }

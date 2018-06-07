@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.api.internal.changedetection.rules
 
-import spock.lang.Specification;
+import spock.lang.Specification
 
-public class CachingTaskStateChangesTest extends Specification {
-    def delegate = Mock(TaskStateChanges)
+class CachingTaskStateChangesTest extends Specification {
+    def delegate = Mock(Iterable.class)
     def change1 = Mock(TaskStateChange)
     def change2 = Mock(TaskStateChange)
     def change3 = Mock(TaskStateChange)
 
     def cachingChanges = new CachingTaskStateChanges(2, delegate)
+    def collectingVisitor = new CollectingTaskStateChangeVisitor()
 
     def "caches all reported changes under cache size"() {
         when:
-        cachingChanges.iterator().collect()
+        cachingChanges.accept(new CollectingTaskStateChangeVisitor())
 
         then:
         1 * delegate.iterator() >> [change1, change2].iterator()
         0 * _
 
         when:
-        cachingChanges.iterator().collect()
-        def reported = cachingChanges.iterator().collect()
+        cachingChanges.accept(collectingVisitor)
+        def reported = collectingVisitor.getChanges()
 
         then:
         0 * _
@@ -47,15 +48,16 @@ public class CachingTaskStateChangesTest extends Specification {
 
     def "does not cache once reported changes exceed cache size"() {
         when:
-        cachingChanges.iterator().collect()
+        cachingChanges.accept(new CollectingTaskStateChangeVisitor())
 
         then:
         1 * delegate.iterator() >> [change1, change2, change3].iterator()
         0 * _
 
         when:
-        cachingChanges.iterator().collect()
-        def reported = cachingChanges.iterator().collect()
+        cachingChanges.accept(new CollectingTaskStateChangeVisitor())
+        cachingChanges.accept(collectingVisitor)
+        def reported = collectingVisitor.changes
 
         then:
         2 * delegate.iterator() >> [change1, change2, change3].iterator() >> [change3, change2, change1].iterator()

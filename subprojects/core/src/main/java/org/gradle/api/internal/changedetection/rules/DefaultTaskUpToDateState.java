@@ -20,6 +20,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import java.util.Collection;
+
 @NonNullApi
 public class DefaultTaskUpToDateState implements TaskUpToDateState {
 
@@ -43,35 +45,48 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
 
         // Capture input files state
         TaskStateChanges inputFilePropertyChanges = new InputFilePropertyTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges directInputFileChanges = new InputFileTaskStateChanges(lastExecution, thisExecution);
+        InputFileTaskStateChanges directInputFileChanges = new InputFileTaskStateChanges(lastExecution, thisExecution);
         TaskStateChanges inputFileChanges = caching(directInputFileChanges);
         this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
-        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
-        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
+        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
     }
 
-    private static TaskStateChanges caching(TaskStateChanges wrapped) {
+    private static TaskStateChanges caching(Iterable<TaskStateChange> wrapped) {
         return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
     @Override
-    public TaskStateChanges getInputFilesChanges() {
-        return inputFileChanges;
+    public Iterable<TaskStateChange> getInputFilesChanges() {
+        return getChanges(inputFileChanges);
     }
 
     @Override
     public boolean hasAnyOutputFileChanges() {
-        return outputFilePropertyChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
+        Collection<TaskStateChange> changes = getChanges(1, outputFilePropertyChanges);
+        return !changes.isEmpty() || outputFileChanges.hasAnyChanges();
     }
 
     @Override
-    public TaskStateChanges getAllTaskChanges() {
-        return allTaskChanges;
+    public Iterable<TaskStateChange> getAllTaskChanges() {
+        return getChanges(MAX_OUT_OF_DATE_MESSAGES, allTaskChanges);
     }
 
     @Override
-    public TaskStateChanges getRebuildChanges() {
-        return rebuildChanges;
+    public Iterable<TaskStateChange> getRebuildChanges() {
+        return getChanges(1, rebuildChanges);
+    }
+
+    private Collection<TaskStateChange> getChanges(TaskStateChanges stateChanges) {
+        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
+        stateChanges.accept(visitor);
+        return visitor.getChanges();
+    }
+
+    private Collection<TaskStateChange> getChanges(int maxReportedChanges, TaskStateChanges changes) {
+        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
+        changes.accept(new MaximumNumberTaskStateChangeVisitor(maxReportedChanges, visitor));
+        return visitor.getChanges();
     }
 }
