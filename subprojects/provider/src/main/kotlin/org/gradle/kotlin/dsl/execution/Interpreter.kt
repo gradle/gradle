@@ -101,11 +101,16 @@ class Interpreter(val host: Host) {
             accessorsClassPath: ClassPath?
         ): Class<*>
 
-        fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests)
+        fun applyPluginsTo(
+            scriptHost: KotlinScriptHost<*>,
+            pluginRequests: PluginRequests
+        )
 
         fun applyBasePluginsTo(project: Project)
 
         fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>)
+
+        fun hashOf(classPath: ClassPath): HashCode
 
         val implicitImports: List<String>
     }
@@ -312,7 +317,8 @@ class Interpreter(val host: Host) {
             program: ExecutableProgram.StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
-            sourceHash: HashCode
+            sourceHash: HashCode,
+            accessorsClassPath: ClassPath?
         ) = Unit
     }
 
@@ -343,13 +349,20 @@ class Interpreter(val host: Host) {
             program: ExecutableProgram.StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
-            sourceHash: HashCode
+            sourceHash: HashCode,
+            accessorsClassPath: ClassPath?
         ) {
+            val targetScope =
+                scriptHost.targetScope
+
             val parentClassLoader =
-                scriptHost.targetScope.exportClassLoader
+                targetScope.exportClassLoader
+
+            val classPathHash: HashCode? =
+                accessorsClassPath?.let { host.hashOf(it) }
 
             val programId =
-                ProgramId(scriptTemplateId, sourceHash, parentClassLoader)
+                ProgramId(scriptTemplateId, sourceHash, parentClassLoader, classPathHash)
 
             val cachedProgram =
                 host.cachedClassFor(programId)
@@ -364,7 +377,8 @@ class Interpreter(val host: Host) {
                     this,
                     scriptHost,
                     scriptTemplateId,
-                    sourceHash)
+                    sourceHash,
+                    accessorsClassPath)
 
             host.cache(
                 specializedProgram,
@@ -373,6 +387,12 @@ class Interpreter(val host: Host) {
             eval(specializedProgram, scriptHost)
         }
 
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>) =
+            accessorsClassPathFor(
+                scriptHost.target as Project,
+                host.compilationClassPathOf(scriptHost.targetScope)
+            ).bin
+
         override fun compileSecondStageScript(
             scriptPath: String,
             originalScriptPath: String,
@@ -380,27 +400,20 @@ class Interpreter(val host: Host) {
             scriptTemplateId: String,
             sourceHash: HashCode,
             programKind: ProgramKind,
-            programTarget: ProgramTarget
+            programTarget: ProgramTarget,
+            accessorsClassPath: ClassPath?
         ): Class<*> {
 
             val targetScope =
                 scriptHost.targetScope
 
-            val targetScopeClassPath by unsafeLazy {
-                host.compilationClassPathOf(targetScope)
-            }
-
-            // TODO:partial-evaluator Move this decision to the specialized program
-            val accessorsClassPath: ClassPath? =
-                if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
-                    accessorsClassPathFor(scriptHost.target as Project, targetScopeClassPath).bin
-                else
-                    null
-
             val cacheDir =
                 host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
 
                     logCompilationOf(scriptTemplateId, scriptHost.scriptSource)
+
+                    val targetScopeClassPath =
+                        host.compilationClassPathOf(targetScope)
 
                     val compilationClassPath =
                         accessorsClassPath?.let {

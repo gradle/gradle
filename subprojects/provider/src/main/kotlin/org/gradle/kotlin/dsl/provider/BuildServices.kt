@@ -23,6 +23,8 @@ import org.gradle.cache.internal.GeneratedGradleJarCache
 
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
+import org.gradle.internal.classloader.ClasspathHasher
+
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
@@ -72,6 +74,7 @@ object BuildServices {
         classPathModeExceptionCollector: ClassPathModeExceptionCollector,
         kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
         scriptSourceHasher: ScriptSourceHasher,
+        classPathHasher: ClasspathHasher,
         scriptCache: ScriptCache,
         implicitImports: ImplicitImports
     ): KotlinScriptEvaluator =
@@ -85,6 +88,7 @@ object BuildServices {
             classPathModeExceptionCollector,
             kotlinScriptBasePluginsApplicator,
             scriptSourceHasher,
+            classPathHasher,
             scriptCache,
             implicitImports)
 

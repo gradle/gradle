@@ -160,14 +160,16 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptHost = scriptHost,
                     scriptTemplateId = stage2SettingsTemplateId,
                     // localClassPathHash = emptyHashCode, // only applicable once we have accessors
-                    sourceHash = sourceHash)
+                    sourceHash = sourceHash,
+                    accessorsClassPath = null)
             }
 
             program.loadSecondStageFor(
                 programHost,
                 scriptHost,
                 stage2SettingsTemplateId,
-                sourceHash)
+                sourceHash,
+                null)
 
             val scriptFile = outputDir().resolve("stage-2").resolve("settings.gradle.kts")
             assertThat(
@@ -182,7 +184,9 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 stage2SettingsTemplateId,
                 sourceHash,
                 ProgramKind.TopLevel,
-                ProgramTarget.Settings)
+                ProgramTarget.Settings,
+                null
+            )
         }
     }
 
@@ -196,8 +200,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         val sourceHash = HashCode.fromInt(42)
         val target = mock<Project>()
-        val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)
+        val accessorsClassPath = mock<ClassPath>()
+        val programHost = mock<ExecutableProgram.Host> {
+            on { accessorsClassPathFor(scriptHost) } doReturn accessorsClassPath
+        }
 
         withExecutableProgramFor(
             Dynamic(Static(ApplyDefaultPluginRequests, ApplyBasePlugins), source),
@@ -217,7 +224,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     program,
                     scriptHost,
                     "Project/TopLevel/stage2",
-                    sourceHash)
+                    sourceHash,
+                    accessorsClassPath)
 
                 verifyNoMoreInteractions()
             }
@@ -226,7 +234,6 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
     @Test
     fun `Dynamic(Static(Eval(buildscript), CloseTargetScope))`() {
-
 
         val buildscriptFragment =
             fragment("buildscript", "println(\"stage 1\"); repositories")
@@ -270,7 +277,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     program = program,
                     scriptHost = scriptHost,
                     scriptTemplateId = stage2SettingsTemplateId,
-                    sourceHash = sourceHash)
+                    sourceHash = sourceHash,
+                    accessorsClassPath = null)
             }
         }
     }
@@ -434,9 +442,12 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     ) {
 
         val sourceHash = HashCode.fromInt(42)
-        val programHost = mock<ExecutableProgram.Host>()
         val target = mock<Project>()
         val scriptHost = scriptHostWith(target = target)
+        val accessorsClassPath = mock<ClassPath>()
+        val programHost = mock<ExecutableProgram.Host> {
+            on { accessorsClassPathFor(scriptHost) } doReturn accessorsClassPath
+        }
 
         withExecutableProgramFor(stagedProgram, sourceHash, programTarget = ProgramTarget.Project) {
 
@@ -446,7 +457,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             assertStandardOutputOf(expectedStage1Output) {
                 program.execute(programHost, scriptHost)
-                program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash)
+                program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash, accessorsClassPath)
             }
 
             val originalScriptPath = stagedProgram.source.path
@@ -463,7 +474,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     program = program,
                     scriptHost = scriptHost,
                     scriptTemplateId = scriptTemplateId,
-                    sourceHash = sourceHash)
+                    sourceHash = sourceHash,
+                    accessorsClassPath = accessorsClassPath)
 
                 val scriptFile = outputDir().resolve("stage-2").resolve(originalScriptPath)
                 verify(programHost).compileSecondStageScript(
@@ -473,7 +485,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptTemplateId,
                     sourceHash,
                     ProgramKind.TopLevel,
-                    ProgramTarget.Project)
+                    ProgramTarget.Project,
+                    accessorsClassPath)
 
                 verifyNoMoreInteractions()
             }

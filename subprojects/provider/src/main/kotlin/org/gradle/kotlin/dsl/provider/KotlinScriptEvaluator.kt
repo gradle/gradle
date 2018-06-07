@@ -29,6 +29,7 @@ import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
+import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
@@ -79,6 +80,7 @@ class StandardKotlinScriptEvaluator(
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
     private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
     private val scriptSourceHasher: ScriptSourceHasher,
+    private val classPathHasher: ClasspathHasher,
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports
 ) : KotlinScriptEvaluator {
@@ -135,6 +137,9 @@ class StandardKotlinScriptEvaluator(
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override fun hashOf(classPath: ClassPath): HashCode =
+            classPathHasher.hash(classPath)
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) {
             pluginRequestsHandler.handle(

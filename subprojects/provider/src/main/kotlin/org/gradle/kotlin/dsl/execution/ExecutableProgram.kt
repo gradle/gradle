@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.Project
+
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -51,11 +53,16 @@ abstract class ExecutableProgram {
             scriptHost: KotlinScriptHost<*>
         )
 
+        fun accessorsClassPathFor(
+            scriptHost: KotlinScriptHost<*>
+        ): ClassPath
+
         fun evaluateSecondStageOf(
             program: StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
-            sourceHash: HashCode
+            sourceHash: HashCode,
+            accessorsClassPath: ClassPath?
         )
 
         fun compileSecondStageScript(
@@ -65,7 +72,8 @@ abstract class ExecutableProgram {
             scriptTemplateId: String,
             sourceHash: HashCode,
             programKind: ProgramKind,
-            programTarget: ProgramTarget
+            programTarget: ProgramTarget,
+            accessorsClassPath: ClassPath?
         ): Class<*>
 
         fun handleScriptException(
@@ -81,7 +89,8 @@ abstract class ExecutableProgram {
             programHost: Host,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
-            sourceHash: HashCode
+            sourceHash: HashCode,
+            accessorsClassPath: ClassPath?
         ): Class<*>
     }
 }

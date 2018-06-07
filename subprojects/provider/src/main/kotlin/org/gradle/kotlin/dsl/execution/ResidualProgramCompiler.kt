@@ -295,8 +295,20 @@ class ResidualProgramCompiler(
     fun ClassWriter.overrideLoadSecondStageFor(sourceFilePath: String, originalPath: String) {
         publicMethod(
             "loadSecondStageFor",
-            "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;",
-            "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class<*>;"
+            "(" +
+                "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;" +
+                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
+                "Ljava/lang/String;" +
+                "Lorg/gradle/internal/hash/HashCode;" +
+                "Lorg/gradle/internal/classpath/ClassPath;" +
+                ")Ljava/lang/Class;",
+            "(" +
+                "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;" +
+                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;" +
+                "Ljava/lang/String;" +
+                "Lorg/gradle/internal/hash/HashCode;" +
+                "Lorg/gradle/internal/classpath/ClassPath;" +
+                ")Ljava/lang/Class<*>;"
         ) {
 
             emitCompileSecondStageScript(sourceFilePath, originalPath)
@@ -314,6 +326,7 @@ class ResidualProgramCompiler(
         ALOAD(4)
         GETSTATIC(programKind)
         GETSTATIC(programTarget)
+        ALOAD(5) // accessorsClassPath
         invokeHost(
             ExecutableProgram.Host::compileSecondStageScript.name,
             "(" +
@@ -322,6 +335,7 @@ class ResidualProgramCompiler(
                 "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
                 "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
                 "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;" +
+                "Lorg/gradle/internal/classpath/ClassPath;" +
                 ")Ljava/lang/Class;")
     }
 
@@ -334,10 +348,28 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
+        if (requiresAccessors()) {
+            ALOAD(Vars.ProgramHost)
+            ALOAD(Vars.ScriptHost)
+            invokeHost(
+                "accessorsClassPathFor",
+                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)Lorg/gradle/internal/classpath/ClassPath;"
+            )
+        } else ACONST_NULL()
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
-            "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)V")
+            "(" +
+                "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;" +
+                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
+                "Ljava/lang/String;" +
+                "Lorg/gradle/internal/hash/HashCode;" +
+                "Lorg/gradle/internal/classpath/ClassPath;" +
+                ")V")
     }
+
+    private
+    fun requiresAccessors() =
+        programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
 
     private
     fun ClassVisitor.overrideExecute(methodBody: MethodVisitor.() -> Unit) {
@@ -736,6 +768,12 @@ fun MethodVisitor.GETSTATIC(owner: String, name: String, desc: String) {
 private
 fun MethodVisitor.CHECKCAST(type: String) {
     visitTypeInsn(Opcodes.CHECKCAST, type)
+}
+
+
+private
+fun MethodVisitor.ACONST_NULL() {
+    visitInsn(Opcodes.ACONST_NULL)
 }
 
 
