@@ -143,106 +143,106 @@ The following guidelines should be followed when using the new APIs:
 Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
 ====
 
-[cols="a,a,a", options="header"]
+[cols="a,a", options="header"]
 |===
-| Old API | New API | Description
+| Old API | New API
 
 | api:org.gradle.api.tasks.TaskContainer#create(java.util.Map)[]
 | No direct equivalent.
-| Use one of the alternatives below.
+2+| Use one of the alternatives below.
 
-| api:org.gradle.api.tasks.TaskContainer#create(java.util.Map,org.gradle.api.Action)[]
+| api:org.gradle.api.tasks.TaskContainer#create(java.util.Map,groovy.lang.Closure)[]
 | No direct equivalent.
-| Use one of the alternatives below.
+2+| Use one of the alternatives below.
 
 | api:org.gradle.api.tasks.TaskContainer#create(java.lang.String)[]
-| register(String)
-| This returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskContainer#register(java.lang.String)[]
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,org.gradle.api.Action)[]
-| register(String, Action)
-| This returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,groovy.lang.Closure)[]
+| api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,org.gradle.api.Action)[]
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| create(String, Class)
-| register(String, Class)
-| This returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,java.lang.Class)[]
+| api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,java.lang.Class)[]
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| create(String, Class, Closure/Action)
-| register(String, Class, Action)
-| This returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,java.lang.Class,org.gradle.api.Action)[]
+| api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,java.lang.Class,org.gradle.api.Action)[]
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| create(String, Class, Object...)
-| register(String, Class, Object...)
-| This returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,java.lang.Class,java.lang.Object...)[]
+| api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,java.lang.Class,java.lang.Object...)[]
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| getByName(String)
-| named(String)
-| This returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String)[]
+| api:org.gradle.api.tasks.TaskCollection#named(java.lang.String)[]
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| getByName(String, Closure/Action)
-| named(String).configure(Action)
-| This returns `void`, so it cannot be chained.
+| api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String,groovy.lang.Closure)[]
+| `named(java.lang.String).configure(Action)`
+2+| This returns `void`, so it cannot be chained.
 
-| getByPath(String)
+| api:org.gradle.api.tasks.TaskContainer#getByPath(java.lang.String)[]
 | No direct equivalent.
-| Accessing tasks from another project requires a specific ordering of project evaluation. 
+2+| Accessing tasks from another project requires a specific ordering of project evaluation. 
 
-| findByName(String)
+| api:org.gradle.api.NamedDomainObjectCollection#findByName(java.lang.String)[]
 | No direct equivalent.
-| named(String) is the closest equivalent, but will fail if the task does not exist. Using `findByName(String)` will cause lazy tasks to be created/configured.
+2+| `named(String)` is the closest equivalent, but will fail if the task does not exist. Using `findByName(String)` will cause lazy tasks to be created/configured.
 
-| findByPath(String)
+| api:org.gradle.api.tasks.TaskContainer#findByPath(java.lang.String)[]
 | No direct equivalent.
-| See `getByPath(String)` above.
+2+| See `getByPath(String)` above.
 
-| withType(Class)
+| api:org.gradle.api.tasks.TaskCollection#withType(java.lang.Class)[]
 | _OK_
-| This is OK to use because it does not require tasks to be created immediately.
+2+| This is OK to use because it does not require tasks to be created immediately.
 
-| withType(Class).getByName(String)
-| withType(Class).named(String)
-| This returns a `TaskProvider` instead of a `Task`.
+| `withType(java.lang.Class).getByName(java.lang.String)`
+| `withType(java.lang.Class).named(java.lang.String)`
+2+| This returns a `TaskProvider` instead of a `Task`.
 
-| withType(Class, Closure/Action)
-| withType(Class).configureEach(Action)
-| This returns `void`, so it cannot be chained.
+| api:org.gradle.api.DomainObjectCollection#withType(java.lang.Class,org.gradle.api.Action)[]
+| `withType(java.lang.Class).configureEach(org.gradle.api.Action)`
+2+| This returns `void`, so it cannot be chained.
 
-| all(Closure/Action)
-| configureEach(Action)
-| This returns `void`, so it cannot be chained.
+| api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[]
+| api:org.gradle.api.DomainObjectCollection#configureEach(org.gradle.api.Action)[]
+2+| This returns `void`, so it cannot be chained.
 
-| findAll(Closure)
+| api:org.gradle.api.NamedDomainObjectSet#findAll(groovy.lang.Closure)[]
 | _OK_, with issues.
-| Avoid calling this method. `matching` and `configureEach` are more appropriate in most cases.
+2+| Avoid calling this method. `matching(Spec)` and `configureEach(Action)` are more appropriate in most cases.
 
-| matching(Closure/Spec)
+| api:org.gradle.api.tasks.TaskCollection#matching(groovy.lang.Closure)[]
 | _OK_
-| This is OK to use because it does not require tasks to be created immediately.
+2+| This is OK to use because it does not require tasks to be created immediately.
 
-| getAt(String)
-| named(String)
-| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
+| api:org.gradle.api.tasks.TaskCollection#getAt(java.lang.String)[]
+| api:org.gradle.api.tasks.TaskCollection#named(java.lang.String)[]
+2+| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
 
-| remove(Task)
+| `remove(org.gradle.api.Task)`
 | _OK_, with issues.
-| Avoid calling this. The behavior of `remove` with the new API may change in the future.
+2+| Avoid calling this. The behavior of `remove` with the new API may change in the future.
 
-| replace(String)
+| api:org.gradle.api.tasks.TaskContainer#replace(java.lang.String)[]
 | _OK_, with issues.
-| Avoid calling this. The behavior of `replace` with the new API may change in the future.
+2+| Avoid calling this. The behavior of `replace` with the new API may change in the future.
 
-| replace(String, Class)
+| api:org.gradle.api.tasks.TaskContainer#replace(java.lang.String,java.lang.Class)[]
 | _OK_, with issues.
-| Avoid calling this. The behavior of `replace` with the new API may change in the future.
+2+| Avoid calling this. The behavior of `replace` with the new API may change in the future.
 
 |===
 
 [[sec:new_task_gradle_profiler_scenario]]
 === Profiling with a Gradle Profiler Scenario File
 
-TODO: Instructions for using Gradle-profiler here.
+The https://github.com/gradle/gradle-profiler#gradle-profiler[Gradle Profiler] is a tool to measure build times for Gradle builds in a predictable and reproducible manner. The tool automates collecting profiling and benchmark information from a Gradle build and mitigates environmental impacts to measuring build time (like JIT warmups and cached dependencies). Clone and build `gradle-profiler` locally.
 
-TODO: We should recommend what's a useful % of conversion to measure.
+To measure the impact of the new API on your build, we've included a sample scenario file you can use. This scenario runs `gradle help` on your build with a special flag to enable/disable the new API to make it easier to measure improvements.
 
 .Save as help.scenario
 [source,json]
@@ -250,12 +250,20 @@ TODO: We should recommend what's a useful % of conversion to measure.
 defaults {
     tasks = ["help"]
     warm-ups = 20
-    iterations = 20
-}
-lazyHelp = ${defaults} {
-    gradle-args = ["-Dorg.gradle.internal.tasks.eager=false"]
 }
 eagerHelp = ${defaults} {
     gradle-args = ["-Dorg.gradle.internal.tasks.eager=true"]
 }
+lazyHelp = ${defaults} {
+    gradle-args = ["-Dorg.gradle.internal.tasks.eager=false"]
+}
 ----
+
+Run `gradle-profiler` in the root of your build. The results will go into a file called `profile-out-N` where `N` is unique for each invocation.
+
+* When measuring your build with `gradle-profiler`, you should make sure the machine running the benchmark is not also busy doing other things. You may get false positives/negatives if resources are spent doing other things.
+* Get a baseline for how long your build takes before making any changes. Run `gradle-profiler --benchmark --iterations 20 --gradle-version [some Gradle version] --scenario-file help.scenario eagerHelp lazyHelp`.
+* In the `profile-out-N` directory, `gradle-profiler` will generate a CSV and a HTML file to display the results of the benchmarking.
+* After making some changes to decrease the number of tasks that are created and configured, re-run the command above.
+* For the Gradle build itself, we saw improvements after 50% of the tasks were no longer configured each time. Your mileage may vary depending on how expensive particular tasks are to create and configure.
+* Please provide feedback on https://github.com/gradle/gradle/issues/5664[this issue]. Or send us an email at mailto:performance@gradle.com[performance@gradle.com].
