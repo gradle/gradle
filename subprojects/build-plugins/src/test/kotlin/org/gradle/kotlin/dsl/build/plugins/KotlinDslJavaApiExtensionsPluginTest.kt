@@ -46,6 +46,10 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 id("org.gradle.kotlin.dsl.build.java-api-extensions")
             }
 
+            dependencies {
+                compileOnly(gradleApi())
+            }
+
             kotlinDslApiExtensions {
                 create("main")
             }
@@ -62,6 +66,8 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
         withFile("src/main/java/some/example/Some.java", """
             package some.example;
 
+            import org.gradle.api.Action;
+
             public interface Some {
 
                 void rawClassTakingMethod(Class<?> clazz);
@@ -76,7 +82,33 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 String groovyNamedArgumentsStringMapTakingMethod(java.util.Map<String, ?> args);
                 String groovyNamedArgumentsStringObjectMapTakingMethod(java.util.Map<String, Object> args);
 
-                // TODO Add cases with more parameters and mixed class/groovy-maps
+                void mapClassTakingMethod(java.util.Map args, Class<Some> clazz);
+                void mapClassActionTakingMethod(java.util.Map args, Class<Some> clazz, Action<Some> action);
+            }
+        """)
+
+        withFile("src/main/java/some/example/Generics.java", """
+            package some.example;
+
+            import org.gradle.api.Action;
+            import org.gradle.api.Incubating;
+            import org.gradle.api.specs.Spec;
+
+            public interface Generics<T extends Some> {
+
+                void rawClassTakingMethod(Class<?> clazz);
+                void typedClassTakingMethod(Class<T> clazz);
+                void boundedClassTakingMethod(Class<? extends T> clazz);
+
+                @Deprecated
+                Generics<T> matching(Class<Spec<T>> specType);
+
+                @Deprecated
+                @Incubating
+                <S extends T> Generics<S> withType(Class<S> type, Action<S> action);
+
+                @Incubating
+                <S extends T> Generics<S> withType(java.util.Map<String, ?> properties, Class<S> type, Action<S> action);
             }
         """)
 
@@ -94,12 +126,21 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 some.example.Some.groovyNamedArgumentsUnboundedMapTakingMethod(java.util.Map)=args
                 some.example.Some.groovyNamedArgumentsStringMapTakingMethod(java.util.Map)=args
                 some.example.Some.groovyNamedArgumentsStringObjectMapTakingMethod(java.util.Map)=args
+                some.example.Some.mapClassTakingMethod(java.util.Map,java.lang.Class)=args,clazz
+                some.example.Some.mapClassActionTakingMethod(java.util.Map,java.lang.Class,org.gradle.api.Action)=args,clazz,action
+                some.example.Generics.rawClassTakingMethod(java.lang.Class)=clazz
+                some.example.Generics.typedClassTakingMethod(java.lang.Class)=clazz
+                some.example.Generics.boundedClassTakingMethod(java.lang.Class)=clazz
+                some.example.Generics.matching(java.lang.Class)=specType
+                some.example.Generics.withType(java.lang.Class,org.gradle.api.Action)=type,action
+                some.example.Generics.withType(java.util.Map,java.lang.Class,org.gradle.api.Action)=properties,type,action
             """.trimIndent().lines()
-            assertThat(it.readText(), allOf(entries.map { containsString(it) }))
+            assertThat(it.readLines().sorted(), equalTo(entries.sorted()))
         }
 
         existing("build/generated-sources").walkTopDown().single { it.isFile }.let {
             assertThat(it.name, equalTo("GeneratedSomeExampleMainKotlinDslApiExtensions.kt"))
+            println(it.readText())
             val extensions = listOf(
                 """
                 fun some.example.Some.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
@@ -136,6 +177,34 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 """
                 fun some.example.Some.`groovyNamedArgumentsStringObjectMapTakingMethod`(vararg `args`: Pair<String, *>): String =
                     `groovyNamedArgumentsStringObjectMapTakingMethod`(mapOf(*`args`))
+                """,
+                """
+                fun some.example.Some.`mapClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>, vararg `args`: Pair<String, *>): Unit =
+                    `mapClassTakingMethod`(mapOf(*`args`), `clazz`.java)
+                """,
+                """
+                fun some.example.Some.`mapClassActionTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>, vararg `args`: Pair<String, *>, `action`: some.example.Some.() -> Unit): Unit =
+                    `mapClassActionTakingMethod`(mapOf(*`args`), `clazz`.java, `action`)
+                """,
+                """
+                fun <T : some.example.Some> some.example.Generics<T>.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
+                    `rawClassTakingMethod`(`clazz`.java)
+                """,
+                """
+                @Deprecated("Deprecated Gradle API")
+                fun <T : some.example.Some> some.example.Generics<T>.`matching`(`specType`: kotlin.reflect.KClass<org.gradle.api.specs.Spec<T>>): some.example.Generics<T> =
+                    `matching`(`specType`.java)
+                """,
+                """
+                @Deprecated("Deprecated Gradle API")
+                @org.gradle.api.Incubating
+                fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, `action`: S.() -> Unit): some.example.Generics<S> =
+                    `withType`(`type`.java, `action`)
+                """,
+                """
+                @org.gradle.api.Incubating
+                fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, vararg `properties`: Pair<String, *>, `action`: S.() -> Unit): some.example.Generics<S> =
+                    `withType`(mapOf(*`properties`), `type`.java, `action`)
                 """)
             assertThat(it.readText(), allOf(extensions.map { containsMultiLineString(it) }))
         }

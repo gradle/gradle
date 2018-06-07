@@ -176,7 +176,7 @@ data class MappedApiFunctionParameter(
 private
 fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
     firstOrNull()?.takeIf { it.type.isGroovyNamedArgumentMap }?.let { first ->
-        drop(1) + first.copy(
+        val mappedMapParameter = first.copy(
             type = ApiTypeUsage(
                 sourceName = SourceNames.kotlinArray,
                 typeArguments = listOf(
@@ -185,6 +185,8 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                         typeArguments = listOf(
                             ApiTypeUsage("String"), starProjectionTypeUsage)))),
             invocation = "mapOf(*${first.invocation})")
+        if (last().type.isGradleAction) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
+        else drop(1) + mappedMapParameter
     } ?: this
 
 
@@ -243,6 +245,7 @@ data class KotlinExtensionFunction(
         takeIf { it.isNotEmpty() }?.let { list ->
             list.mapIndexed { index, p ->
                 if (index == list.size - 1 && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
+                else if (index == list.size - 2 && list[index + 1].type.isGradleAction && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
                 else if (p.type.isGradleAction) "`${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}.() -> Unit"
                 else "`${p.name}`: ${p.type.toTypeArgumentString()}"
             }.joinToString(separator = ", ")
