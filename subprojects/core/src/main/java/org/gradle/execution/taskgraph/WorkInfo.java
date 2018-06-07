@@ -36,7 +36,8 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     private ExecutionState state;
     private boolean dependenciesProcessed;
     private Throwable executionFailure;
-    protected final NavigableSet<WorkInfo> dependencyPredecessors = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> dependencySuccessors = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> dependencyPredecessors = Sets.newTreeSet();
 
     public WorkInfo() {
         this.state = ExecutionState.UNKNOWN;
@@ -144,7 +145,9 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
         return dependencyPredecessors;
     }
 
-    public abstract Set<WorkInfo> getDependencySuccessors();
+    public Set<WorkInfo> getDependencySuccessors() {
+        return dependencySuccessors;
+    }
 
     @OverridingMethodsMustInvokeSuper
     public boolean allDependenciesComplete() {
@@ -176,6 +179,11 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     public void dependenciesProcessed() {
         dependenciesProcessed = true;
+    }
+
+    public void addDependencySuccessor(WorkInfo toNode) {
+        dependencySuccessors.add(toNode);
+        toNode.dependencyPredecessors.add(this);
     }
 
     @OverridingMethodsMustInvokeSuper

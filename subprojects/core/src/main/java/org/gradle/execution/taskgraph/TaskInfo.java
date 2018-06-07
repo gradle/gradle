@@ -24,7 +24,6 @@ import java.util.Set;
 
 public abstract class TaskInfo extends WorkInfo {
 
-    private final NavigableSet<WorkInfo> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<WorkInfo> mustSuccessors = Sets.newTreeSet();
     private final NavigableSet<WorkInfo> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<WorkInfo> finalizers = Sets.newTreeSet();
@@ -48,16 +47,6 @@ public abstract class TaskInfo extends WorkInfo {
         }
 
         return true;
-    }
-
-    @Override
-    public Set<WorkInfo> getDependencySuccessors() {
-        return dependencySuccessors;
-    }
-
-    public void addDependencySuccessor(WorkInfo toNode) {
-        dependencySuccessors.add(toNode);
-        toNode.dependencyPredecessors.add(this);
     }
 
     public Set<WorkInfo> getMustSuccessors() {
