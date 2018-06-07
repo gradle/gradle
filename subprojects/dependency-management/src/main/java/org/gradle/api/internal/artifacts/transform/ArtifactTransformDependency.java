@@ -39,12 +39,18 @@ public class ArtifactTransformDependency {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ArtifactTransformDependency that = (ArtifactTransformDependency) o;
 
-        if (!transform.equals(that.transform)) return false;
+        if (!transform.equals(that.transform)) {
+            return false;
+        }
         return artifacts.equals(that.artifacts);
     }
 
