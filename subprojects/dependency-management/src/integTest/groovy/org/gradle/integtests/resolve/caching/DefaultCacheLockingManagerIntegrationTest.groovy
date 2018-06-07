@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAcces
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -194,6 +195,49 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
 
         then:
         resources[0].assertExists()
+    }
+
+    def "redownloads deleted artifacts for artifact query"() {
+        given:
+        def module = mavenHttpRepo.module('org.example', 'example', '1.0')
+        def sourceArtifact = module.artifact(classifier: "sources")
+        module.publish()
+        buildFile.text = """
+            repositories {
+                maven { url '$mavenHttpRepo.uri' }
+            }
+        """
+
+        and:
+        new JvmLibraryArtifactResolveTestFixture(buildFile)
+            .withComponentVersion('org.example', 'example', '1.0')
+            .requestingSource()
+            .expectSourceArtifact("sources")
+            .prepare()
+
+        when:
+        module.pom.expectGet()
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+
+        then:
+        succeeds 'verify'
+
+        and:
+        def jarFiles = findFiles(cacheDir, "files-*/**/example-1.0-sources.jar")
+        jarFiles.size() == 1
+        def jarFile = jarFiles[0]
+
+        when:
+        assert jarFile.delete()
+        server.resetExpectations()
+        sourceArtifact.expectGet()
+
+        then:
+        succeeds 'verify'
+
+        and:
+        jarFile.assertExists()
     }
 
     private TestFile getJournal() {
