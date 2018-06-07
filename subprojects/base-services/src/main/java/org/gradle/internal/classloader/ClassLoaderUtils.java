@@ -102,8 +102,8 @@ public abstract class ClassLoaderUtils {
     }
 
     private static class ReflectionPackagesFetcher implements ClassLoaderPackagesFetcher {
-        private final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = method(ClassLoader.class, Package[].class, "getPackages");
-        private final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = method(ClassLoader.class, Package.class, "getPackage", String.class);
+        private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = method(ClassLoader.class, Package[].class, "getPackages");
+        private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = method(ClassLoader.class, Package.class, "getPackage", String.class);
 
         @Override
         public Package[] getPackages(ClassLoader classLoader) {
