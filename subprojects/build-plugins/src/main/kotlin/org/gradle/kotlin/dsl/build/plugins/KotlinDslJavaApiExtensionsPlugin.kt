@@ -167,8 +167,8 @@ open class KotlinDslApiExtensionsSet(
     internal
     val sources = project.provider {
         sourceSet.get().java.sourceDirectories
-            .map { project.fileTree(it) as FileTree }
-            .reduce { acc, fileTree -> acc.plus(fileTree) }
+            .map { project.fileTree(it) }
+            .reduce { acc: FileTree, fileTree -> acc.plus(fileTree) }
             .matching {
                 includes.get().takeIf { it.isNotEmpty() }?.let { includes ->
                     it.include(includes)
