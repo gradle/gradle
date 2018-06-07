@@ -45,15 +45,15 @@ import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_5),
-    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
-    REQUIRES_JAVA_9(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_9)
+enum class ModuleType(val source: JavaVersion, val target: JavaVersion, val requiredCompiler: JavaVersion) {
+    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
+    ENTRY_POINT(JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_5),
+    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
+    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
+    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
+    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
+    REQUIRES_JAVA_9_COMPILER(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_9);
 }
 
 
@@ -66,35 +66,35 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         addDependencies()
         addGeneratedResources(extension)
-        configureCompile()
+        configureCompile(extension)
         configureJarTasks()
         configureTests()
     }
 
     private
-    fun Project.configureCompile() {
+    fun Project.configureCompile(extension: UnitTestAndCompileExtension) {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
             tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
-                configureCompileTask(this, options, availableJavaInstallations)
+                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
-                configureCompileTask(this, options, availableJavaInstallations)
+                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
             }
         }
         addCompileAllTask()
     }
 
     private
-    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations, requiredCompilerVersion: JavaVersion) {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
-        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(targetJdkVersion)
+        val compilerJdkVersion = maxOf(requiredCompilerVersion, JavaVersion.VERSION_1_7)
+        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(compilerJdkVersion)
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }

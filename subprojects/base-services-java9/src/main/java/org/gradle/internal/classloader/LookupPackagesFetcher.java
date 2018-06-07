@@ -22,7 +22,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
-class LookupPackagesFetcher implements ClassLoaderPackagesFetcher {
+public class LookupPackagesFetcher implements ClassLoaderPackagesFetcher {
     private final MethodHandle getPackagesMethodHandle;
     private final MethodHandle getDefinedPackageMethodHandle;
 

@@ -22,7 +22,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
-class LookupClassDefiner implements ClassDefiner {
+public class LookupClassDefiner implements ClassDefiner {
     private final MethodHandle defineClassMethodHandle;
 
     LookupClassDefiner() {

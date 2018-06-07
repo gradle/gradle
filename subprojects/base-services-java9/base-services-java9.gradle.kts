@@ -30,7 +30,7 @@ plugins {
 
 java {
     gradlebuildJava {
-        moduleType = ModuleType.REQUIRES_JAVA_9
+        moduleType = ModuleType.REQUIRES_JAVA_9_COMPILER
     }
 }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classloader;
 
-interface ClassLoaderPackagesFetcher {
+public interface ClassLoaderPackagesFetcher {
     Package[] getPackages(ClassLoader classLoader);
 
     Package getPackage(ClassLoader classLoader, String name);
