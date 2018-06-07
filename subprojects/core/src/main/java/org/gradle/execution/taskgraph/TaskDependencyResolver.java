@@ -17,12 +17,12 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext.WorkResolver;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Set;
 
 @NonNullApi
@@ -40,12 +40,8 @@ public class TaskDependencyResolver {
     }
 
     private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(final TaskInfoFactory taskInfoFactory) {
-        return new CachingTaskDependencyResolveContext<WorkInfo>(new WorkResolver<WorkInfo>() {
-            @Override
-            public WorkInfo resolve(Task task) {
-                return taskInfoFactory.getOrCreateNode(task);
-            }
-        });
+        return new CachingTaskDependencyResolveContext<WorkInfo>(
+            Collections.<WorkResolver<WorkInfo>>singleton(new CachingTaskDependencyResolveContext.TaskInfoResolver(taskInfoFactory)));
     }
 
     public Set<WorkInfo> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {

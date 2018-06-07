@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.execution.taskgraph.TaskInfoFactory;
+import org.gradle.execution.taskgraph.WorkInfo;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -53,8 +56,8 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
     private final CachingDirectedGraphWalker<Object, T> walker;
     private Task task;
 
-    public CachingTaskDependencyResolveContext(WorkResolver<T> workResolver) {
-        this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolver));
+    public CachingTaskDependencyResolveContext(Collection<WorkResolver<T>> workResolvers) {
+        this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
     }
 
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
@@ -82,14 +85,14 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
     }
 
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
-        private final WorkResolver<T> workResolver;
+        private final Collection<WorkResolver<T>> workResolvers;
 
-        public TaskGraphImpl(WorkResolver<T> workResolver) {
-            this.workResolver = workResolver;
+        public TaskGraphImpl(Collection<WorkResolver<T>> workResolvers) {
+            this.workResolvers = workResolvers;
         }
 
         @Override
-        public void getNodeValues(Object node, Collection<? super T> values, Collection<? super Object> connectedNodes) {
+        public void getNodeValues(Object node, final Collection<? super T> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependency = (TaskDependencyContainer) node;
                 queue.clear();
@@ -98,24 +101,70 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
             } else if (node instanceof Buildable) {
                 Buildable buildable = (Buildable) node;
                 connectedNodes.add(buildable.getBuildDependencies());
-            } else if (node instanceof TaskDependency) {
-                TaskDependency taskDependency = (TaskDependency) node;
-                for (Task dependencyTask : taskDependency.getDependencies(task)) {
-                    values.add(workResolver.resolve(dependencyTask));
-                }
-            } else if (node instanceof Task) {
-                values.add(workResolver.resolve((Task) node));
-            } else if (node instanceof TaskReferenceInternal) {
-                Task task = ((TaskReferenceInternal) node).resolveTask();
-                values.add(workResolver.resolve(task));
             } else {
-                throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
+                boolean handled = false;
+                for (WorkResolver<T> workResolver : workResolvers) {
+                    if (workResolver.resolve(task, node, connectedNodes, new Action<T>() {
+                        @Override
+                        public void execute(T resolvedValue) {
+                            values.add(resolvedValue);
+                        }
+                    })) {
+                        handled = true;
+                        break;
+                    }
+                }
+                if (!handled) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
                         node.getClass().getSimpleName()));
+                }
             }
         }
     }
 
     public interface WorkResolver<T> {
-        T resolve(Task task);
+        boolean resolve(Task task, Object node, Collection<Object> connectedNodes, Action<? super T> resolveAction);
+    }
+
+    public static class TaskResolver implements WorkResolver<Task> {
+        @Override
+        public boolean resolve(Task task, Object node, Collection<Object> connectedNodes, Action<? super Task> resolveAction) {
+            return resolveToTask(task, node, connectedNodes, resolveAction);
+        }
+    }
+
+    public static class TaskInfoResolver implements WorkResolver<WorkInfo> {
+        private final TaskInfoFactory taskInfoFactory;
+
+        public TaskInfoResolver(TaskInfoFactory taskInfoFactory) {
+            this.taskInfoFactory = taskInfoFactory;
+        }
+
+        @Override
+        public boolean resolve(Task task, Object node, Collection<Object> connectedNodes, final Action<? super WorkInfo> resolveAction) {
+            return resolveToTask(task, node, connectedNodes, new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    resolveAction.execute(taskInfoFactory.getOrCreateNode(task));
+                }
+            });
+        }
+    }
+
+    private static boolean resolveToTask(@Nullable Task originalTask, Object node, Collection<Object> connectedNodes, Action<? super Task> resolveAction) {
+        if (node instanceof TaskDependency) {
+            TaskDependency taskDependency = (TaskDependency) node;
+            for (Task dependencyTask : taskDependency.getDependencies(originalTask)) {
+                resolveAction.execute(dependencyTask);
+            }
+        } else if (node instanceof Task) {
+            resolveAction.execute((Task) node);
+        } else if (node instanceof TaskReferenceInternal) {
+            Task task = ((TaskReferenceInternal) node).resolveTask();
+            resolveAction.execute(task);
+        } else {
+            return false;
+        }
+        return true;
     }
 }
