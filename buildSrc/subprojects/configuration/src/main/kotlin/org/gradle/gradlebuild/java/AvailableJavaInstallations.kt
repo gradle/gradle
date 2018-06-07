@@ -68,6 +68,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     init {
         val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
         val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
+        require(resolvedJava9Home != null) { "Required $java9HomePropertyName system property or project property not found" }
         val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
         val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
         javaInstallations = findJavaInstallations(javaHomesForCompilation)
