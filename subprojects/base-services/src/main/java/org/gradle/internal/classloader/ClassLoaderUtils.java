@@ -34,8 +34,8 @@ public abstract class ClassLoaderUtils {
     private static final ClassLoaderPackagesFetcher CLASS_LOADER_PACKAGES_FETCHER;
 
     static {
-        CLASS_DEFINER = JavaVersion.current().isJava9Compatible() ? loadLookupClassDefiner() : new ReflectionClassDefiner();
-        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible() ? loadLookupPackagesFetcher() : new ReflectionPackagesFetcher();
+        CLASS_DEFINER = loadClass("LookupClassDefiner", (ClassDefiner) new ReflectionClassDefiner());
+        CLASS_LOADER_PACKAGES_FETCHER = loadClass("LookupPackagesFetcher", (ClassLoaderPackagesFetcher) new ReflectionPackagesFetcher());
     }
 
     /**
@@ -72,6 +72,19 @@ public abstract class ClassLoaderUtils {
         return CLASS_DEFINER.defineClass(targetClassLoader, className, clazzBytes);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T loadClass(String simpleClassName, T fallbackInstance) {
+        if (JavaVersion.current().isJava9Compatible()) {
+            try {
+                return (T) Class.forName(ClassLoaderUtils.class.getPackage().getName() + "." + simpleClassName).newInstance();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return fallbackInstance;
+        }
+    }
+
     private static class ReflectionClassDefiner implements ClassDefiner {
         private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
@@ -82,22 +95,6 @@ public abstract class ClassLoaderUtils {
         @Override
         public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
             return Cast.uncheckedCast(defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length));
-        }
-    }
-
-    private static ClassDefiner loadLookupClassDefiner() {
-        try {
-            return (ClassDefiner) Class.forName("org.gradle.internal.classloader.LookupClassDefiner").newInstance();
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static ClassLoaderPackagesFetcher loadLookupPackagesFetcher() {
-        try {
-            return (ClassLoaderPackagesFetcher) Class.forName("org.gradle.internal.classloader.LookupPackagesFetcher").newInstance();
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
     }
 
