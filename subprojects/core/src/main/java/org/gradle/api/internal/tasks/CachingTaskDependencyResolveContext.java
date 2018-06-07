@@ -53,7 +53,7 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
     private final CachingDirectedGraphWalker<Object, T> walker;
     private Task task;
 
-    public CachingTaskDependencyResolveContext(Collection<WorkResolver<T>> workResolvers) {
+    public CachingTaskDependencyResolveContext(Collection<? extends WorkResolver<T>> workResolvers) {
         this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
     }
 
@@ -82,9 +82,9 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
     }
 
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
-        private final Collection<WorkResolver<T>> workResolvers;
+        private final Collection<? extends WorkResolver<T>> workResolvers;
 
-        public TaskGraphImpl(Collection<WorkResolver<T>> workResolvers) {
+        public TaskGraphImpl(Collection<? extends WorkResolver<T>> workResolvers) {
             this.workResolvers = workResolvers;
         }
 

@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.TaskInfoWorkResolver
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile

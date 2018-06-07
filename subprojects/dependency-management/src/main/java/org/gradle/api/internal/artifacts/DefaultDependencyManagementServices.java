@@ -66,6 +66,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
+import org.gradle.api.internal.artifacts.transform.TransformOperationRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -278,7 +279,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildState currentBuild) {
+                                                       BuildState currentBuild,
+                                                       TransformOperationRegistry transformOperationRegistry) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -294,7 +296,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributesSchema,
                                     attributesFactory),
                                 attributesSchema,
-                                attributesFactory),
+                                attributesFactory,
+                                transformOperationRegistry),
                             moduleIdentifierFactory,
                             buildOperationExecutor,
                             artifactTypeRegistry,

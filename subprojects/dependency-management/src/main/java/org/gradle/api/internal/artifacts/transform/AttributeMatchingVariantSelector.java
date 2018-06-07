@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -32,18 +33,28 @@ import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TransformOperationRegistry transformOperationRegistry;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
 
-    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+    AttributeMatchingVariantSelector(
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        AttributesSchemaInternal schema,
+        ImmutableAttributesFactory attributesFactory,
+        TransformOperationRegistry transformOperationRegistry,
+        AttributeContainerInternal requested,
+        boolean ignoreWhenNoMatches
+    ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
+        this.transformOperationRegistry = transformOperationRegistry;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
     }
@@ -86,7 +97,11 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-            return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+            ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
+            AttributeContainerInternal attributes = result.getRight().attributes;
+            ArtifactTransformer transformer = result.getRight().transformer;
+            Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults = transformOperationRegistry.getResults(artifacts, transformer);
+            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer, preCalculatedResults);
         }
 
         if (!candidates.isEmpty()) {

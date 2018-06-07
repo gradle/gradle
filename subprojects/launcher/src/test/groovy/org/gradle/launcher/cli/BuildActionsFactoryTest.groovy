@@ -165,7 +165,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def delegate = action.executer
         while (delegate.hasProperty("delegate")) {
-            delegate = delegate.delegate
+            delegate = delegate.getArtifacts
         }
         assert delegate instanceof InProcessBuildActionExecuter
     }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,5 +57,11 @@ class ChainedTransformer implements ArtifactTransformer {
     @Override
     public String getDisplayName() {
         return first.getDisplayName() + " -> " + second.getDisplayName();
+    }
+
+    @Override
+    public void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
+        first.visitLeafTransformers(action);
+        second.visitLeafTransformers(action);
     }
 }

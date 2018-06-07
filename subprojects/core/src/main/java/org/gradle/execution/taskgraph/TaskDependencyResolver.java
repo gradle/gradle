@@ -19,7 +19,6 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkResolver;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,10 +26,10 @@ import java.util.Set;
 
 @NonNullApi
 public class TaskDependencyResolver {
-    private final List<WorkResolver<WorkInfo>> workResolvers;
+    private final List<WorkInfoResolver> workResolvers;
     private CachingTaskDependencyResolveContext<WorkInfo> context;
 
-    public TaskDependencyResolver(List<WorkResolver<WorkInfo>> workResolvers) {
+    public TaskDependencyResolver(List<WorkInfoResolver> workResolvers) {
         this.workResolvers = workResolvers;
         this.context = createTaskDependencyResolverContext(workResolvers);
     }
@@ -39,7 +38,7 @@ public class TaskDependencyResolver {
         context = createTaskDependencyResolverContext(workResolvers);
     }
 
-    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkResolver<WorkInfo>> workResolvers) {
+    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkInfoResolver> workResolvers) {
         return new CachingTaskDependencyResolveContext<WorkInfo>(workResolvers);
     }
 

@@ -58,17 +58,17 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardDependencySuccessor) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
         for (WorkInfo targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
-            processHardDependencySuccessor.execute(targetNode);
+            processHardSuccessor.execute(targetNode);
         }
         for (WorkInfo targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskInfo)) {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
             }
             addFinalizerNode((TaskInfo) targetNode);
-            processHardDependencySuccessor.execute(targetNode);
+            processHardSuccessor.execute(targetNode);
         }
         for (WorkInfo targetNode : getMustRunAfter(dependencyResolver)) {
             addMustSuccessor(targetNode);
@@ -104,8 +104,8 @@ public class LocalTaskInfo extends TaskInfo {
     @Override
     @SuppressWarnings("NullableProblems")
     public int compareTo(WorkInfo other) {
-        if (other.getClass() != getClass()) {
-            return -1;
+        if (getClass() != other.getClass()) {
+            return getClass().getName().compareTo(other.getClass().getName());
         }
         LocalTaskInfo localTask = (LocalTaskInfo) other;
         return task.compareTo(localTask.task);

@@ -286,7 +286,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                             // Should run after edges only exist between tasks, so this cast is safe
                             TaskInfo sourceTask = (TaskInfo) toBeRemoved.from;
                             TaskInfo targetTask = (TaskInfo) toBeRemoved.to;
-                            sourceTask.removeShouldRunAfterSuccessor(targetTask);
+                            sourceTask.removeShouldSuccessor(targetTask);
                             restorePath(path, toBeRemoved);
                             restoreQueue(nodeQueue, visitingNodes, toBeRemoved);
                             restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
@@ -881,13 +881,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void handleFailure(WorkInfo workInfo) {
         Throwable executionFailure = workInfo.getExecutionFailure();
         if (executionFailure != null) {
-            // Always abort execution for an execution failure (as opposed to a task failure)
+            // Always abort execution for an execution failure (as opposed to a work failure)
             abortExecution();
             this.failureCollector.addFailure(executionFailure);
             return;
         }
 
-        // Task failure
+        // Work failure
         try {
             if (!continueOnFailure) {
                 workInfo.rethrowFailure();

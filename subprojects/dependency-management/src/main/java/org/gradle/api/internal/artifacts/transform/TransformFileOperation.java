@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.List;
 
-class TransformFileOperation implements RunnableBuildOperation {
+class TransformFileOperation implements RunnableBuildOperation, TransformOperation {
     private final File file;
     private final ArtifactTransformer transform;
     private Throwable failure;
@@ -48,10 +48,12 @@ class TransformFileOperation implements RunnableBuildOperation {
         return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + file);
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }
 
+    @Override
     public List<File> getResult() {
         return result;
     }

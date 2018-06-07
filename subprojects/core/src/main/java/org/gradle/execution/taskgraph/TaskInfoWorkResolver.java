@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.execution.taskgraph.TaskInfoFactory;
-import org.gradle.execution.taskgraph.WorkInfo;
 
 import javax.annotation.Nonnull;
 
-public class TaskInfoWorkResolver implements WorkResolver<WorkInfo> {
+public class TaskInfoWorkResolver implements WorkInfoResolver {
     private final TaskInfoFactory taskInfoFactory;
 
     public TaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
@@ -39,5 +37,4 @@ public class TaskInfoWorkResolver implements WorkResolver<WorkInfo> {
             }
         });
     }
-
 }

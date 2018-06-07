@@ -65,24 +65,24 @@ public abstract class TaskInfo extends WorkInfo {
         return shouldSuccessors;
     }
 
-    public void addMustSuccessor(WorkInfo toNode) {
+    protected void addMustSuccessor(WorkInfo toNode) {
         mustSuccessors.add(toNode);
     }
 
-    public void addFinalizingSuccessor(TaskInfo finalized) {
+    protected void addFinalizingSuccessor(TaskInfo finalized) {
         finalizingSuccessors.add(finalized);
     }
 
-    public void addFinalizer(TaskInfo finalizerNode) {
+    protected void addFinalizer(TaskInfo finalizerNode) {
         finalizers.add(finalizerNode);
         finalizerNode.addFinalizingSuccessor(this);
     }
 
-    public void addShouldSuccessor(WorkInfo toNode) {
+    protected void addShouldSuccessor(WorkInfo toNode) {
         shouldSuccessors.add(toNode);
     }
 
-    public void removeShouldRunAfterSuccessor(TaskInfo toNode) {
+    public void removeShouldSuccessor(TaskInfo toNode) {
         shouldSuccessors.remove(toNode);
     }
 

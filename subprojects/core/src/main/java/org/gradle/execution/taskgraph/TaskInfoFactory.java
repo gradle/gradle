@@ -103,7 +103,7 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardDependencySuccessor) {
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
         }
 
         @Override
@@ -133,8 +133,8 @@ public class TaskInfoFactory {
 
         @Override
         public int compareTo(WorkInfo other) {
-            if (other.getClass() != getClass()) {
-                return 1;
+            if (getClass() != other.getClass()) {
+                return getClass().getName().compareTo(other.getClass().getName());
             }
             TaskInAnotherBuild taskInfo = (TaskInAnotherBuild) other;
             return task.getIdentityPath().compareTo(taskInfo.task.getIdentityPath());

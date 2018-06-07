@@ -30,8 +30,6 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskInfoWorkResolver;
-import org.gradle.api.internal.tasks.WorkResolver;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -59,10 +57,10 @@ import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.LocalTaskInfoExecutor;
 import org.gradle.execution.taskgraph.TaskDependencyResolver;
 import org.gradle.execution.taskgraph.TaskInfoFactory;
+import org.gradle.execution.taskgraph.TaskInfoWorkResolver;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
-import org.gradle.execution.taskgraph.WorkInfo;
 import org.gradle.execution.taskgraph.WorkInfoExecutor;
-import org.gradle.internal.Cast;
+import org.gradle.execution.taskgraph.WorkInfoResolver;
 import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
@@ -165,12 +163,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskInfoFactory(gradle, includedBuildTaskGraph);
     }
 
-    WorkResolver<WorkInfo> createTaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
+    TaskInfoWorkResolver createTaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
         return new TaskInfoWorkResolver(taskInfoFactory);
     }
 
-    TaskDependencyResolver createTaskDependencyResolver(List<WorkResolver> workResolvers) {
-        return new TaskDependencyResolver(Cast.<List<WorkResolver<WorkInfo>>>uncheckedCast(workResolvers));
+    TaskDependencyResolver createTaskDependencyResolver(List<WorkInfoResolver> workResolvers) {
+        return new TaskDependencyResolver(workResolvers);
     }
 
     LocalTaskInfoExecutor createLocalTaskInfoExecutor() {

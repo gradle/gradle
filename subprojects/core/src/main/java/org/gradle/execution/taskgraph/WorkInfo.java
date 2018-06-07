@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 
+import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -91,6 +92,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
         return getWorkFailure() != null || getExecutionFailure() != null;
     }
 
+    @Nullable
     public abstract Throwable getWorkFailure();
 
     public abstract void rethrowFailure();
@@ -149,6 +151,11 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
         return dependencySuccessors;
     }
 
+    protected void addDependencySuccessor(WorkInfo toNode) {
+        dependencySuccessors.add(toNode);
+        toNode.dependencyPredecessors.add(this);
+    }
+
     @OverridingMethodsMustInvokeSuper
     public boolean allDependenciesComplete() {
         for (WorkInfo dependency : dependencySuccessors) {
@@ -171,7 +178,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     public abstract void prepareForExecution();
 
-    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardDependencySuccessor);
+    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor);
 
     public boolean getDependenciesProcessed() {
         return dependenciesProcessed;
@@ -179,11 +186,6 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     public void dependenciesProcessed() {
         dependenciesProcessed = true;
-    }
-
-    public void addDependencySuccessor(WorkInfo toNode) {
-        dependencySuccessors.add(toNode);
-        toNode.dependencyPredecessors.add(this);
     }
 
     @OverridingMethodsMustInvokeSuper

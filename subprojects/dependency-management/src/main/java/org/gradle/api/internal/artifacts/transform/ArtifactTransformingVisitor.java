@@ -36,10 +36,10 @@ import java.util.Map;
 class ArtifactTransformingVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
-    private final Map<File, TransformFileOperation> fileResults;
+    private final Map<ComponentArtifactIdentifier, ? extends TransformOperation> artifactResults;
+    private final Map<File, ? extends TransformOperation> fileResults;
 
-    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, ? extends TransformOperation> artifactResults, Map<File, ? extends TransformOperation> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -48,7 +48,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformArtifactOperation operation = artifactResults.get(artifact.getId());
+        TransformOperation operation = artifactResults.get(artifact.getId());
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
             return;
@@ -56,6 +56,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
         ResolvedArtifact sourceArtifact = artifact.toPublicView();
         List<File> transformedFiles = operation.getResult();
+        assert transformedFiles != null;
         TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
         for (File output : transformedFiles) {
@@ -83,13 +84,14 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
-        TransformFileOperation operation = fileResults.get(file);
+        TransformOperation operation = fileResults.get(file);
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
             return;
         }
 
         List<File> result = operation.getResult();
+        assert result != null;
         for (File outputFile : result) {
             visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
         }

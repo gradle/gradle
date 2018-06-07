@@ -19,8 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 
 public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
@@ -46,6 +48,24 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         return new CompositeResolvedArtifactSet(filtered);
     }
 
+    public static boolean visitHierarchy(ResolvedArtifactSet rootArtifactSet, ResolvedArtifactSetVisitor visitor) {
+        Deque<ResolvedArtifactSet> queue = new ArrayDeque<ResolvedArtifactSet>();
+        queue.add(rootArtifactSet);
+
+        while (true) {
+            ResolvedArtifactSet artifactSet = queue.poll();
+            if (artifactSet == null) {
+                return true;
+            }
+            if (!visitor.visitArtifactSet(artifactSet)) {
+                return false;
+            }
+            if (artifactSet instanceof CompositeResolvedArtifactSet) {
+                queue.addAll(((CompositeResolvedArtifactSet) artifactSet).sets);
+            }
+        }
+    }
+
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         List<Completion> results = new ArrayList<Completion>(sets.size());
@@ -60,6 +80,10 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         for (ResolvedArtifactSet set : sets) {
             set.collectBuildDependencies(visitor);
         }
+    }
+
+    public interface ResolvedArtifactSetVisitor {
+        boolean visitArtifactSet(ResolvedArtifactSet set);
     }
 
     private static class CompositeResult implements Completion {

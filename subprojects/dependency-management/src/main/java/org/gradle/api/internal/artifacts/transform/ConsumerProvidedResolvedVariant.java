@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 
@@ -32,15 +34,21 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
+    private final Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults;
 
-    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform) {
+    ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, @Nullable Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;
+        this.preCalculatedResults = preCalculatedResults;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        if (preCalculatedResults != null) {
+            Completion result = delegate.startVisit(actions, listener);
+            return new TransformingResult(result, preCalculatedResults, ImmutableMap.<File, TransformFileOperation>of());
+        }
         Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformFileOperation> fileResults = Maps.newConcurrentMap();
         Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
@@ -49,15 +57,15 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        delegate.collectBuildDependencies(visitor);
+        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate));
     }
 
     private class TransformingResult implements Completion {
         private final Completion result;
-        private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
-        private final Map<File, TransformFileOperation> fileResults;
+        private final Map<ComponentArtifactIdentifier, ? extends TransformOperation> artifactResults;
+        private final Map<File, ? extends TransformOperation> fileResults;
 
-        TransformingResult(Completion result, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+        TransformingResult(Completion result, Map<ComponentArtifactIdentifier, ? extends TransformOperation> artifactResults, Map<File, ? extends TransformOperation> fileResults) {
             this.result = result;
             this.artifactResults = artifactResults;
             this.fileResults = fileResults;

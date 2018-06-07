@@ -544,6 +544,7 @@ class FileSizer extends ArtifactTransform {
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".blue")
                     println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
                     output.text = String.valueOf(input.length())
                     return [output]
                 }
@@ -554,6 +555,7 @@ class FileSizer extends ArtifactTransform {
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".red")
                     println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
                     output.text = String.valueOf(input.length())
                     return [output]
                 }
