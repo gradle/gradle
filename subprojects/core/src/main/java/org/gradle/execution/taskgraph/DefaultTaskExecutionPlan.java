@@ -317,6 +317,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     TaskInternal task = taskInfo.getTask();
                     Project project = task.getProject();
                     projectLocks.put(project, getOrCreateProjectLock(project));
+
                     // Add any finalizers to the queue
                     for (WorkInfo finalizer : taskInfo.getFinalizers()) {
                         if (!visitingNodes.containsKey(finalizer)) {

@@ -27,6 +27,9 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.NavigableSet;
 import java.util.Set;
 
+/**
+ * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
+ */
 public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     @VisibleForTesting
