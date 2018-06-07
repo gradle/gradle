@@ -141,22 +141,13 @@ class JfrFlameGraphGenerator {
             [],
             ["--minwidth", "0.5"],
             ["--minwidth", "1"],
-            new FlameGraphSanitizer(FlameGraphSanitizer.SanitizeFunction.COLLAPSE_BUILD_SCRIPTS)
+            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS)
         ),
         SIMPLIFIED(
-            ["--hide-arguments", "--ignore-line-numbers", "--use-simple-names"],
+            ["--hide-arguments", "--ignore-line-numbers"],
             ["--minwidth", "1"],
             ["--minwidth", "2"],
-            new FlameGraphSanitizer(
-                FlameGraphSanitizer.SanitizeFunction.COLLAPSE_BUILD_SCRIPTS,
-                new FlameGraphSanitizer.ContainmentBasedSanitizeFunction(
-                    ['BuildOperation']: 'build operations',
-                    ['PluginManager', 'ObjectConfigurationAction', 'PluginTarget', 'PluginAware', 'Script.apply', 'ScriptPlugin', 'ScriptTarget', 'ScriptRunner']: 'plugin management',
-                    ['DynamicObject', 'Closure.call', 'MetaClass', 'MetaMethod', 'CallSite', 'ConfigureDelegate', 'Method.invoke', 'MethodAccessor', 'Proxy', 'ConfigureUtil', 'Script.invoke', 'ClosureBackedAction', 'getProperty(']: 'dynamic invocation',
-                    ['ProjectEvaluator', 'Project.evaluate']: 'project evaluation',
-                    ['CommandLine', 'Executer', 'Executor', 'Execution', 'Runner', 'BuildController', 'Bootstrap', 'EntryPoint', 'Main']: 'execution infrastructure',
-                )
-            )
+            new FlameGraphSanitizer(FlameGraphSanitizer.COLLAPSE_BUILD_SCRIPTS, FlameGraphSanitizer.COLLAPSE_GRADLE_INFRASTRUCTURE, FlameGraphSanitizer.SIMPLE_NAMES)
         )
 
         private List<String> stackConversionOptions
