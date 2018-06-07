@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.LossyAttributeContainerSerializer
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
@@ -149,7 +149,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private ModuleMetadataSerializer moduleMetadataSerializer() {
         new ModuleMetadataSerializer(
-            new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE),
+            new LossyAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE),
             mavenMetadataFactory,
             ivyMetadataFactory
         )

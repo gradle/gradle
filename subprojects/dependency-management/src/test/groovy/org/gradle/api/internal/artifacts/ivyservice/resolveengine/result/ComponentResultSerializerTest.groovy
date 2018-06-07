@@ -28,7 +28,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 
 class ComponentResultSerializerTest extends SerializerSpec {
 
-    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new LossyAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "serializes"() {
         def componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'module'), 'version')
