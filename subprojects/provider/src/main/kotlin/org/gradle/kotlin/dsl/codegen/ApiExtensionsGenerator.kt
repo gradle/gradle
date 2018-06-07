@@ -32,6 +32,7 @@ import java.io.File
  * Generate source file with Kotlin extensions enhancing the given api for the Gradle Kotlin DSL.
  *
  * @param outputFile the file where the generated source will be written
+ * @param packageName the name of the package where the generated members will be added
  * @param classPath the api classpath elements
  * @param classPathDependencies the api classpath dependencies
  * @param includes the api include patterns
@@ -40,6 +41,7 @@ import java.io.File
  */
 fun generateKotlinDslApiExtensionsSourceTo(
     outputFile: File,
+    packageName: String,
     classPath: List<File>,
     classPathDependencies: List<File>,
     includes: List<String>,
@@ -49,7 +51,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
 
     outputFile.bufferedWriter().use {
         it.apply {
-            write(fileHeader)
+            write(fileHeaderFor(packageName))
             write("\n")
             apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplierFor(parameterNamesIndices)).use { api ->
                 kotlinDslApiExtensionsDeclarationsFor(api, apiSpecFor(includes, excludes)).forEach {

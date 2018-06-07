@@ -120,6 +120,7 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
                 it.description = "${it.description} for '${sourceSet.name}' source set"
 
                 it.nameComponents.set(extensionsSet.nameComponents)
+                it.packageName.set(extensionsSet.packageName.get())
                 it.classes.from(extensionsSet.sourceSetJavaOutputDir)
                 it.classpath.from(extensionsSet.sourceSetCompileClasspath)
                 it.includes.set(extensionsSet.includes)
@@ -151,6 +152,10 @@ open class KotlinDslApiExtensionsSet(
 
     val sourceSet = project.objects.property<SourceSet>().apply {
         set(project.provider { project.java.sourceSets[name] })
+    }
+
+    val packageName = project.objects.property<String>().apply {
+        set(name)
     }
 
     val includes = project.objects.listProperty<String>()

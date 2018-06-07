@@ -63,6 +63,9 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
         set(listOf(name))
     }
 
+    @Input
+    val packageName = project.objects.property<String>()
+
     @InputFiles
     @Classpath
     val classes = project.files()
@@ -96,6 +99,7 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
     fun runEmbedded() =
         generateKotlinDslApiExtensionsSourceTo(
             outputFile,
+            packageName.get(),
             classes.toList(),
             classpath.toList(),
             includes.get(),
@@ -114,6 +118,7 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
             val generatorMethod = generatorClass.getMethod(
                 "generateKotlinDslApiExtensionsSourceTo",
                 File::class.java,
+                String::class.java,
                 List::class.java,
                 List::class.java,
                 List::class.java,
@@ -123,6 +128,7 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
             generatorMethod.invoke(
                 null,
                 outputFile,
+                packageName.get(),
                 classes.toList(),
                 classpath.toList(),
                 includes.get(),
@@ -136,9 +142,13 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
 
     private
     val outputFile
-        get() = outputDirectory.file("org/gradle/kotlin/dsl/$generatedFileName").get().asFile.apply {
+        get() = outputDirectory.file("$packageDirectory/$generatedFileName").get().asFile.apply {
             parentFile.mkdirs()
         }
+
+    private
+    val packageDirectory
+        get() = packageName.get().replace('.', File.separatorChar)
 
     private
     val generatedFileName

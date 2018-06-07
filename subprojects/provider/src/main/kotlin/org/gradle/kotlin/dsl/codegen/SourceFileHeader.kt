@@ -19,7 +19,12 @@ package org.gradle.kotlin.dsl.codegen
 
 internal
 val fileHeader: String
-    get() = """$licenseHeader
+    get() = fileHeaderFor(packageName)
+
+
+internal
+fun fileHeaderFor(packageName: String) =
+    """$licenseHeader
 
 package $packageName
 """

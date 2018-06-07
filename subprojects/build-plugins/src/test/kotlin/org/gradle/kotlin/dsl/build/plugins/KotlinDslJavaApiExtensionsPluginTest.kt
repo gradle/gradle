@@ -51,7 +51,9 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
             }
 
             kotlinDslApiExtensions {
-                create("main")
+                create("main") {
+                    packageName.set("org.gradle.api.kotlin")
+                }
             }
 
             tasks.withType<GenerateKotlinDslApiExtensions> {
@@ -142,6 +144,7 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
             assertThat(it.name, equalTo("GeneratedSomeExampleMainKotlinDslApiExtensions.kt"))
             println(it.readText())
             val extensions = listOf(
+                "package org.gradle.api.kotlin",
                 """
                 fun some.example.Some.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
                     `rawClassTakingMethod`(`clazz`.java)
@@ -217,8 +220,8 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 extract.walkTopDown().filter { it.isFile }.map { it.relativeTo(extract).path }.toList(),
                 hasItems(*listOf(
                     "some/example/Some.class",
-                    "org/gradle/kotlin/dsl/GeneratedSomeExampleMainKotlinDslApiExtensions.kt",
-                    "org/gradle/kotlin/dsl/GeneratedSomeExampleMainKotlinDslApiExtensionsKt.class")
+                    "org/gradle/api/kotlin/GeneratedSomeExampleMainKotlinDslApiExtensions.kt",
+                    "org/gradle/api/kotlin/GeneratedSomeExampleMainKotlinDslApiExtensionsKt.class")
                     .map { it.replace('/', File.separatorChar) }.toTypedArray()))
         }
     }
