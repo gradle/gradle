@@ -43,8 +43,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "1.13.1",
         "1.13.2",
         "1.13.3",
-        "1.13.4",
-        "1.14-rc1-20180607114235-enterprise_release"
+        "1.13.4"
     ]
 
     @Unroll
@@ -92,7 +91,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             buildscript {
                 repositories {
                     gradlePluginPortal()
-                    maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:${version}"

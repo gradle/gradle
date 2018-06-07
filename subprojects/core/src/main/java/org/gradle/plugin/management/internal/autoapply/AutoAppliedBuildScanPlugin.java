@@ -28,5 +28,5 @@ public interface AutoAppliedBuildScanPlugin {
     PluginId ID = new DefaultPluginId("com.gradle.build-scan");
     String GROUP = "com.gradle";
     String NAME = "build-scan-plugin";
-    String VERSION = "1.14-rc1-20180607114235-enterprise_release";
+    String VERSION = "1.13.4";
 }
