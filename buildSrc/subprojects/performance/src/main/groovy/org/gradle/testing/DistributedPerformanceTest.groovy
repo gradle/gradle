@@ -110,6 +110,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TaskAction
     void executeTests() {
+        if (branchName) {
+            channel = channel + "-" + branchName
+        }
         createWorkerTestResultsTempDir()
         try {
             doExecuteTests()
