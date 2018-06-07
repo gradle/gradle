@@ -42,7 +42,8 @@ val gradleParameters = listOf(
         "--continue",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         java7Homes[OS.linux]!!,
-        java9Homes[OS.linux]!!
+        java9Homes[OS.linux]!!,
+        "-Dorg.gradle.internal.tasks.createops"
 )
 
 val m2CleanScriptUnixLike = """
