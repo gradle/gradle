@@ -40,6 +40,11 @@ class PackageDependencyRulesTest {
         "..support.." shouldNotDependOn "..provider.."
     }
 
+    @Test
+    fun `support should not depend on execution`() {
+        "..support.." shouldNotDependOn "..execution.."
+    }
+
     private
     infix fun String.shouldNotDependOn(thatPackage: String) {
         noClasses()
