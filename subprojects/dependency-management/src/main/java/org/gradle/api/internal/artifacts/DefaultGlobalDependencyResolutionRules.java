@@ -26,22 +26,24 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyResolutionRules {
-    private final ComponentMetadataProcessor componentMetadataProcessor;
+    private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
     private final ComponentModuleMetadataProcessor moduleMetadataProcessor;
     private final DependencySubstitutionRules globalDependencySubstitutionRule;
 
-    public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessor componentMetadataProcessor,
+    public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
                                                   ComponentModuleMetadataProcessor moduleMetadataProcessor,
                                                   List<DependencySubstitutionRules> ruleProviders) {
-        this.componentMetadataProcessor = componentMetadataProcessor;
+        this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
         this.moduleMetadataProcessor = moduleMetadataProcessor;
         this.globalDependencySubstitutionRule = new CompositeDependencySubstitutionRules(ruleProviders);
     }
 
-    public ComponentMetadataProcessor getComponentMetadataProcessor() {
-        return componentMetadataProcessor;
+    @Override
+    public ComponentMetadataProcessorFactory getComponentMetadataProcessorFactory() {
+        return componentMetadataProcessorFactory;
     }
 
+    @Override
     public ComponentModuleMetadataProcessor getModuleMetadataProcessor() {
         return moduleMetadataProcessor;
     }

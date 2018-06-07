@@ -35,9 +35,12 @@ import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
@@ -63,6 +66,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final TaskPlanExecutor taskPlanExecutor;
     private final ResourceLockCoordinationService coordinationService;
     private final List<WorkInfoExecutor> workInfoExecutors;
+    private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
@@ -87,6 +91,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.workInfoExecutors = workInfoExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
         this.coordinationService = coordinationService;
+        this.gradleInternal = gradleInternal;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         this.taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal, taskInfoFactory, dependencyResolver);
@@ -129,8 +134,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void execute(Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
         ensurePopulated();
-
-        graphListeners.getSource().graphPopulated(this);
+        buildOperationExecutor.run(new NotifyTaskGraphWhenReady(this, graphListeners, gradleInternal));
         try {
             taskPlanExecutor.process(taskExecutionPlan, failures, new BuildOperationAwareWorkItemExecutor(workInfoExecutors, buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
@@ -291,5 +295,32 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public TaskExecutionListener getTaskExecutionListenerSource() {
         return taskListeners.getSource();
+    }
+
+    private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {
+
+        private final TaskExecutionGraph taskExecutionGraph;
+        private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
+        private final GradleInternal gradleInternal;
+
+        private NotifyTaskGraphWhenReady(TaskExecutionGraph taskExecutionGraph, ListenerBroadcast<TaskExecutionGraphListener> graphListeners, GradleInternal gradleInternal) {
+            this.taskExecutionGraph = taskExecutionGraph;
+            this.graphListeners = graphListeners;
+            this.gradleInternal = gradleInternal;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            graphListeners.getSource().graphPopulated(taskExecutionGraph);
+            context.setResult(NotifyTaskGraphWhenReadyBuildOperationType.RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(gradleInternal.contextualize("Notify task graph whenReady listeners"))
+                .details(new NotifyTaskGraphWhenReadyBuildOperationType.DetailsImpl(
+                    gradleInternal.getIdentityPath()
+                ));
+        }
     }
 }

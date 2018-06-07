@@ -1012,7 +1012,7 @@ Required by:
         projectA2.jar.expectGet()
 
         then:
-        checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 4.4, 3.0, 1.2, 1.1"]
+        checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 3.0, 1.2, 1.1, 4.4"]
     }
 
     def "reports and recovers from missing directory available for dynamic version"() {

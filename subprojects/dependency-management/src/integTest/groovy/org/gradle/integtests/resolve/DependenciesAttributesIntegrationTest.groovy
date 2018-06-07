@@ -605,32 +605,58 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         }
 
         buildFile << """
-            dependencies {
-                // this is actually the rules that we want to test
-                components {
-                    // first notation: mutation of existing dependencies
-                    withModule('org:directA') {
-                        allVariants {
-                            withDependencies {
-                                it.each {
-                                   it.attributes {
-                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
-                                   }
-                                }
+            // this is actually the rules that we want to test
+            class ModifyDependencyRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                ModifyDependencyRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            it.each {
+                               it.attributes {
+                                  it.attribute(attribute, '$attributeValue')
+                               }
                             }
                         }
                     }
-                    // 2d notation: adding dependencies (this is a different code path)
-                    withModule('org:directB') {
-                        allVariants {
-                            withDependencies {
-                                it.add('org:testB:1.0') {
-                                   it.attributes {
-                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
-                                   }
-                                }
+                }
+            }
+
+            class AddDependencyRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AddDependencyRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            it.add('org:testB:1.0') {
+                               it.attributes {
+                                  it.attribute(attribute, '$attributeValue')
+                               }
                             }
                         }
+                    }
+                }
+            }
+
+            dependencies {
+                components {
+                    // first notation: mutation of existing dependencies
+                    withModule('org:directA', ModifyDependencyRule) {
+                        params(CUSTOM_ATTRIBUTE)
+                    }
+                    // 2d notation: adding dependencies (this is a different code path)
+                    withModule('org:directB', AddDependencyRule) {
+                        params(CUSTOM_ATTRIBUTE)
                     }
                 }
                 conf('org:directA:1.0')
@@ -719,32 +745,58 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         }
 
         buildFile << """
-            dependencies {
-                // this is actually the rules that we want to test
-                components {
-                    // first notation: mutation of existing dependencies
-                    withModule('org:transitiveA') {
-                        allVariants {
-                            withDependencies {
-                                it.each {
-                                   it.attributes {
-                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
-                                   }
-                                }
+            // this is actually the rules that we want to test
+            class ModifyDependencyRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                ModifyDependencyRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            it.each {
+                               it.attributes {
+                                  it.attribute(attribute, '$attributeValue')
+                               }
                             }
                         }
                     }
-                    // 2d notation: adding dependencies (this is a different code path)
-                    withModule('org:transitiveB') {
-                        allVariants {
-                            withDependencies {
-                                it.add('org:testB:1.0') {
-                                   it.attributes {
-                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
-                                   }
-                                }
+                }
+            }
+
+            class AddDependencyRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AddDependencyRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            it.add('org:testB:1.0') {
+                               it.attributes {
+                                  it.attribute(attribute, '$attributeValue')
+                               }
                             }
                         }
+                    }
+                }
+            }
+
+            dependencies {
+                components {
+                    // first notation: mutation of existing dependencies
+                    withModule('org:transitiveA', ModifyDependencyRule) {
+                        params(CUSTOM_ATTRIBUTE)
+                    }
+                    // 2d notation: adding dependencies (this is a different code path)
+                    withModule('org:transitiveB', AddDependencyRule) {
+                        params(CUSTOM_ATTRIBUTE)
                     }
                 }
                 conf('org:directA:1.0')
@@ -831,31 +883,40 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         buildFile << """
             configurations.conf.attributes.attribute(CUSTOM_ATTRIBUTE, '$configurationAttributeValue')
 
+            class ModifyDependencyRule implements ComponentMetadataRule {
+                Attribute attribute
+                String value
+
+                @javax.inject.Inject
+                ModifyDependencyRule(Attribute attribute, String value) {
+                    this.attribute = attribute
+                    this.value = value
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            it.each {
+                               it.attributes {
+                                  it.attribute(attribute, value)
+                               }
+                            }
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 components {
                     // transitive module will override the configuration attribute
                     // and it shouldn't affect the selection of 'direct' or 'leaf' dependencies
-                    withModule('org:directA') {
-                        allVariants {
-                            withDependencies {
-                                it.each {
-                                   it.attributes {
-                                      it.attribute(CUSTOM_ATTRIBUTE, '$transitiveAttributeValueA')
-                                   }
-                                }
-                            }
-                        }
+                    withModule('org:directA', ModifyDependencyRule) {
+                        params(CUSTOM_ATTRIBUTE)
+                        params('$transitiveAttributeValueA')
                     } 
-                    withModule('org:directB') {
-                        allVariants {
-                            withDependencies {
-                                it.each {
-                                   it.attributes {
-                                      it.attribute(CUSTOM_ATTRIBUTE, '$transitiveAttributeValueB')
-                                   }
-                                }
-                            }
-                        }
+                    withModule('org:directB', ModifyDependencyRule) {
+                        params(CUSTOM_ATTRIBUTE)
+                        params('$transitiveAttributeValueB')
                     }                    
                 }
                 conf('org:directA:1.0')

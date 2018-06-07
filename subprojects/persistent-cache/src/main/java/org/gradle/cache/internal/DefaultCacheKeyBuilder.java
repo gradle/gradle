@@ -60,6 +60,9 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     }
 
     private HashCode hashOf(Object component) {
+        if (component instanceof HashCode) {
+            return (HashCode) component;
+        }
         if (component instanceof String) {
             return hashFunction.hashString((String) component);
         }

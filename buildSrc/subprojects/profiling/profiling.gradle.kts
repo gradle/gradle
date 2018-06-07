@@ -10,7 +10,7 @@ apply {
 }
 
 dependencies {
-    implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.5")
+    implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.6")
     implementation("org.jsoup:jsoup:1.11.2")
     implementation("com.gradle:build-scan-plugin:1.13.4")
     implementation(project(":configuration"))

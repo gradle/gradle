@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Set;
 
 public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
+    private static final DisplayName LOCAL_FILE = Describables.of("local file");
+
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
@@ -84,7 +86,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
-            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, "local file", variantAttributes, dependencyMetadata);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant));
         }
 
@@ -99,11 +101,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class SingletonFileResolvedVariant implements ResolvedVariant, BuildableSingleResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final String variantName;
+        private final DisplayName variantName;
         private final AttributeContainerInternal variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
             this.file = file;
             this.artifactIdentifier = artifactIdentifier;
             this.variantName = variantName;

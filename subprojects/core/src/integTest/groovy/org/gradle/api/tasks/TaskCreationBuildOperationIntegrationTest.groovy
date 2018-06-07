@@ -196,7 +196,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     private void enable(TestFile file = settingsFile) {
         file << """
-            System.setProperty("org.gradle.internal.tasks.stats", "true")
+            System.setProperty("org.gradle.internal.tasks.createops", "true")
         """
     }
 

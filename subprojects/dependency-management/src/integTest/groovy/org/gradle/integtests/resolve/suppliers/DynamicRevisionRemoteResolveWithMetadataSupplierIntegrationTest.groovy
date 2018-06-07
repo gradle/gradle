@@ -806,14 +806,20 @@ group:projectB:2.2;release
         def supplierInteractions = withPerVersionStatusSupplier()
 
         buildFile << """
+            class VerifyRule implements ComponentMetadataRule {
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    if (details.id.version == '1.1') {
+                       println("Changing status for \${details.id} from '\${details.status}' to 'release'")
+                       details.status = 'release'
+                    }
+                }
+            }
+
             dependencies {
                 components {
-                    withModule('group:projectB') {
-                        if (id.version == '1.1') {
-                           println("Changing status for \$id from '\$status' to 'release'")
-                           status = 'release'
-                        }
-                    }
+                    withModule('group:projectB', VerifyRule)
                 }
             }
        

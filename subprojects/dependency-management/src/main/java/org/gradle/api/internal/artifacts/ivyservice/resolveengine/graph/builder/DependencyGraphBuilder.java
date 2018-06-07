@@ -54,7 +54,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -347,7 +346,7 @@ public class DependencyGraphBuilder {
         }
 
         // Collect the components to sort in consumer-first order
-        List<ComponentState> queue = new ArrayList<ComponentState>();
+        List<ComponentState> queue = Lists.newArrayListWithExpectedSize(resolveState.getNodeCount());
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null) {
                 queue.add(module.getSelected());

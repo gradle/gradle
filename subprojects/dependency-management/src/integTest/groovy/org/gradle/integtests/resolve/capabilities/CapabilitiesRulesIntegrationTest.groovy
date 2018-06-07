@@ -31,18 +31,25 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         }
 
         buildFile << """
+            class CapabilityRule implements ComponentMetadataRule {
+            
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
+                         withCapabilities {
+                             addCapability('cglib', 'cglib', details.id.version)
+                         }
+                     }
+                }
+            }
+
             dependencies {
                conf "cglib:cglib-nodep:3.2.5"
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib-nodep') { details ->
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
-                         }
-                     }
-                  }
+                  withModule('cglib:cglib-nodep', CapabilityRule)
                }
             }
         """
@@ -70,18 +77,25 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         }
 
         buildFile << """
+            class CapabilityRule implements ComponentMetadataRule {
+            
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
+                         withCapabilities {
+                             addCapability('cglib', 'cglib', details.id.version)
+                         }
+                     }
+                }
+            }
+
             dependencies {
                conf "cglib:cglib-nodep:3.2.4"
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib-nodep') { details ->
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
-                         }
-                     }
-                  }
+                  withModule('cglib:cglib-nodep', CapabilityRule)
                }
             }
         """
@@ -116,6 +130,18 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         buildFile << """
             apply plugin: 'java-library'
             
+            class CapabilityRule implements ComponentMetadataRule {
+            
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withCapabilities {
+                            addCapability('org', 'capability', '1.0')
+                        }
+                    }
+                }
+            }
+
             configurations.api.outgoing {
                 capability 'org:capability:1.0'
             }
@@ -124,13 +150,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 conf 'org:test:1.0'
                 
                 components {
-                   withModule('org:test') {
-                      allVariants {
-                          withCapabilities {
-                              addCapability('org', 'capability', '1.0')
-                          }
-                      }
-                   }
+                   withModule('org:test', CapabilityRule)
                 }
             }
             
@@ -170,17 +190,23 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         }
 
         buildFile << """
-            dependencies {
-                conf 'org:a:1.0'
-                conf 'org:b:1.0'
-                
-                components.all {
-                    allVariants {
+            class CapabilityRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
                         withCapabilities {
                             removeCapability('org.test', 'test_capability')
                         }
                     }
                 }
+            }
+
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'org:b:1.0'
+                
+                components.all(CapabilityRule)
             }
         """
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 
@@ -114,7 +115,7 @@ public class VersionSelectionReasons {
         }
 
         @Override
-        public ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, String description) {
+        public ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, Describable description) {
             addCause(new DefaultComponentSelectionDescriptor(cause, description));
             return this;
         }

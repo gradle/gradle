@@ -82,7 +82,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
     private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
-        SelectorStateResolverResults results = new SelectorStateResolverResults();
+        SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
         for (ResolvableSelectorState selector : selectors) {
 
             // For a 'reject-only' selector, don't need to resolve

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
@@ -45,7 +46,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class MetadataProviderTest extends Specification {
+class DefaultMetadataProviderTest extends Specification {
     def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
         getGroup() >> 'group'
@@ -54,7 +55,7 @@ class MetadataProviderTest extends Specification {
     }
     def metaData = Stub(ModuleComponentResolveMetadata)
     def resolveState = Mock(ModuleComponentResolveState)
-    def metadataProvider = new MetadataProvider(resolveState)
+    def metadataProvider = new DefaultMetadataProvider(resolveState)
     def cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
     def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
 
@@ -66,8 +67,8 @@ class MetadataProviderTest extends Specification {
 
     def "caches metadata result"() {
         when:
-        metadataProvider.getMetaData()
-        metadataProvider.getMetaData()
+        metadataProvider.componentMetadata
+        metadataProvider.componentMetadata
 
         then:
         1 * resolveState.resolve() >> {
@@ -87,9 +88,8 @@ class MetadataProviderTest extends Specification {
         }
 
         expect:
-        metadataProvider.resolve()
         metadataProvider.usable
-        metadataProvider.metaData
+        metadataProvider.componentMetadata
     }
 
     def "verifies that metadata was not provided"() {
@@ -161,8 +161,10 @@ class MetadataProviderTest extends Specification {
     def "can use a metadata rule to provide metadata"() {
         given:
         resolveState.id >> id
-        resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
-            processMetadata(_) >> { args -> args[0] }
+        resolveState.componentMetadataProcessorFactory >> Mock(ComponentMetadataProcessorFactory) {
+            createComponentMetadataProcessor(_) >> Mock(ComponentMetadataProcessor) {
+                processMetadata(_) >> { args -> args[0] }
+            }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
@@ -186,9 +188,11 @@ class MetadataProviderTest extends Specification {
         }
         given:
         resolveState.id >> id
-        resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
-            processMetadata(_) >> { args ->
-                processedMetadata
+        resolveState.componentMetadataProcessorFactory >> Mock(ComponentMetadataProcessorFactory) {
+            createComponentMetadataProcessor(_) >> Mock(ComponentMetadataProcessor) {
+                processMetadata(_) >> { args ->
+                    processedMetadata
+                }
             }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
@@ -210,8 +214,10 @@ class MetadataProviderTest extends Specification {
     def "can mutate attributes using a metadata supplier"() {
         given:
         resolveState.id >> id
-        resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
-            processMetadata(_) >> { args -> args[0] }
+        resolveState.componentMetadataProcessorFactory >> Mock(ComponentMetadataProcessorFactory) {
+            createComponentMetadataProcessor(_) >> Mock(ComponentMetadataProcessor) {
+                processMetadata(_) >> { args -> args[0] }
+            }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
@@ -237,7 +243,7 @@ class MetadataProviderTest extends Specification {
     def "validates that user supplied attributes are desugared"() {
         given:
         resolveState.id >> id
-        resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
+        resolveState.componentMetadataProcessorFactory >> Mock(ComponentMetadataProcessor) {
             processMetadata(_) >> { args -> args[0] }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(

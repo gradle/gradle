@@ -330,11 +330,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
             teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
-            afterEvaluate {
-                branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
-                    channel = channel + "-" + branchName
-                }
-            }
         }
 
     private

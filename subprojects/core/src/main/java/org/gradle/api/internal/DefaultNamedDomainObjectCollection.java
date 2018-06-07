@@ -117,6 +117,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
+    protected void realized(ProviderInternal<? extends T> provider) {
+        super.realized(provider);
+        index.removePending(provider);
+    }
+
+    @Override
     public boolean addAll(Collection<? extends T> c) {
         boolean changed = super.addAll(c);
         if (changed) {
@@ -260,8 +266,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
         ProviderInternal<? extends T> provider = index.getPending(name);
         if (provider != null) {
-            index.removePending(name);
-            getStore().removePending(provider);
             // TODO - this isn't correct, assumes that a side effect is to add the element
             provider.getOrNull();
             // Use the index here so we can apply any filters to the realized element
@@ -475,6 +479,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         void removePending(String name);
 
+        void removePending(ProviderInternal<? extends T> provider);
+
         Map<String, ProviderInternal<? extends T>> getPendingAsMap();
     }
 
@@ -526,6 +532,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public void removePending(String name) {
             pendingMap.remove(name);
+        }
+
+        @Override
+        public void removePending(ProviderInternal<? extends T> provider) {
+            pendingMap.values().remove(provider);
         }
 
         @Override
@@ -603,6 +614,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public void removePending(String name) {
             delegate.removePending(name);
+        }
+
+        @Override
+        public void removePending(ProviderInternal<? extends T> provider) {
+            delegate.removePending(provider);
         }
 
         @Override

@@ -54,11 +54,16 @@ dependencies {
 
     void configureChangingModule() {
         buildFile << """
+class ChangingRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        context.details.changing = true
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            details.changing = true
-        }
+        all(ChangingRule)
     }
 }
 

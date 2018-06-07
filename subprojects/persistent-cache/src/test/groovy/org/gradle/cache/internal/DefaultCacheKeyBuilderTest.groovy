@@ -118,6 +118,21 @@ class DefaultCacheKeyBuilderTest extends Specification {
         key == "$prefix/${compactStringFor(classLoaderHierarchyHash)}"
     }
 
+    def 'given a HashCode component, it should append it to the prefix'() {
+        given:
+        def prefix = 'p'
+        def hash = HashCode.fromInt(42)
+
+        when:
+        def key = subject.build(CacheKeySpec.withPrefix(prefix) + hash)
+
+        then:
+        0 * _
+
+        and:
+        key == "$prefix/${compactStringFor(hash)}"
+    }
+
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
         given:
         def prefix = 'p'

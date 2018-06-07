@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 
 public interface ComponentSelectionDescriptorInternal extends ComponentSelectionDescriptor {
@@ -25,7 +26,7 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
      *
      * @return this descriptor
      */
-    ComponentSelectionDescriptorInternal withReason(String reason);
+    ComponentSelectionDescriptorInternal withReason(Describable reason);
 
     /**
      * Determines if a custom description was provided. This can be used in reporting to determine if additional details should

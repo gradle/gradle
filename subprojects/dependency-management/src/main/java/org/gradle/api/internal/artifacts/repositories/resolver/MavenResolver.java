@@ -38,6 +38,7 @@ import org.gradle.internal.component.external.model.MutableMavenModuleResolveMet
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -73,7 +74,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          MetadataArtifactProvider metadataArtifactProvider,
                          MavenMetadataLoader mavenMetadataLoader,
                          @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory) {
+                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory, Instantiator injector) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -83,7 +84,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             metadataSources,
             metadataArtifactProvider,
             componentMetadataSupplierFactory,
-            versionListerFactory);
+            versionListerFactory,
+            injector);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();

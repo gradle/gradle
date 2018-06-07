@@ -251,19 +251,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
      * rules.
      */
     private void collectExtraAttributes() {
-        Set<Attribute<?>> extraAttributes = Sets.newLinkedHashSet();
-        for (ImmutableAttributes attributes : candidateAttributeSets) {
-            extraAttributes.addAll(attributes.keySet());
-        }
-        extraAttributes.removeAll(requested.keySet());
-        this.extraAttributes = extraAttributes.toArray(new Attribute[0]);
-        for (int i = 0; i < this.extraAttributes.length; i++) {
-            Attribute<?> extraAttribute = this.extraAttributes[i];
-            Attribute<?> schemaAttribute = schema.getAttribute(extraAttribute.getName());
-            if (schemaAttribute != null) {
-                this.extraAttributes[i] = schemaAttribute;
-            }
-        }
+        extraAttributes = schema.collectExtraAttributes(candidateAttributeSets, requested);
     }
 
     private List<T> getCandidates(BitSet liveSet) {

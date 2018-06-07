@@ -188,7 +188,7 @@ Note that while any rule can request the api:org.gradle.api.artifacts.ivy.IvyMod
 
 As can be seen in the examples above, component metadata rules are defined by implementing api:org.gradle.api.artifacts.ComponentMetadataRule[] which has a single `execute` method receiving an instance of api:org.gradle.api.artifacts.ComponentMetadataContext[] as parameter.
 
-The next example shows how you can pass build related information to the `ComponentMetadataRule` through an api:org.gradle.api.ActionConfiguration[].
+The next example shows how you can configure the `ComponentMetadataRule` through an api:org.gradle.api.ActionConfiguration[].
 
 ++++
 <sample id="configComponentMetadataRule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Configuration of ComponentMetadataRule">
@@ -196,10 +196,14 @@ The next example shows how you can pass build related information to the `Compon
 </sample>
 ++++
 
-[NOTE]
-====
-All other mechanisms for defining component metadata rules are deprecated and should no longer be used as they will be removed in a later version of Gradle.
-====
+This happens by having a constructor in your implementation of `ComponentMetadataRule` accepting the parameters that were configured and the services that need injecting.
+
+Gradle enforces isolation of instances of `ComponentMetadataRule`.
+This means that all passed in parameters must be `Serializable` or known Gradle types that can be isolated.
+
+In addition, Gradle services can be injected into your `ComponentMetadataRule`.
+This is for the moment limited to the api:org.gradle.api.artifacts.repositories.RepositoryResourceAccessor[].
+Because of this, the moment you have a constructor, it must be annotated with `@javax.inject.Inject`.
 
 [[sec:component_selection_rules]]
 === Using component selection rules

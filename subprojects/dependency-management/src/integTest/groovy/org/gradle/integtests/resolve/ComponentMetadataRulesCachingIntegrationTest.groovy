@@ -127,4 +127,71 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
+    def 'can cache rules with service injection'() {
+        repository {
+            'org.test:projectA:1.0'()
+        }
+        buildFile << """
+
+import javax.inject.Inject
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
+
+@CacheableRule
+class CachedRuleA implements ComponentMetadataRule {
+
+    RepositoryResourceAccessor accessor
+
+    @Inject
+    CachedRuleA(RepositoryResourceAccessor accessor) {
+        this.accessor = accessor
+    }
+    
+    void execute(ComponentMetadataContext context) {
+            println 'Rule A executed'
+            context.details.changing = true
+    }
+}
+
+@CacheableRule
+class CachedRuleB implements ComponentMetadataRule {
+
+    RepositoryResourceAccessor accessor
+
+    @Inject
+    CachedRuleB(RepositoryResourceAccessor accessor) {
+        this.accessor = accessor
+    }
+    
+    public void execute(ComponentMetadataContext context) {
+            println 'Rule B executed - saw changing ' + context.details.changing
+    }
+}
+
+dependencies {
+    components {
+        if (project.hasProperty('cacheA')) {
+            all(CachedRuleA)
+        }
+        all(CachedRuleB)
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+        outputContains('Rule B executed - saw changing false')
+
+
+        and:
+        succeeds 'resolve', '-PcacheA'
+        outputContains('Rule A executed')
+        outputContains('Rule B executed - saw changing true')
+    }
+
 }
