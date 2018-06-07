@@ -213,6 +213,49 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
     }
 
+    def "reuses cached resource if ETag matches"() {
+        given:
+        def etag = "686897696a7c876b7e"
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def candidate = tempDir.createFile("candidate-file")
+        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def cachedMetaData = Stub(ExternalResourceMetaData) {
+            getEtag() >> etag
+            getContentLength() >> 42
+        }
+        def remoteMetaData = Stub(ExternalResourceMetaData) {
+            getEtag() >> etag
+            getSha1() >> sha1
+        }
+        def remoteResource = Stub(ExternalResource) {
+            getMetaData() >> remoteMetaData
+        }
+        def location = new ExternalResourceName("thing")
+        def resultResource = Stub(LocallyAvailableExternalResource) {
+            getFile() >> cachedFile
+        }
+
+        when:
+        def result = cache.getResource(location, null, fileStore, localCandidates)
+
+        then:
+        result == resultResource
+
+        and:
+        1 * index.lookup("thing") >> Stub(CachedExternalResource) {
+            getCachedAt() >> 23999L
+            getExternalResourceMetaData() >> cachedMetaData
+            getCachedFile() >> cachedFile
+        }
+        timeProvider.currentTime >> 24000L
+        1 * repository.resource(location, true) >> remoteResource
+        1 * index.store("thing", cachedFile, cachedMetaData)
+        1 * fileRepository.resource(cachedFile, location.uri, cachedMetaData) >> resultResource
+        1 * fileStore.markAccessed(cachedFile)
+        0 * _._
+    }
+
     def "will download sha1 for finding candidates if not available in meta-data"() {
         given:
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
