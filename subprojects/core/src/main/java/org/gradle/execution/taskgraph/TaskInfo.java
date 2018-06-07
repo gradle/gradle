@@ -88,11 +88,15 @@ public abstract class TaskInfo extends WorkInfo {
 
     @Override
     public Iterable<WorkInfo> getAllSuccessors() {
+        return Iterables.concat(getMustSuccessors(), getFinalizingSuccessors(), super.getAllSuccessors());
+    }
+    @Override
+    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
         return Iterables.concat(
-            super.getAllSuccessors(),
-            getMustSuccessors(),
-            getFinalizingSuccessors(),
-            getShouldSuccessors()
+            super.getAllSuccessorsInReverseOrder(),
+            mustSuccessors.descendingSet(),
+            finalizingSuccessors.descendingSet(),
+            shouldSuccessors.descendingSet()
         );
     }
 

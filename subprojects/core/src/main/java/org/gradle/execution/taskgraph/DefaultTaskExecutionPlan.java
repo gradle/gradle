@@ -278,7 +278,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, workInfoInVisitingSegment);
                 takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, workInfo);
 
-                for (WorkInfo successor : Lists.reverse(Lists.newArrayList(workInfo.getAllSuccessors()))) {
+                for (WorkInfo successor : workInfo.getAllSuccessorsInReverseOrder()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it

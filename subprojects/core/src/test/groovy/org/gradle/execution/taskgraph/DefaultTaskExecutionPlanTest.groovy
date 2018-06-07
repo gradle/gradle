@@ -212,7 +212,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([c, d])
 
         then:
-        executes(a, b, c, d)
+        executes(b, a, c, d)
     }
 
     def "shouldRunAfter dependencies are scheduled before mustRunAfter dependencies"() {
@@ -225,7 +225,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([c, d])
 
         then:
-        executes(a, b, c, d)
+        executes(b, a, c, d)
     }
 
     def "cyclic should run after ordering is ignored in complex task graph"() {

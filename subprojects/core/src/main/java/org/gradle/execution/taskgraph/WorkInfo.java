@@ -151,7 +151,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     @OverridingMethodsMustInvokeSuper
     public boolean allDependenciesComplete() {
-        for (WorkInfo dependency : getDependencySuccessors()) {
+        for (WorkInfo dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -161,7 +161,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     }
 
     public boolean allDependenciesSuccessful() {
-        for (WorkInfo dependency : getDependencySuccessors()) {
+        for (WorkInfo dependency : dependencySuccessors) {
             if (!dependency.isSuccessful()) {
                 return false;
             }
@@ -188,7 +188,12 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<WorkInfo> getAllSuccessors() {
-        return getDependencySuccessors();
+        return dependencySuccessors;
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
+        return dependencySuccessors.descendingSet();
     }
 
     /**
@@ -196,6 +201,6 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
      */
     @OverridingMethodsMustInvokeSuper
     public boolean hasHardSuccessor(WorkInfo successor) {
-        return getDependencySuccessors().contains(successor);
+        return dependencySuccessors.contains(successor);
     }
 }
