@@ -25,9 +25,9 @@ import org.gradle.execution.taskgraph.WorkInfoResolver;
 import java.util.Map;
 
 public class TransformInfoResolver implements WorkInfoResolver {
-    private final TransformOperationRegistry transformOperationRegistry;
+    private final ArtifactTransformResultRegistry transformOperationRegistry;
 
-    public TransformInfoResolver(TransformOperationRegistry transformOperationRegistry) {
+    public TransformInfoResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
         this.transformOperationRegistry = transformOperationRegistry;
     }
 

@@ -34,9 +34,9 @@ public class AlreadyTransformedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
-    private final Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults;
+    private final Map<ComponentArtifactIdentifier, ArtifactTransformResult> preCalculatedResults;
 
-    public AlreadyTransformedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformer transform, Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults) {
+    public AlreadyTransformedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal attributes, ArtifactTransformer transform, Map<ComponentArtifactIdentifier, ArtifactTransformResult> preCalculatedResults) {
         this.delegate = delegate;
         this.attributes = attributes;
         this.transform = transform;

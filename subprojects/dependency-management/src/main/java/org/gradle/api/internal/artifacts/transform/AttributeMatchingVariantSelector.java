@@ -39,7 +39,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final TransformOperationRegistry transformOperationRegistry;
+    private final ArtifactTransformResultRegistry transformOperationRegistry;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
 
@@ -47,7 +47,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformOperationRegistry transformOperationRegistry,
+        ArtifactTransformResultRegistry transformOperationRegistry,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches
     ) {
@@ -100,7 +100,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             ArtifactTransformer transformer = result.getRight().transformer;
-            Map<ComponentArtifactIdentifier, TransformOperation> preCalculatedResults = transformOperationRegistry.getResults(artifacts, transformer);
+            Map<ComponentArtifactIdentifier, ArtifactTransformResult> preCalculatedResults = transformOperationRegistry.getResults(artifacts, transformer);
             if (preCalculatedResults == null) {
                 return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer);
             } else {

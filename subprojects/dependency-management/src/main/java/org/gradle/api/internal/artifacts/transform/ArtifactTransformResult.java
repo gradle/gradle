@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
-public interface TransformOperation {
+public interface ArtifactTransformResult {
     @Nullable
     List<File> getResult();
     @Nullable

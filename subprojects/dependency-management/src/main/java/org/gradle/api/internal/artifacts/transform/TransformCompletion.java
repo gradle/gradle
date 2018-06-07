@@ -27,10 +27,10 @@ import java.util.Map;
 public class TransformCompletion implements ResolvedArtifactSet.Completion {
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet.Completion delegaete;
-    private final Map<ComponentArtifactIdentifier, ? extends TransformOperation> artifactResults;
-    private final Map<File, ? extends TransformOperation> fileResults;
+    private final Map<ComponentArtifactIdentifier, ? extends ArtifactTransformResult> artifactResults;
+    private final Map<File, ? extends ArtifactTransformResult> fileResults;
 
-    public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, ? extends TransformOperation> artifactResults, Map<File, ? extends TransformOperation> fileResults) {
+    public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, ? extends ArtifactTransformResult> artifactResults, Map<File, ? extends ArtifactTransformResult> fileResults) {
         this.delegaete = delegate;
         this.attributes = attributes;
         this.artifactResults = artifactResults;

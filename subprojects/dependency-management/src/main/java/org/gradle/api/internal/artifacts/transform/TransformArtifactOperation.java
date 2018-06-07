@@ -24,7 +24,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.io.File;
 import java.util.List;
 
-class TransformArtifactOperation implements TransformOperation, RunnableBuildOperation {
+class TransformArtifactOperation implements ArtifactTransformResult, RunnableBuildOperation {
     private final ResolvableArtifact artifact;
     private final ArtifactTransformer transform;
     private Throwable failure;

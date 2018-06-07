@@ -22,9 +22,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public interface TransformOperationRegistry {
+public interface ArtifactTransformResultRegistry {
     Map<ComponentArtifactIdentifier, TransformInfo> getOrCreateResults(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
 
     @Nullable
-    Map<ComponentArtifactIdentifier, TransformOperation> getResults(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
+    Map<ComponentArtifactIdentifier, ArtifactTransformResult> getResults(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
 }

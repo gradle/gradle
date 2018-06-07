@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformInfo extends WorkInfo implements TransformOperation {
+public abstract class TransformInfo extends WorkInfo implements ArtifactTransformResult {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
@@ -79,6 +79,7 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
         ResolvedTransformInputs inputs = resolveInputs();
         if (inputs.failure != null) {
             failure = inputs.failure;
+            result = Collections.emptyList();
         } else {
             try {
                 ImmutableList.Builder<File> builder = ImmutableList.builder();
@@ -89,6 +90,7 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
                 result = builder.build();
             } catch (Exception e) {
                 failure = e;
+                result = Collections.emptyList();
             }
         }
     }
@@ -133,6 +135,9 @@ public abstract class TransformInfo extends WorkInfo implements TransformOperati
 
     @Override
     public Throwable getFailure() {
+        if (result == null) {
+            throw new IllegalStateException("Transformation hasn't been executed yet");
+        }
         return failure;
     }
 

@@ -23,7 +23,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.io.File;
 import java.util.List;
 
-class TransformFileOperation implements RunnableBuildOperation, TransformOperation {
+class TransformFileOperation implements RunnableBuildOperation, ArtifactTransformResult {
     private final File file;
     private final ArtifactTransformer transform;
     private Throwable failure;

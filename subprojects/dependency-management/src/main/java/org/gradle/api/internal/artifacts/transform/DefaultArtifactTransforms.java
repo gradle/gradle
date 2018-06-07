@@ -24,13 +24,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final TransformOperationRegistry transformOperationRegistry;
+    private final ArtifactTransformResultRegistry transformOperationRegistry;
 
     public DefaultArtifactTransforms(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformOperationRegistry transformOperationRegistry
+        ArtifactTransformResultRegistry transformOperationRegistry
 
         ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;

@@ -31,11 +31,11 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultTransformOperationRegistry implements TransformOperationRegistry {
+public class DefaultArtifactTransformResultRegistry implements ArtifactTransformResultRegistry {
     private final Map<ArtifactTransformOperationKey, TransformInfo> transformations = Maps.newConcurrentMap();
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTransformOperationRegistry(BuildOperationExecutor buildOperationExecutor) {
+    public DefaultArtifactTransformResultRegistry(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -53,7 +53,7 @@ public class DefaultTransformOperationRegistry implements TransformOperationRegi
 
     @Override
     @Nullable
-    public Map<ComponentArtifactIdentifier, TransformOperation> getResults(ResolvedArtifactSet artifactSet, final ArtifactTransformer transformer) {
+    public Map<ComponentArtifactIdentifier, ArtifactTransformResult> getResults(ResolvedArtifactSet artifactSet, final ArtifactTransformer transformer) {
         return Cast.uncheckedCast(getOrCreate(artifactSet, transformer, null));
     }
 
