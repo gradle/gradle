@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.collect.Lists
+import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.compareTrivialSnapshots
 
 class TaskFilePropertyCompareStrategyTest extends Specification {
 
@@ -227,7 +229,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         strategy  | includeAdded | results
         ORDERED   | true         | [removed("three"), added("two")]
         ORDERED   | false        | [removed("three")]
-        UNORDERED | true         | [removed("three"), added("two")]
+        UNORDERED | true         | [added("two"), removed("three")]
         UNORDERED | false        | [removed("three")]
     }
 
@@ -292,11 +294,15 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     def changes(TaskFilePropertyCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
-        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", false, includeAdded))
+        def visitor = new CollectingTaskStateChangeVisitor()
+        strategy.accept(visitor, current, previous, "test", false, includeAdded)
+        visitor.getChanges().toList()
     }
 
     def changesUsingAbsolutePaths(TaskFilePropertyCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
-        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", true, includeAdded))
+        def visitor = new CollectingTaskStateChangeVisitor()
+        strategy.accept(visitor, current, previous, "test", true, includeAdded)
+        visitor.getChanges().toList()
     }
 
     def snapshot(String normalizedPath, def hashCode = 0x1234abcd) {

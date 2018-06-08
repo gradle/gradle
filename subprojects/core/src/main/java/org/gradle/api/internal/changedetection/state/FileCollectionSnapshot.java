@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -31,10 +29,8 @@ import java.util.Map;
 public interface FileCollectionSnapshot extends Snapshot {
 
     /**
-     * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
+     * Visits the changes to file contents since the given snapshot, subject to the given filters.
      */
-    Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded);
-
     boolean accept(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**

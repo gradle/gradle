@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Collection;
@@ -28,59 +27,58 @@ import java.util.Map;
 class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType, boolean isPathAbsolute, final boolean includeAdded) {
-        final Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
-        final Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previous.entrySet().iterator();
-        return new AbstractIterator<TaskStateChange>() {
-            private TaskStateChange remaining;
-
-            @Override
-            protected TaskStateChange computeNext() {
-                if (remaining != null) {
-                    TaskStateChange next = this.remaining;
-                    remaining = null;
-                    return next;
-                }
-
-                while (true) {
-                    if (currentEntries.hasNext()) {
-                        Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
-                        String currentAbsolutePath = current.getKey();
-                        if (previousEntries.hasNext()) {
-                            Map.Entry<String, NormalizedFileSnapshot> previous = previousEntries.next();
-                            NormalizedFileSnapshot currentNormalizedSnapshot = current.getValue();
-                            NormalizedFileSnapshot previousNormalizedSnapshot = previous.getValue();
-                            String currentNormalizedPath = currentNormalizedSnapshot.getNormalizedPath();
-                            String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
-                            if (currentNormalizedPath.equals(previousNormalizedPath)) {
-                                if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousNormalizedSnapshot.getSnapshot())) {
-                                    return FileChange.modified(currentAbsolutePath, fileType,
-                                        previousNormalizedSnapshot.getSnapshot().getType(),
-                                        currentNormalizedSnapshot.getSnapshot().getType());
-                                }
-                            } else {
-                                String previousAbsolutePath = previous.getKey();
-                                if (includeAdded) {
-                                    remaining = FileChange.added(currentAbsolutePath, fileType, currentNormalizedSnapshot.getSnapshot().getType());
-                                }
-                                return FileChange.removed(previousAbsolutePath, fileType, previousNormalizedSnapshot.getSnapshot().getType());
-                            }
-                        } else {
-                            if (includeAdded) {
-                                return FileChange.added(currentAbsolutePath, fileType, current.getValue().getSnapshot().getType());
+    public boolean accept(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentSnapshots, Map<String, NormalizedFileSnapshot> previousSnapshots, String propertyTitle, boolean pathIsAbsolute, boolean includeAdded) {
+        Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = currentSnapshots.entrySet().iterator();
+        Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previousSnapshots.entrySet().iterator();
+        while (true) {
+            if (currentEntries.hasNext()) {
+                Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
+                String currentAbsolutePath = current.getKey();
+                if (previousEntries.hasNext()) {
+                    Map.Entry<String, NormalizedFileSnapshot> previous = previousEntries.next();
+                    NormalizedFileSnapshot currentNormalizedSnapshot = current.getValue();
+                    NormalizedFileSnapshot previousNormalizedSnapshot = previous.getValue();
+                    String currentNormalizedPath = currentNormalizedSnapshot.getNormalizedPath();
+                    String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
+                    if (currentNormalizedPath.equals(previousNormalizedPath)) {
+                        if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousNormalizedSnapshot.getSnapshot())) {
+                            if (!visitor.visitChange(
+                                FileChange.modified(currentAbsolutePath, propertyTitle,
+                                    previousNormalizedSnapshot.getSnapshot().getType(),
+                                    currentNormalizedSnapshot.getSnapshot().getType()
+                                ))) {
+                                return false;
                             }
                         }
                     } else {
-                        if (previousEntries.hasNext()) {
-                            Map.Entry<String, NormalizedFileSnapshot> previousEntry = previousEntries.next();
-                            return FileChange.removed(previousEntry.getKey(), fileType, previousEntry.getValue().getSnapshot().getType());
-                        } else {
-                            return endOfData();
+                        String previousAbsolutePath = previous.getKey();
+                        if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previousNormalizedSnapshot.getSnapshot().getType()))) {
+                            return false;
+                        }
+                        if (includeAdded) {
+                            if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentNormalizedSnapshot.getSnapshot().getType()))) {
+                                return false;
+                            }
+                        }
+                    }
+                } else {
+                    if (includeAdded) {
+                        if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, current.getValue().getSnapshot().getType()))) {
+                            return false;
                         }
                     }
                 }
+            } else {
+                if (previousEntries.hasNext()) {
+                    Map.Entry<String, NormalizedFileSnapshot> previousEntry = previousEntries.next();
+                    if (!visitor.visitChange(FileChange.removed(previousEntry.getKey(), propertyTitle, previousEntry.getValue().getSnapshot().getType()))) {
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
             }
-        };
+        }
     }
 
     @Override
