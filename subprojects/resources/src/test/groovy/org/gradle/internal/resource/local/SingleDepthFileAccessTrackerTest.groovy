@@ -25,17 +25,17 @@ import spock.lang.Unroll
 class SingleDepthFileAccessTrackerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile baseDir = tmpDir.file("base")
-    FileAccessTimeWriter accessTimeWriter = Mock(FileAccessTimeWriter)
+    FileAccessTimeJournal journal = Mock(FileAccessTimeJournal)
 
     def "ignores files in other directories"() {
         given:
         def fileInOtherDirectory = tmpDir.file("some-file.txt")
 
         when:
-        new SingleDepthFileAccessTracker(accessTimeWriter, baseDir, 1).markAccessed([fileInOtherDirectory])
+        new SingleDepthFileAccessTracker(journal, baseDir, 1).markAccessed([fileInOtherDirectory])
 
         then:
-        0 * accessTimeWriter.setLastAccessTime(_, _)
+        0 * journal.setLastAccessTime(_, _)
     }
 
     @Unroll
@@ -46,11 +46,11 @@ class SingleDepthFileAccessTrackerTest extends Specification {
         def expectedTouchedFiles = touchedPaths.collect { baseDir.file(it) }
 
         when:
-        new SingleDepthFileAccessTracker(accessTimeWriter, baseDir, depth).markAccessed([file1, file2])
+        new SingleDepthFileAccessTracker(journal, baseDir, depth).markAccessed([file1, file2])
 
         then:
         expectedTouchedFiles.empty || expectedTouchedFiles.each {
-            1 * accessTimeWriter.setLastAccessTime(it, _)
+            1 * journal.setLastAccessTime(it, _)
         }
         0 * _
 

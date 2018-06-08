@@ -35,10 +35,10 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
     private final Path baseDir;
     private final int endNameIndex;
     private final int startNameIndex;
-    private final FileAccessTimeWriter writer;
+    private final FileAccessTimeJournal journal;
 
-    public SingleDepthFileAccessTracker(FileAccessTimeWriter writer, File baseDir, int depth) {
-        this.writer = writer;
+    public SingleDepthFileAccessTracker(FileAccessTimeJournal journal, File baseDir, int depth) {
+        this.journal = journal;
         Preconditions.checkArgument(depth > 0, "depth must be > 0: %s", depth);
         this.baseDir = baseDir.toPath().toAbsolutePath();
         this.startNameIndex = this.baseDir.getNameCount();
@@ -47,7 +47,7 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
 
     public void markAccessed(Collection<File> files) {
         for (Path path : collectSubPaths(files)) {
-            writer.setLastAccessTime(path.toFile(), System.currentTimeMillis());
+            journal.setLastAccessTime(path.toFile(), System.currentTimeMillis());
         }
     }
 

@@ -39,12 +39,12 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
     private final Namer<K> namer;
     private final FileAccessTracker checksumDirAccessTracker;
 
-    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeWriter fileAccessTimeWriter, Grouper<K> grouper, Namer<K> namer) {
+    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, Grouper<K> grouper, Namer<K> namer) {
         this.delegate = new UniquePathKeyFileStore(baseDir);
         this.temporaryFileProvider = temporaryFileProvider;
         this.grouper = grouper;
         this.namer = namer;
-        this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeWriter, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
+        this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
     }
 
     public LocallyAvailableResource move(K key, File source) {

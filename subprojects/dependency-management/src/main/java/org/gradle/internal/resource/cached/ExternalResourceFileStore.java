@@ -18,7 +18,7 @@ package org.gradle.internal.resource.cached;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.internal.resource.local.FileAccessTimeWriter;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;
@@ -47,7 +47,7 @@ public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<St
         }
     };
 
-    public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeWriter fileAccessTimeWriter) {
-        super(baseDir, tmpProvider, fileAccessTimeWriter, GROUPER, NAMER);
+    public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeJournal fileAccessTimeJournal) {
+        super(baseDir, tmpProvider, fileAccessTimeJournal, GROUPER, NAMER);
     }
 }
