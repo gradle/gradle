@@ -219,7 +219,125 @@ class ImmutableActionSetTest extends Specification {
         0 * _
     }
 
-    def "deduplicates actions"() {
+    def "can merge empty set into empty set"() {
+        def action = Mock(Action)
+        def empty = ImmutableActionSet.empty()
+
+        expect:
+        def set = empty.mergeFrom(empty)
+        set.is(empty)
+    }
+
+    def "can merge empty set into singleton set"() {
+        def action = Mock(Action)
+        def singleton = ImmutableActionSet.of(action)
+
+        expect:
+        def set = singleton.mergeFrom(ImmutableActionSet.empty())
+        set.is(singleton)
+    }
+
+    def "can merge singleton set into empty set"() {
+        def action = Mock(Action)
+        def singleton = ImmutableActionSet.of(action)
+
+        expect:
+        def set = ImmutableActionSet.empty().mergeFrom(singleton)
+        set.is(singleton)
+    }
+
+    def "can merge singleton set into itself"() {
+        def action = Mock(Action)
+        def original = ImmutableActionSet.of(action)
+
+        expect:
+        def set = original.mergeFrom(original)
+        set.is(original)
+    }
+
+    def "can merge singleton set into singleton set"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def set1 = ImmutableActionSet.of(action1)
+        def set2 = ImmutableActionSet.of(action2)
+
+        when:
+        def set = set1.mergeFrom(set2)
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+        0 * _
+    }
+
+    def "can merge composite set into itself"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def original = ImmutableActionSet.of(action1, action2)
+
+        expect:
+        def set = original.mergeFrom(original)
+        set.is(original)
+    }
+
+    def "can merge composite sets with common ancestors"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def set1 = ImmutableActionSet.of(action1, action2, action3)
+        def set2 = ImmutableActionSet.of(action1, action2, action4)
+
+        when:
+        def set = set1.mergeFrom(set2)
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+    }
+
+    def "can merge composite sets multiple times"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def set1 = ImmutableActionSet.of(action1, action2)
+        def set2 = ImmutableActionSet.of(action1, action3)
+
+        when:
+        def set = set1.mergeFrom(set2)
+        set2 = set2.add(action4)
+        set = set.mergeFrom(set2)
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+    }
+
+    def "de-duplicates actions"() {
         def action1 = Mock(Action)
         def action2 = Mock(Action)
         def action3 = Mock(Action)

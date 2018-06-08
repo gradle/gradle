@@ -51,6 +51,11 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
     }
 
     @Override
+    public ImmutableActionSet<T> getAddActions() {
+        return addActions;
+    }
+
+    @Override
     public void fireObjectAdded(T element) {
         addActions.execute(element);
     }
