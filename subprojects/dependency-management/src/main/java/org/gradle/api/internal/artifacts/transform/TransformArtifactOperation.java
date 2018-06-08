@@ -20,11 +20,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 
 class TransformArtifactOperation implements ArtifactTransformResult, RunnableBuildOperation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformArtifactOperation.class);
     private final ResolvableArtifact artifact;
     private final ArtifactTransformer transform;
     private Throwable failure;
@@ -38,6 +41,9 @@ class TransformArtifactOperation implements ArtifactTransformResult, RunnableBui
     @Override
     public void run(BuildOperationContext context) {
         try {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifact.getId().getDisplayName());
+            }
             result = transform.transform(artifact.getFile());
         } catch (Throwable t) {
             failure = t;

@@ -19,11 +19,14 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 
 class TransformFileOperation implements RunnableBuildOperation, ArtifactTransformResult {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
     private final File file;
     private final ArtifactTransformer transform;
     private Throwable failure;
@@ -37,6 +40,9 @@ class TransformFileOperation implements RunnableBuildOperation, ArtifactTransfor
     @Override
     public void run(BuildOperationContext context) {
         try {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
+            }
             result = transform.transform(file);
         } catch (Throwable t) {
             failure = t;

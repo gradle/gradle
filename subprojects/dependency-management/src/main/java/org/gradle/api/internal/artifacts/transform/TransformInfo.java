@@ -34,6 +34,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -44,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class TransformInfo extends WorkInfo implements ArtifactTransformResult {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformInfo.class);
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
@@ -84,6 +87,9 @@ public abstract class TransformInfo extends WorkInfo implements ArtifactTransfor
             try {
                 ImmutableList.Builder<File> builder = ImmutableList.builder();
                 for (File inputFile : inputs.files) {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Executing transform {} on file {}", artifactTransformer.getDisplayName(), inputFile);
+                    }
                     List<File> transformerResult = artifactTransformer.transform(inputFile);
                     builder.addAll(transformerResult);
                 }
