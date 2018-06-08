@@ -22,9 +22,9 @@ import javax.annotation.Nullable;
 public interface CollectionEventRegister<T> {
     boolean isSubscribed(@Nullable Class<?> type);
 
-    Action<T> getAddAction();
+    void fireObjectAdded(T element);
 
-    Action<T> getRemoveAction();
+    void fireObjectRemoved(T element);
 
     void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction);
 

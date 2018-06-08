@@ -224,7 +224,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private boolean doAdd(T toAdd) {
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
-            eventRegister.getAddAction().execute(toAdd);
+            eventRegister.fireObjectAdded(toAdd);
             return true;
         } else {
             return false;
@@ -263,7 +263,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         Object[] c = toArray();
         getStore().clear();
         for (Object o : c) {
-            eventRegister.getRemoveAction().execute((T) o);
+            eventRegister.fireObjectRemoved((T) o);
         }
     }
 
@@ -288,7 +288,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         if (getStore().remove(o)) {
             @SuppressWarnings("unchecked") T cast = (T) o;
             didRemove(cast);
-            eventRegister.getRemoveAction().execute(cast);
+            eventRegister.fireObjectRemoved(cast);
             return true;
         } else {
             return false;
@@ -373,7 +373,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             assertMutable();
             iterator.remove();
             didRemove(currentElement);
-            getEventRegister().getRemoveAction().execute(currentElement);
+            getEventRegister().fireObjectRemoved(currentElement);
             currentElement = null;
         }
 
@@ -393,12 +393,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
 
         @Override
-        public Action<S> getAddAction() {
+        public void fireObjectAdded(S element) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Action<S> getRemoveAction() {
+        public void fireObjectRemoved(S element) {
             throw new UnsupportedOperationException();
         }
 

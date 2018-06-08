@@ -16,14 +16,14 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.ImmutableActionSet;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class BroadcastingCollectionEventRegister<T> implements CollectionEventRegister<T> {
-    private final MutableActionSet<T> addActions = new MutableActionSet<T>();
-    private final MutableActionSet<T> removeActions = new MutableActionSet<T>();
+    private ImmutableActionSet<T> addActions = ImmutableActionSet.empty();
+    private ImmutableActionSet<T> removeActions = ImmutableActionSet.empty();
     private final Class<? extends T> baseType;
     private boolean baseTypeSubscribed;
     private Set<Class<?>> subscribedTypes;
@@ -50,28 +50,30 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
         return false;
     }
 
-    public Action<T> getAddAction() {
-        return addActions;
+    @Override
+    public void fireObjectAdded(T element) {
+        addActions.execute(element);
     }
 
-    public Action<T> getRemoveAction() {
-        return removeActions;
+    @Override
+    public void fireObjectRemoved(T element) {
+        removeActions.execute(element);
     }
 
     @Override
     public void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
         subscribe(type);
-        addActions.add(addAction);
+        addActions = addActions.add(addAction);
     }
 
     @Override
     public void registerLazyAddAction(Action<? super T> addAction) {
-        addActions.add(addAction);
+        addActions = addActions.add(addAction);
     }
 
     @Override
     public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
-        removeActions.add(removeAction);
+        removeActions = removeActions.add(removeAction);
     }
 
     private void subscribe(Class<? extends T> type) {
