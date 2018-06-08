@@ -28,7 +28,7 @@ import java.io.Closeable;
  *        .connect()) {
  *    
  *    //obtain some information from the build
- *    BuildEnvironment environment = connection.model(BuildEnvironment.class).get()
+ *    BuildEnvironment environment = connection.model(BuildEnvironment.class).get();
  *    
  *    //run some tasks
  *    connection.newBuild()
