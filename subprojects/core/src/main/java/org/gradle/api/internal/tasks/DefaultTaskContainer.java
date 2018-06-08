@@ -588,9 +588,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends DefaultTaskProvider<I> {
-
-        private final Object[] constructorArgs;
-
+        private Object[] constructorArgs;
         private I task;
         private Throwable cause;
 
@@ -601,6 +599,27 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             if (configureAction != null) {
                 configure(configureAction);
             }
+        }
+
+        @Override
+        public void configure(final Action<? super I> action) {
+            if (task != null) {
+                // Already realized, just run the action now
+                action.execute(task);
+                return;
+            }
+            configureEach(new Action<Task>() {
+                private boolean alreadyExecuted = false;
+
+                @Override
+                public void execute(Task task) {
+                    // Task specific configuration action should only be executed once
+                    if (task.getName().equals(identity.name) && !removed && !alreadyExecuted) {
+                        alreadyExecuted = true;
+                        action.execute(identity.type.cast(task));
+                    }
+                }
+            });
         }
 
         @Override
@@ -616,6 +635,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         public void run(BuildOperationContext context) {
                             try {
                                 task = createTask(identity, constructorArgs);
+                                // Discard the args
+                                constructorArgs = null;
                                 realized(TaskCreatingProvider.this);
                                 statistics.lazyTaskRealized(getType());
                                 add(task);

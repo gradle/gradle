@@ -577,6 +577,53 @@ class DefaultTaskContainerTest extends Specification {
         0 * action._
     }
 
+    void "container and task specific configuration actions are executed when task is created"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def action5 = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.configureEach(action1)
+        def provider = container.register("task", DefaultTask, action2)
+        container.configureEach(action3)
+        provider.configure(action4)
+
+        when:
+        container.all(action5)
+
+        then:
+        1 * taskFactory.create(_ as TaskIdentity) >> task
+
+        then:
+        1 * action1.execute(task)
+
+        then:
+        1 * action2.execute(task)
+
+        then:
+        1 * action3.execute(task)
+
+        then:
+        1 * action4.execute(task)
+
+        then:
+        1 * action5.execute(task)
+        0 * action1._
+        0 * action2._
+        0 * action3._
+        0 * action4._
+        0 * action5._
+
+        when:
+        provider.get()
+
+        then:
+        0 * _
+    }
+
     void "can locate defined task by type and name without triggering creation or configuration"() {
         def action = Mock(Action)
         def task = task("task")
@@ -636,6 +683,24 @@ class DefaultTaskContainerTest extends Specification {
         then:
         0 * action._
         0 * deferredAction._
+    }
+
+    void "task configuration action is executed immediately when task is already realized"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        1 * taskFactory.create(_ as TaskIdentity) >> task
+
+        def provider = container.register("task")
+        provider.get()
+
+        when:
+        provider.configure(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     void "fails task creation when creation rule throw exception"() {
@@ -1004,7 +1069,7 @@ class DefaultTaskContainerTest extends Specification {
         0 * _
     }
 
-    void "can locate task that already exists by type and name without triggering creation or configuration"() {
+    void "can locate task that already exists by name"() {
         def task = task("task")
 
         given:
@@ -1017,6 +1082,23 @@ class DefaultTaskContainerTest extends Specification {
         then:
         provider.present
         provider.get() == task
+    }
+
+    void "configuration action is executed eagerly for a task that already exists located by name"() {
+        def task = task("task")
+        def action = Mock(Action)
+
+        given:
+        _ * taskFactory.create(_ as TaskIdentity, []) >> task
+        container.create("task")
+
+        when:
+        def provider = container.named("task")
+        provider.configure(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     void "can add task via placeholder action"() {
