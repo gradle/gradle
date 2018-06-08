@@ -1,17 +1,3 @@
-// START SNIPPET use-gretty-plugin
-buildscript {
-    repositories {
-        maven {
-            url 'https://plugins.gradle.org/m2/'
-        }
-    }
-    dependencies {
-        classpath 'gradle.plugin.org.gretty:gretty:2.1.0'
-    }
-}
-apply plugin: 'org.gretty'
-// END SNIPPET use-gretty-plugin
-
 // START SNIPPET use-war-plugin
 // START SNIPPET use-gretty-plugin
 plugins {
