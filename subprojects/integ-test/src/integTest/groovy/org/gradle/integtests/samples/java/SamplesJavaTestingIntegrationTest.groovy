@@ -310,7 +310,9 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
      */
     private TestFile getStandardTestReportDir(String project, String sourceSet) {
         String path = "build/reports/tests/${sourceSet ?: 'test'}"
-        if (project) path = project + '/' + path
+        if (project) {
+            path = project + '/' + path
+        }
         return sample.dir.file(path)
     }
 
