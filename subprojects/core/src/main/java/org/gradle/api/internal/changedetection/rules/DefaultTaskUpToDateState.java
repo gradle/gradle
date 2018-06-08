@@ -54,9 +54,7 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
     }
 
     private static TaskStateChanges caching(TaskStateChanges wrapped) {
-        // TODO wolfs: implement caching for visitor TaskStateChange
-//        return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
-        return wrapped;
+        return new CachingTaskStateChanges(20, wrapped);
     }
 
     @Override

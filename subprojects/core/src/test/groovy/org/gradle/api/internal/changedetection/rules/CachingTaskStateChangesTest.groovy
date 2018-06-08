@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.rules
 import spock.lang.Specification
 
 class CachingTaskStateChangesTest extends Specification {
-    def delegate = Mock(Iterable.class)
+    def delegate = Mock(TaskStateChanges.class)
     def change1 = Mock(TaskStateChange)
     def change2 = Mock(TaskStateChange)
     def change3 = Mock(TaskStateChange)
@@ -32,7 +32,9 @@ class CachingTaskStateChangesTest extends Specification {
         cachingChanges.accept(new CollectingTaskStateChangeVisitor())
 
         then:
-        1 * delegate.iterator() >> [change1, change2].iterator()
+        interaction {
+            receivesChanges(change1, change2)
+        }
         0 * _
 
         when:
@@ -51,7 +53,9 @@ class CachingTaskStateChangesTest extends Specification {
         cachingChanges.accept(new CollectingTaskStateChangeVisitor())
 
         then:
-        1 * delegate.iterator() >> [change1, change2, change3].iterator()
+        interaction {
+            receivesChanges(change1, change2, change3)
+        }
         0 * _
 
         when:
@@ -60,10 +64,49 @@ class CachingTaskStateChangesTest extends Specification {
         def reported = collectingVisitor.changes
 
         then:
-        2 * delegate.iterator() >> [change1, change2, change3].iterator() >> [change3, change2, change1].iterator()
+        interaction {
+            receivesChanges(change1, change2, change3)
+            receivesChanges(change3, change2, change1)
+        }
         0 * _
 
         and:
         reported == [change3, change2, change1]
+    }
+
+    def "does not cache if visitor aborts visiting"() {
+        when:
+        cachingChanges.accept(new MaximumNumberTaskStateChangeVisitor(2, new CollectingTaskStateChangeVisitor()))
+
+        then:
+        interaction {
+            receivesChanges(change1, change2)
+        }
+        0 * _
+
+        when:
+        cachingChanges.accept(collectingVisitor)
+        def reported = collectingVisitor.changes
+
+        then:
+        interaction {
+            receivesChanges(change1, change2)
+        }
+        0 * _
+
+        and:
+        reported == [change1, change2]
+    }
+
+    private void receivesChanges(TaskStateChange... changes) {
+        1 * delegate.accept(_) >> { args ->
+            TaskStateChangeVisitor visitor = args[0]
+            for (change in changes) {
+                if (!visitor.visitChange(change)) {
+                    return false
+                }
+            }
+            return true
+        }
     }
 }
