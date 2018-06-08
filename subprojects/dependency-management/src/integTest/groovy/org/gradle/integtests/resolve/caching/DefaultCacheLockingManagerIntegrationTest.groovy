@@ -67,6 +67,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         buildscriptWithDependency(snapshotModule)
 
         when:
+        executer.requireOwnGradleUserHomeDir() // needs its own journal
         succeeds 'resolve'
 
         then:
@@ -119,6 +120,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         buildscriptWithDependency(snapshotModule)
 
         when:
+        executer.requireOwnGradleUserHomeDir() // needs its own journal
         succeeds 'resolve'
 
         and:

@@ -957,6 +957,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
 
         when:
+        executer.requireOwnGradleUserHomeDir() // needs its own journal
         succeeds ":app:resolve"
 
         then:
