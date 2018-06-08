@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
@@ -67,7 +68,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.utils", "api"), new DefaultMutableVersionConstraint("1.5"))
         1 * action.execute(moduleDetails)
         0 * _
 
@@ -88,7 +89,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def componentSelectorConverter = Mock(ComponentSelectorConverter)
         substitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
 
-        def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        def mid = DefaultModuleIdentifier.newId("org.utils", "api")
+        def moduleOldRequested = DefaultModuleVersionSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.5"))
         def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
@@ -104,7 +106,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         })
         0 * _
 
-        def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        def projectOldRequested = DefaultModuleVersionSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.5"))
         def projectTarget = TestComponentIdentifiers.newSelector(":api")
         def projectDetails = Mock(DependencySubstitutionInternal)
 
@@ -123,6 +125,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
     @Unroll
     def "substitute module() matches only given module: #matchingModule"() {
+        def mid = DefaultModuleIdentifier.newId("org.utils", "api")
+
         given:
         def matchingSubstitute = Mock(ComponentSelector)
         def nonMatchingSubstitute = Mock(ComponentSelector)
@@ -137,7 +141,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.5"))
         1 * moduleDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 
@@ -193,7 +197,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(projectDetails)
 
         then:
-        _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.utils", "api"), new DefaultMutableVersionConstraint("1.5"))
         0 * _
 
         where:

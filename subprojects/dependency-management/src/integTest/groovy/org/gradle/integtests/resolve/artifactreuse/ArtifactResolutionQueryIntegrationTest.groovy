@@ -43,6 +43,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
         settingsFile << 'include "query", "resolve"'
         buildFile << """ 
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier as DMI
 
 allprojects {
     apply plugin: 'java'
@@ -60,7 +61,7 @@ project('query') {
         doLast {
             '${server.uri}/sync'.toURL().text
             dependencies.createArtifactResolutionQuery()
-                        .forComponents(new DefaultModuleComponentIdentifier('group','artifact','1.0'))
+                        .forComponents(new DefaultModuleComponentIdentifier(DMI.newId('group','artifact'),'1.0'))
                         .withArtifacts(JvmLibrary)
                         .execute()
         }

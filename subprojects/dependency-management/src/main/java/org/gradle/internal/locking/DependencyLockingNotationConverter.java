@@ -17,6 +17,7 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 class DependencyLockingNotationConverter {
@@ -26,7 +27,7 @@ class DependencyLockingNotationConverter {
         if (parts.length != 3) {
             throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + notation + "'");
         }
-        return DefaultModuleComponentIdentifier.newId(parts[0], parts[1], parts[2]);
+        return DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(parts[0], parts[1]), parts[2]);
     }
 
     String convertToLockNotation(ModuleComponentIdentifier id) {

@@ -96,6 +96,7 @@ class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "provides dependency resolve rule that forces modules"() {
+        def mid = DefaultModuleIdentifier.newId('org', 'foo')
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencySubstitutionInternal)
@@ -106,9 +107,9 @@ class DefaultResolutionStrategySpec extends Specification {
         then:
         _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
-        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        _ * details.getOldRequested() >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
+        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        _ * details.getOldRequested() >> newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -124,6 +125,7 @@ class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "provides dependency resolve rule with forced modules first and then user specified rules"() {
+        def mid = DefaultModuleIdentifier.newId('org', 'foo')
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencySubstitutionInternal)
@@ -134,9 +136,9 @@ class DefaultResolutionStrategySpec extends Specification {
 
         then: //forced modules:
         dependencySubstitutions.ruleAction >> substitutionAction
-        _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        _ * details.oldRequested >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
+        _ * details.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        _ * details.oldRequested >> newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:

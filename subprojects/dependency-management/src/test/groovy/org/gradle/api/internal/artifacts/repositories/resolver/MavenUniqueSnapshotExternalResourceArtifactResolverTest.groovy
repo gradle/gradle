@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -31,7 +32,7 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
 
     def "creates timestamped artifact"() {
         when:
-        def originalComponentId = DefaultModuleComponentIdentifier.newId("group", "name", "1.0-SNAPSHOT")
+        def originalComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.0-SNAPSHOT")
         def originalIvyName = Mock(IvyArtifactName)
         def originalArtifact = new DefaultModuleComponentArtifactMetadata(originalComponentId, originalIvyName)
         def artifact = resolver.timestamp(originalArtifact)
@@ -48,7 +49,7 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
 
     def "delegates with timestamped artifact"() {
         given:
-        def originalComponentId = DefaultModuleComponentIdentifier.newId("group", "name", "1.0-SNAPSHOT")
+        def originalComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.0-SNAPSHOT")
         def originalIvyName = new DefaultIvyArtifactName("name", "type", "extension")
         def originalArtifact = new DefaultModuleComponentArtifactMetadata(originalComponentId, originalIvyName)
         def artifact = resolver.timestamp(originalArtifact)

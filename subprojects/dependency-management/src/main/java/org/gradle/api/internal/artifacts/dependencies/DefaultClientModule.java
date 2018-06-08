@@ -32,7 +32,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
     }
 
     public DefaultClientModule(String group, String name, String version, String configuration) {
-        super(group, name, version, configuration);
+        super(assertModuleId(group, name), version, configuration);
     }
 
     public String getId() {

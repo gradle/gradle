@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.resolve
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
@@ -27,6 +29,10 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionNotFoundExceptionTest extends Specification {
+    static ModuleIdentifier mid(String group, String name) {
+        DefaultModuleIdentifier.newId(group, name)
+    }
+
     def "formats message to include id when no locations"() {
         def exception = new ModuleVersionNotFoundException(newId("org", "a", "1.2"), [])
 
@@ -45,7 +51,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when no versions attempted"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], [], [])
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], [], [])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any matches for org:a:1.+ as no versions of org:a are available.
@@ -55,7 +61,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when versions attempted and non rejected"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["1.1", "1.2"], [])
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["1.1", "1.2"], [])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -68,7 +74,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when versions attempted and some rejected"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], [reject("1.1"), reject("1.2")])
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], [reject("1.1"), reject("1.2")])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -84,7 +90,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when versions attempted and all rejected"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], [], [reject("1.1"), reject("1.2")])
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], [], [reject("1.1"), reject("1.2")])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -97,7 +103,7 @@ Searched in the following locations:
     }
 
     def "limits list of candidates"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], (1..20).collect { it.toString() }, (1..10).collect { reject(it.toString()) })
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], (1..20).collect { it.toString() }, (1..10).collect { reject(it.toString()) })
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -121,9 +127,9 @@ Searched in the following locations:
     }
 
     def "can add incoming paths to exception"() {
-        def a = DefaultModuleComponentIdentifier.newId("org", "a", "1.2")
-        def b = DefaultModuleComponentIdentifier.newId("org", "b", "5")
-        def c = DefaultModuleComponentIdentifier.newId("org", "c", "1.0")
+        def a = DefaultModuleComponentIdentifier.newId(mid("org", "a"), "1.2")
+        def b = DefaultModuleComponentIdentifier.newId(mid("org", "b"), "5")
+        def c = DefaultModuleComponentIdentifier.newId(mid("org", "c"), "1.0")
 
         def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere"])
         def onePath = exception.withIncomingPaths([[a, b, c]])
@@ -141,7 +147,7 @@ Required by:
                 rejectedByAttributes('1.1', [color: ['red', 'blue', false]]),
                 rejectedByAttributes('1.0', [color: ['red', 'green', false]]),
         ]
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -161,7 +167,7 @@ Searched in the following locations:
                 rejectedByAttributes('1.1', [color: ['red', 'red', true], shape: ['square', 'circle', false]]),
                 rejectedByAttributes('1.0', [color: ['red', 'green', false], shape: ['square', 'circle', false]]),
         ]
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -186,7 +192,7 @@ Searched in the following locations:
                 rejectedByAttributes('1.1', [color: ['red', 'red', true], shape: ['square', 'circle', false]]),
                 rejectedByAttributes('1.0', [color: ['red', 'green', false], shape: ['square', 'circle', false]]),
         ]
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
+        def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -208,11 +214,11 @@ Searched in the following locations:
 
 
     static RejectedVersion reject(String version) {
-        new RejectedVersion(DefaultModuleComponentIdentifier.newId("org", "foo", version)) {}
+        new RejectedVersion(DefaultModuleComponentIdentifier.newId(mid("org", "foo"), version)) {}
     }
 
     static RejectedByAttributesVersion rejectedByAttributes(String version, Map<String, List<String>> attributes) {
-        return new RejectedByAttributesVersion(DefaultModuleComponentIdentifier.newId("org", "foo", version), toDescriptions(attributes))
+        return new RejectedByAttributesVersion(DefaultModuleComponentIdentifier.newId(mid("org", "foo"), version), toDescriptions(attributes))
     }
 
     static List<AttributeMatcher.MatchingDescription> toDescriptions(Map<String, List<String>> attributes) {

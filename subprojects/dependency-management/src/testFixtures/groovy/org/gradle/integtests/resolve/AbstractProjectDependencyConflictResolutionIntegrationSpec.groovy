@@ -178,7 +178,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 
     static String checkHelper(String buildId, String projectPath) { """
         def moduleId(String group, String name, String version) {
-            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
+            def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
+            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
         }
 
         def projectId(String projectName) {

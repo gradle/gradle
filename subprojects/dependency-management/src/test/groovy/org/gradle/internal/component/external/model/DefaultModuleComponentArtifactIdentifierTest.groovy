@@ -16,12 +16,13 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class DefaultModuleComponentArtifactIdentifierTest extends Specification {
     def "has useful string representation"() {
-        def componentId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
 
         expect:
         def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
@@ -42,7 +43,7 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
     }
 
     def "calculates a file name from attributes"() {
-        def componentId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
 
         expect:
         def noClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext")
@@ -59,8 +60,8 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
     }
 
     def "is equal when all attributes and module version are the same"() {
-        def componentId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def otherComponentId = DefaultModuleComponentIdentifier.newId("group", "module", "2")
+        def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def otherComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "2")
 
         def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId,  "name", "type", "ext", 'classifier')
         def same = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')

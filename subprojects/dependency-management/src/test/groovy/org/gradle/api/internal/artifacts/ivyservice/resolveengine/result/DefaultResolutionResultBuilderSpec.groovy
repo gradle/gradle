@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
@@ -245,7 +246,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.requested()) {
-        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
+        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId(DefaultModuleIdentifier.newId("x", module), "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1"))
         moduleVersion
     }
 
@@ -254,8 +255,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
-        def selector = DefaultModuleComponentSelector.newSelector("x", requested, DefaultImmutableVersionConstraint.of("1"))
-        def moduleVersionSelector = newSelector("x", requested, new DefaultMutableVersionConstraint("1"))
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
+        def moduleVersionSelector = newSelector(DefaultModuleIdentifier.newId("x", requested), new DefaultMutableVersionConstraint("1"))
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
         new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)
     }

@@ -19,6 +19,7 @@ package org.gradle.internal.resolve.result
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -73,7 +74,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
     }
 
     def "cannot get id when resolve failed"() {
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", new DefaultMutableVersionConstraint("c")), "broken")
+        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), "broken")
 
         when:
         result.failed(failure)
@@ -85,7 +86,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
     }
 
     def "cannot get meta-data when resolve failed"() {
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", new DefaultMutableVersionConstraint("c")), "broken")
+        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), "broken")
 
         when:
         result.failed(failure)

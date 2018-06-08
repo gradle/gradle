@@ -20,6 +20,7 @@ import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
@@ -403,7 +404,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         metadata.dependencies.size() == 1
         def dependency = metadata.dependencies.first()
-        dependency.selector == newSelector("deporg", "depname", new DefaultMutableVersionConstraint("deprev"))
+        dependency.selector == newSelector(DefaultModuleIdentifier.newId("deporg", "depname"), new DefaultMutableVersionConstraint("deprev"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2766")
@@ -703,7 +704,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     static componentId(String group, String module, String version) {
-        DefaultModuleComponentIdentifier.newId(group, module, version)
+        DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
     }
 
     void assertArtifact(String name, String extension, String type, String classifier) {
@@ -717,7 +718,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     def verifyFullDependencies(Collection<IvyDependencyDescriptor> dependencies) {
         // no conf def => equivalent to *->*
         def dd = getDependency(dependencies, "mymodule2")
-        assert dd.selector == newSelector("myorg", "mymodule2", new DefaultMutableVersionConstraint("2.0"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("myorg", "mymodule2"), new DefaultMutableVersionConstraint("2.0"))
         assert dd.confMappings == map("*": ["*"])
         assert !dd.changing
         assert dd.transitive
@@ -730,70 +731,70 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         // conf="myconf1" => equivalent to myconf1->myconf1
         dd = getDependency(dependencies, "yourmodule1")
-        assert dd.selector == newSelector("yourorg", "yourmodule1", new DefaultMutableVersionConstraint("1.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule1"), new DefaultMutableVersionConstraint("1.1"))
         assert dd.dynamicConstraintVersion == "1+"
         assert dd.confMappings == map(myconf1: ["myconf1"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1"
         dd = getDependency(dependencies, "yourmodule2")
-        assert dd.selector == newSelector("yourorg", "yourmodule2", new DefaultMutableVersionConstraint("2+"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule2"), new DefaultMutableVersionConstraint("2+"))
         assert dd.confMappings == map(myconf1: ["yourconf1"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule3")
-        assert dd.selector == newSelector("yourorg", "yourmodule3", new DefaultMutableVersionConstraint("3.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule3"), new DefaultMutableVersionConstraint("3.1"))
         assert dd.confMappings == map(myconf1: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1, myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule4")
-        assert dd.selector == newSelector("yourorg", "yourmodule4", new DefaultMutableVersionConstraint("4.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule4"), new DefaultMutableVersionConstraint("4.1"))
         assert dd.confMappings == map(myconf1:["yourconf1", "yourconf2"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1 | myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule5")
-        assert dd.selector == newSelector("yourorg", "yourmodule5", new DefaultMutableVersionConstraint("5.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule5"), new DefaultMutableVersionConstraint("5.1"))
         assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="*->@"
         dd = getDependency(dependencies, "yourmodule11")
-        assert dd.selector == newSelector("yourorg", "yourmodule11", new DefaultMutableVersionConstraint("11.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule11"), new DefaultMutableVersionConstraint("11.1"))
         assert dd.confMappings == map("*":["@"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as nested elements
         dd = getDependency(dependencies, "yourmodule6")
-        assert dd.selector == newSelector("yourorg", "yourmodule6", new DefaultMutableVersionConstraint("latest.integration"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule6"), new DefaultMutableVersionConstraint("latest.integration"))
         assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as deeply nested elements
         dd = getDependency(dependencies, "yourmodule7")
-        assert dd.selector == newSelector("yourorg", "yourmodule7", new DefaultMutableVersionConstraint("7.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule7"), new DefaultMutableVersionConstraint("7.1"))
         assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Dependency artifacts
         dd = getDependency(dependencies, "yourmodule8")
-        assert dd.selector == newSelector("yourorg", "yourmodule8", new DefaultMutableVersionConstraint("8.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule8"), new DefaultMutableVersionConstraint("8.1"))
         assert dd.dependencyArtifacts.size() == 2
         assertDependencyArtifact(dd, "yourartifact8-1", ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"])
         assertDependencyArtifact(dd, "yourartifact8-2", ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"])
 
         // Dependency artifacts with confs
         dd = getDependency(dependencies, "yourmodule9")
-        assert dd.selector == newSelector("yourorg", "yourmodule9", new DefaultMutableVersionConstraint("9.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule9"), new DefaultMutableVersionConstraint("9.1"))
         assert dd.dependencyArtifacts.size() == 2
         assertDependencyArtifact(dd, "yourartifact9-1", ["myconf1", "myconf2"])
         assertDependencyArtifact(dd, "yourartifact9-2", ["myconf2", "myconf3"])
 
         // Dependency excludes
         dd = getDependency(dependencies, "yourmodule10")
-        assert dd.selector == newSelector("yourorg", "yourmodule10", new DefaultMutableVersionConstraint("10.1"))
+        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule10"), new DefaultMutableVersionConstraint("10.1"))
         assert dd.dependencyArtifacts.empty
         assert dd.allExcludes.size() == 1
         assert dd.allExcludes[0].artifact.name == "toexclude"

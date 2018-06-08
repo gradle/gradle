@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
@@ -41,8 +42,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean transitive = externalModuleDependency.isTransitive();
 
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            nullToEmpty(dependency.getGroup()),
-            nullToEmpty(dependency.getName()),
+            DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
             ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(),
             dependency.getAttributes());
 

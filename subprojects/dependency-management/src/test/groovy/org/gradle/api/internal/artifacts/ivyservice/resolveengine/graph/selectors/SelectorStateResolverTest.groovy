@@ -240,14 +240,14 @@ class SelectorStateResolverTest extends Specification {
             def reject = versionConstraint.rejectedSelector
 
             if (!prefer.isDynamic()) {
-                def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, prefer.selector)
+                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), prefer.selector)
                 resolvedOrRejected(id, reject, result)
                 return
             }
 
             def resolved = findDynamicVersion(prefer, reject)
             if (resolved) {
-                def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, resolved as String)
+                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), resolved as String)
                 resolvedOrRejected(id, reject, result)
                 return
             }
@@ -283,7 +283,7 @@ class SelectorStateResolverTest extends Specification {
         }
 
         private ModuleVersionNotFoundException missing(VersionSelector prefer) {
-            def moduleComponentSelector = DefaultModuleComponentSelector.newSelector(moduleId.group, moduleId.name, prefer.selector)
+            def moduleComponentSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), prefer.selector)
             return new ModuleVersionNotFoundException(moduleComponentSelector, [])
         }
     }
@@ -297,7 +297,7 @@ class SelectorStateResolverTest extends Specification {
 
         @Override
         ModuleVersionIdentifier getId() {
-            return new DefaultModuleVersionIdentifier("org", "foo", version)
+            return DefaultModuleVersionIdentifier.newId("org", "foo", version)
         }
 
         @Override

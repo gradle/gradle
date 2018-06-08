@@ -16,29 +16,31 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.DisplayName;
 
 public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier, DisplayName {
-    private final String group;
-    private final String module;
+    private final ModuleIdentifier moduleIdentifier;
     private final String version;
     private final int hashCode;
 
-    public DefaultModuleComponentIdentifier(String group, String module, String version) {
-        assert group != null : "group cannot be null";
+    public DefaultModuleComponentIdentifier(ModuleIdentifier module, String version) {
         assert module != null : "module cannot be null";
+        assert module.getGroup() != null : "group cannot be null";
+        assert module.getName() != null : "name cannot be null";
         assert version != null : "version cannot be null";
-        this.group = group;
-        this.module = module;
+        this.moduleIdentifier = module;
         this.version = version;
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = Objects.hashCode(version, module, group);
+        this.hashCode = Objects.hashCode(version, module);
     }
 
     public String getDisplayName() {
+        String group = moduleIdentifier.getGroup();
+        String module = moduleIdentifier.getName();
         StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
         builder.append(group);
         builder.append(":");
@@ -54,15 +56,20 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     }
 
     public String getGroup() {
-        return group;
+        return moduleIdentifier.getGroup();
     }
 
     public String getModule() {
-        return module;
+        return moduleIdentifier.getName();
     }
 
     public String getVersion() {
         return version;
+    }
+
+    @Override
+    public ModuleIdentifier getModuleIdentifier() {
+        return moduleIdentifier;
     }
 
     @Override
@@ -76,10 +83,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
         DefaultModuleComponentIdentifier that = (DefaultModuleComponentIdentifier) o;
 
-        if (!group.equals(that.group)) {
-            return false;
-        }
-        if (!module.equals(that.module)) {
+        if (!moduleIdentifier.equals(that.moduleIdentifier)) {
             return false;
         }
         if (!version.equals(that.version)) {
@@ -99,12 +103,12 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         return getDisplayName();
     }
 
-    public static ModuleComponentIdentifier newId(String group, String name, String version) {
-        return new DefaultModuleComponentIdentifier(group, name, version);
+    public static ModuleComponentIdentifier newId(ModuleIdentifier module, String version) {
+        return new DefaultModuleComponentIdentifier(module, version);
     }
 
     public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
+        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getModule(), moduleVersionIdentifier.getVersion());
     }
 }
 

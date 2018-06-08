@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.Configuration
@@ -42,7 +43,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     def "defines configurations for maven scopes and several usage buckets"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def metadata = mavenMetadataFactory.create(id)
 
         expect:
@@ -58,7 +59,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     def "default metadata"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def metadata = mavenMetadataFactory.create(id)
 
         expect:
@@ -75,7 +76,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     def "initialises values from descriptor state and defaults"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
 
         def vid = Mock(ModuleVersionIdentifier)
         def metadata = mavenMetadataFactory.create(id)
@@ -124,8 +125,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     def "can override values from descriptor"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
 
@@ -182,8 +183,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     def "making changes to copy does not affect original"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
         def metadata = mavenMetadataFactory.create(id)
 
@@ -231,8 +232,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     def "making changes to original does not affect copy"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
         def metadata = mavenMetadataFactory.create(id)
 

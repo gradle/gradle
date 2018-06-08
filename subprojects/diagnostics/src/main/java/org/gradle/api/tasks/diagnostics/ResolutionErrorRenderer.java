@@ -116,7 +116,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
             matchesSpec |= dependencySpec.isSatisfiedBy(new DependencyResult() {
                 @Override
                 public ComponentSelector getRequested() {
-                    return DefaultModuleComponentSelector.newSelector(mvi.getGroup(), mvi.getName(), mvi.getVersion());
+                    return DefaultModuleComponentSelector.newSelector(mvi.getModule(), mvi.getVersion());
                 }
 
                 @Override

@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
@@ -96,7 +97,7 @@ public class GradlePomModuleDescriptorBuilder {
     public void setModuleRevId(String group, String module, String version) {
         String effectiveVersion = MavenVersionUtils.toEffectiveVersion(version);
         status = MavenVersionUtils.inferStatusFromEffectiveVersion(version);
-        componentIdentifier = DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion);
+        componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), effectiveVersion);
     }
 
     public void addDependency(PomDependencyData dep) {
@@ -127,12 +128,11 @@ public class GradlePomModuleDescriptorBuilder {
 
         String version = determineVersion(dep);
         String mappedVersion = convertVersionFromMavenSyntax(version);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dep.getGroupId(), dep.getArtifactId(), new DefaultImmutableVersionConstraint(mappedVersion));
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dep.getGroupId(), dep.getArtifactId()), new DefaultImmutableVersionConstraint(mappedVersion));
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
-        if (selector.getGroup().equals(componentIdentifier.getGroup())
-            && selector.getModule().equals(componentIdentifier.getModule())) {
+        if (selector.getModuleIdentifier().equals(componentIdentifier.getModuleIdentifier())) {
             return;
         }
 

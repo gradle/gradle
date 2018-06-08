@@ -29,6 +29,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -107,7 +108,7 @@ public class IvyModuleDescriptorConverter {
 
     private void addDependency(List<IvyDependencyDescriptor> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
-        ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
+        ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(revisionId.getOrganisation(), revisionId.getName()), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
 
         ListMultimap<String, String> configMappings = ArrayListMultimap.create();
         for (Map.Entry<String, List<String>> entry : readConfigMappings(dependencyDescriptor).entrySet()) {

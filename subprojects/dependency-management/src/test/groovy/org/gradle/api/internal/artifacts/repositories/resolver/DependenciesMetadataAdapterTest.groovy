@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -192,7 +193,7 @@ class DependenciesMetadataAdapterTest extends Specification {
     private fillDependencyList(int size) {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
-            ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
+            ModuleComponentSelector requested = newSelector(DefaultModuleIdentifier.newId("org.gradle.test", "module$size"), "1.0")
             dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], false, null) ]
         }
         adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)

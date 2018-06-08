@@ -17,6 +17,7 @@
 package org.gradle.internal.locking
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -54,7 +55,7 @@ class LockEntryFilterFactoryTest extends Specification {
 
     private static ModuleComponentIdentifier id(String notation) {
         String[] parts = notation.split(':')
-        DefaultModuleComponentIdentifier.newId(parts[0], parts[1], parts[2])
+        DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(parts[0], parts[1]), parts[2])
     }
 
     @Unroll

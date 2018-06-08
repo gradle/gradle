@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
@@ -82,7 +83,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                 for (ModuleComponentIdentifier lockedDependency : dependencyLockingState.getLockedDependencies()) {
                     String lockedVersion = lockedDependency.getVersion();
                     VersionConstraint versionConstraint = new DefaultMutableVersionConstraint(lockedVersion, strict);
-                    ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(lockedDependency.getGroup(), lockedDependency.getModule(), versionConstraint);
+                    ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
                     result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
                         Collections.<IvyArtifactName>emptyList(),  Collections.<ExcludeMetadata>emptyList(), false, false, false, true, getLockReason(strict, lockedVersion)));
                 }

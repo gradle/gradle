@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
@@ -25,14 +26,14 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
     private final String timestamp;
     private final int hashCode;
 
-    public MavenUniqueSnapshotComponentIdentifier(String group, String module, String version, String timestamp) {
-        super(group, module, version);
+    public MavenUniqueSnapshotComponentIdentifier(ModuleIdentifier module, String version, String timestamp) {
+        super(module, version);
         this.timestamp = timestamp;
         this.hashCode = super.hashCode() + timestamp.hashCode();
     }
 
     public MavenUniqueSnapshotComponentIdentifier(ModuleComponentIdentifier baseIdentifier, String timestamp) {
-        super(baseIdentifier.getGroup(), baseIdentifier.getModule(), baseIdentifier.getVersion());
+        super(baseIdentifier.getModuleIdentifier(), baseIdentifier.getVersion());
         this.timestamp = timestamp;
         this.hashCode = super.hashCode() + timestamp.hashCode();
     }
@@ -61,7 +62,7 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
     }
 
     public ModuleComponentIdentifier getSnapshotComponent() {
-        return DefaultModuleComponentIdentifier.newId(getGroup(), getModule(), getSnapshotVersion());
+        return DefaultModuleComponentIdentifier.newId(getModuleIdentifier(), getSnapshotVersion());
     }
 
     public String getTimestampedVersion() {

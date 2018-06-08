@@ -95,4 +95,15 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      */
     @Incubating
     SELF attributes(Action<? super AttributeContainer> configureAction);
+
+    /**
+     * The module identifier of the component. Returns the same information
+     * as {@link #getGroup()} and {@link #getName()}.
+     *
+     * @return the module identifier
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ModuleIdentifier getModule();
 }

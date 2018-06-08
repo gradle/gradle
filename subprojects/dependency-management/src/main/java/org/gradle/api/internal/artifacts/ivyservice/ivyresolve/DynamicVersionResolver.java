@@ -400,7 +400,7 @@ public class DynamicVersionResolver {
             this.repository = repository;
             this.attemptCollector = attemptCollector;
             ModuleComponentSelector requested = dependencyMetadata.getSelector();
-            this.identifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getModule(), version);
+            this.identifier = DefaultModuleComponentIdentifier.newId(requested.getModuleIdentifier(), version);
         }
 
         @Override
