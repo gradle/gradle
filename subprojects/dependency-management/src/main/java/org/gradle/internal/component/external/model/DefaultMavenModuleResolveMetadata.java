@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
@@ -48,7 +48,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
     private final boolean improvedPomSupportEnabled;
-    private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
@@ -58,11 +57,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
-    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, boolean improvedPomSupportEnabled) {
+    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
-        this.improvedPomSupportEnabled = improvedPomSupportEnabled;
-        this.attributesFactory = attributesFactory;
-        this.objectInstantiator = objectInstantiator;
+        this.improvedPomSupportEnabled = metadata.isImprovedPomSupportEnabled();
+        this.objectInstantiator = metadata.getObjectInstantiator();
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
@@ -72,7 +70,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
         this.improvedPomSupportEnabled = metadata.improvedPomSupportEnabled;
-        this.attributesFactory = metadata.attributesFactory;
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
@@ -98,14 +95,14 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
         if (derivedVariants == null) {
             derivedVariants = ImmutableList.of(
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, attributesFactory),
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, attributesFactory));
+                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, getAttributesFactory()),
+                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, getAttributesFactory()));
         }
         return derivedVariants;
     }
 
     private ConfigurationMetadata withUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
-        return conf.withAttributes(attributesFactory.concat(((AttributeContainerInternal)getAttributes()).asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator)));
+        return conf.withAttributes(attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator)));
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -167,7 +164,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, improvedPomSupportEnabled);
+        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator, improvedPomSupportEnabled);
     }
 
     public String getPackaging() {

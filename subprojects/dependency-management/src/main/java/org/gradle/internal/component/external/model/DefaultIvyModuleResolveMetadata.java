@@ -22,25 +22,20 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<IvyDependencyDescriptor> dependencies;
@@ -87,88 +82,17 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules) {
-        ImmutableList<ModuleComponentArtifactMetadata> artifacts = filterArtifacts(name, hierarchy);
-        ImmutableList<ExcludeMetadata> excludesForConfiguration = filterExcludes(hierarchy);
-
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, ((AttributeContainerInternal)getAttributes()).asImmutable());
-        configuration.setDependencies(filterDependencies(configuration));
-        return configuration;
-    }
-
-    private ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
-        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
-        collectArtifactsFor(name, artifacts);
-        for (String parent : hierarchy) {
-            collectArtifactsFor(parent, artifacts);
-        }
-        return ImmutableList.copyOf(artifacts);
-    }
-
-    private void collectArtifactsFor(String name, Collection<ModuleComponentArtifactMetadata> dest) {
         if (artifacts == null) {
             artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         }
-        for (Artifact artifact : artifactDefinitions) {
-            if (artifact.getConfigurations().contains(name)) {
-                ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
-                if (artifactMetadata == null) {
-                    artifactMetadata = new DefaultModuleComponentArtifactMetadata(getId(), artifact.getArtifactName());
-                    artifacts.put(artifact, artifactMetadata);
-                }
-                dest.add(artifactMetadata);
-            }
-        }
-    }
+        IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(artifactDefinitions, artifacts, excludes, dependencies, componentId);
+        ImmutableList<ModuleComponentArtifactMetadata> artifacts = configurationHelper.filterArtifacts(name, hierarchy);
+        ImmutableList<ExcludeMetadata> excludesForConfiguration = configurationHelper.filterExcludes(hierarchy);
 
-    private ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
-        ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
-        for (Exclude exclude : excludes) {
-            for (String config : exclude.getConfigurations()) {
-                if (hierarchy.contains(config)) {
-                    filtered.add(exclude);
-                    break;
-                }
-            }
-        }
-        return filtered.build();
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, getAttributes().asImmutable());
+        configuration.setDependencies(configurationHelper.filterDependencies(configuration));
+        return configuration;
     }
-
-    private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
-        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (IvyDependencyDescriptor dependency : dependencies) {
-            if (include(dependency, config.getName(), config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getId(), dependency));
-            }
-        }
-        return filteredDependencies.build();
-    }
-
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
-        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-    }
-
-    private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
-        Set<String> dependencyConfigurations = dependency.getConfMappings().keySet();
-        for (String moduleConfiguration : dependencyConfigurations) {
-            if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                return true;
-            }
-            if (moduleConfiguration.equals("*")) {
-                boolean include = true;
-                for (String conf2 : dependencyConfigurations) {
-                    if (conf2.startsWith("!") && conf2.substring(1).equals(configName)) {
-                        include = false;
-                        break;
-                    }
-                }
-                if (include) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
 
     @Override
     public DefaultIvyModuleResolveMetadata withSource(ModuleSource source) {

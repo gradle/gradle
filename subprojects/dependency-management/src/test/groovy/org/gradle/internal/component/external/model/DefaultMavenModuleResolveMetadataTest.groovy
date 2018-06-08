@@ -35,7 +35,7 @@ import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
+class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentResolveMetadataTest {
 
     private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
