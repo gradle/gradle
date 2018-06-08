@@ -17,15 +17,12 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 
-import org.gradle.internal.classloader.ClasspathHasher
-
 
 internal
 object GradleUserHomeServices {
 
     @Suppress("unused")
     fun createKotlinScriptClassloadingCache(
-        cacheFactory: CrossBuildInMemoryCacheFactory,
-        classpathHasher: ClasspathHasher
-    ) = KotlinScriptClassloadingCache(cacheFactory, classpathHasher)
+        cacheFactory: CrossBuildInMemoryCacheFactory
+    ) = KotlinScriptClassloadingCache(cacheFactory)
 }

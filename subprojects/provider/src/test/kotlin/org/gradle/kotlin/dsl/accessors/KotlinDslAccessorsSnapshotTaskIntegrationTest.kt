@@ -7,7 +7,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class GenerateProjectSchemaTest : AbstractIntegrationTest() {
+class KotlinDslAccessorsSnapshotTaskIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `writes multi-project schema to gradle slash project dash schema dot json`() {

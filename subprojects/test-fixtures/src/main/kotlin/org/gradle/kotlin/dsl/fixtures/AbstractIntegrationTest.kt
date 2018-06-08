@@ -112,9 +112,7 @@ open class AbstractIntegrationTest {
 
     protected
     fun existing(relativePath: String): File =
-        File(projectRoot, relativePath).run {
-            canonicalFile
-        }
+        File(projectRoot, relativePath).canonicalFile
 
     protected
     fun makeParentFoldersOf(fileName: String) =

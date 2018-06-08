@@ -15,131 +15,26 @@
  */
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 
-import org.gradle.internal.Cast.uncheckedCast
-import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.hash.HashCode
-
-import org.gradle.kotlin.dsl.support.loggerFor
-
-import java.io.File
-
-import java.lang.ref.WeakReference
+import org.gradle.kotlin.dsl.execution.ProgramId
 
 import javax.inject.Inject
 
 
 internal
-data class LoadedScriptClass<out T>(
-    val compiledScript: CompiledScript<T>,
-    val scriptClass: Class<*>
-)
-
-
-private
-val logger = loggerFor<KotlinScriptPluginFactory>()
-
-
-internal
 class KotlinScriptClassloadingCache @Inject constructor(
-    cacheFactory: CrossBuildInMemoryCacheFactory,
-    private val classpathHasher: ClasspathHasher
+    cacheFactory: CrossBuildInMemoryCacheFactory
 ) {
 
     private
-    val cache: CrossBuildInMemoryCache<ScriptCacheKey, LoadedScriptClass<*>> = cacheFactory.newCache()
+    val cache: CrossBuildInMemoryCache<ProgramId, Class<*>> = cacheFactory.newCache()
 
-    fun <T> loadScriptClass(
-        scriptBlock: ScriptBlock<T>,
-        parentClassLoader: ClassLoader,
-        createClassLoaderScope: () -> ClassLoaderScope,
-        compile: (ScriptBlock<T>) -> CompiledScript<T>,
-        additionalClassPath: ClassPath = ClassPath.EMPTY
-    ): LoadedScriptClass<T> {
+    fun get(key: ProgramId): Class<*>? =
+        cache.get(key)
 
-        val key = cacheKeyFor(scriptBlock, parentClassLoader, additionalClassPath)
-        val cached = cache.get(key)
-        if (cached != null) {
-            return uncheckedCast(cached)
-        }
-
-        val compiledScript = compile(scriptBlock)
-
-        logClassloadingOf(scriptBlock)
-        val scriptClass = classFrom(compiledScript, createClassLoaderScope())
-
-        return LoadedScriptClass(compiledScript, scriptClass).also {
-            cache.put(key, it)
-        }
-    }
-
-    private
-    fun <T> cacheKeyFor(
-        scriptBlock: ScriptBlock<T>,
-        parentClassLoader: ClassLoader,
-        additionalClassPath: ClassPath
-    ) =
-
-        ScriptCacheKey(
-            scriptBlock.scriptTemplate.qualifiedName!!,
-            scriptBlock.sourceHash,
-            parentClassLoader,
-            lazy { classpathHasher.hash(additionalClassPath) })
-
-    private
-    fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
-        classLoaderFor(compiledScript.location, scope)
-            .loadClass(compiledScript.className)
-
-    private
-    fun classLoaderFor(location: File, scope: ClassLoaderScope) =
-        scope
-            .local(DefaultClassPath.of(location))
-            .lock()
-            .localClassLoader
-
-    private
-    fun <T> logClassloadingOf(scriptBlock: ScriptBlock<T>) =
-        logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
-}
-
-
-private
-class ScriptCacheKey(
-    private val templateId: String,
-    private val sourceHash: HashCode,
-    parentClassLoader: ClassLoader,
-    private val classPathHash: Lazy<HashCode>
-) {
-
-    private
-    val parentClassLoader = WeakReference(parentClassLoader)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        val that = other as? ScriptCacheKey ?: return false
-        val thisParentLoader = parentClassLoader.get()
-        return thisParentLoader != null
-            && thisParentLoader == that.parentClassLoader.get()
-            && templateId == that.templateId
-            && sourceHash == that.sourceHash
-            && classPathHash.value == that.classPathHash.value
-    }
-
-    override fun hashCode(): Int {
-        var result = templateId.hashCode()
-        result = 31 * result + sourceHash.hashCode()
-        parentClassLoader.get()?.let { loader ->
-            result = 31 * result + loader.hashCode()
-        }
-        return result
+    fun <T> put(key: ProgramId, loadedScriptClass: Class<T>) {
+        cache.put(key, loadedScriptClass)
     }
 }

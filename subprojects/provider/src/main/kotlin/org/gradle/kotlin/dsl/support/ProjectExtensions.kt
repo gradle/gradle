@@ -22,3 +22,8 @@ import org.gradle.api.internal.project.ProjectInternal
 
 inline fun <reified T : Any> Project.serviceOf(): T =
     (this as ProjectInternal).services.get()
+
+
+internal
+fun serviceRegistryOf(project: Project) =
+    (project as ProjectInternal).services

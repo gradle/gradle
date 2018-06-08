@@ -21,6 +21,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 
 import org.gradle.cache.internal.GeneratedGradleJarCache
 
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher
+
+import org.gradle.internal.classloader.ClasspathHasher
+
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
@@ -33,15 +37,6 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 internal
 object BuildServices {
-
-    @Suppress("unused")
-    fun createCachingKotlinCompiler(
-        scriptCache: ScriptCache,
-        implicitImports: ImplicitImports,
-        progressLoggerFactory: ProgressLoggerFactory
-    ) =
-
-        CachingKotlinCompiler(scriptCache, implicitImports, progressLoggerFactory)
 
     @Suppress("unused")
     fun createKotlinScriptClassPathProvider(
@@ -70,22 +65,34 @@ object BuildServices {
         ClassPathModeExceptionCollector()
 
     @Suppress("unused")
-    fun createKotlinScriptFactory(
+    fun createKotlinScriptEvaluator(
         classPathProvider: KotlinScriptClassPathProvider,
-        kotlinCompiler: CachingKotlinCompiler,
         classloadingCache: KotlinScriptClassloadingCache,
         pluginRequestsHandler: PluginRequestsHandler,
+        pluginRequestApplicator: PluginRequestApplicator,
         embeddedKotlinProvider: EmbeddedKotlinProvider,
-        classPathModeExceptionCollector: ClassPathModeExceptionCollector
-    ): KotlinScriptFactory =
+        classPathModeExceptionCollector: ClassPathModeExceptionCollector,
+        kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
+        scriptSourceHasher: ScriptSourceHasher,
+        classPathHasher: ClasspathHasher,
+        scriptCache: ScriptCache,
+        implicitImports: ImplicitImports,
+        progressLoggerFactory: ProgressLoggerFactory
+    ): KotlinScriptEvaluator =
 
-        StandardKotlinScriptFactory(
+        StandardKotlinScriptEvaluator(
             classPathProvider,
-            kotlinCompiler,
             classloadingCache,
+            pluginRequestApplicator,
             pluginRequestsHandler,
             embeddedKotlinProvider,
-            classPathModeExceptionCollector)
+            classPathModeExceptionCollector,
+            kotlinScriptBasePluginsApplicator,
+            scriptSourceHasher,
+            classPathHasher,
+            scriptCache,
+            implicitImports,
+            progressLoggerFactory)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

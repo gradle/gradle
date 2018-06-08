@@ -1,14 +1,19 @@
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
-
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
-import org.hamcrest.CoreMatchers.*
+import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
+
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.not
+
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -68,6 +73,47 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         }
 
         build("tasks")
+    }
+
+    @Test
+    fun `conflicting extensions across build runs`() {
+
+        projectRoot.withFolders {
+
+            "buildSrc" {
+
+                withFile("build.gradle.kts", """
+                    plugins {
+                        `kotlin-dsl`
+                        `java-gradle-plugin`
+                    }
+                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+                """)
+
+                "src/main/kotlin" {
+                    withFile("my/extensions.kt", """
+                        package my
+                        open class App { lateinit var name: String }
+                        open class Lib { lateinit var name: String }
+                    """)
+                    withFile("app-or-lib.gradle.kts", """
+                        val my: String? by project
+                        val extensionType = if (my == "app") my.App::class.java else my.Lib::class.java
+                        extensions.create("my", extensionType)
+                    """)
+                }
+            }
+
+            withFile("build.gradle.kts", """
+                plugins { id("app-or-lib") }
+                my { name = "kotlin-dsl" }
+            """)
+
+            withFile("settings.gradle.kts")
+        }
+
+        build("tasks", "-Pmy=lib")
+        build("tasks", "-Pmy=app")
     }
 
     @Test

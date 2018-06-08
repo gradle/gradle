@@ -62,3 +62,10 @@ tasks {
         jvmArgs("-Xms64m", "-Xmx128m")
     }
 }
+
+tasks.register("quickTest", Test::class.java) {
+    exclude(
+        "**/*IntegrationTest.class",
+        "**/*SampleTest.class"
+    )
+}
