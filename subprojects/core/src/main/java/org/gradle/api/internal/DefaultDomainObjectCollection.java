@@ -50,14 +50,14 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(type, store, new BroadcastingCollectionEventRegister<T>(type));
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
         this.store.onRealize(new Action<ProviderInternal<? extends T>>() {
             @Override
             public void execute(ProviderInternal<? extends T> provider) {
-                doAdd(provider.get());
+                doAdd(provider.get(), eventRegister.getAddActions());
             }
         });
     }
@@ -218,13 +218,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean add(T toAdd) {
         assertMutable();
-        return doAdd(toAdd);
+        return doAdd(toAdd, eventRegister.getAddActions());
     }
 
-    private boolean doAdd(T toAdd) {
+    protected <I extends T> boolean add(I toAdd, Action<? super I> notification) {
+        assertMutable();
+        return doAdd(toAdd, notification);
+    }
+
+    private <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
-            eventRegister.fireObjectAdded(toAdd);
+            notification.execute(toAdd);
             return true;
         } else {
             return false;
@@ -233,9 +238,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void addLater(Provider<? extends T> provider) {
+        assertMutable();
         ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
-            doAdd(provider.get());
+            doAdd(provider.get(), eventRegister.getAddActions());
             return;
         }
         store.addPending(providerInternal);
@@ -248,7 +254,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         assertMutable();
         boolean changed = false;
         for (T o : c) {
-            if (doAdd(o)) {
+            if (doAdd(o, eventRegister.getAddActions())) {
                 changed = true;
             }
         }
@@ -390,6 +396,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         FlushingEventRegister(CollectionFilter<S> filter, CollectionEventRegister<T> delegate) {
             this.filter = filter;
             this.delegate = Cast.uncheckedCast(delegate);
+        }
+
+        @Override
+        public ImmutableActionSet<S> getAddActions() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

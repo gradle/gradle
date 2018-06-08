@@ -16,11 +16,17 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.internal.ImmutableActionSet;
 
 import javax.annotation.Nullable;
 
 public interface CollectionEventRegister<T> {
     boolean isSubscribed(@Nullable Class<?> type);
+
+    /**
+     * Returns a snapshot of the <em>current</em> set of actions to run when an element is added.
+     */
+    ImmutableActionSet<T> getAddActions();
 
     void fireObjectAdded(T element);
 

@@ -38,6 +38,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -591,10 +592,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         private Object[] constructorArgs;
         private I task;
         private Throwable cause;
+        private ImmutableActionSet<I> onCreate;
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
             super(identity);
             this.constructorArgs = constructorArgs;
+            onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
             statistics.lazyTask();
             if (configureAction != null) {
                 configure(configureAction);
@@ -608,18 +611,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 action.execute(task);
                 return;
             }
-            configureEach(new Action<Task>() {
-                private boolean alreadyExecuted = false;
-
-                @Override
-                public void execute(Task task) {
-                    // Task specific configuration action should only be executed once
-                    if (task.getName().equals(identity.name) && !removed && !alreadyExecuted) {
-                        alreadyExecuted = true;
-                        action.execute(identity.type.cast(task));
-                    }
-                }
-            });
+            // Collect any container level add actions then add the task specific action
+            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
         }
 
         @Override
@@ -634,17 +627,25 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         @Override
                         public void run(BuildOperationContext context) {
                             try {
+                                // Collect any container level add actions added since the last call to configure()
+                                onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
+
+                                // Create the task
                                 task = createTask(identity, constructorArgs);
-                                // Discard the args
-                                constructorArgs = null;
                                 realized(TaskCreatingProvider.this);
                                 statistics.lazyTaskRealized(getType());
-                                add(task);
+
+                                // Register the task
+                                add(task, onCreate);
                                 // TODO removing this stuff from the store should be handled through some sort of decoration
                                 context.setResult(REALIZE_RESULT);
                             } catch (RuntimeException ex) {
                                 cause = ex;
                                 throw createIllegalStateException();
+                            } finally {
+                                // Discard state that is no longer required
+                                constructorArgs = null;
+                                onCreate = ImmutableActionSet.empty();
                             }
                         }
 

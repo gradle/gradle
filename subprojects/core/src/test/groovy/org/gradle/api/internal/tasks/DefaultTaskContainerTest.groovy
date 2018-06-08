@@ -583,6 +583,7 @@ class DefaultTaskContainerTest extends Specification {
         def action3 = Mock(Action)
         def action4 = Mock(Action)
         def action5 = Mock(Action)
+        def action6 = Mock(Action)
         def task = task("task")
 
         given:
@@ -590,9 +591,10 @@ class DefaultTaskContainerTest extends Specification {
         def provider = container.register("task", DefaultTask, action2)
         container.configureEach(action3)
         provider.configure(action4)
+        container.configureEach(action5)
 
         when:
-        container.all(action5)
+        container.all(action6)
 
         then:
         1 * taskFactory.create(_ as TaskIdentity) >> task
@@ -611,11 +613,15 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         1 * action5.execute(task)
+
+        then:
+        1 * action6.execute(task)
         0 * action1._
         0 * action2._
         0 * action3._
         0 * action4._
         0 * action5._
+        0 * action6._
 
         when:
         provider.get()

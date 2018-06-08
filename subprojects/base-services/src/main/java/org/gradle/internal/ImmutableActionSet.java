@@ -94,6 +94,22 @@ public abstract class ImmutableActionSet<T> implements Action<T> {
     }
 
     /**
+     * Creates a new set that includes the actions from this set plus the actions from the given set.
+     */
+    public ImmutableActionSet<T> mergeFrom(ImmutableActionSet<? super T> sibling) {
+        if (sibling == this) {
+            return this;
+        }
+        if (sibling.isEmpty()) {
+            return this;
+        }
+        if (isEmpty()) {
+            return (ImmutableActionSet<T>) sibling;
+        }
+        return of(this, sibling);
+    }
+
+    /**
      * Does this set do anything?
      */
     public abstract boolean isEmpty();
