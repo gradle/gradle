@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.dispatch.AsynchronousLogDispatcher;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -55,25 +56,23 @@ public class LogToClient extends BuildCommandOnly {
             return;
         }
 
-        dispatcher = new AsynchronousLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
+        loggingOutput.flush();
+        dispatcher = new DaemonConnectionLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
         LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
         dispatcher.start();
         try {
             execution.proceed();
         } finally {
+            loggingOutput.flush();
             dispatcher.waitForCompletion();
         }
     }
 
-    private class AsynchronousLogDispatcher extends Thread {
-        private final CountDownLatch completionLock = new CountDownLatch(1);
-        private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
+    private class DaemonConnectionLogDispatcher extends AsynchronousLogDispatcher {
         private final DaemonConnection connection;
         private final OutputEventListener listener;
-        private volatile boolean shouldStop;
-        private boolean unableToSend;
 
-        private AsynchronousLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
+        DaemonConnectionLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
             super("Asynchronous log dispatcher for " + conn);
             this.connection = conn;
             this.listener = new OutputEventListener() {
@@ -95,60 +94,14 @@ public class LogToClient extends BuildCommandOnly {
             loggingOutput.addOutputEventListener(listener);
         }
 
-        public void submit(OutputEvent event) {
-            eventQueue.add(event);
+        @Override
+        public void processEvent(OutputEvent event) {
+            connection.logEvent(event);
         }
 
         @Override
-        public void run() {
-            try {
-                while (!shouldStop) {
-                    OutputEvent event = eventQueue.poll();
-                    if (event == null) {
-                        Thread.sleep(10);
-                    } else {
-                        dispatchAsync(event);
-                    }
-                }
-            } catch (InterruptedException ex) {
-                // we must not use interrupt() because it would automatically
-                // close the connection (sending data from an interrupted thread
-                // automatically closes the connection)
-                shouldStop = true;
-            }
-            sendRemainingEvents();
-            completionLock.countDown();
-        }
-
-        private void sendRemainingEvents() {
-            OutputEvent event;
-            while ((event = eventQueue.poll()) != null) {
-                dispatchAsync(event);
-            }
-        }
-
-        private void dispatchAsync(OutputEvent event) {
-            if (unableToSend) {
-                return;
-            }
-            try {
-                connection.logEvent(event);
-            } catch (Exception ex) {
-                shouldStop = true;
-                unableToSend = true;
-                //Ignore. It means the client has disconnected so no point sending him any log output.
-                //we should be checking if client still listens elsewhere anyway.
-            }
-        }
-
-        public void waitForCompletion() {
+        public void cleanup() {
             loggingOutput.removeOutputEventListener(listener);
-            shouldStop = true;
-            try {
-                completionLock.await();
-            } catch (InterruptedException e) {
-                // the caller has been interrupted
-            }
         }
     }
 }

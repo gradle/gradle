@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
@@ -61,7 +62,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * destinations. This implementation is thread-safe.
  */
 @ThreadSafe
-public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
+public class OutputEventRenderer implements OutputEventListener, LoggingRouter, Stoppable {
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
@@ -438,6 +439,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     private boolean isProgressEvent(OutputEvent event) {
         return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+    }
+
+    @Override
+    public void stop() {
     }
 
     private static class SnapshotImpl implements Snapshot {

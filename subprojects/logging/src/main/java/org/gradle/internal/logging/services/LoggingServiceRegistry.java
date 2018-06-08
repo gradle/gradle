@@ -19,6 +19,7 @@ package org.gradle.internal.logging.services;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
@@ -26,6 +27,7 @@ import org.gradle.internal.logging.config.LoggingSystemAdapter;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.sink.AsyncOutputEventRenderer;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
@@ -157,7 +159,13 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     // Intentionally not a “create” method as this should not be exposed as a service
     protected OutputEventRenderer makeOutputEventRenderer() {
-        return new OutputEventRenderer(Time.clock());
+        return new AsyncOutputEventRenderer(Time.clock());
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        renderer.stop();
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
