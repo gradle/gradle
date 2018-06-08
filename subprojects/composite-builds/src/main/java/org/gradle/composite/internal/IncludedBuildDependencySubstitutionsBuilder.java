@@ -16,8 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -51,9 +49,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory);
-        for (Action<? super DependencySubstitutions> action : build.getRegisteredDependencySubstitutions()) {
-            action.execute(dependencySubstitutions);
-        }
+        build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }
 
