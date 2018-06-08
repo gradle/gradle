@@ -32,10 +32,11 @@ import org.gradle.kotlin.dsl.invoke
 
 class KotlinScriptHost<out T : Any>(
     val target: T,
-    private val scriptSource: ScriptSource,
-    private val serviceRegistry: ServiceRegistry,
-    private val baseScope: ClassLoaderScope,
-    val scriptHandler: ScriptHandler
+    val scriptSource: ScriptSource,
+    val scriptHandler: ScriptHandler,
+    val targetScope: ClassLoaderScope,
+    val baseScope: ClassLoaderScope,
+    private val serviceRegistry: ServiceRegistry
 ) {
 
     internal

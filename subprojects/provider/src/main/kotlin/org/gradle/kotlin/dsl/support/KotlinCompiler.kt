@@ -212,8 +212,10 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition)
 
 
 private
-fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
-    KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable): KotlinCoreEnvironment {
+    org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
+    return KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+}
 
 
 internal

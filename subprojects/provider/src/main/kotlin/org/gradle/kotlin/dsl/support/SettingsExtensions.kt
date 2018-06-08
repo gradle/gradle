@@ -20,3 +20,8 @@ import org.gradle.api.initialization.Settings
 
 inline fun <reified T : Any> Settings.serviceOf(): T =
     gradle.serviceOf()
+
+
+internal
+fun serviceRegistryOf(settings: Settings) =
+    serviceRegistryOf(settings.gradle)

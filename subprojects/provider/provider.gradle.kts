@@ -23,6 +23,7 @@ dependencies {
 
     testCompile(project(":test-fixtures"))
     testCompile("com.squareup.okhttp3:mockwebserver:3.9.1")
+    testCompile("com.tngtech.archunit:archunit:0.8.0")
 }
 
 
@@ -66,11 +67,14 @@ val processResources by tasks.getting(ProcessResources::class) {
 // -- Testing ----------------------------------------------------------
 val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
-tasks {
-    "test" {
-        dependsOn(prepareIntegrationTestFixtures)
-        dependsOn(customInstallation)
-    }
+
+tasks.named("test").configure {
+    dependsOn(prepareIntegrationTestFixtures)
+    dependsOn(customInstallation)
+}
+
+tasks.register("quickTest", Test::class.java) {
+    exclude("**/*IntegrationTest.class")
 }
 
 withParallelTests()

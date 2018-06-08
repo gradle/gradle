@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl.execution
 
-import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
+import java.util.*
 
 
-inline fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services.get()
+enum class EvalOption {
+    IgnoreErrors,
+    SkipBody
+}
+
+
+typealias EvalOptions = EnumSet<EvalOption>
 
 
 internal
-fun serviceRegistryOf(project: Project) =
-    (project as ProjectInternal).services
+val defaultEvalOptions: EvalOptions =
+    EnumSet.noneOf(EvalOption::class.java)

@@ -126,7 +126,7 @@ fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassP
     val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/kotlin/dsl/accessors.kt")
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
     writeAccessorsTo(sourceFile, availableSchema)
-    require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles), {
+    require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles)) {
         """
             Failed to compile accessors.
 
@@ -137,7 +137,7 @@ fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassP
                 availableSchema: $availableSchema
 
         """.replaceIndent()
-    })
+    }
 }
 
 

@@ -14,16 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl.execution
 
-import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 
-
-inline fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services.get()
+import org.junit.Test
 
 
-internal
-fun serviceRegistryOf(project: Project) =
-    (project as ProjectInternal).services
+class ProgramTextTest {
+
+    @Test
+    fun `preserve`() {
+
+        val text = text("0123456789")
+        assertThat(
+            text.preserve(0..1),
+            equalTo(text("01        ")))
+
+        assertThat(
+            text.preserve(0..1, 7..9),
+            equalTo(text("01     789")))
+
+        assertThat(
+            text.preserve(7..9, 0..1),
+            equalTo(text("01     789")))
+    }
+}

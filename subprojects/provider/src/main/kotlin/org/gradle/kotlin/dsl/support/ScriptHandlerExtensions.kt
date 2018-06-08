@@ -20,6 +20,6 @@ import org.gradle.kotlin.dsl.ScriptHandlerScope
 
 
 internal
-fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
+inline fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
     ScriptHandlerScope(this).block()
 }

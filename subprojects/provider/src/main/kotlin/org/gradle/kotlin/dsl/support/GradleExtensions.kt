@@ -21,3 +21,8 @@ import org.gradle.api.invocation.Gradle
 
 inline fun <reified T : Any> Gradle.serviceOf(): T =
     (gradle as GradleInternal).services.get()
+
+
+internal
+fun serviceRegistryOf(gradle: Gradle) =
+    (gradle as GradleInternal).services

@@ -33,5 +33,8 @@ object BuildServices {
     ) =
 
         ScriptCache(
-            cacheRepository, cacheKeyBuilder, startParameters.isRecompileScripts)
+            cacheRepository,
+            cacheKeyBuilder,
+            startParameters.isRecompileScripts
+        )
 }
