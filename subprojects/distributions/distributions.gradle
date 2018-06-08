@@ -146,6 +146,7 @@ integTestTasks.configureEach {
     binaryDistributions.distributionsRequired = true
     systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
     systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
+    systemProperty 'java9Home', project.findProject('java9Home') ?: System.getProperty('java9Home')
 }
 
 apply from: 'binary-compatibility.gradle'
