@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIde
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.resource.cached.AbstractCachedIndex;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
@@ -42,8 +43,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     private final BuildCommencedTimeProvider timeProvider;
     private final Map<ArtifactAtRepositoryKey, CachedArtifact> inMemoryCache = Maps.newConcurrentMap();
 
-    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, cacheLockingManager);
+    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, FileAccessTracker fileAccessTracker) {
+        super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, cacheLockingManager, fileAccessTracker);
         this.timeProvider = timeProvider;
     }
 

@@ -37,7 +37,7 @@ import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
-import org.gradle.internal.resource.local.AccessTrackingFileStore;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.net.URI;
@@ -117,7 +117,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * @param externalResourcesFileStore
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
-    ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final AccessTrackingFileStore<String> externalResourcesFileStore) {
+    ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
             RepositoryResourceAccessor createResourceAccessor() {
@@ -127,7 +127,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         return new ImplicitInputsCapturingInstantiator(registry, instantiatorFactory);
     }
 
-    private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, AccessTrackingFileStore<String> externalResourcesFileStore) {
+    private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
     }
 

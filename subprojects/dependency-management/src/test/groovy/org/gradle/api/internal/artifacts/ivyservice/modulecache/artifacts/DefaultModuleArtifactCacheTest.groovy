@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
@@ -34,9 +35,10 @@ class DefaultModuleArtifactCacheTest extends Specification {
     BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)
     PersistentIndexedCache persistentIndexedCache = Mock(PersistentIndexedCache)
     CachedArtifact cachedArtifact = Stub(CachedArtifact)
-
+    FileAccessTracker fileAccessTracker = Stub(FileAccessTracker)
     String persistentCacheFile = "cacheFile"
-    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager)
+
+    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager, fileAccessTracker)
 
     def "storing null artifactFile not supported"() {
         given:

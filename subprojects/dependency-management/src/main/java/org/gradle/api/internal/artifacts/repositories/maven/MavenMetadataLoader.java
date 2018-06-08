@@ -23,7 +23,7 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.AccessTrackingFileStore;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.DefaultResourceFileStore;
 import org.slf4j.Logger;
@@ -37,9 +37,9 @@ import java.io.InputStream;
 public class MavenMetadataLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenMetadataLoader.class);
     private final CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor;
-    private final AccessTrackingFileStore<String> resourcesFileStore;
+    private final FileStore<String> resourcesFileStore;
 
-    public MavenMetadataLoader(CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, AccessTrackingFileStore<String> resourcesFileStore) {
+    public MavenMetadataLoader(CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, FileStore<String> resourcesFileStore) {
         this.cacheAwareExternalResourceAccessor = cacheAwareExternalResourceAccessor;
         this.resourcesFileStore = resourcesFileStore;
     }

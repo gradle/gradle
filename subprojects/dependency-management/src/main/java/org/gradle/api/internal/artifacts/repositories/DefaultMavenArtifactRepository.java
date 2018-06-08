@@ -51,8 +51,8 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.local.AccessTrackingFileStore;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -77,11 +77,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
-    private final AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final ModuleMetadataParser metadataParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final AccessTrackingFileStore<String> resourcesFileStore;
+    private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
     private final MavenMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
@@ -91,12 +91,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
-                                          AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           ModuleMetadataParser metadataParser,
                                           AuthenticationContainer authenticationContainer,
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                          AccessTrackingFileStore<String> resourcesFileStore,
+                                          FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           FeaturePreviews featurePreviews,
                                           MavenMutableModuleMetadataFactory metadataFactory,
@@ -110,12 +110,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
-                                          AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           ModuleMetadataParser metadataParser,
                                           AuthenticationContainer authenticationContainer,
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                          AccessTrackingFileStore<String> resourcesFileStore,
+                                          FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           FeaturePreviews featurePreviews,
                                           MavenMutableModuleMetadataFactory metadataFactory,
@@ -241,11 +241,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return metadataParser;
     }
 
-    AccessTrackingFileStore<ModuleComponentArtifactIdentifier> getArtifactFileStore() {
+    FileStore<ModuleComponentArtifactIdentifier> getArtifactFileStore() {
         return artifactFileStore;
     }
 
-    AccessTrackingFileStore<String> getResourcesFileStore() {
+    FileStore<String> getResourcesFileStore() {
         return resourcesFileStore;
     }
 

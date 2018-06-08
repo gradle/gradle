@@ -32,7 +32,7 @@ import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.ExternalResourceRepository
-import org.gradle.internal.resource.local.AccessTrackingFileStore
+import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
@@ -53,7 +53,7 @@ class ExternalResourceResolverTest extends Specification {
     File downloadedFile = Mock(File)
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
-    AccessTrackingFileStore<ModuleComponentArtifactIdentifier> fileStore = Stub()
+    FileStore<ModuleComponentArtifactIdentifier> fileStore = Stub()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
     ExternalResourceArtifactResolver artifactResolver = Mock()
     ImmutableMetadataSources metadataSources = Mock()

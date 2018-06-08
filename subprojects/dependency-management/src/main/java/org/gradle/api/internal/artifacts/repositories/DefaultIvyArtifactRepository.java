@@ -61,8 +61,8 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.local.AccessTrackingFileStore;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.ConfigureUtil;
 
@@ -81,8 +81,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
-    private final AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
-    private final AccessTrackingFileStore<String> externalResourcesFileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
+    private final FileStore<String> externalResourcesFileStore;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final InstantiatorFactory instantiatorFactory;
@@ -94,8 +94,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                        AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                        AccessTrackingFileStore<String> externalResourcesFileStore,
+                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                        FileStore<String> externalResourcesFileStore,
                                         AuthenticationContainer authenticationContainer,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,

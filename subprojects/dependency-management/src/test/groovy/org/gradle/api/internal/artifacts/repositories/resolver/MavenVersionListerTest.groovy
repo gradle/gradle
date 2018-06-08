@@ -27,7 +27,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
-import org.gradle.internal.resource.local.AccessTrackingFileStore
+import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.xml.sax.SAXParseException
@@ -41,7 +41,7 @@ class MavenVersionListerTest extends Specification {
     def artifact = new DefaultIvyArtifactName("testproject", "jar", "jar")
 
     def resourceAccessor = Mock(CacheAwareExternalResourceAccessor)
-    def fileStore = Mock(AccessTrackingFileStore)
+    def fileStore = Mock(FileStore)
     def pattern = pattern("testRepo/" + MavenPattern.M2_PATTERN)
     def metaDataResource = new ExternalResourceName('testRepo/org/acme/testproject/maven-metadata.xml')
 

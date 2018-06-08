@@ -65,7 +65,7 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
 
     def "allows to mark files accessed externally"() {
         when:
-        fileStore.markAccessed([baseDir.file('group/1.txt')])
+        fileStore.getFileAccessTracker().markAccessed([baseDir.file('group/1.txt')])
 
         then:
         1 * fileAccessTimeJournal.setLastAccessTime(baseDir.file('group'), _)

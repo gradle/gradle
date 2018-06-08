@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
@@ -29,7 +28,7 @@ import static java.util.Collections.singleton;
 /**
  * A file store that stores items grouped by some provided function over the key and an SHA1 hash of the value. This means that files are only ever added and never modified once added, so a resource from this store can be used without locking. Locking is required to add entries.
  */
-public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStore<K>, FileStoreSearcher<K> {
+public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
     protected static final int NUMBER_OF_CHECKSUM_DIRS = 1;
 
@@ -48,17 +47,15 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
     }
 
     public LocallyAvailableResource move(K key, File source) {
-        LocallyAvailableResource resource = delegate.move(toPath(key, getChecksum(source)), source);
-        return markAccessed(resource);
+        return markAccessed(delegate.move(toPath(key, getChecksum(source)), source));
     }
 
     public Set<? extends LocallyAvailableResource> search(K key) {
         return delegate.search(toPath(key, "*"));
     }
 
-    @Override
-    public void markAccessed(Collection<File> files) {
-        checksumDirAccessTracker.markAccessed(files);
+    public FileAccessTracker getFileAccessTracker() {
+        return checksumDirAccessTracker;
     }
 
     private String toPath(K key, String checksumPart) {
@@ -86,7 +83,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
     }
 
     private LocallyAvailableResource markAccessed(LocallyAvailableResource resource) {
-        markAccessed(singleton(resource.getFile()));
+        checksumDirAccessTracker.markAccessed(singleton(resource.getFile()));
         return resource;
     }
 

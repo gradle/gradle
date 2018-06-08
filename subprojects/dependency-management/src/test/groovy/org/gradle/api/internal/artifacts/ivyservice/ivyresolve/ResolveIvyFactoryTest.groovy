@@ -44,8 +44,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
-import org.gradle.internal.resource.local.AccessTrackingFileStore
-import org.gradle.internal.resource.local.FileAccessTracker
+import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.BuildCommencedTimeProvider
@@ -59,7 +58,6 @@ class ResolveIvyFactoryTest extends Specification {
     ModuleMetadataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
     ModuleArtifactCache cachedArtifactIndex
-    FileAccessTracker fileAccessTracker
     ModuleRepositoryCacheProvider cacheProvider
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
@@ -75,8 +73,7 @@ class ResolveIvyFactoryTest extends Specification {
         moduleMetaDataCache = Mock(ModuleMetadataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(ModuleArtifactCache)
-        fileAccessTracker = Mock(FileAccessTracker)
-        def caches = new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex, fileAccessTracker)
+        def caches = new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex)
         cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
@@ -134,7 +131,7 @@ class ResolveIvyFactoryTest extends Specification {
         ExternalResourceRepository externalResourceRepository = Stub()
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
-        AccessTrackingFileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
+        FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
         ImmutableMetadataSources metadataSources = Stub()
         MetadataArtifactProvider metadataArtifactProvider = Stub()
         InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory = Stub()

@@ -119,12 +119,6 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
 
     @Override
     public List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer) {
-        List<File> result = getOrLoadResult(inputFile, inputsHash, transformer);
-        fileAccessTracker.markAccessed(result);
-        return result;
-    }
-
-    private List<File> getOrLoadResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer) {
         final CacheKey resultHash = getCacheKey(inputFile, inputsHash);
         List<File> files = resultHashToResult.get(resultHash);
         if (files != null) {
@@ -176,6 +170,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                     }
                 });
 
+                fileAccessTracker.markAccessed(files);
                 resultHashToResult.put(cacheKey, files);
                 return files;
             }

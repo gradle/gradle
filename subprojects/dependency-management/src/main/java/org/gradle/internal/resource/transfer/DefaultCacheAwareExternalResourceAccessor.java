@@ -91,7 +91,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
                 // We might be able to use a cached/locally available version
                 if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
-                    return useCachedResource(location, cached, fileStore);
+                    return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
                 }
 
                 // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
@@ -118,7 +118,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                         LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
                         // Update the cache entry in the index: this resets the age of the cached entry to zero
                         cachedExternalResourceIndex.store(location.toString(), cached.getCachedFile(), cached.getExternalResourceMetaData());
-                        return useCachedResource(location, cached, fileStore);
+                        return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
                     }
                 }
 
@@ -154,12 +154,6 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate));
             }
         });
-    }
-
-    private LocallyAvailableExternalResource useCachedResource(ExternalResourceName location, CachedExternalResource cached, ResourceFileStore fileStore) {
-        LocallyAvailableExternalResource resource = fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
-        fileStore.markAccessed(resource.getFile());
-        return resource;
     }
 
     private HashValue getResourceSha1(ExternalResourceName location, boolean revalidate) {

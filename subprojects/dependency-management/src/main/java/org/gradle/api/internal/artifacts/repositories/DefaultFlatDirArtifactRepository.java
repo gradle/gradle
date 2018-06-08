@@ -36,7 +36,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.resource.local.AccessTrackingFileStore;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.io.File;
@@ -51,7 +51,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
-    private final AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
+    private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
@@ -59,7 +59,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                            AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                             IvyMutableModuleMetadataFactory metadataFactory,
                                             InstantiatorFactory instantiatorFactory) {

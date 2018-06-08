@@ -29,7 +29,7 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -55,7 +55,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         }
     }
     def snapshotter = Mock(FileSystemSnapshotter)
-    def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
+    def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     DefaultTransformedFileCache cache
 
     def setup() {
@@ -78,6 +78,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         and:
         1 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(234))
         1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * snapshotter._
         0 * transform._
 
@@ -89,6 +90,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         and:
         1 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(234))
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * snapshotter._
         0 * transform._
     }
@@ -160,6 +162,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         1 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(234))
         0 * transform._
         0 * snapshotter._
+        0 * fileAccessTimeJournal._
     }
 
     def "applies transform once when requested concurrently by multiple threads"() {
@@ -195,6 +198,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         and:
         4 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(234))
         1 * transform.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform._
     }
 
@@ -225,6 +229,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         and:
         2 * snapshotter.snapshotAll(_) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
+        2 * fileAccessTimeJournal.setLastAccessTime(_, _)
     }
 
     def "does not reuse result when transform inputs are different"() {
@@ -248,6 +253,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         1 * transform2.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
         0 * transform1._
         0 * transform2._
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
         def result2 = cache.getResult(inputFile, HashCode.fromInt(123), transform1)
@@ -260,6 +266,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         and:
         0 * transform1._
         0 * transform2._
+        0 * fileAccessTimeJournal._
     }
 
     def "does not reuse result when transform input files have different content"() {
@@ -284,6 +291,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         1 * transform2.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
         0 * transform1._
         0 * transform2._
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
 
         when:
         def result2 = cache.getResult(inputFile, HashCode.fromInt(123), transform1)
@@ -295,6 +303,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         and:
         2 * snapshotter.snapshotAll(inputFile) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
+        2 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform1._
         0 * transform2._
     }
@@ -334,6 +343,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
             r.text = "result"
             [r]
         }
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform._
     }
 
@@ -358,6 +368,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         and:
         1 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform._
     }
 
@@ -367,12 +378,15 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def filesDir = transformsStoreDirectory.file(CacheLayout.TRANSFORMS_STORE.getKey())
         def file1 = filesDir.file("some.jar", "bac62a0ac6ce00ff016f869e695d5522").createFile("1.txt")
         def file2 = filesDir.file("another.jar", "a89660597ff12d9e0a0397e055e80006").createFile("2.txt")
-        file1.parentFile.lastModified = 0
 
         when:
         cache.stop()
 
         then:
+        1 * fileAccessTimeJournal.getLastAccessTime(file1.parentFile) >> 0
+        1 * fileAccessTimeJournal.getLastAccessTime(file2.parentFile) >> System.currentTimeMillis()
+
+        and:
         !file1.exists()
         file2.exists()
     }

@@ -38,8 +38,8 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
-import org.gradle.internal.resource.local.AccessTrackingFileStore;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
-                                               AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                                MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                ModuleMetadataParser metadataParser,
                                                AuthenticationContainer authenticationContainer,

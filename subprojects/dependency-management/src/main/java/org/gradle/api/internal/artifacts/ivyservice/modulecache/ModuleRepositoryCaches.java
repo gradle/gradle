@@ -18,20 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
-import org.gradle.internal.resource.local.FileAccessTracker;
 
 public class ModuleRepositoryCaches {
     public final ModuleVersionsCache moduleVersionsCache;
     public final ModuleMetadataCache moduleMetadataCache;
     public final ModuleArtifactsCache moduleArtifactsCache;
     public final ModuleArtifactCache moduleArtifactCache;
-    public final FileAccessTracker fileAccessTracker;
 
-    public ModuleRepositoryCaches(ModuleVersionsCache moduleVersionsCache, ModuleMetadataCache moduleMetadataCache, ModuleArtifactsCache moduleArtifactsCache, ModuleArtifactCache moduleArtifactCache, FileAccessTracker fileAccessTracker) {
+    public ModuleRepositoryCaches(ModuleVersionsCache moduleVersionsCache, ModuleMetadataCache moduleMetadataCache, ModuleArtifactsCache moduleArtifactsCache, ModuleArtifactCache moduleArtifactCache) {
         this.moduleVersionsCache = moduleVersionsCache;
         this.moduleMetadataCache = moduleMetadataCache;
         this.moduleArtifactsCache = moduleArtifactsCache;
         this.moduleArtifactCache = moduleArtifactCache;
-        this.fileAccessTracker = fileAccessTracker;
     }
 }
