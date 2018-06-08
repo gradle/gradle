@@ -22,7 +22,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.Exclude;
@@ -30,7 +29,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,12 +141,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
 
     private IvyModuleResolveMetadata withDependencies(List<IvyDependencyDescriptor> transformed) {
         return new DefaultIvyModuleResolveMetadata(this, transformed);
-    }
-
-    @Nullable
-    @Override
-    public AttributesSchemaInternal getAttributesSchema() {
-        return SCHEMA_DEFAULT_JAVA_VARIANTS;
     }
 
     @Override

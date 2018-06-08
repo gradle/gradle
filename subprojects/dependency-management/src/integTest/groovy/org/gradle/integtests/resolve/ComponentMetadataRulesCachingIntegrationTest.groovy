@@ -19,8 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
 
 class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
     String getDefaultStatus() {
@@ -266,8 +264,6 @@ dependencies {
         outputDoesNotContain('Attribute rule executed')
     }
 
-    @Ignore
-    @ToBeImplemented
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
@@ -300,6 +296,11 @@ class AttributeCachedRule implements ComponentMetadataRule {
             }
         }
         context.details.withVariant('runtime') {
+            attributes {
+                attribute(targetAttribute, new Thing(name: 'Bar'))
+            }
+        }
+        context.details.withVariant('foo') {
             attributes {
                 attribute(targetAttribute, new Thing(name: 'Bar'))
             }

@@ -34,7 +34,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
 
-public class GradleDependencyMetadata implements ModuleDependencyMetadata {
+public class  GradleDependencyMetadata implements ModuleDependencyMetadata {
     private final ModuleComponentSelector selector;
     private final List<ExcludeMetadata> excludes;
     private final boolean pending;

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
 
-class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
+class  ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll("#outcome if attribute is #mutation via component metadata rule")
     def "check that attribute rules modify the result of dependency resolution"() {

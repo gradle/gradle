@@ -65,6 +65,12 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         this.dependencies = ImmutableList.copyOf(dependencies);
     }
 
+    AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableList<GradleDependencyMetadata> dependencies) {
+        this.componentId = componentId;
+        this.variant = variant;
+        this.dependencies = dependencies;
+    }
+
     @Override
     public String getName() {
         return variant.getName();

@@ -24,13 +24,13 @@ import java.util.List;
 public class ImmutableCapabilities implements CapabilitiesMetadata {
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of());
 
-    private final ImmutableList<ImmutableCapability> capabilities;
+    private final ImmutableList<? extends Capability> capabilities;
 
-    public static ImmutableCapabilities of(List<ImmutableCapability> capabilities) {
+    public static ImmutableCapabilities of(List<? extends Capability> capabilities) {
         return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));
     }
 
-    public ImmutableCapabilities(ImmutableList<ImmutableCapability> capabilities) {
+    public ImmutableCapabilities(ImmutableList<? extends Capability> capabilities) {
         this.capabilities = capabilities;
     }
 
