@@ -16,15 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
-import javax.annotation.Nullable;
-import java.util.Map;
+import java.util.Collection;
 
-public interface ArtifactTransformResultRegistry {
-    Map<ComponentArtifactIdentifier, TransformInfo> getOrCreateResults(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
-
-    @Nullable
-    Map<ComponentArtifactIdentifier, ArtifactTransformResult> getResults(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
+public interface TransformInfoFactory {
+    Collection<TransformInfo> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
 }

@@ -19,11 +19,11 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformResultRegistry;
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformResultRegistry;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformInfoFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
+import org.gradle.api.internal.artifacts.transform.TransformInfoFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -69,12 +69,12 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return transformedFileCache;
         }
 
-        ArtifactTransformResultRegistry createArtifactTransformResultRegistry(BuildOperationExecutor buildOperationExecutor) {
-            return new DefaultArtifactTransformResultRegistry(buildOperationExecutor);
+        TransformInfoFactory createTransformInfoFactory(BuildOperationExecutor buildOperationExecutor) {
+            return new DefaultTransformInfoFactory(buildOperationExecutor);
         }
 
-        TransformInfoDependencyResolver createTransformInfoResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
-            return new TransformInfoDependencyResolver(transformOperationRegistry);
+        TransformInfoDependencyResolver createTransformInfoResolver(TransformInfoFactory transformInfoFactory) {
+            return new TransformInfoDependencyResolver(transformInfoFactory);
         }
 
         TransformInfoExecutor createTransformInfoExecutor() {

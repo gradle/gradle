@@ -129,6 +129,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         public TaskDependency getBuildDependencies() {
             return ((Buildable) artifact).getBuildDependencies();
         }
+
+        @Override
+        public String toString() {
+            return getArtifactId().getDisplayName();
+        }
     }
 
     private static class DownloadArtifactFile implements RunnableBuildOperation {

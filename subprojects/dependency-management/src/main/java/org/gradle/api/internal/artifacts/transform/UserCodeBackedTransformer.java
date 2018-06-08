@@ -105,4 +105,9 @@ class UserCodeBackedTransformer implements VariantTransformRegistry.Registration
     public void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
         action.execute(this);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s[%s => %s]@%s", transformer.getDisplayName(), from, to, inputsHash);
+    }
 }

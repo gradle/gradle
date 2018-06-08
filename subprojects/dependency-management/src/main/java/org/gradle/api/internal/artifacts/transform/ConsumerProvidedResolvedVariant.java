@@ -51,6 +51,6 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        delegate.collectBuildDependencies(visitor);
+        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate));
     }
 }

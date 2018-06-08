@@ -18,28 +18,27 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.execution.taskgraph.WorkInfo;
 import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
 
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * Resolves dependencies to {@link TransformInfo} objects.
  */
 public class TransformInfoDependencyResolver implements WorkInfoDependencyResolver {
-    private final ArtifactTransformResultRegistry transformOperationRegistry;
+    private final TransformInfoFactory transformInfoFactory;
 
-    public TransformInfoDependencyResolver(ArtifactTransformResultRegistry transformOperationRegistry) {
-        this.transformOperationRegistry = transformOperationRegistry;
+    public TransformInfoDependencyResolver(TransformInfoFactory transformInfoFactory) {
+        this.transformInfoFactory = transformInfoFactory;
     }
 
     @Override
     public boolean resolve(Task task, Object node, Action<? super WorkInfo> resolveAction) {
         if (node instanceof ArtifactTransformDependency) {
             ArtifactTransformDependency transformation = (ArtifactTransformDependency) node;
-            Map<ComponentArtifactIdentifier, TransformInfo> results = transformOperationRegistry.getOrCreateResults(transformation.getArtifacts(), transformation.getTransform());
-            for (TransformInfo transformInfo : results.values()) {
+            Collection<TransformInfo> transforms = transformInfoFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransform());
+            for (TransformInfo transformInfo : transforms) {
                 resolveAction.execute(transformInfo);
             }
             return true;
