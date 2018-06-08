@@ -19,17 +19,13 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -37,13 +33,11 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
 
+    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
         return ((AttributeContainerInternal) metadata.getAttributes()).asImmutable();
     }
@@ -56,13 +50,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<String> statusScheme;
     @Nullable
     private final ModuleSource moduleSource;
-    private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
     private final ImmutableAttributes attributes;
-
-    // Configurations are built on-demand, but only once.
-    private final Map<String, ConfigurationMetadata> configurations = Maps.newHashMap();
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -71,24 +61,22 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         missing = metadata.isMissing();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
-        configurationDefinitions = metadata.getConfigurationDefinitions();
         attributesFactory = metadata.getAttributesFactory();
         contentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
     }
 
-    public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
+    public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
         this.componentIdentifier = metadata.getId();
         this.moduleVersionIdentifier = metadata.getModuleVersionId();
         changing = metadata.isChanging();
         missing = metadata.isMissing();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
-        configurationDefinitions = metadata.getConfigurationDefinitions();
         attributesFactory = metadata.getAttributesFactory();
         contentHash = metadata.getContentHash();
-        attributes = extractAttributes(metadata);
+        attributes = metadata.getAttributes();
         this.variants = variants;
     }
 
@@ -99,7 +87,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         missing = metadata.missing;
         statusScheme = metadata.statusScheme;
         moduleSource = metadata.moduleSource;
-        configurationDefinitions = metadata.configurationDefinitions;
         attributesFactory = metadata.attributesFactory;
         contentHash = metadata.contentHash;
         attributes = metadata.attributes;
@@ -112,22 +99,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         changing = metadata.changing;
         missing = metadata.missing;
         statusScheme = metadata.statusScheme;
-        configurationDefinitions = metadata.configurationDefinitions;
         attributesFactory = metadata.attributesFactory;
         contentHash = metadata.contentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
 
         moduleSource = source;
-    }
-
-    /**
-     * Clear any cached state, for the case where the inputs are invalidated.
-     * This only happens when constructing a copy
-     */
-    protected void copyCachedState(AbstractModuleComponentResolveMetadata metadata) {
-        // Copy built-on-demand state
-        configurations.putAll(metadata.configurations);
     }
 
     @Override
@@ -170,15 +147,10 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return componentIdentifier.getDisplayName();
     }
 
-    @Override
-    public Set<String> getConfigurationNames() {
-        return configurationDefinitions.keySet();
-    }
-
     @Nullable
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
-        return EmptySchema.INSTANCE;
+        return SCHEMA_DEFAULT_JAVA_VARIANTS;
     }
 
     @Override
@@ -207,10 +179,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return new DefaultModuleComponentArtifactMetadata(getId(), ivyArtifactName);
     }
 
-    protected ImmutableMap<String, Configuration> getConfigurationDefinitions() {
-        return configurationDefinitions;
-    }
-
     /**
      * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.
      * If it can not provide variants, absent must be returned to fall back to traditional configuration selection.
@@ -218,53 +186,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
         return Optional.absent();
     }
-
-
-    @Override
-    public synchronized ConfigurationMetadata getConfiguration(final String name) {
-        return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
-    }
-
-    private ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
-        ConfigurationMetadata populated = configurations.get(name);
-        if (populated != null) {
-            return populated;
-        }
-
-        Configuration descriptorConfiguration = configurationDefinitions.get(name);
-        if (descriptorConfiguration == null) {
-            return null;
-        }
-
-        ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
-        boolean transitive = descriptorConfiguration.isTransitive();
-        boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(getId(), name, transitive, visible, hierarchy);
-        configurations.put(name, populated);
-        return populated;
-    }
-
-    private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {
-        if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
-            return ImmutableList.of(descriptorConfiguration.getName());
-        }
-        Set<String> accumulator = new LinkedHashSet<String>();
-        populateHierarchy(descriptorConfiguration, accumulator);
-        return ImmutableList.copyOf(accumulator);
-    }
-
-    private void populateHierarchy(Configuration metadata, Set<String> accumulator) {
-        accumulator.add(metadata.getName());
-        for (String parentName : metadata.getExtendsFrom()) {
-            Configuration parent = getConfigurationDefinitions().get(parentName);
-            populateHierarchy(parent, accumulator);
-        }
-    }
-
-    /**
-     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
-     */
-    protected abstract ConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy);
 
     @Override
     public boolean equals(Object o) {
@@ -282,7 +203,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(componentIdentifier, that.componentIdentifier)
             && Objects.equal(statusScheme, that.statusScheme)
             && Objects.equal(moduleSource, that.moduleSource)
-            && Objects.equal(configurationDefinitions, that.configurationDefinitions)
             && Objects.equal(attributes, that.attributes)
             && Objects.equal(variants, that.variants)
             && Objects.equal(contentHash, that.contentHash);
@@ -297,7 +217,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             missing,
             statusScheme,
             moduleSource,
-            configurationDefinitions,
             attributes,
             variants,
             contentHash);

@@ -16,22 +16,33 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 abstract class AbstractLazyModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
     private final VariantMetadataRules variantMetadataRules;
+    private final ImmutableMap<String, Configuration> configurationDefinitions;
 
     private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
+    // Configurations are built on-demand, but only once.
+    private final Map<String, ConfigurationMetadata> configurations = Maps.newHashMap();
 
     AbstractLazyModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         super(metadata);
+        configurationDefinitions = metadata.getConfigurationDefinitions();
         variantMetadataRules = metadata.getVariantMetadataRules();
     }
 
@@ -40,6 +51,7 @@ abstract class AbstractLazyModuleComponentResolveMetadata extends AbstractModule
      */
     AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         super(metadata, source);
+        this.configurationDefinitions = metadata.configurationDefinitions;
         variantMetadataRules = metadata.variantMetadataRules;
     }
 
@@ -48,19 +60,18 @@ abstract class AbstractLazyModuleComponentResolveMetadata extends AbstractModule
      * This only happens when constructing a copy
      */
     protected void copyCachedState(AbstractLazyModuleComponentResolveMetadata metadata) {
-        super.copyCachedState(metadata);
+        // Copy built-on-demand state
+        configurations.putAll(metadata.configurations);
         this.graphVariants = metadata.graphVariants;
     }
 
-    @Override
-    protected final DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy) {
-        return createConfiguration(componentId, name, transitive, visible, hierarchy, variantMetadataRules);
+    protected VariantMetadataRules getVariantMetadataRules() {
+        return variantMetadataRules;
     }
 
-    /**
-     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
-     */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
+    ImmutableMap<String, Configuration> getConfigurationDefinitions() {
+        return configurationDefinitions;
+    }
 
     private Optional<ImmutableList<? extends ConfigurationMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
@@ -81,4 +92,76 @@ abstract class AbstractLazyModuleComponentResolveMetadata extends AbstractModule
         return graphVariants;
     }
 
+    @Override
+    public Set<String> getConfigurationNames() {
+        return configurationDefinitions.keySet();
+    }
+
+    @Override
+    public synchronized ConfigurationMetadata getConfiguration(final String name) {
+        return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+    }
+
+    private ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
+        ConfigurationMetadata populated = configurations.get(name);
+        if (populated != null) {
+            return populated;
+        }
+
+        Configuration descriptorConfiguration = configurationDefinitions.get(name);
+        if (descriptorConfiguration == null) {
+            return null;
+        }
+
+        ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
+        boolean transitive = descriptorConfiguration.isTransitive();
+        boolean visible = descriptorConfiguration.isVisible();
+        populated = createConfiguration(getId(), name, transitive, visible, hierarchy, variantMetadataRules);
+        configurations.put(name, populated);
+        return populated;
+    }
+
+    private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {
+        if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
+            return ImmutableList.of(descriptorConfiguration.getName());
+        }
+        Set<String> accumulator = new LinkedHashSet<String>();
+        populateHierarchy(descriptorConfiguration, accumulator);
+        return ImmutableList.copyOf(accumulator);
+    }
+
+    private void populateHierarchy(Configuration metadata, Set<String> accumulator) {
+        accumulator.add(metadata.getName());
+        for (String parentName : metadata.getExtendsFrom()) {
+            Configuration parent = configurationDefinitions.get(parentName);
+            populateHierarchy(parent, accumulator);
+        }
+    }
+
+    /**
+     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
+     */
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AbstractLazyModuleComponentResolveMetadata that = (AbstractLazyModuleComponentResolveMetadata) o;
+        return Objects.equal(configurationDefinitions, that.configurationDefinitions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+            configurationDefinitions);
+    }
 }

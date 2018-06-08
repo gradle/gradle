@@ -145,4 +145,6 @@ abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, V
     protected ModuleComponentIdentifier getComponentId() {
         return componentId;
     }
+
+    protected abstract ConfigurationMetadata withAttributes(ImmutableAttributes attributes);
 }

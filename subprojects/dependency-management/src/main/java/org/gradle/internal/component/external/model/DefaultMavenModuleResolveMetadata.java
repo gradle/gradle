@@ -22,8 +22,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -43,7 +41,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
@@ -82,7 +79,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), ((AttributeContainerInternal)getAttributes()).asImmutable());
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes());
         configuration.setDependencies(filterDependencies(configuration));
         return configuration;
     }
@@ -183,6 +180,14 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return JAR_PACKAGINGS.contains(packaging);
     }
 
+    boolean isImprovedPomSupportEnabled() {
+        return improvedPomSupportEnabled;
+    }
+
+    NamedObjectInstantiator getObjectInstantiator() {
+        return objectInstantiator;
+    }
+
     private boolean isJavaLibrary() {
         return improvedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
     }
@@ -190,12 +195,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Nullable
     public String getSnapshotTimestamp() {
         return snapshotTimestamp;
-    }
-
-    @Nullable
-    @Override
-    public AttributesSchemaInternal getAttributesSchema() {
-        return SCHEMA_DEFAULT_JAVA_VARIANTS;
     }
 
     @Override

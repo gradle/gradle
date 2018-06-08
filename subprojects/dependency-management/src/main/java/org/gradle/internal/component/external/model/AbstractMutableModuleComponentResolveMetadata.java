@@ -475,12 +475,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;
-        private final ImmutableList<DependencyImpl> dependencies;
-        private final ImmutableList<DependencyConstraintImpl> dependencyConstraints;
-        private final ImmutableList<FileImpl> files;
+        private final ImmutableList<? extends Dependency> dependencies;
+        private final ImmutableList<? extends DependencyConstraint> dependencyConstraints;
+        private final ImmutableList<? extends File> files;
         private final ImmutableCapabilities capabilities;
 
-        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<DependencyImpl> dependencies, ImmutableList<DependencyConstraintImpl> dependencyConstraints, ImmutableList<FileImpl> files, ImmutableCapabilities capabilities) {
+        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints, ImmutableList<? extends File> files, ImmutableCapabilities capabilities) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
