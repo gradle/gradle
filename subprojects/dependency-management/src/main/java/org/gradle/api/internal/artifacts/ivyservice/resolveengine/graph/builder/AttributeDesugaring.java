@@ -58,7 +58,7 @@ abstract class AttributeDesugaring {
             AttributeContainer moduleAttributes = module.getAttributes();
             if (!moduleAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
-                return DefaultModuleComponentSelector.newSelector(module.getGroup(), module.getModule(), module.getVersionConstraint(), desugar(attributes, attributesFactory));
+                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes, attributesFactory));
             }
         }
         return selector;

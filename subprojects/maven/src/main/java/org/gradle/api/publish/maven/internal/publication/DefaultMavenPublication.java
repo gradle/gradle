@@ -470,7 +470,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public ModuleVersionIdentifier getCoordinates() {
-        return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
+        return DefaultModuleVersionIdentifier.newId(getGroupId(), getArtifactId(), getVersion());
     }
 
     @Nullable

@@ -18,17 +18,19 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
-import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -44,6 +46,10 @@ import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDat
 
 class IvyResolverTest extends Specification {
     def externalResourceAccessor = Mock(CacheAwareExternalResourceAccessor)
+
+    static ModuleIdentifier mid(String group, String name) {
+        DefaultModuleIdentifier.newId(group, name)
+    }
 
     def "has useful string representation"() {
         expect:
@@ -81,19 +87,19 @@ class IvyResolverTest extends Specification {
         0 * _
 
         where:
-        moduleId                   | layoutPattern
-        newId("", "", "")          | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("", "", "")          | "[module]"
-        newId("group", "", "1")    | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("group", "", "1")    | "[module]"
-        newId("", "name", "1")     | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("", "name", "1")     | "[organisation]/[module]"
-        newId("group", "name", "") | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("group", "name", "") | "[module]-[revision]"
-        newId("", "name", "")      | "([branch])[organisation]/[module]-[revision]"
-        newId("", "name", "")      | "([organisation])/[module]-[revision]"
-        newId("", "name", "")      | "([branch])[organization]/[module]-[revision]"
-        newId("", "name", "")      | "([organization])/[module]-[revision]"
+        moduleId                        | layoutPattern
+        newId(mid("", ""), "")          | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId(mid("", ""), "")          | "[module]"
+        newId(mid("group", ""), "1")    | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId(mid("group", ""), "1")    | "[module]"
+        newId(mid("", "name"), "1")     | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId(mid("", "name"), "1")     | "[organisation]/[module]"
+        newId(mid("group", "name"), "") | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId(mid("group", "name"), "") | "[module]-[revision]"
+        newId(mid("", "name"), "")      | "([branch])[organisation]/[module]-[revision]"
+        newId(mid("", "name"), "")      | "([organisation])/[module]-[revision]"
+        newId(mid("", "name"), "")      | "([branch])[organization]/[module]-[revision]"
+        newId(mid("", "name"), "")      | "([organization])/[module]-[revision]"
     }
 
     @Unroll
@@ -110,18 +116,18 @@ class IvyResolverTest extends Specification {
         0 * _
 
         where:
-        moduleId                    | layoutPattern
-        newId("group", "name", "1") | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("group", "name", "1") | "[module]"
-        newId("", "name", "1")      | "[module]"
-        newId("", "name", "1")      | "[module]-[revision]"
-        newId("group", "name", "")  | "[module]"
-        newId("group", "name", "")  | "[organisation]/[module]"
-        newId("", "name", "1")      | "([organisation]/)[module]-[revision]"
-        newId("group", "name", "")  | "[organisation]/[module]-([revision])"
-        newId("group", "name", "")  | "[organization]/[module]"
-        newId("", "name", "1")      | "([organization]/)[module]-[revision]"
-        newId("group", "name", "")  | "[organization]/[module]-([revision])"
+        moduleId                         | layoutPattern
+        newId(mid("group", "name"), "1") | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId(mid("group", "name"), "1") | "[module]"
+        newId(mid("", "name"), "1")      | "[module]"
+        newId(mid("", "name"), "1")      | "[module]-[revision]"
+        newId(mid("group", "name"), "")  | "[module]"
+        newId(mid("group", "name"), "")  | "[organisation]/[module]"
+        newId(mid("", "name"), "1")      | "([organisation]/)[module]-[revision]"
+        newId(mid("group", "name"), "")  | "[organisation]/[module]-([revision])"
+        newId(mid("group", "name"), "")  | "[organization]/[module]"
+        newId(mid("", "name"), "1")      | "([organization]/)[module]-[revision]"
+        newId(mid("group", "name"), "")  | "[organization]/[module]-([revision])"
     }
 
 

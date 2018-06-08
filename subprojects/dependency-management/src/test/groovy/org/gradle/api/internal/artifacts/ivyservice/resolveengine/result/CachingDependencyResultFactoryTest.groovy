@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -88,11 +89,11 @@ class CachingDependencyResultFactoryTest extends Specification {
     }
 
     def selector(String group='a', String module='a', String version='1') {
-        DefaultModuleComponentSelector.newSelector(group, module, new DefaultMutableVersionConstraint(version))
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version))
     }
 
     def moduleVersionSelector(String group='a', String module='a', String version='1') {
-        newSelector(group, module, new DefaultMutableVersionConstraint(version))
+        newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version))
     }
 
     private static ComponentSelectionReason selectedByRule() {

@@ -54,7 +54,7 @@ class M2ResourcePatternTest extends Specification {
 
     def "substitutes snapshot artifact attributes into pattern"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def snapshotId = new MavenUniqueSnapshotComponentIdentifier("group", "projectA", "1.2-SNAPSHOT", "2014-timestamp-3333")
+        def snapshotId = new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId("group", "projectA"), "1.2-SNAPSHOT", "2014-timestamp-3333")
 
         def artifact1 = new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
 
@@ -79,7 +79,7 @@ class M2ResourcePatternTest extends Specification {
     def "substitutes attributes into pattern to determine version list pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         def ivyName = new DefaultIvyArtifactName("projectA", "pom", "pom")
-        def moduleId = new DefaultModuleIdentifier(group, module)
+        def moduleId = DefaultModuleIdentifier.newId(group, module)
 
         expect:
         pattern.toVersionListPattern(moduleId, ivyName).path == expectedPath
@@ -92,8 +92,8 @@ class M2ResourcePatternTest extends Specification {
 
     def "can build module path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def module1 = new DefaultModuleIdentifier("group", "projectA")
-        def module2 = new DefaultModuleIdentifier("org.group", "projectA")
+        def module1 = DefaultModuleIdentifier.newId("group", "projectA")
+        def module2 = DefaultModuleIdentifier.newId("org.group", "projectA")
 
         expect:
         pattern.toModulePath(module1).path == 'prefix/group/projectA'
@@ -102,8 +102,8 @@ class M2ResourcePatternTest extends Specification {
 
     def "can build module version path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def component1 = newId("group", "projectA", "1.2")
-        def component2 = newId("org.group", "projectA", "1.2")
+        def component1 = newId(DefaultModuleIdentifier.newId("group", "projectA"), "1.2")
+        def component2 = newId(DefaultModuleIdentifier.newId("org.group", "projectA"), "1.2")
 
         expect:
         pattern.toModuleVersionPath(component1).path == 'prefix/group/projectA/1.2'
@@ -114,14 +114,14 @@ class M2ResourcePatternTest extends Specification {
         def pattern = new M2ResourcePattern("/non/m2/pattern")
 
         when:
-        pattern.toModulePath(new DefaultModuleIdentifier("group", "module"))
+        pattern.toModulePath(DefaultModuleIdentifier.newId("group", "module"))
 
         then:
         thrown(UnsupportedOperationException)
     }
 
     private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {
-        final moduleVersionId = newId(group, name, version)
+        final moduleVersionId = newId(DefaultModuleIdentifier.newId(group, name), version)
         return new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
     }
 }

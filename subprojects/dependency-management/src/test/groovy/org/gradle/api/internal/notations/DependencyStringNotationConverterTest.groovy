@@ -25,7 +25,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
-public class DependencyStringNotationConverterTest extends Specification {
+class DependencyStringNotationConverterTest extends Specification {
     def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
 
     def "with artifact"() {

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class SimpleDependency extends AbstractRenderableDependency {
         this.name = name;
         this.resolvable = resolvable;
         this.description = description;
-        this.id = newId(name, name, "1.0");
+        this.id = newId(DefaultModuleIdentifier.newId(name, name), "1.0");
     }
 
     public ModuleComponentIdentifier getId() {

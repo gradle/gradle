@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
@@ -40,6 +41,8 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         getAll() >> ([] as Set)
     }
 
+    def mid = DefaultModuleIdentifier.newId('foo', 'bar')
+
     def builder = new DefaultRootComponentMetadataBuilder(
         metaDataProvider,
         componentIdentifierFactory,
@@ -50,7 +53,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
 
     def "caches root component metadata"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'bar', '1.0')
+            new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
 
@@ -63,13 +66,13 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
 
     def "doesn't cache root component metadata when module identifier changes"() {
         1 * componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'bar', '1.0')
+            new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
 
         when:
         componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'baz', '1.0')
+            new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('foo', 'baz'), '1.0')
         }
 
         def otherRoot = builder.toRootComponentMetaData()
@@ -81,7 +84,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     @Unroll
     def "caching of component metadata when #mutationType change"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'bar', '1.0')
+            new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
 

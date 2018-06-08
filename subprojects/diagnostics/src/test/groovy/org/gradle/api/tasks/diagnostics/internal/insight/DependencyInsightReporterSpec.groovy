@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
@@ -190,10 +191,10 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected), defaultVariant())
-        new DefaultResolvedDependencyResult(newSelector(group, name, new DefaultMutableVersionConstraint(requested)),
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant())
+        new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), new DefaultMutableVersionConstraint(requested)),
                 selectedModule,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(group, name, selected), defaultVariant()))
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant()))
     }
 
     private DefaultResolvedVariantResult defaultVariant() {
@@ -201,11 +202,11 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private DefaultResolvedDependencyResult path(String path) {
-        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier("group", "root", "1"), defaultVariant())
+        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), defaultVariant())
         List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
             def (name, version) = it.split(':')
-            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), VersionSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId('group', name, version), defaultVariant())
-            def result = new DefaultResolvedDependencyResult(newSelector("group", name, version), componentResult, from)
+            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), VersionSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), defaultVariant())
+            def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), componentResult, from)
             from = componentResult
             result
         }

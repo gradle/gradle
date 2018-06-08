@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
@@ -39,31 +40,35 @@ class ModuleForcingResolveRuleSpec extends Specification {
         new DefaultMutableVersionConstraint(version)
     }
 
+    private static ModuleIdentifier mid(String group, String name) {
+        DefaultModuleIdentifier.newId(group, name)
+    }
+
     def "forces modules"() {
         given:
         def details = Mock(DependencySubstitutionInternal)
 
         when:
         new ModuleForcingResolveRule([
-            newSelector("org", "module1", v("1.0")),
-            newSelector("org", "module2", v("2.0")),
+            newSelector(mid("org", "module1"), v("1.0")),
+            newSelector(mid("org", "module2"), v("2.0")),
             //exotic module with colon in the name
-            newSelector("org", "module:with:colon", v("3.0")),
-            newSelector("org:with:colon", "module2", v("4.0"))
+            newSelector(mid("org", "module:with:colon"), v("3.0")),
+            newSelector(mid("org:with:colon", "module2"), v("4.0"))
         ], moduleIdentifierFactory).execute(details)
 
         then:
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
         _ * details.getOldRequested() >> requested
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(requested.group, requested.name, v(forcedVersion)), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid(requested.group, requested.name), v(forcedVersion)), VersionSelectionReasons.FORCED)
         0 * details._
 
         where:
         requested                                                             | forcedVersion
-        newSelector("org", "module2", v("0.9"))            | "2.0"
-        newSelector("org", "module2", v("2.1"))            | "2.0"
-        newSelector("org", "module:with:colon", v("2.0"))  | "3.0"
-        newSelector("org:with:colon", "module2", v("5.0")) | "4.0"
+        newSelector(mid("org", "module2"), v("0.9"))            | "2.0"
+        newSelector(mid("org", "module2"), v("2.1"))            | "2.0"
+        newSelector(mid("org", "module:with:colon"), v("2.0"))  | "3.0"
+        newSelector(mid("org:with:colon", "module2"), v("5.0")) | "4.0"
     }
 
     def "does not force modules if they dont match"() {
@@ -72,10 +77,10 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
         when:
         new ModuleForcingResolveRule([
-            newSelector("org", "module1", v("1.0")),
-            newSelector("org", "module2", v("2.0")),
-            newSelector("org", "module:with:colon", v("3.0")),
-            newSelector("org:with:colon", "module2", v("4.0"))
+            newSelector(mid("org", "module1"), v("1.0")),
+            newSelector(mid("org", "module2"), v("2.0")),
+            newSelector(mid("org", "module:with:colon"), v("3.0")),
+            newSelector(mid("org:with:colon", "module2"), v("4.0"))
         ], moduleIdentifierFactory).execute(details)
 
         then:
@@ -104,6 +109,6 @@ class ModuleForcingResolveRuleSpec extends Specification {
     }
 
     static newComponentSelector(String group, String name, VersionConstraint versionConstraint) {
-        DefaultModuleComponentSelector.newSelector(group, name, versionConstraint)
+        DefaultModuleComponentSelector.newSelector(mid(group, name), versionConstraint)
     }
 }

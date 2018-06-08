@@ -62,7 +62,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         if (publications.isEmpty()) {
             // Project has no publications: simply use the project name in place of the dependency name
             if (coordsType.isAssignableFrom(ModuleVersionIdentifier.class)) {
-                return coordsType.cast(new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
+                return coordsType.cast(DefaultModuleVersionIdentifier.newId(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
             }
             throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), dependencyProject.getDisplayName()));
         }

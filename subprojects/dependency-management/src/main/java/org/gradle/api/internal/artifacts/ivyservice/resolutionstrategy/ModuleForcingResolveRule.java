@@ -42,7 +42,7 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
         if (!forcedModules.isEmpty()) {
             this.forcedModules = new HashMap<ModuleIdentifier, String>();
             for (ModuleVersionSelector module : forcedModules) {
-                this.forcedModules.put(moduleIdentifierFactory.module(module.getGroup(), module.getName()), module.getVersion());
+                this.forcedModules.put(module.getModule(), module.getVersion());
             }
         } else {
             this.forcedModules = null;
@@ -56,10 +56,10 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
         }
         if (details.getRequested() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) details.getRequested();
-            ModuleIdentifier key = moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
+            ModuleIdentifier key = selector.getModuleIdentifier();
             if (forcedModules.containsKey(key)) {
                 DefaultImmutableVersionConstraint versionConstraint = new DefaultImmutableVersionConstraint(forcedModules.get(key));
-                details.useTarget(newSelector(key.getGroup(), key.getName(), versionConstraint, selector.getAttributes()), VersionSelectionReasons.FORCED);
+                details.useTarget(newSelector(key, versionConstraint, selector.getAttributes()), VersionSelectionReasons.FORCED);
 
             }
         }

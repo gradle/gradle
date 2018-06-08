@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.ActionConfiguration
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.MetadataResolutionContext
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -126,14 +127,16 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
-        def metadata = ivyMetadataFactory.create(DefaultModuleComponentIdentifier.newId("group", "module", "version"))
+        def module = DefaultModuleIdentifier.newId("group", "module")
+        def metadata = ivyMetadataFactory.create(DefaultModuleComponentIdentifier.newId(module, "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId("group", "module", "version"))
+        def module = DefaultModuleIdentifier.newId("group", "module")
+        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(module, "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
