@@ -194,10 +194,13 @@ org:leaf2:1.0
         then:
         outputContains """
 Task :dependencyInsight
-org:leaf2:2.5 (conflict resolution)
+org:leaf2:2.5
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -322,10 +325,13 @@ org:leaf:1.0
    - org:leaf2:2.5
    - org:leaf2:1.0
 
-org:leaf2:2.5 (conflict resolution)
+org:leaf2:2.5
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0

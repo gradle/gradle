@@ -25,6 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -148,9 +151,13 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         // Do conflict resolution to choose the best out of current selection and candidate.
         ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<T>(candidates);
         conflictResolver.select(details);
+        T selected = details.getSelected();
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
+        } else {
+            ComponentSelectionDescriptorInternal desc = VersionSelectionReasons.CONFLICT_RESOLUTION;
+            selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
         }
-        return details.getSelected();
+        return selected;
     }
 }

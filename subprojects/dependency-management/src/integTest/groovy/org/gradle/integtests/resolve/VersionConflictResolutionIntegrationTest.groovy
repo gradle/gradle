@@ -159,11 +159,11 @@ project(':tool') {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     configuration = "runtimeElements"
-                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution()
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
                 }
                 project(":impl", "test:impl:") {
                     configuration = "runtimeElements"
-                    module("org:foo:1.4.4").byConflictResolution()
+                    module("org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
                 }
             }
         }
@@ -209,10 +209,10 @@ task resolve {
         resolve.expectGraph {
             root(":", "org:test:1.0") {
                 module("org:bar:1.0") {
-                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution()
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
                 }
                 module("org:baz:1.0") {
-                    module("org:foo:1.4.4").byConflictResolution()
+                    module("org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
                 }
             }
         }
@@ -246,7 +246,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:external:1.2").byConflictResolution()
+                module("org:external:1.2").byConflictResolution("between versions 1.2 and 1.0")
                 module("org:dep:2.2") {
                     edge("org:external:1.0", "org:external:1.2")
                 }
@@ -723,7 +723,7 @@ dependencies {
         resolve.expectGraph {
             root(":", "org:test:1.3") {
                 module("org:other:1.7") {
-                    module("org:test:2.1").byConflictResolution()
+                    module("org:test:2.1").byConflictResolution("between versions 2.1 and 1.3")
                 }
             }
         }

@@ -311,7 +311,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         barInsight[0].name == 'foo:bar:2.0'
         barInsight[0].resolvable == 'RESOLVED'
         barInsight[0].hasConflict == false
-        barInsight[0].description == 'conflict resolution'
+        barInsight[0].description == null
         barInsight[0].children.size() == 0
 
         barInsight[1].name == 'foo:bar:2.0'
