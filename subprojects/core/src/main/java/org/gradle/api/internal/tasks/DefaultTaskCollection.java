@@ -134,22 +134,6 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
 
         @Override
-        public void configure(final Action<? super I> action) {
-            configureEach(new Action<Task>() {
-                private boolean alreadyExecuted = false;
-
-                @Override
-                public void execute(Task task) {
-                    // Task specific configuration action should only be executed once
-                    if (task.getName().equals(identity.name) && !removed && !alreadyExecuted) {
-                        alreadyExecuted = true;
-                        action.execute(identity.type.cast(task));
-                    }
-                }
-            });
-        }
-
-        @Override
         public String toString() {
             return String.format("provider(task %s, %s)", identity.name, identity.type);
         }
@@ -163,6 +147,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
             super(identity);
             this.task = task;
+        }
+
+        @Override
+        public void configure(Action<? super I> action) {
+            action.execute(task);
         }
 
         @Override
