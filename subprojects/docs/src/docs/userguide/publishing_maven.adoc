@@ -136,8 +136,7 @@ You can define multiple repositories as long as they have unique names within th
 
 You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
 
-When specifying an AWS S3 maven artifact repository, the artifacts will be uploaded as S3 objects in an S3 bu
-Some organizations may have multiple AWS accounts, e.g. one for each team. The repository bucket's account is often different from the artifact publisher's and consumers'. The bucket owner needs to be able to grant consumers accounts access to the uploaded objects. This is done by adding `bucket-owner-full-control` link:https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl[Canned ACL] to the uploaded objects. Gradle will do this in every uploads. Make sure the publisher has the required IAM permissions (PutObject and PutObjectAcl). You can read more at link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions]
+Some organizations may have multiple AWS accounts, e.g. one for each team. The repository bucket's account is often different from the artifact publisher's and consumers'. The bucket owner needs to be able to grant consumer accounts access to the uploaded objects. This is done by adding the `bucket-owner-full-control` link:https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl[Canned ACL] to the uploaded objects. Gradle will do this in every upload. Make sure the publisher has the required IAM permissions (`PutObject` and `PutObjectAcl`). You can read more at link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
