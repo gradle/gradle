@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,15 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -43,22 +40,14 @@ import java.util.Set;
 /**
  * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
  */
-class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
+class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
     private final ImmutableList<GradleDependencyMetadata> dependencies;
-    private final VariantMetadataRules variantMetadataRules;
-    private final ImmutableAttributes componentLevelAttributes;
 
-    private List<GradleDependencyMetadata> calculatedDependencies;
-    private ImmutableAttributesFactory attributesFactory;
-
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
+    AbstractVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
         this.componentId = componentId;
-        this.variant = new RuleAwareVariant(variant);
-        this.attributesFactory = attributesFactory;
-        this.componentLevelAttributes = componentLevelAttributes;
-        this.variantMetadataRules = variantMetadataRules;
+        this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes());
@@ -147,83 +136,11 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
-        if (calculatedDependencies == null) {
-            calculatedDependencies = variantMetadataRules.applyDependencyMetadataRules(variant, dependencies);
-        }
-        return calculatedDependencies;
+    public List<? extends ModuleDependencyMetadata> getDependencies() {
+        return dependencies;
     }
 
-    private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
-        return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
-    }
-
-    /**
-     * This class wraps the component variant so that attribute rules are executed once
-     * for all, and passed correctly to the various consumers. In particular, we need to make sure
-     * that the attributes are the same whenever we resolve the graph for dependencies and artifacts.
-     */
-    private class RuleAwareVariant implements ComponentVariant {
-        private final ComponentVariant delegate;
-
-        private ImmutableAttributes computedAttributes;
-        private CapabilitiesMetadata computedCapabilities;
-
-        private RuleAwareVariant(ComponentVariant delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public String getName() {
-            return delegate.getName();
-        }
-
-        @Override
-        public DisplayName asDescribable() {
-            return delegate.asDescribable();
-        }
-
-        /**
-         * Returns the complete set of attributes of this variant, which consists of a view of the union
-         * of the component level attributes and the variant attributes as found in metadata, potentially
-         * modified by rules.
-         *
-         * @return the updated variant attributes
-         */
-        @Override
-        public ImmutableAttributes getAttributes() {
-            if (computedAttributes == null) {
-                computedAttributes = variantMetadataRules.applyVariantAttributeRules(delegate, mergeComponentAndVariantAttributes(delegate.getAttributes()));
-            }
-            return computedAttributes;
-        }
-
-        @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return delegate.getArtifacts();
-        }
-
-        @Override
-        public ImmutableList<? extends Dependency> getDependencies() {
-            return delegate.getDependencies();
-        }
-
-        @Override
-        public ImmutableList<? extends DependencyConstraint> getDependencyConstraints() {
-            return delegate.getDependencyConstraints();
-        }
-
-        @Override
-        public ImmutableList<? extends File> getFiles() {
-            return delegate.getFiles();
-        }
-
-        @Override
-        public CapabilitiesMetadata getCapabilities() {
-            if (computedCapabilities == null) {
-                computedCapabilities = variantMetadataRules.applyCapabilitiesRules(delegate, delegate.getCapabilities());
-            }
-            return computedCapabilities;
-        }
+    protected ComponentVariant getVariant() {
+        return variant;
     }
 }

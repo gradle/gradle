@@ -33,7 +33,6 @@ import static org.gradle.internal.component.external.model.DefaultMavenModuleRes
 
 public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableMavenModuleResolveMetadata {
 
-    private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final boolean improvedPomSupportEnabled;
 
@@ -47,27 +46,25 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
                                                     boolean improvedPomSupportEnabled) {
         super(attributesFactory, id, componentIdentifier);
         this.dependencies = ImmutableList.copyOf(dependencies);
-        this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
         this.improvedPomSupportEnabled = improvedPomSupportEnabled;
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata,
-                                             ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
+                                             NamedObjectInstantiator objectInstantiator,
                                              boolean improvedPomSupportEnabled) {
         super(metadata);
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
         this.dependencies = metadata.getDependencies();
-        this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
         this.improvedPomSupportEnabled = improvedPomSupportEnabled;
     }
 
     @Override
     public MavenModuleResolveMetadata asImmutable() {
-        return new DefaultMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, improvedPomSupportEnabled);
+        return new DefaultMavenModuleResolveMetadata(this);
     }
 
     @Override
@@ -119,5 +116,13 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    boolean isImprovedPomSupportEnabled() {
+        return improvedPomSupportEnabled;
+    }
+
+    NamedObjectInstantiator getObjectInstantiator() {
+        return objectInstantiator;
     }
 }
