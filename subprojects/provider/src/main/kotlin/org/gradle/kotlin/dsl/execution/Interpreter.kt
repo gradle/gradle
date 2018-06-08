@@ -112,6 +112,8 @@ class Interpreter(val host: Host) {
 
         fun applyBasePluginsTo(project: Project)
 
+        fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>)
+
         fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>)
 
         fun hashOf(classPath: ClassPath): HashCode
@@ -338,7 +340,11 @@ class Interpreter(val host: Host) {
     private
     open inner class ProgramHost : ExecutableProgram.Host {
 
-        override fun applyPluginsTo(scriptHost: KotlinScriptHost<Any>, pluginRequests: PluginRequests) {
+        override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) {
+            host.setupEmbeddedKotlinFor(scriptHost)
+        }
+
+        override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) {
             host.applyPluginsTo(scriptHost, pluginRequests)
         }
 

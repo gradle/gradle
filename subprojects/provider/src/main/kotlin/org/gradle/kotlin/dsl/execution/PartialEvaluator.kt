@@ -22,6 +22,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultP
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 
@@ -74,6 +75,7 @@ class PartialEvaluator(
                 when (programKind) {
 
                     ProgramKind.TopLevel -> Static(
+                        SetupEmbeddedKotlin,
                         ApplyDefaultPluginRequests,
                         ApplyBasePlugins
                     )
@@ -91,6 +93,7 @@ class PartialEvaluator(
     fun reduceBuildscriptProgram(program: Program.Buildscript): Static =
 
         Static(
+            SetupEmbeddedKotlin,
             Eval(buildscriptSourceFor(program)),
             CloseTargetScope
         )
@@ -118,6 +121,7 @@ class PartialEvaluator(
 
                     ProgramKind.TopLevel -> Dynamic(
                         Static(
+                            SetupEmbeddedKotlin,
                             ApplyDefaultPluginRequests,
                             ApplyBasePlugins
                         ),
@@ -154,6 +158,7 @@ class PartialEvaluator(
             when (programTarget) {
 
                 ProgramTarget.Project -> Static(
+                    SetupEmbeddedKotlin,
                     Eval(buildscriptSourceFor(stage1)),
                     ApplyDefaultPluginRequests,
                     ApplyBasePlugins
@@ -169,6 +174,7 @@ class PartialEvaluator(
     fun stage1WithPlugins(stage1: Program.Stage1): Static =
 
         Static(
+            SetupEmbeddedKotlin,
             ApplyPluginRequestsOf(stage1),
             ApplyBasePlugins
         )

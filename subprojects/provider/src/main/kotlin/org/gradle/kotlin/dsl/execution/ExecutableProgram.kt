@@ -32,13 +32,17 @@ abstract class ExecutableProgram {
 
     interface Host {
 
+        fun setupEmbeddedKotlinFor(
+            scriptHost: KotlinScriptHost<*>
+        )
+
         /**
          * Invoked by a [top-level][ProgramKind.TopLevel] [Project][ProgramTarget.Project] program
          * after stage 1 completes. All other program types invoke [closeTargetScopeOf] to signal the completion
          * of stage 1.
          */
         fun applyPluginsTo(
-            scriptHost: KotlinScriptHost<Any>,
+            scriptHost: KotlinScriptHost<*>,
             pluginRequests: PluginRequests
         )
 

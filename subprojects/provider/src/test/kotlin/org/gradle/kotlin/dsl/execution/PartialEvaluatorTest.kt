@@ -22,6 +22,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultP
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -44,6 +45,7 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(
+                    SetupEmbeddedKotlin,
                     ApplyDefaultPluginRequests,
                     ApplyBasePlugins
                 )))
@@ -63,6 +65,7 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Dynamic(
                     Static(
+                        SetupEmbeddedKotlin,
                         ApplyDefaultPluginRequests,
                         ApplyBasePlugins
                     ),
@@ -92,6 +95,7 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Dynamic(
                     Static(
+                        SetupEmbeddedKotlin,
                         Eval(buildscriptFragment.source),
                         ApplyDefaultPluginRequests,
                         ApplyBasePlugins
@@ -115,6 +119,7 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(
+                    SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program),
                     ApplyBasePlugins
                 )))
@@ -137,6 +142,7 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(
+                    SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program),
                     ApplyBasePlugins
                 )))
@@ -164,6 +170,7 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Dynamic(
                     Static(
+                        SetupEmbeddedKotlin,
                         ApplyPluginRequestsOf(program.stage1),
                         ApplyBasePlugins
                     ),
@@ -279,6 +286,7 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(
+                    SetupEmbeddedKotlin,
                     Eval(fragment.source),
                     CloseTargetScope
                 )))
@@ -314,6 +322,7 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Dynamic(
                     Static(
+                        SetupEmbeddedKotlin,
                         Eval(expectedEvalSource),
                         CloseTargetScope
                     ),
