@@ -29,7 +29,7 @@ buildscript {
 }
 
 plugins {
-    `kotlin-dsl` version "0.17.2"
+    `kotlin-dsl`
     id("org.gradle.kotlin.ktlint-convention") version "0.1.8" apply false
 }
 
