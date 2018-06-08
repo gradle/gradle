@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
+import com.amazonaws.services.s3.model.CannedAccessControlList
 import groovy.xml.StreamingMarkupBuilder
 import org.gradle.integtests.resource.s3.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
@@ -65,6 +66,7 @@ class S3Server extends HttpServer implements RepositoryServer {
         String path = stubRequest.path
         assert path.startsWith('/')
         assert path == request.pathInfo
+        assert stubRequest.getHeader("x-amz-acl") == CannedAccessControlList.BucketOwnerFullControl
         assert stubRequest.method == request.method
         assert stubRequest.params.every {
             request.getParameterMap()[it.key] == it.value
