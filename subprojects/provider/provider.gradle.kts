@@ -73,12 +73,7 @@ tasks.named("test").configure {
     dependsOn(customInstallation)
 }
 
-tasks.register("quickTest", Test::class.java) {
-    exclude("**/*IntegrationTest.class")
-}
-
 withParallelTests()
 
 // --- Utility functions -----------------------------------------------
 inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
-
