@@ -23,10 +23,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
-class TransformArtifactOperation implements ArtifactTransformResult, RunnableBuildOperation {
+class TransformArtifactOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformArtifactOperation.class);
     private final ResolvableArtifact artifact;
     private final ArtifactTransformer transform;
@@ -39,7 +40,7 @@ class TransformArtifactOperation implements ArtifactTransformResult, RunnableBui
     }
 
     @Override
-    public void run(BuildOperationContext context) {
+    public void run(@Nullable BuildOperationContext context) {
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifact.getId().getDisplayName());
@@ -55,10 +56,12 @@ class TransformArtifactOperation implements ArtifactTransformResult, RunnableBui
         return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + artifact);
     }
 
+    @Nullable
     public Throwable getFailure() {
         return failure;
     }
 
+    @Nullable
     public List<File> getResult() {
         return result;
     }

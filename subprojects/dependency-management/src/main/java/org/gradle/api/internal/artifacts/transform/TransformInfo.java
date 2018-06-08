@@ -37,6 +37,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,7 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformInfo extends WorkInfo implements ArtifactTransformResult {
+public abstract class TransformInfo extends WorkInfo {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformInfo.class);
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
@@ -128,7 +129,7 @@ public abstract class TransformInfo extends WorkInfo implements ArtifactTransfor
         }
     }
 
-    @Override
+    @Nullable
     public List<File> getResult() {
         if (failure != null) {
             throw new IllegalStateException("Transformation has failed", failure);
@@ -139,7 +140,7 @@ public abstract class TransformInfo extends WorkInfo implements ArtifactTransfor
         return result;
     }
 
-    @Override
+    @Nullable
     public Throwable getFailure() {
         if (result == null) {
             throw new IllegalStateException("Transformation hasn't been executed yet");

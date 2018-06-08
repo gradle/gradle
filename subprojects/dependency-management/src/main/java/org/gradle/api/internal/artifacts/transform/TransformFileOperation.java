@@ -22,10 +22,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
-class TransformFileOperation implements RunnableBuildOperation, ArtifactTransformResult {
+class TransformFileOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
     private final File file;
     private final ArtifactTransformer transform;
@@ -54,12 +55,12 @@ class TransformFileOperation implements RunnableBuildOperation, ArtifactTransfor
         return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + file);
     }
 
-    @Override
+    @Nullable
     public Throwable getFailure() {
         return failure;
     }
 
-    @Override
+    @Nullable
     public List<File> getResult() {
         return result;
     }

@@ -37,10 +37,10 @@ import java.util.Map;
 class ArtifactTransformingVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ComponentArtifactIdentifier, ? extends ArtifactTransformResult> artifactResults;
-    private final Map<File, ? extends ArtifactTransformResult> fileResults;
+    private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
+    private final Map<File, TransformFileOperation> fileResults;
 
-    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, ? extends ArtifactTransformResult> artifactResults, Map<File, ? extends ArtifactTransformResult> fileResults) {
+    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -49,7 +49,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        ArtifactTransformResult operation = artifactResults.get(artifact.getId());
+        TransformArtifactOperation operation = artifactResults.get(artifact.getId());
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
             return;
@@ -85,7 +85,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        ArtifactTransformResult operation = fileResults.get(file);
+        TransformFileOperation operation = fileResults.get(file);
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
             return;
