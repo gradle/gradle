@@ -43,6 +43,12 @@ sealed class ResidualProgram {
     sealed class Instruction {
 
         /**
+         * Causes the configuration of the embedded Kotlin repository and embedded Kotlin libraries
+         * on the host's ScriptHandler.
+         */
+        object SetupEmbeddedKotlin : Instruction()
+
+        /**
          * Causes the target scope to be closed without applying any plugins.
          */
         object CloseTargetScope : StageTransition, Instruction()

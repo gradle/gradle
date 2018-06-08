@@ -123,6 +123,7 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emit(instruction: Instruction) = when (instruction) {
+        is Instruction.SetupEmbeddedKotlin -> emitSetupEmbeddedKotlinFor()
         is Instruction.CloseTargetScope -> emitCloseTargetScopeOf()
         is Instruction.Eval -> emitEval(instruction.script)
         is Instruction.ApplyBasePlugins -> emitApplyBasePluginsTo()
@@ -135,6 +136,14 @@ class ResidualProgramCompiler(
                 else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
             }
         }
+    }
+
+    private
+    fun MethodVisitor.emitSetupEmbeddedKotlinFor() {
+        // programHost.setupEmbeddedKotlinFor(scriptHost)
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.ScriptHost)
+        invokeHost("setupEmbeddedKotlinFor", kotlinScriptHostToVoid)
     }
 
     private

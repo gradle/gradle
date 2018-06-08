@@ -98,9 +98,6 @@ class StandardKotlinScriptEvaluator(
     ) {
         withOptions(options) {
 
-            // TODO:partial-evaluator Optimise away this call whenever possible via partial evaluation
-            setupEmbeddedKotlinForBuildscript(scriptHandler)
-
             interpreter.eval(
                 target,
                 scriptSource,
@@ -139,6 +136,10 @@ class StandardKotlinScriptEvaluator(
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) {
+            setupEmbeddedKotlinForBuildscript(scriptHost.scriptHandler)
+        }
 
         override fun startCompilerOperation(description: String): AutoCloseable {
             val operation = progressLoggerFactory
