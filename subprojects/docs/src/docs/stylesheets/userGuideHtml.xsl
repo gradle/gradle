@@ -293,7 +293,7 @@
                                 </ul>
                             </li>
                             <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
-                            <li><a href="/userguide/lazy_configuration.html">Lazy Task Configuration</a></li>
+                            <li><a href="/userguide/lazy_configuration.html">Lazy Configuration</a></li>
                             <li><a href="/userguide/java_gradle_plugin.html">Plugin Development Plugin</a></li>
                             <li><a href="/userguide/custom_plugins.html">Writing Custom Plugins</a></li>
                         </ul>
