@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
@@ -28,7 +29,7 @@ import spock.lang.Unroll
 
 import static java.util.concurrent.TimeUnit.DAYS
 
-class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
+class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements CachingIntegrationFixture {
     static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     @Rule public final HttpServer server = new HttpServer()
@@ -265,9 +266,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
     TestFile getGcFile() {
         return cacheDir.file("gc.properties")
     }
-
     TestFile getCacheDir() {
-        return executer.gradleUserHomeDir.file("caches", DefaultCachedClasspathTransformer.CACHE_KEY)
+        return getUserHomeCacheDir().file(DefaultCachedClasspathTransformer.CACHE_KEY)
     }
 
     void markForCleanup(File file) {

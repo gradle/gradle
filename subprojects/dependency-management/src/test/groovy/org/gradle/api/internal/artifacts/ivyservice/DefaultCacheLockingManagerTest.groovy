@@ -16,12 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.cache.AsyncCacheAccess
-import org.gradle.cache.CacheDecorator
-import org.gradle.cache.CrossProcessCacheAccess
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
@@ -40,17 +36,10 @@ class DefaultCacheLockingManagerTest extends Specification {
         getExternalResourcesStoreDirectory() >> resourcesDir
         getFileStoreDirectory() >> filesDir
     }
-    def cacheDecoratorFactory = Stub(InMemoryCacheDecoratorFactory) {
-        decorator(_, _) >> new CacheDecorator() {
-            @Override
-            <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-                return persistentCache
-            }
-        }
-    }
+    def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, cacheDecoratorFactory)
+    def cacheLockingManager = new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal)
 
     def "cleans up resources"() {
         given:

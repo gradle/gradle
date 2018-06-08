@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 
 import static java.util.concurrent.TimeUnit.DAYS
 
-class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES
 
     def snapshotModule = mavenHttpRepo.module('org.example', 'example', '1.0-SNAPSHOT').publish().allowAll()
@@ -46,8 +46,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'resolve'
 
         then:
-        def resources = findFiles(cacheDir, 'resources-*/**/maven-metadata.xml')
-        resources.size() == 1
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
 
@@ -58,7 +57,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'tasks'
 
         then:
-        resources[0].assertExists()
+        resource.assertExists()
         files[0].assertExists()
         files[1].assertExists()
     }
@@ -71,8 +70,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'resolve'
 
         then:
-        def resources = findFiles(cacheDir, 'resources-*/**/maven-metadata.xml')
-        resources.size() == 1
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
         journal.assertExists()
@@ -82,7 +80,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         markForCleanup(gcFile) // force cleanup
 
         and: // last modified timestamp is used when journal does not exist
-        markForCleanup(resources[0].parentFile)
+        markForCleanup(resource.parentFile)
         markForCleanup(files[0].parentFile)
         markForCleanup(files[1].parentFile)
 
@@ -91,7 +89,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         executer.withTasks('tasks').start().waitForFinish()
 
         then:
-        resources[0].assertDoesNotExist()
+        resource.assertDoesNotExist()
         files[0].assertDoesNotExist()
         files[1].assertDoesNotExist()
     }
@@ -104,17 +102,16 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'resolve'
 
         then:
-        def jarFiles = findFiles(cacheDir, "files-*/**/*.jar")
-        jarFiles.size() == 1
+        def jarFile = findFile(cacheDir, "files-*/**/*.jar")
 
         when:
-        assert jarFiles[0].delete()
+        assert jarFile.delete()
 
         and:
         succeeds 'resolve'
 
         then:
-        jarFiles[0].assertExists()
+        jarFile.assertExists()
     }
 
     def "marks artifacts as recently used when accessed"() {
@@ -151,18 +148,17 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds()
 
         then:
-        def resources = findFiles(cacheDir, "resources-*/**/$uniqueFileName")
-        resources.size() == 1
+        def resource = findFile(cacheDir, "resources-*/**/$uniqueFileName")
 
         when:
-        assert resources[0].delete()
+        assert resource.delete()
         server.expectGet("/$uniqueFileName", script)
 
         and:
         succeeds()
 
         then:
-        resources[0].assertExists()
+        resource.assertExists()
     }
 
     def "redownloads deleted uri backed text resources"() {
@@ -183,18 +179,17 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'uriText'
 
         then:
-        def resources = findFiles(cacheDir, "resources-*/**/$uniqueFileName")
-        resources.size() == 1
+        def resource = findFile(cacheDir, "resources-*/**/$uniqueFileName")
 
         when:
-        assert resources[0].delete()
+        assert resource.delete()
         server.expectGet("/$uniqueFileName", resourceFile)
 
         and:
         succeeds 'uriText'
 
         then:
-        resources[0].assertExists()
+        resource.assertExists()
     }
 
     def "redownloads deleted artifacts for artifact query"() {
@@ -224,9 +219,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'verify'
 
         and:
-        def jarFiles = findFiles(cacheDir, "files-*/**/example-1.0-sources.jar")
-        jarFiles.size() == 1
-        def jarFile = jarFiles[0]
+        def jarFile = findFile(cacheDir, "files-*/**/example-1.0-sources.jar")
 
         when:
         assert jarFile.delete()
@@ -240,10 +233,10 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         jarFile.assertExists()
     }
 
-    private TestFile getJournal() {
-        def journal = findFiles(cacheDir, "metadata-*/" + IndexedCacheBackedFileAccessTimeJournal.CACHE_NAME + ".bin")
-        journal.size() == 1
-        journal[0]
+    private static TestFile findFile(File baseDir, String includePattern) {
+        List<TestFile> files = findFiles(baseDir, includePattern)
+        assert files.size() == 1
+        return files[0]
     }
 
     private static List<TestFile> findFiles(File baseDir, String includePattern) {
@@ -285,7 +278,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
     }
 
     TestFile getCacheDir() {
-        return executer.gradleUserHomeDir.file("caches", CacheLayout.ROOT.getKey())
+        return getUserHomeCacheDir().file(CacheLayout.ROOT.getKey())
     }
 
     void markForCleanup(File file) {

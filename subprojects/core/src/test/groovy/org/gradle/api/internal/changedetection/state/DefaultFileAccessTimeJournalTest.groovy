@@ -16,21 +16,32 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.cache.CacheDecorator
+import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class IndexedCacheBackedFileAccessTimeJournalTest extends Specification {
+class DefaultFileAccessTimeJournalTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def persistentCache = new InMemoryCacheFactory().open(tmpDir.createDir("cacheBaseDir"), "cache")
-    def indexedCache = persistentCache.createCache(IndexedCacheBackedFileAccessTimeJournal.baseCacheParameters())
+    def cacheScopeMapping = new DefaultCacheScopeMapping(tmpDir.createDir("user-home"), null, GradleVersion.current())
+    def cacheRepository = new DefaultCacheRepository(cacheScopeMapping, new InMemoryCacheFactory())
+    def cacheDecoratorFactory = Stub(InMemoryCacheDecoratorFactory) {
+        decorator(_, _) >> Stub(CacheDecorator) {
+            decorate(_, _, _, _, _) >> { cacheId, cacheName, persistentCache, crossProcessCacheAccess, asyncCacheAccess ->
+                persistentCache
+            }
+        }
+    }
 
-    @Subject FileAccessTimeJournal journal = new IndexedCacheBackedFileAccessTimeJournal(indexedCache, indexedCache)
+    @Subject FileAccessTimeJournal journal = new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory)
 
     def file = tmpDir.createFile("a/1.txt")
 
@@ -51,14 +62,17 @@ class IndexedCacheBackedFileAccessTimeJournalTest extends Specification {
         journal.getLastAccessTime(file) == 42
     }
 
-    def "falls back to modification time when no value was written previously"() {
-        expect:
-        journal.getLastAccessTime(file) == file.lastModified()
+    def "falls back to and stores modification time when no value was written previously"() {
+        when:
+        def lastModified = file.lastModified()
+
+        then:
+        journal.getLastAccessTime(file) == lastModified
 
         when:
         file.makeOlder()
 
         then:
-        journal.getLastAccessTime(file) == file.lastModified()
+        journal.getLastAccessTime(file) == lastModified
     }
 }

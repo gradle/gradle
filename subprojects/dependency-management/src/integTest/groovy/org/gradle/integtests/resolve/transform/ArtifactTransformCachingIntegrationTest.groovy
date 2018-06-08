@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
@@ -29,7 +29,7 @@ import static java.util.concurrent.TimeUnit.DAYS
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
 
-class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     def setup() {
@@ -1164,16 +1164,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return cacheDir.file("gc.properties")
     }
 
-    TestFile getJournal() {
-        return cacheDir.file(CacheLayout.TRANSFORMS_META_DATA.getKey(), IndexedCacheBackedFileAccessTimeJournal.CACHE_NAME + ".bin")
+    TestFile getCacheFilesDir() {
+        return cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey())
     }
 
     TestFile getCacheDir() {
-        return executer.gradleUserHomeDir.file("caches", CacheLayout.TRANSFORMS.getKey())
-    }
-
-    TestFile getCacheFilesDir() {
-        return cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey())
+        return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
     }
 
     void markForCleanup(File file) {

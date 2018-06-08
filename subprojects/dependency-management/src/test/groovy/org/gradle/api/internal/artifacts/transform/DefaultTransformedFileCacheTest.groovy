@@ -29,6 +29,7 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -54,13 +55,14 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         }
     }
     def snapshotter = Mock(FileSystemSnapshotter)
+    def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
     DefaultTransformedFileCache cache
 
     def setup() {
         scopeMapping.getBaseDirectory(_, _, _) >> tmpDir.testDirectory
         scopeMapping.getRootDirectory(_) >> tmpDir.testDirectory
         artifactCacheMetaData.transformsStoreDirectory >> transformsStoreDirectory
-        cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter)
+        cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
     }
 
     def "reuses result for given inputs and transform"() {
@@ -346,7 +348,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def result = cache.getResult(inputFile, HashCode.fromInt(123), transform)
 
         when:
-        def cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter)
+        def cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
         result.first().delete()
         def result2 = cache.getResult(inputFile, HashCode.fromInt(123), transform)
 

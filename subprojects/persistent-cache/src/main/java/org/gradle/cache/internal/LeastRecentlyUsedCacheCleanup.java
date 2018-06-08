@@ -17,9 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanableStore;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
-import org.gradle.internal.resource.local.FileAccessTimeReader;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.time.CountdownTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +35,12 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES = 7;
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES = 30;
 
-    private final Factory<? extends FileAccessTimeReader> accessTimeReaderFactory;
+    private final FileAccessTimeJournal journal;
     private final long minimumTimestamp;
 
-    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, Factory<? extends FileAccessTimeReader> accessTimeReaderFactory, long numberOfDays) {
+    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, FileAccessTimeJournal journal, long numberOfDays) {
         super(eligibleFilesFinder);
-        this.accessTimeReaderFactory = Factories.softReferenceCache(accessTimeReaderFactory);
+        this.journal = journal;
         this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(numberOfDays));
     }
 
@@ -54,7 +52,7 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
 
     @Override
     protected boolean shouldDelete(File file) {
-        return accessTimeReaderFactory.create().getLastAccessTime(file) < minimumTimestamp;
+        return journal.getLastAccessTime(file) < minimumTimestamp;
     }
 
 }

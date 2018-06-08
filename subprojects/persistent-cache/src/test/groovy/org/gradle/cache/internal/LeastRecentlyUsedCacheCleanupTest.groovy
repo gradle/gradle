@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CleanableStore
-import org.gradle.internal.Factories
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,7 +34,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
     }
     def timer = Stub(CountdownTimer)
     @Subject def cleanupAction = new LeastRecentlyUsedCacheCleanup(
-        new SingleDepthFilesFinder(1), Factories.constant(new ModificationTimeFileAccessTimeJournal()), 1)
+        new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), 1)
 
     def "finds files to delete when files are old"() {
         given:
