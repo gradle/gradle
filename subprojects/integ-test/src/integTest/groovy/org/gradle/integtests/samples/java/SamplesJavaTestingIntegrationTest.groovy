@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
@@ -27,6 +29,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic")
     def "can execute simple Java tests"() {
         given:
@@ -64,6 +67,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
         assertTestRun(xmlResults2, "quickUiCheck")
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/customDirs")
     def "can change the destination for test results and reports"() {
         given:
@@ -121,6 +125,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
         xmlResults.testcase.find { it.@name == "a" }
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/tagging")
     def "can filter tests by JUnit Platform tag"() {
         given:
@@ -157,6 +162,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
         getTestResultsFile(sample, "org.gradle.testng.SimpleIntegrationTest").assertDoesNotExist()
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/jupiter")
     def "can run tests using JUnit Jupiter"() {
         given:
@@ -174,6 +180,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
         assertTestsRunCount(xmlResults, 5)
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/mix")
     def "can run older JUnit tests with JUnit Jupiter"() {
         given:
@@ -197,6 +204,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
             1)
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/engine")
     def "can run JUnit Platform tests with a subset of engines"() {
         given:
@@ -255,6 +263,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
         xmlResults.testcase.@name*.text() == ["test1", "test2", "test1", "test2"]
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic")
     def "can run simple Java integration tests"() {
         given:
@@ -274,6 +283,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractIntegrationSpec {
             1)
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic")
     def "can skip the tests with an `onlyIf` condition"() {
         given:
