@@ -31,7 +31,6 @@ classpathManifest {
 dependencies {
     api project(":baseServices")
     api project(":baseServicesGroovy")
-    api project(":baseServicesJava9")
     api project(":messaging")
     api project(":logging")
     api project(":resources")

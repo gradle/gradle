@@ -16,8 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.Cast;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -42,7 +40,7 @@ public class LookupPackagesFetcher implements ClassLoaderPackagesFetcher {
     @Override
     public Package[] getPackages(ClassLoader classLoader) {
         try {
-            return Cast.uncheckedCast(getPackagesMethodHandle.bindTo(classLoader).invokeWithArguments());
+            return (Package[]) getPackagesMethodHandle.bindTo(classLoader).invokeWithArguments();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -51,7 +49,7 @@ public class LookupPackagesFetcher implements ClassLoaderPackagesFetcher {
     @Override
     public Package getPackage(ClassLoader classLoader, String name) {
         try {
-            return Cast.uncheckedCast(getDefinedPackageMethodHandle.bindTo(classLoader).invokeWithArguments(name));
+            return (Package) getDefinedPackageMethodHandle.bindTo(classLoader).invokeWithArguments(name);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

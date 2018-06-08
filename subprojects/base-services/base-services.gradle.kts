@@ -20,6 +20,7 @@ java {
 }
 
 dependencies {
+    api(project(":baseServicesJava9"))
     api(project(":distributionsDependencies"))
 
     api(library("guava"))
@@ -30,8 +31,6 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("jcip"))
-
-    testRuntimeOnly(project(":baseServicesJava9"))
 
     jmh(library("bouncycastle_provider")) {
         version {

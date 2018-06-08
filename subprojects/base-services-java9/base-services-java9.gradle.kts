@@ -34,7 +34,3 @@ java {
     }
 }
 
-dependencies {
-    api(project(":baseServices"))
-}
-

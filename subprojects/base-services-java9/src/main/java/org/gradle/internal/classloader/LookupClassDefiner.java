@@ -16,8 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.Cast;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -37,9 +35,10 @@ public class LookupClassDefiner implements ClassDefiner {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
         try {
-            return Cast.uncheckedCast(defineClassMethodHandle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length));
+            return (Class) defineClassMethodHandle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

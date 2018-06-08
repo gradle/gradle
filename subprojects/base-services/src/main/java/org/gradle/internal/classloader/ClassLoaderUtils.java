@@ -34,8 +34,8 @@ public abstract class ClassLoaderUtils {
     private static final ClassLoaderPackagesFetcher CLASS_LOADER_PACKAGES_FETCHER;
 
     static {
-        CLASS_DEFINER = loadClass("LookupClassDefiner", (ClassDefiner) new ReflectionClassDefiner());
-        CLASS_LOADER_PACKAGES_FETCHER = loadClass("LookupPackagesFetcher", (ClassLoaderPackagesFetcher) new ReflectionPackagesFetcher());
+        CLASS_DEFINER = JavaVersion.current().isJava9Compatible()?  new LookupClassDefiner(): new ReflectionClassDefiner();
+        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible()? new LookupPackagesFetcher(): new ReflectionPackagesFetcher();
     }
 
     /**
@@ -70,19 +70,6 @@ public abstract class ClassLoaderUtils {
 
     public static <T> Class<T> define(ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
         return CLASS_DEFINER.defineClass(targetClassLoader, className, clazzBytes);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T loadClass(String simpleClassName, T fallbackInstance) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            try {
-                return (T) Class.forName(ClassLoaderUtils.class.getPackage().getName() + "." + simpleClassName).newInstance();
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            return fallbackInstance;
-        }
     }
 
     private static class ReflectionClassDefiner implements ClassDefiner {
