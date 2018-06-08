@@ -988,7 +988,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        module("org.test:moduleC:1.1").byConflictResolution()
+                        module("org.test:moduleC:1.1").byConflictResolution("between versions 1.0 and 1.1")
                     }
                 }
             }

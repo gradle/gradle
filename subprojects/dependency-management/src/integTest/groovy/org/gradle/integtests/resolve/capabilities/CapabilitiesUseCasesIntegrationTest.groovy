@@ -102,8 +102,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         if (fixConflict) {
             resolve.expectGraph {
                 root(":", ":test:") {
-                    module('cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
-                    edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                    module('cglib:cglib:3.2.5').selectedByRule('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                    edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').selectedByRule('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
                 }
             }
         } else {
@@ -396,7 +396,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
-                        .byReason('latest version of capability asm:asm')
+                        .byConflictResolution('latest version of capability asm:asm')
                     module('org.ow2.asm:asm:4.0')
                 }
             }

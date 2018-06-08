@@ -134,7 +134,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
                 }
                 edgeFromConstraint("org:foo:1.1", "org:foo:1.1")
             }
@@ -229,9 +229,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:bar:1.0") {
-                    edge("org:foo:[1.0,1.2]", "org:foo:1.1").byReason('didn\'t match version 1.2 because tested versions')
+                    edge("org:foo:[1.0,1.2]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
                 }
-                edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byReason('didn\'t match version 1.2 because tested versions')
+                edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
             }
         }
     }
@@ -294,8 +294,8 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:bar:1.1", "org:foo:1.1").selectedByRule().byConflictResolution()
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:bar:1.1", "org:foo:1.1").selectedByRule()
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
             }
         }
     }
@@ -325,7 +325,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
                 module("org:foo:1.1")
             }
         }
@@ -368,11 +368,11 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution().byReason('transitive dependency constraint')
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1").byConstraint('transitive dependency constraint')
                 project(":b", "test:b:") {
                     configuration = "conf"
                     noArtifacts()
-                    module("org:foo:1.1").byReason('transitive dependency constraint')
+                    module("org:foo:1.1").byConstraint('transitive dependency constraint')
                 }
             }
         }
@@ -416,7 +416,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
                     module("org:foo:1.1:runtime")

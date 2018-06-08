@@ -21,16 +21,18 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
+
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -667,10 +669,27 @@ allprojects {
         }
 
         /**
+         * Marks that this node was selected due to conflict resolution.
+         */
+        NodeBuilder byConflictResolution(String message) {
+            reasons << "${ComponentSelectionCause.CONFLICT_RESOLUTION.defaultReason}: $message".toString()
+            this
+        }
+
+        /**
          * Marks that this node was selected by a rule.
          */
         NodeBuilder selectedByRule() {
             reasons << 'selected by rule'
+            this
+        }
+
+
+        /**
+         * Marks that this node was selected by a rule.
+         */
+        NodeBuilder selectedByRule(String message) {
+            reasons << "${ComponentSelectionCause.SELECTED_BY_RULE.defaultReason}: $message".toString()
             this
         }
 
@@ -695,6 +714,11 @@ allprojects {
          */
         NodeBuilder byReason(String reason) {
             reasons << reason
+            this
+        }
+
+        NodeBuilder byConstraint(String reason) {
+            reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
             this
         }
 
@@ -828,8 +852,14 @@ class GenerateGraphTask extends DefaultTask {
         }.sort().join(',')
     }
 
-    def formatReason(ComponentSelectionReason reason) {
-        def reasons = reason.descriptions.collect { it.description }.join('!!')
+    def formatReason(ComponentSelectionReasonInternal reason) {
+        def reasons = reason.descriptions.collect {
+            if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
+                "${it.cause.defaultReason}: ${it.description}"
+            } else {
+                it.description
+            }
+        }.join('!!')
         return reasons
     }
 }

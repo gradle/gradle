@@ -82,7 +82,7 @@ task check {
                 module('org.hibernate:hibernate-core:3.6.7.Final') {
                     module('org.hibernate:hibernate-commons-annotations:3.2.0.Final') {
                         edge('org.slf4j:slf4j-api:1.5.8', 'org.slf4j:slf4j-api:1.6.2') {
-                            byConflictResolution()
+                            byConflictResolution("between versions 1.6.2, 1.6.1 and 1.5.8")
                         }
                     }
                     module('org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final')
@@ -91,11 +91,11 @@ task check {
                     module('javax.transaction:jta:1.1')
                     module('commons-collections:commons-collections:3.1')
                     edge('org.slf4j:slf4j-api:1.6.1', 'org.slf4j:slf4j-api:1.6.2') {
-                        byConflictResolution()
+                        byConflictResolution("between versions 1.6.2, 1.6.1 and 1.5.8")
                     }
                 }
                 edge('commons-collections:commons-collections:3.0', 'commons-collections:commons-collections:3.1') {
-                    byConflictResolution()
+                    byConflictResolution("between versions 3.0 and 3.1")
                 }
             }
         }

@@ -79,9 +79,9 @@ commons-codec:commons-codec:1.7""")
      - org.apache.httpcomponents:httpclient:4.3.6 (requested)
           - org.apache.httpcomponents:httpcore:4.3.3 (requested)
           - commons-logging:commons-logging:1.1.3 (requested)
-          - commons-codec:commons-codec:1.7 (conflict resolution)
+          - commons-codec:commons-codec:1.7 (between versions 1.7 and 1.6)
      - org.slf4j:slf4j-api:1.7.2 (requested)
-- commons-codec:commons-codec:1.7 (conflict resolution)
+- commons-codec:commons-codec:1.7 (between versions 1.7 and 1.6)
 - some:unresolved:2.5 (failed)""")
     }
 

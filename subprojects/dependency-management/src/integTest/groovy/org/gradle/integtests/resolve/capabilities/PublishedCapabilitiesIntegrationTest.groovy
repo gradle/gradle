@@ -92,7 +92,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('cglib:cglib-nodep:3.2.4', 'cglib:cglib:3.2.5')
-                    .byReason('latest version of capability cglib:cglib')
+                    .byConflictResolution('latest version of capability cglib:cglib')
                 module('cglib:cglib:3.2.5')
             }
         }
@@ -236,15 +236,15 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:testA:1.0', 'org:testB:1.0')
-                    .byReason('latest version of capability org:cap')
+                    .byConflictResolution('latest version of capability org:cap')
                 module('org:testB:1.0')
                 module('org:testC:1.0') {
                     edge('org:testCC:1.0', 'org:testB:1.0')
-                        .byReason('latest version of capability org:cap')
+                        .byConflictResolution('latest version of capability org:cap')
                 }
                 module('org:testD:1.0') {
                     edge('org:testA:1.0', 'org:testB:1.0')
-                        .byReason('latest version of capability org:cap')
+                        .byConflictResolution('latest version of capability org:cap')
                 }
             }
         }

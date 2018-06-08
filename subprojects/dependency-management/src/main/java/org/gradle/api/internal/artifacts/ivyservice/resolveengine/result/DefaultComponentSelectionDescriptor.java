@@ -56,6 +56,11 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
     }
 
     @Override
+    public Describable getDescribable() {
+        return description;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
