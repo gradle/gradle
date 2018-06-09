@@ -107,12 +107,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local compilation cache"))
             .open();
-        remappedClassesCache.close();
+        try {
+            File remappedClassesDir = classesDir(remappedClassesCache);
+            File remappedMetadataDir = metadataDir(remappedClassesCache);
 
-        File remappedClassesDir = classesDir(remappedClassesCache);
-        File remappedMetadataDir = metadataDir(remappedClassesCache);
-
-        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+        } finally {
+            remappedClassesCache.close();
+        }
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
@@ -405,11 +407,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                     "Compiling script into cache",
                     "Compiling " + source.getDisplayName() + " to cross build script cache"))
                 .open();
-            cache.close();
-            final File genericClassesDir = classesDir(cache);
-            final File metadataDir = metadataDir(cache);
-            remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
-            copyMetadata(metadataDir, metadataDir(remappedClassesCache));
+            try {
+                final File genericClassesDir = classesDir(cache);
+                final File metadataDir = metadataDir(cache);
+                remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
+                copyMetadata(metadataDir, metadataDir(remappedClassesCache));
+            } finally {
+                cache.close();
+            }
         }
 
         private void remapClasses(File scriptCacheDir, File relocalizedDir, RemappingScriptSource source) {
