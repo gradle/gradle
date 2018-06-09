@@ -28,8 +28,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
     MavenHttpRepository repo
 
     def setup() {
-        executer.requireDaemon()
-        executer.requireIsolatedDaemons()
         repo = new MavenHttpRepository(server, mavenRepo)
 
         repo.module("commons-io", "commons-io", "1.4").publish().allowAll()
@@ -136,6 +134,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "url connection caching is not disabled by default"() {
+
         given:
         buildFile << """
             task checkUrlConnectionCaching {
@@ -146,6 +145,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
         """
+        executer.requireDaemon().requireIsolatedDaemons()
 
         expect:
         succeeds("checkUrlConnectionCaching")
