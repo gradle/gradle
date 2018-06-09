@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
@@ -273,12 +272,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
-        if (gradle.getParent() == null) {
-            File projectDir = getFileResolver().resolve(rootProject);
-            includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
-        } else {
-            throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", getRootProject().getName()));
-        }
+        File projectDir = getFileResolver().resolve(rootProject);
+        includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
     }
 
     @Override

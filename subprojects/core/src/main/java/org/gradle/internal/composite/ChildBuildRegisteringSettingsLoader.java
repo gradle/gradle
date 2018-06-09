@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,19 @@ package org.gradle.internal.composite;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 
-import java.io.File;
+import java.util.List;
 
-public class CompositeBuildSettingsLoader implements SettingsLoader {
+public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
     private final BuildStateRegistry buildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry) {
+    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry) {
         this.delegate = delegate;
         this.buildRegistry = buildRegistry;
     }
@@ -38,15 +40,16 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
 
-        // Add all included builds from the command-line
-        for (File rootDir : gradle.getStartParameter().getIncludedBuilds()) {
-            // TODO: Allow builds to inject into explicitly included builds
-            BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), rootDir, DefaultPluginRequests.EMPTY);
-            buildRegistry.addIncludedBuild(buildDefinition);
+        // Add included builds defined in settings
+        List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
+        if (!includedBuilds.isEmpty()) {
+            for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
+                // TODO: Allow builds to inject into explicitly included builds
+                BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY);
+                IncludedBuildState includedBuild = buildRegistry.addIncludedBuild(buildDefinition);
+                includedBuildSpec.configurer.execute(includedBuild.getModel());
+            }
         }
-
-        // Lock-in explicitly included builds
-        buildRegistry.registerRootBuild(settings);
 
         return settings;
     }

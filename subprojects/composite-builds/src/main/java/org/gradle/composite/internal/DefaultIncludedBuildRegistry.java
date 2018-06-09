@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
@@ -57,6 +58,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private RootBuildState rootBuild;
     private final Map<BuildIdentifier, BuildState> builds = Maps.newHashMap();
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
+    private final List<IncludedBuildState> pendingIncludedBuilds = Lists.newArrayList();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
         this.includedBuildFactory = includedBuildFactory;
@@ -156,7 +158,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private void validateIncludedBuilds(SettingsInternal settings) {
         Set<String> names = Sets.newHashSet();
-        for (IncludedBuildState build : includedBuilds.values()) {
+        while (!pendingIncludedBuilds.isEmpty()) {
+            IncludedBuildState build = pendingIncludedBuilds.remove(0);
+            // This implicitly loads the settings, possibly discovering more included builds
+            // Should make this an explicit step instead
             String buildName = build.getName();
             if (!names.add(buildName)) {
                 throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
@@ -230,6 +235,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
             includedBuilds.put(buildDefinition.getBuildRootDir(), includedBuild);
+            pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
         } else {
             if (includedBuild.isImplicitBuild() != isImplicit) {

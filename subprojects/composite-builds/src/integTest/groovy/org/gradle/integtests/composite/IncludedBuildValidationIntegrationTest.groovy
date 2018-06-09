@@ -71,23 +71,6 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         failure.assertHasDescription("Included build 'b1' must have a settings file.")
     }
 
-    def "reports failure when included build is itself a composite"() {
-        when:
-        def buildC = singleProjectBuild("buildC")
-        buildB.settingsFile << """
-            includeBuild('${buildC.toURI()}')
-"""
-
-        includedBuilds << buildB
-
-        then:
-        fails(buildA, "help")
-
-        and:
-        failure.assertHasCause("Included build 'buildB' cannot have included builds.")
-    }
-
-
     def "reports failure for duplicate included build name"() {
         given:
         def buildC = singleProjectBuild("buildC")
