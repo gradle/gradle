@@ -58,6 +58,6 @@ class TestIdePlugin extends IdePlugin {
 
     @Override protected void onApply(Project target) {
         def worker = target.task('generateXml')
-        addWorker(worker)
+        addWorker(target.getTasks().named(worker.getName()), worker.getName());
     }
 }

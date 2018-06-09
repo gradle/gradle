@@ -31,12 +31,12 @@ class UpdateVersionsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val releasedVersionsJsonFile = file("released-versions.json")
 
-        tasks.withType<UpdateReleasedVersions> {
+        tasks.withType<UpdateReleasedVersions>().configureEach {
             releasedVersionsFile = releasedVersionsJsonFile
             group = "Versioning"
         }
 
-        tasks.create<UpdateReleasedVersions>("updateReleasedVersions") {
+        tasks.register("updateReleasedVersions", UpdateReleasedVersions::class.java) {
             // TODO
             val currentReleasedVersionProperty = project.findProperty("currentReleasedVersion")
             val value =
@@ -45,7 +45,7 @@ class UpdateVersionsPlugin : Plugin<Project> {
             currentReleasedVersion.set(value)
         }
 
-        tasks.create<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") {
+        tasks.register("updateReleasedVersionsToLatestNightly", UpdateReleasedVersions::class.java) {
             currentReleasedVersion.set(project.providers.provider(Callable {
                 val jsonText = URL("https://services.gradle.org/versions/${VersionType.NIGHTLY.type}").readText()
                 println(jsonText)

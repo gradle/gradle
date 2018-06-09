@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -47,7 +48,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+    public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         TransformArtifactOperation operation = artifactResults.get(artifact);
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
@@ -82,7 +83,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
+    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
         TransformFileOperation operation = fileResults.get(file);
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());

@@ -138,16 +138,16 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         result.visit(visitor)
 
         then:
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), 'local file', attrs1, f1)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), 'local file', attrs2, f2)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), { it.displayName == 'local file' }, attrs1, f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), { it.displayName == 'local file' }, attrs2, f2)
         0 * _
 
         when:
         result.visit(visitor)
 
         then:
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), 'local file', attrs1, f1)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), 'local file', attrs2, f2)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), { it.displayName == 'local file' }, attrs1, f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), { it.displayName == 'local file' }, attrs2, f2)
         0 * _
     }
 
@@ -172,8 +172,8 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
-        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), 'local file', attrs1, f1)
-        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), 'local file', attrs2, f2)
+        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), { it.displayName == 'local file' }, attrs1, f1)
+        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), { it.displayName == 'local file' }, attrs2, f2)
         0 * visitor._
     }
 

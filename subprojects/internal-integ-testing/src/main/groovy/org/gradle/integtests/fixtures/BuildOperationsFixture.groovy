@@ -61,6 +61,12 @@ class BuildOperationsFixture {
         }
     }
 
+    static <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type) {
+        assert record.detailsType
+        def detailsType = BuildOperationTypes.detailsType(type)
+        detailsType.isAssignableFrom(record.detailsType)
+    }
+
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)

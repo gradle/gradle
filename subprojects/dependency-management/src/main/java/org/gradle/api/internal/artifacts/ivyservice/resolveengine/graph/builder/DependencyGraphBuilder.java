@@ -54,7 +54,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -305,11 +304,26 @@ public class DependencyGraphBuilder {
     }
 
     private void validateGraph(ResolveState resolveState) {
-        // TODO In order to collect all of the rejection failures, this should be done via a DependencyGraphVisitor.
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null && module.getSelected().isRejected()) {
-                throw new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                GradleException error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                attachFailureToEdges(error, module.getIncomingEdges());
+                // We need to attach failures on unattached dependencies too, in case a node wasn't selected
+                // at all, but we still want to see an error message for it.
+                attachFailureToEdges(error, module.getUnattachedDependencies());
             }
+        }
+    }
+
+    /**
+     * Attaches errors late in the process. This is useful whenever we have built a graph, and that
+     * validation is going to cause a failure (the error is not in the graph itself, but in the way
+     * we handle it: do we use failOnVersionConflict?). This method therefore needs to be called
+     * before the graph is handed over, so that we can properly fail resolution.
+     */
+    private void attachFailureToEdges(GradleException error, Collection<EdgeState> incomingEdges) {
+        for (EdgeState edge : incomingEdges) {
+            edge.failWith(error);
         }
     }
 
@@ -332,7 +346,7 @@ public class DependencyGraphBuilder {
         }
 
         // Collect the components to sort in consumer-first order
-        List<ComponentState> queue = new ArrayList<ComponentState>();
+        List<ComponentState> queue = Lists.newArrayListWithExpectedSize(resolveState.getNodeCount());
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null) {
                 queue.add(module.getSelected());

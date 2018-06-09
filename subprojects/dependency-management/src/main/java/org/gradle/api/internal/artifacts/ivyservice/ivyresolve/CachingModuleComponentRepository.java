@@ -82,9 +82,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleArtifactsCache moduleArtifactsCache;
     private final ModuleArtifactCache moduleArtifactCache;
 
-    private final CachePolicy cachePolicy;
-
     private final ModuleComponentRepository delegate;
+    private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -100,8 +99,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.moduleVersionsCache = caches.moduleVersionsCache;
         this.moduleArtifactsCache = caches.moduleArtifactsCache;
         this.moduleArtifactCache = caches.moduleArtifactCache;
-        this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
+        this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }

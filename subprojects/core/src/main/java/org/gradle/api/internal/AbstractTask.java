@@ -32,6 +32,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
@@ -91,15 +92,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
 
+    private final TaskIdentity<?> identity;
+
     private final ProjectInternal project;
 
-    private final String name;
-
     private List<ContextAwareTaskAction> actions;
-
-    private Path path;
-
-    private Path identityPath;
 
     private boolean enabled = true;
 
@@ -134,7 +131,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
     private final TaskLocalStateInternal taskLocalState;
-    private final Class<? extends Task> publicType;
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
@@ -153,11 +149,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the DSL.", getClass().getName()));
         }
 
+        this.identity = taskInfo.identity;
         this.project = taskInfo.project;
-        this.name = taskInfo.name;
-        this.publicType = taskInfo.publicType;
         assert project != null;
-        assert name != null;
+        assert identity.name != null;
         state = new TaskStateInternal();
         TaskContainerInternal tasks = project.getTasks();
         mustRunAfter = new DefaultTaskDependency(tasks);
@@ -179,12 +174,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, publicType, services.get(Instantiator.class));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(Instantiator.class));
         }
     }
 
-    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
-        NEXT_INSTANCE.set(new TaskInfo(project, name, publicType));
+    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, TaskIdentity<T> identity, Callable<T> factory) {
+        NEXT_INSTANCE.set(new TaskInfo(identity, project));
         try {
             return uncheckedCall(factory);
         } finally {
@@ -209,7 +204,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public String getName() {
-        return name;
+        return identity.name;
+    }
+
+    @Override
+    public TaskIdentity<?> getTaskIdentity() {
+        return identity;
     }
 
     @Override
@@ -359,18 +359,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public String getPath() {
-        if (path == null) {
-            path = project.getProjectPath().child(name);
-        }
-        return path.getPath();
+        return identity.projectPath.toString();
     }
 
     @Override
     public Path getIdentityPath() {
-        if (identityPath == null) {
-            identityPath = project.getIdentityPath().child(name);
-        }
-        return identityPath;
+        return identity.identityPath;
     }
 
     @Override
@@ -691,14 +685,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static class TaskInfo {
+        private final TaskIdentity<?> identity;
         private final ProjectInternal project;
-        private final Class<? extends Task> publicType;
-        private final String name;
 
-        private TaskInfo(ProjectInternal project, String name, Class<? extends Task> publicType) {
-            this.name = name;
+        private TaskInfo(TaskIdentity<?> identity, ProjectInternal project) {
+            this.identity = identity;
             this.project = project;
-            this.publicType = publicType;
         }
     }
 

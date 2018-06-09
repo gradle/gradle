@@ -229,9 +229,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:bar:1.0") {
-                    edge("org:foo:[1.0,1.2]", "org:foo:1.1").byReason('tested versions')
+                    edge("org:foo:[1.0,1.2]", "org:foo:1.1").byReason('didn\'t match version 1.2 because tested versions')
                 }
-                edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byReason('tested versions')
+                edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byReason('didn\'t match version 1.2 because tested versions')
             }
         }
     }

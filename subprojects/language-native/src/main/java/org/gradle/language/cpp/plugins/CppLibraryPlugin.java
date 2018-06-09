@@ -25,7 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,6 +34,7 @@ import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppPlatform;
@@ -205,13 +206,17 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
                     @Override
                     public void execute(AppliedPlugin appliedPlugin) {
-                        final Zip headersZip = tasks.create("cppHeaders", Zip.class);
-                        headersZip.from(library.getPublicHeaderFiles());
-                        // TODO - should track changes to build directory
-                        headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
-                        headersZip.setClassifier("cpp-api-headers");
-                        headersZip.setArchiveName("cpp-api-headers.zip");
-                        mainVariant.addArtifact(new ArchivePublishArtifact(headersZip));
+                        final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, new Action<Zip>() {
+                            @Override
+                            public void execute(Zip headersZip) {
+                                headersZip.from(library.getPublicHeaderFiles());
+                                // TODO - should track changes to build directory
+                                headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
+                                headersZip.setClassifier("cpp-api-headers");
+                                headersZip.setArchiveName("cpp-api-headers.zip");
+                            }
+                        });
+                        mainVariant.addArtifact(new LazyPublishArtifact(headersZip));
                     }
                 });
 

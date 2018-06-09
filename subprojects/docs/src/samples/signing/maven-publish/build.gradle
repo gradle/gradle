@@ -68,3 +68,10 @@ signing {
     sign publishing.publications.mavenJava
 }
 // END SNIPPET sign-publication
+
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html4', true)
+    }
+}

@@ -60,6 +60,7 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -104,7 +105,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-public class InProcessGradleExecuter extends AbstractGradleExecuter {
+public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
@@ -167,7 +168,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private boolean isForkRequired() {
-        if (isUseDaemon() || !getJavaHome().equals(Jvm.current().getJavaHome())) {
+        if (isDaemonExplicitlyRequired() || !getJavaHome().equals(Jvm.current().getJavaHome())) {
             return true;
         }
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
@@ -178,7 +179,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             }
         }
         return false;
-
     }
 
     private <T extends ExecutionResult> T assertResult(T result) {
@@ -189,12 +189,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected GradleHandle createGradleHandle() {
         configureConsoleCommandLineArgs();
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
+        return super.createGradleHandle();
     }
 
-    private Factory<JavaExecHandleBuilder> getJavaExecBuilder() {
+    protected Factory<JavaExecHandleBuilder> getExecHandleFactory() {
         return new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
+                NativeServicesTestFixture.initialize();
                 GradleInvocation invocation = buildInvocation();
                 JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
                 builder.workingDir(getWorkingDir());
@@ -202,6 +203,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 Collection<File> classpath = cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles());
                 builder.classpath(classpath);
                 builder.jvmArgs(invocation.launcherJvmArgs);
+                builder.environment(invocation.environmentVars);
 
                 builder.setMain(Main.class.getName());
                 builder.args(invocation.args);

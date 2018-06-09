@@ -33,7 +33,7 @@ allprojects {
 }
 '''
         when:
-        executer.requireGradleDistribution().withArgument("--profile")
+        executer.withArgument("--profile")
         succeeds("build", "fooTask", "-x", "barTask")
 
         then:

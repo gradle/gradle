@@ -42,6 +42,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -125,7 +126,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ResolutionStrategyInternal resolutionStrategy = configurationContainer.detachedConfiguration().getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
+        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);
@@ -178,7 +179,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             if (resolveResult.getFailure() != null) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
             } else {
-                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, component.getId().getDisplayName(), type, resolveResult.getResult()));
+                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult()));
             }
         }
     }

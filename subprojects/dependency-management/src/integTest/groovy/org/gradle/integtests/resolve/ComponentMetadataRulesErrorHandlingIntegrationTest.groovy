@@ -62,7 +62,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(22)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
-        failure.assertHasCause("Could not find method foo() for arguments [] on object of type WrongRule.")
+        failure.assertHasCause("No signature of method: WrongRule.foo() is applicable for argument types: () values: []")
     }
 
     def "produces sensible error for invalid component metadata rule" () {

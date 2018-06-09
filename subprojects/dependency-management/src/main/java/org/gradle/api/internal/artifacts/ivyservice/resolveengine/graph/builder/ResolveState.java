@@ -131,6 +131,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.values();
     }
 
+    public int getNodeCount() {
+        return nodes.size();
+    }
+
     public NodeState getNode(ComponentState module, ConfigurationMetadata configurationMetadata) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), configurationMetadata.getName());
         NodeState configuration = nodes.get(id);

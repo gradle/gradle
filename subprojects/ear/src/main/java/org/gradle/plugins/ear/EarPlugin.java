@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
@@ -32,6 +32,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -85,7 +86,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void configureWithNoJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention) {
-        project.getTasks().withType(Ear.class, new Action<Ear>() {
+        project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             public void execute(final Ear task) {
                 task.from(new Callable<FileCollection>() {
                     public FileCollection call() throws Exception {
@@ -111,7 +112,7 @@ public class EarPlugin implements Plugin<Project> {
                         return earPluginConvention.getAppDirName();
                     }
                 });
-                project.getTasks().withType(Ear.class, new Action<Ear>() {
+                project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
                     public void execute(final Ear task) {
                         task.dependsOn(new Callable<FileCollection>() {
                             public FileCollection call() throws Exception {
@@ -131,8 +132,14 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {
-        Ear ear = project.getTasks().create(EAR_TASK_NAME, Ear.class);
-        ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
+        TaskProvider<Ear> ear = project.getTasks().register(EAR_TASK_NAME, Ear.class, new Action<Ear>() {
+            @Override
+            public void execute(Ear ear) {
+                ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
+                ear.setGroup(BasePlugin.BUILD_GROUP);
+            }
+        });
+
         DeploymentDescriptor deploymentDescriptor = convention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {
             if (deploymentDescriptor.getDisplayName() == null) {
@@ -142,10 +149,9 @@ public class EarPlugin implements Plugin<Project> {
                 deploymentDescriptor.setDescription(project.getDescription());
             }
         }
-        ear.setGroup(BasePlugin.BUILD_GROUP);
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(ear));
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear));
 
-        project.getTasks().withType(Ear.class, new Action<Ear>() {
+        project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             public void execute(Ear task) {
                 task.getLib().from(new Callable<FileCollection>() {
                     public FileCollection call() throws Exception {
@@ -166,7 +172,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
-        project.getTasks().withType(Ear.class, new Action<Ear>() {
+        project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             public void execute(Ear task) {
                 task.getConventionMapping().map("libDirName", new Callable<String>() {
                     public String call() throws Exception {

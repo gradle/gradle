@@ -37,20 +37,19 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Defau
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 import org.gradle.vcs.internal.VcsResolver;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
-import static org.gradle.util.GUtil.flattenElements;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
@@ -145,11 +144,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
-        Collection<Action<DependencySubstitution>> allRules = flattenElements(
-                new ModuleForcingResolveRule(forcedModules, moduleIdentifierFactory),
-                dependencySubstitutions.getRuleAction(),
-                globalDependencySubstitutionRules.getRuleAction());
-        return Actions.composite(allRules);
+        Action<DependencySubstitution> moduleForcingResolveRule = Cast.uncheckedCast(forcedModules.isEmpty() ? Actions.doNothing() : new ModuleForcingResolveRule(forcedModules, moduleIdentifierFactory));
+        Action<DependencySubstitution> localDependencySubstitutionsAction = this.dependencySubstitutions.getRuleAction();
+        Action<DependencySubstitution> globalDependencySubstitutionRulesAction = globalDependencySubstitutionRules.getRuleAction();
+        //noinspection unchecked
+        return Actions.composite(moduleForcingResolveRule, localDependencySubstitutionsAction, globalDependencySubstitutionRulesAction);
     }
 
     public void assumeFluidDependencies() {

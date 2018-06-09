@@ -70,4 +70,8 @@ public interface ResolverResults {
      * Marks artifact resolution as successful, clearing state provided by {@link #retainState(Object)}.
      */
     void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts);
+
+    ResolveException consumeNonFatalFailure();
+
+    boolean hasResolutionResult();
 }

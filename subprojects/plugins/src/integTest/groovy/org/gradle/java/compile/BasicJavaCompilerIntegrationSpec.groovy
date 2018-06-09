@@ -18,11 +18,12 @@
 package org.gradle.java.compile
 
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -123,6 +124,8 @@ compileJava.options.debug = false
         !noDebug.debugIncludesLocalVariables
     }
 
+    // JavaFx was removed in JDK 10
+    @IgnoreIf({ JavaVersion.current() < JavaVersion.VERSION_1_8 || JavaVersion.current() > JavaVersion.VERSION_1_9 })
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "compileJavaFx8Code"() {
         given:
@@ -263,7 +266,6 @@ class Main {
         return new ClassFile(javaClassFile(path))
     }
 
-    @LeaksFileHandles("holds processor.jar open for in process compiler")
     def "can use annotation processor"() {
         when:
         buildFile << """
@@ -322,8 +324,8 @@ class Main {
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -384,10 +386,6 @@ class Main {
         then:
         fails("compileJava")
         failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
-    }
-
-    protected boolean gradleLeaksIntoAnnotationProcessor() {
-        return false;
     }
 
 }

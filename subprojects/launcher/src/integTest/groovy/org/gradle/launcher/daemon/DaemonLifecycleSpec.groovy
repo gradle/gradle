@@ -78,8 +78,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.withDaemonIdleTimeoutSecs(daemonIdleTimeout)
             executer.withArguments(
                     "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
-                    "--debug", // Need debug logging so we can extract the `DefaultDaemonContext`
-                    "-Dorg.gradle.jvmargs=-ea")
+                    "--debug" // Need debug logging so we can extract the `DefaultDaemonContext`
+            )
             if (javaHome) {
                 executer.withJavaHome(javaHome)
             }
@@ -252,6 +252,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "existing foreground idle daemons are used"() {
         when:
         startForegroundDaemon()

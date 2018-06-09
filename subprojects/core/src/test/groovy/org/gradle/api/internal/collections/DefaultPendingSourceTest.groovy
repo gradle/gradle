@@ -120,6 +120,27 @@ class DefaultPendingSourceTest extends Specification {
         0 * realize.execute()
     }
 
+    def "can handle realizing elements that modify the list of pending elements"() {
+        def pending1Called = false
+
+        given:
+        pending.addPending(provider1)
+        pending.onRealize(new Action<ProviderInternal>() {
+            @Override
+            void execute(ProviderInternal providerInternal) {
+                pending1Called = true
+                pending.addPending(provider2)
+            }
+        })
+
+        when:
+        pending.realizePending()
+
+        then:
+        pending1Called
+        !pending.isEmpty()
+    }
+
     class BaseType {}
     class SomeType extends BaseType {}
     class SomeOtherType extends BaseType {}

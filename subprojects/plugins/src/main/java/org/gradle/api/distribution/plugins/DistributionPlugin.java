@@ -23,17 +23,19 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.Sync;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
@@ -87,9 +89,9 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
 
                 dist.getContents().from("src/" + dist.getName() + "/dist");
                 String zipTaskName = MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_ZIP_NAME : dist.getName() + "DistZip";
-                Task zipTask = configureArchiveTask(project, zipTaskName, dist, Zip.class);
+                TaskProvider<Zip> zipTask = configureArchiveTask(project, zipTaskName, dist, Zip.class);
                 String tarTaskName = MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_TAR_NAME : dist.getName() + "DistTar";
-                Task tarTask = configureArchiveTask(project, tarTaskName, dist, Tar.class);
+                TaskProvider<Tar> tarTask = configureArchiveTask(project, tarTaskName, dist, Tar.class);
                 addAssembleTask(project, dist, zipTask, tarTask);
                 addInstallTask(project, dist);
             }
@@ -97,32 +99,42 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         distributions.create(MAIN_DISTRIBUTION_NAME);
     }
 
-    private <T extends AbstractArchiveTask> Task configureArchiveTask(Project project, String taskName, final Distribution distribution, Class<T> type) {
-        final T archiveTask = project.getTasks().create(taskName, type);
-        archiveTask.setDescription("Bundles the project as a distribution.");
-        archiveTask.setGroup(DISTRIBUTION_GROUP);
-        archiveTask.getConventionMapping().map("baseName", new Callable<Object>() {
+    private <T extends AbstractArchiveTask> TaskProvider<T> configureArchiveTask(Project project, String taskName, final Distribution distribution, Class<T> type) {
+        final TaskProvider<T> archiveTask = project.getTasks().register(taskName, type, new Action<T>() {
             @Override
-            public Object call() throws Exception {
-                if (distribution.getBaseName() == null || distribution.getBaseName().equals("")) {
-                    throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.");
-                }
-                return distribution.getBaseName();
+            public void execute(T archiveTask) {
+                archiveTask.setDescription("Bundles the project as a distribution.");
+                archiveTask.setGroup(DISTRIBUTION_GROUP);
+                archiveTask.getConventionMapping().map("baseName", new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        if (distribution.getBaseName() == null || distribution.getBaseName().equals("")) {
+                            throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.");
+                        }
+                        return distribution.getBaseName();
+                    }
+                });
             }
         });
+
 
         Callable<String> baseDir = new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return TextUtil.minus(archiveTask.getArchiveName(), "." + archiveTask.getExtension());
+                return TextUtil.minus(archiveTask.get().getArchiveName(), "." + archiveTask.get().getExtension());
             }
         };
 
-        CopySpec childSpec = project.copySpec();
+        final CopySpec childSpec = project.copySpec();
         childSpec.into(baseDir);
         childSpec.with(distribution.getContents());
-        archiveTask.with(childSpec);
-        ArchivePublishArtifact archiveArtifact = new ArchivePublishArtifact(archiveTask);
+        archiveTask.configure(new Action<T>() {
+            @Override
+            public void execute(T t) {
+                t.with(childSpec);
+            }
+        });
+        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
         return archiveTask;
     }
@@ -145,7 +157,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addAssembleTask(Project project, Distribution distribution, Task... tasks) {
+    private void addAssembleTask(Project project, Distribution distribution, TaskProvider<?>... tasks) {
         String taskName = TASK_ASSEMBLE_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
             taskName = "assemble" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";

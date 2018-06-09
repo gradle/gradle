@@ -116,11 +116,11 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         applyBuildScriptProgress[0].details.category == 'org.gradle.api.Project'
         applyBuildScriptProgress[0].details.message == 'from build.gradle'
 
-        def runTasksProgress = operations.only("Run tasks").progress
-        runTasksProgress.size() == 1
-        runTasksProgress[0].details.logLevel == 'WARN'
-        runTasksProgress[0].details.category == 'org.gradle.api.Project'
-        runTasksProgress[0].details.message == 'warning from taskgraph'
+        def notifyTaskGraphProgress = operations.only("Notify task graph whenReady listeners").progress
+        notifyTaskGraphProgress.size() == 1
+        notifyTaskGraphProgress[0].details.logLevel == 'WARN'
+        notifyTaskGraphProgress[0].details.category == 'org.gradle.api.Project'
+        notifyTaskGraphProgress[0].details.message == 'warning from taskgraph'
 
         def jarTaskDoLastOperation = operations.only("Execute doLast {} action for :jar")
         operations.parentsOf(jarTaskDoLastOperation).find {

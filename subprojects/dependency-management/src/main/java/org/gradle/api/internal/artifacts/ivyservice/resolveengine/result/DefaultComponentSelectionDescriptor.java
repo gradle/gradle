@@ -16,19 +16,28 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.base.Objects;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
+import org.gradle.internal.Describables;
 
 public class DefaultComponentSelectionDescriptor implements ComponentSelectionDescriptorInternal {
     private final ComponentSelectionCause cause;
-    private final String description;
+    private final Describable description;
+    private final boolean hasCustomDescription;
+    private final int hashCode;
 
     public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause) {
-        this(cause, cause.getDefaultReason());
+        this.cause = cause;
+        this.description = Describables.of(cause.getDefaultReason());
+        this.hasCustomDescription = false;
+        this.hashCode = cause.hashCode();
     }
 
-    public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause, String description) {
+    public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause, Describable description) {
         this.cause = cause;
         this.description = description;
+        this.hasCustomDescription = true;
+        this.hashCode = Objects.hashCode(cause, description);
     }
 
     @Override
@@ -38,12 +47,12 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
 
     @Override
     public String getDescription() {
-        return description;
+        return description.getDisplayName();
     }
 
     @Override
     public boolean hasCustomDescription() {
-        return !cause.getDefaultReason().equals(description);
+        return hasCustomDescription;
     }
 
     @Override
@@ -61,16 +70,16 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(cause, description);
+        return hashCode;
     }
 
     @Override
     public String toString() {
-        return description;
+        return description.getDisplayName();
     }
 
     @Override
-    public ComponentSelectionDescriptorInternal withReason(String reason) {
+    public ComponentSelectionDescriptorInternal withReason(Describable reason) {
         if (description.equals(reason)) {
             return this;
         }

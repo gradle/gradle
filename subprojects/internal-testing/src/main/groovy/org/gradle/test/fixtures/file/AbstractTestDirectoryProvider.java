@@ -44,6 +44,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     private TestFile dir;
     private String prefix;
     private boolean cleanup = true;
+    private boolean suppressCleanupErrors = false;
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -58,6 +59,10 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     @Override
     public void suppressCleanup() {
         cleanup = false;
+    }
+
+    public void suppressCleanupErrors() {
+        suppressCleanupErrors = true;
     }
 
     public boolean isCleanup() {
@@ -108,7 +113,8 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
 
         private boolean suppressCleanupErrors() {
-            return testClass().getAnnotation(LeaksFileHandles.class) != null
+            return suppressCleanupErrors
+                || testClass().getAnnotation(LeaksFileHandles.class) != null
                 || description.getAnnotation(LeaksFileHandles.class) != null;
         }
 

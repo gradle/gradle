@@ -42,7 +42,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
-                tasks.createLater(getTaskName("checkstyle", "groovy"), Checkstyle::class.java) {
+                tasks.register(getTaskName("checkstyle", "groovy"), Checkstyle::class.java) {
                     configFile = checkStyleConfigDir.resolve("checkstyle-groovy.xml")
                     source(allGroovy)
                     classpath = compileClasspath
@@ -69,17 +69,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
     dependencies {
         "codenarc"("org.codenarc:CodeNarc:1.0")
         components {
-            withModule("org.codenarc:CodeNarc") {
-                allVariants {
-                    withDependencies {
-                        removeAll { it.group == "org.codehaus.groovy" }
-                        add("org.codehaus.groovy:groovy-all") {
-                            version { prefer("2.4.12") }
-                            because("We use groovy-all everywhere")
-                        }
-                    }
-                }
-            }
+            withModule("org.codenarc:CodeNarc", CodeNarcRule::class.java)
         }
         val ruleClass = getIntegrationTestFixturesRule()
         if (ruleClass != null) {
@@ -120,3 +110,18 @@ val Project.java
 
 val SourceSet.allGroovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { allGroovy }
+
+open class CodeNarcRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll { it.group == "org.codehaus.groovy" }
+                add("org.codehaus.groovy:groovy-all") {
+                    version { prefer("2.4.12") }
+                    because("We use groovy-all everywhere")
+                }
+            }
+        }
+
+    }
+}

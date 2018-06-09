@@ -70,9 +70,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 licenseAgree = 'yes'
             }
         """.stripIndent()
-        // Using the embedded executer, we get an NPE from the build scan plugin since it is trying to get the Gradle installation - which is null for the embedded executer.
-        // We force forking by requiring a Gradle distribution.
-        executer.requireGradleDistribution()
 
         when:
         succeeds('customTask', '-Dscan.dump')

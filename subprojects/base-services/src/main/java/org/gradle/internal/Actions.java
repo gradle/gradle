@@ -16,17 +16,28 @@
 
 package org.gradle.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class Actions {
 
     static final Action<?> DO_NOTHING = new NullAction<Object>();
+    private static final Predicate<Action<?>> DOES_SOMETHING = new Predicate<Action<?>>() {
+        @Override
+        public boolean apply(@Nullable Action<?> input) {
+            return input != DO_NOTHING;
+        }
+    };
 
     /**
      * Creates an action implementation that simply does nothing.
@@ -53,6 +64,23 @@ public abstract class Actions {
      * @return The composite action.
      */
     public static <T> Action<T> composite(Iterable<? extends Action<? super T>> actions) {
+        return composite(ImmutableList.copyOf(Iterables.filter(actions, DOES_SOMETHING)));
+    }
+
+    /**
+     * Creates an action that will call each of the given actions in order.
+     *
+     * @param actions The actions to make a composite of.
+     * @param <T> The type of the object that action is for
+     * @return The composite action.
+     */
+    public static <T> Action<T> composite(List<? extends Action<? super T>> actions) {
+        if (actions.isEmpty()) {
+            return doNothing();
+        }
+        if (actions.size() == 1) {
+            return Cast.uncheckedCast(actions.get(0));
+        }
         return new CompositeAction<T>(actions);
     }
 
@@ -64,13 +92,19 @@ public abstract class Actions {
      * @return The composite action.
      */
     public static <T> Action<T> composite(Action<? super T>... actions) {
-        return composite(Arrays.asList(actions));
+        List<Action<? super T>> filtered = Lists.newArrayListWithCapacity(actions.length);
+        for (Action<? super T> action : actions) {
+            if (DOES_SOMETHING.apply(action)) {
+                filtered.add(action);
+            }
+        }
+        return composite(filtered);
     }
 
     private static class CompositeAction<T> implements Action<T> {
-        private final Iterable<? extends Action<? super T>> actions;
+        private final List<? extends Action<? super T>> actions;
 
-        private CompositeAction(Iterable<? extends Action<? super T>> actions) {
+        private CompositeAction(List<? extends Action<? super T>> actions) {
             this.actions = actions;
         }
 

@@ -29,11 +29,11 @@ afterEvaluate {
         if (strictCompile.ignoreDeprecations) strictCompilerArgs + ignoreDeprecationsArg
         else strictCompilerArgs
 
-    tasks.withType(JavaCompile::class.java).configureEach {
+    tasks.withType<JavaCompile>().configureEach {
         options.compilerArgs.addAll(compilerArgs)
     }
 
-    tasks.withType(GroovyCompile::class.java).configureEach {
+    tasks.withType<GroovyCompile>().configureEach {
         options.compilerArgs.addAll(compilerArgs)
     }
 }

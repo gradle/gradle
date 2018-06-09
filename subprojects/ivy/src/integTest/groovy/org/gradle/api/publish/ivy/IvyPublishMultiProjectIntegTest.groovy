@@ -73,7 +73,7 @@ project(":project3") {
         resolveArtifacts(project1) { expectFiles 'changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar' }
     }
 
-    def "reports failure when project dependency references a project with multiple publications"() {
+    def "reports failure when project dependency references a project with multiple conflicting publications"() {
         createBuildScripts("""
 project(":project3") {
     publishing {
@@ -103,6 +103,25 @@ Found the following publications in project ':project3':
   - Ivy publication 'ivy' with coordinates org.gradle.test:project3:3.0
   - Ivy publication 'extraComponent' with coordinates extra.org:extra-module:extra
   - Ivy publication 'extra' with coordinates extra.org:extra-module-2:extra"""
+    }
+
+    def "referenced project can have additional non-component publications"() {
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications {
+            extra(IvyPublication) {
+                organisation "extra.org"
+                module "extra-module-2"
+                revision "extra"
+            }
+        }
+    }
+}
+""")
+
+        expect:
+        succeeds "publish"
     }
 
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {

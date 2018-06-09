@@ -369,6 +369,13 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
         then:
         1 * taskPlanExecutor.process(_, _, _)
+
+        and:
+        with(buildOperationExecutor.operations[0]){
+            name == 'Notify task graph whenReady listeners'
+            displayName == 'Notify task graph whenReady listeners'
+            details.buildPath == ':'
+        }
     }
 
     def "stops execution on first failure when no failure handler provided"() {

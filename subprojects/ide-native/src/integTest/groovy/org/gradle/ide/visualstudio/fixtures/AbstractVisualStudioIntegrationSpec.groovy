@@ -28,7 +28,21 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
     }
 
     void useMsbuildTool() {
-        executer.requireGradleDistribution().requireIsolatedDaemons()
+        // msbuild requires a Gradle distribution to execute the gradle/gradlew script.
+        //
+        // We isolate the Gradle daemons so we know the daemons are only used for these particular tests.
+        //
+        // To workaround a msbuild issue, we require the daemon to be used by the test executor, so the Gradle daemon will be
+        // started before msbuild is executed.
+        // If msbuild starts the Gradle daemon, it will wait for the Gradle daemon to exit before moving on to the next msbuild task.
+        // When this happens, it seems like tests using msbuild are slow or hanging (>10 minutes instead of 30 seconds).
+        // The msbuild behavior occurs because we capture the stdout/stderr from Gradle instead of letting msbuild collect it and fork the daemon child process.
+        // We direct the output because msbuild jumbles up stdout/stderr in ways that mess up our output scraping.
+        // There is probably another way we could redirect the output or scrape the output, but this is good enough for testing.
+        // In real builds (we do not redirect output normally), msbuild and VS do not hang like this.
+        executer.requireGradleDistribution().
+            requireIsolatedDaemons().
+            requireDaemon()
 
         initScript << IdeCommandLineUtil.generateGradleProbeInitFile('visualStudio', 'msbuild')
         initScript << """
@@ -79,7 +93,7 @@ echo %outputLog%
     }
 
     protected MSBuildExecutor getMsbuild() {
-        // Gradle needs to be isolated so the msbuild does not leave behind daemons
+        // Gradle needs to be isolated so that msbuild does not leave behind daemons
         assert executer.isRequiresGradleDistribution()
         assert !executer.usesSharedDaemons()
         def executer = new MSBuildExecutor(testDirectory, toolChain)

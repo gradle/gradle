@@ -55,6 +55,7 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
@@ -118,6 +119,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(FileHasher) >> Mock(FileHasher)
         parent.get(TaskStatistics) >> new TaskStatistics()
         parent.get(TextResourceLoader) >> Mock(TextResourceLoader)
+        parent.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

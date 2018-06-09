@@ -37,6 +37,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.action.DefaultConfigurableRule
+import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -140,12 +141,6 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             1 * detailsToResult.transform(details) >> Mock(ComponentMetadata)
             1 * store.put(inputsSnapshot, _)
         }
-        // This shows a limitation of the current implementation:
-        // if a service is used and that this service has an expiry, then we
-        // would only call the rule again if must refresh == true, that is
-        // to say when --refresh-dependencies is called. In other words if
-        // the service provides an implicit input, a change in that input is
-        // not discovered. To workaround this we have a hard limit of 24h set
         if (ruleClass == TestSupplierWithService && reexecute) {
             1 * someService.provide()
         }
@@ -186,7 +181,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             }
         }
         rule = new InstantiatingAction<>(
-            DefaultConfigurableRule.of(ruleClass),
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(ruleClass)),
             instantiator,
             shouldNotFail()
         )

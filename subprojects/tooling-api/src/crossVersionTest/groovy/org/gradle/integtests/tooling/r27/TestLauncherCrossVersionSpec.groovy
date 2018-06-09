@@ -21,11 +21,13 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
+import spock.lang.Timeout
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
 @ToolingApiVersion(">=2.7")
 @TargetGradleVersion(">=2.7")
+@Timeout(120)
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
     def "can execute test methods of JVM test class"() {

@@ -22,7 +22,7 @@ tasks.withType(JvmProjectGeneratorTask).configureEach {
     }
 }
 
-tasks.createLater("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
+tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     doFirst {
         templateArgs.buildScanPluginVersion = {
             def pluginInfo = file("$rootDir/incoming/plugin.json")

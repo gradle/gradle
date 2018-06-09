@@ -66,6 +66,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
     }
 
+    protected void realized(ProviderInternal<? extends T> provider) {
+        getStore().removePending(provider);
+    }
+
     public Class<? extends T> getType() {
         return type;
     }
@@ -183,6 +187,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
+        store.realizePending(type);
         eventRegister.registerEagerAddAction(type, action);
         return action;
     }
@@ -404,8 +409,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
         @Override
         public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
-            // Any elements previously added should not be visible to the action
-            store.realizePending(filter.getType());
             delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
         }
 

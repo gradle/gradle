@@ -181,8 +181,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return parentFactory.createChild(project, get(InstantiatorFactory.class).injectAndDecorate(this));
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics);
+    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor);
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer() {

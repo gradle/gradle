@@ -62,14 +62,27 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         given:
         withDefaultVariantToTest()
         buildFile << """
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AttributeRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        attributes {
+                            attribute(attribute, "custom")
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 components {
-                    withModule('org.test:moduleB') {
-                        withVariant("$variantToTest") { 
-                            attributes {
-                                attribute(formatAttribute, "custom")
-                            }
-                        }
+                    withModule('org.test:moduleB', AttributeRule) {
+                        params(formatAttribute)
                     }
                 }
             }
@@ -109,14 +122,27 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         given:
         withDefaultVariantToTest()
         buildFile << """
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AttributeRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        attributes {
+                            attribute(attribute, "custom")
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 components {
-                    withModule('org.test:moduleB') {
-                        withVariant("$variantToTest") { 
-                            attributes {
-                                attribute(formatAttribute, "custom")
-                            }
-                        }
+                    withModule('org.test:moduleB', AttributeRule) {
+                        params(formatAttribute)
                     }
                 }
             }
@@ -197,6 +223,25 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         given:
         withDefaultVariantToTest()
         buildFile << """
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AttributeRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        attributes {
+                            // defines the 'format' attribute with value 'custom' on all variants
+                            // which will be inherited by artifacts
+                            attribute(attribute, "custom")
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 artifactTypes {
                     jar {
@@ -206,14 +251,8 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                     }
                 }
                 components {
-                    withModule('org.test:moduleB') {
-                        withVariant("$variantToTest") { 
-                            attributes {
-                                // defines the 'format' attribute with value 'custom' on all variants
-                                // which will be inherited by artifacts
-                                attribute(formatAttribute, "custom")
-                            }
-                        }
+                    withModule('org.test:moduleB', AttributeRule) {
+                        params(formatAttribute)
                     }
                 }
             }
@@ -316,18 +355,31 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         given:
         withDefaultVariantToTest()
         buildFile << """
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AttributeRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('$selectedVariant') { 
+                        attributes {
+                            attribute(attribute, "select")
+                        }
+                    }
+                }
+            }
+
             configurations {
                 ${variantToTest}.attributes.attribute(testAttribute, "select")
             }
 
             dependencies {
                 components {
-                    withModule('org.test:moduleB') {
-                        withVariant('$selectedVariant') { 
-                            attributes {
-                                attribute(testAttribute, "select")
-                            }
-                        }
+                    withModule('org.test:moduleB', AttributeRule) {
+                        params(testAttribute)
                     }
                 }
             }
@@ -401,6 +453,23 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         buildFile << """
             def quality = Attribute.of("quality", String)
             
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AttributeRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('customVariant2') {
+                       attributes {
+                          attribute attribute, 'qa'
+                       }
+                    }
+                }
+            }
+
             configurations {
                 ${variantToTest}.attributes.attribute(quality, 'qa')
             }
@@ -410,12 +479,8 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                     attribute(quality)
                 }
                 components {
-                    withModule('org.test:module') {
-                        withVariant('customVariant2') {
-                           attributes {
-                              attribute quality, 'qa'
-                           }
-                        }
+                    withModule('org.test:module', AttributeRule) {
+                        params(quality)
                     }
                 }
                 $variantToTest 'org.test:module:1.0'

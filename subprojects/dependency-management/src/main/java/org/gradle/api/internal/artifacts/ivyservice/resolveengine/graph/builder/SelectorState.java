@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -29,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -36,6 +39,8 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
+
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONSTRAINT;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED;
@@ -47,16 +52,23 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
  * 1. The selector has been newly added to a `ModuleResolveState`. In this case {@link #resolved} will be `false`.
  * 2. The selector failed to resolve. In this case {@link #failure} will be `!= null`.
  * 3. The selector was part of resolution to a particular module version.
- *    In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
+ * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
+    public static final Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> IDENTITY = new Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal>() {
+        @Override
+        public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal componentSelectionDescriptorInternal) {
+            return componentSelectionDescriptorInternal;
+        }
+    };
     private final Long id;
     private final DependencyState dependencyState;
-    private final DependencyMetadata dependencyMetadata;
+    private final DependencyMetadata firstSeenDependency;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
     private final VersionSelectorScheme versionSelectorScheme;
     private final ImmutableAttributesFactory attributesFactory;
+    private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
@@ -67,14 +79,24 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, VersionSelectorScheme versionSelectorScheme, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
         this.dependencyState = dependencyState;
-        this.dependencyMetadata = dependencyState.getDependency();
+        this.firstSeenDependency = dependencyState.getDependency();
         this.resolver = resolver;
         this.versionSelectorScheme = versionSelectorScheme;
         this.targetModule = resolveState.getModule(targetModuleId);
-        this.versionConstraint = resolveVersionConstraint(dependencyMetadata.getSelector());
+        this.versionConstraint = resolveVersionConstraint(firstSeenDependency.getSelector());
         this.attributesFactory = resolveState.getAttributesFactory();
-        this.forced = isForced(dependencyMetadata);
+        this.forced = isForced(firstSeenDependency);
         targetModule.addSelector(this);
+        addDependencyMetadata(firstSeenDependency);
+    }
+
+    private void addDependencyMetadata(DependencyMetadata dependencyMetadata) {
+        String reason = dependencyMetadata.getReason();
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
+        if (reason != null) {
+            dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
+        }
+        dependencyReasons.add(dependencyDescriptor);
     }
 
     private ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
@@ -91,7 +113,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public String toString() {
-        return dependencyMetadata.toString();
+        return firstSeenDependency.toString();
     }
 
     @Override
@@ -123,7 +145,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             idResolveResult.failed(dependencyState.failure);
         } else {
             ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : new DefaultResolvedVersionConstraint(versionConstraint.getPreferredSelector(), allRejects);
-            resolver.resolve(dependencyMetadata, mergedConstraint, idResolveResult);
+            resolver.resolve(firstSeenDependency, mergedConstraint, idResolveResult);
         }
 
         if (idResolveResult.getFailure() != null) {
@@ -184,15 +206,13 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     public ComponentSelectionReasonInternal getSelectionReason() {
         // Create a component selection reason specific to this selector.
-        return addReasonsForSelector(VersionSelectionReasons.empty());
+        return addReasonsForSelector(VersionSelectionReasons.empty(), IDENTITY);
     }
 
-    ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
-        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
-        if (dependencyMetadata.getReason() != null) {
-            dependencyDescriptor = dependencyDescriptor.withReason(dependencyMetadata.getReason());
+    ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason, Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> transformer) {
+        for (ComponentSelectionDescriptorInternal dependencyDescriptor : dependencyReasons) {
+            selectionReason.addCause(transformer.transform(dependencyDescriptor));
         }
-        selectionReason.addCause(dependencyDescriptor);
 
         if (dependencyState.getRuleDescriptor() != null) {
             selectionReason.addCause(dependencyState.getRuleDescriptor());
@@ -201,7 +221,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     public DependencyMetadata getDependencyMetadata() {
-        return dependencyMetadata;
+        return firstSeenDependency;
     }
 
     public ResolvedVersionConstraint getVersionConstraint() {
@@ -224,7 +244,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
-            forced |= isForced(dependencyState.getDependency());
+            DependencyMetadata dependency = dependencyState.getDependency();
+            forced |= isForced(dependency);
+            addDependencyMetadata(dependency);
         }
     }
 }

@@ -694,7 +694,7 @@ public class ModuleMetadataSerializer {
 
         private Set<String> readStringSet() throws IOException {
             int size = readCount();
-            Set<String> set = new LinkedHashSet<String>(size);
+            Set<String> set = new LinkedHashSet<String>(3 * size / 2, 0.9f);
             for (int i = 0; i < size; i++) {
                 set.add(readString());
             }
