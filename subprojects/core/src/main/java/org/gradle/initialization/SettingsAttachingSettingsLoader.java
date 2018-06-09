@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,20 @@
 
 package org.gradle.initialization;
 
-public interface SettingsLoaderFactory {
-    /**
-     * Create a SettingsLoader for a top-level build.
-     */
-    SettingsLoader forTopLevelBuild();
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 
-    /**
-     * Create a SettingsLoader for a nested build.
-     */
-    SettingsLoader forNestedBuild();
+class SettingsAttachingSettingsLoader implements SettingsLoader {
+    private final DefaultSettingsLoader delegate;
+
+    SettingsAttachingSettingsLoader(DefaultSettingsLoader delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+        gradle.setSettings(settings);
+        return settings;
+    }
 }
