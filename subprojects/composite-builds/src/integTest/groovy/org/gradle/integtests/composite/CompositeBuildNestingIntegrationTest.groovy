@@ -117,4 +117,68 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":buildB:jar")
         result.assertTaskExecuted(":jar")
     }
+
+    def "reports failure for duplicate included build name"() {
+        given:
+        def buildC = singleProjectBuild("buildC") {
+            settingsFile << """
+                rootProject.name = 'buildB'
+            """
+        }
+        def buildB = singleProjectBuild("buildB") {
+            settingsFile << """
+                includeBuild('${buildC.toURI()}')
+            """
+        }
+        includeBuild(buildB)
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("""Multiple included builds have the same root project name 'buildB':
+  - Included build in ${buildB}
+  - Included build in ${buildC}""")
+    }
+
+    def "reports failure for included build name that conflicts with subproject name"() {
+        given:
+        buildA.settingsFile << """
+            include 'buildC'
+"""
+        def buildC = singleProjectBuild("buildC")
+        def buildB = singleProjectBuild("buildB") {
+            settingsFile << """
+                includeBuild('${buildC.toURI()}')
+            """
+        }
+        includeBuild(buildB)
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("Included build in ${buildC} has a root project whose name 'buildC' is the same as a project of the main build.")
+    }
+
+    def "reports failure for included build name that conflicts with root project name"() {
+        given:
+        def buildC = singleProjectBuild("buildC") {
+            settingsFile << """
+                rootProject.name = 'buildA'
+            """
+        }
+        def buildB = singleProjectBuild("buildB") {
+            settingsFile << """
+                includeBuild('${buildC.toURI()}')
+            """
+        }
+        includeBuild(buildB)
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("Included build in ${buildC} has the same root project name 'buildA' as the main build.")
+    }
 }
