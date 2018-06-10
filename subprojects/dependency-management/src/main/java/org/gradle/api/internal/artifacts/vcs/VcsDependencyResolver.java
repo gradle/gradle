@@ -31,11 +31,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.hash.HashUtil;
@@ -70,12 +68,11 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final BuildStateRegistry buildRegistry;
-    private final NestedBuildFactory nestedBuildFactory;
     private final File baseWorkingDir;
     private final Map<String, VersionRef> selectedVersionCache = new HashMap<String, VersionRef>();
     private final VersionParser versionParser;
 
-    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, NestedBuildFactory nestedBuildFactory, VersionParser versionParser) {
+    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser) {
         this.baseWorkingDir = vcsWorkingDirRoot.getDir();
         this.projectDependencyResolver = projectDependencyResolver;
         this.localComponentRegistry = localComponentRegistry;
@@ -84,7 +81,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.buildRegistry = buildRegistry;
-        this.nestedBuildFactory = nestedBuildFactory;
         this.versionParser = versionParser;
     }
 
@@ -121,12 +117,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     result.failed(new ModuleVersionResolveException(depSelector, spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
                 } else {
                     LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
-
-                    if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(entry.right), spec.getDisplayName() + " could not be resolved into a usable project."));
-                    } else {
-                        result.resolved(componentMetaData);
-                    }
+                    result.resolved(componentMetaData);
                     return;
                 }
             }
