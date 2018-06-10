@@ -39,14 +39,14 @@ public class FeaturePreviews {
             }
         }
 
-        private final boolean active;
+        private final boolean previewable;
 
-        Feature(boolean active) {
-            this.active = active;
+        Feature(boolean previewable) {
+            this.previewable = previewable;
         }
 
-        public boolean isActive() {
-            return active;
+        public boolean isPreviewable() {
+            return previewable;
         }
     }
 
@@ -56,7 +56,7 @@ public class FeaturePreviews {
     public FeaturePreviews() {
         EnumSet<Feature> tmpActiveSet = EnumSet.noneOf(Feature.class);
         for (Feature feature : Feature.values()) {
-            if (feature.isActive()) {
+            if (feature.isPreviewable()) {
                 tmpActiveSet.add(feature);
             }
         }
@@ -64,13 +64,13 @@ public class FeaturePreviews {
     }
 
     public void enableFeature(Feature feature) {
-        if (feature.isActive()) {
+        if (feature.isPreviewable()) {
             enabledFeatures.add(feature);
         }
     }
 
     public boolean isFeatureEnabled(Feature feature) {
-        return feature.isActive() && enabledFeatures.contains(feature);
+        return feature.isPreviewable() && enabledFeatures.contains(feature);
     }
 
     public void enableFeature(String name) {
