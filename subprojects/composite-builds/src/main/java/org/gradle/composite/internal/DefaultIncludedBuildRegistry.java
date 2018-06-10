@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -42,7 +41,6 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -136,13 +134,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         validateIncludedBuilds(settings);
 
         projectRegistry.registerProjects(rootBuild);
+
         Collection<IncludedBuildState> includedBuilds = getIncludedBuilds();
-        List<IncludedBuild> modelElements = new ArrayList<IncludedBuild>(includedBuilds.size());
-        for (IncludedBuildState includedBuild : includedBuilds) {
-            modelElements.add(includedBuild.getModel());
-        }
-        // Set the only visible included builds from the root build
-        settings.getGradle().setIncludedBuilds(modelElements);
         registerProjects(includedBuilds);
     }
 
