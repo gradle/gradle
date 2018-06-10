@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -64,6 +65,7 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collections;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -114,6 +116,7 @@ public class ProjectBuilderImpl {
         topLevelRegistry.add(BuildState.class, build);
 
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
+        gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
             topLevelRegistry.get(FileResolver.class));

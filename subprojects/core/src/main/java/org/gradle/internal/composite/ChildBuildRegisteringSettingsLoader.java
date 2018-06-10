@@ -16,6 +16,7 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -25,6 +26,8 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
@@ -43,12 +46,19 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
+            List<IncludedBuild> children = new ArrayList<IncludedBuild>(includedBuilds.size());
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 // TODO: Allow builds to inject into explicitly included builds
                 BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY);
                 IncludedBuildState includedBuild = buildRegistry.addIncludedBuild(buildDefinition);
                 includedBuildSpec.configurer.execute(includedBuild.getModel());
+                children.add(includedBuild.getModel());
             }
+
+            // Set the visible included builds
+            settings.getGradle().setIncludedBuilds(children);
+        } else {
+            settings.getGradle().setIncludedBuilds(Collections.<IncludedBuild>emptyList());
         }
 
         return settings;
