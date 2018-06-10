@@ -24,7 +24,6 @@ import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.Pair;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,7 +32,7 @@ import java.util.Set;
 public interface IncludedBuildState extends NestedBuildState {
     String getName();
     ConfigurableIncludedBuild getModel();
-    List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();
+    Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
     /**

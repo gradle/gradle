@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -37,6 +36,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -50,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultIncludedBuild extends AbstractBuildState implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
@@ -62,7 +61,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private final boolean isImplicit;
     private final BuildState owner;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
-    private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
+    private ImmutableActionSet<DependencySubstitutions> dependencySubstitutionActions = ImmutableActionSet.empty();
 
     private boolean resolvedDependencySubstitutions;
 
@@ -150,11 +149,11 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
         if (resolvedDependencySubstitutions) {
             throw new IllegalStateException("Cannot configure included build after dependency substitutions are resolved.");
         }
-        dependencySubstitutionActions.add(action);
+        dependencySubstitutionActions = dependencySubstitutionActions.add(action);
     }
 
     @Override
-    public List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions() {
+    public Action<DependencySubstitutions> getRegisteredDependencySubstitutions() {
         resolvedDependencySubstitutions = true;
         return dependencySubstitutionActions;
     }
