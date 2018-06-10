@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import java.io.Closeable;
 
 /**
  * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.</p>
@@ -49,7 +50,7 @@ import org.gradle.api.Incubating;
  *
  * @since 1.0-milestone-3
  */
-public interface ProjectConnection {
+public interface ProjectConnection extends Closeable {
     /**
      * Fetches a snapshot of the model of the given type for this project. This method blocks until the model is available.
      *
