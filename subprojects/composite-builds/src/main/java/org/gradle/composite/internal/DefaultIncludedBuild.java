@@ -85,6 +85,11 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
+    public File getRootDirectory() {
+        return buildDefinition.getBuildRootDir();
+    }
+
+    @Override
     public Path getIdentityPath() {
         return identityPath;
     }

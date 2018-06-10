@@ -16,9 +16,10 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
@@ -37,6 +38,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -133,7 +135,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     public void registerRootBuild(SettingsInternal settings) {
         validateIncludedBuilds(settings);
 
-        rootBuild.setSettings(settings);
         projectRegistry.registerProjects(rootBuild);
         Collection<IncludedBuildState> includedBuilds = getIncludedBuilds();
         List<IncludedBuild> modelElements = new ArrayList<IncludedBuild>(includedBuilds.size());
@@ -157,20 +158,31 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private void validateIncludedBuilds(SettingsInternal settings) {
-        Set<String> names = Sets.newHashSet();
+        SetMultimap<String, IncludedBuildState> names = LinkedHashMultimap.create();
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.remove(0);
             // This implicitly loads the settings, possibly discovering more included builds
             // Should make this an explicit step instead
             String buildName = build.getName();
-            if (!names.add(buildName)) {
-                throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
-            }
+            names.put(buildName, build);
             if (settings.getRootProject().getName().equals(buildName)) {
-                throw new GradleException("Included build '" + buildName + "' collides with root project name.");
+                throw new GradleException("Included build in " + build.getRootDirectory() + " has the same root project name '" + buildName + "' as the main build.");
             }
             if (settings.findProject(":" + buildName) != null) {
-                throw new GradleException("Included build '" + buildName + "' collides with subproject of the same name.");
+                throw new GradleException("Included build in " + build.getRootDirectory() + " has a root project whose name '" + buildName + "' is the same as a project of the main build.");
+            }
+        }
+        for (String buildNAme : names.keySet()) {
+            Set<IncludedBuildState> buildsWithName = names.get(buildNAme);
+            if (buildsWithName.size() > 1) {
+                TreeFormatter visitor = new TreeFormatter();
+                visitor.node("Multiple included builds have the same root project name '" + buildNAme + "'");
+                visitor.startChildren();
+                for (IncludedBuildState build : buildsWithName) {
+                    visitor.node("Included build in " + build.getRootDirectory());
+                }
+                visitor.endChildren();
+                throw new GradleException(visitor.toString());
             }
         }
     }
