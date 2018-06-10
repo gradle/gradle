@@ -95,7 +95,6 @@ import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -389,8 +388,8 @@ class DependencyManagementBuildScopeServices {
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, NestedBuildFactory nestedBuildFactory, VersionParser versionParser) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, nestedBuildFactory, versionParser);
+    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser) {
+        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, versionParser);
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
