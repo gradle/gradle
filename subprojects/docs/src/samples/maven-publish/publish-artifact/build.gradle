@@ -27,10 +27,6 @@ publishing {
     publications {
         maven(MavenPublication) {
             artifact rpmArtifact
-
-            groupId = project.group
-            artifactId = 'my-package'
-            version = project.version
         }
     }
 // END SNIPPET custom-artifact-publication

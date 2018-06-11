@@ -41,6 +41,9 @@ project(':project2') {
     }
 
     // START SNIPPET multiple-publications
+    group = "org.gradle.sample"
+    version = "2.3"
+
     task apiJar(type: Jar) {
         baseName = 'project2-api'
         from sourceSets.main.output
