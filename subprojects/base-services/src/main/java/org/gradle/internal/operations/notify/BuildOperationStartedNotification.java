@@ -61,12 +61,4 @@ public interface BuildOperationStartedNotification {
      */
     Object getNotificationOperationDetails();
 
-    /*
-        Timestamps are conspicuously absent here.
-
-        Timestamps are missing because the build scan plugin has different timestamp requirements.
-        Specifically, it goes to some effort to provide monotonic timestamps (and the observed value) if different,
-        and deterministic ordering of events that yield the same timestamp value (e.g. two clock reads quicker than the clock granularity).
-     */
-
 }
