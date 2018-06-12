@@ -6,9 +6,11 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-<!--
-### Example new and noteworthy
--->
+### Nested included builds
+
+TBD - Composite builds can be included by other builds. Some combinations are not supported yet:
+- `buildSrc` cannot include other builds.
+- No duplicate root project names.
 
 ### Use SNAPSHOT plugin versions with the `plugins {}` block
 
