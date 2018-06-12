@@ -21,12 +21,14 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 /**
- * Common behaviour tests for all IDE plugins dealing with multiple builds (buildSrc, composite builds).
+ * Common behaviour tests for all IDE plugins dealing with multiple builds (buildSrc, composite builds, etc).
  */
 abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginId()
     abstract String getWorkspaceTask()
-    abstract IdeWorkspaceFixture workspace(TestFile workspaceDir)
+    abstract String getLibraryPluginId()
+    abstract IdeWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName)
+    abstract IdeProjectFixture project(TestFile projectDir, String ideProjectName)
 
     @Issue("https://github.com/gradle/gradle/issues/5110")
     def "buildSrc project can apply IDE plugin"() {
@@ -37,6 +39,95 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
 
         expect:
         succeeds()
-        workspace(file("buildSrc")).assertExists()
+        def workspace = workspace(file("buildSrc"), "buildSrc")
+        if (libraryPluginId == "java-library") {
+            def project = project(file("buildSrc"), "buildSrc")
+            workspace.assertContains(project)
+        } // else, unspecified
+    }
+
+    def "workspace includes projects from included builds"() {
+        buildTestFixture.withBuildInSubDir()
+        def buildA = singleProjectBuild("buildA") {
+            settingsFile << """
+                rootProject.name = "ide"
+                includeBuild("../buildB")
+            """
+            buildFile << """
+                allprojects { 
+                    apply plugin: '${pluginId}' 
+                    apply plugin: '${libraryPluginId}'
+                }
+                dependencies { implementation 'org.test:p1:1.2' }
+            """
+        }
+        def buildB = multiProjectBuild("buildB", ["p1", "p2"]) {
+            buildFile << """
+                allprojects { 
+                    apply plugin: '${pluginId}' 
+                    apply plugin: '${libraryPluginId}'
+                }
+            """
+        }
+
+        when:
+        executer.inDirectory(buildA)
+        run(":${workspaceTask}")
+
+        then:
+        def workspace = workspace(buildA, "ide")
+        workspace.assertContains(project(buildA, "ide"))
+        workspace.assertContains(project(buildB, "buildB"))
+        workspace.assertContains(project(buildB.file("p1"), "p1"))
+        workspace.assertContains(project(buildB.file("p2"), "p2"))
+    }
+
+    def "workspace includes projects from nested included builds"() {
+        buildTestFixture.withBuildInSubDir()
+        def buildA = singleProjectBuild("buildA") {
+            settingsFile << """
+                rootProject.name = "ide"
+                includeBuild("../buildB")
+            """
+            buildFile << """
+                allprojects { 
+                    apply plugin: '${pluginId}' 
+                    apply plugin: '${libraryPluginId}'
+                }
+                dependencies { implementation 'org.test:buildB:1.2' }
+            """
+        }
+        def buildB = singleProjectBuild("buildB") {
+            settingsFile << """
+                includeBuild("../buildC")
+            """
+            buildFile << """
+                allprojects { 
+                    apply plugin: '${pluginId}' 
+                    apply plugin: '${libraryPluginId}'
+                }
+                dependencies { implementation 'org.test:p1:1.2' }
+            """
+        }
+        def buildC = multiProjectBuild("buildC", ["p1", "p2"]) {
+            buildFile << """
+                allprojects { 
+                    apply plugin: '${pluginId}' 
+                    apply plugin: '${libraryPluginId}'
+                }
+            """
+        }
+
+        when:
+        executer.inDirectory(buildA)
+        run(":${workspaceTask}")
+
+        then:
+        def workspace = workspace(buildA, "ide")
+        workspace.assertContains(project(buildA, "ide"))
+        workspace.assertContains(project(buildB, "buildB"))
+        workspace.assertContains(project(buildC, "buildC"))
+        workspace.assertContains(project(buildC.file("p1"), "p1"))
+        workspace.assertContains(project(buildC.file("p2"), "p2"))
     }
 }

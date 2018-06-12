@@ -17,16 +17,23 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.plugins.ide.fixtures.AbstractMultiBuildIdeIntegrationTest
-import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
+import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
+import org.gradle.plugins.ide.fixtures.IdeaProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 
 class IdeaMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationTest {
     String pluginId = "idea"
     String workspaceTask = "idea"
+    String libraryPluginId = "java-library"
 
     @Override
-    IdeWorkspaceFixture workspace(TestFile workspaceDir) {
-        return IdeaFixtures.parseIpr(workspaceDir.file(workspaceDir.name + ".ipr"))
+    IdeaProjectFixture workspace(TestFile workspaceDir, String ideWorkspaceName) {
+        return IdeaFixtures.parseIpr(workspaceDir.file(ideWorkspaceName + ".ipr"))
+    }
+
+    @Override
+    IdeaModuleFixture project(TestFile projectDir, String ideProjectName) {
+        return IdeaFixtures.parseIml(projectDir.file(ideProjectName + ".iml"))
     }
 }

@@ -16,18 +16,23 @@
 
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.plugins.ide.fixtures.AbstractMultiBuildIdeIntegrationTest
-import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
-
 
 class VisualStudioMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationTest {
     String pluginId = "visual-studio"
     String workspaceTask = "visualStudio"
+    String libraryPluginId = "cpp-library"
 
     @Override
-    IdeWorkspaceFixture workspace(TestFile workspaceDir) {
-        return new SolutionFile(workspaceDir.file(workspaceDir.name + ".sln"))
+    SolutionFile workspace(TestFile workspaceDir, String ideWorkspaceName) {
+        return new SolutionFile(workspaceDir.file(ideWorkspaceName + ".sln"))
+    }
+
+    @Override
+    ProjectFile project(TestFile projectDir, String ideProjectName) {
+        return new ProjectFile(projectDir.file(ideProjectName + "Dll.vcxproj"))
     }
 }

@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse
+package org.gradle.plugins.ide.fixtures;
 
-import org.gradle.plugins.ide.fixtures.IdeProjectFixture
-import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
-import org.gradle.test.fixtures.file.TestFile
-
-
-class EclipseWorkspaceFixture extends IdeWorkspaceFixture {
-    final TestFile workspaceDir
-
-    EclipseWorkspaceFixture(TestFile workspaceDir) {
-        this.workspaceDir = workspaceDir
-        workspaceDir.file(".project").assertExists()
-    }
-
-    @Override
-    void assertContains(IdeProjectFixture project) {
-        // Doesn't really make sense
-    }
+public abstract class IdeProjectFixture {
 }

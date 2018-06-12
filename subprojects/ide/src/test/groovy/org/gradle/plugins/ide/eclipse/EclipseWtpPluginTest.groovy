@@ -53,8 +53,8 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         wtpPlugin.apply(project)
 
         then:
-        project.tasks.eclipse.dependsOn*.get().contains(project.eclipseWtp)
-        project.tasks.cleanEclipse.dependsOn*.get().contains(project.cleanEclipseWtp)
+        project.tasks.eclipse.taskDependencies.getDependencies(null).contains(project.eclipseWtp)
+        project.tasks.cleanEclipse.taskDependencies.getDependencies(null).contains(project.cleanEclipseWtp)
     }
 
     def applyToJavaProject_shouldHaveWebProjectAndClasspathTask() {
