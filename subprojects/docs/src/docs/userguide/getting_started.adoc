@@ -1,0 +1,67 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[getting_started]]
+= Getting Started
+
+Everyone has to start somewhere and if you're new to Gradle, then this is a good place to begin.
+
+== What is Gradle?
+
+Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool that is designed to be flexible enough to build almost any type of software. It:
+
+ * _Runs on the JVM_ — but it can build anything, including native libraries and executables
+ * _Runs fast_ — particularly with well-designed builds
+ * _Uses conventions and plugins_ — which make it simple to build common types of project
+ * _Is customizable and extensible_
+ * _Can be run from the command line or IDEs_ — like Android Studio, IntelliJ IDEA and Eclipse
+
+As with many flexible and customizable tools, Gradle can take a little time to understand. However, you can get a jump start by reading this short primer:
+
+ * <<five_things#five_things,5 things you need to know about Gradle>>
+
+== Short tutorials
+
+Actively using Gradle is a great way to learn about it, so try one of the introductory tutorials:
+
+ * {guidesUrl}/creating-new-gradle-builds/[Creating a basic Gradle build]
+ * {guidesUrl}/building-android-apps/[Building Android apps]
+ * {guidesUrl}/building-java-libraries/[Building Java libraries]
+ * {guidesUrl}/building-cpp-libraries/[Building C++ libraries]
+
+There are also many other {guidesUrl}/[tutorials and guides] available, which you can filter by category — for example {guidesUrl}/?q=Fundamentals[Fundamentals]. 
+
+== How do I execute a Gradle build?
+
+If you follow any of the tutorials linked above, you will execute a Gradle build. But what do you do if you're given a Gradle build without any instructions?
+
+ 1. Determine whether the project has a Gradle wrapper and <<sec:using_wrapper,use it if it's there>>.
+ 2. Determine whether it's a single-project or multi-project build.
++
+Either import the build with an IDE (preferring the wrapper if it exists) or run `gradle projects`. If only the root project is listed, it's a single-project build. Otherwise it's a multi-project build.
+ 3. Find out what tasks you can run.
++
+If you have imported the build into an IDE, you should have access to a view that displays all the available tasks. From the command line, run `gradle tasks`.
+ 4. Run the task that you are interested in.
++
+Many convention-based builds integrate with Gradle's <<sec:base_tasks,lifecycle tasks>>, so use those when you don't have something more specific you want to do with the build.
+
+Most builds will follow standard conventions on project structure and tasks, so if you're familiar with other builds of the same type — for example Java, Android or native builds — then the file and directory structure of the build should be familiar, as well as many of the tasks and project properties.
+
+For more specialized builds or those with significant customizations, you should ideally have access to documentation on how to run the build and what build properties you can configure.
+
+== How do I migrate from another build tool
+
+ * {guidesUrl}/migrating-from-maven/[Migrating from Apache Maven]
+
