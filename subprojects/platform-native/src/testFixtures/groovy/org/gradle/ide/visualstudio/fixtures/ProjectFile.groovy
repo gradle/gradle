@@ -18,22 +18,23 @@ package org.gradle.ide.visualstudio.fixtures
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
+import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class ProjectFile {
+class ProjectFile extends IdeProjectFixture {
     String name
     TestFile projectFile
     Node projectXml
 
     ProjectFile(TestFile projectFile) {
-        assert projectFile.exists()
+        projectFile.assertIsFile()
         this.projectFile = projectFile
         this.name = projectFile.name.replace(".vcxproj", "")
         this.projectXml = new XmlParser().parse(projectFile)
     }
 
-    public Map<String, Configuration> getProjectConfigurations() {
+    Map<String, Configuration> getProjectConfigurations() {
         def configs = itemGroup("ProjectConfigurations").collect {
             new Configuration(it.Configuration[0].text(), it.Platform[0].text())
         }
@@ -42,33 +43,33 @@ class ProjectFile {
         }
     }
 
-    public String getProjectGuid() {
+    String getProjectGuid() {
         return globals.ProjectGUID[0].text()
     }
 
-    public Node getGlobals() {
+    Node getGlobals() {
         return projectXml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
     }
 
-    public String getToolsVersion() {
+    String getToolsVersion() {
         return projectXml.@ToolsVersion
     }
 
-    public String getWindowsTargetPlatformVersion() {
+    String getWindowsTargetPlatformVersion() {
         return globals.WindowsTargetPlatformVersion[0].text()
     }
 
-    public List<String> getSourceFiles() {
+    List<String> getSourceFiles() {
         def sources = itemGroup('Sources').ClCompile
         return normalise(sources*.'@Include')
     }
 
-    public List<String> getResourceFiles() {
+    List<String> getResourceFiles() {
         def sources = itemGroup('References').ResourceCompile
         return normalise(sources*.'@Include')
     }
 
-    public List<String> getHeaderFiles() {
+    List<String> getHeaderFiles() {
         def sources = itemGroup('Headers').ClInclude
         return normalise(sources*.'@Include')
     }

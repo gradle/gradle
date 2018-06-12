@@ -31,10 +31,13 @@ class WorkspaceFile {
     }
 
     void assertHasProjects(String... paths) {
-        def includedProjectPaths = paths.collect { path ->
-            file.parentFile.parentFile.file(path).absolutePath
+        assert contentXml.FileRef.size() == paths.length
+        paths.each { path ->
+            assertHasProject(file.parentFile.parentFile.file(path))
         }
-        assert contentXml.FileRef.size() == includedProjectPaths.size()
-        assert contentXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll(includedProjectPaths)
+    }
+
+    void assertHasProject(File projectFile) {
+        assert contentXml.FileRef*.@location*.replaceAll('absolute:', '').contains(projectFile.absolutePath)
     }
 }

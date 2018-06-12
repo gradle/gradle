@@ -209,7 +209,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
-        failure.assertHasCause("Included build 'does-not-exist' not found.")
+        failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildA'.")
     }
 
     def "reports failure when task does not exist for included build"() {
@@ -283,7 +283,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
-        failure.assertHasCause("Included build 'does-not-exist' not found.")
+        failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildB'.")
     }
 
     @Unroll
@@ -310,7 +310,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         and:
         failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
-        failure.assertHasCause("Included build '${buildName}' not found.")
+        failure.assertHasCause("Included build '${buildName}' not found in build 'buildC'.")
 
         where:
         scenario  | buildName

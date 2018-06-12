@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionMapping;
@@ -103,6 +104,20 @@ public class EclipsePlugin extends IdePlugin {
         configureEclipseClasspath(project, model);
 
         applyEclipseWtpPluginOnWebProjects(project);
+
+        configureRootProjectTask(project);
+    }
+
+    private void configureRootProjectTask(Project project) {
+        // The `eclipse` task in the root project should generate Eclipse projects for all Gradle projects
+        if (project.getGradle().getParent() == null && project.getParent() == null) {
+            getLifecycleTask().configure(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.dependsOn(artifactRegistry.getIdeProjectFiles(EclipseProjectMetadata.class));
+                }
+            });
+        }
     }
 
     // No one should be calling this.

@@ -19,13 +19,16 @@ package org.gradle.plugins.ide.fixtures
 import groovy.transform.ToString
 import groovy.util.slurpersupport.GPathResult
 import org.gradle.internal.Transformers
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.CollectionUtils
 
-class IdeaModuleFixture {
-    private GPathResult iml
+class IdeaModuleFixture extends IdeProjectFixture {
+    private final GPathResult iml
+    private final TestFile file
 
-    IdeaModuleFixture(GPathResult iml) {
+    IdeaModuleFixture(TestFile file, GPathResult iml) {
         this.iml = iml
+        this.file = file
     }
 
     String getLanguageLevel() {

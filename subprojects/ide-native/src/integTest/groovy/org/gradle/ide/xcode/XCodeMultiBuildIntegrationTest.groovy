@@ -16,18 +16,23 @@
 
 package org.gradle.ide.xcode
 
+import org.gradle.ide.xcode.fixtures.XcodeProjectPackage
 import org.gradle.ide.xcode.fixtures.XcodeWorkspacePackage
 import org.gradle.plugins.ide.fixtures.AbstractMultiBuildIdeIntegrationTest
-import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
-
 
 class XCodeMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationTest {
     String pluginId = "xcode"
     String workspaceTask = "xcode"
+    String libraryPluginId = "cpp-library"
 
     @Override
-    IdeWorkspaceFixture workspace(TestFile workspaceDir) {
-        return new XcodeWorkspacePackage(workspaceDir.file(workspaceDir.name + ".xcworkspace"))
+    XcodeWorkspacePackage workspace(TestFile workspaceDir, String ideWorkspaceName) {
+        return new XcodeWorkspacePackage(workspaceDir.file(ideWorkspaceName + ".xcworkspace"))
+    }
+
+    @Override
+    XcodeProjectPackage project(TestFile projectDir, String ideProjectName) {
+        return new XcodeProjectPackage(projectDir.file(ideProjectName + ".xcodeproj"))
     }
 }

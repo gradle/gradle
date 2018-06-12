@@ -17,16 +17,20 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.fixtures.AbstractMultiBuildIdeIntegrationTest
-import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
-
 
 class EclipseMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationTest {
     String pluginId = "eclipse"
     String workspaceTask = "eclipse"
+    String libraryPluginId = "java-library"
 
     @Override
-    IdeWorkspaceFixture workspace(TestFile workspaceDir) {
+    EclipseWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName) {
         return new EclipseWorkspaceFixture(workspaceDir)
+    }
+
+    @Override
+    EclipseProjectFixture project(TestFile projectDir, String ideProjectName) {
+        return EclipseProjectFixture.create(projectDir)
     }
 }
