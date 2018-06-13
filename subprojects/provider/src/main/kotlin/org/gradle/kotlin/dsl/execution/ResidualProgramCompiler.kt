@@ -62,6 +62,10 @@ import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
+internal
+typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
+
+
 /**
  * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
  * stored in the given [outputDir].
@@ -74,7 +78,8 @@ class ResidualProgramCompiler(
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
-    private val logger: Logger = interpreterLogger
+    private val logger: Logger = interpreterLogger,
+    private val compileBuildOperationRunner: CompileBuildOperationRunner = ::defaultCompileBuildOperationRunner
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -213,7 +218,7 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition)
+        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition, "stage-2")
 
         program<ExecutableProgram> {
 
@@ -499,21 +504,23 @@ class ResidualProgramCompiler(
     fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
         withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
-            return compileScript(scriptFile, originalScriptPath, scriptDefinition)
+            return compileScript(scriptFile, originalScriptPath, scriptDefinition, "stage-1")
         }
     }
 
     private
-    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition): String =
-        compileKotlinScriptToDirectory(
-            outputDir,
-            scriptFile,
-            scriptDefinition,
-            classPath.asFiles,
-            messageCollectorFor(logger) { path ->
-                if (path == scriptFile.path) originalPath
-                else path
-            })
+    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition, stage: String): String =
+        compileBuildOperationRunner(originalPath, stage) {
+            compileKotlinScriptToDirectory(
+                outputDir,
+                scriptFile,
+                scriptDefinition,
+                classPath.asFiles,
+                messageCollectorFor(logger) { path ->
+                    if (path == scriptFile.path) originalPath
+                    else path
+                })
+        }
 
     private
     val stage1ScriptDefinition
@@ -557,6 +564,11 @@ class ResidualProgramCompiler(
             )
         }
 }
+
+
+private
+fun defaultCompileBuildOperationRunner(scriptPath: String, stage: String, operation: () -> String) =
+    operation()
 
 
 private

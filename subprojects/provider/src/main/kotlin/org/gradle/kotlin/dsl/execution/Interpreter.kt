@@ -119,6 +119,8 @@ class Interpreter(val host: Host) {
 
         fun hashOf(classPath: ClassPath): HashCode
 
+        fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String
+
         val implicitImports: List<String>
     }
 
@@ -265,9 +267,9 @@ class Interpreter(val host: Host) {
                         residualProgramCompilerFor(
                             sourceHash,
                             outputDir,
-                            targetScope.parent,
                             programKind,
-                            programTarget
+                            programTarget,
+                            host.compilationClassPathOf(targetScope.parent)
                         ).compile(residualProgram)
                     }
                 }
@@ -313,18 +315,20 @@ class Interpreter(val host: Host) {
     fun residualProgramCompilerFor(
         sourceHash: HashCode,
         outputDir: File,
-        classLoaderScopeForClassPath: ClassLoaderScope,
         programKind: ProgramKind,
-        programTarget: ProgramTarget
+        programTarget: ProgramTarget,
+        classPath: ClassPath
     ): ResidualProgramCompiler =
 
         ResidualProgramCompiler(
             outputDir,
-            host.compilationClassPathOf(classLoaderScopeForClassPath),
+            classPath,
             sourceHash,
             programKind,
             programTarget,
-            host.implicitImports)
+            host.implicitImports,
+            interpreterLogger,
+            host::runCompileBuildOperation)
 
     private
     val defaultProgramHost = ProgramHost()
@@ -458,16 +462,16 @@ class Interpreter(val host: Host) {
                             } ?: targetScopeClassPath
 
                         scriptSource.withLocationAwareExceptionHandling {
-
                             withTemporaryScriptFileFor(originalScriptPath, scriptText) { scriptFile ->
-
                                 ResidualProgramCompiler(
                                     outputDir,
                                     compilationClassPath,
                                     sourceHash,
                                     programKind,
                                     programTarget,
-                                    host.implicitImports
+                                    host.implicitImports,
+                                    interpreterLogger,
+                                    host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(
                                     scriptFile,
                                     originalScriptPath

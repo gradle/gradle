@@ -24,23 +24,18 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.isNull
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
-
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.groovy.scripts.ScriptSource
-
 import org.gradle.internal.hash.HashCode
-
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
-
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-
 import org.junit.Test
-
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyString
 import java.io.File
 import java.net.URLClassLoader
 
@@ -92,6 +87,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         val compilerOperation = mock<AutoCloseable>()
 
+        val compileReturn = "Yeah"
+
         val classLoaders = mutableListOf<URLClassLoader>()
 
         val stage1CacheDir = root.resolve("stage1").apply { mkdir() }
@@ -100,6 +97,8 @@ class InterpreterTest : TestWithTempFiles() {
         val host = mock<Interpreter.Host> {
 
             on { startCompilerOperation(any()) } doReturn compilerOperation
+
+            on { runCompileBuildOperation(ArgumentMatchers.anyString(), anyString(), any()) } doAnswer { it.getArgument<() -> String>(2)() }
 
             on {
                 cachedDirFor(
