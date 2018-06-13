@@ -41,26 +41,18 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.LoadBuildBuildOperationType;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.TextResourceLoader;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -68,7 +60,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private SettingsInternal settings;
@@ -103,46 +94,14 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             }
         });
 
-        buildListenerBroadcast.add(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                final Set<String> messages = SingleMessageLogger.deprecatedFeatureHandler.messages;
-                services.get(BuildOperationExecutor.class).run(new RunnableBuildOperation() {
 
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(DefaultGradle.this.contextualize(""))
-                            .details(new DeprecationMessagesBuildOperationType.Details() {
-                            });
-                    }
-
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        context.setResult(new DeprecationMessagesBuildOperationType.Result() {
-                            @Override
-                            public Set<String> getMessages() {
-                                return messages;
-                            }
-                        });
-                    }
-                });
-            }
-        });
 
         if (parent == null) {
             services.get(BuildScanConfigInit.class).init();
         }
     }
 
-    public static class DeprecationMessagesBuildOperationType implements BuildOperationType<DeprecationMessagesBuildOperationType.Details, DeprecationMessagesBuildOperationType.Result> {
-        @UsedByScanPlugin
-        public interface Details {
-        }
 
-        public interface Result {
-            Set<String> getMessages();
-        }
-    }
 
     @Override
     public String toString() {

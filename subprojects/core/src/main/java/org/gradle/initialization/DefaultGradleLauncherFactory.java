@@ -172,7 +172,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             default:
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
-        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode());
+
+        BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
+        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), buildOperationExecutor);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
         SettingsLoader settingsLoader = parent != null ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
@@ -196,7 +198,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(ModelConfigurationListener.class),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
-            serviceRegistry.get(BuildOperationExecutor.class),
+            buildOperationExecutor,
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
