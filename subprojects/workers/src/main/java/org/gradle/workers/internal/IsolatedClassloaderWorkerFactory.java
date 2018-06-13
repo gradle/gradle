@@ -75,12 +75,29 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                 return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                     @Override
                     public DefaultWorkResult call(BuildOperationContext context) {
-                        return executeInWorkerClassLoader(spec, forkOptions);
+                        final DefaultWorkResult result = executeInWorkerClassLoader(spec, forkOptions);
+                        context.setResult(new WorkerApiInvocationBuildOperationType.Result() {
+                            @Override
+                            public boolean getDidWork() {
+                                return result.getDidWork();
+                            }
+                        });
+                        return result;
                     }
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation).details(new WorkerApiInvocationBuildOperationType.Details() {
+                            @Override
+                            public String getDisplayName() {
+                                return spec.getDisplayName();
+                            }
+
+                            @Override
+                            public IsolationMode getIsolationMode() {
+                                return IsolationMode.CLASSLOADER;
+                            }
+                        });
                     }
                 });
             }
