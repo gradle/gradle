@@ -68,7 +68,7 @@ public class TaskInfoFactory {
         nodes.clear();
     }
 
-    private static class TaskInAnotherBuild extends TaskInfo {
+    public static class TaskInAnotherBuild extends TaskInfo {
         private final BuildIdentifier thisBuild;
         private final IncludedBuildTaskGraph taskGraph;
         private final BuildIdentifier targetBuild;

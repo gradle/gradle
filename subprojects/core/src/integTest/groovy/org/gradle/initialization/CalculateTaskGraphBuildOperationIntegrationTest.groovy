@@ -199,9 +199,10 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     private void assertTaskPlan(actual, Map<String, List<String>> expected) {
         assert actual.size() == expected.size()
         expected.each { task, expectedDependencies ->
-            assert actual[task]!=null
-            assert actual[task].size() == expectedDependencies.size()
-            assert actual[task].containsAll(expectedDependencies)
+            assert actual[task] != null
+            def dependencies = actual[task].collect { it.taskPath }
+            assert dependencies.size() == expectedDependencies.size()
+            assert dependencies.containsAll(expectedDependencies)
         }
     }
 }

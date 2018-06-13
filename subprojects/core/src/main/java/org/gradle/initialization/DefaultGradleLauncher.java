@@ -16,9 +16,9 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -43,8 +43,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Predecessor;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -302,25 +302,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
             TaskExecutionPlan taskExecutionPlan = taskGraph.populate();
-            ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
-            final Set<Task> excludedTasks = taskExecutionPlan.getFilteredTasks();
+            ImmutableMap.Builder<String, List<Predecessor>> builder = ImmutableMap.builder();
             for (Task task : taskExecutionPlan.getTasks()) {
-                // TODO: This should use some richer type than smashing strings together
-                builder.put(((TaskInternal)task).getIdentityPath().getPath(), toTaskPathsWithBuildPath(
-                    Collections2.filter(taskExecutionPlan.getDependencies(task), new Predicate<Task>() {
-                        @Override
-                        public boolean apply(@Nullable Task input) {
-                            return !excludedTasks.contains(input);
-                        }
-                    })));
+                builder.put(((TaskInternal)task).getIdentityPath().getPath(), taskExecutionPlan.getPredecessors(task));
             }
-            final Map<String, List<String>> taskPlan = builder.build();
+            final Map<String, List<Predecessor>> taskPlan = builder.build();
 
             includedBuildControllers.populateTaskGraphs();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
-                public Map<String, List<String>> getTaskPlan() {
+                public Map<String, List<Predecessor>> getTaskPlan() {
                     return taskPlan;
                 }
 
@@ -356,11 +348,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 });
         }
 
-        private List<String> toTaskPathsWithBuildPath(Collection<Task> tasks) {
-            return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
+        private List<Predecessor> toTaskPathsWithBuildPath(Collection<Task> tasks) {
+            return ImmutableSet.copyOf(Collections2.transform(tasks, new Function<Task, Predecessor>() {
                 @Override
-                public String apply(Task task) {
-                    return ((TaskInternal)task).getIdentityPath().getPath();
+                public Predecessor apply(Task task) {
+                    return new Predecessor(((TaskInternal) task).getIdentityPath().getPath(), CalculateTaskGraphBuildOperationType.PredecessorType.DEPENDENCY);
                 }
             })).asList();
         }

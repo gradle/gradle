@@ -20,10 +20,12 @@ import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -54,6 +56,8 @@ public interface TaskExecutionPlan extends Describable {
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     Set<Task> getTasks();
+
+    List<CalculateTaskGraphBuildOperationType.Predecessor> getPredecessors(Task task);
 
     /**
      * @return The set of all filtered tasks that don't get executed.

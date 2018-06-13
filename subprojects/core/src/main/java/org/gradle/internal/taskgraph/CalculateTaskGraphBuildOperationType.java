@@ -44,7 +44,7 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
     @UsedByScanPlugin
     public interface Result {
 
-        Map<String, List<String>> getTaskPlan();
+        Map<String, List<Predecessor>> getTaskPlan();
 
         /**
          * Lexicographically sorted.
@@ -61,7 +61,46 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         List<String> getExcludedTaskPaths();
     }
 
-    private CalculateTaskGraphBuildOperationType() {
+    public static class Predecessor {
+        private final String taskPath;
+        private final PredecessorType type;
+
+        public Predecessor(String taskPath, PredecessorType type) {
+            this.taskPath = taskPath;
+            this.type = type;
+        }
+
+        public String getTaskPath() {
+            return taskPath;
+        }
+
+        public PredecessorType getType() {
+            return type;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Predecessor that = (Predecessor) o;
+
+            if (!taskPath.equals(that.taskPath)) return false;
+            return type == that.type;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = taskPath.hashCode();
+            result = 31 * result + type.hashCode();
+            return result;
+        }
     }
 
+    public enum PredecessorType {
+        DEPENDENCY, FINALIZES
+    }
+
+    private CalculateTaskGraphBuildOperationType() {
+    }
 }

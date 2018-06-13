@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -52,6 +53,8 @@ import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Predecessor;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PredecessorType;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
@@ -527,6 +530,31 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     @Override
     public Set<Task> getTasks() {
         return executionPlan.keySet();
+    }
+
+    @Override
+    public List<Predecessor> getPredecessors(Task task) {
+        TaskInfo taskInfo = executionPlan.get(task);
+        ImmutableList.Builder<Predecessor> builder = ImmutableList.builder();
+        for (TaskInfo dependency : taskInfo.getDependencySuccessors()) {
+            Task dependencyTask = extractTask(dependency);
+            if (!filteredTasks.contains(dependencyTask)) {
+                builder.add(new Predecessor(dependency.getIdentityPath().getPath(), PredecessorType.DEPENDENCY));
+            }
+        }
+        for (TaskInfo finalizes : taskInfo.getFinalizingSuccessors()) {
+            Task finalizesTask = extractTask(finalizes);
+            if (!filteredTasks.contains(finalizesTask)) {
+                builder.add(new Predecessor(finalizes.getIdentityPath().getPath(), PredecessorType.FINALIZES));
+            }
+        }
+        return builder.build();
+    }
+
+    protected Task extractTask(TaskInfo dependency) {
+        ImmutableSet.Builder<Task> setBuilder = ImmutableSet.builder();
+        dependency.collectTaskInto(setBuilder);
+        return setBuilder.build().iterator().next();
     }
 
     @Override
