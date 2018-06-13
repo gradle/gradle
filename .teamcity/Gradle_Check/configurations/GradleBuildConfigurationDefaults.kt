@@ -21,13 +21,6 @@ private val java7Homes = mapOf(
         OS.macos to "-Djava7Home=%macos.java7.oracle.64bit%"
 )
 
-private val java9Homes = mapOf(
-    OS.windows to """"-Djava9Home=%windows.java9.oracle.64bit%"""",
-    OS.linux to "-Djava9Home=%linux.java9.oracle.64bit%",
-    OS.macos to "-Djava9Home=%macos.java9.oracle.64bit%"
-)
-
-
 fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
     // TODO: Hacky. We should really be running all the subprojects on macOS
     // But we're restricting this to just a subset of projects for now
@@ -42,7 +35,6 @@ val gradleParameters = listOf(
         "--continue",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         java7Homes[OS.linux]!!,
-        java9Homes[OS.linux]!!,
         "-Dorg.gradle.internal.tasks.createops"
 )
 
@@ -120,12 +112,8 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultSettings(buildType, os, timeout)
 
     val java7HomeParameter = java7Homes[os]!!
-    val java9HomeParameter = java9Homes[os]!!
-
-    var gradleParameterString = gradleParameters.joinToString(separator = " ")
+    val gradleParameterString = gradleParameters.joinToString(separator = " ")
             .replace(java7Homes[OS.linux]!!, java7HomeParameter)
-            .replace(java9Homes[OS.linux]!!, java9HomeParameter)
-
     val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
     buildType.steps {
