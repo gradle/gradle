@@ -25,6 +25,7 @@ public class DeprecationMessagesBuildOperationType implements BuildOperationType
     }
 
     public interface Result {
+        String getLocation();
         String getMessage();
     }
 }

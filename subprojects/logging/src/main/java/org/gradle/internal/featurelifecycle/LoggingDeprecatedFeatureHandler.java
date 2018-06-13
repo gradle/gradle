@@ -66,22 +66,28 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     public void featureUsed(FeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
             String message = getMessage(usage);
-            publishToBuildScan(message);
+            String location = getLocation(usage);
+            publishToBuildScan(usage.getMessage(), location);
             if (warningMode == WarningMode.All) {
                 LOGGER.warn(message);
             }
         }
     }
 
-    private void publishToBuildScan(String message) {
-        buildOperationExecutor.run(new PublishDeprecationMessageOperation(message));
+    private String getLocation(FeatureUsage usage) {
+        StringBuilder message = new StringBuilder();
+        locationReporter.reportLocation(usage, message);
+        return message.toString();
+    }
+
+    private void publishToBuildScan(String message, String location) {
+        buildOperationExecutor.run(new PublishDeprecationMessageOperation(message, location));
     }
 
     private String getMessage(FeatureUsage usage) {
         usage = usage.withStackTrace();
 
         StringBuilder message = new StringBuilder();
-        locationReporter.reportLocation(usage, message);
         if (message.length() > 0) {
             message.append(SystemProperties.getInstance().getLineSeparator());
         }

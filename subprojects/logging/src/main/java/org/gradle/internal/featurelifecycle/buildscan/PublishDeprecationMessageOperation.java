@@ -20,23 +20,32 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class PublishDeprecationMessageOperation implements RunnableBuildOperation {
-    private String message;
+import static org.gradle.internal.featurelifecycle.buildscan.DeprecationMessagesBuildOperationType.*;
 
-    public PublishDeprecationMessageOperation(String message) {
+public class PublishDeprecationMessageOperation implements RunnableBuildOperation {
+    private final String message;
+    private final String location;
+
+    public PublishDeprecationMessageOperation(String message, String location) {
         this.message = message;
+        this.location = location;
     }
 
     @Override
     public BuildOperationDescriptor.Builder description() {
         return BuildOperationDescriptor.displayName("Woo!")
-            .details(new DeprecationMessagesBuildOperationType.Details() {
+            .details(new Details() {
             });
     }
 
     @Override
     public void run(BuildOperationContext context) {
-        context.setResult(new DeprecationMessagesBuildOperationType.Result() {
+        context.setResult(new Result() {
+            @Override
+            public String getLocation() {
+                return location;
+            }
+
             @Override
             public String getMessage() {
                 return message;
