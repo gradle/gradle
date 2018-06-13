@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.project
 
+import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -135,7 +136,12 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             include 'foo'
         """
 
-        file("foo/build.gradle")
+        file("foo/build.gradle") << """
+            afterEvaluate {
+                afterEvaluate {
+                }
+            }
+        """
         file("foo/before.gradle") << ""
         file("foo/after.gradle") << ""
         file("foo/whenReady.gradle") << ""
@@ -160,16 +166,38 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
 
+        def rootBuildFile = operations.only(ApplyScriptPluginBuildOperationType, { it.details.file == buildFile.absolutePath })
+        def fooBuildFile = operations.only(ApplyScriptPluginBuildOperationType, { it.details.file == file("foo/build.gradle").absolutePath })
         def configOp = operations.only(ConfigureProjectBuildOperationType, { it.details.projectPath == ':foo' })
         with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify beforeEvaluate listeners of :foo'
             children*.displayName == ["Apply script before.gradle to project ':foo'"]
             parentId == configOp.id
         }
-        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
-            displayName == 'Notify afterEvaluate listeners of :foo'
-            children*.displayName == ["Apply script after.gradle to project ':foo'"]
-            parentId == configOp.id
+        with(operations.all(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            size() == 3
+
+            with(get(0)) {
+                displayName == 'Notify afterEvaluate listener of :foo'
+                children*.displayName == ["Apply script after.gradle to project ':foo'"]
+                parentId == configOp.id
+                details.parentId.id == rootBuildFile.id
+            }
+
+            def outer = get(1)
+            with(outer) {
+                displayName == 'Notify afterEvaluate listener of :foo'
+                children.size() == 0
+                parentId == configOp.id
+                details.parentId.id == fooBuildFile.id
+            }
+
+            with(get(2)) {
+                displayName == 'Notify afterEvaluate listener of :foo'
+                children.size() == 0
+                parentId == configOp.id
+                details.parentId.id == outer.id
+            }
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
@@ -192,8 +220,8 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
         def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, {it.details.buildPath== ':included-build'})
 
-        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, {it.details.buildPath == ':included-build'})) {
-            displayName == 'Notify afterEvaluate listeners of :included-build'
+        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.buildPath == ':included-build' })) {
+            displayName == 'Notify afterEvaluate listener of :included-build'
             // parent is not the plugin application operation, as we fire the build op when hooks are executed, not registered.
             parentId == configureIncludedBuild.id
         }

@@ -76,6 +76,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.project.NotifyProjectAfterEvaluatedBuildOperationType;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -88,6 +89,11 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -978,9 +984,41 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         evaluationListener.add("beforeEvaluate", action);
     }
 
+
+    @Inject
+    protected BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
-    public void afterEvaluate(Action<? super Project> action) {
-        evaluationListener.add("afterEvaluate", action);
+    public void afterEvaluate(final Action<? super Project> action) {
+        final OperationIdentifier parentId = getBuildOperationExecutor().getCurrentOperation().getId();
+
+        Action<? super Project> wrapped = new Action<Project>() {
+            @Override
+            public void execute(final Project project) {
+
+                getBuildOperationExecutor().run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        action.execute(project);
+                        context.setResult(NotifyProjectAfterEvaluatedBuildOperationType.RESULT);
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Notify afterEvaluate listener of " + getIdentityPath())
+                            .details(new NotifyProjectAfterEvaluatedBuildOperationType.DetailsImpl(
+                                getProjectPath(),
+                                getGradle().getIdentityPath(),
+                                parentId
+                            ));
+                    }
+                });
+            }
+        };
+
+        evaluationListener.add("afterEvaluate", wrapped);
     }
 
     @Override
@@ -990,7 +1028,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        afterEvaluate(new ClosureBackedAction<Project>(closure));
     }
 
     @Override

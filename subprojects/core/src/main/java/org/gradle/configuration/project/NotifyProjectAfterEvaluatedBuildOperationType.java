@@ -17,6 +17,7 @@
 package org.gradle.configuration.project;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
 
@@ -34,20 +35,23 @@ public final class NotifyProjectAfterEvaluatedBuildOperationType implements Buil
 
         String getBuildPath();
 
+        OperationIdentifier getParentId();
     }
 
     public interface Result {
 
     }
 
-    static class DetailsImpl implements Details {
+    public static class DetailsImpl implements Details {
 
         private final Path buildPath;
         private final Path projectPath;
+        private final OperationIdentifier parentId;
 
-        DetailsImpl(Path projectPath, Path buildPath) {
+        public DetailsImpl(Path projectPath, Path buildPath, OperationIdentifier parentId) {
             this.projectPath = projectPath;
             this.buildPath = buildPath;
+            this.parentId = parentId;
         }
 
         public String getProjectPath() {
@@ -58,9 +62,14 @@ public final class NotifyProjectAfterEvaluatedBuildOperationType implements Buil
             return buildPath.getPath();
         }
 
+        @Override
+        public OperationIdentifier getParentId() {
+            return parentId;
+        }
+
     }
 
-    final static Result RESULT = new Result() {
+    public final static Result RESULT = new Result() {
     };
 
     private NotifyProjectAfterEvaluatedBuildOperationType() {
