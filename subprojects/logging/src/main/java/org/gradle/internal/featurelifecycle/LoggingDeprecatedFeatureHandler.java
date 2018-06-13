@@ -19,7 +19,9 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.featurelifecycle.buildscan.DeprecationWarningBuildOperation;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +45,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
+
+    private BuildOperationExecutor buildOperationExecutor;
     private WarningMode warningMode;
 
     public LoggingDeprecatedFeatureHandler() {
@@ -53,9 +57,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         this.locationReporter = locationReporter;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationExecutor buildOperationExecutor) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -68,11 +73,16 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
                 message.append(SystemProperties.getInstance().getLineSeparator());
             }
             message.append(usage.getMessage());
-            logTraceIfNecessary(usage.getStack(), message);
+            appendLogTraceIfNecessary(usage.getStack(), message);
             if (warningMode == WarningMode.All) {
                 LOGGER.warn(message.toString());
             }
         }
+        fireDeprecationWarningBuildOperation(usage);
+    }
+
+    private void fireDeprecationWarningBuildOperation(FeatureUsage usage) {
+        buildOperationExecutor.run(new DeprecationWarningBuildOperation(usage));
     }
 
     public void reset() {
@@ -88,7 +98,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         }
     }
 
-    private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+    private static void appendLogTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (isTraceLoggingEnabled()) {

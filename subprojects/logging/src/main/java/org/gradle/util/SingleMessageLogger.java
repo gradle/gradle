@@ -25,6 +25,7 @@ import org.gradle.internal.featurelifecycle.FeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import javax.annotation.Nullable;
 
@@ -49,8 +50,8 @@ public class SingleMessageLogger {
         incubatingFeatureHandler.reset();
     }
 
-    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode) {
-        deprecatedFeatureHandler.init(reporter, warningMode);
+    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationExecutor buildOperationExecutor) {
+        deprecatedFeatureHandler.init(reporter, warningMode, buildOperationExecutor);
     }
 
     public synchronized static void reportSuppressedDeprecations() {
