@@ -140,6 +140,7 @@ allprojects {
     group = "org.gradle"
 
     repositories {
+        maven(url = "/Users/bamboo/code/gradle/dotcom/scans-plugin/build/repo")
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
