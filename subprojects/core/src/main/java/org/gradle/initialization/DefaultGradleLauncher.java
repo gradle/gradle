@@ -28,6 +28,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -300,25 +301,27 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            final TaskExecutionPlan taskExecutionPlan = taskGraph.populate();
+            TaskExecutionPlan taskExecutionPlan = taskGraph.populate();
+            ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
+            final Set<Task> excludedTasks = taskExecutionPlan.getFilteredTasks();
+            for (Task task : taskExecutionPlan.getTasks()) {
+                // TODO: This should use some richer type than smashing strings together
+                builder.put(((TaskInternal)task).getIdentityPath().getPath(), toTaskPathsWithBuildPath(
+                    Collections2.filter(taskExecutionPlan.getDependencies(task), new Predicate<Task>() {
+                        @Override
+                        public boolean apply(@Nullable Task input) {
+                            return !excludedTasks.contains(input);
+                        }
+                    })));
+            }
+            final Map<String, List<String>> taskPlan = builder.build();
 
             includedBuildControllers.populateTaskGraphs();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
                 public Map<String, List<String>> getTaskPlan() {
-                    ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
-                    final Set<Task> excludedTasks = taskExecutionPlan.getFilteredTasks();
-                    for (Task task : taskExecutionPlan.getTasks()) {
-                        builder.put(task.getPath(), toTaskPaths(
-                            Collections2.filter(taskExecutionPlan.getDependencies(task), new Predicate<Task>() {
-                                @Override
-                                public boolean apply(@Nullable Task input) {
-                                    return !excludedTasks.contains(input);
-                                }
-                            })));
-                    }
-                    return builder.build();
+                    return taskPlan;
                 }
 
                 @Override
@@ -351,6 +354,15 @@ public class DefaultGradleLauncher implements GradleLauncher {
                         return getGradle().getIdentityPath().getPath();
                     }
                 });
+        }
+
+        private List<String> toTaskPathsWithBuildPath(Collection<Task> tasks) {
+            return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
+                @Override
+                public String apply(Task task) {
+                    return ((TaskInternal)task).getIdentityPath().getPath();
+                }
+            })).asList();
         }
     }
 

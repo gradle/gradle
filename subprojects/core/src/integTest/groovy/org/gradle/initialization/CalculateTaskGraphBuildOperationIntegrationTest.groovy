@@ -149,20 +149,34 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations.size() == 3
 
         taskGraphCalculations[0].details.buildPath == ":buildSrc"
-        assertTaskPlan(taskGraphCalculations[0].result.taskPlan, [:])
+        assertTaskPlan(taskGraphCalculations[0].result.taskPlan, [
+            ":buildSrc:compileJava": [],
+            ":buildSrc:compileGroovy": [":buildSrc:compileJava"],
+            ":buildSrc:processResources": [],
+            ":buildSrc:classes": [":buildSrc:compileGroovy", ":buildSrc:compileJava", ":buildSrc:processResources"],
+            ":buildSrc:jar": [":buildSrc:classes"],
+            ":buildSrc:assemble": [":buildSrc:jar"],
+            ":buildSrc:compileTestJava": [":buildSrc:classes"],
+            ":buildSrc:compileTestGroovy": [":buildSrc:classes", ":buildSrc:compileTestJava"],
+            ":buildSrc:processTestResources": [],
+            ":buildSrc:testClasses": [":buildSrc:compileTestGroovy", ":buildSrc:compileTestJava", ":buildSrc:processTestResources"],
+            ":buildSrc:test": [":buildSrc:classes", ":buildSrc:testClasses"],
+            ":buildSrc:check": [ ":buildSrc:test" ],
+            ":buildSrc:build": [":buildSrc:assemble", ":buildSrc:check"],
+        ])
         taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
 
         taskGraphCalculations[1].details.buildPath == ":"
         assertTaskPlan(taskGraphCalculations[1].result.taskPlan, [
-            ":compileJava": [":jar"],
+            ":compileJava": [":b:jar"],
             ":processResources": [],
             ":classes": [":compileJava", ":processResources"],
             ":jar": [":classes"],
             ":assemble": [":jar"],
-            ":compileTestJava": [":classes", ":jar"],
+            ":compileTestJava": [":b:jar", ":classes"],
             ":processTestResources": [],
             ":testClasses": [":compileTestJava", ":processTestResources"],
-            ":test": [":classes", ":jar", ":testClasses"],
+            ":test": [":b:jar", ":classes", ":testClasses"],
             ":check": [ ":test" ],
             ":build": [":assemble", ":check"],
         ])
@@ -170,10 +184,10 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         taskGraphCalculations[2].details.buildPath== ":b"
         assertTaskPlan(taskGraphCalculations[2].result.taskPlan, [
-            ":compileJava": [],
-            ":processResources": [],
-            ":classes": [":compileJava", ":processResources"],
-            ":jar": [":classes"],
+            ":b:compileJava": [],
+            ":b:processResources": [],
+            ":b:classes": [":b:compileJava", ":b:processResources"],
+            ":b:jar": [":b:classes"],
         ])
         taskGraphCalculations[2].result.requestedTaskPaths == [":jar"]
     }
@@ -185,6 +199,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     private void assertTaskPlan(actual, Map<String, List<String>> expected) {
         assert actual.size() == expected.size()
         expected.each { task, expectedDependencies ->
+            assert actual[task]!=null
             assert actual[task].size() == expectedDependencies.size()
             assert actual[task].containsAll(expectedDependencies)
         }
