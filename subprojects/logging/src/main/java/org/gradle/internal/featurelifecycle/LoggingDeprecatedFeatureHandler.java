@@ -19,13 +19,9 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.featurelifecycle.buildscan.PublishDeprecationMessageOperation;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,52 +62,32 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public static class DeprecationMessagesBuildOperationType implements BuildOperationType<DeprecationMessagesBuildOperationType.Details, DeprecationMessagesBuildOperationType.Result> {
-        @UsedByScanPlugin
-        public interface Details {
-        }
-
-        public interface Result {
-            String getMessage();
-        }
-    }
-
     @Override
     public void featureUsed(FeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
-            usage = usage.withStackTrace();
-            final StringBuilder message = new StringBuilder();
-            locationReporter.reportLocation(usage, message);
-            if (message.length() > 0) {
-                message.append(SystemProperties.getInstance().getLineSeparator());
-            }
-            message.append(usage.getMessage());
-            logTraceIfNecessary(usage.getStack(), message);
+            String message = getMessage(usage);
+            publishToBuildScan(message);
             if (warningMode == WarningMode.All) {
-                LOGGER.warn(message.toString());
+                LOGGER.warn(message);
             }
-
-
-            final FeatureUsage finalUsage = usage;
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Woo!")
-                        .details(new DeprecationMessagesBuildOperationType.Details() {
-                        });
-                }
-
-                @Override
-                public void run(BuildOperationContext context) {
-                    context.setResult(new DeprecationMessagesBuildOperationType.Result() {
-                        @Override
-                        public String getMessage() {
-                            return finalUsage.getMessage();
-                        }
-                    });
-                }
-            });
         }
+    }
+
+    private void publishToBuildScan(String message) {
+        buildOperationExecutor.run(new PublishDeprecationMessageOperation(message));
+    }
+
+    private String getMessage(FeatureUsage usage) {
+        usage = usage.withStackTrace();
+
+        StringBuilder message = new StringBuilder();
+        locationReporter.reportLocation(usage, message);
+        if (message.length() > 0) {
+            message.append(SystemProperties.getInstance().getLineSeparator());
+        }
+        message.append(usage.getMessage());
+        appendLogTraceIfNecessary(usage.getStack(), message);
+        return message.toString();
     }
 
     public void reset() {
@@ -127,7 +103,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         }
     }
 
-    private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+    private static void appendLogTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (isTraceLoggingEnabled()) {
