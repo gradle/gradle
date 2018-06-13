@@ -89,7 +89,7 @@ class DefaultJarSnapshotter {
 
             try {
                 ClassAnalysis analysis = analyzer.getClassAnalysis(classFileHash, fileDetails);
-                accumulator.addClass(fileDetails.getFile(), analysis);
+                accumulator.addClass(analysis);
                 hashes.put(analysis.getClassName(), classFileHash);
             } catch (Exception e) {
                 accumulator.fullRebuildNeeded("class file " + fileDetails.getName() + " could not be analyzed. See the debug log for more details");
