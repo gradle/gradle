@@ -65,6 +65,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     @Override
     public void featureUsed(FeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
+            usage = usage.withStackTrace();
             String message = getMessage(usage);
             String location = getLocation(usage);
             publishToBuildScan(usage.getMessage(), location);
@@ -85,8 +86,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     private String getMessage(FeatureUsage usage) {
-        usage = usage.withStackTrace();
-
         StringBuilder message = new StringBuilder();
         if (message.length() > 0) {
             message.append(SystemProperties.getInstance().getLineSeparator());
