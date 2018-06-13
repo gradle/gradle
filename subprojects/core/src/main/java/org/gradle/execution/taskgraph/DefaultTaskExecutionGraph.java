@@ -94,7 +94,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal, includedBuildTaskGraph);
-
     }
 
     @Override
@@ -126,8 +125,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void populate() {
+    public TaskExecutionPlan populate() {
         ensurePopulated();
+        return taskExecutionPlan;
     }
 
     @Override

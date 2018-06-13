@@ -20,6 +20,7 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Computing the task graph based on the inputs and build configuration.
@@ -42,6 +43,8 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Result {
+
+        Map<String, List<String>> getTaskPlan();
 
         /**
          * Lexicographically sorted.

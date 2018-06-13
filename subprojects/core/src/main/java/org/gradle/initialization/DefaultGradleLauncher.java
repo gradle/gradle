@@ -16,7 +16,9 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -32,6 +34,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskExecutionPlan;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -40,8 +43,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultGradleLauncher implements GradleLauncher {
@@ -294,11 +300,27 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            taskGraph.populate();
+            final TaskExecutionPlan taskExecutionPlan = taskGraph.populate();
 
             includedBuildControllers.populateTaskGraphs();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
+                @Override
+                public Map<String, List<String>> getTaskPlan() {
+                    ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
+                    final Set<Task> excludedTasks = taskExecutionPlan.getFilteredTasks();
+                    for (Task task : taskExecutionPlan.getTasks()) {
+                        builder.put(task.getPath(), toTaskPaths(
+                            Collections2.filter(taskExecutionPlan.getDependencies(task), new Predicate<Task>() {
+                                @Override
+                                public boolean apply(@Nullable Task input) {
+                                    return !excludedTasks.contains(input);
+                                }
+                            })));
+                    }
+                    return builder.build();
+                }
+
                 @Override
                 public List<String> getRequestedTaskPaths() {
                     return toTaskPaths(taskGraph.getRequestedTasks());
@@ -309,7 +331,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     return toTaskPaths(taskGraph.getFilteredTasks());
                 }
 
-                private List<String> toTaskPaths(Set<Task> tasks) {
+                private List<String> toTaskPaths(Collection<Task> tasks) {
                     return ImmutableSortedSet.copyOf(Collections2.transform(tasks, new Function<Task, String>() {
                         @Override
                         public String apply(Task task) {

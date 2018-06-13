@@ -19,6 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.taskgraph.TaskExecutionPlan;
 
 import java.util.Collection;
 import java.util.Set;
@@ -39,7 +40,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
      * Does the work to populate the task graph based on tasks that have been added. Does not fire events.
      */
-    void populate();
+    TaskExecutionPlan populate();
 
     /**
      * Executes the tasks in this graph. Discards the contents of this graph when completed.

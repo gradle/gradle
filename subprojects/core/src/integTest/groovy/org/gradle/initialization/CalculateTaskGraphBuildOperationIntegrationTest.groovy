@@ -47,6 +47,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('help')
 
         then:
+        assertTaskPlan(operation().result.taskPlan, [
+                ":help": []
+        ])
         operation().result.requestedTaskPaths == [":help"]
         operation().result.excludedTaskPaths == []
 
@@ -54,6 +57,16 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('someTask')
 
         then:
+        assertTaskPlan(operation().result.taskPlan, [
+            ":someTask": [ ":otherTask" ],
+            ":otherTask": [],
+            ":a:someTask": [ ":a:otherTask" ],
+            ":a:otherTask": [],
+            ":b:someTask": [ ":b:otherTask" ],
+            ":b:otherTask": [],
+            ":a:c:someTask": [ ":a:c:otherTask" ],
+            ":a:c:otherTask": [],
+        ])
         operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
         operation().result.excludedTaskPaths == []
 
@@ -61,6 +74,14 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
+        assertTaskPlan(operation().result.taskPlan, [
+            ":someTask": [ ":otherTask" ],
+            ":otherTask": [],
+            ":a:someTask": [ ":a:otherTask" ],
+            ":a:otherTask": [],
+            ":a:c:someTask": [ ":a:c:otherTask" ],
+            ":a:c:otherTask": [],
+        ])
         operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
         operation().result.excludedTaskPaths == [":b:someTask"]
 
@@ -68,6 +89,12 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('someTask', '-x', 'otherTask')
 
         then:
+        assertTaskPlan(operation().result.taskPlan, [
+            ":someTask": [ ],
+            ":a:someTask": [ ],
+            ":b:someTask": [ ],
+            ":a:c:someTask": [ ],
+        ])
         operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
         operation().result.excludedTaskPaths == [":a:c:otherTask", ":a:otherTask", ":b:otherTask", ":otherTask"]
 
@@ -75,6 +102,10 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds(':a:someTask')
 
         then:
+        assertTaskPlan(operation().result.taskPlan, [
+            ":a:someTask": [ ":a:otherTask" ],
+            ":a:otherTask": [],
+        ])
         operation().result.requestedTaskPaths == [":a:someTask"]
         operation().result.excludedTaskPaths == []
     }
@@ -116,11 +147,34 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         then:
         taskGraphCalculations.size() == 3
+
         taskGraphCalculations[0].details.buildPath == ":buildSrc"
+        assertTaskPlan(taskGraphCalculations[0].result.taskPlan, [:])
         taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
+
         taskGraphCalculations[1].details.buildPath == ":"
+        assertTaskPlan(taskGraphCalculations[1].result.taskPlan, [
+            ":compileJava": [":jar"],
+            ":processResources": [],
+            ":classes": [":compileJava", ":processResources"],
+            ":jar": [":classes"],
+            ":assemble": [":jar"],
+            ":compileTestJava": [":classes", ":jar"],
+            ":processTestResources": [],
+            ":testClasses": [":compileTestJava", ":processTestResources"],
+            ":test": [":classes", ":jar", ":testClasses"],
+            ":check": [ ":test" ],
+            ":build": [":assemble", ":check"],
+        ])
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
+
         taskGraphCalculations[2].details.buildPath== ":b"
+        assertTaskPlan(taskGraphCalculations[2].result.taskPlan, [
+            ":compileJava": [],
+            ":processResources": [],
+            ":classes": [":compileJava", ":processResources"],
+            ":jar": [":classes"],
+        ])
         taskGraphCalculations[2].result.requestedTaskPaths == [":jar"]
     }
 
@@ -128,4 +182,11 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         buildOperations.first(CalculateTaskGraphBuildOperationType)
     }
 
+    private void assertTaskPlan(actual, Map<String, List<String>> expected) {
+        assert actual.size() == expected.size()
+        expected.each { task, expectedDependencies ->
+            assert actual[task].size() == expectedDependencies.size()
+            assert actual[task].containsAll(expectedDependencies)
+        }
+    }
 }
