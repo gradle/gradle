@@ -41,8 +41,8 @@ public class SingleMessageLogger {
 
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
-    private static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
-    private static LoggingIncubatingFeatureHandler incubatingFeatureHandler = new LoggingIncubatingFeatureHandler();
+    public static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
+    public static LoggingIncubatingFeatureHandler incubatingFeatureHandler = new LoggingIncubatingFeatureHandler();
 
     public synchronized static void reset() {
         deprecatedFeatureHandler.reset();

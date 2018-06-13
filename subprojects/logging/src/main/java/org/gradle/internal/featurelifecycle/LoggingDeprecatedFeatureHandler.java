@@ -41,7 +41,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private static String deprecationMessage;
     private static boolean traceLoggingEnabled;
 
-    private final Set<String> messages = new HashSet<String>();
+    public final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
     private WarningMode warningMode;
 
