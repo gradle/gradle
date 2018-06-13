@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -40,6 +41,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 public class ErrorHandlingConfigurationResolver implements ConfigurationResolver {
@@ -47,6 +49,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
     public ErrorHandlingConfigurationResolver(ConfigurationResolver delegate) {
         this.delegate = delegate;
+    }
+
+    @Override
+    public List<ModuleComponentRepositoryIdentifier> getRepositories() {
+        return delegate.getRepositories();
     }
 
     @Override

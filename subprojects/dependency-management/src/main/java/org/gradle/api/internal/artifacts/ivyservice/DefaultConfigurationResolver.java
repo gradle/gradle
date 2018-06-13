@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -31,6 +32,8 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -68,6 +71,8 @@ import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -189,6 +194,38 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor);
         results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
+    }
+
+    @Override
+    public List<ModuleComponentRepositoryIdentifier> getRepositories() {
+        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+        ArrayList<ModuleComponentRepositoryIdentifier> result = Lists.newArrayListWithExpectedSize(resolutionAwareRepositories.size());
+        for (ResolutionAwareRepository repository : resolutionAwareRepositories) {
+            ConfiguredModuleComponentRepository resolver = repository.createResolver();
+            result.add(new BasicModuleComponentRepositoryIdentifier(resolver.getId(), resolver.getName()));
+        }
+        return result;
+    }
+
+    private static class BasicModuleComponentRepositoryIdentifier implements ModuleComponentRepositoryIdentifier {
+
+        private final String id;
+        private final String name;
+
+        private BasicModuleComponentRepositoryIdentifier(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
     }
 
     private static class ArtifactResolveState {

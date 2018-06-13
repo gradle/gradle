@@ -67,6 +67,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -114,6 +115,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -1590,6 +1592,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public boolean isConfigurationTransitive() {
             return isTransitive();
+        }
+
+        @Override
+        public List<ModuleComponentRepositoryIdentifier> getRepositories() {
+            return resolver.getRepositories();
         }
     }
 

@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -50,6 +51,7 @@ import org.gradle.internal.locking.LockOutOfDateException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
@@ -63,6 +65,11 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.thisBuild = thisBuild;
+    }
+
+    @Override
+    public List<ModuleComponentRepositoryIdentifier> getRepositories() {
+        return delegate.getRepositories();
     }
 
     @Override

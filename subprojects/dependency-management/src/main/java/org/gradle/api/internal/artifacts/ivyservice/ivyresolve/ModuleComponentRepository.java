@@ -27,17 +27,7 @@ import java.util.Map;
 /**
  * A repository of module components.
  */
-public interface ModuleComponentRepository {
-    /**
-     * A unique identifier for this repository, based on it's type and attributes.
-     * Two repositories with the same configuration in different projects will share the same id.
-     */
-    String getId();
-
-    /**
-     * A user-friendly name for this repository.
-     */
-    String getName();
+public interface ModuleComponentRepository extends ModuleComponentRepositoryIdentifier {
 
     /**
      * Accessor that attempts to locate module components without expensive network operations.

@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Resolution of a configuration's dependencies.
@@ -47,6 +49,8 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
         boolean isConfigurationVisible();
 
         boolean isConfigurationTransitive();
+
+        List<ModuleComponentRepositoryIdentifier> getRepositories();
 
     }
 
