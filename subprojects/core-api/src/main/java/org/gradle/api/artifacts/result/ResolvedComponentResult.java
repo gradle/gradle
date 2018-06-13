@@ -47,6 +47,13 @@ public interface ResolvedComponentResult {
     ComponentIdentifier getId();
 
     /**
+     * Hackathon!!
+     *
+     * @return hacked content
+     */
+    String getRepositoryId();
+
+    /**
      * <p>Returns the dependencies of this component. Includes resolved and unresolved dependencies (if any).
      *
      * <p>The elements of the returned collection are declared as {@link DependencyResult}, however the dependency instances will also implement one of the

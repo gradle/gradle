@@ -271,6 +271,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ComponentIdentifier componentId
         DisplayName variantName
         AttributeContainer variantAttributes
+        String repositoryId
     }
 
     class DummyInternalDependencyResult implements DependencyResult {

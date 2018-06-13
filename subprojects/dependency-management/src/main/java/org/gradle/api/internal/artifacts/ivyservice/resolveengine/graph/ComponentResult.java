@@ -61,4 +61,6 @@ public interface ComponentResult {
      * not necessarily the case.
      */
     AttributeContainer getVariantAttributes();
+
+    String getRepositoryId();
 }

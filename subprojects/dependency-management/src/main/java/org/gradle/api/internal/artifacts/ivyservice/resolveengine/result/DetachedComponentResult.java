@@ -35,14 +35,16 @@ public class DetachedComponentResult implements ComponentResult {
     private final ComponentIdentifier componentIdentifier;
     private final DisplayName variantName;
     private final AttributeContainer variantAttributes;
+    private final String repositoryId;
 
-    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes) {
+    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes, String repositoryId) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;
         this.variantName = Describables.of(variantName);
         this.variantAttributes = variantAttributes;
+        this.repositoryId = repositoryId;
     }
 
     @Override
@@ -70,5 +72,10 @@ public class DetachedComponentResult implements ComponentResult {
     @Override
     public AttributeContainer getVariantAttributes() {
         return variantAttributes;
+    }
+
+    @Override
+    public String getRepositoryId() {
+        return repositoryId;
     }
 }
