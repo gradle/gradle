@@ -28,7 +28,9 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         includeBuild(buildC)
         buildA.buildFile << """
             assert gradle.includedBuild("buildB").name == "buildB"
+            assert gradle.includedBuild("buildB").projectDir == file('${buildB.toURI()}')
             assert gradle.includedBuild("buildC").name == "buildC"
+            assert gradle.includedBuild("buildC").projectDir == file('${buildC.toURI()}')
             assert gradle.includedBuilds.name == ["buildB", "buildC"]
             
             task broken {
@@ -46,16 +48,58 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'unknown' not found in build 'buildA'.")
     }
 
-    def "other builds are not visible from included build"() {
+    def "root project name is used as build name"() {
+        given:
+        def buildB = singleProjectBuild("buildB") {
+            settingsFile << """
+                rootProject.name = 'b'
+            """
+        }
+        includeBuild(buildB)
+        def buildC = singleProjectBuild("buildC") {
+            settingsFile << """
+                rootProject.name = 'c'
+            """
+        }
+        includeBuild(buildC)
+        buildA.buildFile << """
+            assert gradle.includedBuild("b").name == "b"
+            assert gradle.includedBuild("b").projectDir == file('${buildB.toURI()}')
+            assert gradle.includedBuild("c").name == "c"
+            assert gradle.includedBuild("c").projectDir == file('${buildC.toURI()}')
+            assert gradle.includedBuilds.name == ["b", "c"]
+            
+            task broken {
+                doLast {
+                    assert gradle.includedBuilds.name == ["b", "c"]
+                    gradle.includedBuild("buildB")
+                }
+            }
+        """
+
+        when:
+        fails(buildA, "broken")
+
+        then:
+        failure.assertHasCause("Included build 'buildB' not found in build 'buildA'.")
+    }
+
+    def "parent and sibling builds are not visible from included build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 assert gradle.includedBuilds.empty
             
-                task broken {
+                task broken1 {
                     doLast {
                         assert gradle.includedBuilds.empty
                         gradle.includedBuild("buildA")
+                    }
+                }
+                task broken2 {
+                    doLast {
+                        assert gradle.includedBuilds.empty
+                        gradle.includedBuild("buildC")
                     }
                 }
             """
@@ -68,14 +112,17 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
 
         buildA.buildFile << """
             task broken {
-                dependsOn gradle.includedBuild("buildB").task(":broken")
+                dependsOn gradle.includedBuild("buildB").task(":broken1")
+                dependsOn gradle.includedBuild("buildB").task(":broken2")
             }
         """
 
         when:
+        executer.withArgument("--continue")
         fails(buildA, "broken")
 
         then:
         failure.assertHasCause("Included build 'buildA' not found in build 'buildB'.")
+        failure.assertHasCause("Included build 'buildC' not found in build 'buildB'.")
     }
 }
