@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,24 @@ package org.gradle.internal.composite;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.SettingsLoader;
-import org.gradle.internal.build.BuildStateRegistry;
 
-public class CompositeBuildSettingsLoader implements SettingsLoader {
+import java.io.File;
+
+public class CommandLineIncludedBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
-    private final BuildStateRegistry buildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry) {
+    public CommandLineIncludedBuildSettingsLoader(SettingsLoader delegate) {
         this.delegate = delegate;
-        this.buildRegistry = buildRegistry;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
 
-        // Lock-in explicitly included builds
-        buildRegistry.registerRootBuild(settings);
+        // Add all included builds from the command-line
+        for (File rootDir : gradle.getStartParameter().getIncludedBuilds()) {
+            settings.includeBuild(rootDir);
+        }
 
         return settings;
     }

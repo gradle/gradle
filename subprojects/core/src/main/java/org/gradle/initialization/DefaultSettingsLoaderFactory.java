@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
+import org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
@@ -36,28 +37,29 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
 
     @Override
     public SettingsLoader forTopLevelBuild() {
-        return compositeBuildSettingsLoader();
+        return new CompositeBuildSettingsLoader(
+            new ChildBuildRegisteringSettingsLoader(
+                new CommandLineIncludedBuildSettingsLoader(
+                    defaultSettingsLoader()
+                ),
+                buildRegistry
+            ),
+            buildRegistry);
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
-        return defaultSettingsLoader();
-    }
-
-    private SettingsLoader compositeBuildSettingsLoader() {
-        return new CompositeBuildSettingsLoader(
+        return new ChildBuildRegisteringSettingsLoader(
             defaultSettingsLoader(),
             buildRegistry);
     }
 
     private SettingsLoader defaultSettingsLoader() {
-        return new ChildBuildRegisteringSettingsLoader(
-            new SettingsAttachingSettingsLoader(
-                new DefaultSettingsLoader(
-                    settingsFinder,
-                    settingsProcessor,
-                    buildSourceBuilder
-                )),
-            buildRegistry);
+        return new SettingsAttachingSettingsLoader(
+            new DefaultSettingsLoader(
+                settingsFinder,
+                settingsProcessor,
+                buildSourceBuilder
+            ));
     }
 }

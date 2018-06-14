@@ -26,9 +26,10 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
@@ -46,7 +47,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
-            List<IncludedBuild> children = new ArrayList<IncludedBuild>(includedBuilds.size());
+            Set<IncludedBuild> children = new LinkedHashSet<IncludedBuild>(includedBuilds.size());
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 // TODO: Allow builds to inject into explicitly included builds
                 BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY);
@@ -56,9 +57,9 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
             }
 
             // Set the visible included builds
-            settings.getGradle().setIncludedBuilds(children);
+            gradle.setIncludedBuilds(children);
         } else {
-            settings.getGradle().setIncludedBuilds(Collections.<IncludedBuild>emptyList());
+            gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
         }
 
         return settings;
