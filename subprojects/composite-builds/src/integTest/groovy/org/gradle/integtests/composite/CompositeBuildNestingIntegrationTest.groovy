@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
 
 class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     def "can nest included builds"() {
@@ -116,6 +119,67 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":buildC:jar")
         result.assertTaskExecuted(":buildB:jar")
         result.assertTaskExecuted(":jar")
+    }
+
+    def "nested build can contribute to build script classpath"() {
+        def buildC = singleProjectBuild("buildC") {
+            settingsFile << """
+                rootProject.name = 'libc'
+            """
+            buildFile << """
+                apply plugin: 'java'
+            """
+            file("src/main/java/LibC.java") << """
+                public class LibC { }
+            """
+        }
+        def buildB = singleProjectBuild("buildB") {
+            settingsFile << """
+                includeBuild('${buildC.toURI()}')
+            """
+            buildFile << """
+                apply plugin: 'java-gradle-plugin'
+                dependencies { implementation 'org.test:libc:1.2' }
+                gradlePlugin.plugins {
+                    b {
+                        id = 'b'
+                        implementationClass = 'PluginB'
+                    }
+                }
+            """
+            file("src/main/java/PluginB.java") << """
+                import ${Project.name};
+                import ${Plugin.name};
+                public class PluginB implements Plugin<Project> {
+                    public void apply(Project project) {
+                        new LibC();
+                        project.getTasks().register("go");
+                    }
+                }
+            """
+        }
+        includeBuild(buildB)
+
+        buildA.settingsFile.text = """
+            pluginManagement { 
+                resolutionStrategy.eachPlugin { details ->
+                    if (details.requested.id.name == 'b') {
+                        details.useModule('org.test:buildB:1.2')
+                    }
+                }
+            }
+        """ + buildA.settingsFile.text
+        buildA.buildFile.text = """
+            plugins { id 'b' version '12' } 
+        """ + buildA.buildFile.text
+
+        when:
+        execute(buildA, "go")
+
+        then:
+        result.assertTaskExecuted(":libc:jar")
+        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":go")
     }
 
     def "reports failure for duplicate included build name"() {

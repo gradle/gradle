@@ -28,6 +28,7 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
             """
             buildFile << """
                 assert gradle.includedBuild("buildC").name == "buildC"
+                assert gradle.includedBuild("buildC").projectDir == file("${buildC.toURI()}")
                 assert gradle.includedBuilds.name == ["buildC"]
                 
                 task broken {
@@ -59,10 +60,16 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
             buildFile << """
                 assert gradle.includedBuilds.empty
             
-                task broken {
+                task broken1 {
                     doLast {
                         assert gradle.includedBuilds.empty
                         gradle.includedBuild("buildA")
+                    }
+                }
+                task broken2 {
+                    doLast {
+                        assert gradle.includedBuilds.empty
+                        gradle.includedBuild("buildB")
                     }
                 }
             """
@@ -73,7 +80,8 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
             """
             buildFile << """
                 task broken {
-                    dependsOn gradle.includedBuild("buildC").task(":broken")
+                    dependsOn gradle.includedBuild("buildC").task(":broken1")
+                    dependsOn gradle.includedBuild("buildC").task(":broken2")
                 }
             """
         }
@@ -86,9 +94,11 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
         """
 
         when:
+        executer.withArgument("--continue")
         fails(buildA, "broken")
 
         then:
         failure.assertHasCause("Included build 'buildA' not found in build 'buildC'.")
+        failure.assertHasCause("Included build 'buildB' not found in build 'buildC'.")
     }
 }
