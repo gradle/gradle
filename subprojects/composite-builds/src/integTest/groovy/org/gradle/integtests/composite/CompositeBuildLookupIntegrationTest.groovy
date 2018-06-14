@@ -84,6 +84,48 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'buildB' not found in build 'buildA'.")
     }
 
+    def "included builds added from command-line are visible to root build"() {
+        given:
+        def buildB = singleProjectBuild("buildB") {
+            buildFile << """
+                task validate {
+                    doLast {
+                        assert gradle.includedBuilds.empty
+                    }
+                }
+            """
+        }
+        includeBuild(buildB)
+        def buildC = singleProjectBuild("buildC") {
+        }
+
+        buildA.buildFile << """
+            task withBuild {
+                dependsOn gradle.includedBuild("buildB").task(":validate")
+                doLast {
+                    assert gradle.includedBuild("buildB").name == "buildB"
+                    assert gradle.includedBuild("buildC").name == "buildC"
+                    assert gradle.includedBuild("buildC").projectDir == file('${buildC.toURI()}')
+                    assert gradle.includedBuilds.name == ["buildB", "buildC"]
+                }
+            }
+            task withoutBuild {
+                dependsOn gradle.includedBuild("buildB").task(":validate")
+                doLast {
+                    assert gradle.includedBuild("buildB").name == "buildB"
+                    assert gradle.includedBuilds.name == ["buildB"]
+                }
+            }
+        """
+
+        expect:
+        executer.withArguments("--include-build", "../buildC")
+        execute(buildA, "withBuild")
+
+        executer.withArguments("--include-build", "../buildB")
+        execute(buildA, "withoutBuild")
+    }
+
     def "parent and sibling builds are not visible from included build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
