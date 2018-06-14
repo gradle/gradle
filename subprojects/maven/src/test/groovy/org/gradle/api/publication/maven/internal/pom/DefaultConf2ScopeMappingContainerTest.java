@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
@@ -109,15 +110,26 @@ public class DefaultConf2ScopeMappingContainerTest {
         assertThat(conf2ScopeMappingContainer.getMapping(asList(testConf1, testConf2)), equalTo(
                 new Conf2ScopeMapping(TEST_PRIORITY_2, testConf2, TEST_SCOPE_2)));
     }
-    
+
     @Test(expected = InvalidUserDataException.class)
     public void mappingWithSamePrioritiesDifferentConfsSameScope() {
+        context.checking(new Expectations() {{
+            one(testConf1).getName();
+            one(testConf2).getName();
+        }});
+
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, testConf2, TEST_SCOPE_1);
         conf2ScopeMappingContainer.getMapping(asList(testConf1, testConf2));
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void mappingWithSamePrioritiesDifferentConfsDifferentScopes() {
+        context.checking(new Expectations() {{
+            one(testConf1).getName();
+            one(testConf2).getName();
+            one(testConf3).getName();
+        }});
+
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, testConf2, TEST_SCOPE_1);
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, testConf3, TEST_SCOPE_2);
         conf2ScopeMappingContainer.getMapping(asList(testConf1, testConf2, testConf3));
