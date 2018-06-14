@@ -16,14 +16,15 @@
 package org.gradle.language.nativeplatform
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import org.junit.rules.TestRule
 import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -32,26 +33,15 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
-    @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
-    @Rule public final Sample c = sample(testDirProvider, 'c')
-    @Rule public final Sample cpp = sample(testDirProvider, 'cpp')
-    @Rule public final Sample objectiveC = sample(testDirProvider, 'objective-c')
-    @Rule public final Sample objectiveCpp = sample(testDirProvider, 'objective-cpp')
-    @Rule public final Sample customLayout = sample(testDirProvider, 'custom-layout')
-    @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
-    @Rule public final Sample idl = sample(testDirProvider, 'idl')
-    @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
-    @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
+    final Sample sample = new Sample(testDirProvider)
 
-    private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
-    }
+    @Rule
+    public final TestRule rules = sample.runInSampleDirectory(executer)
 
+
+    @UsesSample('native-binaries/assembler')
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "assembler"() {
-        given:
-        sample assembler
-
         when:
         run "installMainExecutable"
 
@@ -60,45 +50,39 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executedAndNotSkipped ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(assembler.dir.file("build/install/main")).exec().out == "5 + 7 = 12\n"
+        installation(sample.dir.file("build/install/main")).exec().out == "5 + 7 = 12\n"
     }
 
+    @UsesSample('native-binaries/c')
     def "c"() {
-        given:
-        sample c
-
         when:
         run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
+            ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(c.dir.file("build/install/main")).exec().out == "Hello world!"
+        installation(sample.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
+    @UsesSample('native-binaries/cpp')
     def "cpp"() {
-        given:
-        sample cpp
-
         when:
         run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(cpp.dir.file("build/install/main")).exec().out == "Hello world!\n"
+        installation(sample.dir.file("build/install/main")).exec().out == "Hello world!\n"
     }
 
+    @UsesSample('native-binaries/objective-c')
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "objectiveC"() {
-        given:
-        sample objectiveC
-
         when:
         succeeds "installMainExecutable"
 
@@ -106,15 +90,13 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executedAndNotSkipped ":compileMainExecutableMainObjc", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable(objectiveC.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
+        executable(sample.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
     }
 
+    @UsesSample('native-binaries/objective-cpp')
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "objectiveCpp"() {
-        given:
-        sample objectiveCpp
-
         when:
         succeeds "installMainExecutable"
 
@@ -122,76 +104,68 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executedAndNotSkipped ":compileMainExecutableMainObjcpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable(objectiveCpp.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
+        executable(sample.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
     }
 
+    @UsesSample('native-binaries/windows-resources')
     @RequiresInstalledToolChain(VISUALCPP)
     def "win rc"() {
-        given:
-        sample windowsResources
-
         when:
         run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":compileHelloSharedLibraryHelloRc",
-                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":linkHelloSharedLibrary", ":helloSharedLibrary",
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(windowsResources.dir.file("build/install/main")).exec().out == "Hello world!\n"
+        installation(sample.dir.file("build/install/main")).exec().out == "Hello world!\n"
 
         when:
-        executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
+        executer.usingBuildScript(sample.dir.file('build-resource-only-dll.gradle'))
         run "helloResSharedLibrary"
 
         then:
-        file(windowsResources.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
+        file(sample.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
     }
 
+    @UsesSample('native-binaries/custom-layout')
     def "custom layout"() {
-        given:
-        sample customLayout
-
         when:
         run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileHelloStaticLibraryHelloC", ":createHelloStaticLibrary", ":helloStaticLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(customLayout.dir.file("build/install/main")).exec().out == "Hello world!"
+        installation(sample.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
+    @UsesSample('native-binaries/idl')
     def "idl"() {
-        given:
-        sample idl
-
         when:
         run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":idl", ":compileMainExecutableMainC", ":compileMainExecutableMainIdlOutput",
-                              ":linkMainExecutable", ":mainExecutable"
+            ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(idl.dir.file("build/install/main")).exec().out == "Hello from generated source!!\n"
+        installation(sample.dir.file("build/install/main")).exec().out == "Hello from generated source!!\n"
     }
 
+    @UsesSample('native-binaries/pre-compiled-headers')
     def "pch"() {
-        given:
-        sample pch
-
         when:
         run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":generateHelloCppPrefixHeaderFile", ":compileHelloSharedLibraryCppPreCompiledHeader",
-                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":linkHelloSharedLibrary", ":helloSharedLibrary",
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(pch.dir.file("build/install/main")).exec().out == "Hello world!\n"
+        installation(sample.dir.file("build/install/main")).exec().out == "Hello world!\n"
     }
 }

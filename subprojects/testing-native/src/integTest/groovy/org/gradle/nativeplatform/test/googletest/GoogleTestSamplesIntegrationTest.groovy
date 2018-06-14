@@ -16,23 +16,20 @@
 
 
 package org.gradle.nativeplatform.test.googletest
+
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import static org.junit.Assume.*
+
+import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample googleTest = sample(temporaryFolder, 'google-test')
-
-    private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
-    }
+    @Rule public final Sample googleTest = new Sample(temporaryFolder, 'native-binaries/google-test')
 
     def "googleTest"() {
         given:

@@ -17,23 +17,19 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import org.junit.rules.TestRule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
-    @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
+    public final Sample visualStudio = new Sample(testDirectoryProvider, "native-binaries/visual-studio")
 
-    private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
-    }
+    @Rule
+    public final TestRule rules = visualStudio.runInSampleDirectory(executer)
 
     def "visual studio"() {
-        given:
-        sample visualStudio
-
         when:
         run "visualStudio"
 
@@ -55,7 +51,6 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         useMsbuildTool()
 
         given:
-        sample visualStudio
         run "visualStudio"
 
         when:

@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -30,11 +29,7 @@ import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample cunit = sample(temporaryFolder, 'cunit')
-
-    private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
-    }
+    @Rule public final Sample cunit = new Sample(temporaryFolder, 'native-binaries/cunit')
 
     def "cunit components"() {
         given:
