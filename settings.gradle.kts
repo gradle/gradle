@@ -20,6 +20,7 @@ apply {
 
 enableFeaturePreview("IMPROVED_POM_SUPPORT")
 
+include("internalKotlinHacks")
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
@@ -164,7 +165,6 @@ val groovyBuildScriptProjects = listOf(
     "persistent-cache",
     "core-api",
     "version-control")
-
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName${buildFileExtensionFor(projectDirName)}"
 

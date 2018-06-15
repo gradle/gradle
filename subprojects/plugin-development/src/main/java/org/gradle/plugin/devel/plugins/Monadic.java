@@ -21,23 +21,23 @@ import org.gradle.api.provider.Provider;
 
 public class Monadic {
 
-    <OUT, I1> Provider<OUT> combine(Provider<I1> first, Transformer<OUT, I1> transform) {
+    public static <OUT, I1> Provider<OUT> combine(Provider<I1> first, Transformer<OUT, I1> transform) {
         return first.map(transform);
     }
 
-    <OUT, I1, I2> Provider<OUT> combine(Provider<I1> first, Provider<I2> second, Transformer<OUT, Param2<I1, I2>> transformer) {
+    public static <OUT, I1, I2> Provider<OUT> combine(Provider<I1> first, Provider<I2> second, Transformer<OUT, Param2<I1, I2>> transformer) {
         return null;
     }
 
-    <OUT, I1, I2, I3> Provider<OUT> combine(Provider<I1> first, Provider<I2> second, Provider<I3> third, Transformer<OUT, Param3<I1, I2, I3>> transformer) {
+    public static <OUT, I1, I2, I3> Provider<OUT> combine(Provider<I1> first, Provider<I2> second, Provider<I3> third, Transformer<OUT, Param3<I1, I2, I3>> transformer) {
         return null;
     }
 
-    <I1, I2, I3> Provider<Param3<I1, I2, I3>> combine(Provider<I1> first, Provider<I2> second, Provider<I3> third) {
+    public static <I1, I2, I3> Provider<Param3<I1, I2, I3>> combine(Provider<I1> first, Provider<I2> second, Provider<I3> third) {
         return null;
     }
 
-    static class Param2<I1, I2> {
+    public static class Param2<I1, I2> {
         public final I1 first;
         public final I2 second;
 
@@ -45,13 +45,26 @@ public class Monadic {
             this.first = first;
             this.second = second;
         }
+
+        public I1 component1() {
+            return first;
+        }
+
+        public I2 component2() {
+            return second;
+        }
     }
-    static class Param3<I1, I2, I3> extends Param2<I1, I2> {
+
+    public static class Param3<I1, I2, I3> extends Param2<I1, I2> {
         public final I3 third;
 
         Param3(I1 first, I2 second, I3 third) {
             super(first, second);
             this.third = third;
+        }
+
+        public I3 component3() {
+            return third;
         }
     }
 }
