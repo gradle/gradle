@@ -17,13 +17,19 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtensionsSchema;
+import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -37,7 +43,31 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ExtensionsStorage {
 
+    private final Instantiator instantiator;
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
+
+    public ExtensionsStorage(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
+
+    private Instantiator getInstantiator() {
+        if (instantiator == null) {
+            throw new GradleException("request for DefaultConvention.instantiator when the object was constructed without a convention");
+        }
+        return instantiator;
+    }
+
+    private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
+        return getInstantiator().newInstance(instanceType, constructionArguments);
+    }
+
+    public void add(String name, Object extension) {
+        if (extension instanceof Class) {
+            create(name, (Class<?>) extension);
+        } else {
+            addWithDefaultPublicType(extension.getClass(), name, extension);
+        }
+    }
 
     public <T> void add(TypeOf<T> publicType, String name, T extension) {
         if (hasExtension(name)) {
@@ -66,7 +96,8 @@ public class ExtensionsStorage {
     public <T> T configureExtension(String name, Action<? super T> action) {
         ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
         if (extensionHolder != null) {
-            return extensionHolder.configure(action);
+            extensionHolder.configure(action);
+            return extensionHolder.get();
         }
         throw unknownExtensionException(name);
     }
@@ -140,7 +171,7 @@ public class ExtensionsStorage {
             }
             return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
         }
-        return new ExtensionHolder<T>(name, publicType, extension);
+        return new ExistingExtensionProvider<T>(name, publicType, extension);
     }
 
     private List<String> registeredExtensionTypeNames() {
@@ -157,18 +188,54 @@ public class ExtensionsStorage {
 
     /**
      * Doesn't actually return anything. Always throws a {@link UnknownDomainObjectException}.
+     *
      * @return Nothing.
      */
     private UnknownDomainObjectException unknownExtensionException(final String name) {
         throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
+    private void addWithDefaultPublicType(Class<?> defaultType, String name, Object extension) {
+        add(preferredPublicTypeOf(extension, defaultType), name, extension);
+    }
 
-    private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
+    private TypeOf<Object> preferredPublicTypeOf(Object extension, Class<?> defaultType) {
+        if (extension instanceof HasPublicType) {
+            return uncheckedCast(((HasPublicType) extension).getPublicType());
+        }
+        return TypeOf.<Object>typeOf(defaultType);
+    }
+
+    public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
+        T instance = instantiate(instanceType, constructionArguments);
+        addWithDefaultPublicType(instanceType, name, instance);
+        return instance;
+    }
+
+    public <T> T create(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        T instance = instantiate(instanceType, constructionArguments);
+        add(publicType, name, instance);
+        return instance;
+    }
+
+    public <T> ExtensionContainer.ExtensionProvider<T> register(Class<T> publicType, String name, Class<? extends T> instanceType, Object[] constructionArguments) {
+        ExtensionHolder<T> value = new CreatingExtensionProvider<T>(name, TypeOf.typeOf(publicType), instanceType, constructionArguments);
+        extensions.put(name, value);
+        return value;
+    }
+
+    public <T> ExtensionContainer.ExtensionProvider<T> withType(Class<T> publicType) {
+        return firstHolderWithExactPublicType(TypeOf.typeOf(publicType));
+    }
+
+    private interface ExtensionHolder<T> extends ExtensionsSchema.ExtensionSchema, ExtensionContainer.ExtensionProvider<T> {
+    }
+
+    private static class ExistingExtensionProvider<T> extends AbstractProvider<T> implements ExtensionHolder<T> {
         private final String name;
         private final TypeOf<T> publicType;
         protected final T extension;
 
-        private ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
+        private ExistingExtensionProvider(String name, TypeOf<T> publicType, T extension) {
             this.name = name;
             this.publicType = publicType;
             this.extension = extension;
@@ -193,13 +260,104 @@ public class ExtensionsStorage {
             return extension;
         }
 
-        public T configure(Action<? super T> action) {
-            action.execute(extension);
+        @Nullable
+        @Override
+        public T getOrNull() {
             return extension;
+        }
+
+        public void configure(Action<? super T> action) {
+            action.execute(extension);
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return getPublicType().rawClass();
         }
     }
 
-    private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
+    private class CreatingExtensionProvider<T> extends AbstractProvider<T> implements ExtensionHolder<T> {
+        private final String name;
+        private final TypeOf<T> publicType;
+        private final Class<? extends T> implementationType;
+        private Object[] constructorArgs;
+        private ImmutableActionSet<T> whenCreated = ImmutableActionSet.empty();
+        private T extension;
+        private Throwable failure;
+
+        private CreatingExtensionProvider(String name, TypeOf<T> publicType, Class<? extends T> implementationType, Object[] constructorArgs) {
+            this.name = name;
+            this.publicType = publicType;
+            this.implementationType = implementationType;
+            this.constructorArgs = constructorArgs;
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return publicType.rawClass();
+        }
+
+        @Override
+        public void configure(Action<? super T> configureAction) {
+            if (extension == null) {
+                whenCreated = whenCreated.add(configureAction);
+            } else {
+                configureAction.execute(extension);
+            }
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public TypeOf<?> getPublicType() {
+            return publicType;
+        }
+
+        @Override
+        public boolean isDeferredConfigurable() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        public T getOrNull() {
+            if (failure != null) {
+                rethrowFailure();
+            }
+            if (extension == null) {
+                extension = findByType(publicType);
+                if (extension == null) {
+                    try {
+                        extension = create(publicType, name, implementationType, constructorArgs);
+                        whenCreated.execute(extension);
+                    } catch (Throwable t) {
+                        failure = t;
+                        rethrowFailure();
+                    } finally {
+                        constructorArgs = null;
+                        whenCreated = null;
+                    }
+                }
+            }
+            return extension;
+        }
+
+        private void rethrowFailure() {
+            throw new IllegalStateException("Could not create extension of type " + publicType, failure);
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findHolderByType(publicType) != null;
+        }
+    }
+
+    private static class DeferredConfigurableExtensionHolder<T> extends ExistingExtensionProvider<T> {
         private MutableActionSet<T> actions = new MutableActionSet<T>();
         private boolean configured;
         private Throwable configureFailure;
@@ -220,9 +378,8 @@ public class ExtensionsStorage {
         }
 
         @Override
-        public T configure(Action<? super T> action) {
+        public void configure(Action<? super T> action) {
             configureLater(action);
-            return null;
         }
 
         private void configureLater(Action<? super T> action) {

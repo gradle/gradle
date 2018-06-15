@@ -264,8 +264,8 @@ public abstract class TypeOf<T> {
         return Cast.uncheckedCast(ModelType.of(type));
     }
 
-    private Class<? super T> rawClass() {
-        return type.getRawClass();
+    public Class<T> rawClass() {
+        return type.getConcreteClass();
     }
 
     private static <T> T typeWhichCannotBeNull(T type) {

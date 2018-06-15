@@ -249,6 +249,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
                 populateModelRegistry(services.get(ModelRegistry.class));
             }
         });
+
+        afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                getExtensions().getAsMap();
+            }
+        });
     }
 
     @SuppressWarnings("unused")

@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -260,4 +261,12 @@ public interface ExtensionContainer {
      * @return The extra properties extension in this extension container.
      */
     ExtraPropertiesExtension getExtraProperties();
+
+    <T> ExtensionProvider<T> register(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments);
+
+    <T> ExtensionProvider<T> typed(Class<T> publicType);
+
+    interface ExtensionProvider<T> extends Provider<T> {
+        void configure(Action<? super T> configureAction);
+    }
 }

@@ -26,7 +26,7 @@ import spock.lang.Specification
 import static org.gradle.api.reflect.TypeOf.typeOf
 
 class ExtensionsStorageTest extends Specification {
-    def storage = new ExtensionsStorage()
+    def storage = new ExtensionsStorage(null)
     def listExtension = Mock(List)
     def setExtension = Mock(Set)
 

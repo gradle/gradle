@@ -19,11 +19,10 @@ package org.gradle.api.internal.plugins;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -40,14 +39,12 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
-    private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+    private final ExtensionsStorage extensionsStorage;
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
-    private final Instantiator instantiator;
 
     private Map<String, Object> plugins;
     private Map<Object, BeanDynamicObject> dynamicObjects;
@@ -65,7 +62,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     public DefaultConvention(Instantiator instantiator) {
-        this.instantiator = instantiator;
+        this.extensionsStorage = new ExtensionsStorage((instantiator));
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
@@ -80,13 +77,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     @Override
     public DynamicObject getExtensionsAsDynamicObject() {
         return extensionsDynamicObject;
-    }
-
-    private Instantiator getInstantiator() {
-        if (instantiator == null) {
-            throw new GradleException("request for DefaultConvention.instantiator when the object was constructed without a convention");
-        }
-        return instantiator;
     }
 
     @Override
@@ -122,11 +112,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public void add(String name, Object extension) {
-        if (extension instanceof Class) {
-            create(name, (Class<?>) extension);
-        } else {
-            addWithDefaultPublicType(extension.getClass(), name, extension);
-        }
+        extensionsStorage.add(name, extension);
     }
 
     @Override
@@ -141,9 +127,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
-        T instance = instantiate(instanceType, constructionArguments);
-        addWithDefaultPublicType(instanceType, name, instance);
-        return instance;
+        return extensionsStorage.create(name, instanceType, constructionArguments);
     }
 
     @Override
@@ -153,9 +137,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
-        T instance = instantiate(instanceType, constructionArguments);
-        add(publicType, name, instance);
-        return instance;
+        return extensionsStorage.create(publicType, name, instanceType, constructionArguments);
     }
 
     @Override
@@ -236,19 +218,14 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(name, value);
     }
 
-    private void addWithDefaultPublicType(Class<?> defaultType, String name, Object extension) {
-        add(preferredPublicTypeOf(extension, defaultType), name, extension);
+    @Override
+    public <T> ExtensionProvider<T> register(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        return extensionsStorage.register(publicType, name, instanceType, constructionArguments);
     }
 
-    private TypeOf<Object> preferredPublicTypeOf(Object extension, Class<?> defaultType) {
-        if (extension instanceof HasPublicType) {
-            return uncheckedCast(((HasPublicType) extension).getPublicType());
-        }
-        return TypeOf.<Object>typeOf(defaultType);
-    }
-
-    private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
-        return getInstantiator().newInstance(instanceType, constructionArguments);
+    @Override
+    public <T> ExtensionProvider<T> typed(Class<T> publicType) {
+        return extensionsStorage.withType(publicType);
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
