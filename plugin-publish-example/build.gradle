@@ -1,0 +1,6 @@
+
+apply plugin: NebulaPluginPlugin
+
+nebulaPlugin {
+    name = "osPackage"
+}
