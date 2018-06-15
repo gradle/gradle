@@ -16,17 +16,18 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.provider.Provider;
 import org.gradle.util.Configurable;
 
 /**
  * <p>A named domain object container is a specialisation of {@link NamedDomainObjectSet} that adds the ability to create
  * instances of the element type.</p>
- * 
+ *
  * <p>Implementations may use different strategies for creating new object instances.</p>
- * 
+ *
  * <p>Note that a container is an implementation of {@link java.util.SortedSet}, which means that the container is guaranteed
  * to only contain elements with unique names within this container. Furthermore, items are ordered by their name.</p>
- * 
+ *
  * @param <T> The type of domain objects in this container.
  * @see NamedDomainObjectSet
  */
@@ -71,12 +72,14 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * <p>Allows the container to be configured, creating missing objects as they are referenced.</p>
-     * 
+     *
      * <p>TODO: example usage</p>
-     * 
+     *
      * @param configureClosure The closure to configure this container with
      * @return This.
      */
     NamedDomainObjectContainer<T> configure(Closure configureClosure);
-    
+
+    Provider<Iterable<T>> asProvider();
+
 }

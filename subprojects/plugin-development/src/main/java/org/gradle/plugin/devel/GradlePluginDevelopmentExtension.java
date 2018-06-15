@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 
 import java.util.Arrays;
@@ -129,7 +130,7 @@ public class GradlePluginDevelopmentExtension {
      * Whether the plugin should automatically configure the publications for the plugins.
      * @return true if publishing should be automated, false otherwise
      */
-    public boolean isAutomatedPublishing() {
+    public Property<Boolean> isAutomatedPublishing() {
         return automatedPublishing;
     }
 

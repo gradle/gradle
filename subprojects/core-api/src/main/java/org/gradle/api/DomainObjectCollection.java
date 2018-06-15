@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 
 import java.util.Collection;
 
@@ -43,6 +44,8 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     @Incubating
     void addLater(Provider<? extends T> provider);
+    void addAllLater(Provider<Iterable<? extends T>> provider);
+    void addAllLater(Transformer<Provider<Iterable<? extends T>>, Factory<T>> transformer);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is
