@@ -70,7 +70,7 @@ public class ExtensionsStorage {
     }
 
     public <T> void add(TypeOf<T> publicType, String name, T extension) {
-        if (hasExtension(name)) {
+        if (hasExtension(name) && !(extensions.get(name) instanceof CreatingExtensionProvider)) {
             throw new IllegalArgumentException(
                 format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
@@ -194,6 +194,7 @@ public class ExtensionsStorage {
     private UnknownDomainObjectException unknownExtensionException(final String name) {
         throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
+
     private void addWithDefaultPublicType(Class<?> defaultType, String name, Object extension) {
         add(preferredPublicTypeOf(extension, defaultType), name, extension);
     }
@@ -330,18 +331,15 @@ public class ExtensionsStorage {
                 rethrowFailure();
             }
             if (extension == null) {
-                extension = findByType(publicType);
-                if (extension == null) {
-                    try {
-                        extension = create(publicType, name, implementationType, constructorArgs);
-                        whenCreated.execute(extension);
-                    } catch (Throwable t) {
-                        failure = t;
-                        rethrowFailure();
-                    } finally {
-                        constructorArgs = null;
-                        whenCreated = null;
-                    }
+                try {
+                    extension = create(publicType, name, implementationType, constructorArgs);
+                    whenCreated.execute(extension);
+                } catch (Throwable t) {
+                    failure = t;
+                    rethrowFailure();
+                } finally {
+                    constructorArgs = null;
+                    whenCreated = null;
                 }
             }
             return extension;

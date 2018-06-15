@@ -2,20 +2,22 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 
 public class GradlePluginPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
 
-        PluginDevelopmentExtension pluginDevelopment = project.getExtensions().create("pluginDevelopment", PluginDevelopmentExtension.class, project.getObjects().property(Boolean.class), project.container(GradlePlugin.class));
+        ExtensionContainer.ExtensionProvider<PluginDevelopmentExtension> pluginDevelopmentProvider = project.getExtensions().register(PluginDevelopmentExtension.class, "pluginDevelopment", PluginDevelopmentExtension.class, project.getObjects().property(Boolean.class), project.container(GradlePlugin.class));
 
         project.getPlugins().withType(PublishPlugin.class, (PublishPlugin plugin) -> {
-            project.afterEvaluate(evaluatedProject -> {
-                PublishPlugin.PublishingExtension publishingExtension = project.getExtensions().getByType(PublishPlugin.PublishingExtension.class);
-                if (pluginDevelopment.autoPublish.get()) {
-                    pluginDevelopment.plugins.forEach(gradlePlugin -> {
-                        publishingExtension.getPublications().create("maven" + gradlePlugin.getName());
+            ExtensionContainer.ExtensionProvider<PublishPlugin.PublishingExtension> publishingExtension = project.getExtensions().typed(PublishPlugin.PublishingExtension.class);
+            publishingExtension.configure((PublishPlugin.PublishingExtension extension) -> {
+                PluginDevelopmentExtension pluginDevelopmentExtension = pluginDevelopmentProvider.get();
+                if (pluginDevelopmentExtension.autoPublish.get()) {
+                    pluginDevelopmentExtension.plugins.forEach(gradlePlugin -> {
+                        extension.getPublications().create("maven" + gradlePlugin.getName());
                     });
                 }
             });
