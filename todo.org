@@ -1,0 +1,7 @@
+* collect all compiled jars for every subproject that is part of the gradle api
+* filter for public apis
+* generate jar that only include those
+** remove method bodies
+** erase non-public types from every signature
+** issue warnings for every non-public type exposed in public
+* publish it

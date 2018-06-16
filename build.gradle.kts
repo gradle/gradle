@@ -25,6 +25,11 @@ import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.kotlin.dsl.support.zipTo
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ASM6
 
 buildscript {
     project.apply {
@@ -313,6 +318,8 @@ fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
 
 
+val outputDir = buildDir.resolve("gradle-classes")
+
 // Hackathon starts here
 task("even") {
 
@@ -328,24 +335,132 @@ task("even") {
 
     doLast {
 
+        delete(outputDir)
+
         val gradleApiJars =
             gradleRuntimeJars.files.filter {
                 it.name.startsWith("gradle-")
             }
 
-        val outputDir = buildDir.resolve("gradle-classes")
         gradleApiJars.forEach {
             it.unzipTo(outputDir)
         }
-        zipTo(buildDir.resolve("gradle-public-api-${version}.jar"), outputDir)
+
+        val publicClassFiles =
+            outputDir
+                .walkTopDown()
+                .filter { it.isFile && it.extension == "class" }
+                .filter { classFile ->
+                    isGradleApiType(classFile) != null
+                }
+
+        zipTo(buildDir.resolve("gradle-public-api-${version}.jar"), outputDir, publicClassFiles)
     }
 }
+
+task("odd") {
+    dependsOn("even")
+    doLast {
+
+        // TODO: filter non-public types
+        // TODO: filter non-public members of types
+        // TODO: filter non-public implemented interfaces
+        // TODO: filter methods and fields including non-public types in their signature
+
+        val publicTypeClassFilesByName =
+            outputDir
+                .walkTopDown()
+                .filter { it.isFile && it.extension == "class" }
+                .mapNotNull { classFile ->
+                    isGradleApiType(classFile)?.let {
+                        it to classFile
+                    }
+                }.toMap()
+
+
+        val externalApiTypes = setOf(
+            "org/slf4j/Logger"
+        )
+        val publicTypes = publicTypeClassFilesByName.keys + leaksIntoPublicApi + externalApiTypes
+
+        publicTypeClassFilesByName.forEach { (className, classFile) ->
+            ClassReader(classFile.readBytes()).let { classReader ->
+                val classWriter = ClassWriter(classReader, 0)
+                classReader.accept(BrutalApiFilter(classWriter, publicTypes), 0)
+            }
+        }
+    }
+}
+
+
+val leaksIntoPublicApi = setOf(
+    "org/gradle/api/internal/DynamicObjectAware",
+    "org/gradle/api/internal/IConventionAware",
+    "org/gradle/api/internal/TaskInternal",
+    "org/gradle/language/base/internal/LanguageSourceSetInternal",
+    "org/gradle/platform/base/component/internal/AbstractComponentSpec",
+    "org/gradle/plugins/ide/internal/generator/AbstractPersistableConfigurationObject",
+    "org/gradle/plugins/ide/internal/generator/generator/PersistableConfigurationObject",
+    "org/gradle/platform/base/internal/ComponentSpecInternal",
+    "groovy/util/AntBuilder",
+    "org/gradle/api/internal/AbstractBuildableComponentSpec",
+    "org/gradle/api/internal/AbstractTask",
+    "org/gradle/api/internal/ConventionTask",
+    "org/gradle/api/internal/artifacts/publish/AbstractPublishArtifact",
+    "org/gradle/api/internal/file/copy/CopySpecSource",
+    "org/gradle/api/internal/rules/NamedDomainObjectFactoryRegistry",
+    "org/gradle/api/plugins/quality/internal/AbstractCodeQualityPlugin",
+    "org/gradle/api/publication/maven/internal/MavenPomMetaInfoProvider",
+    "org/gradle/internal/exceptions/DefaultMultiCauseException",
+    "org/gradle/jvm/internal/WithDependencies",
+    "org/gradle/language/base/internal/AbstractLanguageSourceSet",
+    "org/gradle/platform/base/component/internal/DefaultComponentSpec",
+    "org/gradle/platform/base/internal/BinarySpecInternal",
+    "org/gradle/plugins/ide/internal/IdePlugin",
+    "org/gradle/plugins/ide/internal/generator/PropertiesPersistableConfigurationObject",
+    "org/gradle/plugins/ide/internal/generator/XmlPersistableConfigurationObject",
+    "org/gradle/util/Configurable"
+)
+
+fun isGradleApiType(classFile: File) = classFile.inputStream().use {
+    ClassReader(it).run {
+        className.takeIf {
+            access.hasFlag(ACC_PUBLIC) || it in leaksIntoPublicApi
+        }
+    }
+}
+
+class BrutalApiFilter(
+    classWriter: org.objectweb.asm.ClassWriter,
+    val publicTypes: kotlin.collections.Set<kotlin.String>
+) : ClassVisitor(ASM6, classWriter) {
+
+    override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String, interfaces: Array<out String>?) {
+        if (!isPublicType(superName)) {
+            println("NON-PUBLIC: $superName")
+        }
+        interfaces?.forEach {
+            if (!isPublicType(it)) {
+                println("NON-PUBLIC: $it")
+            }
+        }
+        super.visit(version, access, name, signature, superName, interfaces)
+    }
+
+    private fun isPublicType(superName: String) =
+        superName.startsWith("java/") || superName in publicTypes
+}
+
+fun Int.hasFlag(flag: Int) = (this and flag) == flag
 
 fun File.unzipTo(outputDir: File) {
     copy {
         from(zipTree(this@unzipTo)) {
             include(PublicApi.includes)
-            exclude(PublicApi.excludes)
+            exclude {
+                val className = it.path.removeSuffix(".class")
+                className !in leaksIntoPublicApi && className.contains("/internal/")
+            }
         }
         into(outputDir)
     }
