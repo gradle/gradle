@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -173,7 +174,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
                 generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 generatePomTask.setPom(publication.getPom());
-                generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
+                if (generatePomTask.getDestination() == null) {
+                    generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
+                }
             }
         });
         publication.setPomGenerator(generatorTask);
@@ -188,7 +191,10 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 generateTask.getPublication().set(publication);
                 generateTask.getPublications().set(publications);
-                generateTask.getOutputFile().set(buildDir.file("publications/" + publication.getName() + "/module.json"));
+                RegularFileProperty outputFile = generateTask.getOutputFile();
+                if (!outputFile.isPresent()) {
+                    outputFile.set(buildDir.file("publications/" + publication.getName() + "/module.json"));
+                }
             }
         });
         publication.setModuleDescriptorGenerator(generatorTask);
