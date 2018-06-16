@@ -43,7 +43,7 @@ import static org.junit.Assert.assertFalse
 abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
-    def taskClassInfoStore = new DefaultTaskClassInfoStore()
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(instantiator, workerLeaseService, isolatableFactory)
     private final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory(new AsmBackedClassGenerator()))
 
     abstract AbstractTask getTask()

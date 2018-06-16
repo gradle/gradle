@@ -21,7 +21,7 @@ import org.gradle.api.tasks.CacheableTask
 import spock.lang.Specification
 
 class DefaultTaskClassInfoStoreTest extends Specification {
-    def taskClassInfoStore = new DefaultTaskClassInfoStore()
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(instantiator, workerLeaseService, isolatableFactory)
 
     @CacheableTask
     private static class MyCacheableTask extends DefaultTask {}

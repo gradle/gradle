@@ -24,6 +24,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
@@ -59,8 +60,8 @@ public class PropertyValidationAccess {
     );
 
     @SuppressWarnings("unused")
-    public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
-        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
+    public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, InstantiatorFactory instantiatorFactory) {
+        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(instantiatorFactory, null, null);
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));

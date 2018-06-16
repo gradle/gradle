@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -158,6 +159,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -250,8 +252,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultPropertyWalker(propertyMetadataStore);
     }
 
-    protected TaskClassInfoStore createTaskClassInfoStore() {
-        return new DefaultTaskClassInfoStore();
+    protected TaskClassInfoStore createTaskClassInfoStore(InstantiatorFactory instantiatorFactory, WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
+        return new DefaultTaskClassInfoStore(instantiatorFactory, workerLeaseService, isolatableFactory);
     }
 
     protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {

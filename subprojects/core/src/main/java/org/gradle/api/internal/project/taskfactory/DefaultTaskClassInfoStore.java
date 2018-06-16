@@ -25,9 +25,15 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.IsolatableTask;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.Cast;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,8 +52,14 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 return createTaskClassInfo(type);
             }
         });
+    private final InstantiatorFactory instantiatorFactory;
+    private final WorkerLeaseService workerLeaseService;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultTaskClassInfoStore() {
+    public DefaultTaskClassInfoStore(InstantiatorFactory instantiatorFactory, WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
+        this.instantiatorFactory = instantiatorFactory;
+        this.workerLeaseService = workerLeaseService;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
@@ -74,6 +86,9 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 }
                 taskActionFactoriesBuilder.add(taskActionFactory);
             }
+        }
+        if (IsolatableTask.class.isAssignableFrom(type)) {
+            taskActionFactoriesBuilder.add(new IsolatableTaskActionFactory(instantiatorFactory, workerLeaseService, isolatableFactory));
         }
 
         return new TaskClassInfo(incremental, taskActionFactoriesBuilder.build(), cacheable);
@@ -147,6 +162,38 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         @Override
         public Action<? super Task> create() {
             return new IncrementalTaskAction(taskType, method);
+        }
+    }
+
+    private static class IsolatableTaskActionFactory implements TaskActionFactory {
+        private final InstantiatorFactory instantiatorFactory;
+        private final WorkerLeaseService workerLeaseService;
+        private final IsolatableFactory isolatableFactory;
+
+        private IsolatableTaskActionFactory(InstantiatorFactory instantiator, WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
+            this.instantiatorFactory = instantiator;
+            this.workerLeaseService = workerLeaseService;
+            this.isolatableFactory = isolatableFactory;
+        }
+
+        @Nonnull
+        @Override
+        public Action<? super Task> create() {
+            return new Action<Task>() {
+                @Override
+                public void execute(final Task task) {
+                    final IsolatableTask isolatableTask = (IsolatableTask) task;
+                    final Isolatable<Object> isolatableParams = isolatableFactory.isolate(isolatableTask.getParams());
+                    final Object params = isolatableParams.isolate();
+                    workerLeaseService.withoutProjectLock(new Runnable() {
+                        @Override
+                        public void run() {
+                            Class<Action<Object>> action = Cast.uncheckedCast(isolatableTask.getAction());
+                            instantiatorFactory.inject().newInstance(action).execute(params);
+                        }
+                    });
+                }
+            };
         }
     }
 }

@@ -96,7 +96,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        taskClassInfoStore = new DefaultTaskClassInfoStore()
+        taskClassInfoStore = new DefaultTaskClassInfoStore(instantiator, workerLeaseService, isolatableFactory)
         factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
