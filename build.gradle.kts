@@ -343,6 +343,7 @@ task("even") {
             }
 
         gradleApiJars.forEach {
+            println("Unzipping $it")
             it.unzipTo(outputDir)
         }
 
