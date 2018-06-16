@@ -23,6 +23,8 @@ import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
+import org.gradle.gradlebuild.PublicApi
+import org.gradle.kotlin.dsl.support.zipTo
 
 buildscript {
     project.apply {
@@ -309,3 +311,42 @@ fun Project.buildCacheConfiguration() =
 
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
+
+
+// Hackathon starts here
+task("even") {
+
+    val gradleRuntimeJars =
+        files(
+            listOf(":core", ":dependencyManagement", ":pluginUse", ":toolingApi").map {
+                project(it).configurations["runtimeClasspath"]
+            },
+            gradlePlugins
+        )
+
+    dependsOn(gradleRuntimeJars)
+
+    doLast {
+
+        val gradleApiJars =
+            gradleRuntimeJars.files.filter {
+                it.name.startsWith("gradle-")
+            }
+
+        val outputDir = buildDir.resolve("gradle-classes")
+        gradleApiJars.forEach {
+            it.unzipTo(outputDir)
+        }
+        zipTo(buildDir.resolve("gradle-public-api-${version}.jar"), outputDir)
+    }
+}
+
+fun File.unzipTo(outputDir: File) {
+    copy {
+        from(zipTree(this@unzipTo)) {
+            include(PublicApi.includes)
+            exclude(PublicApi.excludes)
+        }
+        into(outputDir)
+    }
+}
