@@ -55,4 +55,8 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
         return journal.getLastAccessTime(file) < minimumTimestamp;
     }
 
+    @Override
+    protected void handleDeletion(File file) {
+        journal.deleteLastAccessTime(file);
+    }
 }

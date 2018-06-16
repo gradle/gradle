@@ -33,8 +33,9 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
         getBaseDir() >> cacheDir
     }
     def timer = Stub(CountdownTimer)
+    def fileAccessTimeJournal = Spy(ModificationTimeFileAccessTimeJournal)
     @Subject def cleanupAction = new LeastRecentlyUsedCacheCleanup(
-        new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), 1)
+        new SingleDepthFilesFinder(1), fileAccessTimeJournal, 1)
 
     def "finds files to delete when files are old"() {
         given:
@@ -55,6 +56,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
         cacheEntries[1].assertExists()
         cacheEntries[2].assertExists()
         cacheEntries[3].assertDoesNotExist()
+        1 * fileAccessTimeJournal.deleteLastAccessTime(cacheEntries[3])
     }
 
     def "finds no files to delete when files are new"() {
@@ -73,6 +75,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
         cacheEntries[0].assertExists()
         cacheEntries[1].assertExists()
         cacheEntries[2].assertExists()
+        0 * fileAccessTimeJournal.deleteLastAccessTime(_)
     }
 
     private Random r = new Random()

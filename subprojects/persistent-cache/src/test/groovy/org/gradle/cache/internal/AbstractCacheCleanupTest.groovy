@@ -30,6 +30,7 @@ class AbstractCacheCleanupTest extends Specification {
         getBaseDir() >> cacheDir
         getReservedCacheFiles() >> []
     }
+    def deletedFiles = [];
     def timer = Mock(CountdownTimer)
 
     def "deletes non-reserved matching files"() {
@@ -49,6 +50,7 @@ class AbstractCacheCleanupTest extends Specification {
         cacheEntries[0].assertExists()
         cacheEntries[1].assertDoesNotExist()
         cacheEntries[2].assertExists()
+        deletedFiles == [cacheEntries[1]]
     }
 
     def "can delete directories"() {
@@ -64,6 +66,7 @@ class AbstractCacheCleanupTest extends Specification {
         1 * timer.hasExpired()
         cacheEntry.assertDoesNotExist()
         cacheEntry.parentFile.assertDoesNotExist()
+        deletedFiles == [cacheEntry.parentFile]
     }
 
     def "aborts cleanup when timer has expired"() {
@@ -77,6 +80,7 @@ class AbstractCacheCleanupTest extends Specification {
         then:
         1 * timer.hasExpired() >> true
         cacheEntry.assertExists()
+        deletedFiles == []
     }
 
     FilesFinder finder(files) {
@@ -93,6 +97,11 @@ class AbstractCacheCleanupTest extends Specification {
             @Override
             protected boolean shouldDelete(File file) {
                 return spec.isSatisfiedBy(file)
+            }
+
+            @Override
+            protected void handleDeletion(File file) {
+                deletedFiles.add(file)
             }
         }
     }

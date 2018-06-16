@@ -28,4 +28,9 @@ public class ModificationTimeFileAccessTimeJournal implements FileAccessTimeJour
     public long getLastAccessTime(File file) {
         return file.lastModified();
     }
+
+    @Override
+    public void deleteLastAccessTime(File file) {
+        // nothing to do
+    }
 }

@@ -75,4 +75,20 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         then:
         journal.getLastAccessTime(file) == lastModified
     }
+
+    def "deletes last access time when asked to do so"() {
+        when:
+        def originalLastModified = file.lastModified()
+
+        then:
+        journal.getLastAccessTime(file) == originalLastModified
+
+        when:
+        file.makeOlder()
+        def changedLastModified = file.lastModified()
+        journal.deleteLastAccessTime(file)
+
+        then:
+        journal.getLastAccessTime(file) == changedLastModified
+    }
 }

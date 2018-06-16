@@ -45,6 +45,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
             }
             if (shouldDelete(file)) {
                 if (FileUtils.deleteQuietly(file)) {
+                    handleDeletion(file);
                     filesDeleted++;
                 }
             }
@@ -53,6 +54,8 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
     }
 
     protected abstract boolean shouldDelete(File file);
+
+    protected abstract void handleDeletion(File file);
 
     private Iterable<File> findEligibleFiles(CleanableStore cleanableStore) {
         return eligibleFilesFinder.find(cleanableStore.getBaseDir(), new NonReservedFileFilter(cleanableStore.getReservedCacheFiles()));

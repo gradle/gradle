@@ -24,4 +24,5 @@ public interface FileAccessTimeJournal {
 
     void setLastAccessTime(File file, long millis);
 
+    void deleteLastAccessTime(File file);
 }

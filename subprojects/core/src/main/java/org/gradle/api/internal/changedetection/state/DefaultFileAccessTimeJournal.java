@@ -70,4 +70,9 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
             }
         });
     }
+
+    @Override
+    public void deleteLastAccessTime(File file) {
+        store.remove(file);
+    }
 }
