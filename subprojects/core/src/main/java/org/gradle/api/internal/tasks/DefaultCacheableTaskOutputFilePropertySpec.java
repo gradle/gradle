@@ -62,4 +62,14 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), isOptional(), validationAction, context);
     }
+
+    @Override
+    public void prepareValue() {
+        value.prepareValue();
+    }
+
+    @Override
+    public void cleanupValue() {
+        value.cleanupValue();
+    }
 }

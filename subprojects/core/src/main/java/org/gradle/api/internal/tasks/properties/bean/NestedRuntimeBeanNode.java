@@ -93,5 +93,14 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
         }
 
+        @Override
+        public void prepareValue() {
+            // TODO
+        }
+
+        @Override
+        public void cleanupValue() {
+            // TODO
+        }
     }
 }

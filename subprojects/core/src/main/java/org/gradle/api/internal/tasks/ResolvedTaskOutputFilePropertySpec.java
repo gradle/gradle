@@ -55,4 +55,14 @@ public class ResolvedTaskOutputFilePropertySpec extends AbstractTaskOutputProper
     public FileCollection getPropertyFiles() {
         throw new UnsupportedOperationException("not implemented");
     }
+
+    @Override
+    public void prepareValue() {
+
+    }
+
+    @Override
+    public void cleanupValue() {
+
+    }
 }

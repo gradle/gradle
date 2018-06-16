@@ -71,4 +71,9 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
         }
         return String.format("unlocked(%s)", delegate);
     }
+
+    @Override
+    public void lock(String deprecationWarning) {
+        lockNow();
+    }
 }

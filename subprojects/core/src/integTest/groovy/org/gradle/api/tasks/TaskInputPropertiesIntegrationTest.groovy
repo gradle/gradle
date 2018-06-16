@@ -786,4 +786,56 @@ task someTask(type: SomeTask) {
         withBuildCache().succeeds(*upToDateArguments)
         skipped(':myTask')
     }
+
+    def "cannot modify file input in task action"() {
+        file("input.txt") << "original"
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @InputFile RegularFileProperty inputFile = newInputFile()
+                @OutputFile RegularFileProperty outputFile = newOutputFile()
+                
+                @TaskAction
+                def doIt() {
+                    inputFile.set(new File("bad"))
+                    assert inputFile.asFile.get().name == "input.txt"
+                }
+            }
+            
+            task custom(type: CustomTask) {
+                inputFile = file("input.txt")
+                outputFile = file("output.txt")
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds "custom"
+        output.contains("Cannot change value of property 'inputFile' after task has started executing")
+    }
+
+    def "cannot modify file output in task action"() {
+        file("input.txt") << "original"
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @InputFile RegularFileProperty inputFile = newInputFile()
+                @OutputFile RegularFileProperty outputFile = newOutputFile()
+                
+                @TaskAction
+                def doIt() {
+                    outputFile.set(new File("bad"))
+                    assert outputFile.asFile.get().name == "output.txt"
+                }
+            }
+            
+            task custom(type: CustomTask) {
+                inputFile = file("input.txt")
+                outputFile = file("output.txt")
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds "custom"
+        output.contains("Cannot change value of property 'outputFile' after task has started executing")
+    }
 }

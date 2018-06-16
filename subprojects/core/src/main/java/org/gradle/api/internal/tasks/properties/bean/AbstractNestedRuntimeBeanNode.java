@@ -20,6 +20,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyValueVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
@@ -154,6 +156,18 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             } else {
                 valueValidator.validate(propertyName, unpacked, context, ERROR);
             }
+        }
+
+        @Override
+        public void prepareValue() {
+            if (Property.class.isAssignableFrom(method.getReturnType())) {
+                PropertyInternal<?> property = (PropertyInternal) getValue();
+                property.lock("Cannot change value of property '" + propertyName + "' after task has started executing");
+            }
+        }
+
+        @Override
+        public void cleanupValue() {
         }
     }
 }

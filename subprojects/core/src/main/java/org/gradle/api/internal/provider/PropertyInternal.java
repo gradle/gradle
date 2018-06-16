@@ -21,4 +21,6 @@ public interface PropertyInternal<T> extends ProviderInternal<T> {
      * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
      */
     void setFromAnyValue(Object object);
+
+    void lock(String deprecationWarning);
 }

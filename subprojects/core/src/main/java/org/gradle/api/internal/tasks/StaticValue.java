@@ -43,4 +43,14 @@ public class StaticValue implements ValidatingValue {
             valueValidator.validate(propertyName, unpacked, context, WARNING);
         }
     }
+
+    @Override
+    public void prepareValue() {
+        // TODO
+    }
+
+    @Override
+    public void cleanupValue() {
+        // TODO
+    }
 }

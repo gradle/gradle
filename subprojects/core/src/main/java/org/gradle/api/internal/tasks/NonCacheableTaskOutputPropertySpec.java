@@ -68,4 +68,14 @@ public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSu
     public FileCollection getPropertyFiles() {
         return files;
     }
+
+    @Override
+    public void prepareValue() {
+        // TODO
+    }
+
+    @Override
+    public void cleanupValue() {
+        // TODO
+    }
 }

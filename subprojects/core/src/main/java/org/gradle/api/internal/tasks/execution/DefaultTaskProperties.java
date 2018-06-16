@@ -21,6 +21,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -33,6 +34,7 @@ import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
@@ -279,6 +281,16 @@ public class DefaultTaskProperties implements TaskProperties {
 
         public List<ValidatingTaskPropertySpec> getTaskPropertySpecs() {
             return taskPropertySpecs;
+        }
+    }
+
+    @Override
+    public void visitProperties(Action<TaskPropertySpec> action) {
+        for (TaskPropertySpec inputFileProperty : inputFileProperties) {
+            action.execute(inputFileProperty);
+        }
+        for (TaskPropertySpec outputFileProperty : outputFileProperties) {
+            action.execute(outputFileProperty);
         }
     }
 }

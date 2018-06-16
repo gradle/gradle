@@ -20,12 +20,15 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
 public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertyState<T>, ProviderInternal<T> {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
+    private boolean locked = false;
+    private String deprecationWarning;
 
     public DefaultPropertyState(Class<T> type) {
         this.type = type;
@@ -48,6 +51,9 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
 
     @Override
     public void set(T value) {
+        if (!canMutate()) {
+            return;
+        }
         if (value == null) {
             this.provider = Providers.notDefined();
             return;
@@ -64,6 +70,9 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
 
     @Override
     public void set(Provider<? extends T> provider) {
+        if (!canMutate()) {
+            return;
+        }
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
@@ -83,6 +92,14 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
         }
 
         this.provider = p;
+    }
+
+    private boolean canMutate() {
+        if (locked) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(deprecationWarning);
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -118,5 +135,11 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
     public String toString() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("property(%s, %s)", type, provider);
+    }
+
+    @Override
+    public void lock(String deprecationWarning) {
+        this.deprecationWarning = deprecationWarning;
+        locked = true;
     }
 }

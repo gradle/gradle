@@ -332,4 +332,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return false;
         }
     }
+
+    @Override
+    public void lock(String deprecationWarning) {
+
+    }
 }

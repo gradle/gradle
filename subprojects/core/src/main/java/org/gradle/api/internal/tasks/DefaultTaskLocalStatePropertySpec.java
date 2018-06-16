@@ -46,4 +46,14 @@ public class DefaultTaskLocalStatePropertySpec implements TaskLocalStateProperty
     public int compareTo(TaskPropertySpec other) {
         return getPropertyName().compareTo(other.getPropertyName());
     }
+
+    @Override
+    public void prepareValue() {
+        // TODO
+    }
+
+    @Override
+    public void cleanupValue() {
+        // TODO
+    }
 }

@@ -25,4 +25,15 @@ public interface ValidatingValue extends Callable<Object>  {
     Object call();
 
     void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context);
+
+    /**
+     * Called immediately prior to this property being used as a task input.
+     * The property implementation may finalize the property value, prevent further changes to the value and enable caching of whatever state it requires to efficiently snapshot and query the input files during task execution.
+     */
+    void prepareValue();
+
+    /**
+     * Called after the completion of the task, regardless of the task outcome. The property implementation can release any state that was cached during task execution.
+     */
+    void cleanupValue();
 }

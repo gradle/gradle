@@ -141,6 +141,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public void prepareValue() {
+        value.prepareValue();
         Object obj = value.call();
         // TODO - move this to ValidatingValue instead
         if (obj instanceof LifecycleAwareTaskProperty) {
@@ -151,6 +152,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public void cleanupValue() {
+        value.cleanupValue();
         if (lifecycleAware != null) {
             lifecycleAware.cleanupValue();
         }

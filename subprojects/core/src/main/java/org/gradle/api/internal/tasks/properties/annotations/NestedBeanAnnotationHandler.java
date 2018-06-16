@@ -81,6 +81,16 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
             throw UncheckedException.throwAsUncheckedException(exception);
         }
+
+        @Override
+        public void prepareValue() {
+            // TODO
+        }
+
+        @Override
+        public void cleanupValue() {
+            // TODO
+        }
     }
 
     private static class AbsentPropertyValue implements ValidatingValue {
@@ -95,5 +105,14 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
         }
 
+        @Override
+        public void prepareValue() {
+            // TODO
+        }
+
+        @Override
+        public void cleanupValue() {
+            // TODO
+        }
     }
 }

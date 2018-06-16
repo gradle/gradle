@@ -75,4 +75,14 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     public String toString() {
         return getPropertyName();
     }
+
+    @Override
+    public void prepareValue() {
+        // TODO
+    }
+
+    @Override
+    public void cleanupValue() {
+        // TODO
+    }
 }

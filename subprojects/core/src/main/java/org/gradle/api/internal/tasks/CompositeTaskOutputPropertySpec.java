@@ -124,4 +124,14 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     public FileCollection getPropertyFiles() {
         return new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
     }
+
+    @Override
+    public void prepareValue() {
+        paths.prepareValue();
+    }
+
+    @Override
+    public void cleanupValue() {
+        paths.cleanupValue();
+    }
 }

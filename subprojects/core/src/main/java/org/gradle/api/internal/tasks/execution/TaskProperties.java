@@ -17,11 +17,13 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Factory;
@@ -78,6 +80,8 @@ public interface TaskProperties {
      * It is guaranteed that all the {@link TaskOutputFilePropertySpec}s have a name and that the names are unique.
      */
     ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties();
+
+    void visitProperties(Action<TaskPropertySpec> action);
 
     /**
      * The output files.

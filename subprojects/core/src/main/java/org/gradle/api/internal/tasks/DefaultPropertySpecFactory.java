@@ -91,5 +91,15 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
             delegate.validate(propertyName, optional, valueValidator, context);
         }
+
+        @Override
+        public void prepareValue() {
+            // TODO
+        }
+
+        @Override
+        public void cleanupValue() {
+            // TODO
+        }
     }
 }

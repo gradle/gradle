@@ -70,4 +70,14 @@ public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSu
     public String toString() {
         return propertyName;
     }
+
+    @Override
+    public void prepareValue() {
+        value.prepareValue();
+    }
+
+    @Override
+    public void cleanupValue() {
+        value.cleanupValue();
+    }
 }
