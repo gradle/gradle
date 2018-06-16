@@ -23,16 +23,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.IsolatableTask;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.api.IsolatableTask;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.annotation.Nonnull;
@@ -52,12 +52,10 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 return createTaskClassInfo(type);
             }
         });
-    private final InstantiatorFactory instantiatorFactory;
     private final WorkerLeaseService workerLeaseService;
     private final IsolatableFactory isolatableFactory;
 
-    public DefaultTaskClassInfoStore(InstantiatorFactory instantiatorFactory, WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
-        this.instantiatorFactory = instantiatorFactory;
+    public DefaultTaskClassInfoStore(WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
         this.workerLeaseService = workerLeaseService;
         this.isolatableFactory = isolatableFactory;
     }
@@ -88,7 +86,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             }
         }
         if (IsolatableTask.class.isAssignableFrom(type)) {
-            taskActionFactoriesBuilder.add(new IsolatableTaskActionFactory(instantiatorFactory, workerLeaseService, isolatableFactory));
+            taskActionFactoriesBuilder.add(new DefaultIsolatableTaskActionFactory(workerLeaseService, isolatableFactory, null));
         }
 
         return new TaskClassInfo(incremental, taskActionFactoriesBuilder.build(), cacheable);
@@ -165,15 +163,19 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
     }
 
-    private static class IsolatableTaskActionFactory implements TaskActionFactory {
-        private final InstantiatorFactory instantiatorFactory;
+    private static class DefaultIsolatableTaskActionFactory implements IsolatableTaskActionFactory {
         private final WorkerLeaseService workerLeaseService;
         private final IsolatableFactory isolatableFactory;
+        private final Instantiator instantiator;
 
-        private IsolatableTaskActionFactory(InstantiatorFactory instantiator, WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
-            this.instantiatorFactory = instantiator;
+        private DefaultIsolatableTaskActionFactory(WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory, Instantiator instantiator) {
             this.workerLeaseService = workerLeaseService;
             this.isolatableFactory = isolatableFactory;
+            this.instantiator = instantiator;
+        }
+
+        public IsolatableTaskActionFactory withInstantiator(Instantiator instantiator) {
+            return new DefaultIsolatableTaskActionFactory(workerLeaseService, isolatableFactory, instantiator);
         }
 
         @Nonnull
@@ -189,7 +191,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                         @Override
                         public void run() {
                             Class<Action<Object>> action = Cast.uncheckedCast(isolatableTask.getAction());
-                            instantiatorFactory.inject().newInstance(action).execute(params);
+                            instantiator.newInstance(action).execute(params);
                         }
                     });
                 }

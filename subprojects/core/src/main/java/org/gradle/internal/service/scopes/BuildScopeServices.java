@@ -252,8 +252,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultPropertyWalker(propertyMetadataStore);
     }
 
-    protected TaskClassInfoStore createTaskClassInfoStore(InstantiatorFactory instantiatorFactory, WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
-        return new DefaultTaskClassInfoStore(instantiatorFactory, workerLeaseService, isolatableFactory);
+    protected TaskClassInfoStore createTaskClassInfoStore(WorkerLeaseService workerLeaseService, IsolatableFactory isolatableFactory) {
+        return new DefaultTaskClassInfoStore(workerLeaseService, isolatableFactory);
     }
 
     protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {

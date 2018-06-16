@@ -28,15 +28,23 @@ import org.gradle.internal.reflect.Instantiator;
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final TaskClassInfoStore taskClassInfoStore;
     private final ITaskFactory taskFactory;
+    private final Instantiator instantiator;
 
     public AnnotationProcessingTaskFactory(TaskClassInfoStore taskClassInfoStore, ITaskFactory taskFactory) {
         this.taskClassInfoStore = taskClassInfoStore;
         this.taskFactory = taskFactory;
+        this.instantiator = null;
+    }
+
+    private AnnotationProcessingTaskFactory(TaskClassInfoStore taskClassInfoStore, ITaskFactory taskFactory, Instantiator instantiator) {
+        this.taskClassInfoStore = taskClassInfoStore;
+        this.taskFactory = taskFactory;
+        this.instantiator = instantiator;
     }
 
     @Override
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-        return new AnnotationProcessingTaskFactory(taskClassInfoStore, taskFactory.createChild(project, instantiator));
+        return new AnnotationProcessingTaskFactory(taskClassInfoStore, taskFactory.createChild(project, instantiator), instantiator);
     }
 
     @Override
@@ -63,6 +71,9 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         for (TaskActionFactory actionFactory : taskClassInfo.getTaskActionFactories()) {
+            if (actionFactory instanceof IsolatableTaskActionFactory) {
+                actionFactory = ((IsolatableTaskActionFactory) actionFactory).withInstantiator(instantiator);
+            }
             ((TaskInternal) task).prependParallelSafeAction(actionFactory.create());
         }
 

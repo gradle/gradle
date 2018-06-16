@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -159,7 +158,7 @@ class PropertyValidationAccessTest extends Specification {
     private static void assertHasValidationProblems(Class<?> taskType, List<String> expectedProblems) {
         def propertyValidationAccess = new PropertyValidationAccess()
         def problems = new HashMap<String, Boolean>()
-        propertyValidationAccess.collectTaskValidationProblems(taskType, problems, TestUtil.instantiatorFactory())
+        propertyValidationAccess.collectTaskValidationProblems(taskType, problems)
 
         assert problems.keySet() == validationProblems(taskType, expectedProblems)
     }
