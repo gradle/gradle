@@ -50,7 +50,10 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
             public void execute(final PublishingExtension publishing) {
                 // TODO: use named(...)
                 SoftwareComponent mainComponent = project.getComponents().getByName("java");
-                Provider<Iterable<? extends Publication>> publications = new Monadic().combine(pluginDevelopment.isAutomatedPublishing(), pluginDevelopment.getPlugins().asProvider(), Providers.of(mainComponent),
+                Provider<Iterable<? extends Publication>> publications = new Monadic().combine(
+                    pluginDevelopment.isAutomatedPublishing(),
+                    pluginDevelopment.getPlugins().asProvider(),
+                    Providers.of(mainComponent),
                     new Transformer<Iterable<? extends Publication>, Monadic.Param3<Boolean, Iterable<PluginDeclaration>, SoftwareComponent>>() {
                         @Override
                         public Iterable<? extends Publication> transform(Monadic.Param3<Boolean, Iterable<PluginDeclaration>, SoftwareComponent> params) {
@@ -59,7 +62,9 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
                                 mainPublication.from(params.third);
                                 List<Publication> publications = Lists.newArrayList();
                                 publications.add(mainPublication);
-                                addMarkerPublications(publications, mainPublication, publishing, params.second);
+                                for (PluginDeclaration declaration : params.second) {
+                                    publications.add(createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications()));
+                                }
                                 return publications;
                             }
                             return Collections.emptyList();
@@ -68,12 +73,6 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
                 publishing.getPublications().addAllLater(publications);
             }
         });
-    }
-
-    private void addMarkerPublications(List<Publication> publications, MavenPublication mainPublication, PublishingExtension publishing, Iterable<PluginDeclaration> pluginDevelopment) {
-        for (PluginDeclaration declaration : pluginDevelopment) {
-            publications.add(createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications()));
-        }
     }
 
     // Use factory instead of PublicationContainer
