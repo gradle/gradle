@@ -1,7 +1,39 @@
 package org.gradle.gradlebuild
 
 object PublicApi {
-    val includes = listOf("org/gradle/*",
+    /**
+     * Patterns for inclusion.
+     */
+    val includes = listOf(
+
+        "org/gradle/api/internal/DynamicObjectAware.class",
+        "org/gradle/api/internal/IConventionAware.class",
+        "org/gradle/api/internal/TaskInternal.class",
+        "org/gradle/language/base/internal/LanguageSourceSetInternal.class",
+        "org/gradle/platform/base/component/internal/AbstractComponentSpec.class",
+        "org/gradle/plugins/ide/internal/generator/AbstractPersistableConfigurationObject.class",
+        "org/gradle/plugins/ide/internal/generator/generator/PersistableConfigurationObject.class",
+        "org/gradle/platform/base/internal/ComponentSpecInternal.class",
+        "groovy/util/AntBuilder.class",
+        "org/gradle/api/internal/AbstractBuildableComponentSpec.class",
+        "org/gradle/api/internal/AbstractTask.class",
+        "org/gradle/api/internal/ConventionTask.class",
+        "org/gradle/api/internal/artifacts/publish/AbstractPublishArtifact.class",
+        "org/gradle/api/internal/file/copy/CopySpecSource.class",
+        "org/gradle/api/internal/rules/NamedDomainObjectFactoryRegistry.class",
+        "org/gradle/api/plugins/quality/internal/AbstractCodeQualityPlugin.class",
+        "org/gradle/api/publication/maven/internal/MavenPomMetaInfoProvider.class",
+        "org/gradle/internal/exceptions/DefaultMultiCauseException.class",
+        "org/gradle/jvm/internal/WithDependencies.class",
+        "org/gradle/language/base/internal/AbstractLanguageSourceSet.class",
+        "org/gradle/platform/base/component/internal/DefaultComponentSpec.class",
+        "org/gradle/platform/base/internal/BinarySpecInternal.class",
+        "org/gradle/plugins/ide/internal/IdePlugin.class",
+        "org/gradle/plugins/ide/internal/generator/PropertiesPersistableConfigurationObject.class",
+        "org/gradle/plugins/ide/internal/generator/XmlPersistableConfigurationObject.class",
+        "org/gradle/util/Configurable.class",
+
+        "org/gradle/*",
         "org/gradle/api/**",
         "org/gradle/authentication/**",
         "org/gradle/buildinit/**",
