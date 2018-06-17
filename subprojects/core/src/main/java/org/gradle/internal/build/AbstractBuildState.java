@@ -20,12 +20,18 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.util.Path;
 
 public abstract class AbstractBuildState implements BuildState {
     @Override
     public String toString() {
         return getBuildIdentifier().toString();
+    }
+
+    @Override
+    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
+        throw new UnsupportedOperationException("Cannot include build '" + includedBuildSpec.rootDir.getName() + "' in " + getBuildIdentifier() + ". This is not supported yet.");
     }
 
     @Override

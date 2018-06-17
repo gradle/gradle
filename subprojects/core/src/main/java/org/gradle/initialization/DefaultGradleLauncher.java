@@ -73,7 +73,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
     private final IncludedBuildControllers includedBuildControllers;
-    private GradleInternal gradle;
+    private final GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
 

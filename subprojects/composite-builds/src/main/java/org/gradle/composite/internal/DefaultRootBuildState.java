@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.AbstractBuildState;
@@ -57,6 +58,10 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     @Override
     public boolean isImplicitBuild() {
         return false;
+    }
+
+    @Override
+    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
     }
 
     @Override
