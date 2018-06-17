@@ -43,6 +43,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -166,6 +167,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             root = root.getParent();
         }
         return root;
+    }
+
+    @Override
+    public BuildState getOwner() {
+        return getServices().get(BuildState.class);
     }
 
     @Override
