@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -128,6 +129,20 @@ class SelectorStateResolverTest extends Specification {
 
         where:
         permutation << SCENARIOS_FOUR_DEPENDENCIES
+    }
+
+    def 'short circuits for identical versions'() {
+        def nine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+        def otherNine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+        ModuleConflictResolver mockResolver = Mock()
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root)
+
+        when:
+        def selected = resolverWithMock.selectBest(moduleId, [nine, otherNine])
+
+        then:
+        selected.version == '9'
+        0 * mockResolver._
     }
 
     def "performs partial resolve when some selectors fail"() {
@@ -267,6 +282,18 @@ class SelectorStateResolverTest extends Specification {
         private ModuleVersionNotFoundException missing(VersionSelector prefer) {
             def moduleComponentSelector = DefaultModuleComponentSelector.newSelector(moduleId.group, moduleId.name, prefer.selector)
             return new ModuleVersionNotFoundException(moduleComponentSelector, [])
+        }
+    }
+
+    static class NoConstraintSelectorState extends TestSelectorState {
+
+        NoConstraintSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
+            super(resolver, versionConstraint)
+        }
+
+        @Override
+        ResolvedVersionConstraint getVersionConstraint() {
+            return null
         }
     }
 
