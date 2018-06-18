@@ -1393,7 +1393,13 @@ Required by:
                 maven { url "${mavenRepo.uri}" }
             }
 
-            task jar(type: Jar) { baseName = project.name }
+            task jar(type: Jar) { 
+                baseName = project.name
+                // TODO LJA: No idea why I have to do this
+                if (project.version != 'unspecified') {
+                    archiveName = "\${project.name}-\${project.version}.jar"
+                }
+            }
             artifacts { conf jar }
         }
 
@@ -1450,12 +1456,12 @@ Required by:
     def 'substitution with project does not trigger failOnVersionConflict'() {
         settingsFile << 'include "sub"'
         buildFile << """
-$common
-
-project(':sub') {
-    version = '0.0.1'
+subprojects {
+    it.version = '0.0.1'
     group = 'org.test'
 }
+
+$common
 
 dependencies {
     conf 'foo:bar:1'
@@ -1474,11 +1480,16 @@ configurations.all {
 """
 
         when:
-        succeeds 'checkDeps'
+        succeeds ':checkDeps'
 
         then:
         resolve.expectGraph {
-            root(":sub", "org.test:sub:0.0.1") {}
+            root(":", ":depsub:") {
+                project(':sub', 'org.test:sub:0.0.1') {
+                    configuration = 'default'
+                }
+                edge('foo:bar:1', 'org.test:sub:0.0.1')
+            }
         }
     }
 }
