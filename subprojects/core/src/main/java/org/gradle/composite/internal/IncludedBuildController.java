@@ -20,16 +20,14 @@ import java.util.Collection;
 public interface IncludedBuildController {
     void queueForExecution(String taskPath);
 
-    void awaitCompletion(String taskPath);
-
     IncludedBuildTaskResource.State getTaskState(String taskPath);
+
+    boolean populateTaskGraph();
 
     void startTaskExecution();
 
     /**
      * Awaits completion of task execution, collecting any task failures into the given collection.
      */
-    void stopTaskExecution(Collection<? super Throwable> taskFailures);
-
-    boolean populateTaskGraph();
+    void awaitTaskCompletion(Collection<? super Throwable> taskFailures);
 }
