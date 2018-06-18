@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -771,102 +770,6 @@ allprojects {
         then:
         output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
 
-        output.count("Transforming") == 0
-    }
-
-    // FIXME lptr - We only transform artifacts once now
-    @Ignore
-    def "transform is supplied with a different output directory when input file content changed by a task during the build"() {
-        given:
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                    registerTransform {
-                        from.attribute(artifactType, "classes")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                    }
-                }
-            }
-
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
-                    output.text = "transformed"
-                    return [output]
-                }
-            }
-
-            project(':lib') {
-                dependencies {
-                    compile files("lib1.jar")
-                }
-                artifacts {
-                    compile file("dir1.classes")
-                }
-                task src1 { 
-                    doLast {
-                        projectDir.mkdirs()
-                        file("lib1.jar").text = '123'
-                        file("dir1.classes").mkdirs()
-                        file("dir1.classes/file1.txt").text = 'abc'
-                    }
-                }
-                task src2 {
-                    doLast {
-                        projectDir.mkdirs()
-                        file("lib1.jar").text = '1234'
-                        file("dir1.classes").mkdirs()
-                        file("dir1.classes/file2.txt").text = 'new file'
-                    }
-                }
-            }
-            
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
-            
-            project(':app').tasks.resolve.mustRunAfter(':lib:src1')
-            project(':lib').tasks.src2.mustRunAfter(':app:resolve')
-            project(':util').tasks.resolve.mustRunAfter(':lib:src2')
-        """
-
-        when:
-        run "src1", ":app:resolve", "src2", ":util:resolve"
-
-        then:
-        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
-        output.count("Transforming") == 4
-
-        when:
-        run ":app:resolve", ":util:resolve"
-
-        then:
-        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
         output.count("Transforming") == 0
     }
 
