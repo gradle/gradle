@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
@@ -1442,6 +1443,42 @@ Required by:
                     module("org:a:2.0")
                 }
             }
+        }
+    }
+
+    @Issue("gradle/gradle#5692")
+    def 'substitution with project does not trigger failOnVersionConflict'() {
+        settingsFile << 'include "sub"'
+        buildFile << """
+$common
+
+project(':sub') {
+    version = '0.0.1'
+    group = 'org.test'
+}
+
+dependencies {
+    conf 'foo:bar:1'
+    conf project(':sub')
+}
+
+configurations.all {
+  resolutionStrategy { 
+      dependencySubstitution { DependencySubstitutions subs ->
+          subs.substitute(subs.module('foo:bar:1')).with(subs.project(':sub'))
+      }
+      failOnVersionConflict()    
+  }
+}
+
+"""
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":sub", "org.test:sub:0.0.1") {}
         }
     }
 }
