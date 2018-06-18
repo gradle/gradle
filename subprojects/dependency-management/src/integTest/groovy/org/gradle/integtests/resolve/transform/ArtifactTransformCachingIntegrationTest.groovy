@@ -573,8 +573,6 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    // FIXME lptr
-    @Ignore
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << """
@@ -643,9 +641,8 @@ allprojects {
         fails ":app:resolve"
 
         then:
-        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
-        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasDescription("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasDescription("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
 

@@ -86,7 +86,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Throwable cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
+            FailureDetails details = constructFailureDetails("Operation", cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
