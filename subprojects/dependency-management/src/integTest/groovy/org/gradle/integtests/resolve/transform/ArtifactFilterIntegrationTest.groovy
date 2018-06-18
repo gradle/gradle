@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
 
 class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -221,8 +220,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         output.contains("filter applied to internalLocalLibExclude.jar")
     }
 
-    // FIXME lptr
-    @Ignore
     def "transforms are not triggered for artifacts that are not accessed" () {
         given:
         buildFile << """
@@ -253,13 +250,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 attributes { it.attribute(artifactType, "class") }
             }.files
 
-            task doNothing {
-                inputs.files(filteredView)
-                doLast {
-                    //do nothing
-                }
-            }
-            
             task accessFiles {
                 inputs.files(filteredView)
                 doLast {
@@ -267,14 +257,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 }
             }
         """
-
-        when:
-        succeeds "doNothing"
-
-        then:
-        notExecuted ":libExclude:jar"
-        executed ":libInclude:jar"
-        executedTransforms == 0
 
         when:
         succeeds "accessFiles"
