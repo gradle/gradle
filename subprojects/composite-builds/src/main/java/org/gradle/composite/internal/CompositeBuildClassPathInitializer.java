@@ -22,8 +22,11 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.build.BuildState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
@@ -42,6 +45,11 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
             build(currentBuild, componentArtifactIdentifier);
         }
+        List<Throwable> taskFailures = new ArrayList<Throwable>();
+        includedBuildTaskGraph.awaitTaskCompletion(taskFailures);
+        if (!taskFailures.isEmpty()) {
+            throw new MultipleBuildFailures(taskFailures);
+        }
     }
 
     public void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
@@ -52,9 +60,6 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             Set<? extends Task> tasks = compositeBuildArtifact.getBuildDependencies().getDependencies(null);
             for (Task task : tasks) {
                 includedBuildTaskGraph.addTask(requestingBuild, targetBuild, task.getPath());
-            }
-            for (Task task : tasks) {
-                includedBuildTaskGraph.awaitCompletion(targetBuild, task.getPath());
             }
         }
     }
