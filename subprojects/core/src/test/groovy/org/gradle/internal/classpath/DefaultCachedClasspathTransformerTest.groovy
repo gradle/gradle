@@ -21,14 +21,12 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.Factory
 import org.gradle.internal.file.JarCache
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS
-import static java.util.concurrent.TimeUnit.SECONDS
 
 class DefaultCachedClasspathTransformerTest extends Specification {
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -54,9 +52,10 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         getFileStoreRoots() >> [otherStore]
     }
     JarCache jarCache = Mock(JarCache)
+    FileAccessTimeJournal fileAccessTimeJournal = Mock(FileAccessTimeJournal)
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, [jarFileStore])
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore])
 
     def "can convert a classpath to cached jars"() {
         given:
@@ -101,21 +100,14 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         File cachedFile = cachedDir.file("e11f1cf5681161f98a43c55e341f1b93/sub/file1").createFile()
         File alreadyCachedFile = cachedDir.file("file2").createFile()
         File cachedInOtherStore = otherStore.file("file3").createFile()
-        [externalFile, cachedFile, cachedFile.parentFile, cachedFile.parentFile.parentFile, alreadyCachedFile, cachedInOtherStore]*.lastModified = 0
-        def beforeAccess = MILLISECONDS.toSeconds(System.currentTimeMillis())
 
         when:
         transformer.transform(DefaultClassPath.of([externalFile, alreadyCachedFile, cachedInOtherStore]))
 
         then:
         1 * jarCache.getCachedJar(externalFile, _) >> cachedFile
-
-        and:
-        externalFile.lastModified() == 0
-        cachedFile.lastModified() == 0
-        cachedFile.parentFile.lastModified() == 0
-        cachedFile.parentFile.parentFile.lastModified() >= SECONDS.toMillis(beforeAccess)
-        alreadyCachedFile.lastModified() >= SECONDS.toMillis(beforeAccess)
-        cachedInOtherStore.lastModified() == 0
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile.parentFile, _)
+        1 * fileAccessTimeJournal.setLastAccessTime(alreadyCachedFile, _)
+        0 * fileAccessTimeJournal._
     }
 }

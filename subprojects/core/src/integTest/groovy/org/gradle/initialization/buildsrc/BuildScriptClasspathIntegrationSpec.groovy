@@ -16,9 +16,9 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer
 import org.gradle.test.fixtures.file.TestFile
@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 import static java.util.concurrent.TimeUnit.DAYS
 
-class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements CachingIntegrationFixture {
+class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     @Rule public final HttpServer server = new HttpServer()
@@ -118,7 +118,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         notInJarCache("commons-io-1.4.jar")
     }
 
-    private void createBuildFileThatPrintsClasspathURLs(String dependencies) {
+    private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
         buildFile.text = """
             buildscript {
                 repositories {
@@ -219,38 +219,42 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
     def "cleans up unused cached JARs"() {
         given:
-        createBuildFileThatPrintsClasspathURLs("""
-            classpath name: 'a', version: '1'
-            classpath name: 'b', version: '2'
-        """)
-        def builder = artifactBuilder()
-        builder.buildJar(file("repo/a-1.jar"))
-        builder.resourceFile('b.txt').createFile()
-        builder.buildJar(file("repo/b-2.jar"))
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        artifactBuilder().buildJar(file("repo/a-1.jar"))
 
         when:
-        // we need a separate user home dir because DefaultCachedClasspathTransformer
-        // is only closed when the Gradle user home dir changes
-        executer = createExecuter().requireOwnGradleUserHomeDir()
+        createBuildFileThatPrintsClasspathURLs("""
+            classpath name: 'a', version: '1'
+        """)
         succeeds("showBuildscript")
 
         then:
-        def jarA = inJarCache("a-1.jar").assertExists()
-        def jarB = inJarCache("b-2.jar").assertExists()
+        def jar = inJarCache("a-1.jar").assertExists()
+        journal.assertExists()
 
         when:
-        createBuildFileThatPrintsClasspathURLs("""
-            classpath name: 'a', version: '1'
-        """)
+        run '--stop' // ensure daemon does not cache file access times in memory
+        assert journal.delete()
         markForCleanup(gcFile)
-        markForCleanup(jarB.parentFile)
+        markForCleanup(jar.parentFile)
 
         and:
+        createBuildFileThatPrintsClasspathURLs()
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("showBuildscript").start().waitForFinish()
+
+        then:
+        jar.assertDoesNotExist()
+
+        when:
+        createBuildFileThatPrintsClasspathURLs("""
+            classpath name: 'a', version: '1'
+        """)
         succeeds("showBuildscript")
 
         then:
-        jarA.assertExists()
-        jarB.assertDoesNotExist()
+        jar.assertExists()
     }
 
     void notInJarCache(String filename) {

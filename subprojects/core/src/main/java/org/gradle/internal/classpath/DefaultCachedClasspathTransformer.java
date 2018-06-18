@@ -29,7 +29,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.util.CollectionUtils;
 
@@ -55,8 +54,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final PersistentCache cache;
     private final Transformer<File, File> jarFileTransformer;
 
-    public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, List<CachedJarFileStore> fileStores) {
-        FileAccessTimeJournal fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal();
+    public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, FileAccessTimeJournal fileAccessTimeJournal, List<CachedJarFileStore> fileStores) {
         this.cache = cacheRepository
             .cache(CACHE_KEY)
             .withDisplayName("jars")
