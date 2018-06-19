@@ -37,9 +37,9 @@ public interface TaskUpToDateState {
     boolean hasAnyOutputFileChanges();
 
     /**
-     * Returns any change to task inputs or outputs.
+     * Visits any change to task inputs or outputs.
      */
-    Iterable<TaskStateChange> getAllTaskChanges();
+    void visitAllTaskChanges(TaskStateChangeVisitor visitor);
 
     /**
      * Whether there are changes that force an incremental task to fully rebuild.

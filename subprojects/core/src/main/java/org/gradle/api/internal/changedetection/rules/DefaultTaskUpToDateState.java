@@ -20,8 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.Collection;
-
 @NonNullApi
 public class DefaultTaskUpToDateState implements TaskUpToDateState {
 
@@ -59,18 +57,21 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
 
     @Override
     public Iterable<TaskStateChange> getInputFilesChanges() {
-        return getChanges(inputFileChanges);
+        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
+        inputFileChanges.accept(visitor);
+        return visitor.getChanges();
     }
 
     @Override
     public boolean hasAnyOutputFileChanges() {
-        Collection<TaskStateChange> changes = getChanges(1, outputFilePropertyChanges);
-        return !changes.isEmpty() || outputFileChanges.hasAnyChanges();
+        ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
+        outputFilePropertyChanges.accept(visitor);
+        return visitor.hasAnyChanges() || outputFileChanges.hasAnyChanges();
     }
 
     @Override
-    public Iterable<TaskStateChange> getAllTaskChanges() {
-        return getChanges(MAX_OUT_OF_DATE_MESSAGES, allTaskChanges);
+    public void visitAllTaskChanges(TaskStateChangeVisitor visitor) {
+        allTaskChanges.accept(visitor);
     }
 
     @Override
@@ -80,15 +81,4 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
         return changeDetectorVisitor.hasAnyChanges();
     }
 
-    private Collection<TaskStateChange> getChanges(TaskStateChanges stateChanges) {
-        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
-        stateChanges.accept(visitor);
-        return visitor.getChanges();
-    }
-
-    private Collection<TaskStateChange> getChanges(int maxReportedChanges, TaskStateChanges changes) {
-        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
-        changes.accept(new MaximumNumberTaskStateChangeVisitor(maxReportedChanges, visitor));
-        return visitor.getChanges();
-    }
 }

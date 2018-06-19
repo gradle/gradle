@@ -28,8 +28,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.DefaultTaskUpToDateState;
+import org.gradle.api.internal.changedetection.rules.MaximumNumberTaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.NoHistoryTaskUpToDateState;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -53,6 +55,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.changedetection.rules.TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -86,12 +90,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public boolean isUpToDate(Collection<String> messages) {
-            upToDate = true;
-            for (TaskStateChange stateChange : getStates().getAllTaskChanges()) {
-                messages.add(stateChange.getMessage());
-                upToDate = false;
-            }
+        public boolean isUpToDate(final Collection<String> messages) {
+            MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(messages);
+            getStates().visitAllTaskChanges(new MaximumNumberTaskStateChangeVisitor(MAX_OUT_OF_DATE_MESSAGES, visitor));
+            this.upToDate = !visitor.hasAnyChanges();
             return upToDate;
         }
 
@@ -209,6 +211,26 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 }
             }
             return states;
+        }
+    }
+
+    private static class MessageCollectingChangeVisitor implements TaskStateChangeVisitor {
+        private final Collection<String> messages;
+        private boolean anyChanges;
+
+        public MessageCollectingChangeVisitor(Collection<String> messages) {
+            this.messages = messages;
+        }
+
+        @Override
+        public boolean visitChange(TaskStateChange change) {
+            messages.add(change.getMessage());
+            anyChanges = true;
+            return true;
+        }
+
+        public boolean hasAnyChanges() {
+            return anyChanges;
         }
     }
 }

@@ -25,9 +25,10 @@ public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
     public static final NoHistoryTaskUpToDateState INSTANCE = new NoHistoryTaskUpToDateState();
 
     private final Iterable<TaskStateChange> noHistoryTaskStateChanges;
+    private final DescriptiveChange noHistoryChange = new DescriptiveChange("No history is available.");
 
     private NoHistoryTaskUpToDateState() {
-        noHistoryTaskStateChanges = ImmutableList.<TaskStateChange>of(new DescriptiveChange("No history is available."));
+        noHistoryTaskStateChanges = ImmutableList.<TaskStateChange>of(noHistoryChange);
     }
 
     @Override
@@ -41,8 +42,8 @@ public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public Iterable<TaskStateChange> getAllTaskChanges() {
-        return noHistoryTaskStateChanges;
+    public void visitAllTaskChanges(TaskStateChangeVisitor visitor) {
+        visitor.visitChange(noHistoryChange);
     }
 
     @Override
