@@ -26,12 +26,12 @@ import java.util.Map;
 
 public class TransformCompletion implements ResolvedArtifactSet.Completion {
     private final AttributeContainerInternal attributes;
-    private final ResolvedArtifactSet.Completion delegaete;
+    private final ResolvedArtifactSet.Completion delegate;
     private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
     private final Map<File, TransformFileOperation> fileResults;
 
     public TransformCompletion(ResolvedArtifactSet.Completion delegate, AttributeContainerInternal attributes, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
-        this.delegaete = delegate;
+        this.delegate = delegate;
         this.attributes = attributes;
         this.artifactResults = artifactResults;
         this.fileResults = fileResults;
@@ -39,6 +39,6 @@ public class TransformCompletion implements ResolvedArtifactSet.Completion {
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        delegaete.visit(new ArtifactTransformingVisitor(visitor, attributes, artifactResults, fileResults));
+        delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, artifactResults, fileResults));
     }
 }
