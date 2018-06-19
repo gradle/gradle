@@ -1584,7 +1584,7 @@ Found the following transforms:
         failure.assertHasCause("java.io.NotSerializableException: CustomType")
     }
 
-    def "Artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
+    def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
         module.getArtifactFile(classifier:"foo").text = "1234"
         module.getArtifactFile(classifier:"bar").text = "5678"

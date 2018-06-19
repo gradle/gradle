@@ -134,6 +134,71 @@ allprojects {
         output.count("Transforming") == 0
     }
 
+    def "transform is applied before consuming task is executed"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        // Do nothing
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    println "Running transformation for \${input.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {            
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {            
+                    archiveName = 'lib2.jar'
+                }
+                artifacts {
+                    compile jar1
+                    compile jar2
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+        """
+
+        when:
+        succeeds ":util:resolve"
+
+        def transformationPosition2 = output.indexOf("Running transformation for lib1.jar")
+        def transformationPosition1 = output.indexOf("Running transformation for lib2.jar")
+        def taskPosition = output.indexOf("> Task :util:resolve")
+
+        then:
+        transformationPosition1 >= 0
+        transformationPosition2 >= 0
+        taskPosition >= 0
+        transformationPosition1 < taskPosition
+        transformationPosition2 < taskPosition
+    }
+
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << """
