@@ -23,6 +23,8 @@ import org.gradle.api.tasks.TaskDependency;
 public interface WorkDependencyResolver<T> {
     /**
      * Resolves dependencies to a specific type.
+     *
+     * @return {@code true} if this resolver could resolve the given node, {@code false} otherwise.
      */
     boolean resolve(Task task, Object node, Action<? super T> resolveAction);
 
