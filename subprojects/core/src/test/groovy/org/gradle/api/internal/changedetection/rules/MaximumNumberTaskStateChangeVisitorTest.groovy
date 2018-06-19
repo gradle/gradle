@@ -26,12 +26,10 @@ class MaximumNumberTaskStateChangeVisitorTest extends Specification {
     def "will not accept more changes than specified"() {
         def change1 = Mock(TaskStateChange)
         def change2 = Mock(TaskStateChange)
-        def change3 = Mock(TaskStateChange)
 
         expect:
         visitor.visitChange(change1)
         !visitor.visitChange(change2)
-        !visitor.visitChange(change3)
         collectingVisitor.changes == [change1, change2]
     }
 

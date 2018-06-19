@@ -28,14 +28,8 @@ public class MaximumNumberTaskStateChangeVisitor implements TaskStateChangeVisit
 
     @Override
     public boolean visitChange(TaskStateChange change) {
-        if (visited >= maxReportedChanges) {
-            return false;
-        }
         boolean delegateResult = delegate.visitChange(change);
         visited++;
-        if (!delegateResult) {
-            return false;
-        }
-        return visited < maxReportedChanges;
+        return delegateResult && visited < maxReportedChanges;
     }
 }
