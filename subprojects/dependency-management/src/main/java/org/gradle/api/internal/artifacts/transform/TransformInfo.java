@@ -286,7 +286,7 @@ public abstract class TransformInfo extends WorkInfo {
 
         @Override
         public boolean includeFileDependencies() {
-            return true;
+            return false;
         }
 
         @Override
