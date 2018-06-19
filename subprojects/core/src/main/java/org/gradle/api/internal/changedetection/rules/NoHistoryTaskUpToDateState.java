@@ -46,7 +46,7 @@ public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public Iterable<TaskStateChange> getRebuildChanges() {
-        return noHistoryTaskStateChanges;
+    public boolean isRebuildRequired() {
+        return true;
     }
 }

@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -101,16 +100,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             IncrementalTaskInputs taskInputs;
-            if (!outputsRemoved && canPerformIncrementalBuild()) {
-                taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
-            } else {
+            if (outputsRemoved || getStates().isRebuildRequired()) {
                 taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
+            } else {
+                taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
             return taskInputs;
-        }
-
-        private boolean canPerformIncrementalBuild() {
-            return Iterables.isEmpty(getStates().getRebuildChanges());
         }
 
         @Override

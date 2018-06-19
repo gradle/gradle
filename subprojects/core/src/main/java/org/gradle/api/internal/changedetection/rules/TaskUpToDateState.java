@@ -42,7 +42,7 @@ public interface TaskUpToDateState {
     Iterable<TaskStateChange> getAllTaskChanges();
 
     /**
-     * Returns changes that would force an incremental task to fully rebuild.
+     * Whether there are changes that force an incremental task to fully rebuild.
      */
-    Iterable<TaskStateChange> getRebuildChanges();
+    boolean isRebuildRequired();
 }

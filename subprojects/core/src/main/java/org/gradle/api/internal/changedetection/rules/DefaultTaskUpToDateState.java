@@ -74,8 +74,10 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public Iterable<TaskStateChange> getRebuildChanges() {
-        return getChanges(1, rebuildChanges);
+    public boolean isRebuildRequired() {
+        ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
+        rebuildChanges.accept(changeDetectorVisitor);
+        return changeDetectorVisitor.hasAnyChanges();
     }
 
     private Collection<TaskStateChange> getChanges(TaskStateChanges stateChanges) {
