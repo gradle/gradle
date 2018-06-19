@@ -270,8 +270,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
-        return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
-            moduleComponentIdentifier.getModule(),
+        return new MavenUniqueSnapshotComponentIdentifier(
+            moduleComponentIdentifier.getModuleIdentifier(),
             moduleComponentIdentifier.getVersion(),
             uniqueSnapshotVersion.getTimestamp());
     }

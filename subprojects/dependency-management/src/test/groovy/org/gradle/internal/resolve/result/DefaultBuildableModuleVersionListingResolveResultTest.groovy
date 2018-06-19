@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.result
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -43,7 +44,7 @@ class DefaultBuildableModuleVersionListingResolveResultTest extends Specificatio
     }
 
     def "can mark as failed"() {
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", new DefaultMutableVersionConstraint("c")), "broken")
+        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), "broken")
 
         when:
         descriptor.failed(failure)

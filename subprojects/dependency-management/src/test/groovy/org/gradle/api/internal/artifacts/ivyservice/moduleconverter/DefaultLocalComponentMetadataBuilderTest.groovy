@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
@@ -30,7 +31,7 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
     def configurationMetadataBuilder = Mock(LocalConfigurationMetadataBuilder)
     def converter = new DefaultLocalComponentMetadataBuilder(configurationMetadataBuilder)
 
-    def componentId = DefaultModuleComponentIdentifier.newId("org", "name", "rev");
+    def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "name"), "rev");
 
     def "adds artifacts from each configuration"() {
         def emptySet = new HashSet<String>()

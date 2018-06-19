@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Actions;
 import org.gradle.internal.ImmutableActionSet;
 
 import javax.annotation.Nullable;
@@ -44,7 +43,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private ImmutableAttributesFactory attributesFactory;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
-    private Action<? super ModuleDependency> onMutate = Actions.doNothing();
+    private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private AttributeContainerInternal attributes;
 
     @Nullable
@@ -198,7 +197,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @SuppressWarnings("unchecked")
     public void addMutationValidator(Action<? super ModuleDependency> action) {
-        this.onMutate = ImmutableActionSet.of(onMutate, action);
+        this.onMutate = onMutate.add(action);
     }
 
     protected void validateMutation() {

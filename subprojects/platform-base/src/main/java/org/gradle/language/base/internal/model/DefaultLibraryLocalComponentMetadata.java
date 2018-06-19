@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.EmptySchema;
@@ -99,8 +100,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         metadata.addDependencies(value, defaultProject, configuration);
     }
 
-    private static DefaultModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {
-        return new DefaultModuleVersionIdentifier(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
+    private static ModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {
+        return DefaultModuleVersionIdentifier.newId(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
     }
 
     private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
@@ -147,7 +148,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     }
 
     private ModuleComponentSelector moduleComponentSelectorFrom(ModuleDependencySpec module) {
-        return DefaultModuleComponentSelector.newSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
+        return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(module.getGroup(), module.getName()), effectiveVersionFor(module.getVersion()));
     }
 
     /**

@@ -50,8 +50,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, rootServices);
         }
 
-        public CompositeBuildContext createCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return new DefaultBuildableCompositeBuildContext(moduleIdentifierFactory);
+        public CompositeBuildContext createCompositeBuildContext() {
+            return new DefaultBuildableCompositeBuildContext();
         }
 
         public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry) {

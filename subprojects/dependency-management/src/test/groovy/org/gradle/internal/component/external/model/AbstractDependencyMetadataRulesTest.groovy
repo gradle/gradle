@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
@@ -77,14 +78,14 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             dependencies = [] //not supported in Ivy metadata
         } else {
             dependencies = deps.collect { name ->
-                new IvyDependencyDescriptor(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
+                new IvyDependencyDescriptor(newSelector(DefaultModuleIdentifier.newId("org.test", name), "1.0"), ImmutableListMultimap.of("default", "default"))
             }
         }
         ivyMetadataFactory.create(componentIdentifier, dependencies)
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new MavenDependencyDescriptor(MavenScope.Compile, addAllDependenciesAsConstraints(), newSelector("org.test", name, "1.0"), null, [])
+            new MavenDependencyDescriptor(MavenScope.Compile, addAllDependenciesAsConstraints(), newSelector(DefaultModuleIdentifier.newId("org.test", name), "1.0"), null, [])
         }
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
@@ -233,7 +234,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        dependencies.collect { it.selector } == [newSelector("org.test", "added", "1.0") ]
+        dependencies.collect { it.selector } == [newSelector(DefaultModuleIdentifier.newId("org.test", "added"), "1.0") ]
 
         where:
         metadataType | metadataImplementation
@@ -269,9 +270,9 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     }
 
     def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
-        def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
+        def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
 
         consumer.selectConfigurations(attributes, immutable, schema)[0]

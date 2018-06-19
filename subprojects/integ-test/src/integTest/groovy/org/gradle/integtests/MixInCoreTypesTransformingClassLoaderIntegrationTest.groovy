@@ -17,9 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
-@Ignore
 class MixInCoreTypesTransformingClassLoaderIntegrationTest extends AbstractIntegrationSpec {
     def "custom task types have bridge methods for inputs/outputs"() {
         buildFile << """
@@ -47,8 +45,6 @@ class MixInCoreTypesTransformingClassLoaderIntegrationTest extends AbstractInteg
                 }
             }
         """
-
-        executer.requireGradleDistribution()
 
         expect:
         succeeds "customTask"

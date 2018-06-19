@@ -16,6 +16,7 @@
 package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class GroovyBasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "defaults Groovy class path to inferred Groovy dependency"() {
@@ -111,4 +112,26 @@ task verify {
         failure.assertHasCause "Cannot infer Groovy class path because no Groovy Jar was found on class path: "
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5722")
+    def "can override sourceSet language outputDir to override compile task destinationDir"() {
+        given:
+        buildFile << '''
+            apply plugin: 'groovy-base'
+
+            sourceSets {
+                main {
+                    groovy.outputDir = new File(buildDir,'bin')
+                }
+            }
+
+            task assertDirectoriesAreEquals {
+                doLast {
+                    assert sourceSets.main.groovy.outputDir == compileGroovy.destinationDir
+                }
+            }
+        '''
+
+        expect:
+        succeeds 'assertDirectoriesAreEquals'
+    }
 }

@@ -42,7 +42,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     ComponentSelectionInternal componentSelection
 
     def setup() {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         componentSelection = new DefaultComponentSelection(componentIdentifier)
     }
 

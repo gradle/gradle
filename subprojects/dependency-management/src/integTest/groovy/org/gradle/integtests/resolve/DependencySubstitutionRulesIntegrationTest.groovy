@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
@@ -823,7 +824,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
                 module("org.utils:api:2.0")
-                edge("project :api", "org.utils:api:2.0").byConflictResolution()
+                edge("project :api", "org.utils:api:2.0").byConflictResolution("between versions 1.6 and 2.0").selectedByRule()
             }
         }
     }
@@ -871,11 +872,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:dep1:1.5", "org.utils:dep1:2.0").byConflictResolution()
+                edge("org.utils:dep1:1.5", "org.utils:dep1:2.0").byConflictResolution("between versions 1.6 and 2.0")
                 edge("org.utils:dep1:2.0", "org.utils:dep1:2.0")
 
                 edge("org.utils:dep2:1.5", "project :dep2", "org.utils:dep2:3.0") {
-                    selectedByRule().byConflictResolution()
+                    selectedByRule().byConflictResolution("between versions 3.0 and 2.0")
                 }
                 edge("org.utils:dep2:2.0", "org.utils:dep2:3.0")
 
@@ -909,7 +910,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":", ":depsub:") {
                 module("org.utils:b:1.3") {
-                    edge("org.utils:a:1.3", "org.utils:a:1.4").selectedByRule().byConflictResolution()
+                    edge("org.utils:a:1.3", "org.utils:a:1.4").selectedByRule().byConflictResolution("between versions 1.4 and 1.3")
                 }
                 edge("org.utils:a:1.2", "org.utils:a:1.4")
 
@@ -944,7 +945,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 module("org.utils:b:1.3") {
                     module("org.utils:a:1.3")
                 }
-                edge("org.utils:a:1.2", "org.utils:a:1.3").byConflictResolution()
+                edge("org.utils:a:1.2", "org.utils:a:1.3").byConflictResolution("between versions 1.2.1 and 1.3")
             }
         }
     }
@@ -1234,7 +1235,7 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:a:1.2", "org.utils:b:2.1").selectedByRule().byConflictResolution()
+                edge("org.utils:a:1.2", "org.utils:b:2.1").selectedByRule().byConflictResolution("between versions 2.1 and 2.0")
                 edge("org.utils:b:2.0", "org.utils:b:2.1")
             }
         }
@@ -1270,7 +1271,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution()
+                    byConflictResolution("between versions 1.0 and 2.0")
                     module("org:c:1.0")
                 }
                 edge("foo:b:1.0", "org:b:1.0") {
@@ -1310,7 +1311,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution()
+                    byConflictResolution("between versions 1.0 and 2.0")
                     module("org:c:1.0")
                 }
                 edge("foo:bar:baz", "org:b:1.0") {
@@ -1369,7 +1370,7 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:c:2.0") {
-                    byConflictResolution()
+                    byConflictResolution("between versions 1.1 and 2.0")
                 }
                 module("org:a:2.0") {
                     module("org:b:2.0") {
@@ -1392,7 +1393,13 @@ Required by:
                 maven { url "${mavenRepo.uri}" }
             }
 
-            task jar(type: Jar) { baseName = project.name }
+            task jar(type: Jar) { 
+                baseName = project.name
+                // TODO LJA: No idea why I have to do this
+                if (project.version != 'unspecified') {
+                    archiveName = "\${project.name}-\${project.version}.jar"
+                }
+            }
             artifacts { conf jar }
         }
 
@@ -1434,13 +1441,54 @@ Required by:
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution()
+                    byConflictResolution("between versions 1.0 and 2.0")
                     module("org:c:1.0")
                 }
                 edge("foo:bar:baz", "org:b:1.0") {
-                    byReason('we need integration tests')
+                    selectedByRule('we need integration tests')
                     module("org:a:2.0")
                 }
+            }
+        }
+    }
+
+    @Issue("gradle/gradle#5692")
+    def 'substitution with project does not trigger failOnVersionConflict'() {
+        settingsFile << 'include "sub"'
+        buildFile << """
+subprojects {
+    it.version = '0.0.1'
+    group = 'org.test'
+}
+
+$common
+
+dependencies {
+    conf 'foo:bar:1'
+    conf project(':sub')
+}
+
+configurations.all {
+  resolutionStrategy { 
+      dependencySubstitution { DependencySubstitutions subs ->
+          subs.substitute(subs.module('foo:bar:1')).with(subs.project(':sub'))
+      }
+      failOnVersionConflict()    
+  }
+}
+
+"""
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                project(':sub', 'org.test:sub:0.0.1') {
+                    configuration = 'default'
+                }
+                edge('foo:bar:1', 'org.test:sub:0.0.1')
             }
         }
     }

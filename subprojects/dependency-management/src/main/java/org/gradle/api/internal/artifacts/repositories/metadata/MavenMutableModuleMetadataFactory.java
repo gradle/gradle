@@ -53,7 +53,7 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
-        return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
+        return moduleIdentifierFactory.moduleWithVersion(from.getModuleIdentifier(), from.getVersion());
     }
 
     @Override

@@ -24,17 +24,20 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
     private final ComponentSelectionCause cause;
     private final Describable description;
     private final boolean hasCustomDescription;
+    private final int hashCode;
 
     public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause) {
         this.cause = cause;
         this.description = Describables.of(cause.getDefaultReason());
         this.hasCustomDescription = false;
+        this.hashCode = cause.hashCode();
     }
 
     public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause, Describable description) {
         this.cause = cause;
         this.description = description;
         this.hasCustomDescription = true;
+        this.hashCode = Objects.hashCode(cause, description);
     }
 
     @Override
@@ -53,6 +56,11 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
     }
 
     @Override
+    public Describable getDescribable() {
+        return description;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -67,7 +75,7 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(cause, description);
+        return hashCode;
     }
 
     @Override

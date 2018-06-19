@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -174,7 +175,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
     }
 
     def dependency(String org, String module, String version, String scope) {
-        def selector = newSelector(org, module, new DefaultMutableVersionConstraint(version))
+        def selector = newSelector(DefaultModuleIdentifier.newId(org, module), new DefaultMutableVersionConstraint(version))
         dependencies.add(new MavenDependencyDescriptor(MavenScope.valueOf(scope), false, selector, null, []))
     }
 

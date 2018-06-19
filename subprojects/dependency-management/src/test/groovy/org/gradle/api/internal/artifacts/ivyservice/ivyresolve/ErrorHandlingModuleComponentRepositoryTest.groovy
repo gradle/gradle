@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -49,7 +50,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         given:
         def dependency = Mock(ModuleDependencyMetadata)
         def result = Mock(BuildableModuleVersionListingResolveResult)
-        dependency.getSelector() >> DefaultModuleComponentSelector.newSelector('a', 'b', DefaultImmutableVersionConstraint.of('1.0'))
+        dependency.getSelector() >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'b'), DefaultImmutableVersionConstraint.of('1.0'))
 
         when: 'repo is not blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
@@ -77,7 +78,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
     def "can resolve component meta data"() {
         given:
-        def moduleComponentIdentifier = new DefaultModuleComponentIdentifier('a', 'b', '1.0')
+        def moduleComponentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('a', 'b'), '1.0')
         def requestMetaData = Mock(ComponentOverrideMetadata)
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 

@@ -193,7 +193,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             root(":", ":test:") {
                 edge "org:foo:1.1", "org:foo:1.1"
                 edge("org:bar:1.0", "org:bar:1.0") {
-                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
         }

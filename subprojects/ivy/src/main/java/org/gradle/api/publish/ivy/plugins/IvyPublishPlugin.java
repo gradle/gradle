@@ -24,6 +24,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -142,7 +143,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
                 descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 descriptorTask.setDescriptor(publication.getDescriptor());
-                descriptorTask.setDestination(buildDir.file("publications/" + publicationName + "/ivy.xml"));
+                if (descriptorTask.getDestination() == null) {
+                    descriptorTask.setDestination(buildDir.file("publications/" + publicationName + "/ivy.xml"));
+                }
             }
         });
         publication.setIvyDescriptorGenerator(generatorTask);
@@ -157,7 +160,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 generateTask.getPublication().set(publication);
                 generateTask.getPublications().set(publications);
-                generateTask.getOutputFile().set(buildDir.file("publications/" + publicationName + "/module.json"));
+                RegularFileProperty outputFile = generateTask.getOutputFile();
+                if (!outputFile.isPresent()) {
+                    outputFile.set(buildDir.file("publications/" + publicationName + "/module.json"));
+                }
             }
         });
         publication.setModuleDescriptorGenerator(generatorTask);

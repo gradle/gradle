@@ -170,7 +170,7 @@ public class IdeaDependenciesProvider {
         public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc) {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope);
-            library.setModuleVersion(new DefaultModuleVersionIdentifier(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
+            library.setModuleVersion(DefaultModuleVersionIdentifier.newId(moduleId.getModuleIdentifier(), moduleId.getVersion()));
             Set<Path> sourcePaths = Sets.newLinkedHashSet();
             for (ResolvedArtifactResult sourceArtifact : sources) {
                 sourcePaths.add(toPath(ideaModule, sourceArtifact.getFile()));

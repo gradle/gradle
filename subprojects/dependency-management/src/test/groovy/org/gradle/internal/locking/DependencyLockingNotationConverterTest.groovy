@@ -17,6 +17,7 @@
 package org.gradle.internal.locking
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -55,7 +56,7 @@ class DependencyLockingNotationConverterTest extends Specification {
     def 'converts a ModuleComponentIdentifier to a lock notation'() {
         given:
         def converter = new DependencyLockingNotationConverter()
-        def module = new DefaultModuleComponentIdentifier('org', 'foo', '1.1')
+        def module = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
 
         when:
         def converted = converter.convertToLockNotation(module)

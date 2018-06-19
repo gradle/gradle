@@ -194,10 +194,13 @@ org:leaf2:1.0
         then:
         outputContains """
 Task :dependencyInsight
-org:leaf2:2.5 (conflict resolution)
+org:leaf2:2.5
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -322,10 +325,13 @@ org:leaf:1.0
    - org:leaf2:2.5
    - org:leaf2:1.0
 
-org:leaf2:2.5 (conflict resolution)
+org:leaf2:2.5
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -1927,6 +1933,49 @@ org:foo:${displayVersion} -> $selected
         "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
         "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
+    }
+
+    def "doesn't report duplicate reasins"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.3").publish()
+        mavenRepo.module("org", "foo", "1.4").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+        mavenRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.1,1.3]').publish()
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation 'org:foo:[1.1,1.3]'
+                implementation 'org:bar:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        outputContains """org:foo:1.3
+   variant "default+runtime" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested : didn't match versions 2.0, 1.5, 1.4
+
+org:foo:[1.1,1.3] -> 1.3
++--- compileClasspath
+\\--- org:bar:1.0
+     \\--- compileClasspath
+"""
     }
 
     def "does't mix rejected versions on different constraints"() {

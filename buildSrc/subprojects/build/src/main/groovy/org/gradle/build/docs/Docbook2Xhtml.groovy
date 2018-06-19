@@ -20,8 +20,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
+
 
 @CacheableTask
 class Docbook2Xhtml extends SourceTask {
@@ -94,6 +96,7 @@ class Docbook2Xhtml extends SourceTask {
                 systemProperty 'xslthl.config', new File("$stylesheetsDir/custom-highlight/custom-xslthl-config.xml").toURI()
                 systemProperty 'org.apache.xerces.xni.parser.XMLParserConfiguration', 'org.apache.xerces.parsers.XIncludeParserConfiguration'
             }
+            logger.lifecycle("$name available at ${new ConsoleRenderer().asClickableFileUrl(result)}")
         }
 
         if (resources) {

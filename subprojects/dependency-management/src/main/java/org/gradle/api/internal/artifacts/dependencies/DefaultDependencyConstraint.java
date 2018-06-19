@@ -19,10 +19,12 @@ package org.gradle.api.internal.artifacts.dependencies;
 import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -36,8 +38,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
-    private final String group;
-    private final String name;
+    private final ModuleIdentifier moduleIdentifier;
     private final MutableVersionConstraint versionConstraint;
 
     private String reason;
@@ -45,26 +46,24 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     private AttributeContainerInternal attributes;
 
     public DefaultDependencyConstraint(String group, String name, String version) {
-        this.group = group;
-        this.name = name;
+        this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
-    private DefaultDependencyConstraint(String group, String name, MutableVersionConstraint versionConstraint) {
-        this.group = group;
-        this.name = name;
+    private DefaultDependencyConstraint(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
+        this.moduleIdentifier = module;
         this.versionConstraint = versionConstraint;
     }
 
     @Nullable
     @Override
     public String getGroup() {
-        return group;
+        return moduleIdentifier.getGroup();
     }
 
     @Override
     public String getName() {
-        return name;
+        return moduleIdentifier.getName();
     }
 
     @Nullable
@@ -108,15 +107,14 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
             return false;
         }
         DefaultDependencyConstraint that = (DefaultDependencyConstraint) o;
-        return Objects.equal(group, that.group) &&
-            Objects.equal(name, that.name) &&
+        return Objects.equal(moduleIdentifier, that.moduleIdentifier) &&
             Objects.equal(versionConstraint, that.versionConstraint) &&
             Objects.equal(attributes, that.attributes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(group, name, versionConstraint, attributes);
+        return Objects.hashCode(moduleIdentifier, versionConstraint, attributes);
     }
 
     @Override
@@ -135,6 +133,11 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     @Override
+    public ModuleIdentifier getModule() {
+        return moduleIdentifier;
+    }
+
+    @Override
     public String getReason() {
         return reason;
     }
@@ -145,7 +148,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     public DependencyConstraint copy() {
-        DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(group, name, versionConstraint);
+        DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(moduleIdentifier, versionConstraint);
         constraint.reason = reason;
         constraint.attributes = attributes;
         constraint.attributesFactory = attributesFactory;
@@ -155,7 +158,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     @Override
     public String toString() {
         return "constraint " +
-            group + ':' + name + ":" + versionConstraint +
+            moduleIdentifier + ":" + versionConstraint +
             ", attributes=" + attributes;
     }
 }

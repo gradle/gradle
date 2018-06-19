@@ -45,7 +45,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     }
 
     def "initialises values from descriptor state and defaults"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         configuration("runtime", [])
         configuration("default", ["runtime"])
         def a1 = artifact("runtime.jar", "runtime")
@@ -109,11 +109,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     }
 
     def "can override values from descriptor"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
-        def excludes = [new DefaultExclude(new DefaultModuleIdentifier("group", "name"))]
+        def excludes = [new DefaultExclude(DefaultModuleIdentifier.newId("group", "name"))]
 
         when:
         def metadata = ivyMetadataFactory.create(id, [], [], [], excludes)
@@ -166,8 +166,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     }
 
     def "making changes to copy does not affect original"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
 
         when:
@@ -198,8 +198,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     }
 
     def "making changes to original does not affect copy"() {
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
 
         when:

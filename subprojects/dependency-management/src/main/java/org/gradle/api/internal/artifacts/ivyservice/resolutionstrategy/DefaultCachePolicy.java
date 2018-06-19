@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
@@ -44,11 +44,9 @@ public class DefaultCachePolicy implements CachePolicy {
     final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
     final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
     final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
-    public DefaultCachePolicy(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
         this.moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>();
         this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
@@ -59,7 +57,6 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     DefaultCachePolicy(DefaultCachePolicy policy) {
-        this.moduleIdentifierFactory = policy.moduleIdentifierFactory;
         this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>(policy.dependencyCacheRules);
         this.moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>(policy.moduleCacheRules);
         this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
@@ -205,7 +202,7 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     private boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion version, long ageMillis, boolean changingModule) {
-        return mustRefreshModule(moduleIdentifierFactory.moduleWithVersion(component.getGroup(), component.getModule(), component.getVersion()), version, ageMillis, changingModule);
+        return mustRefreshModule(DefaultModuleVersionIdentifier.newId(component.getModuleIdentifier(), component.getVersion()), version, ageMillis, changingModule);
     }
 
     private boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, long ageMillis, boolean changingModule) {

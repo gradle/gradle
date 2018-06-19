@@ -102,6 +102,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(groovySourceSet.getGroovy());
                 sourceSet.getAllSource().source(groovySourceSet.getGroovy());
 
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, groovySourceSet.getGroovy(), project);
                 final Provider<GroovyCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
                     @Override
                     public void execute(GroovyCompile compile) {

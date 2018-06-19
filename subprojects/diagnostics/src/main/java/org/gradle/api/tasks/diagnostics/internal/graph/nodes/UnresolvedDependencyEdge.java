@@ -35,7 +35,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
         this.dependency = dependency;
         // TODO:Prezi Is this cast safe? Can't this be a LibraryComponentSelector, say?
         ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
-        actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersionConstraint().getPreferredVersion());
+        actual = DefaultModuleComponentIdentifier.newId(attempted.getModuleIdentifier(), attempted.getVersionConstraint().getPreferredVersion());
     }
 
     public Throwable getFailure() {

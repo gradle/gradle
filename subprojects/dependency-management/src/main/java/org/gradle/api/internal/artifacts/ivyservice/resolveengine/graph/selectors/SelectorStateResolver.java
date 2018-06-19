@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -24,6 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -57,12 +61,31 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         }
 
         // If we have a single common resolution, no conflicts to resolve
-        if (candidates.size() == 1) {
+        if (hasNoConflicts(candidates)) {
             return candidates.get(0);
         }
 
         // Perform conflict resolution
         return resolveConflicts(candidates);
+    }
+
+    private boolean hasNoConflicts(List<T> candidates) {
+        if (candidates.size() == 1) {
+            return true;
+        }
+
+        // If all versions are the same, there is no conflict
+        ModuleVersionIdentifier id = null;
+        for (T candidate : candidates) {
+            if (id == null) {
+                id = candidate.getId();
+            } else {
+                if (!id.equals(candidate.getId())) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
@@ -128,9 +151,13 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         // Do conflict resolution to choose the best out of current selection and candidate.
         ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<T>(candidates);
         conflictResolver.select(details);
+        T selected = details.getSelected();
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
+        } else {
+            ComponentSelectionDescriptorInternal desc = VersionSelectionReasons.CONFLICT_RESOLUTION;
+            selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
         }
-        return details.getSelected();
+        return selected;
     }
 }

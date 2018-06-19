@@ -169,7 +169,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                 conflictResolver = new ProjectDependencyForcingResolver(new LatestModuleConflictResolver(versionComparator, versionParser));
                 break;
         }
-        conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
     }
 

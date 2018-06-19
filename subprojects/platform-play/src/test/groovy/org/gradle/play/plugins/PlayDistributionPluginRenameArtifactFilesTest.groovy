@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import spock.lang.Specification
@@ -153,7 +154,7 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
 
 
     private ModuleComponentIdentifier moduleId(String group) {
-        return new DefaultModuleComponentIdentifier(group, "module", "1.0")
+        return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, "module"), "1.0")
     }
 
     private ResolvedArtifactResult resolvedArtifact(File artifactFile, ComponentIdentifier componentId) {

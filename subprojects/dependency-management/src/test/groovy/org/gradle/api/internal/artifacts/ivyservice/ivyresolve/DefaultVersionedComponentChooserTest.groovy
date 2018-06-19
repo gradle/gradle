@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
@@ -49,7 +49,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
     def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
     def consumerAttributes = ImmutableAttributes.EMPTY
-    def cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
+    def cachePolicy = new DefaultCachePolicy()
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema)
 
@@ -379,8 +379,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     ModuleComponentResolveState component(String v, String status = null, Map<String, ?> attributes = [:]) {
+        def mid = DefaultModuleIdentifier.newId('group', 'name')
         def c = Stub(ModuleComponentResolveState) {
-            getId() >> DefaultModuleComponentIdentifier.newId('group', 'name', v)
+            getId() >> DefaultModuleComponentIdentifier.newId(mid, v)
             getVersion() >> version(v)
             if (status == null && attributes.isEmpty()) {
                 resolve() >> { throw new RuntimeException("No metadata available") }

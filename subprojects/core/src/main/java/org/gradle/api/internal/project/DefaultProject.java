@@ -243,7 +243,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        populateModelRegistry(services.get(ModelRegistry.class));
+        ruleBasedPluginListenerBroadcast.add(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                populateModelRegistry(services.get(ModelRegistry.class));
+            }
+        });
     }
 
     @SuppressWarnings("unused")

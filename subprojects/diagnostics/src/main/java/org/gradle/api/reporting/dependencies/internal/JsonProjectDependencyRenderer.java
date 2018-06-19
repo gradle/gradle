@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -199,7 +198,7 @@ public class JsonProjectDependencyRenderer {
     private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
         if (renderableDependency.getId() instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) renderableDependency.getId();
-            return DefaultModuleIdentifier.newId(id.getGroup(), id.getModule());
+            return id.getModuleIdentifier();
         }
         return null;
     }

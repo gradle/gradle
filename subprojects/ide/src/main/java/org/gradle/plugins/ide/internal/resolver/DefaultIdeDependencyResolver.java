@@ -55,7 +55,7 @@ public class DefaultIdeDependencyResolver {
         for (ResolvedArtifactResult artifact : artifacts) {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency();
-            ideRepoFileDependency.setId(new DefaultModuleVersionIdentifier(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
+            ideRepoFileDependency.setId(DefaultModuleVersionIdentifier.newId(moduleId.getModuleIdentifier(), moduleId.getVersion()));
             externalDependencies.add(ideRepoFileDependency);
         }
 

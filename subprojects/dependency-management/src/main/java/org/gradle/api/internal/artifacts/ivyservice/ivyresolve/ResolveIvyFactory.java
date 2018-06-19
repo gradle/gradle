@@ -96,7 +96,7 @@ public class ResolveIvyFactory {
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
         startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
+        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
 
         for (ResolutionAwareRepository repository : repositories) {
@@ -142,7 +142,7 @@ public class ResolveIvyFactory {
         private final UserResolverChain delegate;
 
         public ParentModuleLookupResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesSchema attributesSchema, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
-            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, cachePolicy);
+            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, cachePolicy);
         }
 
         public void add(ModuleComponentRepository moduleComponentRepository) {

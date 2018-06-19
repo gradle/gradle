@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
@@ -132,6 +133,20 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_FOUR_DEPENDENCIES
     }
 
+    def 'short circuits for identical versions'() {
+        def nine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+        def otherNine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+        ModuleConflictResolver mockResolver = Mock()
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root)
+
+        when:
+        def selected = resolverWithMock.selectBest(moduleId, [nine, otherNine])
+
+        then:
+        selected.version == '9'
+        0 * mockResolver._
+    }
+
     def "performs partial resolve when some selectors fail"() {
         def missingLow = new TestSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
         def nine = new TestSelectorState(componentIdResolver, FIXED_9.versionConstraint)
@@ -225,14 +240,14 @@ class SelectorStateResolverTest extends Specification {
             def reject = versionConstraint.rejectedSelector
 
             if (!prefer.isDynamic()) {
-                def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, prefer.selector)
+                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), prefer.selector)
                 resolvedOrRejected(id, reject, result)
                 return
             }
 
             def resolved = findDynamicVersion(prefer, reject)
             if (resolved) {
-                def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, resolved as String)
+                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), resolved as String)
                 resolvedOrRejected(id, reject, result)
                 return
             }
@@ -268,7 +283,7 @@ class SelectorStateResolverTest extends Specification {
         }
 
         private ModuleVersionNotFoundException missing(VersionSelector prefer) {
-            def moduleComponentSelector = DefaultModuleComponentSelector.newSelector(moduleId.group, moduleId.name, prefer.selector)
+            def moduleComponentSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), prefer.selector)
             return new ModuleVersionNotFoundException(moduleComponentSelector, [])
         }
     }
@@ -282,7 +297,7 @@ class SelectorStateResolverTest extends Specification {
 
         @Override
         ModuleVersionIdentifier getId() {
-            return new DefaultModuleVersionIdentifier("org", "foo", version)
+            return DefaultModuleVersionIdentifier.newId("org", "foo", version)
         }
 
         @Override
@@ -306,5 +321,17 @@ class SelectorStateResolverTest extends Specification {
         }
     }
 
+
+    static class NoConstraintSelectorState extends TestSelectorState {
+
+        NoConstraintSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
+            super(resolver, versionConstraint)
+        }
+
+        @Override
+        ResolvedVersionConstraint getVersionConstraint() {
+            return null
+        }
+    }
 
 }

@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -31,7 +32,7 @@ import spock.lang.Specification
 
 class ResolverProviderComponentMetaDataResolverTest extends Specification {
     final metaData = metaData("1.2")
-    final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
+    final moduleComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "project"), "1.0")
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
     final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> transformer = Mock(Transformer)
@@ -46,7 +47,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
-        new DefaultModuleVersionIdentifier(moduleRevId.organisation, moduleRevId.name, moduleRevId.revision)
+        DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(moduleRevId.organisation, moduleRevId.name), moduleRevId.revision)
     }
 
     def addRepo1() {

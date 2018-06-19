@@ -36,4 +36,6 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
      */
     boolean hasCustomDescription();
 
+    Describable getDescribable();
+
 }

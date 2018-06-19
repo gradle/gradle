@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.local.model
 
+import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -27,10 +29,11 @@ import org.gradle.internal.locking.DefaultDependencyLockingState
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def dependencyLockingHandler = Mock(DependencyLockingProvider)
     def metadata = new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler)
+    private ModuleIdentifier mid = DefaultModuleIdentifier.newId('org', 'foo')
 
     def 'locking constraints are attached to a configuration and not its children'() {
         given:
-        def constraint = DefaultModuleComponentIdentifier.newId('org', 'foo', '1.1')
+        def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
         dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set)
         dependencyLockingHandler.loadLockState("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
         addConfiguration('conf').enableLocking()
@@ -47,7 +50,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
 
     def 'locking constraints are not transitive'() {
         given:
-        def constraint = DefaultModuleComponentIdentifier.newId('org', 'foo', '1.1')
+        def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
         dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set)
         addConfiguration('conf').enableLocking()
 
@@ -63,7 +66,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
 
     def 'provides useful reason for locking constraints'() {
         given:
-        def constraint = DefaultModuleComponentIdentifier.newId('org', 'foo', '1.1')
+        def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
         dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(partial, [constraint] as Set)
         addConfiguration('conf').enableLocking()
 

@@ -210,7 +210,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
             public IvyDependencyDescriptor transform(IvyDependencyDescriptor dependency) {
                 ModuleComponentSelector selector = dependency.getSelector();
                     String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
-                    ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), dynamicConstraintVersion);
+                    ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
                     return dependency.withRequested(newSelector);
             }
         });

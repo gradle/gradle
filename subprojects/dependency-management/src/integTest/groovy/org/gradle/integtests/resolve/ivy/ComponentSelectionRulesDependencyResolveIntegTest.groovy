@@ -73,9 +73,9 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 
         where:
         selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible | reasons
-        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true            | true             | ["didn't match versions 2.1, 2.0", "1.2 by rule because not 1.1"]
-        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | true             | ["didn't match versions 2.1, 2.0", "1.2 by rule because not milestone"]
-        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | false            | ["didn't match versions 2.1, 2.0", "1.2 by rule because not branch"]
+        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true            | true             | ["didn't match versions 2.1, 2.0", "rejection: 1.2 by rule because not 1.1"]
+        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | true             | ["didn't match versions 2.1, 2.0", "rejection: 1.2 by rule because not milestone"]
+        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | false            | ["didn't match versions 2.1, 2.0", "rejection: 1.2 by rule because not branch"]
         "latest.integration" | "select 2.1"    | "2.1"         | '["2.1"]'        | ['2.1']            | true            | true             | []
         "latest.milestone"   | "select 2.0"    | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true             | ["didn't match version 2.1"]
         "latest.milestone"   | "select status" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true             | ["didn't match version 2.1"]

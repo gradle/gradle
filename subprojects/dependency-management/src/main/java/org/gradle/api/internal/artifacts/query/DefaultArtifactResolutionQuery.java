@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -103,7 +104,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     public ArtifactResolutionQuery forModule(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
-        componentIds.add(DefaultModuleComponentIdentifier.newId(group, name, version));
+        componentIds.add(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version));
         return this;
     }
 

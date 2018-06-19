@@ -98,14 +98,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer);
     }
 
-    /**
-     * Subclasses that can guarantee that the backing store enforces name uniqueness should override this to simply call super.add(T) (avoiding an unnecessary lookup)
-     */
     @Override
     public boolean add(final T o) {
+        return add(o, getEventRegister().getAddActions());
+    }
+
+    @Override
+    protected <I extends T> boolean add(final I o, Action<? super I> notification) {
         final String name = namer.determineName(o);
         if (index.get(name) == null) {
-            boolean added = super.add(o);
+            boolean added = super.add(o, notification);
             if (added) {
                 whenKnown.execute(new ObjectBackedElementInfo<T>(name, o));
             }

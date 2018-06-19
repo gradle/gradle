@@ -26,7 +26,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
     }
 
     public DefaultExternalModuleDependency(String group, String name, String version, String configuration) {
-        super(group, name, version, configuration);
+        super(assertModuleId(group, name), version, configuration);
     }
 
     public DefaultExternalModuleDependency copy() {

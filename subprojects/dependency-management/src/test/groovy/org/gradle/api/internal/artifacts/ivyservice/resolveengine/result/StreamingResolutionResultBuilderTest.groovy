@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -52,7 +53,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         then:
         with(result) {
-            root.id == DefaultModuleComponentIdentifier.newId("org", "root", "1.0")
+            root.id == DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "root"), "1.0")
             root.selectionReason == root()
         }
         printGraph(result.root) == """org:root:1.0
@@ -218,8 +219,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(org, name, ver)
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
         _ * component.selectionReason >> reason
 
         def node = Stub(DependencyGraphNode)
@@ -230,8 +231,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private RootGraphNode rootNode(Long resultId, String org, String name, String ver) {
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(org, name, ver)
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
         _ * component.selectionReason >> root()
 
         def node = Stub(RootGraphNode)
@@ -242,7 +243,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphSelector selector(Long resultId, String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
         selector.resultId >> resultId
-        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, new DefaultMutableVersionConstraint(ver))
+        selector.requested >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(org, name), new DefaultMutableVersionConstraint(ver))
         return selector
     }
 }

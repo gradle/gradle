@@ -349,7 +349,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
-        return new DefaultComponentSelectorConverter(moduleIdentifierFactory, componentIdentifierFactory, localComponentRegistry);
+        return new DefaultComponentSelectorConverter(componentIdentifierFactory, localComponentRegistry);
     }
 
     VersionParser createVersionParser() {
