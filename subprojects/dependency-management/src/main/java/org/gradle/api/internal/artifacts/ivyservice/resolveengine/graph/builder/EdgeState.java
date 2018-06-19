@@ -139,8 +139,10 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public void restart() {
-        removeFromTargetConfigurations();
-        attachToTargetConfigurations();
+        if (from.isSelected()) {
+            removeFromTargetConfigurations();
+            attachToTargetConfigurations();
+        }
     }
 
     public ImmutableAttributes getAttributes() {
