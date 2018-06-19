@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
@@ -109,7 +108,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task, taskIdentity));
     }
 
-    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
+    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements TaskProvider<I> {
 
         final TaskIdentity<I> identity;
         boolean removed = false;
