@@ -194,7 +194,8 @@ class ModuleResolveState implements CandidateModule {
 
     private void restartUnattachedDependencies() {
         if (unattachedDependencies.size() == 1) {
-            unattachedDependencies.get(0).restart();
+            EdgeState singleDependency = unattachedDependencies.get(0);
+            singleDependency.restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
                 dependency.restart();

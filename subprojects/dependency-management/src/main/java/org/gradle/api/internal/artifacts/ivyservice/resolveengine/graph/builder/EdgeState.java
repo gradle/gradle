@@ -119,10 +119,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public void removeFromTargetConfigurations() {
-        for (NodeState targetConfiguration : targetNodes) {
-            targetConfiguration.removeIncomingEdge(this);
+        if (!targetNodes.isEmpty()) {
+            for (NodeState targetConfiguration : targetNodes) {
+                targetConfiguration.removeIncomingEdge(this);
+            }
+            targetNodes.clear();
         }
-        targetNodes.clear();
         targetNodeSelectionFailure = null;
     }
 

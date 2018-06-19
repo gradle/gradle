@@ -303,10 +303,12 @@ class NodeState implements DependencyGraphNode {
     }
 
     private void removeOutgoingEdges() {
-        for (EdgeState outgoingDependency : outgoingEdges) {
-            outgoingDependency.removeFromTargetConfigurations();
+        if (!outgoingEdges.isEmpty()) {
+            for (EdgeState outgoingDependency : outgoingEdges) {
+                outgoingDependency.removeFromTargetConfigurations();
+            }
+            outgoingEdges.clear();
         }
-        outgoingEdges.clear();
         previousTraversalExclusions = null;
     }
 
@@ -325,7 +327,8 @@ class NodeState implements DependencyGraphNode {
 
     private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            incomingEdges.iterator().next().restart();
+            EdgeState singleEdge = incomingEdges.iterator().next();
+            singleEdge.restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(incomingEdges)) {
                 dependency.restart();
