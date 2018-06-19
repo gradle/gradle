@@ -34,9 +34,9 @@ public class OutputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     public boolean hasAnyChanges() {
-        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
-        accept(new MaximumNumberTaskStateChangeVisitor(1, visitor), true);
-        return !visitor.getChanges().isEmpty();
+        ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
+        accept(changeDetectorVisitor, true);
+        return changeDetectorVisitor.hasAnyChanges();
     }
 
     @Override
