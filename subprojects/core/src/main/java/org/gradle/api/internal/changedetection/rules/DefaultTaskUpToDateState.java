@@ -54,7 +54,7 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
     }
 
     private static TaskStateChanges caching(TaskStateChanges wrapped) {
-        return new CachingTaskStateChanges(20, wrapped);
+        return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
     @Override
