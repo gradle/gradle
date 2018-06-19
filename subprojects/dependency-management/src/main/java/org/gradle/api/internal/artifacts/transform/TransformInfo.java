@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.execution.taskgraph.TaskDependencyResolver;
 import org.gradle.execution.taskgraph.WorkInfo;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -129,8 +128,7 @@ public abstract class TransformInfo extends WorkInfo {
         }
     }
 
-    @Nullable
-    public List<File> getResult() {
+    private List<File> getResult() {
         if (failure != null) {
             throw new IllegalStateException("Transformation has failed", failure);
         }
@@ -141,7 +139,7 @@ public abstract class TransformInfo extends WorkInfo {
     }
 
     @Nullable
-    public Throwable getFailure() {
+    private Throwable getFailure() {
         if (result == null) {
             throw new IllegalStateException("Transformation hasn't been executed yet");
         }
@@ -158,14 +156,11 @@ public abstract class TransformInfo extends WorkInfo {
 
     @Override
     public Throwable getWorkFailure() {
-        return getFailure();
+        return null;
     }
 
     @Override
     public void rethrowFailure() {
-        if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
-        }
     }
 
     @Override
@@ -246,7 +241,6 @@ public abstract class TransformInfo extends WorkInfo {
                 return new ResolvedTransformInputs(previousFailure);
             }
             List<File> inputFiles = previousTransform.getResult();
-            assert inputFiles != null;
             return new ResolvedTransformInputs(inputFiles);
         }
 

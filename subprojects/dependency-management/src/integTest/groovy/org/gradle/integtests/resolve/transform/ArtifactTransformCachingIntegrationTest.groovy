@@ -655,8 +655,9 @@ allprojects {
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
-        failure.assertHasDescription("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
 
@@ -1285,8 +1286,8 @@ allprojects {
         throw new AssertionError("Could not find exactly one output directory for $from -> $to in output: $output")
     }
 
-    List<TestFile> outputDirs(String from, String to) {
-        List<TestFile> dirs = []
+    Set<TestFile> outputDirs(String from, String to) {
+        Set<TestFile> dirs = []
         def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/files-1.1/" + from).absolutePath + File.separator
         def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {

@@ -294,7 +294,7 @@ org.gradle.api.GradleException: <message>
         output.value == '''
 {failure}FAILURE: Build completed with 3 failures.{normal}
 
-{failure}1: {normal}{failure}Operation failed with an exception.{normal}
+{failure}1: {normal}{failure}Task failed with an exception.{normal}
 -----------
 * Where:
 <location>
@@ -307,7 +307,7 @@ org.gradle.api.GradleException: <message>
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 ==============================================================================
 
-{failure}2: {normal}{failure}Operation failed with an exception.{normal}
+{failure}2: {normal}{failure}Task failed with an exception.{normal}
 -----------
 * What went wrong:
 <failure>
@@ -316,7 +316,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 ==============================================================================
 
-{failure}3: {normal}{failure}Operation failed with an exception.{normal}
+{failure}3: {normal}{failure}Task failed with an exception.{normal}
 -----------
 * What went wrong:
 <error>
