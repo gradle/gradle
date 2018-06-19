@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.ListIterator;
 
 /**
@@ -31,7 +32,7 @@ import java.util.ListIterator;
  *
  * <p>{@code RelativePath} instances are immutable.</p>
  */
-public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence {
+public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence, Iterable<String> {
     public static final RelativePath EMPTY_ROOT = new RelativePath(false);
     private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
@@ -300,5 +301,10 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
             k++;
         }
         return 0;
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+        return segmentIterator();
     }
 }

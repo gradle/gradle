@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileVisitor;
+
 import java.util.Collection;
 
 /**
  * Represents the state of a directory tree.
  */
+@NonNullApi
 public class DirectoryTreeDetails implements FileTreeSnapshot {
     // Interned path
     private final String path;
@@ -47,4 +51,10 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
         return path + " (" + descendants.size() + " descendants)";
     }
 
+    @Override
+    public void visit(PhysicalFileVisitor visitor) {
+        for (FileSnapshot descendant : descendants) {
+            visitor.visit(path, descendant.getName(), descendant.getRelativePath(), descendant.getContent());
+        }
+    }
 }
