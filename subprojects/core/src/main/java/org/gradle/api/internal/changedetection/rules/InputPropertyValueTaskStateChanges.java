@@ -23,10 +23,9 @@ import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 
-import java.util.List;
 import java.util.Map;
 
-class InputPropertyValueTaskStateChanges extends SimpleTaskStateChanges {
+class InputPropertyValueTaskStateChanges implements TaskStateChanges {
     private final TaskInternal task;
     private final ImmutableMap<String, String> changed;
 
@@ -51,11 +50,14 @@ class InputPropertyValueTaskStateChanges extends SimpleTaskStateChanges {
     }
 
     @Override
-    protected void addAllChanges(final List<TaskStateChange> changes) {
+    public boolean accept(TaskStateChangeVisitor visitor) {
         for (Map.Entry<String, String> entry : changed.entrySet()) {
             String propertyName = entry.getKey();
             String changeType = entry.getValue();
-            changes.add(new DescriptiveChange("%s of input property '%s' has changed for %s", changeType, propertyName, task));
+            if (!visitor.visitChange(new DescriptiveChange("%s of input property '%s' has changed for %s", changeType, propertyName, task))) {
+                return false;
+            }
         }
+        return true;
     }
 }
