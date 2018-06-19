@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -68,8 +69,8 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     }
 
     @Override
-    public ModuleComponentIdentifier getFrom() {
-        return (ModuleComponentIdentifier)dependency.getFrom().getId();
+    public ComponentIdentifier getFrom() {
+        return dependency.getFrom().getId();
     }
 
     @Override
