@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.build.plugins
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.unzipTo
+import org.gradle.testkit.runner.TaskOutcome
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.equalTo
@@ -251,5 +252,36 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
         """)
 
         run("generateKotlinDslApiExtensions")
+    }
+
+    @Test
+    fun `can be applied to project without java sources`() {
+        withBuildScript("""
+            import org.gradle.kotlin.dsl.build.tasks.GenerateKotlinDslApiExtensions
+
+            plugins {
+                `java-library`
+                id("org.gradle.kotlin.dsl.build.java-api-extensions")
+            }
+
+            kotlinDslApiExtensions {
+                create("main")
+            }
+
+            java.sourceSets["main"].java.setSrcDirs(emptyList<Any>())
+
+            tasks.withType<GenerateKotlinDslApiExtensions> {
+                isUseEmbeddedKotlinDslProvider.set(true)
+            }
+
+            repositories {
+                jcenter()
+            }
+        """)
+
+        run("build").apply {
+            assertThat(task(":generateJavaParameterNamesIndex")?.outcome, equalTo(TaskOutcome.SUCCESS))
+            assertThat(task(":generateKotlinDslApiExtensions")?.outcome, equalTo(TaskOutcome.SUCCESS))
+        }
     }
 }
