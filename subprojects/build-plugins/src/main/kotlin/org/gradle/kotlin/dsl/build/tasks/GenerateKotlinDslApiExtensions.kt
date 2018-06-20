@@ -110,7 +110,7 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
     private
     fun runIsolated() = project.run {
         val kotlinDslDependency = dependencies.create("org.gradle:gradle-kotlin-dsl:${versions["kotlin-dsl"]}")
-        val kotlinDslClasspath = configurations.detachedConfiguration(kotlinDslDependency).files
+        val kotlinDslClasspath = configurations.detachedConfiguration(kotlinDslDependency, dependencies.gradleApi()).files
         val loaderFactory = serviceOf<ClassLoaderFactory>()
         val loader = loaderFactory.createIsolatedClassLoader(DefaultClassPath.of(kotlinDslClasspath))
         try {
