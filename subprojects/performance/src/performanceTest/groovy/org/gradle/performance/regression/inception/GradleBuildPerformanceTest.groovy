@@ -21,6 +21,7 @@ import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.BaselineVersion
@@ -80,6 +81,9 @@ class GradleBuildPerformanceTest extends Specification {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
+                if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}")
+                }
             }
         }
         runner.testGroup = 'gradle build'
@@ -114,7 +118,6 @@ class GradleBuildPerformanceTest extends Specification {
             invocationCount measuredBuilds
             invocation {
                 tasksToRun("help")
-                args("-Djava9Home=${System.getProperty('java9Home')}")
                 useDaemon()
             }
         }
@@ -146,6 +149,8 @@ class GradleBuildPerformanceTest extends Specification {
         def eagerBuildName = 'eager build'
         def lazyBuildName = 'lazy build'
 
+
+
         and:
         runner.baseline {
             displayName eagerBuildName
@@ -155,7 +160,6 @@ class GradleBuildPerformanceTest extends Specification {
             invocation {
                 // Force tasks to be realized even if they were created with the lazy API.
                 args("-D" + DefaultTaskContainer.EAGERLY_CREATE_LAZY_TASKS_PROPERTY + "=true")
-                args("-Djava9Home=${System.getProperty('java9Home')}")
                 tasksToRun("help")
                 useDaemon()
             }
