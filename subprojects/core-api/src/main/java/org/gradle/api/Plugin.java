@@ -15,6 +15,8 @@
  */
 package org.gradle.api;
 
+import javax.annotation.Nonnull;
+
 /**
  * <p>A <code>Plugin</code> represents an extension to Gradle. A plugin applies some configuration to a target object.
  * Usually, this target object is a {@link org.gradle.api.Project}, but plugins can be applied to any type of
@@ -28,5 +30,5 @@ public interface Plugin<T> {
      *
      * @param target The target object
      */
-    void apply(T target);
+    void apply(@Nonnull T target);
 }
