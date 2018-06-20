@@ -71,12 +71,6 @@ tasks {
     }
 }
 
-if (rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion.isJava7) {
-    val integTest: Test by tasks
-
-    integTest.systemProperty("https.protocols", "TLSv1.2")
-}
-
 testFixtures {
     from(":core", "main")
     from(":toolingApi", "main")
