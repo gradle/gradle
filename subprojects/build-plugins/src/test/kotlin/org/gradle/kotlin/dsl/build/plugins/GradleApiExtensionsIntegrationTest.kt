@@ -128,9 +128,8 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
                 """,
                 """
                 @Deprecated("Deprecated Gradle API")
-                @org.gradle.api.Incubating
-                fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`createLater`(`name`: String, `type`: kotlin.reflect.KClass<T>, `configurationAction`: T.() -> Unit): org.gradle.api.tasks.TaskProvider<T> =
-                    `createLater`(`name`, `type`.java, `configurationAction`)
+                fun org.gradle.api.file.FileCollection.`asType`(`type`: kotlin.reflect.KClass<*>): Any =
+                    `asType`(`type`.java)
                 """)
             assertThat(it.readText(), allOf(extensions.map { containsMultiLineString(it) }))
         }
