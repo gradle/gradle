@@ -55,6 +55,7 @@ import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.specs.Spec;
 import org.gradle.authentication.Authentication;
@@ -79,6 +80,21 @@ import java.util.Collections;
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final int MAX_HTTP_CONNECTIONS = 20;
+    private static final String[] SSL_PROTOCOLS;
+
+    private static final String HTTPS_PROTOCOLS = "https.protocols";
+
+    static {
+        String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
+        if (httpsProtocols != null) {
+            SSL_PROTOCOLS = httpsProtocols.split(",");
+        } else if (JavaVersion.current().isJava7()) {
+            SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
+        } else {
+            SSL_PROTOCOLS = null;
+        }
+    }
+
     private final HttpSettings httpSettings;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
@@ -102,7 +118,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), hostnameVerifier));
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, null, hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {

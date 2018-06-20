@@ -16,10 +16,10 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.UncheckedIOException
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.Requires
-import org.gradle.api.JavaVersion
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
