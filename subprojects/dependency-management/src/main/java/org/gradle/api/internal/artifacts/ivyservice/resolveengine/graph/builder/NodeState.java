@@ -209,6 +209,7 @@ class NodeState implements DependencyGraphNode {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
                     discoveredEdges.add(dependencyEdge);
+                    dependencyEdge.getSelector().use();
                 }
             }
             previousTraversalExclusions = resolutionFilter;
@@ -306,9 +307,10 @@ class NodeState implements DependencyGraphNode {
         if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
+                outgoingDependency.getSelector().release();
             }
-            outgoingEdges.clear();
         }
+        outgoingEdges.clear();
         previousTraversalExclusions = null;
     }
 
