@@ -342,7 +342,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         GitFileRepository.init(testProjectDir.root)
         buildFile << """
             plugins {
-                id "org.ajoberstar.grgit" version "2.2.0"
+                id "org.ajoberstar.grgit" version "2.2.1"
             }
 
             def sourceFile = file("sourceFile")
