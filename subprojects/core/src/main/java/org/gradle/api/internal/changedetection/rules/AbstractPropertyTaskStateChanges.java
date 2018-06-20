@@ -20,11 +20,10 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.List;
 import java.util.SortedMap;
 
 @NonNullApi
-public abstract class AbstractPropertyTaskStateChanges<V> extends SimpleTaskStateChanges {
+public abstract class AbstractPropertyTaskStateChanges<V> implements TaskStateChanges {
 
     private final TaskExecution previous;
     private final TaskExecution current;
@@ -41,21 +40,22 @@ public abstract class AbstractPropertyTaskStateChanges<V> extends SimpleTaskStat
     protected abstract SortedMap<String, V> getProperties(TaskExecution execution);
 
     @Override
-    protected void addAllChanges(final List<TaskStateChange> changes) {
-        SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
+    public boolean accept(final TaskStateChangeVisitor visitor) {
+        return SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
             @Override
-            public void removed(String previousProperty) {
-                changes.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, previousProperty, task));
+            public boolean removed(String previousProperty) {
+                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been removed for %s", title, previousProperty, task));
             }
 
             @Override
-            public void added(String currentProperty) {
-                changes.add(new DescriptiveChange("%s property '%s' has been added for %s", title, currentProperty, task));
+            public boolean added(String currentProperty) {
+                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been added for %s", title, currentProperty, task));
             }
 
             @Override
-            public void updated(String property, V previous, V current) {
+            public boolean updated(String property, V previous, V current) {
                 // Ignore
+                return true;
             }
         });
     }

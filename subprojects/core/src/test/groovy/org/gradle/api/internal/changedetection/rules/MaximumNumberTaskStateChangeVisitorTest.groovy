@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.api.internal.changedetection.rules
 
-public interface PropertyDiffListener<K, V> {
-    boolean removed(K previousProperty);
+import spock.lang.Specification
 
-    boolean added(K currentProperty);
+class MaximumNumberTaskStateChangeVisitorTest extends Specification {
 
-    boolean updated(K property, V previous, V current);
+    def collectingVisitor = new CollectingTaskStateChangeVisitor()
+    def visitor = new MaximumNumberTaskStateChangeVisitor(2, collectingVisitor)
+
+    def "will not accept more changes than specified"() {
+        def change1 = Mock(TaskStateChange)
+        def change2 = Mock(TaskStateChange)
+
+        expect:
+        visitor.visitChange(change1)
+        !visitor.visitChange(change2)
+        collectingVisitor.changes == [change1, change2]
+    }
+
 }

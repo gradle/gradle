@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -27,7 +25,6 @@ import org.gradle.internal.hash.Hashing;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 
 public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
@@ -39,13 +36,13 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded) {
-        return Iterators.transform(oldSnapshot.getContentSnapshots().entrySet().iterator(), new Function<Map.Entry<String, FileContentSnapshot>, TaskStateChange>() {
-            @Override
-            public TaskStateChange apply(Map.Entry<String, FileContentSnapshot> entry) {
-                return FileChange.removed(entry.getKey(), title, entry.getValue().getType());
+    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        for (Map.Entry<String, FileContentSnapshot> entry : oldSnapshot.getContentSnapshots().entrySet()) {
+            if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
+                return false;
             }
-        });
+        }
+        return true;
     }
 
     @Override

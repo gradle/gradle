@@ -43,12 +43,12 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
 
         // Capture input files state
         TaskStateChanges inputFilePropertyChanges = new InputFilePropertyTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges directInputFileChanges = new InputFileTaskStateChanges(lastExecution, thisExecution);
+        InputFileTaskStateChanges directInputFileChanges = new InputFileTaskStateChanges(lastExecution, thisExecution);
         TaskStateChanges inputFileChanges = caching(directInputFileChanges);
         this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
-        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
-        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
+        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
     }
 
     private static TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -56,22 +56,29 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public TaskStateChanges getInputFilesChanges() {
-        return inputFileChanges;
+    public Iterable<TaskStateChange> getInputFilesChanges() {
+        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
+        inputFileChanges.accept(visitor);
+        return visitor.getChanges();
     }
 
     @Override
     public boolean hasAnyOutputFileChanges() {
-        return outputFilePropertyChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
+        ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
+        outputFilePropertyChanges.accept(visitor);
+        return visitor.hasAnyChanges() || outputFileChanges.hasAnyChanges();
     }
 
     @Override
-    public TaskStateChanges getAllTaskChanges() {
-        return allTaskChanges;
+    public void visitAllTaskChanges(TaskStateChangeVisitor visitor) {
+        allTaskChanges.accept(visitor);
     }
 
     @Override
-    public TaskStateChanges getRebuildChanges() {
-        return rebuildChanges;
+    public boolean isRebuildRequired() {
+        ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
+        rebuildChanges.accept(changeDetectorVisitor);
+        return changeDetectorVisitor.hasAnyChanges();
     }
+
 }

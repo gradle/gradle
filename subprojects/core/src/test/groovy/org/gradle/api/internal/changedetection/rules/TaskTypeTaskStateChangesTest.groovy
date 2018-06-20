@@ -168,9 +168,9 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {
-        List<DescriptiveChange> changes = []
-        stateChanges.addAllChanges(changes)
-        return changes*.message
+        def visitor = new CollectingTaskStateChangeVisitor()
+        stateChanges.accept(visitor)
+        return visitor.changes*.message
     }
 
     private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {

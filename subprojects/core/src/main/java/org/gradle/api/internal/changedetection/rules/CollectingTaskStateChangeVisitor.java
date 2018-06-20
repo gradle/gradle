@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,19 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.List;
 
-abstract class SimpleTaskStateChanges implements TaskStateChanges {
-    private List<TaskStateChange> changes;
+public class CollectingTaskStateChangeVisitor implements TaskStateChangeVisitor {
+    private List<TaskStateChange> changes = new ArrayList<TaskStateChange>();
 
-    public Iterator<TaskStateChange> iterator() {
-        if (changes == null) {
-            changes = new ArrayList<TaskStateChange>();
-            addAllChanges(changes);
-        }
-        return changes.iterator();
+    @Override
+    public boolean visitChange(TaskStateChange change) {
+        changes.add(change);
+        return true;
     }
 
-    protected abstract void addAllChanges(List<TaskStateChange> changes);
+    public Collection<TaskStateChange> getChanges() {
+        return changes;
+    }
 }

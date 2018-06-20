@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-public interface PropertyDiffListener<K, V> {
-    boolean removed(K previousProperty);
-
-    boolean added(K currentProperty);
-
-    boolean updated(K property, V previous, V current);
+public interface TaskStateChangeVisitor {
+    /**
+     * Visits a new change.
+     *
+     * @return Whether to continue looking for changes.
+     */
+    boolean visitChange(TaskStateChange change);
 }

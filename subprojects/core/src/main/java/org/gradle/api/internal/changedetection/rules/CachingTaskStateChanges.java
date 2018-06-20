@@ -16,67 +16,63 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.AbstractIterator;
-
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * An implementation that will cache a number of results of iteration, and make them available for subsequent iterations.
- * This allows a single underlying iterator to be used for multiple iterations, up til the first iteration that exceeds the cache size.
- * When the cache is overrun, it is cleared so that any subsequent iteration will require a fresh delegate iterator.
+ * An implementation that will cache a number of results of visiting, and make them available for subsequent visits.
+ * When the cache is overrun, then the delegate will be visited directly in further requests.
+ * If a visitor does not consume all the changes, then nothing is cached.
  */
 public class CachingTaskStateChanges implements TaskStateChanges {
     private final TaskStateChanges delegate;
     private final List<TaskStateChange> cache = new ArrayList<TaskStateChange>();
     private final int maxCachedChanges;
-    private Iterator<TaskStateChange> delegateIterator;
-    boolean overrun;
+    private boolean cached;
+    private boolean overrun;
 
     public CachingTaskStateChanges(int maxCachedChanges, TaskStateChanges delegate) {
         this.maxCachedChanges = maxCachedChanges;
         this.delegate = delegate;
     }
 
-    public Iterator<TaskStateChange> iterator() {
-        if (delegateIterator == null || overrun) {
-            reset();
-        }
-
-        return new AbstractIterator<TaskStateChange>() {
-            final Iterator<TaskStateChange> cacheIterator = new ArrayList<TaskStateChange>(cache).iterator();
-
-            @Override
-            protected TaskStateChange computeNext() {
-                if (cacheIterator.hasNext()) {
-                    return cacheIterator.next();
-                }
-                if (delegateIterator.hasNext()) {
-                    TaskStateChange next = delegateIterator.next();
-                    maybeCache(next);
-                    return next;
-                }
-                return endOfData();
-            }
-        };
-    }
-
-    private void maybeCache(TaskStateChange next) {
+    @Override
+    public boolean accept(TaskStateChangeVisitor visitor) {
         if (overrun) {
-            return;
+            return delegate.accept(visitor);
         }
-
-        if (cache.size() < maxCachedChanges) {
-            cache.add(next);
-        } else {
-            overrun = true;
+        if (cached) {
+            for (TaskStateChange change : cache) {
+                if (!visitor.visitChange(change)) {
+                    return false;
+                }
+            }
+            return true;
         }
+        cache.clear();
+        boolean acceptedAllChanges = delegate.accept(new CachingVisitor(visitor));
+        cached = acceptedAllChanges && !overrun;
+        return acceptedAllChanges;
     }
 
-    private void reset() {
-        cache.clear();
-        delegateIterator = delegate.iterator();
-        overrun = false;
+    private class CachingVisitor implements TaskStateChangeVisitor {
+        private final TaskStateChangeVisitor delegate;
+        private int numChanges;
+
+        public CachingVisitor(TaskStateChangeVisitor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean visitChange(TaskStateChange change) {
+            if (numChanges < maxCachedChanges) {
+                numChanges++;
+                cache.add(change);
+            } else {
+                overrun = true;
+                cache.clear();
+            }
+            return delegate.visitChange(change);
+        }
     }
 }

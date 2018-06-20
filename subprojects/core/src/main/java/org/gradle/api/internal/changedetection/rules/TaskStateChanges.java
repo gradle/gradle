@@ -16,5 +16,11 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-public interface TaskStateChanges extends Iterable<TaskStateChange> {
+public interface TaskStateChanges {
+    /**
+     * Propagate changes the visitor.
+     *
+     * @return Whether the visitor still wants to obtain more changes.
+     */
+    boolean accept(TaskStateChangeVisitor visitor);
 }

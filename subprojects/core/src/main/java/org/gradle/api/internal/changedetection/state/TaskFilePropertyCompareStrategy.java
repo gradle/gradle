@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Collection;
@@ -40,13 +41,19 @@ public enum TaskFilePropertyCompareStrategy {
         this.delegate = delegate;
     }
 
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute, boolean includeAdded) {
+    public boolean accept(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean pathIsAbsolute, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
-        Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, fileType, includeAdded);
+        Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {
-            return trivialResult;
+            while (trivialResult.hasNext()) {
+                if (!visitor.visitChange(trivialResult.next())) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute, includeAdded);
+        return delegate.accept(visitor, current, previous, propertyTitle, pathIsAbsolute, includeAdded);
+
     }
 
     public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
@@ -54,7 +61,7 @@ public enum TaskFilePropertyCompareStrategy {
     }
 
     interface Impl {
-        Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute, boolean includeAdded);
+        boolean accept(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean pathIsAbsolute, boolean includeAdded);
         void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots);
     }
 
