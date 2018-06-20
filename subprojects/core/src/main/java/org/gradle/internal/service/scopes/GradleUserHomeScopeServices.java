@@ -53,6 +53,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
@@ -90,6 +91,7 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -103,10 +105,12 @@ public class GradleUserHomeScopeServices {
     }
 
     public void configure(ServiceRegistration registration, GradleUserHomeDirProvider userHomeDirProvider) {
-        registration.addProvider(new CacheRepositoryServices(userHomeDirProvider.getGradleUserHomeDirectory(), null));
+        File userHomeDir = userHomeDirProvider.getGradleUserHomeDirectory();
+        registration.addProvider(new CacheRepositoryServices(userHomeDir, null));
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+        registration.add(VersionSpecificCacheAndWrapperDistributionCleanupService.class, new VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion.current(), userHomeDir));
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
