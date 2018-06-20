@@ -44,6 +44,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultP
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
@@ -84,6 +85,23 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             inOrder(programHost) {
                 verify(programHost).closeTargetScopeOf(scriptHost)
+                verifyNoMoreInteractions()
+            }
+        }
+    }
+
+    @Test
+    fun `Static(SetupEmbeddedKotlin)`() {
+
+        withExecutableProgramFor(Static(SetupEmbeddedKotlin)) {
+
+            val programHost = mock<ExecutableProgram.Host>()
+            val scriptHost = scriptHostWith()
+
+            execute(programHost, scriptHost)
+
+            inOrder(programHost) {
+                verify(programHost).setupEmbeddedKotlinFor(scriptHost)
                 verifyNoMoreInteractions()
             }
         }
