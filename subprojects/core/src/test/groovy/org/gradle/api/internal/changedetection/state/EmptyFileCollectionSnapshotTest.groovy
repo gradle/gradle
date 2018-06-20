@@ -63,7 +63,7 @@ class EmptyFileCollectionSnapshotTest extends Specification {
 
     private static Collection<TaskStateChange> getChanges(FileCollectionSnapshot current, FileCollectionSnapshot previous, boolean includeAdded) {
         def visitor = new CollectingTaskStateChangeVisitor()
-        current.accept(previous, "test", includeAdded, visitor)
+        current.visitChangesSince(previous, "test", includeAdded, visitor)
         visitor.changes
     }
 }

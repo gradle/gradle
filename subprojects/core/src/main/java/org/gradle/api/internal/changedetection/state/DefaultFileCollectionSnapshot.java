@@ -75,7 +75,7 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public boolean accept(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
         if (includeAdded && hashCode != null && getHash().equals(oldSnapshot.getHash())) {
             return true;
         }

@@ -31,7 +31,7 @@ public interface FileCollectionSnapshot extends Snapshot {
     /**
      * Visits the changes to file contents since the given snapshot, subject to the given filters.
      */
-    boolean accept(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
+    boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
      * Returns the combined hash of the contents of this {@link FileCollectionSnapshot}.

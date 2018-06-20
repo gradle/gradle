@@ -36,7 +36,7 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public boolean accept(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
         for (Map.Entry<String, FileContentSnapshot> entry : oldSnapshot.getContentSnapshots().entrySet()) {
             if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
                 return false;

@@ -122,7 +122,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         file2.createFile()
         def target = snapshotter.snapshot(files(file1, file2, file3, file4), ABSOLUTE, normalizationStrategy)
         def visitor = new CollectingTaskStateChangeVisitor()
-        target.accept(snapshot, "TYPE", false, visitor)
+        target.visitChangesSince(snapshot, "TYPE", false, visitor)
         visitor.changes.empty
 
         then:
@@ -293,7 +293,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     }
 
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        newSnapshot.accept(oldSnapshot, "TYPE", true) { FileChange change ->
+        newSnapshot.visitChangesSince(oldSnapshot, "TYPE", true) { FileChange change ->
             switch (change.type) {
                 case ChangeType.ADDED:
                     listener.added(change.path)
