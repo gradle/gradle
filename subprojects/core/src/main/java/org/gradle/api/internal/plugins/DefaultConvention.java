@@ -244,7 +244,20 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) extension).getPublicType());
         }
-        return TypeOf.<Object>typeOf(defaultType);
+        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(defaultType));
+    }
+
+    private Class<?> firstNonSyntheticClassOf(Class<?> clazz) {
+        if (!clazz.isSynthetic()) {
+            return clazz;
+        }
+        Class<?> next;
+        while ((next = clazz.getSuperclass()) != null) {
+            if (!next.isSynthetic()) {
+                return next;
+            }
+        }
+        return clazz;
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
