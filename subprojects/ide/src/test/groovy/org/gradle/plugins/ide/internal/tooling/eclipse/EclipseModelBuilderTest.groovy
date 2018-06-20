@@ -308,8 +308,8 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
             }
             file.whenMerged {
                 it.natures += 'nature.c'
-		it.buildCommands << new BuildCommand('buildCommandAfter', [:])
-		it.linkedResources = [new Link('linkAfter', '2', null, '../some-directory')]
+                it.buildCommands << new BuildCommand('buildCommandAfter', [:])
+                it.linkedResources = [new Link('linkAfter', '2', null, '../some-directory')]
             }
         }
         def modelBuilder = createEclipseModelBuilder()
