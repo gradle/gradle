@@ -55,7 +55,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
-    public static final Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> IDENTITY = new Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal>() {
+    private static final Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> IDENTITY = new Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal>() {
         @Override
         public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal componentSelectionDescriptorInternal) {
             return componentSelectionDescriptorInternal;
@@ -76,6 +76,14 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean resolved;
     private boolean forced;
 
+    // An internal counter used to track the number of outgoing edges
+    // that use this selector. Since a module resolve state tracks all selectors
+    // for this module, when considering selectors that need to be used when
+    // choosing a version, we must only consider the ones which currently have
+    // outgoing edges pointing to them. If not, then it means the module was
+    // evicted, but it can still be reintegrated later in a different path.
+    private int outgoingEdgeCount;
+
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, VersionSelectorScheme versionSelectorScheme, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
         this.dependencyState = dependencyState;
@@ -86,8 +94,22 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionConstraint = resolveVersionConstraint(firstSeenDependency.getSelector());
         this.attributesFactory = resolveState.getAttributesFactory();
         this.forced = isForced(firstSeenDependency);
-        targetModule.addSelector(this);
         addDependencyMetadata(firstSeenDependency);
+    }
+
+    public void use() {
+        outgoingEdgeCount++;
+        if (outgoingEdgeCount == 1) {
+            targetModule.addSelector(this);
+        }
+    }
+
+    public void release() {
+        outgoingEdgeCount--;
+        assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
+        if (outgoingEdgeCount == 0) {
+            targetModule.removeSelector(this);
+        }
     }
 
     private void addDependencyMetadata(DependencyMetadata dependencyMetadata) {

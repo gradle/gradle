@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
@@ -1309,7 +1309,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "previously selected transitive dependency is not used when it becomes orphaned because of selection of a different version of its dependent module"() {
         given:
         (1..10).each {
@@ -1349,7 +1348,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "evicted version removes range constraint from transitive dependency"() {
         given:
         (1..10).each {
@@ -1561,7 +1559,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
+    @Unroll
     def 'order of dependency declaration does not effect transitive dependency versions'() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
@@ -1579,8 +1577,13 @@ task checkDeps(dependsOn: configurations.compile) {
                 conf
             }
             dependencies {
+                if ($barFirst) {
+                    conf 'org:bar:1.1' // WORKS IF THIS DEPENDENCY IS FIRST
+                }
                 conf 'org:baz:[1.0,2.0)'
-                conf 'org:bar:1.1' // WORKS IF THIS DEPENDENCY IS FIRST
+                if (!$barFirst) {
+                    conf 'org:bar:1.1' // FAILED IF HERE
+                }
                 conf 'org:foo:[1.0,2.0)'
             }
 """
@@ -1601,6 +1604,9 @@ task checkDeps(dependsOn: configurations.compile) {
                 edge('org:baz:[1.0,2.0)', 'org:baz:1.1')
             }
         }
+
+        where:
+        barFirst << [false, true]
     }
 
     @Issue("gradle/gradle-private#1268")
