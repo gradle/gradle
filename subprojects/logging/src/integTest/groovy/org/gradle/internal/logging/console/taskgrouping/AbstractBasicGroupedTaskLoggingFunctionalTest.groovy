@@ -75,7 +75,6 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
     def "logs at execution time are grouped"() {
         given:
-        executer.startBuildProcessInDebugger(true)
         buildFile << """
             task log {
                 logger.quiet 'Logged during configuration'
