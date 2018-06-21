@@ -25,6 +25,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -42,19 +43,28 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
 
     static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";
     private static final Logger LOGGER = Logging.getLogger(VersionSpecificCacheAndWrapperDistributionCleanupService.class);
+    private static final long CLEANUP_INTERVAL_IN_HOURS = 24;
     private static final long MAX_UNUSED_DAYS = 30;
     private static final ImmutableList<String> DISTRIBUTION_TYPES = ImmutableList.of("bin", "all");
 
     private final GradleVersion currentVersion;
-    private final File gradleUserHomeDirectory;
+    private final File cachesDir;
+    private final File distsDir;
 
     public VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion currentVersion, File gradleUserHomeDirectory) {
         this.currentVersion = currentVersion;
-        this.gradleUserHomeDirectory = gradleUserHomeDirectory;
+        this.cachesDir = new File(gradleUserHomeDirectory, DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME);
+        this.distsDir = new File(gradleUserHomeDirectory, "wrapper/dists");
     }
 
     @Override
     public void stop() {
+        if (requiresCleanup()) {
+            performCleanup();
+        }
+    }
+
+    private void performCleanup() {
         Timer timer = Time.startTimer();
         long minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_UNUSED_DAYS));
         for (File subDir : listVersionSpecificCacheDirs()) {
@@ -64,12 +74,31 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
                 LOGGER.error("Failed to process/clean up version-specific cache directory: {}", subDir, e);
             }
         }
+        markCleanedUp();
         LOGGER.debug("Processed version-specific caches for cleanup in {}", timer.getElapsed());
+    }
+
+    private boolean requiresCleanup() {
+        File gcFile = getGcFile();
+        if (!gcFile.exists()) {
+            return gcFile.getParentFile().exists();
+        }
+        long duration = System.currentTimeMillis() - gcFile.lastModified();
+        long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
+        return timeInHours >= CLEANUP_INTERVAL_IN_HOURS;
+    }
+
+    private void markCleanedUp() {
+        GFileUtils.touch(getGcFile());
+    }
+
+    private File getGcFile() {
+        File currentVersionCacheDir = new File(cachesDir, currentVersion.getVersion());
+        return new File(currentVersionCacheDir, "gc.properties");
     }
 
     private Collection<File> listVersionSpecificCacheDirs() {
         FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter("^\\d.*"));
-        File cachesDir = new File(gradleUserHomeDirectory, DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME);
         File[] result = cachesDir.listFiles(combinedFilter);
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }
@@ -101,7 +130,6 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
     }
 
     private void deleteDistributions(GradleVersion version) throws IOException {
-        File distsDir = new File(gradleUserHomeDirectory, "wrapper/dists");
         for (String distributionType : DISTRIBUTION_TYPES) {
             File dir = new File(distsDir, "gradle-" + version.getVersion() + "-" + distributionType);
             if (dir.isDirectory()) {

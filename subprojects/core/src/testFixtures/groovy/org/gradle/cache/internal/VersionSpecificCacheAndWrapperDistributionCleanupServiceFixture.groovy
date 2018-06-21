@@ -44,6 +44,10 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
         return versionDir
     }
 
+    TestFile getGcFile(TestFile currentCacheDir) {
+        currentCacheDir.file("gc.properties")
+    }
+
     abstract TestFile getGradleUserHomeDir()
 
     static enum MarkerFileType {

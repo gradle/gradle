@@ -46,6 +46,7 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceIntegrationTest ex
         oldDist.assertDoesNotExist()
         currentCacheDir.assertExists()
         currentDist.assertExists()
+        getGcFile(currentCacheDir).assertExists()
     }
 
     @Override
