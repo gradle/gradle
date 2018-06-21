@@ -40,9 +40,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [lib1.jar.txt, lib2.jar.txt]") == 2
-        output.count("ids (size): [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]") == 2
-        output.count("components (size): [project :lib, project :lib]") == 2
+        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 2
+        output.count("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]") == 2
+        output.count("components: [project :lib, project :lib]") == 2
 
         output.count("Transformed") == 2
         isTransformed("lib1.jar", "lib1.jar.txt")
@@ -52,7 +52,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [lib1.jar.txt, lib2.jar.txt]") == 2
+        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 2
 
         output.count("Transformed") == 0
     }
@@ -548,7 +548,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        output.count("files (size): [lib1.jar.txt, lib2.jar.txt]") == 1
+        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 1
 
         output.count("Transformed") == 2
         isTransformed("lib1.jar", "lib1.jar.txt")
@@ -560,7 +560,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        output.count("files (size): [lib1.jar.txt, lib2.jar.txt]") == 1
+        output.count("files: [lib1.jar.txt, lib2.jar.txt]") == 1
 
         output.count("Transformed") == 0
     }
@@ -576,7 +576,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 2
         isTransformed("dir1.classes", "dir1.classes.dir")
@@ -588,7 +588,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 0
 
@@ -599,7 +599,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 2
         isTransformed("dir1.classes", "dir1.classes.dir")
@@ -611,7 +611,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 0
     }
@@ -627,7 +627,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 2
         isTransformed("dir1.classes", "dir1.classes.dir")
@@ -639,7 +639,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 0
 
@@ -650,7 +650,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 2
         isTransformed("dir1.classes", "dir1.classes.dir")
@@ -662,7 +662,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
 
         output.count("Transformed") == 0
     }
@@ -677,7 +677,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 1
         isTransformed("dir1.classes", "dir1.classes.dir")
@@ -687,18 +687,18 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
 
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform("'new value'") << withClassesSizeTransform()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'") << withClassesSizeTransform()
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 1
         isTransformed("dir1.classes", "dir1.classes.dir")
@@ -708,7 +708,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files (size): [dir1.classes.dir]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
     }
@@ -719,63 +719,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         def otherScript = file("other.gradle")
         otherScript.text = "ext.value = 123"
 
-        buildFile << declareAttributes() << """
+        buildFile << """
             apply from: 'other.gradle'
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(value) }
-                    }
-                    registerTransform {
-                        from.attribute(artifactType, "classes")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(value) }
-                    }
-                }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                    }
-                }
-            }
-
-            class FileSizer extends ArtifactTransform {
-                @javax.inject.Inject
-                FileSizer(Number n) { }
-                
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    output.text = "transformed"
-                    return [output]
-                }
-            }
-
-            project(':lib') {
-                artifacts {
-                    compile file("dir1.classes")
-                }
-            }
-            
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
-        """
+        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value") << withClassesSizeTransform()
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -783,17 +729,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 1
-        isTransformed("dir1.classes", "dir1.classes.txt")
-        def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
+        isTransformed("dir1.classes", "dir1.classes.dir")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes.dir")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
 
@@ -802,17 +748,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 1
-        isTransformed("dir1.classes", "dir1.classes.txt")
-        outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+        isTransformed("dir1.classes", "dir1.classes.dir")
+        outputDir("dir1.classes", "dir1.classes.dir") != outputDir1
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
     }
@@ -822,40 +768,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         def m2 = mavenHttpRepo.module("test", "snapshot", "1.2-SNAPSHOT").publish()
 
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << """
             allprojects {
                 repositories {
                     maven { url '$ivyHttpRepo.uri' }
                 }
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                }
                 configurations.all {
                     resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-                }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                    }
-                }
-            }
-
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    output.text = "transformed"
-                    return [output]
                 }
             }
 
@@ -863,18 +783,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 dependencies {
                     compile("test:changing:1.2") { changing = true }
                     compile("test:snapshot:1.2-SNAPSHOT")
-                }
-            }
-            
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
                 }
             }
         """
@@ -980,9 +888,18 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
-    def multiProjectWithJarSizeTransform(def fileValue = "String.valueOf(input.length())") {
+    def multiProjectWithJarSizeTransform(Map options = [:]) {
+        def paramValue = options.paramValue ?: "1"
+        def fileValue = options.fileValue ?: "String.valueOf(input.length())"
+
         """
+            ext.paramValue = $paramValue
+
             class FileSizer extends ArtifactTransform {
+                @javax.inject.Inject
+                FileSizer(Number value) {
+                }
+
                 List<File> transform(File input) {
                     assert outputDirectory.directory && outputDirectory.list().length == 0
 
@@ -1013,7 +930,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     registerTransform {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
+                        artifactTransform(FileSizer) { params(paramValue) }
                     }
                 }
                 task resolve {
@@ -1024,9 +941,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     inputs.files size.artifactFiles
 
                     doLast {
-                        println "files (size): " + size.artifactFiles.collect { it.name }
-                        println "ids (size): " + size.collect { it.id.displayName }
-                        println "components (size): " + size.collect { it.id.componentIdentifier }
+                        println "files: " + size.artifactFiles.collect { it.name }
+                        println "ids: " + size.collect { it.id.displayName }
+                        println "components: " + size.collect { it.id.componentIdentifier }
                     }
                 }
             }
@@ -1069,7 +986,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     registerTransform {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
+                        artifactTransform(FileSizer) { params(paramValue) }
                     }
                 }
             }
