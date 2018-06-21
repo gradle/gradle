@@ -13,8 +13,8 @@ buildscript {
 
 plugins {
     base
-    id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
     kotlin("jvm") apply false
+    id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
 }
 
 allprojects {
