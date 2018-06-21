@@ -36,6 +36,7 @@ class ImplicitImports(private val importsReader: ImportsReader) {
     fun gradleKotlinDslImports() =
         listOf(
             "org.gradle.kotlin.dsl.*",
+            "org.gradle.kotlin.gradle.ext.*",
             // TODO: infer list of types below at build time by inspecting the Gradle API
             "java.util.concurrent.TimeUnit",
             "java.math.BigDecimal",
