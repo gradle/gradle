@@ -19,7 +19,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.LoggingOutputInternal;
-import org.gradle.internal.logging.dispatch.AsynchronousLogDispatcher;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -31,19 +30,11 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-
 public class LogToClient extends BuildCommandOnly {
-
-    public static final String DISABLE_OUTPUT = "org.gradle.daemon.disable-output";
     private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
     private final LoggingOutputInternal loggingOutput;
     private final DaemonDiagnostics diagnostics;
-
-    private volatile AsynchronousLogDispatcher dispatcher;
 
     public LogToClient(LoggingOutputInternal loggingOutput, DaemonDiagnostics diagnostics) {
         this.loggingOutput = loggingOutput;
@@ -51,57 +42,39 @@ public class LogToClient extends BuildCommandOnly {
     }
 
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
-        if (Boolean.getBoolean(DISABLE_OUTPUT)) {
-            execution.proceed();
-            return;
-        }
-
-        loggingOutput.flush();
-        dispatcher = new DaemonConnectionLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
+        OutputEventListener dispatcher = new DaemonConnectionLogDispatcher(execution.getConnection(), build.getParameters().getLogLevel());
+        LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
-        dispatcher.start();
+        loggingOutput.addOutputEventListener(dispatcher);
         try {
             execution.proceed();
         } finally {
-            loggingOutput.flush();
-            dispatcher.waitForCompletion();
+            loggingOutput.removeOutputEventListener(dispatcher);
         }
     }
 
-    private class DaemonConnectionLogDispatcher extends AsynchronousLogDispatcher {
+    private class DaemonConnectionLogDispatcher implements OutputEventListener {
         private final DaemonConnection connection;
-        private final OutputEventListener listener;
+        private final LogLevel buildLogLevel;
 
-        DaemonConnectionLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
-            super("Asynchronous log dispatcher for " + conn);
+        DaemonConnectionLogDispatcher(DaemonConnection conn, LogLevel buildLogLevel) {
             this.connection = conn;
-            this.listener = new OutputEventListener() {
-                public void onOutput(OutputEvent event) {
-                    if (dispatcher != null && (isMatchingBuildLogLevel(event) || isProgressEvent(event))) {
-                        dispatcher.submit(event);
-                    }
-                }
-
-                private boolean isProgressEvent(OutputEvent event) {
-                    return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
-                }
-
-                private boolean isMatchingBuildLogLevel(OutputEvent event) {
-                    return event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
-                }
-            };
-            LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
-            loggingOutput.addOutputEventListener(listener);
+            this.buildLogLevel = buildLogLevel;
         }
 
         @Override
-        public void processEvent(OutputEvent event) {
-            connection.logEvent(event);
+        public void onOutput(OutputEvent event) {
+            if (isMatchingBuildLogLevel(event) || isProgressEvent(event)) {
+                connection.logEvent(event);
+            }
         }
 
-        @Override
-        public void cleanup() {
-            loggingOutput.removeOutputEventListener(listener);
+        private boolean isProgressEvent(OutputEvent event) {
+            return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+        }
+
+        private boolean isMatchingBuildLogLevel(OutputEvent event) {
+            return event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
         }
     }
 }

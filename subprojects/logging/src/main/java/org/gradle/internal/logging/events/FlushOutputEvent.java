@@ -29,4 +29,9 @@ public class FlushOutputEvent extends OutputEvent {
     public LogLevel getLogLevel() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

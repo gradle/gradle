@@ -37,6 +37,7 @@ import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
 import org.gradle.internal.logging.console.UserInputStandardOutputRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
+import org.gradle.internal.logging.dispatch.AsynchronousLogDispatcher;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
@@ -67,6 +68,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
+    private final AsynchronousLogDispatcher renderer;
 
     private ColorMap colourMap;
     private OutputStream originalStdOut;
@@ -80,6 +82,15 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
+        renderer = new AsynchronousLogDispatcher("Log dispatcher") {
+            @Override
+            public void processEvent(OutputEvent event) {
+                synchronized (lock) {
+                    formatters.getSource().onOutput(event);
+                }
+            }
+        };
+        renderer.start();
     }
 
     @Override
@@ -110,12 +121,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
         }
     }
 
+    // Must be holding lock when called
     private void addChain(OutputEventListener listener) {
+        flush();
         listener.onOutput(new LogLevelChangeEvent(logLevel.get()));
         formatters.add(listener);
     }
 
+    // Must be holding lock when called
     private void removeChain(OutputEventListener listener) {
+        flush();
         formatters.remove(listener);
         listener.onOutput(new EndOutputEvent());
     }
@@ -132,6 +147,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     @Override
     public void flush() {
         onOutput(new FlushOutputEvent());
+        renderer.flush();
     }
 
     public OutputStream getOriginalStdOut() {
@@ -432,9 +448,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
             }
             this.logLevel.set(newLogLevel);
         }
-        synchronized (lock) {
-            formatters.getSource().onOutput(event);
-        }
+        renderer.submit(event);
     }
 
     private boolean isProgressEvent(OutputEvent event) {
@@ -443,6 +457,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
 
     @Override
     public void stop() {
+        flush();
     }
 
     private static class SnapshotImpl implements Snapshot {
