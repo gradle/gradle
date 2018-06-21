@@ -16,10 +16,16 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-public interface PropertyDiffListener<K, V> {
-    boolean removed(K previousProperty);
+public class ChangeDetectorVisitor implements TaskStateChangeVisitor {
+    private boolean anyChanges;
 
-    boolean added(K currentProperty);
+    @Override
+    public boolean visitChange(TaskStateChange change) {
+        anyChanges = true;
+        return false;
+    }
 
-    boolean updated(K property, V previous, V current);
+    public boolean hasAnyChanges() {
+        return anyChanges;
+    }
 }

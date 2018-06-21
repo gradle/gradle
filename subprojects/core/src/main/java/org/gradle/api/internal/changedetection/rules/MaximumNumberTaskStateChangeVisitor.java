@@ -16,10 +16,20 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-public interface PropertyDiffListener<K, V> {
-    boolean removed(K previousProperty);
+public class MaximumNumberTaskStateChangeVisitor implements TaskStateChangeVisitor {
+    private final int maxReportedChanges;
+    private final TaskStateChangeVisitor delegate;
+    private int visited;
 
-    boolean added(K currentProperty);
+    public MaximumNumberTaskStateChangeVisitor(int maxReportedChanges, TaskStateChangeVisitor delegate) {
+        this.maxReportedChanges = maxReportedChanges;
+        this.delegate = delegate;
+    }
 
-    boolean updated(K property, V previous, V current);
+    @Override
+    public boolean visitChange(TaskStateChange change) {
+        boolean delegateResult = delegate.visitChange(change);
+        visited++;
+        return delegateResult && visited < maxReportedChanges;
+    }
 }
