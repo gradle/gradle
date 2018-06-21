@@ -161,7 +161,8 @@ project.logger.debug("debug logging");
         }
 
         // We changed the test console system property value in 4.9
-        if (targetVersion.baseVersion == GradleVersion.version("4.8")) {
+        if (targetVersion.baseVersion >= GradleVersion.version("4.8")
+            && targetVersion.baseVersion < GradleVersion.version("4.9")) {
             executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
         }
 
