@@ -26,8 +26,9 @@ import spock.lang.Subject
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.MISSING_MARKER_FILE
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_RECENTLY_USED
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.RECENTLY_USED
+import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_USED_WITHIN_7_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.USED_TODAY
 
 class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 
@@ -36,17 +37,17 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
 
     GradleVersion currentVersion = GradleVersion.current()
     TestFile userHomeDir = temporaryFolder.file("user-home").createDir()
+    TestFile currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
 
     @Subject def cleanupService = new VersionSpecificCacheAndWrapperDistributionCleanupService(currentVersion, userHomeDir)
 
     def "cleans up unused version-specific cache directories"() {
         given:
         def ancientVersionWithoutMarkerFile = createVersionSpecificCacheDir(GradleVersion.version("0.0.1"), MISSING_MARKER_FILE)
-        def oldestCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.2.3"), NOT_RECENTLY_USED)
-        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), RECENTLY_USED)
-        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_RECENTLY_USED)
-        def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_RECENTLY_USED)
-        def newerCacheDir = createVersionSpecificCacheDir(currentVersion.getNextMajor(), NOT_RECENTLY_USED)
+        def oldestCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.2.3"), NOT_USED_WITHIN_30_DAYS)
+        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), USED_TODAY)
+        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_30_DAYS)
+        def newerCacheDir = createVersionSpecificCacheDir(currentVersion.getNextMajor(), NOT_USED_WITHIN_30_DAYS)
 
         when:
         cleanupService.stop()
@@ -63,10 +64,9 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
     def "deletes distributions for unused versions"() {
         given:
         def oldVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_RECENTLY_USED)
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
         def oldAllDist = createDistributionDir(oldVersion, "all")
         def oldBinDist = createDistributionDir(oldVersion, "bin")
-        def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_RECENTLY_USED)
         def currentAllDist = createDistributionDir(currentVersion, "all")
         def currentBinDist = createDistributionDir(currentVersion, "bin")
 
@@ -96,9 +96,6 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
     }
 
     def "creates gc.properties file when it is missing"() {
-        given:
-        def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_RECENTLY_USED)
-
         when:
         cleanupService.stop()
 
@@ -108,8 +105,7 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
 
     def "does not clean up when gc.properties has been touched in the last 24 hours"() {
         given:
-        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_RECENTLY_USED)
-        def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_RECENTLY_USED)
+        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_30_DAYS)
         def gcFile = getGcFile(currentCacheDir).createFile().makeOlder()
         def originalLastModified = gcFile.lastModified()
 
@@ -123,8 +119,7 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
 
     def "cleans up when gc.properties has been touched in the last 24 hours"() {
         given:
-        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_RECENTLY_USED)
-        def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_RECENTLY_USED)
+        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_30_DAYS)
         def gcFile = getGcFile(currentCacheDir).createFile()
         def originalLastModified = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(25)
         gcFile.lastModified = originalLastModified
@@ -135,6 +130,56 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
         then:
         oldCacheDir.assertDoesNotExist()
         gcFile.lastModified() > originalLastModified
+    }
+
+    def "cleans up caches of snapshot versions not used within 7 days if there's a cache for a later release version with same base version"() {
+        given:
+        def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
+        def release = createVersionSpecificCacheDir(GradleVersion.version("4.8"), NOT_USED_WITHIN_7_DAYS)
+
+        when:
+        cleanupService.stop()
+
+        then:
+        snapshot.assertDoesNotExist()
+        release.assertExists()
+    }
+
+    def "cleans up caches of snapshot versions not used within 7 days if there's a cache for a later snapshot version with same base version"() {
+        given:
+        def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
+        def latestSnapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180507235951+0000"), NOT_USED_WITHIN_7_DAYS)
+
+        when:
+        cleanupService.stop()
+
+        then:
+        snapshot.assertDoesNotExist()
+        latestSnapshot.assertExists()
+    }
+
+    def "does not cleans up caches of snapshot versions not used within 7 days if there's no cache for a later version with same base version"() {
+        given:
+        def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
+
+        when:
+        cleanupService.stop()
+
+        then:
+        snapshot.assertExists()
+    }
+
+    def "does not cleans up caches of recently used snapshot versions"() {
+        given:
+        def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), USED_TODAY)
+        def latestSnapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180507235951+0000"), NOT_USED_WITHIN_7_DAYS)
+
+        when:
+        cleanupService.stop()
+
+        then:
+        snapshot.assertExists()
+        latestSnapshot.assertExists()
     }
 
     @Override

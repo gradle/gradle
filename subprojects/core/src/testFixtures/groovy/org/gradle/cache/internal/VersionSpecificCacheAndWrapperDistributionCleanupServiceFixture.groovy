@@ -22,6 +22,7 @@ import org.gradle.util.GradleVersion
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.MARKER_FILE_PATH
+import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.WRAPPER_DISTRIBUTION_FILE_PATH
 import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.MISSING_MARKER_FILE
 
 trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
@@ -39,7 +40,7 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
     }
 
     TestFile createDistributionDir(GradleVersion version, String distributionType) {
-        def cachesDir = getGradleUserHomeDir().file("wrapper/dists").createDir()
+        def cachesDir = getGradleUserHomeDir().file(WRAPPER_DISTRIBUTION_FILE_PATH).createDir()
         def versionDir = cachesDir.file("gradle-${version.version}-$distributionType").createDir()
         return versionDir
     }
@@ -52,18 +53,26 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 
     static enum MarkerFileType {
 
-        RECENTLY_USED {
+        USED_TODAY {
             @Override
             void process(TestFile markerFile) {
                 markerFile.createFile()
             }
         },
 
-        NOT_RECENTLY_USED {
+        NOT_USED_WITHIN_30_DAYS {
             @Override
             void process(TestFile markerFile) {
                 markerFile.createFile()
                 markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(31)
+            }
+        },
+
+        NOT_USED_WITHIN_7_DAYS {
+            @Override
+            void process(TestFile markerFile) {
+                markerFile.createFile()
+                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8)
             }
         },
 

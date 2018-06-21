@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_RECENTLY_USED
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.RECENTLY_USED
+import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.USED_TODAY
 
 class VersionSpecificCacheAndWrapperDistributionCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 
@@ -30,11 +30,11 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceIntegrationTest ex
         requireOwnGradleUserHomeDir() // because we delete caches and distributions
 
         and:
-        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), RECENTLY_USED)
+        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), USED_TODAY)
         def oldNotRecentlyUsedVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldNotRecentlyUsedVersion, NOT_RECENTLY_USED)
+        def oldCacheDir = createVersionSpecificCacheDir(oldNotRecentlyUsedVersion, NOT_USED_WITHIN_30_DAYS)
         def oldDist = createDistributionDir(oldNotRecentlyUsedVersion, "bin")
-        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_RECENTLY_USED)
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_30_DAYS)
         def currentDist = createDistributionDir(GradleVersion.current(), "all")
 
         when:
