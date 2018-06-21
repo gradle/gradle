@@ -88,7 +88,7 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
 
             kotlinDslApiExtensions {
                 create("main") {
-                    packageName.set("org.gradle.api.kotlin")
+                    packageName.set("org.gradle.kotlin.gradle.ext")
                     includes.set(PublicApi.includes)
                     excludes.set(PublicApi.excludes)
                 }
@@ -112,7 +112,7 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
         existing("build/generated-sources").walkTopDown().single { it.isFile }.let {
             assertThat(it.name, equalTo("GeneratedGradleApiExtensionsMainKotlinDslApiExtensions.kt"))
             val extensions = listOf(
-                "package org.gradle.api.kotlin",
+                "package org.gradle.kotlin.gradle.ext",
                 """
                 fun <S : T, T : Any> org.gradle.api.DomainObjectSet<T>.`withType`(`type`: kotlin.reflect.KClass<S>): org.gradle.api.DomainObjectSet<S> =
                     `withType`(`type`.java)
@@ -140,7 +140,7 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
             unzipTo(extract, existing("build/libs/gradle-api-extensions.jar"))
             assertThat(
                 extract.walkTopDown().filter { it.isFile }.map { it.relativeTo(extract).path }.toList(),
-                hasItem("org/gradle/api/kotlin/GeneratedGradleApiExtensionsMainKotlinDslApiExtensionsKt.class".replace('/', File.separatorChar)))
+                hasItem("org/gradle/kotlin/gradle/ext/GeneratedGradleApiExtensionsMainKotlinDslApiExtensionsKt.class".replace('/', File.separatorChar)))
         }
     }
 }
