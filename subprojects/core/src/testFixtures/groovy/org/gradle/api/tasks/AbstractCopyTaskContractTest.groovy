@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -31,15 +30,21 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
     abstract AbstractCopyTask getTask()
 
     def "root level FileCopyDetails are DSL-enhanced"() {
-        expect:
-        task.eachFile {
-            assert delegate instanceof DynamicObject
-        }
+        given:
+        File srcDir = createDir(project.projectDir, 'src')
+        createFile(srcDir, 'file.properties')
+
+        and:
+        task.from srcDir
+        task.into project.buildDir
         task.eachFile(new Action<FileCopyDetails>() {
             void execute(FileCopyDetails fcd) {
-                assert fcd instanceof DynamicObject
+                assert fcd.class.name.endsWith("_Decorated")
             }
         })
+
+        expect:
+        execute(task)
     }
 
     @Issue("GRADLE-2906")
