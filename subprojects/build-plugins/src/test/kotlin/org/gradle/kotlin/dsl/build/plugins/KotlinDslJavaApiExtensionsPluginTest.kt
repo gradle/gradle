@@ -284,4 +284,57 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
             assertThat(task(":generateKotlinDslApiExtensions")?.outcome, equalTo(TaskOutcome.SUCCESS))
         }
     }
+
+    @Test
+    fun `parameter names generation dependencies`() {
+        withSettings("""
+            include("left", "right")
+        """)
+
+        withBuildScriptIn("left", """
+            plugins { java }
+        """)
+
+        withBuildScriptIn("right", """
+            import org.gradle.kotlin.dsl.build.tasks.GenerateKotlinDslApiExtensions
+
+            plugins {
+                java
+                id("org.gradle.kotlin.dsl.build.java-api-extensions")
+            }
+
+            dependencies {
+                implementation(project(":left"))
+            }
+
+            kotlinDslApiExtensions {
+                create("main")
+            }
+
+            tasks.withType<GenerateKotlinDslApiExtensions> {
+                isUseEmbeddedKotlinDslProvider.set(true)
+            }
+
+            repositories {
+                jcenter()
+            }
+
+            tasks.register("generateSomeCode") {
+                val outputDir = layout.buildDirectory.dir("generated")
+                java.sourceSets["main"].java.srcDir(files(outputDir).apply { builtBy(this@register) })
+                doLast {
+                    outputDir.get().asFile.resolve("Generated.java").run {
+                        parentFile.mkdirs()
+                        writeText("class Generated {}")
+                    }
+                }
+            }
+        """)
+
+        run(":right:generateJavaParameterNamesIndex").apply {
+            assertThat(task(":left:compileJava")?.outcome, equalTo(TaskOutcome.NO_SOURCE))
+            assertThat(task(":right:generateSomeCode")?.outcome, equalTo(TaskOutcome.SUCCESS))
+            assertThat(task(":right:generateJavaParameterNamesIndex")?.outcome, equalTo(TaskOutcome.SUCCESS))
+        }
+    }
 }

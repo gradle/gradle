@@ -97,9 +97,16 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
             extensionsSet.javaParameterNamesTaskName,
             GenerateParameterNamesIndexProperties::class.java
         ) {
-            it.sources.from(extensionsSet.sources)
-            it.classpath.from(extensionsSet.sourceSetCompileClasspath)
-            it.outputFile.set(extensionsSet.javaParameterNamesOutputFile)
+            extensionsSet.sourceSet.get().let { sourceSet ->
+
+                it.sources.from(extensionsSet.sources)
+                it.classpath.from(sourceSet.compileClasspath)
+
+                it.outputFile.set(extensionsSet.javaParameterNamesOutputFile)
+
+                it.dependsOn(sourceSet.allJava)
+                it.dependsOn(sourceSet.compileClasspath)
+            }
         }
 
     private
@@ -109,18 +116,18 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
         vararg parameterNamesTasks: TaskProvider<GenerateParameterNamesIndexProperties>
     ): TaskProvider<GenerateKotlinDslApiExtensions> =
 
-        extensionsSet.sourceSet.get().let { sourceSet ->
-            tasks.register(
-                extensionsSet.kotlinDslApiExtensionsTaskName,
-                GenerateKotlinDslApiExtensions::class.java
-            ) {
+        tasks.register(
+            extensionsSet.kotlinDslApiExtensionsTaskName,
+            GenerateKotlinDslApiExtensions::class.java
+        ) {
+            extensionsSet.sourceSet.get().let { sourceSet ->
 
                 it.description = "${it.description} for '${sourceSet.name}' source set"
 
                 it.nameComponents.set(extensionsSet.nameComponents)
                 it.packageName.set(extensionsSet.packageName.get())
                 it.classes.from(extensionsSet.sourceSetJavaOutputDir)
-                it.classpath.from(extensionsSet.sourceSetCompileClasspath)
+                it.classpath.from(sourceSet.compileClasspath)
                 it.includes.set(extensionsSet.includes)
                 it.excludes.set(extensionsSet.excludes)
                 it.parameterNamesIndices.from(files(parameterNamesTasks.map { it.get() }))
@@ -128,9 +135,9 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
                 it.outputDirectory.set(sourcesOutputDirFor(extensionsSourceSet, "kotlinDslExtensions"))
 
                 it.dependsOn(sourceSet.output)
-            }.also { task ->
-                extensionsSourceSet.kotlin.srcDir(files(provider { task.get().outputDirectory }).apply { builtBy(task) })
             }
+        }.also { task ->
+            extensionsSourceSet.kotlin.srcDir(files(provider { task.get().outputDirectory }).apply { builtBy(task) })
         }
 
     private
@@ -185,11 +192,6 @@ open class KotlinDslApiExtensionsSet(
                     it.exclude(excludes)
                 }
             } ?: project.files().asFileTree
-    }
-
-    internal
-    val sourceSetCompileClasspath = project.provider {
-        sourceSet.get().compileClasspath
     }
 
     internal
