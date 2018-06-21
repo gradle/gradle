@@ -30,30 +30,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             include 'util'
             include 'app'
         """
-
-        buildFile << """
-def usage = Attribute.of('usage', String)
-def artifactType = Attribute.of('artifactType', String)
-    
-allprojects {
-    dependencies {
-        attributesSchema {
-            attribute(usage)
-        }
-    }
-    configurations {
-        compile {
-            attributes.attribute usage, 'api'
-        }
-    }
-}
-
-"""
     }
 
     def "transform is applied to each file once per build"() {
         given:
-        buildFile << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -78,7 +59,7 @@ allprojects {
 
     def "early-discovered transform is applied before consuming task is executed"() {
         given:
-        buildFile << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
 
         when:
         succeeds ":util:resolve"
@@ -97,7 +78,7 @@ allprojects {
 
     def "each file is transformed once per set of configuration parameters"() {
         given:
-        buildFile << """
+        buildFile << declareAttributes() << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
@@ -216,7 +197,7 @@ allprojects {
 
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
-        buildFile << """
+        buildFile << declareAttributes() << """
             class CustomType implements Serializable {
                 String value
             }
@@ -332,7 +313,7 @@ allprojects {
     @Unroll
     def "can use configuration parameter of type #type"() {
         given:
-        buildFile << """
+        buildFile << declareAttributes() << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private $type target
                 
@@ -429,7 +410,7 @@ allprojects {
 
     def "each file is transformed once per transform class"() {
         given:
-        buildFile << """
+        buildFile << declareAttributes() << """
             class Sizer extends ArtifactTransform {
                 @javax.inject.Inject
                 Sizer(String target) {
@@ -550,7 +531,7 @@ allprojects {
 
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
-        buildFile << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
 
         when:
         executer.withArgument("-Dbroken=true")
@@ -586,7 +567,7 @@ allprojects {
 
     def "transform is supplied with a different output directory when input file content changes between builds"() {
         given:
-        buildFile << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
 
         file("lib/lib1.jar").text = "123"
         file("lib/dir1.classes").file("child").createFile()
@@ -637,7 +618,7 @@ allprojects {
 
     def "transform is rerun when output is removed between builds"() {
         given:
-        buildFile << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
 
         file("lib/lib1.jar").text = "123"
         file("lib/dir1.classes").file("child").createFile()
@@ -688,59 +669,7 @@ allprojects {
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                    registerTransform {
-                        from.attribute(artifactType, "classes")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                    }
-                }
-            }
-
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    output.text = "transformed"
-                    return [output]
-                }
-            }
-
-            project(':lib') {
-                artifacts {
-                    compile file("dir1.classes")
-                }
-            }
-            
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
-        """
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -748,37 +677,38 @@ allprojects {
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files (size): [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 1
-        isTransformed("dir1.classes", "dir1.classes.txt")
-        def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
+        isTransformed("dir1.classes", "dir1.classes.dir")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes.dir")
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files (size): [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
 
         when:
         // change the implementation
-        buildFile.replace('output.text = "transformed"', 'output.text = "new output"')
+        buildFile.text = ""
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform("'new value'") << withClassesSizeTransform()
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files (size): [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 1
-        isTransformed("dir1.classes", "dir1.classes.txt")
-        outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+        isTransformed("dir1.classes", "dir1.classes.dir")
+        outputDir("dir1.classes", "dir1.classes.dir") != outputDir1
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.txt]") == 2
+        output.count("files (size): [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
     }
@@ -789,7 +719,7 @@ allprojects {
         def otherScript = file("other.gradle")
         otherScript.text = "ext.value = 123"
 
-        buildFile << """
+        buildFile << declareAttributes() << """
             apply from: 'other.gradle'
             allprojects {
                 dependencies {
@@ -892,7 +822,7 @@ allprojects {
         def m2 = mavenHttpRepo.module("test", "snapshot", "1.2-SNAPSHOT").publish()
 
         given:
-        buildFile << """
+        buildFile << declareAttributes() << """
             allprojects {
                 repositories {
                     maven { url '$ivyHttpRepo.uri' }
@@ -1050,7 +980,7 @@ allprojects {
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
-    def multiProjectWithJarSizeTransform() {
+    def multiProjectWithJarSizeTransform(def fileValue = "String.valueOf(input.length())") {
         """
             class FileSizer extends ArtifactTransform {
                 List<File> transform(File input) {
@@ -1061,7 +991,7 @@ allprojects {
                     File output
                     if (input.file) {
                         output = new File(outputDirectory, input.name + ".txt")
-                        output.text = String.valueOf(input.length())
+                        output.text = $fileValue
                     } else {
                         output = new File(outputDirectory, input.name + ".dir")
                         output.mkdirs()
@@ -1143,12 +1073,39 @@ allprojects {
                     }
                 }
             }
-           project(':lib') {
+            project(':lib') {
+                artifacts {
+                    compile file("dir1.classes")
+                }
+            }
+        """
+    }
+
+    def withLibJarDependency() {
+        """
+            project(':lib') {
                 dependencies {
                     compile files("lib1.jar")
                 }
-                artifacts {
-                    compile file("dir1.classes")
+            }
+        """
+    }
+
+    def declareAttributes() {
+        """
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+                
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
+                    }
+                }
+                configurations {
+                    compile {
+                        attributes.attribute usage, 'api'
+                    }
                 }
             }
         """
