@@ -9,19 +9,12 @@ buildscript {
 
     build.loadExtraPropertiesOf(project)
 
-    val kotlinVersion: String by extra
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-    }
-
-    repositories {
-        gradlePluginPortal()
-    }
 }
 
 plugins {
     base
     id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
+    kotlin("jvm") apply false
 }
 
 allprojects {
