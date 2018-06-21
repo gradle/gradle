@@ -11,13 +11,12 @@ import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.fixtures.convertLineSeparators
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
-
-import org.jetbrains.kotlin.preprocessor.convertLineSeparators
 
 import org.junit.Assert.assertNotEquals
 import org.junit.Test

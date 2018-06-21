@@ -40,7 +40,6 @@ import org.gradle.plugin.management.internal.DefaultPluginRequests
 
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
-import org.jetbrains.kotlin.preprocessor.mkdirsOrFail
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
@@ -531,7 +530,7 @@ class ResidualProgramCompiler(
     fun uniqueScriptFileFor(sourcePath: String, stage: String) =
         outputDir
             .resolve(stage)
-            .apply { mkdirsOrFail() }
+            .apply { mkdirs() }
             .resolve(scriptFileNameFor(sourcePath))
 
     private
