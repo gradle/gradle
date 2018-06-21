@@ -31,8 +31,17 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
+ * Temporary workaround for Kotlin 1.2.50.
+ *
+ * [KT-24926](https://youtrack.jetbrains.com/issue/KT-24926#comment=27-2914219)
+ */
+annotation class KotlinScriptTemplate
+
+
+/**
  * Base class for Kotlin build scripts.
  */
+@KotlinScriptTemplate
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
