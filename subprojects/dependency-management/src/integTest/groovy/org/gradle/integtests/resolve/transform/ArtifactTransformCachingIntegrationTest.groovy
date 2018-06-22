@@ -88,6 +88,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 
                 List<File> transform(File input) {
+                    assert input.exists()
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     if (target.equals("size")) {
                         def outSize = new File(outputDirectory, input.name + ".size")
@@ -211,6 +212,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 
                 List<File> transform(File input) {
+                    assert input.exists()
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     if (target.value == "size") {
                         def outSize = new File(outputDirectory, input.name + ".size")
@@ -323,6 +325,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 
                 List<File> transform(File input) {
+                    assert input.exists()
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def outSize = new File(outputDirectory, input.name + ".value")
                     println "Transformed \$input.name to \$outSize.name into \$outputDirectory"
@@ -418,6 +421,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 
                 List<File> transform(File input) {
+                    assert input.exists()
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def outSize = new File(outputDirectory, input.name + ".size")
                     println "Transformed \$input.name to \$outSize.name into \$outputDirectory"
@@ -434,6 +438,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 
                 List<File> transform(File input) {
+                    assert input.exists()
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def outHash = new File(outputDirectory, input.name + ".hash")
                     println "Transformed \$input.name to \$outHash.name into \$outputDirectory"
