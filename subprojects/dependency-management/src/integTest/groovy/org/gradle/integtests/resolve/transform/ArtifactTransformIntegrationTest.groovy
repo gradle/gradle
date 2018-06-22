@@ -1669,7 +1669,55 @@ Found the following transforms:
         output.count("Transforming") == 1
     }
 
-    def configurationAndTransform(String transformImplementation) {
+    def "can resolve transformed variant during configuration time"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def jar1 = file('lib1.jar')
+                jar1.text = 'some text'
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+
+                dependencies {
+                    compile files(jar1)
+                }
+                artifacts {
+                    compile file1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${declareTransform('FileSizer')}
+
+                task resolve(type: Copy) {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                        if (project.hasProperty("lenient")) {
+                            lenient(true)
+                        }
+                    }.artifacts
+                    // Resolve during configuration
+                    from artifacts.artifactFiles.files
+                    into "\${buildDir}/libs"
+                    doLast {
+                        // Do nothing
+                    }
+                }
+            }
+        """
+
+        when:
+        run "app:resolve"
+
+        then:
+        output.count("Transforming") == 1
+    }
+
+    def declareTransform(String transformImplementation) {
         """
             dependencies {
                 registerTransform {
@@ -1678,6 +1726,12 @@ Found the following transforms:
                     artifactTransform(${transformImplementation})
                 }
             }
+        """
+    }
+
+    def configurationAndTransform(String transformImplementation) {
+        """
+            ${declareTransform(transformImplementation)}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
