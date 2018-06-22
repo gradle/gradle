@@ -17,8 +17,8 @@
 package org.gradle.cache.internal;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.UnmodifiableIterator;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -46,7 +46,7 @@ public class SingleDepthFilesFinder implements FilesFinder {
         };
     }
 
-    private class SingleDepthFileIterator extends UnmodifiableIterator<File> {
+    private class SingleDepthFileIterator extends AbstractIterator<File> {
 
         private final Deque<Iterator<File>> stack = new ArrayDeque<Iterator<File>>();
         private final int targetSize;
@@ -59,14 +59,11 @@ public class SingleDepthFilesFinder implements FilesFinder {
         }
 
         @Override
-        public boolean hasNext() {
+        protected File computeNext() {
             advanceIfNecessary();
-            return hasNextWithCorrectDepth();
-        }
-
-        @Override
-        public File next() {
-            advanceIfNecessary();
+            if (stack.isEmpty()) {
+                return endOfData();
+            }
             return stack.getLast().next();
         }
 
