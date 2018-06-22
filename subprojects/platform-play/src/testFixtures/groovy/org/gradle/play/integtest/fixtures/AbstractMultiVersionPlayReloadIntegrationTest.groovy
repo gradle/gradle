@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.VersionNumber
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -46,5 +47,13 @@ abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMul
         // play - Application started
         // Play - Application started
         gradle.standardOutput.count('lay - Application started')
+    }
+
+    protected String controllers() {
+        if (versionNumber >= VersionNumber.parse('2.6.0')) {
+            return "@controllers"
+        } else {
+            return "controllers"
+        }
     }
 }
