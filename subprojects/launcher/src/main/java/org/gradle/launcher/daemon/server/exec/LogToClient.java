@@ -53,9 +53,10 @@ public class LogToClient extends BuildCommandOnly {
         }
     }
 
-    private class DaemonConnectionLogDispatcher implements OutputEventListener {
+    private static class DaemonConnectionLogDispatcher implements OutputEventListener {
         private final DaemonConnection connection;
         private final LogLevel buildLogLevel;
+        private boolean disconnected;
 
         DaemonConnectionLogDispatcher(DaemonConnection conn, LogLevel buildLogLevel) {
             this.connection = conn;
@@ -64,8 +65,14 @@ public class LogToClient extends BuildCommandOnly {
 
         @Override
         public void onOutput(OutputEvent event) {
-            if (isMatchingBuildLogLevel(event) || isProgressEvent(event)) {
-                connection.logEvent(event);
+            if (!disconnected && (isMatchingBuildLogLevel(event) || isProgressEvent(event))) {
+                try {
+                    connection.logEvent(event);
+                } catch (Exception e) {
+                    // Assume the connection has been closed
+                    disconnected = true;
+                    LOGGER.debug("Could not forward log event to client. Assuming connection has closed and discarding further log events.", e);
+                }
             }
         }
 
