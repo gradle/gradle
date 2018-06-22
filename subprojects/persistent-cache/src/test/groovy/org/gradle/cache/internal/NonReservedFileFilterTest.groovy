@@ -23,19 +23,19 @@ import spock.lang.Specification
 class NonReservedFileFilterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def "filters for cache entry files"() {
+    def "does not accept reserved files"() {
         given:
         def cacheDir = temporaryFolder.getTestDirectory()
         def filter = new NonReservedFileFilter([cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock")])
 
         expect:
-        !filter.accept(cacheDir.file("cache.properties").touch())
-        !filter.accept(cacheDir.file("gc.properties").touch())
-        !filter.accept(cacheDir.file("cache.lock").touch())
+        !filter.accept(cacheDir.file("cache.properties"))
+        !filter.accept(cacheDir.file("gc.properties"))
+        !filter.accept(cacheDir.file("cache.lock"))
 
         and:
-        filter.accept(cacheDir.file("0"*32).touch())
-        filter.accept(cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
-        filter.accept(cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
+        filter.accept(cacheDir.file("0"*32))
+        filter.accept(cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00"))
+        filter.accept(cacheDir.file("abcdefabcdefabcdefabcdefabcdef00"))
     }
 }

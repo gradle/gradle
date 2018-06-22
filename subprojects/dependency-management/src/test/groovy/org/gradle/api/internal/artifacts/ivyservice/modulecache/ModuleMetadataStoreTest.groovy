@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -33,16 +32,16 @@ import spock.lang.Subject
 class ModuleMetadataStoreTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder
-    PathKeyFileStore pathKeyFileStore = Mock(PathKeyFileStore)
-    String repository = "repositoryId"
-    LocallyAvailableResource fileStoreEntry = Mock(LocallyAvailableResource)
-    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
+    def pathKeyFileStore = Mock(PathKeyFileStore)
+    def repository = "repositoryId"
+    def fileStoreEntry = Mock(LocallyAvailableResource)
+    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
         module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
     }
-    ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
-    ModuleMetadataSerializer serializer = Mock(ModuleMetadataSerializer)
+    def moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
+    def serializer = Mock(ModuleMetadataSerializer)
     @Subject ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
-    MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:

@@ -32,7 +32,7 @@ class AbstractCachedIndexTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    static final CACHE_NAME = "my-cache";
+    static final CACHE_NAME = "my-cache"
     def cacheLockingManager = new CacheLockingManagerStub()
     def fileAccessTracker = Mock(FileAccessTracker)
     def valueSerializer = new Serializer<CachedItem>() {
