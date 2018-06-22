@@ -32,6 +32,7 @@ public class AsynchronousLogDispatcher extends Thread {
 
     public AsynchronousLogDispatcher(OutputEventListener eventListener) {
         super("Log dispatcher");
+        setDaemon(true);
         this.eventListener = eventListener;
     }
 
