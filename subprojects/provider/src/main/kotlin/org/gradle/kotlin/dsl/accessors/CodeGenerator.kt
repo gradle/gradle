@@ -22,21 +22,41 @@ import org.gradle.api.plugins.ExtensionAware
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
+import kotlin.coroutines.experimental.buildSequence
+
 
 internal
 fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
+    (extensionAccessors() + configurationAccessors()).forEach(action)
+}
+
+
+internal
+fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = buildSequence {
+
     val seen = SeenAccessorSpecs()
+
     extensions.mapNotNull(::typedAccessorSpec).forEach { spec ->
         extensionAccessorFor(spec)?.let { extensionAccessor ->
-            action(extensionAccessor)
+            yield(extensionAccessor)
             seen.add(spec)
         }
     }
+
     conventions.mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
-        conventionAccessorFor(spec)?.let(action)
+        conventionAccessorFor(spec)?.let {
+            yield(it)
+        }
     }
+}
+
+
+internal
+fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = buildSequence {
     configurations.map(::accessorNameSpec).forEach { spec ->
-        configurationAccessorFor(spec)?.let(action)
+        configurationAccessorFor(spec)?.let {
+            yield(it)
+        }
     }
 }
 
@@ -278,7 +298,11 @@ data class AccessorNameSpec(val original: String) {
 
 
 private
-data class TypedAccessorSpec(val targetTypeAccess: TypeAccessibility.Accessible, val name: AccessorNameSpec, val typeAccess: TypeAccessibility)
+data class TypedAccessorSpec(
+    val targetTypeAccess: TypeAccessibility.Accessible,
+    val name: AccessorNameSpec,
+    val typeAccess: TypeAccessibility
+)
 
 
 private
