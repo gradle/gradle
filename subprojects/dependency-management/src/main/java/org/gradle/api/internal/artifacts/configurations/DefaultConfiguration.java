@@ -541,12 +541,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
-                context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
-                    @Override
-                    public ResolvedComponentResult getRootComponent() {
-                        return incoming.getResolutionResult().getRoot();
-                    }
-                });
+                captureBuildOperationResult(context, incoming);
+            }
+
+            private void captureBuildOperationResult(BuildOperationContext context, final ResolvableDependencies incoming) {
+                Throwable failure = cachedResolverResults.getFailure();
+                if (failure != null) {
+                    context.failed(failure);
+                } else {
+                    context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
+                        @Override
+                        public ResolvedComponentResult getRootComponent() {
+                            return incoming.getResolutionResult().getRoot();
+                        }
+                    });
+                }
             }
 
             @Override

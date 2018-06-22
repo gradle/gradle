@@ -148,6 +148,17 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
+    public Throwable getFailure() {
+        if (fatalFailure != null) {
+            return fatalFailure;
+        }
+        if (nonFatalFailure != null) {
+            return nonFatalFailure;
+        }
+        return null;
+    }
+
+    @Override
     public boolean hasResolutionResult() {
         return resolutionResult != null;
     }
