@@ -399,6 +399,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
         logger.warn("warning")
         logger.error("error")
+        loggingManager.flush()
 
         then:
         outputs.stdOut == TextUtil.toPlatformLineSeparators('warning\n')
@@ -445,6 +446,7 @@ class LoggingServiceRegistryTest extends Specification {
         def logger = LoggerFactory.getLogger("category")
         logger.info("info")
         logger.error("error")
+        loggingManager.flush()
 
         then:
         1 * listener.onOutput("info")
@@ -475,6 +477,7 @@ class LoggingServiceRegistryTest extends Specification {
         logger.info("info")
         logger.warning("warning")
         logger.severe("error")
+        loggingManager.flush()
 
         then:
         0 * listener._
@@ -645,6 +648,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         logger.warning("warning")
         logger.severe("error")
+        loggingManager.flush()
 
         then:
         outputs.stdOut == ''
@@ -675,6 +679,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         def textOutput = registry.get(StyledTextOutputFactory).create("category")
         textOutput.println("info")
+        loggingManager.flush()
 
         then:
         1 * listener.onOutput("info")

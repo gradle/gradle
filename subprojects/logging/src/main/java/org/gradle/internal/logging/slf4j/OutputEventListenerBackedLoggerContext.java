@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
@@ -38,6 +39,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     private final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
     private final AtomicReference<LogLevel> level = new AtomicReference<LogLevel>();
     private final AtomicReference<OutputEventListener> outputEventListener = new AtomicReference<OutputEventListener>();
+    private final AtomicReference<OutputEventRenderer> eventRenderer = new AtomicReference<OutputEventRenderer>();
     private final Clock clock;
 
     public OutputEventListenerBackedLoggerContext(Clock clock) {
@@ -58,7 +60,15 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     }
 
     public void setOutputEventListener(OutputEventListener outputEventListener) {
+        OutputEventRenderer outputEventRenderer = eventRenderer.getAndSet(null);
+        if (outputEventRenderer != null) {
+            outputEventRenderer.flush();
+        }
+        // This may lead to out-of-order log delivery when events are received while flushing
         this.outputEventListener.set(outputEventListener);
+        if (outputEventRenderer != null) {
+            outputEventRenderer.stop();
+        }
     }
 
     public OutputEventListener getOutputEventListener() {
@@ -75,11 +85,20 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         return logger != null ? logger : loggers.get(name);
     }
 
+    @VisibleForTesting
+    public void flush() {
+        OutputEventRenderer outputEventRenderer = eventRenderer.get();
+        if (outputEventRenderer != null) {
+            outputEventRenderer.flush();
+        }
+    }
+
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
-        OutputEventRenderer renderer = new OutputEventRenderer(clock);
-        renderer.attachSystemOutAndErr();
-        setOutputEventListener(renderer);
+        OutputEventRenderer outputEventRenderer = new OutputEventRenderer(clock);
+        outputEventRenderer.attachSystemOutAndErr();
+        eventRenderer.set(outputEventRenderer);
+        outputEventListener.set(outputEventRenderer);
     }
 
     public LogLevel getLevel() {

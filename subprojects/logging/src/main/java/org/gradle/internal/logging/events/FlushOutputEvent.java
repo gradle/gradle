@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 
@@ -24,6 +25,9 @@ import javax.annotation.Nullable;
  * Notifies output consumers that might be queueing messages to immediately flush their queues.
  */
 public class FlushOutputEvent extends OutputEvent {
+    private boolean handled;
+    private Throwable failure;
+
     @Nullable
     @Override
     public LogLevel getLogLevel() {
@@ -33,5 +37,28 @@ public class FlushOutputEvent extends OutputEvent {
     @Override
     public String toString() {
         return getClass().getSimpleName();
+    }
+
+    public void handled(@Nullable Throwable failure) {
+        this.failure = failure;
+        synchronized (this) {
+            handled = true;
+            notifyAll();
+        }
+    }
+
+    public void waitUntilHandled() {
+        synchronized (this) {
+            while (!handled) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            if (failure != null) {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+        }
     }
 }

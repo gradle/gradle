@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.Logging
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.time.Time
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil
@@ -36,7 +37,7 @@ class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specificat
         outputs.stdErr
     }
 
-    def context
+    OutputEventListenerBackedLoggerContext context
 
     Logger logger() {
         if (context == null) {
@@ -50,6 +51,7 @@ class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specificat
         logger().trace("debug")
         logger().debug("debug")
         logger().info("debug")
+        context.flush()
 
         then:
         out.empty
@@ -61,6 +63,7 @@ class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specificat
         logger().info(Logging.LIFECYCLE, "lifecycle")
         logger().warn("warn")
         logger().info(Logging.QUIET, "quiet")
+        context.flush()
 
         then:
         err.empty
@@ -73,11 +76,31 @@ quiet
     def "messages logged at ERROR level are directed to default error stream"() {
         when:
         logger().error("error")
+        context.flush()
 
         then:
         out.empty
         err == TextUtil.toPlatformLineSeparators("""error
 """)
+    }
+
+    def "messages are not lost when listener is attached"() {
+        def listener = Mock(OutputEventListener)
+
+        when:
+        logger().info(Logging.LIFECYCLE, "lifecycle 1")
+        logger().info(Logging.QUIET, "quiet 1")
+        logger().info(Logging.LIFECYCLE, "lifecycle 2")
+        context.setOutputEventListener(listener)
+        logger().info(Logging.LIFECYCLE, "lifecycle 3")
+
+        then:
+        out == TextUtil.toPlatformLineSeparators("""lifecycle 1
+quiet 1
+lifecycle 2
+""")
+        1 * listener.onOutput(_)
+        0 * listener._
     }
 
     private String stacktrace(Exception e) {
@@ -93,6 +116,7 @@ quiet
         when:
         logger().warn("warn stacktrace coming", e)
         logger().error("error stacktrace coming", e)
+        context.flush()
 
         then:
         out == TextUtil.toPlatformLineSeparators("""warn stacktrace coming

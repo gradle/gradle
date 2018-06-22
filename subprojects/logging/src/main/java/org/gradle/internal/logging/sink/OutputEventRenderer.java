@@ -82,14 +82,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
-        renderer = new AsynchronousLogDispatcher("Log dispatcher") {
-            @Override
-            public void processEvent(OutputEvent event) {
-                synchronized (lock) {
-                    formatters.getSource().onOutput(event);
-                }
-            }
-        };
+        renderer = new AsynchronousLogDispatcher(formatters.getSource());
         renderer.start();
     }
 
@@ -146,8 +139,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
 
     @Override
     public void flush() {
-        onOutput(new FlushOutputEvent());
-        renderer.flush();
+        FlushOutputEvent event = new FlushOutputEvent();
+        onOutput(event);
+        event.waitUntilHandled();
     }
 
     public OutputStream getOriginalStdOut() {
@@ -383,7 +377,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
                         }
                     })
                 );
-                addChain(userListenerChain);
+                userListenerChain.onOutput(new LogLevelChangeEvent(logLevel.get()));
             }
         }
     }
@@ -449,6 +443,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
             this.logLevel.set(newLogLevel);
         }
         renderer.submit(event);
+        synchronized (lock) {
+            if (userListenerChain != null) {
+                userListenerChain.onOutput(event);
+            }
+        }
     }
 
     private boolean isProgressEvent(OutputEvent event) {
@@ -458,6 +457,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     @Override
     public void stop() {
         flush();
+        onOutput(new EndOutputEvent());
     }
 
     private static class SnapshotImpl implements Snapshot {

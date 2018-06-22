@@ -16,81 +16,58 @@
 
 package org.gradle.internal.logging.dispatch;
 
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
-abstract public class AsynchronousLogDispatcher extends Thread {
-    private final CountDownLatch completionLock = new CountDownLatch(1);
-    private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
-    private volatile boolean shouldStop;
-    private boolean unableToSend;
+public class AsynchronousLogDispatcher extends Thread {
+    private final BlockingQueue<OutputEvent> eventQueue = new ArrayBlockingQueue<OutputEvent>(200);
+    private final OutputEventListener eventListener;
+    private Throwable failure;
 
-    public AsynchronousLogDispatcher(String name) {
-        super(name);
+    public AsynchronousLogDispatcher(OutputEventListener eventListener) {
+        super("Log dispatcher");
+        this.eventListener = eventListener;
     }
 
     public void submit(OutputEvent event) {
-        eventQueue.add(event);
+        try {
+            eventQueue.put(event);
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
     public void run() {
-        try {
-            while (!shouldStop) {
-                OutputEvent event = eventQueue.poll();
-                if (event == null) {
-                    Thread.sleep(10);
-                } else {
-                    dispatchAsync(event);
+        while (true) {
+            try {
+                OutputEvent event = eventQueue.take();
+                try {
+                    eventListener.onOutput(event);
+                } catch (Throwable t) {
+                    if (failure == null) {
+                        failure = t;
+                    }
+                }
+                if (event instanceof FlushOutputEvent) {
+                    FlushOutputEvent flushOutputEvent = (FlushOutputEvent) event;
+                    flushOutputEvent.handled(failure);
+                    failure = null;
+                }
+                if (event instanceof EndOutputEvent) {
+                    return;
+                }
+            } catch (Throwable t) {
+                if (failure == null) {
+                    failure = t;
                 }
             }
-        } catch (InterruptedException ex) {
-            // we must not use interrupt() because it would automatically
-            // close the connection (sending data from an interrupted thread
-            // automatically closes the connection)
-            shouldStop = true;
         }
-        flush();
-        completionLock.countDown();
-    }
-
-    public void flush() {
-        OutputEvent event;
-        while ((event = eventQueue.poll()) != null) {
-            dispatchAsync(event);
-        }
-    }
-
-    private void dispatchAsync(OutputEvent event) {
-        if (unableToSend) {
-            return;
-        }
-        try {
-            processEvent(event);
-        } catch (Exception ex) {
-            shouldStop = true;
-            unableToSend = true;
-            //Ignore. It means the client has disconnected so no point sending him any log output.
-            //we should be checking if client still listens elsewhere anyway.
-        }
-    }
-
-    abstract public void processEvent(OutputEvent event);
-
-    public void waitForCompletion() {
-        cleanup();
-        shouldStop = true;
-        try {
-            completionLock.await();
-        } catch (InterruptedException e) {
-            // the caller has been interrupted
-        }
-    }
-
-    public void cleanup() {
-        // override if necessary
     }
 }
