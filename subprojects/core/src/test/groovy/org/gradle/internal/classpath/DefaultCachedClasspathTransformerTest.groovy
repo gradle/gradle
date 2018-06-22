@@ -97,7 +97,8 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def "touches immediate children of cache dir when accessed"() {
         given:
         File externalFile = testDir.file("external/file1").createFile()
-        File cachedFile = cachedDir.file("e11f1cf5681161f98a43c55e341f1b93/sub/file1").createFile()
+        File cacheFileChecksumDir = cachedDir.file("e11f1cf5681161f98a43c55e341f1b93")
+        File cachedFile = cacheFileChecksumDir.file("sub/file1").createFile()
         File alreadyCachedFile = cachedDir.file("file2").createFile()
         File cachedInOtherStore = otherStore.file("file3").createFile()
 
@@ -106,7 +107,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
 
         then:
         1 * jarCache.getCachedJar(externalFile, _) >> cachedFile
-        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile.parentFile, _)
+        1 * fileAccessTimeJournal.setLastAccessTime(cacheFileChecksumDir, _)
         1 * fileAccessTimeJournal.setLastAccessTime(alreadyCachedFile, _)
         0 * fileAccessTimeJournal._
     }
