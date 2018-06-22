@@ -39,7 +39,7 @@ public class CleanupActionFactory {
         private final BuildOperationExecutor buildOperationExecutor;
         private final CleanupAction delegate;
 
-        BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationExecutor buildOperationExecutor) {
+        public BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationExecutor buildOperationExecutor) {
             this.buildOperationExecutor = buildOperationExecutor;
             this.delegate = delegate;
         }

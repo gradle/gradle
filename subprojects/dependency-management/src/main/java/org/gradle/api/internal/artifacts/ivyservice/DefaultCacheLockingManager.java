@@ -96,7 +96,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     private class CacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
         private final PersistentIndexedCache<K, V> persistentCache;
 
-        CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
+        public CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
             this.persistentCache = persistentCache;
         }
 
