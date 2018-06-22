@@ -35,6 +35,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
                     println "$PENDING_DETECTED_MESSAGE"
                 }
         """
+        writeLogbackDependenciesForPlay25()
     }
 
     protected int waitForChangesToBePickedUp() {

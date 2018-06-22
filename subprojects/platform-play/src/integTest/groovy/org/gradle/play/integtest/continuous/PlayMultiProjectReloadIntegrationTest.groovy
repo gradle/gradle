@@ -28,6 +28,10 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     PlayApp playApp = new PlayMultiProject(versionNumber)
     TestFile playRunBuildFile = file("primary/build.gradle")
 
+    def setup() {
+        writeLogbackDependenciesForPlay25()
+    }
+
     def cleanup() {
         stopGradle()
         if (runningApp.isInitialized()) {

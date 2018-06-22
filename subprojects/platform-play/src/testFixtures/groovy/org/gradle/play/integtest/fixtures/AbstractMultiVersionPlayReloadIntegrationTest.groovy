@@ -56,4 +56,14 @@ abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMul
             return "controllers"
         }
     }
+
+    protected void writeLogbackDependenciesForPlay25() {
+        if (versionNumber.major == 2 && versionNumber.minor == 5) {
+            buildFile << """ 
+                dependencies {
+                    play 'com.typesafe.play:play-logback_2.11:${versionNumber.toString()}'
+                }
+           """
+        }
+    }
 }
