@@ -39,7 +39,12 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
-    private static final int DEFAULT_CLEANUP_TIMEOUT_IN_SECONDS = 20;
+
+    // Cleanup is performed while the file lock is being held. Using a timeout
+    // well below the limit used by another process to wait for the lock avoids
+    // those from timing out while waiting to acquire the file lock. Cleanup is
+    // usually much faster than this timeout.
+    private static final int DEFAULT_CLEANUP_TIMEOUT = DefaultFileLockManager.DEFAULT_LOCK_TIMEOUT / 3;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final Properties properties = new Properties();
@@ -142,7 +147,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         @Override
         public void cleanup() {
             if (cleanupAction != null) {
-                CountdownTimer timer = Time.startCountdownTimer(DEFAULT_CLEANUP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                CountdownTimer timer = Time.startCountdownTimer(DEFAULT_CLEANUP_TIMEOUT);
                 cleanupAction.clean(DefaultPersistentDirectoryCache.this, timer);
                 if (!timer.hasExpired()) {
                     GFileUtils.touch(gcFile);
