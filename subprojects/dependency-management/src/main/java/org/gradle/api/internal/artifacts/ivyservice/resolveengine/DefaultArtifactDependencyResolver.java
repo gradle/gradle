@@ -32,8 +32,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -127,7 +129,37 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy);
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
+        VersionSelectorScheme versionSelectorScheme = createVersionSelectorScheme(resolutionStrategy.isDependencyLockingEnabled());
         return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme);
+    }
+
+    private VersionSelectorScheme createVersionSelectorScheme(boolean dependencyLockingEnabled) {
+        if (dependencyLockingEnabled) {
+            return new VersionSelectorScheme() {
+                private VersionSelector unlockLatestSelector(VersionSelector selector) {
+                    if (selector instanceof LatestVersionSelector) {
+                        return ((LatestVersionSelector) selector).forLocking();
+                    }
+                    return selector;
+                }
+
+                @Override
+                public VersionSelector parseSelector(String selectorString) {
+                    return unlockLatestSelector(versionSelectorScheme.parseSelector(selectorString));
+                }
+
+                @Override
+                public String renderSelector(VersionSelector selector) {
+                    return versionSelectorScheme.renderSelector(selector);
+                }
+
+                @Override
+                public VersionSelector complementForRejection(VersionSelector selector) {
+                    return unlockLatestSelector(versionSelectorScheme.complementForRejection(selector));
+                }
+            };
+        }
+        return versionSelectorScheme;
     }
 
     private DependencySubstitutionApplicator createDependencySubstitutionApplicator(ResolutionStrategyInternal resolutionStrategy) {
