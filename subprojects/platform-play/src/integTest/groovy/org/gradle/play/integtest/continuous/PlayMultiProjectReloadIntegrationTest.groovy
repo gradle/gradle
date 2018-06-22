@@ -29,7 +29,9 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     TestFile playRunBuildFile = file("primary/build.gradle")
 
     def setup() {
-        writeLogbackDependenciesForPlay25()
+        buildFile << playLogbackDependenciesIfPlay25()
+        playRunBuildFile << playLogbackDependenciesIfPlay25()
+        file('submodule/build.gradle') << playLogbackDependenciesIfPlay25()
     }
 
     def cleanup() {
