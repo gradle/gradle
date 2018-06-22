@@ -1626,6 +1626,49 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
+    def "transform runs only once even when variant is consumed from multiple projects"() {
+        given:
+        settingsFile << """
+            include 'app2'
+        """
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+
+                task lib1(type: Jar) {}
+    
+                dependencies {
+                    compile files(lib1)
+                }
+                artifacts {
+                    compile file1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+    
+            project(':app2') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+
+        when:
+        run "app:resolve", "app2:resolve"
+
+        then:
+        output.count("Transforming") == 1
+    }
+
     def configurationAndTransform(String transformImplementation) {
         """
             dependencies {
