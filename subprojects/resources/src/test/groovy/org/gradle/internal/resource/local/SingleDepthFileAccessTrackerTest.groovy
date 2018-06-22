@@ -39,7 +39,7 @@ class SingleDepthFileAccessTrackerTest extends Specification {
     }
 
     @Unroll
-    def "touches all subdirectories for  depth #depth"() {
+    def "touches all subdirectories for depth #depth"() {
         given:
         def file1 = baseDir.file("a/aa/aaa/1")
         def file2 = baseDir.file("b/bb/bbb/2")
