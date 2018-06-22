@@ -1626,7 +1626,98 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
-    def configurationAndTransform(String transformImplementation) {
+    def "transform runs only once even when variant is consumed from multiple projects"() {
+        given:
+        settingsFile << """
+            include 'app2'
+        """
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+
+                task lib1(type: Jar) {}
+    
+                dependencies {
+                    compile files(lib1)
+                }
+                artifacts {
+                    compile file1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+    
+            project(':app2') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+
+        when:
+        run "app:resolve", "app2:resolve"
+
+        then:
+        output.count("Transforming") == 1
+    }
+
+    def "can resolve transformed variant during configuration time"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def jar1 = file('lib1.jar')
+                jar1.text = 'some text'
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+
+                dependencies {
+                    compile files(jar1)
+                }
+                artifacts {
+                    compile file1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${declareTransform('FileSizer')}
+
+                task resolve(type: Copy) {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                        if (project.hasProperty("lenient")) {
+                            lenient(true)
+                        }
+                    }.artifacts
+                    // Resolve during configuration
+                    from artifacts.artifactFiles.files
+                    into "\${buildDir}/libs"
+                    doLast {
+                        // Do nothing
+                    }
+                }
+            }
+        """
+
+        when:
+        run "app:resolve"
+
+        then:
+        output.count("Transforming") == 1
+    }
+
+    def declareTransform(String transformImplementation) {
         """
             dependencies {
                 registerTransform {
@@ -1635,6 +1726,12 @@ Found the following transforms:
                     artifactTransform(${transformImplementation})
                 }
             }
+        """
+    }
+
+    def configurationAndTransform(String transformImplementation) {
+        """
+            ${declareTransform(transformImplementation)}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
