@@ -48,6 +48,18 @@ class NormalizingJavaCompilerTest extends Specification {
         }
     }
 
+    def "silently excludes source files not ending in .java"() {
+        spec.sourceFiles = files("House.scala", "Person1.java", "package.html", "Person2.java")
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        1 * target.execute(spec) >> {
+            assert spec.sourceFiles == files("Person1.java", "Person2.java")
+        }
+    }
+
     def "delegates to target compiler after resolving source and processor path"() {
         WorkResult workResult = Mock()
 
