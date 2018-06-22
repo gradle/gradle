@@ -32,6 +32,8 @@ import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
+import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -292,6 +294,33 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         []           | ['i']
         ['e']        | ['i']
         ['e1', 'e2'] | ['i1', 'i2']
+    }
+
+    def "can modify project attributes in before/when merged"() {
+        setup:
+        project.eclipse.project {
+            natures = ['nature.a']
+            linkedResource name: 'linkToDelete1', type: '2', locationUri: '../some-directory'
+            file.beforeMerged {
+                it.natures += 'nature.b'
+                it.buildCommands = [new BuildCommand('buildCommandBefore', [:])]
+                it.linkedResources += new Link('linkToDelete2', '2', null, '../some-directory')
+            }
+            file.whenMerged {
+                it.natures += 'nature.c'
+                it.buildCommands << new BuildCommand('buildCommandAfter', [:])
+                it.linkedResources = [new Link('linkAfter', '2', null, '../some-directory')]
+            }
+        }
+        def modelBuilder = createEclipseModelBuilder()
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        eclipseModel.projectNatures.collect { it.id } == ['nature.b', 'nature.a', 'nature.c']
+        eclipseModel.buildCommands.collect { it.name } == ['buildCommandBefore', 'buildCommandAfter']
+        eclipseModel.linkedResources.collect { it.name } == ['linkAfter']
     }
 
     private def createEclipseModelBuilder() {
