@@ -32,4 +32,8 @@ abstract class AbstractMultiVersionPlayContinuousBuildIntegrationTest extends Ab
     static VersionNumber getVersionNumber() {
         VersionNumber.parse(version.toString())
     }
+
+    def setup() {
+        buildFile << PlayMultiVersionApplicationIntegrationTest.playPlatformConfiguration(version.toString())
+    }
 }
