@@ -15,6 +15,8 @@
  */
 package org.gradle.java.compile
 
+import spock.lang.Issue
+
 abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationSpec {
     def setup() {
         buildFile << """
@@ -104,5 +106,21 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         succeeds("compileJava")
         javaClassFile("compile/test/Person.class").exists()
         javaClassFile("compile/test/Person2.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5750")
+    def "include narrows down source files to compile"() {
+        given:
+        goodCode()
+
+        and:
+        file('src/main/java/Bar.java') << 'class Bar {}'
+        buildFile << 'compileJava.include "**/Person*.java"'
+
+        expect:
+        succeeds("compileJava")
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
+        !javaClassFile("Bar.class").exists()
     }
 }
