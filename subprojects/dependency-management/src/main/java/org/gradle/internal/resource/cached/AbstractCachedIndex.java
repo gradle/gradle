@@ -24,8 +24,6 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
-import static java.util.Collections.singleton;
-
 public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     private final String persistentCacheName;
     private final Serializer<K> keySerializer;
@@ -73,7 +71,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
         });
 
         if (result != null && result.getCachedFile() != null) {
-            fileAccessTracker.markAccessed(singleton(result.getCachedFile()));
+            fileAccessTracker.markAccessed(result.getCachedFile());
         }
 
         return result;

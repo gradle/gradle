@@ -32,7 +32,7 @@ class SingleDepthFileAccessTrackerTest extends Specification {
         def fileInOtherDirectory = tmpDir.file("some-file.txt")
 
         when:
-        new SingleDepthFileAccessTracker(journal, baseDir, 1).markAccessed([fileInOtherDirectory])
+        new SingleDepthFileAccessTracker(journal, baseDir, 1).markAccessed(fileInOtherDirectory)
 
         then:
         0 * journal.setLastAccessTime(_, _)

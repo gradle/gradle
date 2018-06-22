@@ -63,9 +63,7 @@ class AbstractCachedIndexTest extends Specification {
 
         then:
         item.cachedFile == cachedFile
-        1 * fileAccessTracker.markAccessed(_) >> { Set<File> files ->
-            assert files == [cachedFile] as Set
-        }
+        1 * fileAccessTracker.markAccessed(cachedFile)
     }
 
     def "clears entries for deleted files"() {

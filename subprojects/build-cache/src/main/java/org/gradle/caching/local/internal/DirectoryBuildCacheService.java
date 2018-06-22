@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static java.util.Collections.singleton;
-
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
 
     private final PathKeyFileStore fileStore;
@@ -113,7 +111,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         }
 
         File file = resource.getFile();
-        fileAccessTracker.markAccessed(singleton(file));
+        fileAccessTracker.markAccessed(file);
 
         try {
             reader.execute(file);

@@ -24,6 +24,13 @@ import java.util.Collection;
  */
 public interface FileAccessTracker {
     /**
+     * Marks the supplied file as accessed.
+     *
+     * @see #markAccessed(Collection)
+     */
+    void markAccessed(File file);
+
+    /**
      * Marks the supplied files as accessed.
      *
      * If the supplied files are unknown to this tracker, implementations must

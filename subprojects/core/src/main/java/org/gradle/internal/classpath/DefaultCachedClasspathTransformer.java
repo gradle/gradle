@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static java.util.Collections.singleton;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -157,7 +156,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         @Override
         public File transform(File file) {
             File result = delegate.transform(file);
-            fileAccessTracker.markAccessed(singleton(result));
+            fileAccessTracker.markAccessed(result);
             return result;
         }
     }

@@ -45,8 +45,20 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
         this.endNameIndex = startNameIndex + depth;
     }
 
+    @Override
+    public void markAccessed(File file) {
+        markAccessed(toSubPath(file));
+    }
+
+    @Override
     public void markAccessed(Collection<File> files) {
         for (Path path : collectSubPaths(files)) {
+            markAccessed(path);
+        }
+    }
+
+    private void markAccessed(Path path) {
+        if (path != null) {
             journal.setLastAccessTime(path.toFile(), System.currentTimeMillis());
         }
     }
@@ -54,11 +66,16 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
     private Set<Path> collectSubPaths(Collection<File> files) {
         Set<Path> paths = new HashSet<Path>();
         for (File file : files) {
-            Path path = file.toPath().toAbsolutePath();
-            if (path.getNameCount() >= endNameIndex && path.startsWith(baseDir)) {
-                paths.add(baseDir.resolve(path.subpath(startNameIndex, endNameIndex)));
-            }
+            paths.add(toSubPath(file));
         }
         return paths;
+    }
+
+    private Path toSubPath(File file) {
+        Path path = file.toPath().toAbsolutePath();
+        if (path.getNameCount() >= endNameIndex && path.startsWith(baseDir)) {
+            return baseDir.resolve(path.subpath(startNameIndex, endNameIndex));
+        }
+        return null;
     }
 }
