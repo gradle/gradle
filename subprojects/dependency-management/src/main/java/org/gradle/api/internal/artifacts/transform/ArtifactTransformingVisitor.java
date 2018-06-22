@@ -37,10 +37,10 @@ import java.util.Map;
 class ArtifactTransformingVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
+    private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
     private final Map<File, TransformFileOperation> fileResults;
 
-    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -49,7 +49,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformArtifactOperation operation = artifactResults.get(artifact);
+        TransformArtifactOperation operation = artifactResults.get(artifact.getId());
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
             return;
@@ -57,6 +57,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
         ResolvedArtifact sourceArtifact = artifact.toPublicView();
         List<File> transformedFiles = operation.getResult();
+        assert transformedFiles != null;
         TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
         for (File output : transformedFiles) {
@@ -91,6 +92,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
         }
 
         List<File> result = operation.getResult();
+        assert result != null;
         for (File outputFile : result) {
             visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.execution.taskgraph.WorkInfo;
+import org.gradle.execution.taskgraph.WorkInfoExecutor;
 
-/**
- * A lightweight reference to a task.
- */
-@Incubating
-@HasInternalProtocol
-public interface TaskReference extends Named {
+public class TransformInfoExecutor implements WorkInfoExecutor {
+    @Override
+    public boolean execute(WorkInfo work) {
+        if (work instanceof TransformInfo) {
+            TransformInfo transform = (TransformInfo) work;
+            transform.execute();
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

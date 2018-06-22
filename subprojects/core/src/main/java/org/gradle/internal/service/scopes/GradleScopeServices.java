@@ -54,7 +54,13 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
+import org.gradle.execution.taskgraph.LocalTaskInfoExecutor;
+import org.gradle.execution.taskgraph.TaskDependencyResolver;
+import org.gradle.execution.taskgraph.TaskInfoFactory;
+import org.gradle.execution.taskgraph.TaskInfoWorkDependencyResolver;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
+import org.gradle.execution.taskgraph.WorkInfoExecutor;
 import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
@@ -153,14 +159,30 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, IncludedBuildTaskGraph includedBuildTaskGraph) {
+    TaskInfoFactory createTaskInfoFactory(GradleInternal gradle, IncludedBuildTaskGraph includedBuildTaskGraph) {
+        return new TaskInfoFactory(gradle, includedBuildTaskGraph);
+    }
+
+    TaskInfoWorkDependencyResolver createTaskInfoWorkResolver(TaskInfoFactory taskInfoFactory) {
+        return new TaskInfoWorkDependencyResolver(taskInfoFactory);
+    }
+
+    TaskDependencyResolver createTaskDependencyResolver(List<WorkInfoDependencyResolver> workResolvers) {
+        return new TaskDependencyResolver(workResolvers);
+    }
+
+    LocalTaskInfoExecutor createLocalTaskInfoExecutor() {
         Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
             @Override
             public TaskExecuter create() {
                 return get(TaskExecuter.class);
             }
         };
-        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, taskExecuterFactory, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, includedBuildTaskGraph);
+        return new LocalTaskInfoExecutor(taskExecuterFactory);
+    }
+
+    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
+        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

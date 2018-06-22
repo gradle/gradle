@@ -250,13 +250,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 attributes { it.attribute(artifactType, "class") }
             }.files
 
-            task doNothing {
-                inputs.files(filteredView)
-                doLast {
-                    //do nothing
-                }
-            }
-            
             task accessFiles {
                 inputs.files(filteredView)
                 doLast {
@@ -264,14 +257,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 }
             }
         """
-
-        when:
-        succeeds "doNothing"
-
-        then:
-        notExecuted ":libExclude:jar"
-        executed ":libInclude:jar"
-        executedTransforms == 0
 
         when:
         succeeds "accessFiles"

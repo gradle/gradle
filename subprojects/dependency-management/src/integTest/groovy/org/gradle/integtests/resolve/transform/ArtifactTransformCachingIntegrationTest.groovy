@@ -134,6 +134,71 @@ allprojects {
         output.count("Transforming") == 0
     }
 
+    def "transform is applied before consuming task is executed"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        // Do nothing
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    println "Running transformation for \${input.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {            
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {            
+                    archiveName = 'lib2.jar'
+                }
+                artifacts {
+                    compile jar1
+                    compile jar2
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+        """
+
+        when:
+        succeeds ":util:resolve"
+
+        def transformationPosition2 = output.indexOf("Running transformation for lib1.jar")
+        def transformationPosition1 = output.indexOf("Running transformation for lib2.jar")
+        def taskPosition = output.indexOf("> Task :util:resolve")
+
+        then:
+        transformationPosition1 >= 0
+        transformationPosition2 >= 0
+        taskPosition >= 0
+        transformationPosition1 < taskPosition
+        transformationPosition2 < taskPosition
+    }
+
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << """
@@ -180,13 +245,17 @@ allprojects {
                     }
                 }
                 task resolve {
+                    def size = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    def hash = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'hash') }
+                    }.artifacts
+
+                    inputs.files(size.artifactFiles)
+                    inputs.files(hash.artifactFiles)
+
                     doLast {
-                        def size = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'size') }
-                        }.artifacts
-                        def hash = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'hash') }
-                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "ids 1: " + size.collect { it.id }
                         println "components 1: " + size.collect { it.id.componentIdentifier }
@@ -299,13 +368,17 @@ allprojects {
                     }
                 }
                 task resolve {
+                    def size = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    def hash = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'hash') }
+                    }.artifacts
+
+                    inputs.files(size.artifactFiles)
+                    inputs.files(hash.artifactFiles)
+
                     doLast {
-                        def size = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'size') }
-                        }.artifacts
-                        def hash = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'hash') }
-                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "files 2: " + hash.collect { it.file.name }
                     }
@@ -392,10 +465,13 @@ allprojects {
                     }
                 }
                 task resolve {
+                    def values = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'value') }
+                    }.artifacts
+
+                    inputs.files(values.artifactFiles)
+
                     doLast {
-                        def values = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'value') }
-                        }.artifacts
                         println "files 1: " + values.collect { it.file.name }
                         println "files 2: " + values.collect { it.file.name }
                     }
@@ -503,13 +579,17 @@ allprojects {
                     }
                 }
                 task resolve {
+                    def size = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    def hash = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'hash') }
+                    }.artifacts
+
+                    inputs.files(size.artifactFiles)
+                    inputs.files(hash.artifactFiles)
+
                     doLast {
-                        def size = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'size') }
-                        }.artifacts
-                        def hash = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'hash') }
-                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "ids 1: " + size.collect { it.id }
                         println "components 1: " + size.collect { it.id.componentIdentifier }
@@ -771,100 +851,6 @@ allprojects {
         then:
         output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
 
-        output.count("Transforming") == 0
-    }
-
-    def "transform is supplied with a different output directory when input file content changed by a task during the build"() {
-        given:
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                    registerTransform {
-                        from.attribute(artifactType, "classes")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                    }
-                }
-            }
-
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
-                    output.text = "transformed"
-                    return [output]
-                }
-            }
-
-            project(':lib') {
-                dependencies {
-                    compile files("lib1.jar")
-                }
-                artifacts {
-                    compile file("dir1.classes")
-                }
-                task src1 { 
-                    doLast {
-                        projectDir.mkdirs()
-                        file("lib1.jar").text = '123'
-                        file("dir1.classes").mkdirs()
-                        file("dir1.classes/file1.txt").text = 'abc'
-                    }
-                }
-                task src2 {
-                    doLast {
-                        projectDir.mkdirs()
-                        file("lib1.jar").text = '1234'
-                        file("dir1.classes").mkdirs()
-                        file("dir1.classes/file2.txt").text = 'new file'
-                    }
-                }
-            }
-            
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
-            
-            project(':app').tasks.resolve.mustRunAfter(':lib:src1')
-            project(':lib').tasks.src2.mustRunAfter(':app:resolve')
-            project(':util').tasks.resolve.mustRunAfter(':lib:src2')
-        """
-
-        when:
-        run "src1", ":app:resolve", "src2", ":util:resolve"
-
-        then:
-        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
-        output.count("Transforming") == 4
-
-        when:
-        run ":app:resolve", ":util:resolve"
-
-        then:
-        output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2
         output.count("Transforming") == 0
     }
 
@@ -1365,8 +1351,8 @@ allprojects {
         throw new AssertionError("Could not find exactly one output directory for $from -> $to in output: $output")
     }
 
-    List<TestFile> outputDirs(String from, String to) {
-        List<TestFile> dirs = []
+    Set<TestFile> outputDirs(String from, String to) {
+        Set<TestFile> dirs = []
         def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/files-1.1/" + from).absolutePath + File.separator
         def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {

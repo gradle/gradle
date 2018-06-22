@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Action;
-
-import java.util.Collection;
-
-/**
- * Will be merged with {@link org.gradle.internal.operations.BuildOperationExecutor}
- */
-public interface TaskPlanExecutor {
-    /**
-     * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
-     * @param taskWorker worker must be thread-safe.
-     */
-    void process(TaskExecutionPlan taskExecutionPlan, Collection<? super Throwable> failures, Action<WorkInfo> taskWorker);
+public interface WorkInfoExecutor {
+    boolean execute(WorkInfo work);
 }

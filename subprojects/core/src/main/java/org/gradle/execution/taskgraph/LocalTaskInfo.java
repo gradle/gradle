@@ -16,14 +16,13 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.Path;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * A {@link TaskInfo} implementation for a task in the current build.
@@ -35,27 +34,22 @@ public class LocalTaskInfo extends TaskInfo {
         this.task = task;
     }
 
-    @Override
-    public Path getIdentityPath() {
-        return task.getIdentityPath();
-    }
-
     public TaskInternal getTask() {
         return task;
     }
 
     @Override
-    public void collectTaskInto(ImmutableSet.Builder<Task> builder) {
+    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
         builder.add(task);
     }
 
-    public Throwable getTaskFailure() {
+    public Throwable getWorkFailure() {
         return task.getState().getFailure();
     }
 
     @Override
-    public boolean satisfies(Spec<? super Task> filter) {
-        return filter.isSatisfiedBy(task);
+    public void rethrowFailure() {
+        task.getState().rethrowFailure();
     }
 
     @Override
@@ -64,31 +58,61 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public Collection<? extends TaskInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
+        for (WorkInfo targetNode : getDependencies(dependencyResolver)) {
+            addDependencySuccessor(targetNode);
+            processHardSuccessor.execute(targetNode);
+        }
+        for (WorkInfo targetNode : getFinalizedBy(dependencyResolver)) {
+            if (!(targetNode instanceof TaskInfo)) {
+                throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
+            }
+            addFinalizerNode((TaskInfo) targetNode);
+            processHardSuccessor.execute(targetNode);
+        }
+        for (WorkInfo targetNode : getMustRunAfter(dependencyResolver)) {
+            addMustSuccessor(targetNode);
+        }
+        for (WorkInfo targetNode : getShouldRunAfter(dependencyResolver)) {
+            addShouldSuccessor(targetNode);
+        }
+    }
+
+    private void addFinalizerNode(TaskInfo finalizerNode) {
+        addFinalizer(finalizerNode);
+        if (!finalizerNode.isInKnownState()) {
+            finalizerNode.mustNotRun();
+        }
+    }
+
+    private Set<WorkInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
     }
 
-    @Override
-    public Collection<? extends TaskInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
+    private Set<WorkInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy());
     }
 
-    @Override
-    public Collection<? extends TaskInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
+    private Set<WorkInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter());
     }
 
-    @Override
-    public Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
+    private Set<WorkInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter());
     }
 
     @Override
-    public int compareTo(TaskInfo other) {
-        if (other.getClass() != getClass()) {
-            return -1;
+    @SuppressWarnings("NullableProblems")
+    public int compareTo(WorkInfo other) {
+        if (getClass() != other.getClass()) {
+            return getClass().getName().compareTo(other.getClass().getName());
         }
         LocalTaskInfo localTask = (LocalTaskInfo) other;
         return task.compareTo(localTask.task);
+    }
+
+    @Override
+    public String toString() {
+        return task.getIdentityPath().toString();
     }
 }

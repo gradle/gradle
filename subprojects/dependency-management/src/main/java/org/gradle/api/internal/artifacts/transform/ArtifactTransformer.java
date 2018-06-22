@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 
 import java.io.File;
@@ -36,4 +37,5 @@ public interface ArtifactTransformer extends Describable {
      */
     boolean hasCachedResult(File input);
 
+    void visitLeafTransformers(Action<? super ArtifactTransformer> action);
 }

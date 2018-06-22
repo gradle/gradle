@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
-/**
- * A lightweight reference to a task.
- */
-@Incubating
-@HasInternalProtocol
-public interface TaskReference extends Named {
+public interface BuildableSingleResolvedArtifactSet extends ResolvedArtifactSet, Buildable {
+    ComponentArtifactIdentifier getArtifactId();
 }

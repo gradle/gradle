@@ -18,13 +18,17 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
 class TransformArtifactOperation implements RunnableBuildOperation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformArtifactOperation.class);
     private final ResolvableArtifact artifact;
     private final ArtifactTransformer transform;
     private Throwable failure;
@@ -36,8 +40,11 @@ class TransformArtifactOperation implements RunnableBuildOperation {
     }
 
     @Override
-    public void run(BuildOperationContext context) {
+    public void run(@Nullable BuildOperationContext context) {
         try {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifact.getId().getDisplayName());
+            }
             result = transform.transform(artifact.getFile());
         } catch (Throwable t) {
             failure = t;
@@ -49,10 +56,12 @@ class TransformArtifactOperation implements RunnableBuildOperation {
         return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + artifact);
     }
 
+    @Nullable
     public Throwable getFailure() {
         return failure;
     }
 
+    @Nullable
     public List<File> getResult() {
         return result;
     }

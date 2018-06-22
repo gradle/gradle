@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ValidatingArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
@@ -150,8 +149,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(newModelBuilder, localComponentsVisitor, failureCollector);
-        DependencyArtifactsVisitor artifactsVisitor;
-                ImmutableList.Builder<DependencyArtifactsVisitor> visitors = new ImmutableList.Builder<DependencyArtifactsVisitor>();
+
+        ImmutableList.Builder<DependencyArtifactsVisitor> visitors = new ImmutableList.Builder<DependencyArtifactsVisitor>();
         visitors.add(oldModelVisitor);
         visitors.add(fileDependencyVisitor);
         visitors.add(artifactsBuilder);
@@ -163,7 +162,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             visitors.add(lockingVisitor);
         }
         ImmutableList<DependencyArtifactsVisitor> allVisitors = visitors.build();
-        artifactsVisitor = new CompositeDependencyArtifactsVisitor(allVisitors);
+        CompositeDependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(allVisitors);
 
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry);
 
@@ -176,11 +175,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         results.retainState(new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder));
         if (!results.hasError() && failures.isEmpty()) {
-            for (DependencyArtifactsVisitor allVisitor : allVisitors) {
-                if (allVisitor instanceof ValidatingArtifactsVisitor) {
-                    ((ValidatingArtifactsVisitor) allVisitor).complete();
-                }
-            }
+            artifactsVisitor.complete();
         }
     }
 

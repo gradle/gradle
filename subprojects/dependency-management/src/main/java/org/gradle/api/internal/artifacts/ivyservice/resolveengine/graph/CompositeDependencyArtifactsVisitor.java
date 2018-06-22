@@ -19,11 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ValidatingArtifactsVisitor;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.List;
 
-public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsVisitor {
+public class CompositeDependencyArtifactsVisitor implements ValidatingArtifactsVisitor {
     private final List<DependencyArtifactsVisitor> visitors;
 
     public CompositeDependencyArtifactsVisitor(List<DependencyArtifactsVisitor> visitors) {
@@ -62,6 +63,15 @@ public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsV
     public void finishArtifacts() {
         for (DependencyArtifactsVisitor visitor : visitors) {
             visitor.finishArtifacts();
+        }
+    }
+
+    @Override
+    public void complete() {
+        for (DependencyArtifactsVisitor visitor : visitors) {
+            if (visitor instanceof ValidatingArtifactsVisitor) {
+                ((ValidatingArtifactsVisitor) visitor).complete();
+            }
         }
     }
 }

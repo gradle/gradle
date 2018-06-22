@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -69,10 +68,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public TaskReferenceResolver createResolver() {
-            return new IncludedBuildTaskReferenceResolver();
-        }
-
         public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
             return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, currentBuild);
         }

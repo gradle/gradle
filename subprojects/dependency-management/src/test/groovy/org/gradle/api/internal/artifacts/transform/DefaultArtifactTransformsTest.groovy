@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Buildable
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -114,6 +115,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def id = Stub(ComponentIdentifier)
+        def sourceArtifactId = Stub(ComponentArtifactIdentifier)
         def sourceArtifact = Stub(TestArtifact)
         def sourceArtifactFile = new File("thing-1.0.jar")
         def sourceFile = new File("thing-file.jar")
@@ -130,6 +132,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def variant1DisplayName = Describables.of('variant1')
 
         given:
+        sourceArtifact.id >> sourceArtifactId
         set.schema >> producerSchema
         set.variants >> variants
         variant1.attributes >> typeAttributes("jar")

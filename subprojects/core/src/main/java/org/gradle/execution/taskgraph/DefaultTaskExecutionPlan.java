@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
@@ -24,6 +25,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.NonNullApi;
@@ -40,7 +42,6 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -61,31 +62,27 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.AbstractCollection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
-    private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
+    private final Set<WorkInfo> workInUnknownState = Sets.newLinkedHashSet();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
-    private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
-    private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
+    private final WorkInfoMapping workInfoMapping = new WorkInfoMapping();
+    private final List<WorkInfo> executionQueue = Lists.newLinkedList();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final TaskFailureCollector failureCollector = new TaskFailureCollector();
     private final TaskInfoFactory nodeFactory;
@@ -94,22 +91,22 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean continueOnFailure;
 
-    private final Set<TaskInfo> runningTasks = Sets.newIdentityHashSet();
-    private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
-    private final Map<TaskInfo, TaskMutationInfo> taskMutations = Maps.newIdentityHashMap();
+    private final Set<WorkInfo> runningNodes = Sets.newIdentityHashSet();
+    private final Set<WorkInfo> filteredNodes = Sets.newIdentityHashSet();
+    private final Map<WorkInfo, MutationInfo> workMutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
-    private final Map<Pair<TaskInfo, TaskInfo>, Boolean> reachableCache = Maps.newHashMap();
-    private final Set<TaskInfo> dependenciesCompleteCache = Sets.newHashSet();
+    private final Map<Pair<WorkInfo, WorkInfo>, Boolean> reachableCache = Maps.newHashMap();
+    private final Set<WorkInfo> dependenciesCompleteCache = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, IncludedBuildTaskGraph taskGraph) {
+    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
-        nodeFactory = new TaskInfoFactory(gradle, taskGraph);
-        dependencyResolver = new TaskDependencyResolver(nodeFactory);
+        this.nodeFactory = taskInfoFactory;
+        this.dependencyResolver = dependencyResolver;
     }
 
     @Override
@@ -121,8 +118,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return path.toString();
     }
 
+    @VisibleForTesting
+    TaskInfo getNode(Task task) {
+        return workInfoMapping.get(task);
+    }
+
     public void addToTaskGraph(Collection<? extends Task> tasks) {
-        List<TaskInfo> queue = new ArrayList<TaskInfo>();
+        final Deque<WorkInfo> queue = new ArrayDeque<WorkInfo>();
 
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
@@ -137,23 +139,23 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             queue.add(node);
         }
 
-        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
+        final Set<WorkInfo> visiting = Sets.newHashSet();
 
         while (!queue.isEmpty()) {
-            TaskInfo node = queue.get(0);
+            WorkInfo node = queue.getFirst();
             if (node.getDependenciesProcessed()) {
                 // Have already visited this task - skip it
-                queue.remove(0);
+                queue.removeFirst();
                 continue;
             }
 
-            boolean filtered = !node.satisfies(filter);
+            boolean filtered = !nodeSatisfiesTaskFilter(node);
             if (filtered) {
                 // Task is not required - skip it
-                queue.remove(0);
+                queue.removeFirst();
                 node.dependenciesProcessed();
                 node.doNotRequire();
-                filteredTasks.add(node.getTask());
+                filteredNodes.add(node);
                 continue;
             }
 
@@ -162,68 +164,65 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // task in the queue
                 // Make sure it has been configured
                 node.prepareForExecution();
-                for (TaskInfo targetNode : node.getDependencies(dependencyResolver)) {
-                    node.addDependencySuccessor(targetNode);
-                    if (!visiting.contains(targetNode)) {
-                        queue.add(0, targetNode);
+                node.resolveDependencies(dependencyResolver, new Action<WorkInfo>() {
+                    @Override
+                    public void execute(WorkInfo targetNode) {
+                        if (!visiting.contains(targetNode)) {
+                            queue.addFirst(targetNode);
+                        }
                     }
-                }
-                for (TaskInfo targetNode : node.getFinalizedBy(dependencyResolver)) {
-                    addFinalizerNode(node, targetNode);
-                    if (!visiting.contains(targetNode)) {
-                        queue.add(0, targetNode);
-                    }
-                }
-                for (TaskInfo targetNode : node.getMustRunAfter(dependencyResolver)) {
-                    node.addMustSuccessor(targetNode);
-                }
-                for (TaskInfo targetNode : node.getShouldRunAfter(dependencyResolver)) {
-                    node.addShouldSuccessor(targetNode);
-                }
+                });
                 if (node.isRequired()) {
-                    for (TaskInfo successor : node.getDependencySuccessors()) {
-                        if (successor.satisfies(filter)) {
+                    for (WorkInfo successor : node.getDependencySuccessors()) {
+                        if (nodeSatisfiesTaskFilter(successor)) {
                             successor.require();
                         }
                     }
                 } else {
-                    tasksInUnknownState.add(node);
+                    workInUnknownState.add(node);
                 }
             } else {
                 // Have visited this task's dependencies - add it to the graph
-                queue.remove(0);
+                queue.removeFirst();
                 visiting.remove(node);
                 node.dependenciesProcessed();
             }
         }
-        resolveTasksInUnknownState();
+        resolveWorkInUnknownState();
     }
 
-    private void resolveTasksInUnknownState() {
-        List<TaskInfo> queue = new ArrayList<TaskInfo>(tasksInUnknownState);
-        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
+    private boolean nodeSatisfiesTaskFilter(WorkInfo successor) {
+        if (successor instanceof LocalTaskInfo) {
+            return filter.isSatisfiedBy(((LocalTaskInfo) successor).getTask());
+        }
+        return true;
+    }
+
+    private void resolveWorkInUnknownState() {
+        List<WorkInfo> queue = Lists.newArrayList(workInUnknownState);
+        Set<WorkInfo> visiting = Sets.newHashSet();
 
         while (!queue.isEmpty()) {
-            TaskInfo task = queue.get(0);
-            if (task.isInKnownState()) {
+            WorkInfo workInfo = queue.get(0);
+            if (workInfo.isInKnownState()) {
                 queue.remove(0);
                 continue;
             }
 
-            if (visiting.add(task)) {
-                for (TaskInfo hardPredecessor : task.getDependencyPredecessors()) {
+            if (visiting.add(workInfo)) {
+                for (WorkInfo hardPredecessor : workInfo.getDependencyPredecessors()) {
                     if (!visiting.contains(hardPredecessor)) {
                         queue.add(0, hardPredecessor);
                     }
                 }
             } else {
                 queue.remove(0);
-                visiting.remove(task);
-                task.mustNotRun();
-                for (TaskInfo predecessor : task.getDependencyPredecessors()) {
+                visiting.remove(workInfo);
+                workInfo.mustNotRun();
+                for (WorkInfo predecessor : workInfo.getDependencyPredecessors()) {
                     assert predecessor.isRequired() || predecessor.isMustNotRun();
                     if (predecessor.isRequired()) {
-                        task.require();
+                        workInfo.require();
                         break;
                     }
                 }
@@ -231,75 +230,63 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void addFinalizerNode(TaskInfo node, TaskInfo finalizerNode) {
-        if (finalizerNode.satisfies(filter)) {
-            node.addFinalizer(finalizerNode);
-            if (!finalizerNode.isInKnownState()) {
-                finalizerNode.mustNotRun();
-            }
-        }
-    }
-
-    private <T> void addAllReversed(List<T> list, TreeSet<T> set) {
-        List<T> elements = CollectionUtils.toList(set);
-        Collections.reverse(elements);
-        list.addAll(elements);
-    }
-
-    private void requireWithDependencies(TaskInfo taskInfo) {
-        if (taskInfo.isMustNotRun() && taskInfo.satisfies(filter)) {
-            taskInfo.require();
-            for (TaskInfo dependency : taskInfo.getDependencySuccessors()) {
+    private void requireWithDependencies(WorkInfo workInfo) {
+        if (workInfo.isMustNotRun() && nodeSatisfiesTaskFilter(workInfo)) {
+            workInfo.require();
+            for (WorkInfo dependency : workInfo.getDependencySuccessors()) {
                 requireWithDependencies(dependency);
             }
         }
     }
 
     public void determineExecutionPlan() {
-        List<TaskInfoInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new Function<TaskInfo, TaskInfoInVisitingSegment>() {
+        List<WorkInfoInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new Function<TaskInfo, WorkInfoInVisitingSegment>() {
             private int index;
 
             @Override
-            public TaskInfoInVisitingSegment apply(TaskInfo taskInfo) {
-                return new TaskInfoInVisitingSegment(taskInfo, index++);
+            @SuppressWarnings("NullableProblems")
+            public WorkInfoInVisitingSegment apply(TaskInfo taskInfo) {
+                return new WorkInfoInVisitingSegment(taskInfo, index++);
             }
         }));
         int visitingSegmentCounter = nodeQueue.size();
 
-        HashMultimap<TaskInfo, Integer> visitingNodes = HashMultimap.create();
+        HashMultimap<WorkInfo, Integer> visitingNodes = HashMultimap.create();
         Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
-        Deque<TaskInfo> path = new ArrayDeque<TaskInfo>();
-        HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
+        Deque<WorkInfo> path = new ArrayDeque<WorkInfo>();
+        Map<WorkInfo, Integer> planBeforeVisiting = Maps.newHashMap();
 
         while (!nodeQueue.isEmpty()) {
-            TaskInfoInVisitingSegment taskInfoInVisitingSegment = nodeQueue.get(0);
-            int currentSegment = taskInfoInVisitingSegment.visitingSegment;
-            TaskInfo taskNode = taskInfoInVisitingSegment.taskInfo;
+            WorkInfoInVisitingSegment workInfoInVisitingSegment = nodeQueue.get(0);
+            int currentSegment = workInfoInVisitingSegment.visitingSegment;
+            WorkInfo workInfo = workInfoInVisitingSegment.workInfo;
 
-            if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
+            if (workInfo.isIncludeInGraph() || workInfoMapping.contains(workInfo)) {
                 nodeQueue.remove(0);
-                visitingNodes.remove(taskNode, currentSegment);
-                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
+                visitingNodes.remove(workInfo, currentSegment);
+                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, workInfo);
                 continue;
             }
 
-            boolean alreadyVisited = visitingNodes.containsKey(taskNode);
-            visitingNodes.put(taskNode, currentSegment);
+            boolean alreadyVisited = visitingNodes.containsKey(workInfo);
+            visitingNodes.put(workInfo, currentSegment);
 
             if (!alreadyVisited) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, taskNode);
-                removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, taskInfoInVisitingSegment);
-                takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, taskNode);
-                ArrayList<TaskInfo> successors = new ArrayList<TaskInfo>();
-                addAllSuccessorsInReverseOrder(taskNode, successors);
-                for (TaskInfo successor : successors) {
+                recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, workInfo);
+                removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, workInfoInVisitingSegment);
+                takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, workInfo);
+
+                for (WorkInfo successor : workInfo.getAllSuccessorsInReverseOrder()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
                             GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
-                            toBeRemoved.from.removeShouldRunAfterSuccessor(toBeRemoved.to);
+                            // Should run after edges only exist between tasks, so this cast is safe
+                            TaskInfo sourceTask = (TaskInfo) toBeRemoved.from;
+                            TaskInfo targetTask = (TaskInfo) toBeRemoved.to;
+                            sourceTask.removeShouldSuccessor(targetTask);
                             restorePath(path, toBeRemoved);
                             restoreQueue(nodeQueue, visitingNodes, toBeRemoved);
                             restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
@@ -308,124 +295,118 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                             onOrderingCycle();
                         }
                     }
-                    nodeQueue.add(0, new TaskInfoInVisitingSegment(successor, currentSegment));
+                    nodeQueue.add(0, new WorkInfoInVisitingSegment(successor, currentSegment));
                 }
-                path.push(taskNode);
+                path.push(workInfo);
             } else {
-                // Have visited this task's dependencies - add it to the end of the plan
+                // Have visited this node's dependencies - add it to the end of the plan
                 nodeQueue.remove(0);
-                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
-                visitingNodes.remove(taskNode, currentSegment);
+                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, workInfo);
+                visitingNodes.remove(workInfo, currentSegment);
                 path.pop();
-                executionPlan.put(taskNode.getTask(), taskNode);
-                Project project = taskNode.getTask().getProject();
-                projectLocks.put(project, getOrCreateProjectLock(project));
+                workInfoMapping.add(workInfo);
 
-                TaskMutationInfo taskMutationInfo = getOrCreateMutationsOf(taskNode);
-
-                for (TaskInfo dependency : taskNode.getDependencySuccessors()) {
-                    getOrCreateMutationsOf(dependency).consumingTasks.add(taskNode);
-                    taskMutationInfo.consumesOutputOf.add(dependency);
+                MutationInfo mutations = getOrCreateMutationsOf(workInfo);
+                for (WorkInfo dependency : workInfo.getDependencySuccessors()) {
+                    getOrCreateMutationsOf(dependency).consumingWork.add(workInfo);
+                    mutations.consumesOutputOf.add(dependency);
                 }
 
-                // Add any finalizers to the queue
-                ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
-                addAllReversed(finalizerTasks, taskNode.getFinalizers());
-                for (TaskInfo finalizer : finalizerTasks) {
-                    if (!visitingNodes.containsKey(finalizer)) {
-                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new TaskInfoInVisitingSegment(finalizer, visitingSegmentCounter++));
+                if (workInfo instanceof LocalTaskInfo) {
+                    LocalTaskInfo taskInfo = (LocalTaskInfo) workInfo;
+                    TaskInternal task = taskInfo.getTask();
+                    Project project = task.getProject();
+                    projectLocks.put(project, getOrCreateProjectLock(project));
+
+                    // Add any finalizers to the queue
+                    for (WorkInfo finalizer : taskInfo.getFinalizers()) {
+                        if (!visitingNodes.containsKey(finalizer)) {
+                            nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new WorkInfoInVisitingSegment(finalizer, visitingSegmentCounter++));
+                        }
                     }
                 }
             }
         }
         executionQueue.clear();
-        executionQueue.addAll(executionPlan.values());
-
+        Iterables.addAll(executionQueue, workInfoMapping);
     }
 
     @Override
     public Set<Task> getDependencies(Task task) {
-        TaskInfo node = executionPlan.get(task);
-        if (node == null) {
-            throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
-        }
+        TaskInfo node = workInfoMapping.get(task);
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-        for (TaskInfo taskInfo : node.getDependencySuccessors()) {
+        for (WorkInfo taskInfo : node.getDependencySuccessors()) {
             taskInfo.collectTaskInto(builder);
         }
         return builder.build();
     }
 
-    private TaskMutationInfo getOrCreateMutationsOf(TaskInfo taskInfo) {
-        TaskMutationInfo mutations = taskMutations.get(taskInfo);
+    private MutationInfo getOrCreateMutationsOf(WorkInfo workInfo) {
+        MutationInfo mutations = this.workMutations.get(workInfo);
         if (mutations == null) {
-            mutations = new TaskMutationInfo(taskInfo);
-            taskMutations.put(taskInfo, mutations);
+            mutations = new MutationInfo(workInfo);
+            this.workMutations.put(workInfo, mutations);
         }
         return mutations;
     }
 
-    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
-        if (!walkedShouldRunAfterEdges.isEmpty() && walkedShouldRunAfterEdges.peek().to.equals(taskNode)) {
+    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, WorkInfo workInfo) {
+        GraphEdge edge = walkedShouldRunAfterEdges.peek();
+        if (edge != null && edge.to.equals(workInfo)) {
             walkedShouldRunAfterEdges.pop();
         }
     }
 
-    private void restoreExecutionPlan(HashMap<TaskInfo, Integer> planBeforeVisiting, GraphEdge toBeRemoved) {
-        Iterator<Map.Entry<Task, TaskInfo>> executionPlanIterator = executionPlan.entrySet().iterator();
-        for (int i = 0; i < planBeforeVisiting.get(toBeRemoved.from); i++) {
-            executionPlanIterator.next();
-        }
-        while (executionPlanIterator.hasNext()) {
-            executionPlanIterator.next();
-            executionPlanIterator.remove();
-        }
+    private void restoreExecutionPlan(Map<WorkInfo, Integer> planBeforeVisiting, GraphEdge toBeRemoved) {
+        int count = planBeforeVisiting.get(toBeRemoved.from);
+        workInfoMapping.retainFirst(count);
     }
 
-    private void restoreQueue(List<TaskInfoInVisitingSegment> nodeQueue, HashMultimap<TaskInfo, Integer> visitingNodes, GraphEdge toBeRemoved) {
-        TaskInfoInVisitingSegment nextInQueue = null;
-        while (nextInQueue == null || !toBeRemoved.from.equals(nextInQueue.taskInfo)) {
+    private void restoreQueue(List<WorkInfoInVisitingSegment> nodeQueue, HashMultimap<WorkInfo, Integer> visitingNodes, GraphEdge toBeRemoved) {
+        WorkInfoInVisitingSegment nextInQueue = null;
+        while (nextInQueue == null || !toBeRemoved.from.equals(nextInQueue.workInfo)) {
             nextInQueue = nodeQueue.get(0);
-            visitingNodes.remove(nextInQueue.taskInfo, nextInQueue.visitingSegment);
-            if (!toBeRemoved.from.equals(nextInQueue.taskInfo)) {
+            visitingNodes.remove(nextInQueue.workInfo, nextInQueue.visitingSegment);
+            if (!toBeRemoved.from.equals(nextInQueue.workInfo)) {
                 nodeQueue.remove(0);
             }
         }
     }
 
-    private void restorePath(Deque<TaskInfo> path, GraphEdge toBeRemoved) {
-        TaskInfo removedFromPath = null;
+    private void restorePath(Deque<WorkInfo> path, GraphEdge toBeRemoved) {
+        WorkInfo removedFromPath = null;
         while (!toBeRemoved.from.equals(removedFromPath)) {
             removedFromPath = path.pop();
         }
     }
 
-    private void addAllSuccessorsInReverseOrder(TaskInfo taskNode, ArrayList<TaskInfo> dependsOnTasks) {
-        addAllReversed(dependsOnTasks, taskNode.getDependencySuccessors());
-        addAllReversed(dependsOnTasks, taskNode.getMustSuccessors());
-        addAllReversed(dependsOnTasks, taskNode.getFinalizingSuccessors());
-        addAllReversed(dependsOnTasks, taskNode.getShouldSuccessors());
-    }
-
-    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<TaskInfo, Integer> visitingNodes, final TaskInfoInVisitingSegment taskNodeWithVisitingSegment) {
-        TaskInfo taskNode = taskNodeWithVisitingSegment.taskInfo;
-        Iterables.removeIf(taskNode.getShouldSuccessors(), new Predicate<TaskInfo>() {
+    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<WorkInfo, Integer> visitingNodes, final WorkInfoInVisitingSegment taskNodeWithVisitingSegment) {
+        WorkInfo workInfo = taskNodeWithVisitingSegment.workInfo;
+        if (!(workInfo instanceof TaskInfo)) {
+            return;
+        }
+        Iterables.removeIf(((TaskInfo) workInfo).getShouldSuccessors(), new Predicate<WorkInfo>() {
             @Override
-            public boolean apply(TaskInfo input) {
+            @SuppressWarnings("NullableProblems")
+            public boolean apply(WorkInfo input) {
                 return visitingNodes.containsEntry(input, taskNodeWithVisitingSegment.visitingSegment);
             }
         });
     }
 
-    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(HashMap<TaskInfo, Integer> planBeforeVisiting, TaskInfo taskNode) {
-        if (taskNode.getShouldSuccessors().size() > 0) {
-            planBeforeVisiting.put(taskNode, executionPlan.size());
+    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(Map<WorkInfo, Integer> planBeforeVisiting, WorkInfo workInfo) {
+        if (workInfo instanceof TaskInfo && !((TaskInfo) workInfo).getShouldSuccessors().isEmpty()) {
+            planBeforeVisiting.put(workInfo, workInfoMapping.size());
         }
     }
 
-    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<TaskInfo> path, TaskInfo taskNode) {
-        if (!path.isEmpty() && path.peek().getShouldSuccessors().contains(taskNode)) {
-            walkedShouldRunAfterEdges.push(new GraphEdge(path.peek(), taskNode));
+    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<WorkInfo> path, WorkInfo workInfo) {
+        if (!(workInfo instanceof TaskInfo)) {
+            return;
+        }
+        WorkInfo previous = path.peek();
+        if (previous instanceof TaskInfo && ((TaskInfo) previous).getShouldSuccessors().contains(workInfo)) {
+            walkedShouldRunAfterEdges.push(new GraphEdge(previous, workInfo));
         }
     }
 
@@ -433,19 +414,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
      * Given a finalizer task, determine where in the current node queue that it should be inserted.
      * The finalizer should be inserted after any of it's preceding tasks.
      */
-    private int finalizerTaskPosition(TaskInfo finalizer, final List<TaskInfoInVisitingSegment> nodeQueue) {
+    private int finalizerTaskPosition(WorkInfo finalizer, final List<WorkInfoInVisitingSegment> nodeQueue) {
         if (nodeQueue.size() == 0) {
             return 0;
         }
 
-        Set<TaskInfo> precedingTasks = getAllPrecedingTasks(finalizer);
-        Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, TaskInfo>() {
+        Set<WorkInfo> precedingTasks = getAllPrecedingTasks(finalizer);
+        Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, WorkInfo>() {
             @Override
-            public Integer transform(final TaskInfo dependsOnTask) {
-                return Iterables.indexOf(nodeQueue, new Predicate<TaskInfoInVisitingSegment>() {
+            public Integer transform(final WorkInfo dependsOnTask) {
+                return Iterables.indexOf(nodeQueue, new Predicate<WorkInfoInVisitingSegment>() {
                     @Override
-                    public boolean apply(TaskInfoInVisitingSegment taskInfoInVisitingSegment) {
-                        return taskInfoInVisitingSegment.taskInfo.equals(dependsOnTask);
+                    @SuppressWarnings("NullableProblems")
+                    public boolean apply(WorkInfoInVisitingSegment taskInfoInVisitingSegment) {
+                        return taskInfoInVisitingSegment.workInfo.equals(dependsOnTask);
                     }
                 });
             }
@@ -453,23 +435,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return Collections.max(precedingTaskIndices) + 1;
     }
 
-    private Set<TaskInfo> getAllPrecedingTasks(TaskInfo finalizer) {
-        Set<TaskInfo> precedingTasks = new HashSet<TaskInfo>();
-        Deque<TaskInfo> candidateTasks = new ArrayDeque<TaskInfo>();
+    private Set<WorkInfo> getAllPrecedingTasks(WorkInfo finalizer) {
+        Set<WorkInfo> precedingTasks = Sets.newHashSet();
+        Deque<WorkInfo> candidateTasks = new ArrayDeque<WorkInfo>();
 
         // Consider every task that must run before the finalizer
-        candidateTasks.addAll(finalizer.getDependencySuccessors());
-        candidateTasks.addAll(finalizer.getMustSuccessors());
-        candidateTasks.addAll(finalizer.getFinalizingSuccessors());
-        candidateTasks.addAll(finalizer.getShouldSuccessors());
+        Iterables.addAll(candidateTasks, finalizer.getAllSuccessors());
 
         // For each candidate task, add it to the preceding tasks.
         while (!candidateTasks.isEmpty()) {
-            TaskInfo precedingTask = candidateTasks.pop();
-            if (precedingTasks.add(precedingTask)) {
+            WorkInfo precedingTask = candidateTasks.pop();
+            if (precedingTasks.add(precedingTask) && precedingTask instanceof TaskInfo) {
                 // Any task that the preceding task must run after is also a preceding task.
-                candidateTasks.addAll(precedingTask.getMustSuccessors());
-                candidateTasks.addAll(precedingTask.getFinalizingSuccessors());
+                candidateTasks.addAll(((TaskInfo) precedingTask).getMustSuccessors());
+                candidateTasks.addAll(((TaskInfo) precedingTask).getFinalizingSuccessors());
             }
         }
 
@@ -477,28 +456,31 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void onOrderingCycle() {
-        CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<TaskInfo, Void>(new DirectedGraph<TaskInfo, Void>() {
+        CachingDirectedGraphWalker<WorkInfo, Void> graphWalker = new CachingDirectedGraphWalker<WorkInfo, Void>(new DirectedGraph<WorkInfo, Void>() {
             @Override
-            public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
+            public void getNodeValues(WorkInfo node, Collection<? super Void> values, Collection<? super WorkInfo> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
-                connectedNodes.addAll(node.getMustSuccessors());
-                connectedNodes.addAll(node.getFinalizingSuccessors());
+                if (node instanceof TaskInfo) {
+                    TaskInfo taskInfo = (TaskInfo) node;
+                    connectedNodes.addAll(taskInfo.getMustSuccessors());
+                    connectedNodes.addAll(taskInfo.getFinalizingSuccessors());
+                }
             }
         });
         graphWalker.add(entryTasks);
-        final List<TaskInfo> firstCycle = new ArrayList<TaskInfo>(graphWalker.findCycles().get(0));
+        final List<WorkInfo> firstCycle = Lists.newArrayList(graphWalker.findCycles().get(0));
         Collections.sort(firstCycle);
 
-        DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
+        DirectedGraphRenderer<WorkInfo> graphRenderer = new DirectedGraphRenderer<WorkInfo>(new GraphNodeRenderer<WorkInfo>() {
             @Override
-            public void renderTo(TaskInfo node, StyledTextOutput output) {
-                output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getIdentityPath());
+            public void renderTo(WorkInfo node, StyledTextOutput output) {
+                output.withStyle(StyledTextOutput.Style.Identifier).text(node);
             }
-        }, new DirectedGraph<TaskInfo, Object>() {
+        }, new DirectedGraph<WorkInfo, Object>() {
             @Override
-            public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
-                for (TaskInfo dependency : firstCycle) {
-                    if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency) || node.getFinalizingSuccessors().contains(dependency)) {
+            public void getNodeValues(WorkInfo node, Collection<? super Object> values, Collection<? super WorkInfo> connectedNodes) {
+                for (WorkInfo dependency : firstCycle) {
+                    if (node.hasHardSuccessor(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
@@ -513,25 +495,31 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         nodeFactory.clear();
         dependencyResolver.clear();
         entryTasks.clear();
-        executionPlan.clear();
+        workInfoMapping.clear();
         executionQueue.clear();
         projectLocks.clear();
         failureCollector.clearFailures();
-        taskMutations.clear();
+        workMutations.clear();
         canonicalizedFileCache.clear();
         reachableCache.clear();
         dependenciesCompleteCache.clear();
-        runningTasks.clear();
+        runningNodes.clear();
     }
 
     @Override
     public Set<Task> getTasks() {
-        return executionPlan.keySet();
+        return workInfoMapping.getTasks();
     }
 
     @Override
     public Set<Task> getFilteredTasks() {
-        return filteredTasks;
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        for (WorkInfo filteredNode : filteredNodes) {
+            if (filteredNode instanceof LocalTaskInfo) {
+                builder.add(((LocalTaskInfo) filteredNode).getTask());
+            }
+        }
+        return builder.build();
     }
 
     public void useFilter(Spec<? super Task> filter) {
@@ -544,77 +532,103 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     @Nullable
-    public TaskInfo selectNextTask(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
+    public WorkInfo selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
         if (allProjectsLocked()) {
             return null;
         }
 
-        Iterator<TaskInfo> iterator = executionQueue.iterator();
+        Iterator<WorkInfo> iterator = executionQueue.iterator();
         while (iterator.hasNext()) {
-            TaskInfo taskInfo = iterator.next();
-            if (taskInfo.isReady() && allDependenciesComplete(taskInfo)) {
-                ResourceLock projectLock = getProjectLock(taskInfo);
-                TaskMutationInfo taskMutationInfo = getResolvedTaskMutationInfo(taskInfo);
+            WorkInfo workInfo = iterator.next();
+            if (workInfo.isReady() && allDependenciesComplete(workInfo)) {
+                MutationInfo mutations = getResolvedMutationInfo(workInfo);
 
                 // TODO: convert output file checks to a resource lock
-                if (!projectLock.tryLock() || !workerLease.tryLock() || !canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
+                if (!tryLockProjectFor(workInfo)
+                    || !workerLease.tryLock()
+                    || !canRunWithCurrentlyExecutedTasks(workInfo, mutations)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
 
-                if (taskInfo.allDependenciesSuccessful()) {
-                    recordTaskStarted(taskInfo);
-                    taskInfo.startExecution();
+                if (workInfo.allDependenciesSuccessful()) {
+                    recordWorkStarted(workInfo);
+                    workInfo.startExecution();
                 } else {
-                    taskInfo.skipExecution();
+                    workInfo.skipExecution();
                 }
                 iterator.remove();
 
-                return taskInfo;
+                return workInfo;
             }
         }
         return null;
     }
 
-    private TaskMutationInfo getResolvedTaskMutationInfo(TaskInfo taskInfo) {
-        TaskInternal task = taskInfo.getTask();
-        TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
-        if (!taskMutationInfo.resolved) {
+    private boolean tryLockProjectFor(WorkInfo workInfo) {
+        if (workInfo instanceof LocalTaskInfo) {
+            return getProjectLock((LocalTaskInfo) workInfo).tryLock();
+        } else {
+            return true;
+        }
+    }
+
+    private void unlockProjectFor(WorkInfo workInfo) {
+        if (workInfo instanceof LocalTaskInfo) {
+            getProjectLock((LocalTaskInfo) workInfo).unlock();
+        }
+    }
+
+    private ResourceLock getProjectLock(LocalTaskInfo taskInfo) {
+        return projectLocks.get(taskInfo.getTask().getProject());
+    }
+
+    private MutationInfo getResolvedMutationInfo(WorkInfo workInfo) {
+        MutationInfo mutations = workMutations.get(workInfo);
+        if (!mutations.resolved) {
+            resolveMutations(mutations, workInfo);
+        }
+        return mutations;
+    }
+
+    private void resolveMutations(MutationInfo mutations, WorkInfo workInfo) {
+        if (workInfo instanceof LocalTaskInfo) {
+            LocalTaskInfo taskInfo = (LocalTaskInfo) workInfo;
+            TaskInternal task = taskInfo.getTask();
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
             PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
             TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
-            taskMutationInfo.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
-            taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskInfo, taskProperties.getDestroyableFiles()));
-            taskMutationInfo.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
-            taskMutationInfo.hasOutputs = taskProperties.hasDeclaredOutputs();
-            taskMutationInfo.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
-            taskMutationInfo.resolved = true;
+            mutations.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
+            mutations.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskInfo, taskProperties.getDestroyableFiles()));
+            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            mutations.hasOutputs = taskProperties.hasDeclaredOutputs();
+            mutations.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
+            mutations.resolved = true;
 
-            if (!taskMutationInfo.destroyablePaths.isEmpty()) {
-                if (taskMutationInfo.hasOutputs) {
-                    throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
+            if (!mutations.destroyablePaths.isEmpty()) {
+                if (mutations.hasOutputs) {
+                    throw new IllegalStateException("Task " + taskInfo + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
                 }
-                if (taskMutationInfo.hasFileInputs) {
-                    throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+                if (mutations.hasFileInputs) {
+                    throw new IllegalStateException("Task " + taskInfo + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
                 }
-                if (taskMutationInfo.hasLocalState) {
-                    throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
+                if (mutations.hasLocalState) {
+                    throw new IllegalStateException("Task " + taskInfo + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
                 }
             }
         }
-        return taskMutationInfo;
     }
 
-    private boolean allDependenciesComplete(TaskInfo taskInfo) {
-        if (dependenciesCompleteCache.contains(taskInfo)) {
+    private boolean allDependenciesComplete(WorkInfo workInfo) {
+        if (dependenciesCompleteCache.contains(workInfo)) {
             return true;
         }
 
-        boolean dependenciesComplete = taskInfo.allDependenciesComplete();
+        boolean dependenciesComplete = workInfo.allDependenciesComplete();
         if (dependenciesComplete) {
-            dependenciesCompleteCache.add(taskInfo);
+            dependenciesCompleteCache.add(workInfo);
         }
 
         return dependenciesComplete;
@@ -629,23 +643,19 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return true;
     }
 
-    private ResourceLock getProjectLock(TaskInfo taskInfo) {
-        return projectLocks.get(taskInfo.getTask().getProject());
-    }
-
     private ResourceLock getOrCreateProjectLock(Project project) {
         String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
         String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
         return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
-    private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo, TaskMutationInfo taskMutationInfo) {
-        Set<String> candidateTaskDestroyables = taskMutationInfo.destroyablePaths;
+    private boolean canRunWithCurrentlyExecutedTasks(WorkInfo taskInfo, MutationInfo mutations) {
+        Set<String> candidateTaskDestroyables = mutations.destroyablePaths;
 
-        if (!runningTasks.isEmpty()) {
-            Set<String> candidateTaskOutputs = taskMutationInfo.outputPaths;
-            Set<String> candidateTaskMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
-            if (hasTaskWithOverlappingMutations(candidateTaskMutations)) {
+        if (!runningNodes.isEmpty()) {
+            Set<String> candidateTaskOutputs = mutations.outputPaths;
+            Set<String> candidateMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
+            if (hasTaskWithOverlappingMutations(candidateMutations)) {
                 return false;
             }
         }
@@ -671,12 +681,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return builder.build();
     }
 
-    private boolean hasTaskWithOverlappingMutations(Set<String> candidateTaskMutations) {
-        if (!candidateTaskMutations.isEmpty()) {
-            for (TaskInfo runningTask : runningTasks) {
-                TaskMutationInfo taskMutationInfo = taskMutations.get(runningTask);
-                Iterable<String> runningTaskMutations = Iterables.concat(taskMutationInfo.outputPaths, taskMutationInfo.destroyablePaths);
-                if (hasOverlap(candidateTaskMutations, runningTaskMutations)) {
+    private boolean hasTaskWithOverlappingMutations(Set<String> candidateMutationPaths) {
+        if (!candidateMutationPaths.isEmpty()) {
+            for (WorkInfo runningWork : runningNodes) {
+                MutationInfo runningMutations = workMutations.get(runningWork);
+                Iterable<String> runningMutationPaths = Iterables.concat(runningMutations.outputPaths, runningMutations.destroyablePaths);
+                if (hasOverlap(candidateMutationPaths, runningMutationPaths)) {
                     return true;
                 }
             }
@@ -684,23 +694,23 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return false;
     }
 
-    private boolean doesDestroyNotYetConsumedOutputOfAnotherTask(TaskInfo destroyerTask, Set<String> destroyablePaths) {
+    private boolean doesDestroyNotYetConsumedOutputOfAnotherTask(WorkInfo destroyerTask, Set<String> destroyablePaths) {
         if (!destroyablePaths.isEmpty()) {
-            for (TaskMutationInfo producingTask : taskMutations.values()) {
-                if (!producingTask.task.isComplete()) {
+            for (MutationInfo producingWork : workMutations.values()) {
+                if (!producingWork.workInfo.isComplete()) {
                     // We don't care about producing tasks that haven't finished yet
                     continue;
                 }
-                if (producingTask.consumingTasks.isEmpty()) {
+                if (producingWork.consumingWork.isEmpty()) {
                     // We don't care about tasks whose output is not consumed by anyone anymore
                     continue;
                 }
-                if (!hasOverlap(destroyablePaths, producingTask.outputPaths)) {
+                if (!hasOverlap(destroyablePaths, producingWork.outputPaths)) {
                     // No overlap no cry
                     continue;
                 }
-                for (TaskInfo consumingTask : producingTask.consumingTasks) {
-                    if (doesConsumerDependOnDestroyer(consumingTask, destroyerTask)) {
+                for (WorkInfo consumer : producingWork.consumingWork) {
+                    if (doesConsumerDependOnDestroyer(consumer, destroyerTask)) {
                         // If there's an explicit dependency from consuming task to destroyer,
                         // then we accept that as the will of the user
                         continue;
@@ -712,25 +722,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return false;
     }
 
-    private boolean doesConsumerDependOnDestroyer(TaskInfo consumingTask, TaskInfo destroyerTask) {
-        if (consumingTask == destroyerTask) {
+    private boolean doesConsumerDependOnDestroyer(WorkInfo consumer, WorkInfo destroyer) {
+        if (consumer == destroyer) {
             return true;
         }
-        Pair<TaskInfo, TaskInfo> taskPair = Pair.of(consumingTask, destroyerTask);
-        if (reachableCache.get(taskPair) != null) {
-            return reachableCache.get(taskPair);
+        Pair<WorkInfo, WorkInfo> workPair = Pair.of(consumer, destroyer);
+        if (reachableCache.get(workPair) != null) {
+            return reachableCache.get(workPair);
         }
 
         boolean reachable = false;
-        for (TaskInfo dependency : Iterables.concat(consumingTask.getMustSuccessors(), consumingTask.getFinalizingSuccessors(), consumingTask.getDependencySuccessors())) {
+        for (WorkInfo dependency : consumer.getAllSuccessors()) {
             if (!dependency.isComplete()) {
-                if (doesConsumerDependOnDestroyer(dependency, destroyerTask)) {
+                if (doesConsumerDependOnDestroyer(dependency, destroyer)) {
                     reachable = true;
                 }
             }
         }
 
-        reachableCache.put(taskPair, reachable);
+        reachableCache.put(workPair, reachable);
         return reachable;
     }
 
@@ -794,62 +804,65 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void recordTaskStarted(TaskInfo taskInfo) {
-        runningTasks.add(taskInfo);
+    private void recordWorkStarted(WorkInfo workInfo) {
+        runningNodes.add(workInfo);
     }
 
-    private void recordTaskCompleted(TaskInfo taskInfo) {
-        runningTasks.remove(taskInfo);
-        TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
-        for (TaskInfo producerTask : taskMutationInfo.consumesOutputOf) {
-            TaskMutationInfo producerTaskMutationInfo = taskMutations.get(producerTask);
-            if (producerTaskMutationInfo.consumingTasks.remove(taskInfo) && canRemoveTaskMutation(producerTaskMutationInfo)) {
-                taskMutations.remove(producerTask);
+    private void recordWorkCompleted(WorkInfo workInfo) {
+        runningNodes.remove(workInfo);
+        MutationInfo mutations = workMutations.get(workInfo);
+        for (WorkInfo producer : mutations.consumesOutputOf) {
+            MutationInfo producerMutations = workMutations.get(producer);
+            if (producerMutations.consumingWork.remove(workInfo) && canRemoveMutation(producerMutations)) {
+                workMutations.remove(producer);
             }
         }
 
-        if (canRemoveTaskMutation(taskMutationInfo)) {
-            taskMutations.remove(taskInfo);
+        if (canRemoveMutation(mutations)) {
+            workMutations.remove(workInfo);
         }
     }
 
-    private static boolean canRemoveTaskMutation(@Nullable TaskMutationInfo taskMutationInfo) {
-        return taskMutationInfo != null && taskMutationInfo.task.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
+    private static boolean canRemoveMutation(@Nullable MutationInfo mutations) {
+        return mutations != null && mutations.workInfo.isComplete() && mutations.consumingWork.isEmpty();
     }
 
     @Override
-    public void taskComplete(TaskInfo taskInfo) {
+    public void workComplete(WorkInfo workInfo) {
         try {
-            if (!taskInfo.isComplete()) {
-                enforceFinalizerTasks(taskInfo);
-                if (taskInfo.isFailed()) {
-                    handleFailure(taskInfo);
+            if (!workInfo.isComplete()) {
+                enforceFinalizerTasks(workInfo);
+                if (workInfo.isFailed()) {
+                    handleFailure(workInfo);
                 }
 
-                taskInfo.finishExecution();
-                recordTaskCompleted(taskInfo);
+                workInfo.finishExecution();
+                recordWorkCompleted(workInfo);
             }
         } finally {
-            getProjectLock(taskInfo).unlock();
+            unlockProjectFor(workInfo);
         }
     }
 
-    private static void enforceFinalizerTasks(TaskInfo taskInfo) {
-        for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
+    private static void enforceFinalizerTasks(WorkInfo workInfo) {
+        if (!(workInfo instanceof TaskInfo)) {
+            return;
+        }
+        for (WorkInfo finalizerNode : ((TaskInfo) workInfo).getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                enforceWithDependencies(finalizerNode, Sets.<TaskInfo>newHashSet());
+                enforceWithDependencies(finalizerNode, Sets.<WorkInfo>newHashSet());
             }
         }
     }
 
-    private static void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
-        Deque<TaskInfo> candidateNodes = new ArrayDeque<TaskInfo>();
+    private static void enforceWithDependencies(WorkInfo nodeInfo, Set<WorkInfo> enforcedNodes) {
+        Deque<WorkInfo> candidateNodes = new ArrayDeque<WorkInfo>();
         candidateNodes.add(nodeInfo);
 
         while (!candidateNodes.isEmpty()) {
-            TaskInfo node = candidateNodes.pop();
-            if (!enforcedTasks.contains(node)) {
-                enforcedTasks.add(node);
+            WorkInfo node = candidateNodes.pop();
+            if (!enforcedNodes.contains(node)) {
+                enforcedNodes.add(node);
 
                 candidateNodes.addAll(node.getDependencySuccessors());
 
@@ -866,21 +879,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureCollector.addFailure(t);
     }
 
-    private void handleFailure(TaskInfo taskInfo) {
-        Throwable executionFailure = taskInfo.getExecutionFailure();
+    private void handleFailure(WorkInfo workInfo) {
+        Throwable executionFailure = workInfo.getExecutionFailure();
         if (executionFailure != null) {
-            // Always abort execution for an execution failure (as opposed to a task failure)
+            // Always abort execution for an execution failure (as opposed to a work failure)
             abortExecution();
             this.failureCollector.addFailure(executionFailure);
             return;
         }
 
-        // Task failure
+        // Work failure
         try {
             if (!continueOnFailure) {
-                taskInfo.getTask().getState().rethrowFailure();
+                workInfo.rethrowFailure();
             }
-            this.failureCollector.addFailure(taskInfo.getTaskFailure());
+            this.failureCollector.addFailure(workInfo.getWorkFailure());
         } catch (Exception e) {
             // If the failure handler rethrows exception, then execution of other tasks is aborted. (--continue will collect failures)
             abortExecution();
@@ -899,16 +912,16 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean abortExecution(boolean abortAll) {
         boolean aborted = false;
-        for (TaskInfo taskInfo : executionPlan.values()) {
+        for (WorkInfo workInfo : workInfoMapping) {
             // Allow currently executing and enforced tasks to complete, but skip everything else.
-            if (taskInfo.isRequired()) {
-                taskInfo.skipExecution();
+            if (workInfo.isRequired()) {
+                workInfo.skipExecution();
                 aborted = true;
             }
 
             // If abortAll is set, also stop enforced tasks.
-            if (abortAll && taskInfo.isReady()) {
-                taskInfo.abortExecution();
+            if (abortAll && workInfo.isReady()) {
+                workInfo.abortExecution();
                 aborted = true;
             }
         }
@@ -925,8 +938,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public boolean allTasksComplete() {
-        for (TaskInfo taskInfo : executionPlan.values()) {
-            if (!taskInfo.isComplete()) {
+        for (WorkInfo workInfo : workInfoMapping) {
+            if (!workInfo.isComplete()) {
                 return false;
             }
         }
@@ -935,38 +948,38 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public boolean hasWorkRemaining() {
-        for (TaskInfo taskInfo : executionQueue) {
-            if (!taskInfo.isComplete()) {
+        for (WorkInfo workInfo : executionQueue) {
+            if (!workInfo.isComplete()) {
                 return true;
             }
         }
-        return !runningTasks.isEmpty();
+        return !runningNodes.isEmpty();
     }
 
     private static class GraphEdge {
-        private final TaskInfo from;
-        private final TaskInfo to;
+        private final WorkInfo from;
+        private final WorkInfo to;
 
-        private GraphEdge(TaskInfo from, TaskInfo to) {
+        private GraphEdge(WorkInfo from, WorkInfo to) {
             this.from = from;
             this.to = to;
         }
     }
 
-    private static class TaskInfoInVisitingSegment {
-        private final TaskInfo taskInfo;
+    private static class WorkInfoInVisitingSegment {
+        private final WorkInfo workInfo;
         private final int visitingSegment;
 
-        private TaskInfoInVisitingSegment(TaskInfo taskInfo, int visitingSegment) {
-            this.taskInfo = taskInfo;
+        private WorkInfoInVisitingSegment(WorkInfo workInfo, int visitingSegment) {
+            this.workInfo = workInfo;
             this.visitingSegment = visitingSegment;
         }
     }
 
-    private static class TaskMutationInfo {
-        final TaskInfo task;
-        final Set<TaskInfo> consumingTasks = Sets.newHashSet();
-        final Set<TaskInfo> consumesOutputOf = Sets.newHashSet();
+    private static class MutationInfo {
+        final WorkInfo workInfo;
+        final Set<WorkInfo> consumingWork = Sets.newHashSet();
+        final Set<WorkInfo> consumesOutputOf = Sets.newHashSet();
         final Set<String> outputPaths = Sets.newHashSet();
         final Set<String> destroyablePaths = Sets.newHashSet();
         boolean hasFileInputs;
@@ -974,8 +987,72 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         boolean hasLocalState;
         boolean resolved;
 
-        TaskMutationInfo(TaskInfo task) {
-            this.task = task;
+        MutationInfo(WorkInfo workInfo) {
+            this.workInfo = workInfo;
+        }
+    }
+
+    private static class WorkInfoMapping extends AbstractCollection<WorkInfo> {
+        private final Map<Task, LocalTaskInfo> taskMapping = Maps.newLinkedHashMap();
+        private final Set<WorkInfo> workInfos = Sets.newLinkedHashSet();
+
+        @Override
+        public boolean contains(Object o) {
+            return workInfos.contains(o);
+        }
+
+        @Override
+        public boolean add(WorkInfo workInfo) {
+            if (!workInfos.add(workInfo)) {
+                return false;
+            }
+            if (workInfo instanceof LocalTaskInfo) {
+                LocalTaskInfo taskInfo = (LocalTaskInfo) workInfo;
+                taskMapping.put(taskInfo.getTask(), taskInfo);
+            }
+            return true;
+        }
+
+        public TaskInfo get(Task task) {
+            TaskInfo taskInfo = taskMapping.get(task);
+            if (taskInfo == null) {
+                throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
+            }
+            return taskInfo;
+        }
+
+        public Set<Task> getTasks() {
+            return taskMapping.keySet();
+        }
+
+        @Override
+        public Iterator<WorkInfo> iterator() {
+            return workInfos.iterator();
+        }
+
+        @Override
+        public void clear() {
+            workInfos.clear();
+            taskMapping.clear();
+        }
+
+        @Override
+        public int size() {
+            return workInfos.size();
+        }
+
+        public void retainFirst(int count) {
+            Iterator<WorkInfo> executionPlanIterator = workInfos.iterator();
+            for (int i = 0; i < count; i++) {
+                executionPlanIterator.next();
+            }
+            while (executionPlanIterator.hasNext()) {
+                WorkInfo removedWork = executionPlanIterator.next();
+                executionPlanIterator.remove();
+                if (removedWork instanceof LocalTaskInfo) {
+                    taskMapping.remove(((LocalTaskInfo) removedWork).getTask());
+                }
+            }
         }
     }
 }
