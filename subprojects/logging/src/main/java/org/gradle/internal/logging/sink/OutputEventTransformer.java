@@ -98,7 +98,6 @@ public class OutputEventTransformer implements OutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-
             OperationIdentifier buildOperationId = buildOperationForProgressOperation.remove(completeEvent.getProgressOperationId());
             effectiveBuildOperation.remove(buildOperationId);
             effectiveProgressOperation.remove(completeEvent.getProgressOperationId());
@@ -115,7 +114,9 @@ public class OutputEventTransformer implements OutputEventListener {
             OperationIdentifier operationId = outputEvent.getBuildOperationId();
             if (operationId != null) {
                 OperationIdentifier mappedId = effectiveBuildOperation.get(operationId);
-                if (!mappedId.equals(operationId)) {
+                // The null check is to take care of log events that are generated in a worker process but have a build operation from the parent process attached to them
+                // TODO - remove the null check, eg by attaching the build operation in the parent process
+                if (mappedId != null && !mappedId.equals(operationId)) {
                     listener.onOutput(outputEvent.withBuildOperationId(mappedId));
                     return;
                 }

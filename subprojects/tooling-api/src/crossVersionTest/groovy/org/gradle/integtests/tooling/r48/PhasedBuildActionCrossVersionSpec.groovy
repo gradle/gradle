@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 
@@ -170,13 +171,13 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                     void statusChanged(ProgressEvent event) {
                         events += event.getDescriptor().getDisplayName() + "\n"
                     }
-                })
+                }, OperationType.TASK)
                 .run()
         }
 
         then:
         thrown(BuildActionFailureException)
-        !events.contains("hello")
+        events.empty
     }
 
     @TargetGradleVersion(">=4.8")
