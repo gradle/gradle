@@ -22,7 +22,7 @@ import org.gradle.play.internal.platform.PlayMajorVersion
 
 class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTest {
     static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_4_X): 108,
-                                                       (PlayMajorVersion.PLAY_2_5_X): 118,
+                                                       (PlayMajorVersion.PLAY_2_5_X): 121,
                                                        (PlayMajorVersion.PLAY_2_6_X): 111]
 
     @Override

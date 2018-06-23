@@ -24,7 +24,7 @@ import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 
 class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
     static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_4_X): 96,
-                                                       (PlayMajorVersion.PLAY_2_5_X): 105,
+                                                       (PlayMajorVersion.PLAY_2_5_X): 108,
                                                        (PlayMajorVersion.PLAY_2_6_X): 111]
 
     @Override
