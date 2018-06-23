@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1193,7 +1194,7 @@ task generate(type: TransformerTask) {
         file("build/output/file.txt").assertExists()
     }
 
-    @Unroll
+    @Unroll @Ignore
     def "produces a sensible error when a task #description causes dependency resolution"() {
         buildFile << """
             ${jcenterRepository()}
