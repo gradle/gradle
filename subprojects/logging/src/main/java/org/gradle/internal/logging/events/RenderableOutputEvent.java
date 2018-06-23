@@ -43,4 +43,9 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
     }
+
+    /**
+     * Creates a copy of this event with the given build operation id.
+     */
+    public abstract RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId);
 }

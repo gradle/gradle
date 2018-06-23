@@ -98,7 +98,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     @Override
     public String toString() {
-        return "ProgressStart " + description;
+        return "ProgressStart (" + progressOperationId + ") " + description;
     }
 
     public OperationIdentifier getProgressOperationId() {
@@ -127,4 +127,11 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return buildOperationCategory;
     }
 
+    public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, shortDescription, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
+    }
+
+    public ProgressStartEvent withParent(OperationIdentifier parentProgressOperationId, OperationIdentifier parentBuildOperationId) {
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, shortDescription, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
+    }
 }

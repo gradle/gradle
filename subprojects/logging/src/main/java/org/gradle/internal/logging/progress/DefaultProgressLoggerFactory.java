@@ -178,7 +178,6 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             return this;
         }
 
-
         public ProgressLogger start(String description, String shortDescription) {
             start(description, shortDescription, 0);
             return this;

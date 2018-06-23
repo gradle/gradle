@@ -94,7 +94,7 @@ abstract class OutputSpecification extends Specification {
     }
 
     ProgressStartEvent start(Map args) {
-        Long parentId = args.containsKey("parentId") ? args.parentId : counter
+        Long parentId = args.containsKey("parentId") ? args.parentId : null
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
         Object buildOperationId = args.containsKey("buildOperationId") ? new OperationIdentifier(args.buildOperationId) : null
         Object parentBuildOperationId = args.containsKey("parentBuildOperationId") ? new OperationIdentifier(args.parentBuildOperationId) : null
