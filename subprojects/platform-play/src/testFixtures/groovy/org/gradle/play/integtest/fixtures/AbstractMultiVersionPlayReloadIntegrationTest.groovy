@@ -57,7 +57,7 @@ abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMul
         }
     }
 
-    protected String playLogbackDependenciesIfPlay25() {
+    static String playLogbackDependenciesIfPlay25(VersionNumber versionNumber) {
         if (versionNumber.major == 2 && versionNumber.minor == 5) {
             return """ 
                     dependencies {

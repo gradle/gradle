@@ -23,7 +23,6 @@ import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
     def "can build play app distribution"() {
@@ -49,7 +48,6 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    @Ignore
     def "can run play distribution" () {
         ExecHandleBuilder builder
         ExecHandle handle

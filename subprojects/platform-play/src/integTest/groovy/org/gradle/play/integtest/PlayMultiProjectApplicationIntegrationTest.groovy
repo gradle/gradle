@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
-import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
@@ -29,9 +29,8 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
-import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.*
+import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.java9AddJavaSqlModuleArgs
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
@@ -95,7 +94,6 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         )
     }
 
-
     def "can run play app"() {
         setup:
         file("primary/build.gradle") << """
@@ -126,7 +124,6 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    @Ignore
     def "can run play distribution"() {
         println file(".")
 

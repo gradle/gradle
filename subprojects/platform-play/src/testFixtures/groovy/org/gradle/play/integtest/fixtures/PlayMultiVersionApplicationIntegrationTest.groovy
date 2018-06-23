@@ -20,12 +20,15 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
+import static org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest.*
+
 abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersionIntegrationTest {
     abstract PlayApp getPlayApp()
 
     def setup() {
         playApp.writeSources(testDirectory)
         buildFile << playPlatformConfiguration(version.toString())
+        buildFile << playLogbackDependenciesIfPlay25(versionNumber)
         settingsFile << """
             rootProject.name = '${playApp.name}'
         """
