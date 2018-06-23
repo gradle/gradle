@@ -44,7 +44,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.NullBuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelNode;
@@ -69,7 +68,6 @@ import java.util.TreeSet;
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private static final Object[] NO_ARGS = new Object[0];
-    public final static String CREATE_TASKS_CREATE_OPS_PROPERTY = "org.gradle.internal.tasks.createops";
     public final static String EAGERLY_CREATE_LAZY_TASKS_PROPERTY = "org.gradle.internal.tasks.eager";
 
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
@@ -95,10 +93,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
-
-        // Note: this conditional use of operations is intended to be temporary.
-        // The extra operations create extra overhead that we do not want to impose at this time.
-        this.buildOperationExecutor = createOps() ? buildOperationExecutor : NullBuildOperationExecutor.INSTANCE;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public Task create(Map<String, ?> options) {
@@ -201,11 +196,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (map.get(key) == null) {
             map.put(key, defaultValue);
         }
-    }
-
-    private static boolean createOps() {
-        String createOps = System.getProperty(CREATE_TASKS_CREATE_OPS_PROPERTY);
-        return (createOps != null && createOps.isEmpty()) || Boolean.parseBoolean(createOps);
     }
 
     private <T extends Task> void addTask(T task, boolean replaceExisting) {
