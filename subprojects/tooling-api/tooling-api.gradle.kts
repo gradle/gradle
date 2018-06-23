@@ -72,9 +72,7 @@ testFixtures {
 
 apply { from("buildship.gradle") }
 
-val sourceJar: Jar by tasks
-
-sourceJar.run {
+tasks.withType(Jar::class.java).named("sourceJar").configure {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
@@ -91,7 +89,7 @@ eclipse {
     }
 }
 
-tasks.create<Upload>("publishLocalArchives") {
+tasks.register("publishLocalArchives", Upload::class.java) {
     val repoBaseDir = rootProject.file("build/repo")
     configuration = configurations.publishRuntime
     isUploadDescriptor = false

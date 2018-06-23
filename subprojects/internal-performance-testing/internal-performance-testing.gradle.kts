@@ -57,18 +57,16 @@ gradlebuildJava {
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-val reportResources by tasks.creating(Copy::class) {
+val reportResources = tasks.register("reportResources", Copy::class.java) {
     from(reports)
     into("$generatedResourcesDir/org/gradle/reporting")
 }
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir)
 
-tasks {
-    "jar"(Jar::class) {
-        inputs.files(flamegraph)
-        from(files(deferred{ flamegraph.map { zipTree(it) } }))
-    }
+tasks.withType(Jar::class.java).named("jar").configure {
+    inputs.files(flamegraph)
+    from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 
 testFixtures {

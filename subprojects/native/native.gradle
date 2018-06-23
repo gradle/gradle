@@ -35,13 +35,13 @@ jmh {
     resultFormat = 'CSV'
 }
 
-task copyJmhReport(type: Copy) {
+def copyJmhReport = tasks.register("copyJmhReport", Copy) {
     destinationDir = file("$buildDir/reports/jmh-html")
 
     from 'src/jmh/html'
 }
 
-task convertCSV {
+def convertCSV = tasks.register("convertCSV") {
     ext.inputFile = file("$buildDir/reports/jmh/results.csv")
     ext.outputFile = file("$buildDir/reports/jmh-html/data.csv")
     inputs.file(inputFile)
@@ -83,6 +83,6 @@ task convertCSV {
     }
 }
 
-task jmhReport {
+tasks.register("jmhReport") {
     dependsOn 'jmh', copyJmhReport, convertCSV
 }

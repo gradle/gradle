@@ -88,21 +88,21 @@ ext {
     }
 }
 
-task allZip(type: Zip) {
+def allZip = tasks.register("allZip", Zip) {
     classifier = 'all'
     into(zipRootFolder) {
         with allDistImage
     }
 }
 
-task binZip(type: Zip) {
+def binZip = tasks.register("binZip", Zip) {
     classifier = 'bin'
     into(zipRootFolder) {
         with binWithDistDocImage
     }
 }
 
-task srcZip(type: Zip) {
+def srcZip = tasks.register("srcZip", Zip) {
     classifier = 'src'
     into(zipRootFolder) {
         from(rootProject.file('gradlew')) {
@@ -130,7 +130,7 @@ task srcZip(type: Zip) {
     }
 }
 
-task outputsZip(type: Zip) {
+tasks.register("outputsZip", Zip) {
     archiveName "outputs.zip"
     from {
         tasks.getByPath(':createBuildReceipt')

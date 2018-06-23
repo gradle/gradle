@@ -52,7 +52,7 @@ val buildReceiptPackage: String by rootProject.extra
 
 
 
-val buildReceiptResource by tasks.creating(Copy::class) {
+val buildReceiptResource = tasks.register("buildReceiptResource", Copy::class.java) {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
     destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
 }

@@ -96,15 +96,17 @@ testFixtures {
     from(':baseServices')
 }
 
-test {
+tasks.named("test").configure {
     forkEvery = 200
 }
 
 def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-[compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+["compileGroovy", "compileTestGroovy"].each {
+    tasks.named(it).configure { it.groovyOptions.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G') }
+}
 
-task pluginsManifest(type: WriteProperties) {
+def pluginsManifest = tasks.register("pluginsManifest", WriteProperties) {
     property("plugins") {
         ProjectGroups.INSTANCE.getPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
@@ -113,7 +115,7 @@ task pluginsManifest(type: WriteProperties) {
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
-task implementationPluginsManifest(type: WriteProperties) {
+def implementationPluginsManifest = tasks.register("implementationPluginsManifest", WriteProperties) {
     property("plugins") {
         ProjectGroups.INSTANCE.getImplementationPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }

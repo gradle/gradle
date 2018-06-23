@@ -65,7 +65,7 @@ testFixtures {
 
 def wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
 evaluationDependsOn(":wrapper")
-task wrapperJar(type: Copy) {
+def wrapperJar = tasks.register("wrapperJar", Copy) {
     from project(":wrapper").executableJar
     into wrapperJarDir
 }

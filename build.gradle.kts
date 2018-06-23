@@ -268,7 +268,7 @@ dependencies {
 
 extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
 
-task<PatchExternalModules>("patchExternalModules") {
+tasks.register("patchExternalModules", PatchExternalModules::class.java) {
     allModules = externalModulesRuntime
     coreModules = coreRuntime
     modulesToPatch = this@Build_gradle.externalModules
@@ -279,14 +279,14 @@ evaluationDependsOn(":distributions")
 
 val gradle_installPath: Any? by project
 
-task<Install>("install") {
+tasks.register("install", Install::class.java) {
     description = "Installs the minimal distribution into directory $gradle_installPath"
     group = "build"
     with(distributionImage("binDistImage"))
     installDirPropertyName = ::gradle_installPath.name
 }
 
-task<Install>("installAll") {
+tasks.register("installAll", Install::class.java) {
     description = "Installs the full distribution into directory $gradle_installPath"
     group = "build"
     with(distributionImage("allDistImage"))

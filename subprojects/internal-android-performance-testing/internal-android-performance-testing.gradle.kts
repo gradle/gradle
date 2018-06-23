@@ -25,19 +25,17 @@ application {
     applicationName = "android-test-app"
 }
 
-tasks {
-    "buildClassPath"(BuildClassPath::class) {
-        val jar: Jar by getting
-        dependsOn(jar)
-        classpath = androidTools + files(jar.archivePath)
-        outputFile = buildDir.resolve("classpath.txt")
-    }
-
-    val distZip: Zip by getting
-    val distTar: Tar by getting
-    listOf(distZip, distTar).forEach { it.baseName = "android-test-app" }
-    project(":distributions").tasks["buildDists"].dependsOn(distZip)
+tasks.register("buildClassPath", BuildClassPath::class.java) {
+    val jar: Jar = tasks.withType(Jar::class.java).getByName("jar")
+    dependsOn(jar)
+    classpath = androidTools + files(jar.archivePath)
+    outputFile = buildDir.resolve("classpath.txt")
 }
+
+val distZip: TaskProvider<Zip> = tasks.withType(Zip::class.java).named("distZip")
+val distTar: TaskProvider<Tar> = tasks.withType(Tar::class.java).named("distTar")
+listOf(distZip, distTar).forEach { it.configure { baseName = "android-test-app" } }
+project(":distributions").tasks.register("buildDists").configure { dependsOn(distZip) }
 
 
 open class BuildClassPath : DefaultTask() {
