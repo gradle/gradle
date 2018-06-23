@@ -62,13 +62,21 @@ fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = buildSeque
 
 
 private
-data class SeenAccessorSpecs(private val seen: MutableList<TypedAccessorSpec> = mutableListOf()) {
+data class SeenAccessorSpecs(
+    private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
+) {
 
     fun add(accessorSpec: TypedAccessorSpec) =
-        seen.add(accessorSpec)
+        setFor(accessorSpec.name).add(accessorSpec.targetTypeAccess)
 
     fun hasConflict(accessorSpec: TypedAccessorSpec) =
-        seen.any { it.targetTypeAccess == accessorSpec.targetTypeAccess && it.name == accessorSpec.name }
+        targetTypesByName[accessorSpec.name]?.let { targetTypes ->
+            accessorSpec.targetTypeAccess in targetTypes
+        } ?: false
+
+    private
+    fun setFor(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
+        targetTypesByName.computeIfAbsent(accessorNameSpec) { hashSetOf() }
 }
 
 
