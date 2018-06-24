@@ -64,8 +64,12 @@ public abstract class ClassLoaderUtils {
         }
     }
 
-    static ClassLoaderPackagesFetcher getClassLoaderPackagesFetcher() {
-        return CLASS_LOADER_PACKAGES_FETCHER;
+    static Package[] getPackages(ClassLoader classLoader) {
+        return CLASS_LOADER_PACKAGES_FETCHER.getPackages(classLoader);
+    }
+
+    static Package getPackage(ClassLoader classLoader, String name) {
+        return CLASS_LOADER_PACKAGES_FETCHER.getPackage(classLoader, name);
     }
 
     public static <T> Class<T> define(ClassLoader targetClassLoader, String className, byte[] clazzBytes) {

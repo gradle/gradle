@@ -36,8 +36,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
 
-    private static final ClassLoaderPackagesFetcher CLASS_LOADER_PACKAGES_FETCHER = ClassLoaderUtils.getClassLoaderPackagesFetcher();
-
     private final List<ClassLoader> parents;
 
     static {
@@ -88,7 +86,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {
-            Package p = CLASS_LOADER_PACKAGES_FETCHER.getPackage(parent, name);
+            Package p = ClassLoaderUtils.getPackage(parent, name);
             if (p != null) {
                 return p;
             }
@@ -100,7 +98,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     protected Package[] getPackages() {
         Set<Package> packages = new LinkedHashSet<Package>();
         for (ClassLoader parent : parents) {
-            Package[] parentPackages = CLASS_LOADER_PACKAGES_FETCHER.getPackages(parent);
+            Package[] parentPackages = ClassLoaderUtils.getPackages(parent);
             packages.addAll(Arrays.asList(parentPackages));
         }
         return packages.toArray(new Package[0]);
