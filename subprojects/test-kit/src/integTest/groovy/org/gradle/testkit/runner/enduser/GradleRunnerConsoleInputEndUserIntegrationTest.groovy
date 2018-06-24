@@ -16,8 +16,11 @@
 
 package org.gradle.testkit.runner.enduser
 
+import spock.lang.Timeout
+
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
+@Timeout(240)
 class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     def setup() {
