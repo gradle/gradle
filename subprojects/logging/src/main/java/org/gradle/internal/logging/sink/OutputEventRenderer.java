@@ -88,7 +88,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     private OutputEventListener userListenerChain;
     private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
     private ListenerBroadcast<StandardOutputListener> userStderrListeners;
-    private boolean stopped;
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
@@ -454,19 +453,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
         }
 
         synchronized (lock) {
-            if (!stopped) {
-                transformer.onOutput(event);
-                if (event instanceof EndOutputEvent) {
-                    // TODO - this may not be true, as events may still be being processed
-                    stopped = true;
-                }
-            } else {
-                // TODO - should be stricter here, the output should not be used
-                if (event instanceof FlushOutputEvent) {
-                    FlushOutputEvent flushOutputEvent = (FlushOutputEvent) event;
-                    flushOutputEvent.handled(null);
-                }
-            }
+            transformer.onOutput(event);
         }
     }
 
@@ -477,7 +464,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     @Override
     public void stop() {
         flush();
-        onOutput(new EndOutputEvent());
+        // Do not stop the dispatch thread as this instance may be used after stop is called
+        // TODO - Disallow the use of this instance after stop is called and stop the dispatch thread
     }
 
     private static class SnapshotImpl implements Snapshot {
