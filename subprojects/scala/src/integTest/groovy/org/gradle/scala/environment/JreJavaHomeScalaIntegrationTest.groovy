@@ -47,7 +47,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     ${mavenCentralRepository()}
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.11.1'
+                        compile 'org.scala-lang:scala-library:2.11.12'
                     }
                     """
         when:
@@ -68,7 +68,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     ${mavenCentralRepository()}
 
                     dependencies {
-                        compile 'org.scala-lang:scala-library:2.11.1'
+                        compile 'org.scala-lang:scala-library:2.11.12'
                     }
                     """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }

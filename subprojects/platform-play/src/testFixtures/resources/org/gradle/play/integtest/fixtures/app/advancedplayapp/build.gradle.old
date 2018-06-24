@@ -1,0 +1,20 @@
+plugins {
+    id 'play'
+    id 'play-coffeescript'
+}
+
+// repositories added in PlayApp class
+
+model {
+    components {
+        play {
+            sources {
+                javaTwirlTemplates(TwirlSourceSet) {
+                    defaultImports = TwirlImports.JAVA
+                    source.srcDir "templates"
+                    source.include "jva/**/*"
+                }
+            }
+        }
+    }
+}

@@ -132,7 +132,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             
             dependencies {
-                compile 'org.scala-lang:scala-library:2.11.8'
+                compile 'org.scala-lang:scala-library:2.11.12'
             }
         """
     }
@@ -156,7 +156,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     static String lombokDependency() {
         """
             dependencies {
-                compileOnly 'org.projectlombok:lombok:1.16.16'
+                compileOnly 'org.projectlombok:lombok:1.16.22'
             }
         """
     }

@@ -21,6 +21,7 @@ repositories {
 dependencies {
     play 'commons-lang:commons-lang:2.6'
     playTest "com.google.guava:guava:17.0"
+    playTest "org.scalatestplus.play:scalatestplus-play_2.12:3.1.2"
 }
 
 // START SNIPPET play-configure-compiler

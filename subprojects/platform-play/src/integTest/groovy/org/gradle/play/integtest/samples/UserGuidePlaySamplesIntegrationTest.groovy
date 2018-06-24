@@ -28,6 +28,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sourceSetsPlaySample = new Sample(temporaryFolder, "play/sourcesets")
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")
@@ -68,6 +69,9 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ !AbstractPlaySampleIntegrationTest.portForWithBrowserTestIsFree() })
     def "compiler sample is buildable" () {
         when:
+        // The following annotation processors were detected on the compile classpath: 'org.atteo.classindex.processor.ClassIndexProcessor'.
+        // Detecting annotation processors on the compile classpath is deprecated
+        executer.expectDeprecationWarning()
         sample compilerPlaySample
 
         then:
@@ -107,7 +111,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Requires(TestPrecondition.JDK8)
     def "injected routes sample is buildable for Play 2.4" () {
         when:
         sample play24Sample
@@ -124,7 +128,6 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
             "router/RoutesPrefix.scala")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "injected routes sample is buildable for Play 2.6" () {
         when:
         sample play26Sample

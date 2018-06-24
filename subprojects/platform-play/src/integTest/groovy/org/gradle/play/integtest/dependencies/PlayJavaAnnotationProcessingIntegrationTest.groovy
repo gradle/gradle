@@ -17,11 +17,14 @@
 package org.gradle.play.integtest.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 @Issue("https://github.com/gradle/gradle/issues/2337")
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can compile Java class incorporating annotation processing"() {
@@ -34,7 +37,7 @@ class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpe
             $PLAY_REPOSITORIES
 
             dependencies {
-                play 'org.projectlombok:lombok:1.16.2'
+                play 'org.projectlombok:lombok:1.16.22'
             }
         """
 

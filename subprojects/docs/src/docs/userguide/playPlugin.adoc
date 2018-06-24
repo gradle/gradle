@@ -252,7 +252,7 @@ Users of Play used to such a workflow with Play's default build system should no
 [[configuring_play_platform]]
 ==== Targeting a certain version of Play
 
-By default, Gradle uses Play 2.3.10, Scala 2.11 and the version of Java used to start the build. A Play application can select a different version by specifying a target api:org.gradle.play.PlayApplicationSpec#platform[] on the Play application component.
+By default, Gradle uses Play 2.6.15, Scala 2.12 and the version of Java used to start the build. A Play application can select a different version by specifying a target api:org.gradle.play.PlayApplicationSpec#platform[] on the Play application component.
 
 ++++
 <sample id="specifyPlayVersion" dir="play/advanced" title="Selecting a version of the Play Framework">

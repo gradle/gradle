@@ -17,6 +17,14 @@
 package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.util.VersionNumber
 
 class BasicPlayApp extends PlayApp {
+    BasicPlayApp() {
+        super()
+    }
+
+    BasicPlayApp(VersionNumber version) {
+        super(version)
+    }
 }

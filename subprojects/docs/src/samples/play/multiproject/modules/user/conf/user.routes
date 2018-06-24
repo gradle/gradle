@@ -1,1 +1,1 @@
-GET     /user                          controllers.user.Application.index
+GET     /user                          @controllers.user.Application.index

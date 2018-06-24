@@ -52,7 +52,6 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         ExecHandleBuilder builder
         ExecHandle handle
         String distDirPath = new File(testDirectory, "build/stage").path
-        patchForPlay()
 
         setup:
         run "stage"

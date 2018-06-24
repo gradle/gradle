@@ -1,2 +1,2 @@
-GET     /admin                          controllers.admin.Application.index
-GET     /admin/assets/*file             controllers.admin.Assets.at(path="/public", file)
+GET     /admin                          @controllers.admin.Application.index
+GET     /admin/assets/*file             @controllers.admin.Assets.at(path="/public", file)

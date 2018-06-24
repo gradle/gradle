@@ -18,10 +18,14 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.util.VersionNumber
 
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class AdvancedPlayApp extends PlayApp {
+    AdvancedPlayApp(VersionNumber version) {
+        super(version)
+    }
     @Override
     SourceFile getGradleBuild() {
         def gradleBuild = super.getGradleBuild()

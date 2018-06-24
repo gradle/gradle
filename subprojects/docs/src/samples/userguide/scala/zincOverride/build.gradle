@@ -6,7 +6,7 @@ repositories {
 
 // START SNIPPET all-dependency
 configurations.all {
-    resolutionStrategy.force "org.scala-lang:scala-library:2.11.7"
+    resolutionStrategy.force "org.scala-lang:scala-library:2.11.12"
 }
 // END SNIPPET all-dependency
 

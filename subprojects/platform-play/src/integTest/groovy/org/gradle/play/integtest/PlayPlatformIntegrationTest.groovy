@@ -16,77 +16,36 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.DefaultPlayPlatform
-import org.gradle.play.internal.PlayPlatformResolver
-import org.gradle.play.internal.platform.PlayMajorVersion
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
-import static org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest.isPlay22
-
 public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
-    PlayApp playApp = new BasicPlayApp()
-
-    def setup() {
-        playApp.writeSources(testDirectory)
-    }
-
-    def "can build play app binary for default platform"() {
-        when:
-        succeeds("stage")
-
-        then:
-        file("build/stage/playBinary/lib").assertContainsDescendants(
-            "com.typesafe.play-play_2.11-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
-        )
-    }
-
-    @Unroll
-    def "can build play app binary for specified platform [#platform]"() {
-        when:
-        buildFile << """
-model {
-    components {
-        play {
-            platform ${platform}
-        }
-    }
-}
-"""
-        if (isPlay22(playVersion)) {
-            executer.expectDeprecationWarning()
-        }
-
-        succeeds("stage")
-
-        then:
-        file("build/stage/playBinary/lib").assertContainsDescendants(
-            "com.typesafe.play-play_${scalaPlatform}-${playVersion}.jar"
-        )
-
-        where:
-        platform                       | playVersion | scalaPlatform
-        "play: '2.2.4'"                | '2.2.4'     | '2.10'
-        "play: '2.2.4', scala: '2.10'" | '2.2.4'     | '2.10'
-
-        "play: '2.3.6'"                | '2.3.6'     | '2.11'
-        "play: '2.3.6', scala: '2.10'" | '2.3.6'     | '2.10'
-        "play: '2.3.6', scala: '2.11'" | '2.3.6'     | '2.11'
-
-        "play: '2.3.8'"                | '2.3.8'     | '2.11'
-        "play: '2.3.8', scala: '2.10'" | '2.3.8'     | '2.10'
-        "play: '2.3.8', scala: '2.11'" | '2.3.8'     | '2.11'
-
-    }
-
     @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can build play app binary for default platform"() {
+        given:
+        new BasicPlayApp().writeSources(testDirectory)
+
+        when:
+        succeeds("stage")
+
+        then:
+        file("build/stage/playBinary/lib").assertContainsDescendants(
+            "com.typesafe.play-play_2.12-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
+        )
+    }
+
+    @Requires(TestPrecondition.JDK8)
     @Unroll
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
+        given:
+        new BasicPlayApp(VersionNumber.parse(playVersion)).writeSources(testDirectory)
+
         when:
         buildFile << """
 model {
@@ -106,18 +65,17 @@ model {
         )
 
         where:
-        platform                       | playVersion | scalaPlatform
-        "play: '2.4.0'"                | '2.4.0'     | '2.11'
-        "play: '2.4.0', scala: '2.10'" | '2.4.0'     | '2.10'
-        "play: '2.4.5', scala: '2.11'" | '2.4.5'     | '2.11'
-        "play: '2.4.8', scala: '2.11'" | '2.4.8'     | '2.11'
-        "play: '2.5.4', scala: '2.11'" | '2.5.4'     | '2.11'
-        "play: '2.6.5', scala: '2.11'" | '2.6.5'     | '2.11'
-        "play: '2.6.5', scala: '2.12'" | '2.6.5'     | '2.12'
+        platform                        | playVersion | scalaPlatform
+        "play: '2.4.5', scala: '2.11'"  | '2.4.5'     | '2.11'
+        "play: '2.4.11', scala: '2.11'" | '2.4.11'    | '2.11'
+        "play: '2.5.18', scala: '2.11'" | '2.5.18'    | '2.11'
     }
 
     @Unroll
     def "fails when trying to build a Play #playVersion application with Scala #scalaVersion"() {
+        given:
+        new BasicPlayApp().writeSources(testDirectory)
+
         when:
         buildFile << """
 model {
@@ -129,9 +87,6 @@ model {
 }
 """
         then:
-        if (isPlay22(playVersion)) {
-            executer.expectDeprecationWarning()
-        }
         fails "assemble"
 
         and:
@@ -140,12 +95,12 @@ model {
         where:
         playVersion | scalaVersion | message
         '2.6.5'     | '2.10'       | "Play versions 2.6.x are not compatible with Scala platform 2.10. Compatible Scala platforms are [2.12, 2.11]."
-        '2.2.4'     | '2.11'       | "Play versions 2.2.x are not compatible with Scala platform 2.11. Compatible Scala platforms are [2.10]."
-        '2.1.0'     | '2.10'       | "Not a supported Play version: 2.1.0. This plugin is compatible with: [${PlayMajorVersion.values().join(', ')}]."
-        '2.3.6'     | 'X'          | "Not a supported Scala platform identifier X. Supported values are: [${PlayPlatformResolver.LATEST_SCALA_VERSIONS.keySet().join(', ')}]."
     }
 
     def "fails when trying to build for multiple play platforms"() {
+        given:
+        new BasicPlayApp().writeSources(testDirectory)
+
         when:
         buildFile << """
 model {
