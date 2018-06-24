@@ -258,7 +258,6 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         1 * listener.onOutput({ it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO })
-        1 * listener.onOutput({ it instanceof FlushOutputEvent })
         1 * listener.onOutput({ it instanceof EndOutputEvent })
         0 * listener._
     }

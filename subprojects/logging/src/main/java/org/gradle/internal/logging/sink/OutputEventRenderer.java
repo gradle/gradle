@@ -38,6 +38,7 @@ import org.gradle.internal.logging.console.UserInputConsoleRenderer;
 import org.gradle.internal.logging.console.UserInputStandardOutputRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.dispatch.AsynchronousLogDispatcher;
+import org.gradle.internal.logging.events.AddListenerEvent;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
@@ -46,6 +47,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.RemoveListenerEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
@@ -67,7 +69,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     private final Object lock = new Object();
     private final Clock clock;
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
-    private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final AsynchronousLogDispatcher renderer;
     private final OutputEventTransformer transformer = new OutputEventTransformer(new OutputEventListener() {
         @Override
@@ -91,7 +92,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
-        renderer = new AsynchronousLogDispatcher(formatters.getSource());
+        renderer = new AsynchronousLogDispatcher();
         renderer.start();
     }
 
@@ -105,6 +106,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
 
     @Override
     public void restore(Snapshot state) {
+        RemoveListenerEvent removeEvent = null;
         synchronized (lock) {
             SnapshotImpl snapshot = (SnapshotImpl) state;
             if (snapshot.logLevel != logLevel.get()) {
@@ -114,27 +116,30 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
             // TODO - also close console when it is replaced
             if (snapshot.console != console) {
                 if (snapshot.console == null) {
-                    removeChain(console);
+                    removeEvent = removeChain(console);
                     console = null;
                 } else {
                     throw new UnsupportedOperationException("Cannot restore previous console. This is not implemented yet.");
                 }
             }
         }
+        if (removeEvent != null) {
+            removeEvent.waitUntilHandled();
+        }
     }
 
-    // Must be holding lock when called
     private void addChain(OutputEventListener listener) {
-        flush();
         listener.onOutput(new LogLevelChangeEvent(logLevel.get()));
-        formatters.add(listener);
+        onOutput(new AddListenerEvent(listener));
     }
 
-    // Must be holding lock when called
-    private void removeChain(OutputEventListener listener) {
-        flush();
-        formatters.remove(listener);
-        listener.onOutput(new EndOutputEvent());
+    /**
+     * Caller must call {@link RemoveListenerEvent#waitUntilHandled()} on the return value, while not holding the lock
+     */
+    private RemoveListenerEvent removeChain(OutputEventListener listener) {
+        RemoveListenerEvent event = new RemoveListenerEvent(listener);
+        onOutput(event);
+        return event;
     }
 
     public ColorMap getColourMap() {
@@ -204,10 +209,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     }
 
     private void addSystemOutAsLoggingDestination() {
+        RemoveListenerEvent removeEvent = null;
         synchronized (lock) {
             originalStdOut = System.out;
             if (stdOutListener != null) {
-                removeChain(stdOutListener);
+                removeEvent = removeChain(stdOutListener);
             }
             stdOutListener = new LazyListener(new Factory<OutputEventListener>() {
                 @Override
@@ -217,13 +223,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
             });
             addChain(stdOutListener);
         }
+        if (removeEvent != null) {
+            removeEvent.waitUntilHandled();
+        }
     }
 
     private void addSystemErrAsLoggingDestination() {
+        RemoveListenerEvent removeEvent = null;
         synchronized (lock) {
             originalStdErr = System.err;
             if (stdErrListener != null) {
-                removeChain(stdErrListener);
+                removeEvent = removeChain(stdErrListener);
             }
             stdErrListener = new LazyListener(new Factory<OutputEventListener>() {
                 @Override
@@ -233,23 +243,34 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
             });
             addChain(stdErrListener);
         }
+        if (removeEvent != null) {
+            removeEvent.waitUntilHandled();
+        }
     }
 
     private void removeSystemOutAsLoggingDestination() {
+        RemoveListenerEvent removeEvent = null;
         synchronized (lock) {
             if (stdOutListener != null) {
-                removeChain(stdOutListener);
+                removeEvent = removeChain(stdOutListener);
                 stdOutListener = null;
             }
+        }
+        if (removeEvent != null) {
+            removeEvent.waitUntilHandled();
         }
     }
 
     private void removeSystemErrAsLoggingDestination() {
+        RemoveListenerEvent removeEvent = null;
         synchronized (lock) {
             if (stdErrListener != null) {
-                removeChain(stdErrListener);
+                removeEvent = removeChain(stdErrListener);
                 stdErrListener = null;
             }
+        }
+        if (removeEvent != null) {
+            removeEvent.waitUntilHandled();
         }
     }
 
@@ -260,9 +281,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     }
 
     public void removeOutputEventListener(OutputEventListener listener) {
+        RemoveListenerEvent removeEvent;
         synchronized (lock) {
-            removeChain(listener);
+            removeEvent = removeChain(listener);
         }
+        removeEvent.waitUntilHandled();
     }
 
     public OutputEventRenderer addRichConsole(Console console, boolean stdoutAttachedToConsole, boolean stderrAttachedToConsole, ConsoleMetaData consoleMetaData) {

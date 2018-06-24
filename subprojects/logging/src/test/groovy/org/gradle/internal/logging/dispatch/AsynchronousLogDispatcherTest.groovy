@@ -16,15 +16,18 @@
 
 package org.gradle.internal.logging.dispatch
 
+import org.gradle.internal.logging.events.AddListenerEvent
+import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.FlushOutputEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.RemoveListenerEvent
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class AsynchronousLogDispatcherTest extends ConcurrentSpec {
     def listener = Mock(OutputEventListener)
-    def dispatcher = new AsynchronousLogDispatcher(listener)
+    def dispatcher = new AsynchronousLogDispatcher()
 
     def "delivers events asynchronously in the order submitted"() {
         def event1 = Stub(OutputEvent)
@@ -34,6 +37,7 @@ class AsynchronousLogDispatcherTest extends ConcurrentSpec {
         when:
         dispatcher.start()
         async {
+            dispatcher.submit(new AddListenerEvent(listener))
             dispatcher.submit(event1)
             thread.blockUntil.event1
             dispatcher.submit(event2)
@@ -65,6 +69,7 @@ class AsynchronousLogDispatcherTest extends ConcurrentSpec {
         when:
         dispatcher.start()
         async {
+            dispatcher.submit(new AddListenerEvent(listener))
             dispatcher.submit(event1)
             dispatcher.submit(event2)
             dispatcher.submit(flushEvent)
@@ -91,6 +96,7 @@ class AsynchronousLogDispatcherTest extends ConcurrentSpec {
         when:
         dispatcher.start()
         async {
+            dispatcher.submit(new AddListenerEvent(listener))
             dispatcher.submit(event1)
             dispatcher.submit(event2)
             dispatcher.submit(flushEvent)
@@ -114,6 +120,7 @@ class AsynchronousLogDispatcherTest extends ConcurrentSpec {
         when:
         dispatcher.start()
         async {
+            dispatcher.submit(new AddListenerEvent(listener))
             dispatcher.submit(event1)
             dispatcher.submit(event2)
             dispatcher.submit(flushEvent)
@@ -127,4 +134,35 @@ class AsynchronousLogDispatcherTest extends ConcurrentSpec {
         1 * listener.onOutput(event2)
         1 * listener.onOutput(flushEvent) >> { throw failure }
     }
+
+    def "removed listener does not receive later events"() {
+        def event1 = Stub(OutputEvent)
+        def event2 = Stub(OutputEvent)
+        def event3 = Stub(OutputEvent)
+
+        when:
+        dispatcher.start()
+        dispatcher.submit(new AddListenerEvent(listener))
+        dispatcher.submit(event1)
+        dispatcher.submit(event2)
+        def removeEvent = new RemoveListenerEvent(listener)
+        dispatcher.submit(removeEvent)
+        dispatcher.submit(event3)
+
+        removeEvent.waitUntilHandled()
+
+        def flushEvent = new FlushOutputEvent()
+        dispatcher.submit(flushEvent)
+        flushEvent.waitUntilHandled()
+
+        then:
+        1 * listener.onOutput(event1)
+
+        then:
+        1 * listener.onOutput(event2)
+
+        then:
+        1 * listener.onOutput({ it instanceof EndOutputEvent })
+    }
+
 }
