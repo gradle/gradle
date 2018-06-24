@@ -116,9 +116,10 @@ public class WorkerDaemonClientsManager implements Stoppable {
             allClients.clear();
             idleClients.clear();
             listenerManager.removeListener(stopSessionScopeWorkers);
-            loggingManager.removeOutputEventListener(logLevelChangeEventListener);
             memoryManager.removeMemoryHolder(workerDaemonExpiration);
         }
+        // Do not hold lock while removing listener, as the listener may still be receiving events on another thread and will need to acquire the lock to handle these events
+        loggingManager.removeOutputEventListener(logLevelChangeEventListener);
     }
 
     private static long getTotalPhysicalMemory() {
@@ -182,10 +183,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
         public void onOutput(OutputEvent event) {
             if (event instanceof LogLevelChangeEvent) {
                 LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
-                if (currentLogLevel != logLevelChangeEvent.getNewLogLevel()) {
-                    synchronized (lock) {
-                        currentLogLevel = logLevelChangeEvent.getNewLogLevel();
-                    }
+                synchronized (lock) {
+                    currentLogLevel = logLevelChangeEvent.getNewLogLevel();
                 }
             }
         }
