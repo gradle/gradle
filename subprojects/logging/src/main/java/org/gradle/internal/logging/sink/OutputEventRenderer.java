@@ -88,6 +88,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     private OutputEventListener userListenerChain;
     private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
     private ListenerBroadcast<StandardOutputListener> userStderrListeners;
+    private boolean stopped;
 
     public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
@@ -453,7 +454,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
         }
 
         synchronized (lock) {
-            transformer.onOutput(event);
+            if (!stopped) {
+                transformer.onOutput(event);
+                if (event instanceof EndOutputEvent) {
+                    // TODO - this may not be true, as events may still be being processed
+                    stopped = true;
+                }
+            } else {
+                // TODO - should be stricter here, the output should not be used
+                if (event instanceof FlushOutputEvent) {
+                    FlushOutputEvent flushOutputEvent = (FlushOutputEvent) event;
+                    flushOutputEvent.handled(null);
+                }
+            }
         }
     }
 
