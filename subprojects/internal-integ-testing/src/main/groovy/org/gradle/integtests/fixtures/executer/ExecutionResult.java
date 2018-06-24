@@ -24,7 +24,7 @@ public interface ExecutionResult {
     /**
      * Stdout of the Gradle execution, normalized to use new-line char as line separator.
      *
-     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods on this class.</p>
      */
     String getOutput();
 
@@ -62,7 +62,7 @@ public interface ExecutionResult {
     ExecutionResult assertHasErrorOutput(String expectedOutput);
 
     /**
-     * Asserts that this result includes the given error log message in the raw output (including ansi characters and build result message).
+     * Asserts that this result includes the given error log message in the raw output (including ANSI characters and build result message).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
@@ -85,7 +85,7 @@ public interface ExecutionResult {
     ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
-     * Asserts that this result includes the given non-error log message (including ansi characters and build result message).
+     * Asserts that this result includes the given non-error log message (including ANSI characters and build result message).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
