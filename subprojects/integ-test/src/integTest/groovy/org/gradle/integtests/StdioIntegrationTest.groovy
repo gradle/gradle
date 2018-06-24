@@ -18,7 +18,9 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
+import spock.lang.Timeout
 
+@Timeout(90)
 class StdioIntegrationTest extends AbstractIntegrationSpec {
 
     def "build can read stdin when stdin has bounded length"() {

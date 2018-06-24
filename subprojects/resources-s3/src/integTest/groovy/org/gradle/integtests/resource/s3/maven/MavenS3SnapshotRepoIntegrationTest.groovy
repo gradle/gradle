@@ -18,7 +18,9 @@ package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
+import spock.lang.Timeout
 
+@Timeout(240)
 class MavenS3SnapshotRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
 
     String artifactVersion = "1.45-SNAPSHOT"
