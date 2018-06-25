@@ -20,8 +20,15 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 
 public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
+
+    private final boolean includeMissing;
+
+    public AbsolutePathFileCollectionSnapshotBuilder(boolean includeMissing) {
+        this.includeMissing = includeMissing;
+    }
+
     @Override
     protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
-        return new AbsolutePathFileCollectionSnapshot(roots);
+        return new AbsolutePathFileCollectionSnapshot(roots, includeMissing);
     }
 }

@@ -56,6 +56,7 @@ import java.util.Set;
  */
 public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectionSnapshot {
 
+    private final boolean includeMissingFiles;
     private Map<String, FileContentSnapshot> content;
     private final Factory<List<File>> cachedElementsFactory = Factories.softReferenceCache(new Factory<List<File>>() {
         @Override
@@ -64,13 +65,15 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
         }
     });
 
-    public AbsolutePathFileCollectionSnapshot(ListMultimap<String, LogicalSnapshot> roots) {
+    public AbsolutePathFileCollectionSnapshot(ListMultimap<String, LogicalSnapshot> roots, boolean includeMissingFiles) {
         super(roots);
+        this.includeMissingFiles = includeMissingFiles;
     }
 
     public AbsolutePathFileCollectionSnapshot(ImmutableSortedMap<String, FileContentSnapshot> content, @Nullable HashCode hashCode) {
         super(hashCode);
         this.content = content;
+        this.includeMissingFiles = false;
     }
 
     @Override
@@ -160,7 +163,7 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
 
                 @Override
                 public void visit(String name, FileContentSnapshot content) {
-                    if (content.getType() == FileType.Missing) {
+                    if (!includeMissingFiles && content.getType() == FileType.Missing) {
                         return;
                     }
                     String absolutePath = getAbsolutePath(name);

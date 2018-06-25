@@ -147,7 +147,7 @@ public class TaskOutputCacheCommandFactory {
                 }
                 PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
                 String absolutePath = internedAbsolutePath(outputFile);
-                AbsolutePathFileCollectionSnapshotBuilder builder = new AbsolutePathFileCollectionSnapshotBuilder();
+                AbsolutePathFileCollectionSnapshotBuilder builder = new AbsolutePathFileCollectionSnapshotBuilder(false);
 
                 if (snapshot == null) {
                     fileSystemMirror.putFile(new MissingFileSnapshot(absolutePath, RelativePath.EMPTY_ROOT.append(true, property.getOutputFile().getName())));

@@ -40,7 +40,7 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         if (pathNormalizationStrategy == OutputPathNormalizationStrategy.getInstance() || pathNormalizationStrategy == InputPathNormalizationStrategy.ABSOLUTE) {
-            return super.snapshot(files, new AbsolutePathFileCollectionSnapshotBuilder());
+            return super.snapshot(files, new AbsolutePathFileCollectionSnapshotBuilder(pathNormalizationStrategy == InputPathNormalizationStrategy.ABSOLUTE));
         } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.RELATIVE) {
             return super.snapshot(files, new RelativePathFileCollectionSnapshotBuilder());
         } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NAME_ONLY) {

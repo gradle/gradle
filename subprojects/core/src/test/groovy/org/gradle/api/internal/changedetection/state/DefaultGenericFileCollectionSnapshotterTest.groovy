@@ -78,7 +78,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), ABSOLUTE, normalizationStrategy)
 
         then:
-        snapshot.elements == [file, dir, dir2, file2, noExist]
+        snapshot.elements == [dir, dir2, file2, file, noExist]
     }
 
     def "retains order of elements in the snapshot"() {
