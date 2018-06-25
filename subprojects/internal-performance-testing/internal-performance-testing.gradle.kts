@@ -64,7 +64,7 @@ val reportResources = tasks.register<Copy>("reportResources") {
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir)
 
-tasks.withType(Jar::class.java).named("jar").configure {
+tasks.named("jar").configureAs<Jar> {
     inputs.files(flamegraph)
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
