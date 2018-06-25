@@ -67,7 +67,13 @@ public class WrapperExecutor {
         URI source = readDistroUrl();
         if (source.getScheme() == null) {
             //no scheme means someone passed a relative url. In our context only file relative urls make sense.
-            return new File(propertiesFile.getParentFile(), source.getSchemeSpecificPart()).toURI();
+            File file = new File(propertiesFile.getParentFile(), source.getSchemeSpecificPart());
+            try {
+                file = file.getCanonicalFile();
+            } catch (IOException e) {
+                // ignore failed attempt to canonicalize and use original file
+            }
+            return file.toURI();
         } else {
             return source;
         }
