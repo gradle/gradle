@@ -18,6 +18,7 @@ package org.gradle.wrapper
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class WrapperExecutorTest extends Specification {
@@ -167,5 +168,19 @@ class WrapperExecutorTest extends Specification {
         //distribution uri should resolve into absolute path
         wrapper.distribution.schemeSpecificPart != 'some/relative/url/to/bin.zip'
         wrapper.distribution.schemeSpecificPart.endsWith 'some/relative/url/to/bin.zip'
+    }
+
+    @Issue("gradle/gradle#2844")
+    def "canonicalizes relative distribution url"() {
+        given:
+        properties.distributionUrl = '../../some/relative/url/to/bin.zip'
+        propertiesFile.withOutputStream { properties.store(it, 'header') }
+
+        when:
+        WrapperExecutor wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile)
+
+        then:
+        //distribution uri should resolve into absolute path
+        wrapper.distribution == tmpDir.file('some/relative/url/to/bin.zip').toURI()
     }
 }
