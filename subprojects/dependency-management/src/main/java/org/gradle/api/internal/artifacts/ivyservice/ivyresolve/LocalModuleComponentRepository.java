@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -39,13 +38,11 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
  * be considered local.
  */
 public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
-    private final ComponentMetadataProcessor metadataProcessor;
     private final LocalAccess localAccess = new LocalAccess();
     private final RemoteAccess remoteAccess = new RemoteAccess();
 
-    public LocalModuleComponentRepository(ModuleComponentRepository delegate, ComponentMetadataProcessor metadataProcessor) {
+    public LocalModuleComponentRepository(ModuleComponentRepository delegate) {
         super(delegate);
-        this.metadataProcessor = metadataProcessor;
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {
@@ -75,10 +72,6 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            }
-
-            if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                result.setMetadata(metadataProcessor.processMetadata(result.getMetaData()));
             }
         }
 
