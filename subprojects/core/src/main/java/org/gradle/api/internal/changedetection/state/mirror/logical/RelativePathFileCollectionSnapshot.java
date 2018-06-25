@@ -148,13 +148,13 @@ public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectio
     @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         if (snapshots == null) {
+            Preconditions.checkState(getRoots() != null, "If no roots are given the snapshots must be provided.");
             snapshots = doGetSnapshots();
         }
         return snapshots;
     }
 
     private Map<String, NormalizedFileSnapshot> doGetSnapshots() {
-        Preconditions.checkState(snapshots != null || getRoots() != null, "If no roots are given the snapshots must be present.");
         final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableSortedMap.naturalOrder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {

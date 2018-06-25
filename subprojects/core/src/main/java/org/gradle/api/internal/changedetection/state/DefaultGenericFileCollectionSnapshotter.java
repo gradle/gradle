@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.logical.NameOnlyPathFileCollectionSnapshotBuilder;
+import org.gradle.api.internal.changedetection.state.mirror.logical.NonePathFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.logical.RelativePathFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.tasks.GenericFileNormalizer;
@@ -44,7 +45,9 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
             return super.snapshot(files, new RelativePathFileCollectionSnapshotBuilder());
         } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NAME_ONLY) {
             return super.snapshot(files, new NameOnlyPathFileCollectionSnapshotBuilder());
+        } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NONE) {
+            return super.snapshot(files, new NonePathFileCollectionSnapshotBuilder());
         }
-        return super.snapshot(files, new FileCollectionVisitingSnapshotBuilder(new CollectingFileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.UNORDERED, pathNormalizationStrategy, getStringInterner())));
+        throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
     }
 }
