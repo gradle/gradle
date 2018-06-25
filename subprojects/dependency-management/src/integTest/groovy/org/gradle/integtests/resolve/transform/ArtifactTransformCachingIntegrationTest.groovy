@@ -904,57 +904,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "cleans up cache"() {
         given:
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
-                    }
-                }
-                task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        println "files: " + artifacts.artifactFiles.collect { it.name }
-                        println "ids: " + artifacts.collect { it.id.displayName }
-                        println "components: " + artifacts.collect { it.id.componentIdentifier }
-                    }
-                }
-            }
-
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
-                    output.text = String.valueOf(input.length())
-                    return [output]
-                }
-            }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
-                }
-            }
-
-            project(':app') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-        """
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
@@ -962,14 +912,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        outputContains("files: [lib1.jar.txt, lib2.jar.txt]")
-        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
-        outputContains("components: [project :lib, project :lib]")
-        output.count("Transforming") == 2
-        isTransformed("lib1.jar", "lib1.jar.txt")
-        isTransformed("lib2.jar", "lib2.jar.txt")
-
-        and:
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt").assertExists()
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt").assertExists()
         journal.assertExists()
