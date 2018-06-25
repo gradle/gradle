@@ -32,10 +32,15 @@ tasks.register<BuildClassPath>("buildClassPath") {
     outputFile = buildDir.resolve("classpath.txt")
 }
 
-val distZip: TaskProvider<Zip> = tasks.withType(Zip::class.java).named("distZip")
-val distTar: TaskProvider<Tar> = tasks.withType(Tar::class.java).named("distTar")
-listOf(distZip, distTar).forEach { it.configure { baseName = "android-test-app" } }
-project(":distributions").tasks.register("buildDists").configure { dependsOn(distZip) }
+val distZip: TaskProvider<Zip> = tasks.withType<Zip>().named("distZip")
+val distTar: TaskProvider<Tar> = tasks.withType<Tar>().named("distTar")
+listOf(distZip, distTar).forEach {
+    it.configure { baseName = "android-test-app" }
+}
+
+project(":distributions").tasks.register("buildDists") {
+    dependsOn(distZip)
+}
 
 
 open class BuildClassPath : DefaultTask() {

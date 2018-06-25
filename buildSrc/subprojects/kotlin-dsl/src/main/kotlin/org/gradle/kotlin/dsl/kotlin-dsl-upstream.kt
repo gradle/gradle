@@ -5,6 +5,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
@@ -82,6 +83,10 @@ fun <reified T : Any> TaskContainer.getByName(name: String, configure: T.() -> U
 inline
 fun <reified T : Task> TaskContainer.register(name: String, noinline configurationAction: T.() -> Unit) =
     register(name, T::class.java) { configurationAction(it) }
+
+
+inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
+    withType(T::class.java)
 
 
 inline fun <reified T : Any> TaskProvider<out Task>.configureAs(noinline configurationAction: T.() -> Unit) =
