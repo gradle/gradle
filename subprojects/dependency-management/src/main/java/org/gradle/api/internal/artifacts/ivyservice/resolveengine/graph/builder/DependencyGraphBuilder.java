@@ -76,16 +76,20 @@ public class DependencyGraphBuilder {
     private final CapabilitiesConflictHandler capabilitiesConflictHandler;
     private final VersionSelectorScheme versionSelectorScheme;
 
-    public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
+    public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver,
+                                  ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
                                   ModuleConflictHandler moduleConflictHandler,
                                   CapabilitiesConflictHandler capabilitiesConflictHandler,
                                   Spec<? super DependencyMetadata> edgeFilter,
                                   AttributesSchemaInternal attributesSchema,
                                   ModuleExclusions moduleExclusions,
-                                  BuildOperationExecutor buildOperationExecutor, ModuleReplacementsData moduleReplacementsData,
-                                  DependencySubstitutionApplicator dependencySubstitutionApplicator, ComponentSelectorConverter componentSelectorConverter,
-                                  ImmutableAttributesFactory attributesFactory, VersionSelectorScheme versionSelectorScheme) {
+                                  BuildOperationExecutor buildOperationExecutor,
+                                  ModuleReplacementsData moduleReplacementsData,
+                                  DependencySubstitutionApplicator dependencySubstitutionApplicator,
+                                  ComponentSelectorConverter componentSelectorConverter,
+                                  ImmutableAttributesFactory attributesFactory,
+                                  VersionSelectorScheme versionSelectorScheme) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;

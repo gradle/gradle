@@ -123,7 +123,8 @@ task copyFiles(type:Copy) {
         succeeds 'resolveDependencies'
     }
 
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(value = [TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_LATER])
+    @Issue('https://github.com/gradle/gradle-private/issues/1341')
     // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
     def "can use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
         mavenRepo.module('org.test', 'module1', '1.0').publish()

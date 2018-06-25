@@ -329,7 +329,10 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
-            attributesFactory, versionSelectorScheme, versionParser, componentMetadataSupplierRuleExecutor);
+            attributesFactory,
+            versionSelectorScheme,
+            versionParser,
+            componentMetadataSupplierRuleExecutor);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
