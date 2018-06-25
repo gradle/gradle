@@ -17,10 +17,28 @@
 package org.gradle.integtests.fixtures.cache
 
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal
+import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.test.fixtures.file.TestFile
+
+import static java.util.concurrent.TimeUnit.DAYS
+import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
+import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 
 trait FileAccessTimeJournalFixture extends CachingIntegrationFixture {
     TestFile getJournal() {
         getUserHomeCacheDir().file(DefaultFileAccessTimeJournal.CACHE_KEY, DefaultFileAccessTimeJournal.FILE_ACCESS_CACHE_NAME + ".bin")
+    }
+
+    void writeLastFileAccessTimeToJournal(File file, long millis) {
+        def cache = new BTreePersistentIndexedCache<File, Long>(journal, FILE_SERIALIZER, LONG_SERIALIZER)
+        try {
+            cache.put(file, millis)
+        } finally {
+            cache.close()
+        }
+    }
+
+    long daysAgo(long days) {
+        System.currentTimeMillis() - DAYS.toMillis(days)
     }
 }

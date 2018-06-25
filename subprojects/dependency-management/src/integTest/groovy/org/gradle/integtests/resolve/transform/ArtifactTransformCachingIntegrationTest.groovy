@@ -17,15 +17,14 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-import static java.util.concurrent.TimeUnit.DAYS
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
 
@@ -919,9 +918,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        markForCleanup(outputDir1)
-        markForCleanup(gcFile)
-        assert journal.delete()
+        writeLastFileAccessTimeToJournal(outputDir1, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        gcFile.lastModified = daysAgo(2)
 
         and:
         // start as new process so journal is not restored from in-memory cache
@@ -1117,8 +1115,5 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
     }
 
-    void markForCleanup(File file) {
-        file.lastModified = System.currentTimeMillis() - DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS + 1)
-    }
 
 }

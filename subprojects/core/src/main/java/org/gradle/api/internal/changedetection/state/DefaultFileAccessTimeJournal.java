@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.Transformer;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Properties;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
@@ -36,9 +38,12 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
 
     public static final String CACHE_KEY = "journal-1";
     public static final String FILE_ACCESS_CACHE_NAME = "file-access";
+    public static final String META_PROPERTIES_FILE_NAME = "meta.properties";
+    public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";
 
     private final PersistentCache cache;
     private final PersistentIndexedCache<File, Long> store;
+    private final long inceptionTimestamp;
 
     public DefaultFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         cache = cacheRepository
@@ -49,6 +54,28 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
             .open();
         store = cache.createCache(PersistentIndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
             .cacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
+        inceptionTimestamp = loadOrPersistInceptionTimestamp();
+    }
+
+    private Long loadOrPersistInceptionTimestamp() {
+        return cache.useCache(new Factory<Long>() {
+            @Override
+            public Long create() {
+                File propertiesFile = new File(cache.getBaseDir(), META_PROPERTIES_FILE_NAME);
+                if (propertiesFile.exists()) {
+                    Properties properties = GUtil.loadProperties(propertiesFile);
+                    String inceptionTimestamp = properties.getProperty(INCEPTION_TIMESTAMP_KEY);
+                    if (inceptionTimestamp != null) {
+                        return Long.valueOf(inceptionTimestamp);
+                    }
+                }
+                long inceptionTimestamp = System.currentTimeMillis();
+                Properties properties = new Properties();
+                properties.setProperty(INCEPTION_TIMESTAMP_KEY, String.valueOf(inceptionTimestamp));
+                GUtil.saveProperties(properties, propertiesFile);
+                return inceptionTimestamp;
+            }
+        });
     }
 
     @Override
@@ -63,12 +90,9 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
 
     @Override
     public long getLastAccessTime(File file) {
-        return store.get(file, new Transformer<Long, File>() {
-            @Override
-            public Long transform(File file) {
-                return file.lastModified();
-            }
-        });
+        // no need to store the default value
+        Long value = store.get(file);
+        return value == null ? inceptionTimestamp : value;
     }
 
     @Override
