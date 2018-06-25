@@ -80,22 +80,76 @@ import java.util.Collections;
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final int MAX_HTTP_CONNECTIONS = 20;
-    private static final String[] SSL_PROTOCOLS;
-
+    private static final String[] SSL_PROTOCOLS = configureSslProtocols();
+    private static final String[] CIPHER_SUITES = configureCipherSuites();
     private static final String HTTPS_PROTOCOLS = "https.protocols";
+    private static final String HTTPS_CIPHER_SUITES = "https.cipherSuites";
+    private final HttpSettings httpSettings;
 
-    static {
+    private static String[] configureSslProtocols() {
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
-            SSL_PROTOCOLS = httpsProtocols.split(",");
+            return httpsProtocols.split(",");
         } else if (JavaVersion.current().isJava7()) {
-            SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
+            return new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
         } else {
-            SSL_PROTOCOLS = null;
+            return null;
         }
     }
 
-    private final HttpSettings httpSettings;
+    private static String[] configureCipherSuites() {
+        String cipherSuites = System.getProperty(HTTPS_CIPHER_SUITES);
+        if (cipherSuites != null) {
+            return cipherSuites.split(",");
+        } else if (JavaVersion.current().isJava7()) {
+            // https://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html
+            return new String[]{
+                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+                "TLS_RSA_WITH_AES_256_CBC_SHA256",
+                "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384",
+                "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384",
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
+                "TLS_DHE_DSS_WITH_AES_256_CBC_SHA256",
+                "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
+                "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+                "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+                "TLS_RSA_WITH_AES_128_CBC_SHA256",
+                "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256",
+                "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+                "TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
+                "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA",
+                "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+                "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
+                "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
+                "SSL_RSA_WITH_RC4_128_SHA",
+                "TLS_ECDH_ECDSA_WITH_RC4_128_SHA",
+                "TLS_ECDH_RSA_WITH_RC4_128_SHA",
+                "TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA",
+                "TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
+                "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
+                "TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA",
+                "TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA",
+                "SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
+                "SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
+                "SSL_RSA_WITH_RC4_128_MD5",
+                "TLS_EMPTY_RENEGOTIATION_INFO_SCSV2"
+            };
+        } else {
+            return null;
+        }
+    }
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
         this.httpSettings = httpSettings;
@@ -118,7 +172,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, null, hostnameVerifier));
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, CIPHER_SUITES, hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
@@ -133,7 +187,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
-        if(authentications.size() > 0) {
+        if (authentications.size() > 0) {
             useCredentials(credentialsProvider, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established
