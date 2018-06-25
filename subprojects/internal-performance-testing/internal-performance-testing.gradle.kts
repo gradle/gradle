@@ -57,7 +57,7 @@ gradlebuildJava {
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-val reportResources = tasks.register("reportResources", Copy::class.java) {
+val reportResources = tasks.register<Copy>("reportResources") {
     from(reports)
     into("$generatedResourcesDir/org/gradle/reporting")
 }

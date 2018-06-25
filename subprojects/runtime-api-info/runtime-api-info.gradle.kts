@@ -26,7 +26,7 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-val generateGradleApiPackageList = tasks.register("generateGradleApiPackageList", PackageListGenerator::class.java) {
+val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generateGradleApiPackageList") {
     classpath = files(
         rootProject.configurations["externalModules"],
         listOf(":core", ":dependencyManagement", ":pluginUse", ":toolingApi").map {
@@ -36,7 +36,7 @@ val generateGradleApiPackageList = tasks.register("generateGradleApiPackageList"
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
 }
 
-val generateTestKitPackageList = tasks.register("generateTestKitPackageList", PackageListGenerator::class.java) {
+val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
     classpath = project(":testKit").configurations.compileClasspath
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }

@@ -89,7 +89,7 @@ eclipse {
     }
 }
 
-tasks.register("publishLocalArchives", Upload::class.java) {
+tasks.register<Upload>("publishLocalArchives") {
     val repoBaseDir = rootProject.file("build/repo")
     configuration = configurations.publishRuntime
     isUploadDescriptor = false

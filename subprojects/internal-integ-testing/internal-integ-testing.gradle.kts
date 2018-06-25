@@ -56,7 +56,7 @@ testFixtures {
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-val prepareVersionsInfo = tasks.register("prepareVersionsInfo", PrepareVersionsInfo::class.java) {
+val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     destFile = generatedResourcesDir.resolve("all-released-versions.properties")
     versions = releasedVersions.allVersions
     mostRecent = releasedVersions.mostRecentRelease

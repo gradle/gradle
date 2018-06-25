@@ -25,8 +25,8 @@ application {
     applicationName = "android-test-app"
 }
 
-tasks.register("buildClassPath", BuildClassPath::class.java) {
-    val jar: Jar = tasks.withType(Jar::class.java).getByName("jar")
+tasks.register<BuildClassPath>("buildClassPath") {
+    val jar: Jar by tasks
     dependsOn(jar)
     classpath = androidTools + files(jar.archivePath)
     outputFile = buildDir.resolve("classpath.txt")
