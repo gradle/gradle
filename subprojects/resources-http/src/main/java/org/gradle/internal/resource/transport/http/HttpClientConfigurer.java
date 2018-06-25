@@ -62,6 +62,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.UriTextResource;
@@ -72,8 +73,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.ProxySelector;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -102,50 +105,11 @@ public class HttpClientConfigurer {
         if (cipherSuites != null) {
             return cipherSuites.split(",");
         } else if (JavaVersion.current().isJava7()) {
-            // https://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html
-            return new String[]{
-                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
-                "TLS_RSA_WITH_AES_256_CBC_SHA256",
-                "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384",
-                "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384",
-                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
-                "TLS_DHE_DSS_WITH_AES_256_CBC_SHA256",
-                "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
-                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
-                "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
-                "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
-                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-                "TLS_RSA_WITH_AES_128_CBC_SHA256",
-                "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256",
-                "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256",
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
-                "TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
-                "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-                "TLS_RSA_WITH_AES_128_CBC_SHA",
-                "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA",
-                "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA",
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-                "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-                "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
-                "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
-                "SSL_RSA_WITH_RC4_128_SHA",
-                "TLS_ECDH_ECDSA_WITH_RC4_128_SHA",
-                "TLS_ECDH_RSA_WITH_RC4_128_SHA",
-                "TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA",
-                "TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
-                "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
-                "TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA",
-                "TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA",
-                "SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
-                "SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
-                "SSL_RSA_WITH_RC4_128_MD5",
-                "TLS_EMPTY_RENEGOTIATION_INFO_SCSV2"
-            };
+            try {
+                return SSLContext.getDefault().getSocketFactory().getSupportedCipherSuites();
+            } catch (NoSuchAlgorithmException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         } else {
             return null;
         }
