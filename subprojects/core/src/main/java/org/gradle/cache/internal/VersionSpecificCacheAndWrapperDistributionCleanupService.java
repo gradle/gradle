@@ -143,7 +143,7 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
             }
             if (cleanupCondition.isSatisfiedBy(cacheDir)) {
                 try {
-                    deleteCacheDir(cacheDir);
+                    deleteCacheDir(cacheDir.getDir());
                     deleteDistributions(cacheDir.getVersion());
                 } catch (Exception e) {
                     LOGGER.error("Failed to process/clean up version-specific cache directory: {}", cacheDir.getDir(), e);
@@ -153,16 +153,16 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
         return true;
     }
 
-    private void deleteCacheDir(VersionSpecificCacheDirectory cacheDir) throws IOException {
-        LOGGER.debug("Deleting version-specific cache directory for {} at {}", cacheDir.getVersion(), cacheDir.getDir());
-        FileUtils.deleteDirectory(cacheDir.getDir());
+    private void deleteCacheDir(File cacheDir) throws IOException {
+        LOGGER.debug("Deleting version-specific cache directory at {}", cacheDir);
+        FileUtils.deleteDirectory(cacheDir);
     }
 
     private void deleteDistributions(GradleVersion version) throws IOException {
         for (String distributionType : DISTRIBUTION_TYPES) {
             File dir = new File(distsDir, "gradle-" + version.getVersion() + "-" + distributionType);
             if (dir.isDirectory()) {
-                LOGGER.info("Deleting Gradle distribution at {}", dir);
+                LOGGER.debug("Deleting Gradle distribution at {}", dir);
                 FileUtils.deleteDirectory(dir);
             }
         }
