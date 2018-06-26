@@ -44,7 +44,7 @@ integTestTasks.configureEach { task ->
     task.systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
 }
 
-parallelIntegTest {
+tasks.named("parallelIntegTest").configure {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }
 

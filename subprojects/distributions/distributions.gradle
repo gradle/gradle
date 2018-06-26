@@ -25,13 +25,16 @@ configurations.all {
 }
 //tasks.remove(jar)
 
-tasks.withType(AbstractArchiveTask) {
+tasks.withType(AbstractArchiveTask).configureEach {
     baseName "gradle"
     version = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDir = rootProject.distsDir
-    clean.delete archivePath
+}
+
+tasks.named("clean").configure {
+    delete tasks.withType(AbstractArchiveTask)*.archivePath
 }
 
 configurations {

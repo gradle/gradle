@@ -32,9 +32,7 @@ configureCodenarc(codeQualityConfigDir)
 configureCodeQualityTasks()
 
 fun Project.configureCheckstyle(codeQualityConfigDir: File) {
-    apply {
-        plugin("checkstyle")
-    }
+    apply(plugin = "checkstyle")
 
     val checkStyleConfigDir = codeQualityConfigDir.resolve("checkstyle")
     configure<CheckstyleExtension> {
@@ -62,9 +60,7 @@ fun getIntegrationTestFixturesRule(): Class<*>? {
 }
 
 fun Project.configureCodenarc(codeQualityConfigDir: File) {
-    apply {
-        plugin("codenarc")
-    }
+    apply(plugin = "codenarc")
 
     dependencies {
         "codenarc"("org.codenarc:CodeNarc:1.0")
@@ -94,10 +90,8 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
 
 fun Project.configureCodeQualityTasks() {
     val codeQualityTasks = tasks.matching { it is CodeNarc || it is Checkstyle }
-    tasks {
-        "codeQuality" {
-            dependsOn(codeQualityTasks)
-        }
+    tasks.register("codeQuality").configure {
+        dependsOn(codeQualityTasks)
     }
     tasks.withType(Test::class.java).configureEach {
         shouldRunAfter(codeQualityTasks)

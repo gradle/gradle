@@ -24,7 +24,7 @@ configurations {
     reports
 }
 
-classpathManifest {
+tasks.named("classpathManifest").configure {
     optionalProjects = ['gradle-kotlin-dsl']
 }
 

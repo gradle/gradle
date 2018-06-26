@@ -21,7 +21,7 @@ plugins {
 
 apply from: 'templates.gradle'
 
-performanceReport {
+tasks.named("performanceReport").configure {
     resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
 }
 

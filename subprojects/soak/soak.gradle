@@ -16,7 +16,7 @@ testFixtures {
     from(':core')
 }
 
-tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
+tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.configureEach {
     options {
         excludeCategories 'org.gradle.soak.categories.SoakTest'
     }

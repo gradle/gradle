@@ -29,14 +29,14 @@ plugins {
 
 val testPublishRuntime by configurations.creating
 
-val buildReceipt: BuildReceipt = tasks.getByPath(":createBuildReceipt") as BuildReceipt
+val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType<BuildReceipt>().named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
 the<ShadedJarExtension>().apply {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages.set(listOf("org.gradle.tooling"))
     unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
     ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
-    buildReceiptFile.set(buildReceipt.receiptFile)
+    buildReceiptFile.set(buildReceipt)
 }
 
 dependencies {
