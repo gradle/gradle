@@ -86,6 +86,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -527,7 +528,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                final ResolvableDependencies incoming = getIncoming();
+                final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
                 cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
@@ -544,18 +545,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 captureBuildOperationResult(context, incoming);
             }
 
-            private void captureBuildOperationResult(BuildOperationContext context, final ResolvableDependencies incoming) {
+            private void captureBuildOperationResult(BuildOperationContext context, final ResolvableDependenciesInternal incoming) {
                 Throwable failure = cachedResolverResults.getFailure();
                 if (failure != null) {
                     context.failed(failure);
-                } else {
-                    context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
-                        @Override
-                        public ResolvedComponentResult getRootComponent() {
-                            return incoming.getResolutionResult().getRoot();
-                        }
-                    });
                 }
+                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(incoming, failure != null));
             }
 
             @Override
@@ -941,6 +936,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public String getDisplayName() {
             return "configuration '" + identityPath + "'";
+        }
+    }
+
+    private static class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result {
+
+        private static final Action<? super Throwable> FAIL_SAFE = Actions.doNothing();
+
+        private final ResolvableDependenciesInternal incoming;
+        private final boolean failSafe;
+
+        public ResolveConfigurationResolutionBuildOperationResult(ResolvableDependenciesInternal incoming, boolean failSafe) {
+            this.incoming = incoming;
+            this.failSafe = failSafe;
+        }
+
+        @Override
+        public ResolvedComponentResult getRootComponent() {
+            if (failSafe) {
+                // When fail safe, we don't want the build operation listeners to fail whenever resolution throws an error
+                // because:
+                // 1. the `failed` method will have been called with the user facing error
+                // 2. such an error still leads to a valid dependency graph
+                return incoming.getResolutionResult(FAIL_SAFE).getRoot();
+            }
+            return incoming.getResolutionResult().getRoot();
         }
     }
 
