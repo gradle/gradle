@@ -21,7 +21,12 @@ import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import java.nio.file.Path;
 
 public interface HierarchicalFileTreeVisitor {
-    void preVisitDirectory(Path path, String name);
+    /**
+     * Called before visiting the contents of a directory.
+     *
+     * @return whether the subtree should be visited.
+     */
+    boolean preVisitDirectory(Path path, String name);
     void visit(Path path, String name, FileContentSnapshot content);
     void postVisitDirectory();
 }

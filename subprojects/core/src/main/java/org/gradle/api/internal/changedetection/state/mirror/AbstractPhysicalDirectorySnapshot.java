@@ -48,7 +48,9 @@ public abstract class AbstractPhysicalDirectorySnapshot implements PhysicalSnaps
 
     @Override
     public void accept(HierarchicalFileTreeVisitor visitor) {
-        visitor.preVisitDirectory(path, name);
+        if (!visitor.preVisitDirectory(path, name)) {
+            return;
+        }
         for (PhysicalSnapshot child : getChildren()) {
             child.accept(visitor);
         }

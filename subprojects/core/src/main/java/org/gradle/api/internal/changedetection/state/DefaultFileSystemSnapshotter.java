@@ -17,14 +17,13 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.FileSnapshotHelper;
+import org.gradle.api.internal.changedetection.state.mirror.FilteredHierarchicalVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
@@ -49,8 +48,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.Deque;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -242,36 +239,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             return snapshot;
         }
         final Spec<FileTreeElement> spec = patterns.getAsSpec();
-        return new HierarchicalVisitableTree() {
-
-            @Override
-            public void accept(final HierarchicalFileTreeVisitor visitor) {
-                snapshot.accept(new HierarchicalFileTreeVisitor() {
-                    private Deque<String> relativePath = Lists.newLinkedList();
-
-                    @Override
-                    public void preVisitDirectory(Path path, String name) {
-                        relativePath.addLast(name);
-                        visitor.preVisitDirectory(path, name);
-                    }
-
-                    @Override
-                    public void visit(Path path, String name, FileContentSnapshot content) {
-                        relativePath.addLast(name);
-                        if (spec.isSatisfiedBy(new SnapshotFileTreeElement(FileSnapshotHelper.create(path, relativePath, content), fileSystem))) {
-                            visitor.visit(path, name, content);
-                        }
-                        relativePath.removeLast();
-                    }
-
-                    @Override
-                    public void postVisitDirectory() {
-                        relativePath.removeLast();
-                        visitor.postVisitDirectory();
-                    }
-                });
-            }
-        };
+        return new FilteredHierarchicalVisitableTree(spec, snapshot, fileSystem);
     }
 
     private String internPath(File file) {

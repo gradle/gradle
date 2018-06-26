@@ -155,10 +155,10 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
                 @Override
                 public void preVisitDirectory(String name) {
                     String absolutePath = getAbsolutePath(name);
-                    absolutePaths.addLast(absolutePath);
                     if (processedEntries.add(absolutePath)) {
                         builder.put(absolutePath, DirContentSnapshot.INSTANCE);
                     }
+                    absolutePaths.addLast(absolutePath);
                 }
 
                 @Override

@@ -54,7 +54,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
         final AtomicReference<String> rootName = new AtomicReference<String>();
         tree.accept(new HierarchicalFileTreeVisitor() {
             @Override
-            public void preVisitDirectory(Path path, String name) {
+            public boolean preVisitDirectory(Path path, String name) {
                 if (levelHolder.isEmpty()) {
                     rootPath.set(path.toString());
                     rootName.set(path.getFileName().toString());
@@ -62,6 +62,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
                     relativePathHolder.addLast(name);
                 }
                 levelHolder.addLast(ImmutableList.<LogicalSnapshot>builder());
+                return true;
             }
 
             @Override

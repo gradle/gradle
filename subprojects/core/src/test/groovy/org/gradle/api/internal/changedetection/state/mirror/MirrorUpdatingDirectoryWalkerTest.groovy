@@ -130,9 +130,10 @@ abstract class RelativePathTrackingVisitor implements HierarchicalFileTreeVisito
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    void preVisitDirectory(Path path, String name) {
+    boolean preVisitDirectory(Path path, String name) {
         relativePath.addLast(name)
         visit(path, relativePath)
+        return true
     }
 
     @Override

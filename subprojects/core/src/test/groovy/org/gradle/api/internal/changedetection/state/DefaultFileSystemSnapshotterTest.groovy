@@ -186,13 +186,14 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             private boolean seenRoot = false
 
             @Override
-            void preVisitDirectory(Path path, String name) {
+            boolean preVisitDirectory(Path path, String name) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
                     relativePath.addLast(name)
                     paths.add(relativePath.join("/"))
                 }
+                return true
             }
 
             @Override
@@ -238,8 +239,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         getTreeInfo(snapshot) == [null, 1]
         snapshot.accept(new HierarchicalFileTreeVisitor() {
             @Override
-            void preVisitDirectory(Path path, String name) {
-                assert false
+            boolean preVisitDirectory(Path path, String name) {
+                throw new UnsupportedOperationException()
             }
 
             @Override
@@ -250,7 +251,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
             @Override
             void postVisitDirectory() {
-                assert false
+                throw new UnsupportedOperationException()
             }
         })
     }
@@ -341,11 +342,12 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new HierarchicalFileTreeVisitor() {
             @Override
-            void preVisitDirectory(Path path, String name) {
+            boolean preVisitDirectory(Path path, String name) {
                 if (rootPath == null) {
                     rootPath = path.toString()
                 }
                 count++
+                return true
             }
 
             @Override
