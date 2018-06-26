@@ -31,8 +31,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.NO
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToStdInAndClose
 
-@Requires(value = [TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_LATER])
-@Issue('https://github.com/gradle/gradle-private/issues/1341')
+@Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
 class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 

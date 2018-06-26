@@ -20,13 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
 
 //These tests depend on https://plugins.gradle.org
-@Requires(value = [TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_LATER])
-@Issue('https://github.com/gradle/gradle-private/issues/1341')
+@Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
 class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 

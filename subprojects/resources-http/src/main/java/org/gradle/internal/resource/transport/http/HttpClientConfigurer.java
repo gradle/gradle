@@ -62,6 +62,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.UriTextResource;
@@ -72,30 +73,47 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.ProxySelector;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final int MAX_HTTP_CONNECTIONS = 20;
-    private static final String[] SSL_PROTOCOLS;
-
+    private static final String[] SSL_PROTOCOLS = configureSslProtocols();
+    private static final String[] CIPHER_SUITES = configureCipherSuites();
     private static final String HTTPS_PROTOCOLS = "https.protocols";
+    private static final String HTTPS_CIPHER_SUITES = "https.cipherSuites";
+    private final HttpSettings httpSettings;
 
-    static {
+    private static String[] configureSslProtocols() {
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
-            SSL_PROTOCOLS = httpsProtocols.split(",");
+            return httpsProtocols.split(",");
         } else if (JavaVersion.current().isJava7()) {
-            SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
+            return new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
         } else {
-            SSL_PROTOCOLS = null;
+            return null;
         }
     }
 
-    private final HttpSettings httpSettings;
+    private static String[] configureCipherSuites() {
+        String cipherSuites = System.getProperty(HTTPS_CIPHER_SUITES);
+        if (cipherSuites != null) {
+            return cipherSuites.split(",");
+        } else if (JavaVersion.current().isJava7()) {
+            try {
+                return SSLContext.getDefault().getSocketFactory().getSupportedCipherSuites();
+            } catch (NoSuchAlgorithmException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        } else {
+            return null;
+        }
+    }
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
         this.httpSettings = httpSettings;
@@ -118,7 +136,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, null, hostnameVerifier));
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, CIPHER_SUITES, hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
@@ -133,7 +151,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
-        if(authentications.size() > 0) {
+        if (authentications.size() > 0) {
             useCredentials(credentialsProvider, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established
