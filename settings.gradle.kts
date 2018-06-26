@@ -1,5 +1,19 @@
 enableFeaturePreview("STABLE_PUBLISHING")
 
+fun RepositoryHandler.kotlinDev() =
+    maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")
+
+pluginManagement {
+    repositories {
+        kotlinDev()
+        gradlePluginPortal()
+    }
+}
+
+gradle.allprojects {
+    repositories { kotlinDev() }
+}
+
 rootProject.name = "gradle-kotlin-dsl"
 
 include(

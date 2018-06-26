@@ -120,22 +120,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
 
             withFile("settings.gradle.kts", """
+                $pluginManagementBlockWithKotlinDevRepository
                 include("app", "lib")
             """)
         }
 
         build("tasks")
     }
-
-    private
-    fun FoldersDsl.withPrecompiledPlugins() =
-        withFile("build.gradle.kts", """
-            plugins {
-                `kotlin-dsl`
-                `java-gradle-plugin`
-            }
-            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-        """)
 
     @Test
     fun `conflicting extensions across build runs`() {
@@ -144,13 +135,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             "buildSrc" {
 
-                withFile("build.gradle.kts", """
-                    plugins {
-                        `kotlin-dsl`
-                        `java-gradle-plugin`
-                    }
-                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-                """)
+                withPrecompiledPlugins()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -171,11 +156,34 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 my { name = "kotlin-dsl" }
             """)
 
-            withFile("settings.gradle.kts")
+            withFile("settings.gradle.kts", pluginManagementBlockWithKotlinDevRepository)
         }
 
         build("tasks", "-Pmy=lib")
         build("tasks", "-Pmy=app")
+    }
+
+    private
+    fun FoldersDsl.withPrecompiledPlugins() {
+        withFile("settings.gradle.kts", pluginManagementBlockWithKotlinDevRepository)
+        withFile("build.gradle.kts", """
+
+            plugins {
+                kotlin("jvm") version embeddedKotlinVersion
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+
+            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+
+            $repositoriesBlock
+
+            dependencies {
+                kotlinCompilerPluginClasspath(gradleKotlinDslJars())
+                kotlinCompilerPluginClasspath(gradleApi())
+            }
+
+        """)
     }
 
     @Test
@@ -445,11 +453,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
+        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
                 `java-gradle-plugin`
             }
+
+            $repositoriesBlock
 
             gradlePlugin {
                 (plugins) {
@@ -494,11 +506,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
+        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
+
             gradlePlugin {
                 (plugins) {
                     "my-plugin" {
@@ -582,11 +598,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `convention accessors honor HasPublicType`() {
+        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
+
             gradlePlugin {
                 (plugins) {
                     "my-plugin" {

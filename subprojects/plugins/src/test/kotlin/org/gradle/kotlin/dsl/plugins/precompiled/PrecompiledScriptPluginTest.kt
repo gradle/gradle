@@ -31,6 +31,8 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
+import java.io.File
+
 
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
@@ -273,6 +275,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     $applyPrecompiledScriptPlugins
 
+                    $pluginRepositoriesBlock
+
                     publishing {
                         repositories {
                             maven(url = "../repository")
@@ -348,8 +352,10 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             .loadClass(className)
 
     private
-    fun withPrecompiledScriptPluginsPlus(vararg additionalPlugins: String) =
-        withBuildScript(scriptWithPrecompiledScriptPluginsPlus(*additionalPlugins))
+    fun withPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): File {
+        withSettings(pluginManagementBlock)
+        return withBuildScript(scriptWithPrecompiledScriptPluginsPlus(*additionalPlugins))
+    }
 
     private
     fun scriptWithPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): String =
@@ -357,6 +363,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             plugins {
                 ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
+
+            $repositoriesBlock
 
             $applyPrecompiledScriptPlugins
         """

@@ -90,3 +90,10 @@ fun RepositoryHandler.ivy(url: Any, action: IvyArtifactRepository.() -> Unit) =
         it.setUrl(url)
         it.action()
     }
+
+
+/**
+ * Adds the Kotlin Dev bintray repository.
+ */
+fun RepositoryHandler.kotlinDev() =
+    maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")

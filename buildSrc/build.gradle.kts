@@ -14,6 +14,7 @@ buildscript {
     }
 
     configure(listOf(repositories, project.repositories)) {
+        maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")
         gradlePluginPortal()
     }
 }
@@ -23,7 +24,7 @@ plugins {
     `kotlin-dsl`
 }
 
-apply(plugin = "org.gradle.kotlin.ktlint-convention")
+//apply(plugin = "org.gradle.kotlin.ktlint-convention")
 apply<PrecompiledScriptPlugins>()
 
 tasks.withType<KotlinCompile> {

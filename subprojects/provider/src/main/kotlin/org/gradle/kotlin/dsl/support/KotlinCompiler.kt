@@ -34,8 +34,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
-import org.jetbrains.kotlin.config.addKotlinSourceRoot
-import org.jetbrains.kotlin.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
@@ -43,6 +42,11 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
+import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
+import org.jetbrains.kotlin.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
 import org.jetbrains.kotlin.name.NameUtils
@@ -196,6 +200,14 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(
+            CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS,
+            LanguageVersionSettingsImpl(
+                LanguageVersion.KOTLIN_1_3, ApiVersion.KOTLIN_1_3,
+                specificFeatures = mapOf(
+                    LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
+                    LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
+                )))
     }
 
 

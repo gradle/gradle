@@ -60,6 +60,11 @@ open class PrecompiledScriptPlugins : Plugin<Project> {
 private
 fun Project.enableScriptCompilation() {
 
+    dependencies {
+        "kotlinCompilerPluginClasspath"(gradleKotlinDslJars())
+        "kotlinCompilerPluginClasspath"(gradleApi())
+    }
+
     afterEvaluate {
 
         tasks {

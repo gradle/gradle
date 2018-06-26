@@ -26,12 +26,18 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `withPluginClasspath works`() {
 
+        withSettings(
+            pluginManagementBlockWithKotlinDevRepository
+        )
+
         withBuildScript("""
 
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
 
             gradlePlugin {
                 (plugins) {
@@ -43,12 +49,10 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
             }
 
             dependencies {
+                compile(kotlin("stdlib-jdk8"))
                 testImplementation("junit:junit:4.12")
             }
 
-            repositories {
-                jcenter()
-            }
         """)
 
         withFile("src/main/kotlin/plugin/TestPlugin.kt", """
