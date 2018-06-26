@@ -290,9 +290,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
                     @Override
                     public void visit(Path path, String name, FileContentSnapshot content) {
+                        relativePath.addLast(name);
                         if (spec.isSatisfiedBy(new SnapshotFileTreeElement(FileSnapshotHelper.create(path, relativePath, content), fileSystem))) {
                             visitor.visit(path, name, content);
                         }
+                        relativePath.removeLast();
                     }
 
                     @Override
