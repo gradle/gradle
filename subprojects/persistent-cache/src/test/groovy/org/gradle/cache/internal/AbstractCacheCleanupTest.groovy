@@ -83,6 +83,46 @@ class AbstractCacheCleanupTest extends Specification {
         deletedFiles == []
     }
 
+    def "deletes empty parent directories"() {
+        given:
+        def grandparent = cacheDir.createDir("a")
+        def parent = grandparent.createDir("b")
+        def file = parent.createFile("somefile")
+
+        when:
+        cleanupAction(finder([file]), { true })
+            .clean(cleanableStore, timer)
+
+        then:
+        1 * timer.hasExpired()
+        file.assertDoesNotExist()
+        parent.assertDoesNotExist()
+        grandparent.assertDoesNotExist()
+        cacheDir.assertExists()
+        deletedFiles == [file, parent, grandparent]
+    }
+
+    def "does not delete non-empty parent directories"() {
+        given:
+        def grandparent = cacheDir.createDir("a")
+        def anotherFile = grandparent.createFile("anotherfile")
+        def parent = grandparent.createDir("b")
+        def file = parent.createFile("somefile")
+
+        when:
+        cleanupAction(finder([file]), { true })
+            .clean(cleanableStore, timer)
+
+        then:
+        1 * timer.hasExpired()
+        file.assertDoesNotExist()
+        parent.assertDoesNotExist()
+        grandparent.assertExists()
+        anotherFile.assertExists()
+        cacheDir.assertExists()
+        deletedFiles == [file, parent]
+    }
+
     FilesFinder finder(files) {
         Stub(FilesFinder) {
             find(_, _) >> { baseDir, filter ->
