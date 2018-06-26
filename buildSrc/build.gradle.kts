@@ -149,7 +149,7 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
+        testCompile("org.spockframework:spock-core:1.1-groovy-2.4")
         testCompile("cglib:cglib:3.2.6")
         testCompile("org.objenesis:objenesis:2.4")
         constraints {
