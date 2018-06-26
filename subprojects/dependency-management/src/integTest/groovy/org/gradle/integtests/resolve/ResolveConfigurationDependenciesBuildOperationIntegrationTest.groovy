@@ -396,5 +396,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         failure.assertHasCause("""A conflict was found between the following modules:
   - org:leaf:1.0
   - org:leaf:2.0""")
+        op.result != null
+        op.result.resolvedDependenciesCount == 2
     }
 }
