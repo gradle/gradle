@@ -21,11 +21,12 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.SanityCheck),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)), omitsSlowProjects = true),
             Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
-                    functionalTestsDependOnSpecificBuilds = true),
+                    functionalTestsDependOnSpecificBuilds = true,
+                    omitsSlowProjects = true),
             Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
@@ -34,7 +35,8 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
-                    performanceTests = listOf(PerformanceTestType.test)),
+                    performanceTests = listOf(PerformanceTestType.test),
+                    omitsSlowProjects = true),
             Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
                     trigger = Trigger.eachCommit,
                     functionalTests = listOf(
@@ -111,7 +113,7 @@ data class CIBuildModel (
             GradleSubproject("platformBase"),
             GradleSubproject("platformJvm"),
             GradleSubproject("platformNative"),
-            GradleSubproject("platformPlay"),
+            GradleSubproject("platformPlay", containsSlowTests = true),
             GradleSubproject("pluginDevelopment"),
             GradleSubproject("pluginUse", crossVersionTests = true),
             GradleSubproject("plugins"),
@@ -150,7 +152,7 @@ data class CIBuildModel (
     )
 }
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) {
     fun asDirectoryName(): String {
         return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
     }
@@ -179,7 +181,7 @@ object NoBuildCache : BuildCache {
     }
 }
 
-data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false) {
+data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false) {
     val id = name.replace(" ", "").replace("-", "")
 }
 

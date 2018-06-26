@@ -16,6 +16,10 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         if (shouldBeSkipped(subProject, testConfig)) {
             return@forEach
         }
+        if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+            return@forEach
+        }
+
         if (subProject.unitTests && testConfig.testType.unitTests) {
             buildType(FunctionalTest(model, testConfig, subProject.name, stage))
         } else if (subProject.functionalTests && testConfig.testType.functionalTests) {

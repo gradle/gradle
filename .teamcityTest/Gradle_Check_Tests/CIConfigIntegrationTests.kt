@@ -54,6 +54,9 @@ class CIConfigIntegrationTests {
 
                 stage.functionalTests.forEach { testCoverage ->
                     m.subProjects.forEach { subProject ->
+                        if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+                            return@forEach
+                        }
                         if (shouldBeSkipped(subProject, testCoverage)) {
                             return@forEach
                         }
@@ -91,7 +94,8 @@ class CIConfigIntegrationTests {
                                     SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
                                     TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
-                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                            omitsSlowProjects = true)
                 )
         )
         val p = RootProject(m)

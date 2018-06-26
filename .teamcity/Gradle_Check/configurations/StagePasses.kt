@@ -114,6 +114,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
                     if (shouldBeSkipped(subProject, testCoverage)) {
                         return@forEach
                     }
+                    if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+                        return@forEach
+                    }
                     if (subProject.unitTests && testCoverage.testType.unitTests) {
                         dependency(testCoverage.asConfigurationId(model, subProject.name)) { snapshot {} }
                     } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
