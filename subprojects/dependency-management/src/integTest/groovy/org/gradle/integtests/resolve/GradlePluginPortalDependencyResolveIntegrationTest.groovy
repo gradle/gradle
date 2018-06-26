@@ -18,8 +18,10 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
-@Requires(TestPrecondition.ONLINE)
+@Issue("https://github.com/gradle/gradle-private/issues/1341")
+@Requires(value = [TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_LATER])
 class GradlePluginPortalDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def gradlePluginPortalRepository = "repositories { gradlePluginPortal() }"
