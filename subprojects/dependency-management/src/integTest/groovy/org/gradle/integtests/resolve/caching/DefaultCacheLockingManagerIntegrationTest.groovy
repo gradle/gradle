@@ -95,6 +95,10 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resource.assertDoesNotExist()
         files[0].assertDoesNotExist()
         files[1].assertDoesNotExist()
+
+        and: // deletes empty parent directories
+        findFiles(cacheDir, 'resources-*/*').isEmpty()
+        findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
     def "downloads deleted files again when they are referenced"() {

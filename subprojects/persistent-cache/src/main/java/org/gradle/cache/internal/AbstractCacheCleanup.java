@@ -46,11 +46,23 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
             if (shouldDelete(file)) {
                 if (FileUtils.deleteQuietly(file)) {
                     handleDeletion(file);
-                    filesDeleted++;
+                    filesDeleted += 1 + deleteEmptyParentDirectories(cleanableStore.getBaseDir(), file.getParentFile());
                 }
             }
         }
         LOGGER.info("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
+    }
+
+    private int deleteEmptyParentDirectories(File baseDir, File dir) {
+        if (dir.equals(baseDir)) {
+            return 0;
+        }
+        File[] files = dir.listFiles();
+        if (files != null && files.length == 0 && dir.delete()) {
+            handleDeletion(dir);
+            return 1 + deleteEmptyParentDirectories(baseDir, dir.getParentFile());
+        }
+        return 0;
     }
 
     protected abstract boolean shouldDelete(File file);

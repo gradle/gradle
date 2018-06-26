@@ -928,7 +928,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         executer.withTasks("tasks").start().waitForFinish()
 
         then:
-        outputDir1.assertDoesNotExist()
+        outputDir1.parentFile.assertDoesNotExist()
         outputDir2.assertExists()
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
