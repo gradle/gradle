@@ -51,7 +51,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '6.3.0'
+                id 'nebula.plugin-plugin' version '7.1.7'
             }
         """
 
@@ -79,7 +79,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             plugins {
-                id "nebula.lint" version "9.3.1"
+                id "nebula.lint" version "9.3.3"
             }
 
             apply plugin: 'java'
@@ -117,7 +117,7 @@ testCompile('junit:junit:4.7')""")
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "5.0.4"
+                id "nebula.dependency-lock" version "5.0.6"
             }
         """.stripIndent()
 
@@ -186,7 +186,7 @@ testCompile('junit:junit:4.7')""")
         runner('resolve').build()
 
         where:
-        version << ['4.9.5', '5.0.5']
+        version << ['4.9.5', '5.0.6']
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
@@ -208,7 +208,7 @@ testCompile('junit:junit:4.7')""")
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'nebula.resolution-rules' version '5.2.1'
+                id 'nebula.resolution-rules' version '5.2.2'
             }
             
             ${jcenterRepository()}                        
