@@ -18,7 +18,7 @@ ext {
 }
 
 // Test classpath libraries
-testLibraries.spock =   'org.spockframework:spock-core:1.0-groovy-2.4'
+testLibraries.spock =   'org.spockframework:spock-core:1.1-groovy-2.4'
 testLibraries.jsoup =   'org.jsoup:jsoup:1.6.3'
 testLibraries.xmlunit = 'xmlunit:xmlunit:1.3'
 testLibraries.jetty =   'org.mortbay.jetty:jetty:6.1.26'
