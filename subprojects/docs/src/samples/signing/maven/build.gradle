@@ -1,9 +1,13 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-
 // START SNIPPET use-plugin
-apply plugin: 'signing'
+plugins {
 // END SNIPPET use-plugin
+    id 'java'
+    id 'maven'
+// START SNIPPET use-plugin
+    id 'signing'
+}
+// END SNIPPET use-plugin
+
 
 group = 'gradle'
 version = '1.0'

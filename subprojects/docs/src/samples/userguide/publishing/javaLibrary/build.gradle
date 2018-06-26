@@ -1,0 +1,43 @@
+// START SNIPPET apply-plugins
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+// END SNIPPET apply-plugins
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'commons-httpclient:commons-httpclient:3.1'
+    implementation 'org.apache.commons:commons-lang3:3.5'
+}
+
+// START SNIPPET configure-publishing
+group = 'org.example'
+version = '1.0'
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'myRepo'
+            url = "file://${buildDir}/repo"
+        }
+    }
+}
+// END SNIPPET configure-publishing
+
+// START SNIPPET configure-generate-task
+tasks.withType(GenerateMavenPom).all {
+    def matcher = name =~ /generatePomFileFor(\w+)Publication/
+    def publicationName = matcher[0][1]
+    destination = "$buildDir/poms/${publicationName}-pom.xml"
+}
+// END SNIPPET configure-generate-task

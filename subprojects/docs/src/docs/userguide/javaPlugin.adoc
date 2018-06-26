@@ -394,10 +394,16 @@ Runtime only dependencies for the given source set.
 `__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Runtime, __sourceSet__Implementation`::
 Runtime classpath contains elements of the implementation, as well as runtime only elements.
 
+[[sec:java_plugin_publishing]]
+=== Publishing
+
+`components.java`::
+A api:org.gradle.api.component.SoftwareComponent[] for <<publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
+
 [[sec:java_convention_properties]]
 === Convention properties
 
-The Java plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
+The Java Plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
 
 ==== Directory properties
 
