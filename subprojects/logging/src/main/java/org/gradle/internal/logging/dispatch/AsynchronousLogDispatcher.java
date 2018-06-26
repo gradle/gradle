@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.dispatch;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.events.AddListenerEvent;
 import org.gradle.internal.logging.events.EndOutputEvent;
@@ -25,11 +24,11 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.RemoveListenerEvent;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AsynchronousLogDispatcher extends Thread {
-    private final BlockingQueue<OutputEvent> eventQueue = new ArrayBlockingQueue<OutputEvent>(200);
+    private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
     private final ListenerBroadcast<OutputEventListener> listeners = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final OutputEventListener eventListener;
     private Throwable failure;
@@ -41,52 +40,55 @@ public class AsynchronousLogDispatcher extends Thread {
     }
 
     public void submit(OutputEvent event) {
-        try {
-            eventQueue.put(event);
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        eventQueue.add(event);
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                OutputEvent event = eventQueue.take();
-
-                if (event instanceof AddListenerEvent) {
-                    AddListenerEvent addListenerEvent = (AddListenerEvent) event;
-                    listeners.add(addListenerEvent.getListener());
-                    continue;
-                }
-                if (event instanceof RemoveListenerEvent) {
-                    RemoveListenerEvent removeListenerEvent = (RemoveListenerEvent) event;
-                    listeners.remove(removeListenerEvent.getListener());
-                    try {
-                        removeListenerEvent.getListener().onOutput(new EndOutputEvent());
-                    } finally {
-                        removeListenerEvent.handled();
-                    }
-                    continue;
-                }
-
-                try {
-                    eventListener.onOutput(event);
-                } catch (Throwable t) {
-                    if (failure == null) {
-                        failure = t;
-                    }
-                }
-                if (event instanceof FlushOutputEvent) {
-                    FlushOutputEvent flushOutputEvent = (FlushOutputEvent) event;
-                    flushOutputEvent.handled(failure);
-                    failure = null;
+                OutputEvent event = eventQueue.poll();
+                if (event == null) {
+                    Thread.sleep(10);
+                } else {
+                    dispatchEvent(event);
                 }
             } catch (Throwable t) {
                 if (failure == null) {
                     failure = t;
                 }
             }
+        }
+    }
+
+    private void dispatchEvent(OutputEvent event) {
+        if (event instanceof AddListenerEvent) {
+            AddListenerEvent addListenerEvent = (AddListenerEvent) event;
+            listeners.add(addListenerEvent.getListener());
+            return;
+        }
+        if (event instanceof RemoveListenerEvent) {
+            RemoveListenerEvent removeListenerEvent = (RemoveListenerEvent) event;
+            listeners.remove(removeListenerEvent.getListener());
+            try {
+                removeListenerEvent.getListener().onOutput(new EndOutputEvent());
+            } finally {
+                removeListenerEvent.handled();
+            }
+            return;
+        }
+
+        try {
+            eventListener.onOutput(event);
+        } catch (Throwable t) {
+            if (failure == null) {
+                failure = t;
+            }
+        }
+        if (event instanceof FlushOutputEvent) {
+            FlushOutputEvent flushOutputEvent = (FlushOutputEvent) event;
+            flushOutputEvent.handled(failure);
+            failure = null;
         }
     }
 }
