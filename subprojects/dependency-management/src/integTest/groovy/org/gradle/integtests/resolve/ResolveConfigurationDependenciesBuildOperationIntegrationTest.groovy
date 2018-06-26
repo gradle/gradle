@@ -399,4 +399,79 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result != null
         op.result.resolvedDependenciesCount == 2
     }
+
+    // This documents the current behavior, not necessarily the smartest one.
+    // FTR This behaves the same in 4.7, 4.8 and 4.9
+    def "non fatal errors incur no resolution failure"() {
+        def mod = mavenHttpRepo.module('org', 'a', '1.0')
+        mod.pomFile << "corrupt"
+
+        when:
+        buildFile << """    
+            repositories {
+                maven { url = '${mavenHttpRepo.uri}' }
+            }
+            
+            configurations {
+                compile
+            }
+                        
+            dependencies {
+               compile 'org:a:1.0'
+            }
+            
+            task resolve {
+              doLast {
+                  println(configurations.compile.files.name)
+              }
+            }
+"""
+        then:
+        mod.allowAll()
+        fails "resolve"
+
+        and:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == "compile"
+        op.failure == null
+        op.result.resolvedDependenciesCount == 1
+    }
+
+    def "a fatal failure is captured in resolution build operation result"() {
+        def mod = mavenHttpRepo.module('org', 'a', '1.0').publish()
+
+        when:
+        buildFile << """    
+            repositories {
+                maven { url = '${mavenHttpRepo.uri}' }
+            }
+            
+            configurations {
+                compile
+            }
+                        
+            dependencies {
+               compile 'org:a:1.0'
+            }
+            
+            task resolve {
+              doLast {
+                  // this will shutdown the project scope services, which is going to trigger a
+                  // fatal dependency resolution error
+                  services.close()
+                  println(configurations.compile.files.name)
+              }
+            }
+            
+"""
+        then:
+        mod.allowAll()
+        fails "resolve"
+
+        and:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == "compile"
+        op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
+        op.result == null
+    }
 }
