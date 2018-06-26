@@ -18,21 +18,18 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -45,13 +42,10 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectionSnapshot {
+public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCollectionSnapshot<NormalizedFileSnapshot> {
     private static final Comparator<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
         @Override
         public int compare(Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o1, Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o2) {
@@ -59,16 +53,30 @@ public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectio
         }
     };
 
-    public RelativePathFileCollectionSnapshot(ListMultimap<String, LogicalSnapshot> roots) {
-        super(roots);
+    private NormalizedPathFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode) {
+        super(snapshots, hashCode);
     }
 
-    public RelativePathFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode) {
-        super(hashCode);
-        this.snapshots = snapshots;
+    public NormalizedPathFileCollectionSnapshot(Factory<Map<String, NormalizedFileSnapshot>> snapshotFactory) {
+        super(snapshotFactory);
     }
 
-    private Map<String, NormalizedFileSnapshot> snapshots;
+    @Override
+    public Map<String, NormalizedFileSnapshot> getSnapshots() {
+        return getFileSnapshots();
+    }
+
+    protected void doGetHash(DefaultBuildCacheHasher hasher) {
+        appendToHasher(hasher, getSnapshots().values());
+    }
+
+    public static void appendToHasher(DefaultBuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
+        Collections.sort(normalizedSnapshots);
+        for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
+            normalizedSnapshot.appendToHasher(hasher);
+        }
+    }
 
     @Override
     public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
@@ -132,81 +140,8 @@ public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectio
     }
 
     @Override
-    protected void doGetHash(DefaultBuildCacheHasher hasher) {
-        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(getSnapshots().values());
-        Collections.sort(normalizedSnapshots);
-        for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
-            normalizedSnapshot.appendToHasher(hasher);
-        }
-    }
-
-    @Override
     public Collection<File> getElements() {
         throw new UnsupportedOperationException("Only supported for outputs");
-    }
-
-    @Override
-    public Map<String, NormalizedFileSnapshot> getSnapshots() {
-        if (snapshots == null) {
-            Preconditions.checkState(getRoots() != null, "If no roots are given the snapshots must be provided.");
-            snapshots = doGetSnapshots();
-        }
-        return snapshots;
-    }
-
-    private Map<String, NormalizedFileSnapshot> doGetSnapshots() {
-        final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        final HashSet<String> processedEntries = new HashSet<String>();
-        for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {
-            final String basePath = entry.getKey();
-            final int rootIndex = basePath.length() + 1;
-            entry.getValue().accept(new HierarchicalSnapshotVisitor() {
-                private Deque<String> absolutePaths = new LinkedList<String>();
-
-                @Override
-                public void preVisitDirectory(String name) {
-                    String absolutePath = getAbsolutePath(name);
-                    if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(absolutePath, getIndex(name), DirContentSnapshot.INSTANCE);
-                        builder.put(absolutePath, snapshot);
-                    }
-                    absolutePaths.addLast(absolutePath);
-                }
-
-                @Override
-                public void visit(String name, FileContentSnapshot content) {
-                    String absolutePath = getAbsolutePath(name);
-                    if (processedEntries.add(absolutePath)) {
-                        builder.put(
-                            absolutePath,
-                            new IndexedNormalizedFileSnapshot(absolutePath, getIndex(name), content));
-                    }
-                }
-
-                private String getAbsolutePath(String name) {
-                    String parent = absolutePaths.peekLast();
-                    return parent == null ? basePath : childPath(parent, name);
-                }
-
-                private int getIndex(String name) {
-                    return isRoot() ? basePath.length() - name.length() : rootIndex;
-                }
-
-                private boolean isRoot() {
-                    return absolutePaths.isEmpty();
-                }
-
-                @Override
-                public void postVisitDirectory() {
-                    absolutePaths.removeLast();
-                }
-
-                private String childPath(String parent, String name) {
-                    return parent + File.separatorChar + name;
-                }
-            });
-        }
-        return builder.build();
     }
 
     @Override
@@ -237,7 +172,7 @@ public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectio
         }
     }
 
-    public static class SerializerImpl implements Serializer<RelativePathFileCollectionSnapshot> {
+    public static class SerializerImpl implements Serializer<NormalizedPathFileCollectionSnapshot> {
 
         private final HashCodeSerializer hashCodeSerializer;
         private final SnapshotMapSerializer snapshotMapSerializer;
@@ -248,17 +183,17 @@ public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectio
         }
 
         @Override
-        public RelativePathFileCollectionSnapshot read(Decoder decoder) throws IOException {
+        public NormalizedPathFileCollectionSnapshot read(Decoder decoder) throws IOException {
             int type = decoder.readSmallInt();
             Preconditions.checkState(type == 2);
             boolean hasHash = decoder.readBoolean();
             HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new RelativePathFileCollectionSnapshot(snapshots, hash);
+            return new NormalizedPathFileCollectionSnapshot(snapshots, hash);
         }
 
         @Override
-        public void write(Encoder encoder, RelativePathFileCollectionSnapshot value) throws Exception {
+        public void write(Encoder encoder, NormalizedPathFileCollectionSnapshot value) throws Exception {
             encoder.writeSmallInt(2);
             encoder.writeBoolean(value.hasHash());
             if (value.hasHash()) {
@@ -273,7 +208,7 @@ public class RelativePathFileCollectionSnapshot extends RootHoldingFileCollectio
                 return false;
             }
 
-            RelativePathFileCollectionSnapshot.SerializerImpl rhs = (RelativePathFileCollectionSnapshot.SerializerImpl) obj;
+            NormalizedPathFileCollectionSnapshot.SerializerImpl rhs = (NormalizedPathFileCollectionSnapshot.SerializerImpl) obj;
             return Objects.equal(snapshotMapSerializer, rhs.snapshotMapSerializer)
                 && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
         }

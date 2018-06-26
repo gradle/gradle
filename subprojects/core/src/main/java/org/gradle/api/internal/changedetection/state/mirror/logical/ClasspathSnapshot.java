@@ -130,14 +130,13 @@ public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
     @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         if (snapshots == null) {
-            Preconditions.checkState(getRoots() != null, "If no roots are given the snapshots must be provided.");
             snapshots = doGetSnapshots();
         }
         return snapshots;
     }
 
     private Map<String, NormalizedFileSnapshot> doGetSnapshots() {
-        Preconditions.checkNotNull(getRoots());
+        Preconditions.checkNotNull(getRoots(), "If no roots are given the snapshots must be provided.");
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {

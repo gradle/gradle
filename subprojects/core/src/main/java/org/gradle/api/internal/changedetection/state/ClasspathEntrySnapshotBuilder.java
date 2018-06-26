@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Ordering;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.logical.NormalizedPathFileCollectionSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.RELATIVE;
@@ -43,12 +38,6 @@ import static org.gradle.api.internal.changedetection.state.InputPathNormalizati
  */
 @SuppressWarnings("Since15")
 public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisitor {
-    private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
-        @Override
-        public NormalizedFileSnapshot apply(Map.Entry<String, NormalizedFileSnapshot> input) {
-            return input.getValue();
-        }
-    });
     private final StringInterner stringInterner;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
     private final ResourceHasher classpathResourceHasher;
@@ -84,18 +73,7 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
         }
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         Collection<NormalizedFileSnapshot> values = normalizedSnapshots.values();
-        TaskFilePropertyCompareStrategy.UNORDERED.appendToHasher(hasher, values);
+        NormalizedPathFileCollectionSnapshot.appendToHasher(hasher, values);
         return hasher.hash();
-    }
-
-    public void collectNormalizedSnapshots(CollectingFileCollectionSnapshotBuilder builder) {
-        if (normalizedSnapshots.isEmpty()) {
-            return;
-        }
-        List<Map.Entry<String, NormalizedFileSnapshot>> sorted = new ArrayList<Map.Entry<String, NormalizedFileSnapshot>>(normalizedSnapshots.entries());
-        Collections.sort(sorted, SNAPSHOT_ENTRY_ORDERING);
-        for (Map.Entry<String, NormalizedFileSnapshot> normalizedFileSnapshotEntry : sorted) {
-            builder.collectNormalizedFileSnapshot(normalizedFileSnapshotEntry.getKey(), normalizedFileSnapshotEntry.getValue());
-        }
     }
 }

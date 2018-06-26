@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
@@ -29,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -41,17 +41,14 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class NonePathFileCollectionSnapshot extends RootHoldingFileCollectionSnapshot {
-    private static final Comparator<IncrementalFileSnapshotWithAbsolutePath> ENTRY_COMPARATOR = new Comparator<IncrementalFileSnapshotWithAbsolutePath>() {
+public class NonePathFileCollectionSnapshot extends SnapshotFactoryFileCollectionSnapshot<FileContentSnapshot> {
+    private static final Comparator<Map.Entry<FileContentSnapshot, String>> ENTRY_COMPARATOR = new Comparator<Map.Entry<FileContentSnapshot, String>>() {
         @Override
-        public int compare(IncrementalFileSnapshotWithAbsolutePath o1, IncrementalFileSnapshotWithAbsolutePath o2) {
-            return o1.getSnapshot().getContentMd5().compareTo(o2.getSnapshot().getContentMd5());
+        public int compare(Map.Entry<FileContentSnapshot, String> o1, Map.Entry<FileContentSnapshot, String> o2) {
+            return o1.getKey().getContentMd5().compareTo(o2.getKey().getContentMd5());
         }
     };
     private static final Comparator<FileContentSnapshot> CONTENT_COMPARATOR = new Comparator<FileContentSnapshot>() {
@@ -61,32 +58,29 @@ public class NonePathFileCollectionSnapshot extends RootHoldingFileCollectionSna
         }
     };
 
-    public NonePathFileCollectionSnapshot(ListMultimap<String, LogicalSnapshot> roots) {
-        super(roots);
+    public NonePathFileCollectionSnapshot(Factory<Map<String, FileContentSnapshot>> snapshotFactory) {
+        super(snapshotFactory);
     }
 
-    public NonePathFileCollectionSnapshot(Map<String, FileContentSnapshot> snapshots, @Nullable HashCode hashCode) {
-        super(hashCode);
-        this.snapshots = snapshots;
+    private NonePathFileCollectionSnapshot(Map<String, FileContentSnapshot> snapshots, @Nullable HashCode hashCode) {
+        super(snapshots, hashCode);
     }
-
-    private Map<String, FileContentSnapshot> snapshots;
 
     @Override
     public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
         Map<String, FileContentSnapshot> previous = oldSnapshot.getContentSnapshots();
         Map<String, FileContentSnapshot> current = getContentSnapshots();
-        ListMultimap<FileContentSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
+        ListMultimap<FileContentSnapshot, String> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, FileContentSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             FileContentSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot, new IncrementalFileSnapshotWithAbsolutePath(absolutePath, previousSnapshot));
+            unaccountedForPreviousSnapshots.put(previousSnapshot, absolutePath);
         }
 
         for (Map.Entry<String, FileContentSnapshot> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
             FileContentSnapshot currentSnapshot = entry.getValue();
-            List<IncrementalFileSnapshotWithAbsolutePath> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(currentSnapshot);
+            List<String> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(currentSnapshot);
             if (previousSnapshotsForContent.isEmpty()) {
                 if (includeAdded) {
                     if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentSnapshot.getType()))) {
@@ -98,10 +92,10 @@ public class NonePathFileCollectionSnapshot extends RootHoldingFileCollectionSna
             }
         }
 
-        List<IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.values());
+        List<Map.Entry<FileContentSnapshot, String>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (IncrementalFileSnapshotWithAbsolutePath unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
-            if (!visitor.visitChange(FileChange.removed(unaccountedForPreviousSnapshotEntry.getAbsolutePath(), propertyTitle, unaccountedForPreviousSnapshotEntry.getSnapshot().getType()))) {
+        for (Map.Entry<FileContentSnapshot, String> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
+            if (!visitor.visitChange(FileChange.removed(unaccountedForPreviousSnapshotEntry.getValue(), propertyTitle, unaccountedForPreviousSnapshotEntry.getKey().getType()))) {
                 return false;
             }
         }
@@ -127,77 +121,9 @@ public class NonePathFileCollectionSnapshot extends RootHoldingFileCollectionSna
         throw new UnsupportedOperationException("Cannot get snapshots with none path sensitivity!");
     }
 
-    private Map<String, FileContentSnapshot> doGetContentSnapshots() {
-        Preconditions.checkState(snapshots != null || getRoots() != null, "If no roots are given the snapshots must be present.");
-        final ImmutableSortedMap.Builder<String, FileContentSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        final HashSet<String> processedEntries = new HashSet<String>();
-        for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {
-            final String basePath = entry.getKey();
-            final int rootIndex = basePath.length() + 1;
-            entry.getValue().accept(new HierarchicalSnapshotVisitor() {
-                private Deque<String> absolutePaths = new LinkedList<String>();
-
-                @Override
-                public void preVisitDirectory(String name) {
-                    String absolutePath = getAbsolutePath(name);
-                    absolutePaths.addLast(absolutePath);
-                }
-
-                @Override
-                public void visit(String name, FileContentSnapshot content) {
-                    String absolutePath = getAbsolutePath(name);
-                    if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, content);
-                    }
-                }
-
-                private String getAbsolutePath(String name) {
-                    String parent = absolutePaths.peekLast();
-                    return parent == null ? basePath : childPath(parent, name);
-                }
-
-                @Override
-                public void postVisitDirectory() {
-                    absolutePaths.removeLast();
-                }
-
-                private String childPath(String parent, String name) {
-                    return parent + File.separatorChar + name;
-                }
-            });
-        }
-        return builder.build();
-    }
-
     @Override
     public Map<String, FileContentSnapshot> getContentSnapshots() {
-        if (snapshots == null) {
-            snapshots = doGetContentSnapshots();
-        }
-        return snapshots;
-    }
-
-    private static class IncrementalFileSnapshotWithAbsolutePath {
-        private final String absolutePath;
-        private final FileContentSnapshot snapshot;
-
-        public IncrementalFileSnapshotWithAbsolutePath(String absolutePath, FileContentSnapshot snapshot) {
-            this.absolutePath = absolutePath;
-            this.snapshot = snapshot;
-        }
-
-        public String getAbsolutePath() {
-            return absolutePath;
-        }
-
-        public FileContentSnapshot getSnapshot() {
-            return snapshot;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s (%s)", getSnapshot(), absolutePath);
-        }
+        return getFileSnapshots();
     }
 
     public static class SerializerImpl implements Serializer<NonePathFileCollectionSnapshot> {
