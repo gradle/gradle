@@ -25,7 +25,7 @@ import spock.lang.Unroll
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
 class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
-    static bomVersion = "2.0.1.RELEASE"
+    static bomVersion = "2.0.3.RELEASE"
     static bom = "'org.springframework.boot:spring-boot-dependencies:$bomVersion'"
 
     @Unroll
@@ -67,36 +67,36 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.hamcrest:hamcrest-core:1.3").byReason(reason3)
         }
         def springCoreDeps = {
-            module("org.springframework:spring-jcl:5.0.5.RELEASE")
+            module("org.springframework:spring-jcl:5.0.7.RELEASE")
         }
         def springExpressionDeps = {
-            module("org.springframework:spring-core:5.0.5.RELEASE")
+            module("org.springframework:spring-core:5.0.7.RELEASE")
         }
         def springBeansDeps = {
-            module("org.springframework:spring-core:5.0.5.RELEASE")
+            module("org.springframework:spring-core:5.0.7.RELEASE")
         }
         def springAopDeps = {
-            module("org.springframework:spring-beans:5.0.5.RELEASE")
-            module("org.springframework:spring-core:5.0.5.RELEASE")
+            module("org.springframework:spring-beans:5.0.7.RELEASE")
+            module("org.springframework:spring-core:5.0.7.RELEASE")
         }
         def springContextDeps = {
-            module("org.springframework:spring-aop:5.0.5.RELEASE", directBomDependency ? {} : springAopDeps).byReason(reason3)
-            module("org.springframework:spring-beans:5.0.5.RELEASE", directBomDependency ? {} : springBeansDeps).byReason(reason3)
-            module("org.springframework:spring-core:5.0.5.RELEASE",)
-            module("org.springframework:spring-expression:5.0.5.RELEASE", directBomDependency ? {} : springExpressionDeps).byReason(reason3)
+            module("org.springframework:spring-aop:5.0.7.RELEASE", directBomDependency ? {} : springAopDeps).byReason(reason3)
+            module("org.springframework:spring-beans:5.0.7.RELEASE", directBomDependency ? {} : springBeansDeps).byReason(reason3)
+            module("org.springframework:spring-core:5.0.7.RELEASE",)
+            module("org.springframework:spring-expression:5.0.7.RELEASE", directBomDependency ? {} : springExpressionDeps).byReason(reason3)
         }
         def springTestDeps = {
-            module("org.springframework:spring-aop:5.0.5.RELEASE")
-            module("org.springframework:spring-beans:5.0.5.RELEASE")
-            module("org.springframework:spring-context:5.0.5.RELEASE")
-            module("org.springframework:spring-core:5.0.5.RELEASE")
+            module("org.springframework:spring-aop:5.0.7.RELEASE")
+            module("org.springframework:spring-beans:5.0.7.RELEASE")
+            module("org.springframework:spring-context:5.0.7.RELEASE")
+            module("org.springframework:spring-core:5.0.7.RELEASE")
             module("junit:junit:4.12")
             module("org.hamcrest:hamcrest-core:1.3")
         }
         def springBootDeps = {
-            module("org.springframework:spring-core:5.0.5.RELEASE", directBomDependency ? {} : springCoreDeps).byReason(reason3)
-            module("org.springframework:spring-context:5.0.5.RELEASE", directBomDependency ? {} : springContextDeps).byReason(reason3)
-            module("org.springframework:spring-test:5.0.5.RELEASE")
+            module("org.springframework:spring-core:5.0.7.RELEASE", directBomDependency ? {} : springCoreDeps).byReason(reason3)
+            module("org.springframework:spring-context:5.0.7.RELEASE", directBomDependency ? {} : springContextDeps).byReason(reason3)
+            module("org.springframework:spring-test:5.0.7.RELEASE")
             module("junit:junit:4.12")
         }
         def springBootAutoconfigureDeps = {
@@ -104,14 +104,14 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         }
         def springBootTestDeps = {
             module("org.springframework.boot:spring-boot:$bomVersion")
-            module("org.springframework:spring-test:5.0.5.RELEASE")
+            module("org.springframework:spring-test:5.0.7.RELEASE")
             module("junit:junit:4.12")
             module("org.hamcrest:hamcrest-core:1.3")
         }
         def springBootTestAutoconfigureDeps = {
             module("org.springframework.boot:spring-boot-test:$bomVersion")
             module("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
-            module("org.springframework:spring-test:5.0.5.RELEASE")
+            module("org.springframework:spring-test:5.0.7.RELEASE")
         }
 
         resolve.expectDefaultConfiguration('compile')
@@ -119,13 +119,13 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             root(':', ':springbootproject:') {
                 if (directBomDependency) {
                     module("org.springframework.boot:spring-boot-dependencies:$bomVersion") {
-                        module("org.springframework:spring-core:5.0.5.RELEASE", springCoreDeps)
-                        module("org.springframework:spring-aop:5.0.5.RELEASE", springAopDeps)
-                        module("org.springframework:spring-beans:5.0.5.RELEASE", springBeansDeps)
-                        module("org.springframework:spring-context:5.0.5.RELEASE", springContextDeps)
-                        module("org.springframework:spring-expression:5.0.5.RELEASE", springExpressionDeps)
-                        module("org.springframework:spring-test:5.0.5.RELEASE")
-                        module("org.springframework:spring-jcl:5.0.5.RELEASE")
+                        module("org.springframework:spring-core:5.0.7.RELEASE", springCoreDeps)
+                        module("org.springframework:spring-aop:5.0.7.RELEASE", springAopDeps)
+                        module("org.springframework:spring-beans:5.0.7.RELEASE", springBeansDeps)
+                        module("org.springframework:spring-context:5.0.7.RELEASE", springContextDeps)
+                        module("org.springframework:spring-expression:5.0.7.RELEASE", springExpressionDeps)
+                        module("org.springframework:spring-test:5.0.7.RELEASE")
+                        module("org.springframework:spring-jcl:5.0.7.RELEASE")
                         module("org.springframework.boot:spring-boot:$bomVersion")
                         module("org.springframework.boot:spring-boot-test:$bomVersion")
                         module("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
@@ -138,7 +138,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                 edge("org.springframework.boot:spring-boot-test", "org.springframework.boot:spring-boot-test:$bomVersion", springBootTestDeps).byReason(reason2)
                 edge("org.springframework.boot:spring-boot-autoconfigure", "org.springframework.boot:spring-boot-autoconfigure:$bomVersion", springBootAutoconfigureDeps).byReason(reason2)
                 edge("org.springframework.boot:spring-boot", "org.springframework.boot:spring-boot:$bomVersion", springBootDeps).byReason(reason2)
-                edge("org.springframework:spring-test", "org.springframework:spring-test:5.0.5.RELEASE", springTestDeps).byReason(reason2)
+                edge("org.springframework:spring-test", "org.springframework:spring-test:5.0.7.RELEASE", springTestDeps).byReason(reason2)
                 edge("junit:junit", "junit:junit:4.12", junitDeps).byReason(reason2)
             }
         }
