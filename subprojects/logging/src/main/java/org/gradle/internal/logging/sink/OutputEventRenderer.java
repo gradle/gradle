@@ -167,9 +167,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter, 
     }
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
-        synchronized (lock) {
-            ConsoleConfigureAction.execute(this, consoleOutput);
-        }
+        ConsoleConfigureAction.execute(this, consoleOutput);
     }
 
     @Override
