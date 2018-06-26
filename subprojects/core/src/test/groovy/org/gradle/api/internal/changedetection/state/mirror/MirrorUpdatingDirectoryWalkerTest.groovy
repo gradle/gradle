@@ -55,13 +55,13 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
 
         when:
         def root = walker.walkDir(rootDir.toPath())
-        root.visitTree(new PhysicalFileVisitor() {
+        root.accept(new RelativePathTrackingVisitor() {
             @Override
-            void visit(Path path, String name, Iterable<String> relativePath, FileContentSnapshot content) {
+            void visit(Path path, Deque<String> relativePath) {
                 visited << path.toString()
                 relativePaths << relativePath.join("/")
             }
-        }, new ArrayDeque<String>())
+        })
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -71,13 +71,13 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         visited.contains(excludedFile.absolutePath)
         !visited.contains(notUnderRoot.absolutePath)
         !visited.contains(doesNotExist.absolutePath)
-        relativePaths as Set == [
+        relativePaths as Set == (['root'] + [
             'a',
             'a/b', 'a/b/c.txt',
             'a/c', 'a/c/c.txt', 'a/b/c.html',
             'subdir1', 'subdir1/a', 'subdir1/a/b', 'subdir1/a/b/c.html',
             'a.txt'
-        ] as Set
+        ].collect { 'root/' + it }) as Set
     }
 
     def "filtering works"() {
@@ -100,13 +100,13 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
 
         when:
         def root = walker.walkDir(rootDir.toPath(), patterns)
-        root.visitTree(new PhysicalFileVisitor() {
+        root.accept(new RelativePathTrackingVisitor() {
             @Override
-            void visit(Path path, String name, Iterable<String> relativePath, FileContentSnapshot content) {
+            void visit(Path path, Deque<String> relativePath) {
                 visited << path.toString()
                 relativePaths << relativePath.join("/")
             }
-        }, new ArrayDeque<String>())
+        })
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -117,10 +117,35 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         !visited.contains(notUnderRoot.absolutePath)
         !visited.contains(doesNotExist.absolutePath)
         relativePaths as Set == [
-            'a',
-            'a/b', 'a/b/c.txt',
-            'a/c', 'a/c/c.txt',
-            'a.txt'
+            'root',
+            'root/a',
+            'root/a/b', 'root/a/b/c.txt',
+            'root/a/c', 'root/a/c/c.txt',
+            'root/a.txt'
         ] as Set
     }
+}
+
+abstract class RelativePathTrackingVisitor implements HierarchicalFileTreeVisitor {
+    private Deque<String> relativePath = new ArrayDeque<String>()
+
+    @Override
+    void preVisitDirectory(Path path, String name) {
+        relativePath.addLast(name)
+        visit(path, relativePath)
+    }
+
+    @Override
+    void visit(Path path, String name, FileContentSnapshot content) {
+        relativePath.addLast(name)
+        visit(path, relativePath)
+        relativePath.removeLast()
+    }
+
+    @Override
+    void postVisitDirectory() {
+        relativePath.removeLast()
+    }
+
+    abstract void visit(Path path, Deque<String> relativePath)
 }

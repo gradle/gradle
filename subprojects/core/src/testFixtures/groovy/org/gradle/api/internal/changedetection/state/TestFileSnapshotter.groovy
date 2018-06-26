@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.internal.hash.Hashing
@@ -42,12 +42,12 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
 
 
     @Override
-    VisitableDirectoryTree snapshotDirectoryTree(DirectoryFileTree dirTree) {
+    HierarchicalVisitableTree snapshotDirectoryTree(DirectoryFileTree dirTree) {
         throw new UnsupportedOperationException()
     }
 
     @Override
-    VisitableDirectoryTree snapshotTree(FileTreeInternal tree) {
+    HierarchicalVisitableTree snapshotTree(FileTreeInternal tree) {
         throw new UnsupportedOperationException()
     }
 }

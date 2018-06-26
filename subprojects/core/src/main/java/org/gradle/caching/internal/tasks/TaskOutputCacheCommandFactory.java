@@ -166,8 +166,8 @@ public class TaskOutputCacheCommandFactory {
                         fileSystemMirror.putFile(regularFileSnapshot);
                         break;
                     case DIRECTORY:
-                        builder.visitHierarchicalTree(snapshot);
-                        fileSystemMirror.putDirectory(absolutePath, new PhysicalSnapshotBackedVisitableTree(absolutePath, snapshot));
+                        builder.visitFileTreeSnapshot(snapshot);
+                        fileSystemMirror.putDirectory(absolutePath, new PhysicalSnapshotBackedVisitableTree(snapshot));
                         break;
                     default:
                         throw new AssertionError();

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import net.rubygrapefruit.platform.ThreadSafe;
-import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +39,7 @@ public interface FileSystemMirror {
     void putContent(String path, Snapshot snapshot);
 
     @Nullable
-    VisitableDirectoryTree getDirectoryTree(String path);
+    HierarchicalVisitableTree getDirectoryTree(String path);
 
-    void putDirectory(String path, VisitableDirectoryTree directory);
+    void putDirectory(String path, HierarchicalVisitableTree directory);
 }

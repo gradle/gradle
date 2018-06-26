@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import org.gradle.internal.file.FileType;
 
 import java.nio.file.Path;
-import java.util.Deque;
 
 @SuppressWarnings("Since15")
 public interface PhysicalSnapshot extends HierarchicalVisitableTree {
@@ -27,7 +26,4 @@ public interface PhysicalSnapshot extends HierarchicalVisitableTree {
     String getName();
     PhysicalSnapshot add(String[] segments, int offset, PhysicalSnapshot snapshot);
     FileType getType();
-
-    void visitTree(PhysicalFileVisitor visitor, Deque<String> relativePath);
-    void visitSelf(PhysicalFileVisitor visitor, Deque<String> relativePath);
 }

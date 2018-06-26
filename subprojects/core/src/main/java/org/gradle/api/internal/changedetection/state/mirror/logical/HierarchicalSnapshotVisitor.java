@@ -20,6 +20,6 @@ import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
 public interface HierarchicalSnapshotVisitor {
     void preVisitDirectory(String name);
-    void postVisitDirectory();
     void visit(String name, FileContentSnapshot content);
+    void postVisitDirectory();
 }

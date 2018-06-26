@@ -100,8 +100,9 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
 
         then:
         1 * fileSystemMirror.putDirectory(_, _) >> { String path, PhysicalSnapshotBackedVisitableTree dir ->
-            assert path == dir.basePath
-            assert dir.rootDirectory.path.toString() == outputDir.absolutePath
+            def basePath = dir.rootDirectory.path.toString()
+            assert path == basePath
+            assert basePath == outputDir.absolutePath
             assert Iterables.getOnlyElement(dir.rootDirectory.children).path.toString() == outputDirFile.absolutePath
         }
         1 * fileSystemMirror.putFile(_) >> { args ->

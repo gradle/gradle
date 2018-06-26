@@ -26,12 +26,11 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FileSnapshotHelper;
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileTreeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -144,22 +143,22 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * before any downstream task uses them.
      */
     @Override
-    public VisitableDirectoryTree snapshotDirectoryTree(final DirectoryFileTree dirTree) {
+    public HierarchicalVisitableTree snapshotDirectoryTree(final DirectoryFileTree dirTree) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = dirTree.getDir().getAbsolutePath();
         final PatternSet patterns = dirTree.getPatterns();
 
-        VisitableDirectoryTree snapshot = fileSystemMirror.getDirectoryTree(path);
+        HierarchicalVisitableTree snapshot = fileSystemMirror.getDirectoryTree(path);
         if (snapshot != null) {
             return filterSnapshot(snapshot, patterns);
         }
         if (!patterns.isEmpty()) {
             return snapshotWithoutCaching(dirTree);
         }
-        return producingTrees.guardByKey(path, new Factory<VisitableDirectoryTree>() {
+        return producingTrees.guardByKey(path, new Factory<HierarchicalVisitableTree>() {
             @Override
-            public VisitableDirectoryTree create() {
-                VisitableDirectoryTree snapshot = fileSystemMirror.getDirectoryTree(path);
+            public HierarchicalVisitableTree create() {
+                HierarchicalVisitableTree snapshot = fileSystemMirror.getDirectoryTree(path);
                 if (snapshot == null) {
                     return snapshotAndCache(dirTree);
                 } else {
@@ -170,29 +169,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public VisitableDirectoryTree snapshotTree(final FileTreeInternal tree) {
-        return new VisitableDirectoryTree() {
-            @Override
-            public void visit(final PhysicalFileTreeVisitor visitor) {
-                tree.visitTreeOrBackingFile(new FileVisitor() {
-                    @Override
-                    public void visitDir(FileVisitDetails dirDetails) {
-                        visitor.visit(dirDetails.getFile().toPath(), internPath(dirDetails.getFile()), dirDetails.getName(), RelativePath.EMPTY_ROOT, DirContentSnapshot.INSTANCE);
-                    }
-
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        String basePath = internPath(fileDetails.getFile());
-                        String relativePath = PATH_JOINER.join(fileDetails.getRelativePath());
-                        if (basePath.endsWith(relativePath) && (basePath.charAt(basePath.length() - relativePath.length() - 1) == File.separatorChar)) {
-                            basePath =  stringInterner.intern(basePath.substring(0, basePath.length() - relativePath.length() - 1));
-                            visitor.visit(fileDetails.getFile().toPath(), basePath, fileDetails.getName(), fileDetails.getRelativePath(), fileSnapshot(fileDetails));
-                        } else {
-                            visitor.visit(fileDetails.getFile().toPath(), basePath, fileDetails.getName(), RelativePath.EMPTY_ROOT, fileSnapshot(fileDetails));
-                        }
-                    }
-                });
-            }
+    public HierarchicalVisitableTree snapshotTree(final FileTreeInternal tree) {
+        return new HierarchicalVisitableTree() {
 
             @Override
             public void accept(HierarchicalFileTreeVisitor visitor) {
@@ -244,9 +222,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @SuppressWarnings("Since15")
-    private VisitableDirectoryTree snapshotAndCache(DirectoryFileTree directoryTree) {
+    private HierarchicalVisitableTree snapshotAndCache(DirectoryFileTree directoryTree) {
         final FileSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
-        VisitableDirectoryTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walkDir(fileSnapshot);
+        HierarchicalVisitableTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walkDir(fileSnapshot);
         fileSystemMirror.putDirectory(fileSnapshot.getPath(), visitableDirectoryTree);
         return visitableDirectoryTree;
     }
@@ -255,27 +233,16 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * We don't reuse code between this and #snapshotAndCache, because we can avoid
      * some defensive copying when the result won't be shared.
      */
-    private VisitableDirectoryTree snapshotWithoutCaching(DirectoryFileTree directoryTree) {
+    private HierarchicalVisitableTree snapshotWithoutCaching(DirectoryFileTree directoryTree) {
         return mirrorUpdatingDirectoryWalker.walkDir(snapshotSelf(directoryTree.getDir()), directoryTree.getPatterns());
     }
 
-    private VisitableDirectoryTree filterSnapshot(final VisitableDirectoryTree snapshot, PatternSet patterns) {
+    private HierarchicalVisitableTree filterSnapshot(final HierarchicalVisitableTree snapshot, PatternSet patterns) {
         if (patterns.isEmpty()) {
             return snapshot;
         }
         final Spec<FileTreeElement> spec = patterns.getAsSpec();
-        return new VisitableDirectoryTree() {
-            @Override
-            public void visit(final PhysicalFileTreeVisitor visitor) {
-                snapshot.visit(new PhysicalFileTreeVisitor() {
-                    @Override
-                    public void visit(Path path, String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
-                        if (spec.isSatisfiedBy(new SnapshotFileTreeElement(FileSnapshotHelper.create(path, relativePath, content), fileSystem))) {
-                            visitor.visit(path, basePath, name, relativePath, content);
-                        }
-                    }
-                });
-            }
+        return new HierarchicalVisitableTree() {
 
             @Override
             public void accept(final HierarchicalFileTreeVisitor visitor) {

@@ -18,8 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.NameOnlyPathFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.NonePathFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.RelativePathFileCollectionSnapshot;
@@ -51,6 +52,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(AbsolutePathFileCollectionSnapshot.class, new AbsolutePathFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(RelativePathFileCollectionSnapshot.class, new RelativePathFileCollectionSnapshot.SerializerImpl(stringInterner));
+        registry.register(ClasspathSnapshot.class, new ClasspathSnapshot.SerializerImpl(stringInterner));
         registry.register(NameOnlyPathFileCollectionSnapshot.class, new NameOnlyPathFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(NonePathFileCollectionSnapshot.class, new NonePathFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
@@ -98,13 +100,13 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            VisitableDirectoryTree treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
+            HierarchicalVisitableTree treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
             fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            VisitableDirectoryTree treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
+            HierarchicalVisitableTree treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
             fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
         }
     }

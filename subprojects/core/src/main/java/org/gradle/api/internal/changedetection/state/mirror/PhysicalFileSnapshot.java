@@ -22,7 +22,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import java.nio.file.Path;
-import java.util.Deque;
 
 @SuppressWarnings("Since15")
 public class PhysicalFileSnapshot implements PhysicalSnapshot {
@@ -59,15 +58,6 @@ public class PhysicalFileSnapshot implements PhysicalSnapshot {
             return this;
         }
         throw new UnsupportedOperationException("Cannot add children of file");
-    }
-
-    @Override
-    public void visitTree(PhysicalFileVisitor visitor, Deque<String> relativePath) {
-    }
-
-    @Override
-    public void visitSelf(PhysicalFileVisitor visitor, Deque<String> relativePath) {
-        visitor.visit(path, name, relativePath, new FileHashSnapshot(hash, timestamp));
     }
 
     @Override

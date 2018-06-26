@@ -60,20 +60,16 @@ public class MirrorUpdatingDirectoryWalker {
         this.fileSystem = fileSystem;
     }
 
-    public VisitableDirectoryTree walkDir(final FileSnapshot fileSnapshot) {
+    public HierarchicalVisitableTree walkDir(final FileSnapshot fileSnapshot) {
         return walkDir(fileSnapshot, null);
     }
 
-    public VisitableDirectoryTree walkDir(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public HierarchicalVisitableTree walkDir(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
             return PhysicalSnapshotBackedVisitableTree.EMPTY;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
-            return new VisitableDirectoryTree() {
-                @Override
-                public void visit(PhysicalFileTreeVisitor visitor) {
-                    visitor.visit(Paths.get(fileSnapshot.getPath()), fileSnapshot.getPath(), fileSnapshot.getName(), ImmutableList.of(fileSnapshot.getName()), fileSnapshot.getContent());
-                }
+            return new HierarchicalVisitableTree() {
 
                 @Override
                 public void accept(HierarchicalFileTreeVisitor visitor) {
@@ -83,7 +79,7 @@ public class MirrorUpdatingDirectoryWalker {
         }
         Path rootPath = Paths.get(fileSnapshot.getPath());
         ImmutablePhysicalDirectorySnapshot rootDirectory = walkDir(rootPath, patterns);
-        return new PhysicalSnapshotBackedVisitableTree(fileSnapshot.getPath(), rootDirectory);
+        return new PhysicalSnapshotBackedVisitableTree(rootDirectory);
     }
 
     public ImmutablePhysicalDirectorySnapshot walkDir(final Path rootPath) {

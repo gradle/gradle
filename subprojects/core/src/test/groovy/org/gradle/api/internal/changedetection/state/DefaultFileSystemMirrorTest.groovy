@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree
 import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
@@ -42,7 +43,7 @@ class DefaultFileSystemMirrorTest extends Specification {
     def "keeps state about a file until task outputs are generated"() {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(RegularFileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileTreeSnapshot = Stub(HierarchicalVisitableTree)
         def snapshot = Stub(Snapshot)
 
         given:
@@ -74,7 +75,7 @@ class DefaultFileSystemMirrorTest extends Specification {
     def "keeps state about a file until end of build"() {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileTreeSnapshot = Stub(HierarchicalVisitableTree)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
@@ -109,7 +110,7 @@ class DefaultFileSystemMirrorTest extends Specification {
     def "does not discard state about a file that lives in the caches when task outputs are generated"() {
         def file = cacheDir.file("some/dir/a")
         def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileTreeSnapshot = Stub(HierarchicalVisitableTree)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)

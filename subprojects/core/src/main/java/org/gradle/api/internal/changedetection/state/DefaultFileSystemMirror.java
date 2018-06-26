@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
 
@@ -32,8 +32,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
     // Maps from interned absolute path for a directory to known details for the directory.
-    private final Map<String, VisitableDirectoryTree> trees = new ConcurrentHashMap<String, VisitableDirectoryTree>();
-    private final Map<String, VisitableDirectoryTree> cacheTrees = new ConcurrentHashMap<String, VisitableDirectoryTree>();
+    private final Map<String, HierarchicalVisitableTree> trees = new ConcurrentHashMap<String, HierarchicalVisitableTree>();
+    private final Map<String, HierarchicalVisitableTree> cacheTrees = new ConcurrentHashMap<String, HierarchicalVisitableTree>();
     // Maps from interned absolute path to a snapshot
     private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<String, Snapshot>();
     private final Map<String, Snapshot> cacheSnapshots = new ConcurrentHashMap<String, Snapshot>();
@@ -84,7 +84,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public VisitableDirectoryTree getDirectoryTree(String path) {
+    public HierarchicalVisitableTree getDirectoryTree(String path) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly also short-circuit some scanning if we have details for some sub trees
         if (wellKnownFileLocations.isImmutable(path)) {
@@ -95,7 +95,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putDirectory(String path, VisitableDirectoryTree directory) {
+    public void putDirectory(String path, HierarchicalVisitableTree directory) {
         if (wellKnownFileLocations.isImmutable(path)) {
             cacheTrees.put(path, directory);
         } else {

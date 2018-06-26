@@ -27,8 +27,8 @@ import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.changedetection.state.VisitingFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
-import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
 
+import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -46,41 +46,45 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
     protected abstract FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots);
 
     @Override
-    public void visitFileTreeSnapshot(VisitableDirectoryTree tree) {
-        visitHierarchicalTree(tree);
-    }
-
-    public void visitHierarchicalTree(HierarchicalVisitableTree tree) {
+    public void visitFileTreeSnapshot(HierarchicalVisitableTree tree) {
         final Deque<String> relativePathHolder = new ArrayDeque<String>();
         final Deque<ImmutableList.Builder<LogicalSnapshot>> levelHolder = new ArrayDeque<ImmutableList.Builder<LogicalSnapshot>>();
         final AtomicReference<LogicalSnapshot> result = new AtomicReference<LogicalSnapshot>();
         final AtomicReference<String> rootPath = new AtomicReference<String>();
+        final AtomicReference<String> rootName = new AtomicReference<String>();
         tree.accept(new HierarchicalFileTreeVisitor() {
             @Override
             public void preVisitDirectory(Path path, String name) {
-                if (relativePathHolder.isEmpty()) {
+                if (levelHolder.isEmpty()) {
                     rootPath.set(path.toString());
+                    rootName.set(path.getFileName().toString());
+                } else {
+                    relativePathHolder.addLast(name);
                 }
                 levelHolder.addLast(ImmutableList.<LogicalSnapshot>builder());
-                relativePathHolder.addLast(name);
             }
 
             @Override
             public void visit(Path path, String name, FileContentSnapshot content) {
                 ImmutableList.Builder<LogicalSnapshot> parentBuilder = levelHolder.peekLast();
-                LogicalFileSnapshot snapshot = new LogicalFileSnapshot(name, content);
-                if (parentBuilder != null) {
-                    parentBuilder.add(snapshot);
-                } else {
-                    result.set(snapshot);
-                    rootPath.set(path.toString());
+                relativePathHolder.addLast(name);
+                FileContentSnapshot newContent = snapshotFileContents(path, relativePathHolder, content);
+                relativePathHolder.removeLast();
+                if (newContent != null) {
+                    LogicalFileSnapshot snapshot = new LogicalFileSnapshot(name, newContent);
+                    if (parentBuilder != null) {
+                        parentBuilder.add(snapshot);
+                    } else {
+                        result.set(snapshot);
+                        rootPath.set(path.toString());
+                    }
                 }
             }
 
             @Override
             public void postVisitDirectory() {
-                String directoryPath = relativePathHolder.removeLast();
                 ImmutableList.Builder<LogicalSnapshot> builder = levelHolder.removeLast();
+                String directoryPath = relativePathHolder.isEmpty() ? rootName.get() : relativePathHolder.removeLast();
                 LogicalDirectorySnapshot directorySnapshot = new LogicalDirectorySnapshot(directoryPath, builder.build());
                 ImmutableList.Builder<LogicalSnapshot> parentBuilder = levelHolder.peekLast();
                 if (parentBuilder != null) {
@@ -103,11 +107,20 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
 
     @Override
     public void visitFileSnapshot(RegularFileSnapshot file) {
-        roots.put(file.getPath(), new LogicalFileSnapshot(file.getName(), file.getContent()));
+        addRoot(file.getPath(), file.getName(), file.getContent());
+    }
+
+    protected boolean addRoot(String path, String name, FileContentSnapshot content) {
+        return roots.put(path, new LogicalFileSnapshot(name, content));
     }
 
     @Override
     public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
-        roots.put(missingFile.getPath(), new LogicalFileSnapshot(missingFile.getName(), missingFile.getContent()));
+        addRoot(missingFile.getPath(), missingFile.getName(), missingFile.getContent());
+    }
+
+    @Nullable
+    public FileContentSnapshot snapshotFileContents(Path path, Deque<String> relativePath, FileContentSnapshot contentSnapshot) {
+        return contentSnapshot;
     }
 }
