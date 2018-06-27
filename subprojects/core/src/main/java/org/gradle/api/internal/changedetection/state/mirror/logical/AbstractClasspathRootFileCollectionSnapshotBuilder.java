@@ -17,32 +17,23 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.changedetection.state.ClasspathEntrySnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.ConfigurableNormalizer;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
+import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
-import org.gradle.api.internal.changedetection.state.RegularFileHasher;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.ZipTree;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Deque;
 
 public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
-    private static final Logger LOGGER = Logging.getLogger(AbstractClasspathRootFileCollectionSnapshotBuilder.class);
-
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
     private final JarHasher jarHasher;
@@ -51,7 +42,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     public AbstractClasspathRootFileCollectionSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
         this.cacheService = cacheService;
         this.classpathResourceHasher = classpathResourceHasher;
-        this.jarHasher = new JarHasher();
+        this.jarHasher = new JarHasher(classpathResourceHasher);
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
         this.jarHasherConfigurationHash = hasher.hash();
@@ -92,39 +83,6 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     private FileContentSnapshot snapshotJarContents(String path, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
         HashCode hash = cacheService.hashFile(path, relativePath, contentSnapshot, jarHasher, jarHasherConfigurationHash);
         return hash == null ? null : new FileHashSnapshot(hash);
-    }
-
-    private class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
-        @Nullable
-        @Override
-        public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
-            return hashJarContents(path, content);
-        }
-
-        @Override
-        public void appendConfigurationToHasher(BuildCacheHasher hasher) {
-            hasher.putString(getClass().getName());
-            classpathResourceHasher.appendConfigurationToHasher(hasher);
-        }
-
-        private HashCode hashJarContents(String jarFile, FileContentSnapshot content) {
-            try {
-                ClasspathEntrySnapshotBuilder classpathEntrySnapshotBuilder = newClasspathEntrySnapshotBuilder();
-                new ZipTree(jarFile).visit(classpathEntrySnapshotBuilder);
-                return classpathEntrySnapshotBuilder.getHash();
-            } catch (Exception e) {
-                return hashMalformedZip(new File(jarFile).getName(), content, e);
-            }
-        }
-
-        private HashCode hashMalformedZip(String jarName, FileContentSnapshot content, Exception e) {
-            LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarName, e);
-            return content.getContentMd5();
-        }
-    }
-
-    private ClasspathEntrySnapshotBuilder newClasspathEntrySnapshotBuilder() {
-        return new ClasspathEntrySnapshotBuilder(classpathResourceHasher);
     }
 
     @Override
