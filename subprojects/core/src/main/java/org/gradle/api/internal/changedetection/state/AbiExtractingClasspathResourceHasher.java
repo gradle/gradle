@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
@@ -53,14 +54,15 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
-        String name = path.getFileName().toString();
+    public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
+        Path filePath = Paths.get(path);
+        String name = filePath.getFileName().toString();
         if (!isClassFile(name)) {
             return null;
         }
         InputStream inputStream = null;
         try {
-            inputStream = Files.newInputStream(path);
+            inputStream = Files.newInputStream(filePath);
             return hashClassBytes(inputStream);
         } catch (Exception e) {
             LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hasing.", name, e);

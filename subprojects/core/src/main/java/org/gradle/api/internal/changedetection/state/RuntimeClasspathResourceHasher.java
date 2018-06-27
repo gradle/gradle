@@ -26,7 +26,6 @@ import org.gradle.internal.io.NullOutputStream;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 
 /**
@@ -39,7 +38,7 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+    public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
         return content.getContentMd5();
     }
 

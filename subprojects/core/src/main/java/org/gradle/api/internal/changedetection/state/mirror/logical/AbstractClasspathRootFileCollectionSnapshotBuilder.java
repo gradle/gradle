@@ -38,8 +38,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.Deque;
 
 public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
@@ -69,7 +68,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     @Nullable
     @Override
     public FileContentSnapshot snapshotFileContents(String path, Deque<String> relativePath, FileContentSnapshot contentSnapshot) {
-        HashCode hashCode = classpathResourceHasher.hash(Paths.get(path), relativePath, contentSnapshot);
+        HashCode hashCode = classpathResourceHasher.hash(path, relativePath, contentSnapshot);
         return hashCode == null ? null : new FileHashSnapshot(hashCode);
     }
 
@@ -84,8 +83,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     @Nullable
     private FileContentSnapshot snapshotRootFile(RegularFileSnapshot file) {
         if (FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
-            Path path = Paths.get(file.getPath());
-            return snapshotJarContents(path, file.getRelativePath(), file.getContent());
+            return snapshotJarContents(file.getPath(), file.getRelativePath(), file.getContent());
         }
         return snapshotNonJarContents(file.getContent());
     }
@@ -94,7 +92,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     protected abstract FileContentSnapshot snapshotNonJarContents(FileContentSnapshot contentSnapshot);
 
     @Nullable
-    private FileContentSnapshot snapshotJarContents(Path path, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
+    private FileContentSnapshot snapshotJarContents(String path, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
         HashCode hash = cacheService.hashFile(path, relativePath, contentSnapshot, jarHasher, jarHasherConfigurationHash);
         return hash == null ? null : new FileHashSnapshot(hash);
     }
@@ -102,7 +100,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     private class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         @Nullable
         @Override
-        public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+        public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
             return hashJarContents(path, content);
         }
 
@@ -112,24 +110,24 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
             classpathResourceHasher.appendConfigurationToHasher(hasher);
         }
 
-        private HashCode hashJarContents(Path jarFile, FileContentSnapshot content) {
+        private HashCode hashJarContents(String jarFile, FileContentSnapshot content) {
             try {
                 ClasspathEntrySnapshotBuilder classpathEntrySnapshotBuilder = newClasspathEntrySnapshotBuilder();
                 new ZipTree(jarFile).visit(classpathEntrySnapshotBuilder);
                 return classpathEntrySnapshotBuilder.getHash();
             } catch (Exception e) {
-                return hashMalformedZip(jarFile, content, e);
+                return hashMalformedZip(new File(jarFile).getName(), content, e);
             }
         }
 
-        private HashCode hashMalformedZip(Path path, FileContentSnapshot content, Exception e) {
-            LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", path.getFileName(), e);
+        private HashCode hashMalformedZip(String jarName, FileContentSnapshot content, Exception e) {
+            LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarName, e);
             return content.getContentMd5();
         }
     }
 
     private ClasspathEntrySnapshotBuilder newClasspathEntrySnapshotBuilder() {
-        return new ClasspathEntrySnapshotBuilder(classpathResourceHasher, stringInterner);
+        return new ClasspathEntrySnapshotBuilder(classpathResourceHasher);
     }
 
     @Override

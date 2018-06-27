@@ -23,7 +23,6 @@ import org.gradle.internal.hash.HashCode;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 
 /**
@@ -47,7 +46,7 @@ public class CachingResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+    public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
         return resourceSnapshotterCacheService.hashFile(path, relativePath, content, delegate, delegateConfigurationHash);
     }
 

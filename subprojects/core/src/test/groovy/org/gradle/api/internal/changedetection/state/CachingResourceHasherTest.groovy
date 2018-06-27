@@ -21,12 +21,11 @@ import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
-import java.nio.file.Paths
 import java.util.zip.ZipEntry
 
 class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
-    def path = Paths.get("some")
+    def path = "some"
     def relativePath = ["relative", "path"]
     private FileHashSnapshot content = new FileHashSnapshot(HashCode.fromInt(456))
     def cachingHasher = new CachingResourceHasher(delegate, new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))

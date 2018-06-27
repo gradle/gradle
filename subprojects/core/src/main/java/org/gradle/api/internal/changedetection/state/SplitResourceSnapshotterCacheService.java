@@ -18,8 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.HashCode;
 
-import java.nio.file.Path;
-
 /**
  * A {@link ResourceSnapshotterCacheService} that delegates to the global service for immutable files
  * and uses the local service for all other files. This ensures optimal cache utilization.
@@ -37,8 +35,8 @@ public class SplitResourceSnapshotterCacheService implements ResourceSnapshotter
     }
 
     @Override
-    public HashCode hashFile(Path path, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash) {
-        if (wellKnownFileLocations.isImmutable(path.toString())) {
+    public HashCode hashFile(String path, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash) {
+        if (wellKnownFileLocations.isImmutable(path)) {
             return globalCache.hashFile(path, relativePath, content, hasher, configurationHash);
         } else {
             return localCache.hashFile(path, relativePath, content, hasher, configurationHash);
