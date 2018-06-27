@@ -11,6 +11,19 @@ you don't need to hardcode it into the build script - you can just run `gradle r
 
 This release of Gradle includes a [new Publishing Overview chapter](/userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.  
 
+### Improved dependency insight report
+
+The dependency insight report is the distant ancestor of [build scans](https://scans.gradle.com) and helps you diagnose dependency management problems locally.
+This release of Gradle implements several improvements:
+
+- using `failOnVersionConflict()` no longer fails the dependency insight report in case of conflict
+- all participants of conflict resolution are shown
+- modules which were rejected by a rule are displayed
+- modules which didn't match the version selector but were considered in selection are shown
+- all custom reasons for a component selection are shown
+- ability to restrict the report to one path to each dependency, for readability
+- resolution failures are displayed in the report
+
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
@@ -26,9 +39,9 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Dependency insight report
+
+The dependency insight report is now considered stable.
 
 ## Fixed issues
 
