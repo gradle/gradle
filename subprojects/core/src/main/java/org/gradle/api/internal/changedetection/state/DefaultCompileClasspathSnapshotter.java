@@ -38,7 +38,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         return super.snapshot(
             files,
-            new CompileClasspathRootFileCollectionSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
+            new CompileClasspathRootFileCollectionSnapshotBuilder(classpathResourceHasher, cacheService));
     }
 
     @Override

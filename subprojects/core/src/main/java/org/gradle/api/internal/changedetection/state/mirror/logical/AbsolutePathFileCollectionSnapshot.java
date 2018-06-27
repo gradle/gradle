@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
@@ -43,6 +43,8 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,6 +55,13 @@ import java.util.Set;
  * File collection snapshot with absolute paths.
  */
 public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectionSnapshot {
+    private static final Comparator<Map.Entry<String, FileContentSnapshot>> BY_STRING_KEY = new Comparator<Map.Entry<String, FileContentSnapshot>>() {
+
+        @Override
+        public int compare(Map.Entry<String, FileContentSnapshot> o1, Map.Entry<String, FileContentSnapshot> o2) {
+            return o1.getKey().compareTo(o2.getKey());
+        }
+    };
 
     private final boolean includeMissingFiles;
     private Map<String, FileContentSnapshot> content;
@@ -68,7 +77,7 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
         this.includeMissingFiles = includeMissingFiles;
     }
 
-    public AbsolutePathFileCollectionSnapshot(ImmutableSortedMap<String, FileContentSnapshot> content, @Nullable HashCode hashCode) {
+    public AbsolutePathFileCollectionSnapshot(Map<String, FileContentSnapshot> content, @Nullable HashCode hashCode) {
         super(hashCode);
         this.content = content;
         this.includeMissingFiles = false;
@@ -77,7 +86,7 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
     @Override
     public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
         Map<String, FileContentSnapshot> current = getContentSnapshots();
-        Map<String, FileContentSnapshot> previous = (oldSnapshot == EmptyFileCollectionSnapshot.INSTANCE) ? ImmutableSortedMap.<String, FileContentSnapshot>of() : ((AbsolutePathFileCollectionSnapshot) oldSnapshot).getContentSnapshots();
+        Map<String, FileContentSnapshot> previous = (oldSnapshot == EmptyFileCollectionSnapshot.INSTANCE) ? ImmutableMap.<String, FileContentSnapshot>of() : ((AbsolutePathFileCollectionSnapshot) oldSnapshot).getContentSnapshots();
         Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
 
         for (Map.Entry<String, FileContentSnapshot> currentEntry : current.entrySet()) {
@@ -108,7 +117,9 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
 
     @Override
     protected void doGetHash(DefaultBuildCacheHasher hasher) {
-        for (Map.Entry<String, FileContentSnapshot> entry : getContentSnapshots().entrySet()) {
+        List<Map.Entry<String, FileContentSnapshot>> entries = Lists.newArrayList(getContentSnapshots().entrySet());
+        Collections.sort(entries, BY_STRING_KEY);
+        for (Map.Entry<String, FileContentSnapshot> entry : entries) {
             hasher.putString(entry.getKey());
             hasher.putHash(entry.getValue().getContentMd5());
         }
@@ -143,7 +154,7 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
     }
 
     private Map<String, FileContentSnapshot> doGetContentSnapshots() {
-        final ImmutableSortedMap.Builder<String, FileContentSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        final ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {
             entry.getValue().accept(new HierarchicalSnapshotVisitor() {
@@ -195,7 +206,7 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
             boolean hasHash = decoder.readBoolean();
             HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
             Map<String, FileContentSnapshot> snapshots = snapshotSerializer.read(decoder);
-            return new AbsolutePathFileCollectionSnapshot(ImmutableSortedMap.copyOf(snapshots), hash);
+            return new AbsolutePathFileCollectionSnapshot(snapshots, hash);
         }
 
         public void write(Encoder encoder, AbsolutePathFileCollectionSnapshot value) throws Exception {

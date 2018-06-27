@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -27,8 +26,8 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
  * We take the contents of jar files, non jar files and directories into account.
  */
 public class RuntimeClasspathRootFileCollectionSnapshotBuilder extends AbstractClasspathRootFileCollectionSnapshotBuilder {
-    public RuntimeClasspathRootFileCollectionSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(classpathResourceHasher, cacheService, stringInterner);
+    public RuntimeClasspathRootFileCollectionSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+        super(classpathResourceHasher, cacheService);
     }
 
     @Override

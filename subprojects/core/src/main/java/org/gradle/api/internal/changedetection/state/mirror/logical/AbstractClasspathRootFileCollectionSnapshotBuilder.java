@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.ClasspathEntrySnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.ConfigurableNormalizer;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
@@ -46,14 +45,12 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
 
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
-    private final StringInterner stringInterner;
     private final JarHasher jarHasher;
     private final HashCode jarHasherConfigurationHash;
 
-    public AbstractClasspathRootFileCollectionSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    public AbstractClasspathRootFileCollectionSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
         this.cacheService = cacheService;
         this.classpathResourceHasher = classpathResourceHasher;
-        this.stringInterner = stringInterner;
         this.jarHasher = new JarHasher();
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
