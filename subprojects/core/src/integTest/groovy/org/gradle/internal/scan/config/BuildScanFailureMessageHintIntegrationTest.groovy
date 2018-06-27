@@ -29,8 +29,8 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TAS
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption
 
-@Issue(["https://github.com/gradle/gradle/issues/3516", "https://github.com/gradle/gradle-private/issues/1341"])
-@Requires(value = [TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_LATER])
+@Issue("https://github.com/gradle/gradle/issues/3516")
+@Requires(TestPrecondition.ONLINE)
 class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
