@@ -18,19 +18,17 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
-import java.nio.file.Path;
-
 public abstract class AbstractPhysicalDirectorySnapshot implements PhysicalSnapshot {
     private final String name;
-    private final Path path;
+    private final String path;
 
-    public AbstractPhysicalDirectorySnapshot(Path path, String name) {
+    public AbstractPhysicalDirectorySnapshot(String path, String name) {
         this.path = path;
         this.name = name;
     }
 
     @Override
-    public Path getPath() {
+    public String getPath() {
         return path;
     }
 

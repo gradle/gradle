@@ -85,8 +85,8 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def outputFileContent = new FileHashSnapshot(HashCode.fromInt(234))
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.path, RelativePath.EMPTY_ROOT.append(true, outputFile.name), true, outputFileContent)
         def fileSnapshots = ImmutableMap.of(
-            "outputDir", new ImmutablePhysicalDirectorySnapshot(outputDir.toPath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.toPath(), outputDirFile.name, outputDirFileContent.lastModified, outputDirFileContent.contentMd5))),
-            "outputFile", new PhysicalFileSnapshot(outputFile.toPath(), outputFile.name, outputFileContent.lastModified, outputFileContent.contentMd5))
+            "outputDir", new ImmutablePhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, outputDirFileContent.lastModified, outputDirFileContent.contentMd5))),
+            "outputFile", new PhysicalFileSnapshot(outputFile.getAbsolutePath(), outputFile.name, outputFileContent.lastModified, outputFileContent.contentMd5))
 
         when:
         def result = load.load(input)
@@ -123,7 +123,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         then:
         result.artifactEntryCount == 123
         result.metadata == originMetadata
-//        0 * _
+        0 * _
 
         then:
         !localStateFile.exists()

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
@@ -25,15 +26,13 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.Path
-
 @UsesNativeServices
 class MirrorUpdatingDirectoryWalkerTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def fileHasher = new TestFileHasher()
-    def walker = new MirrorUpdatingDirectoryWalker(fileHasher, TestFiles.fileSystem())
+    def walker = new MirrorUpdatingDirectoryWalker(fileHasher, TestFiles.fileSystem(), new StringInterner())
 
     def "basic directory walking works"() {
         given:
@@ -57,8 +56,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def root = walker.walkDir(rootDir.toPath())
         root.accept(new RelativePathTrackingVisitor() {
             @Override
-            void visit(Path path, Deque<String> relativePath) {
-                visited << path.toString()
+            void visit(String path, Deque<String> relativePath) {
+                visited << path
                 relativePaths << relativePath.join("/")
             }
         })
@@ -102,8 +101,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def root = walker.walkDir(rootDir.toPath(), patterns)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
-            void visit(Path path, Deque<String> relativePath) {
-                visited << path.toString()
+            void visit(String path, Deque<String> relativePath) {
+                visited << path
                 relativePaths << relativePath.join("/")
             }
         })
@@ -130,14 +129,14 @@ abstract class RelativePathTrackingVisitor implements HierarchicalFileTreeVisito
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(Path path, String name) {
+    boolean preVisitDirectory(String path, String name) {
         relativePath.addLast(name)
         visit(path, relativePath)
         return true
     }
 
     @Override
-    void visit(Path path, String name, FileContentSnapshot content) {
+    void visit(String path, String name, FileContentSnapshot content) {
         relativePath.addLast(name)
         visit(path, relativePath)
         relativePath.removeLast()
@@ -148,5 +147,5 @@ abstract class RelativePathTrackingVisitor implements HierarchicalFileTreeVisito
         relativePath.removeLast()
     }
 
-    abstract void visit(Path path, Deque<String> relativePath)
+    abstract void visit(String path, Deque<String> relativePath)
 }

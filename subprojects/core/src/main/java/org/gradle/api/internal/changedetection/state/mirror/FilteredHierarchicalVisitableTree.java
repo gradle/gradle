@@ -30,7 +30,6 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.Deque;
 
 public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableTree {
@@ -52,7 +51,7 @@ public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableT
             private boolean seenRoot;
 
             @Override
-            public boolean preVisitDirectory(Path path, String name) {
+            public boolean preVisitDirectory(String path, String name) {
                 if (!seenRoot) {
                     seenRoot = true;
                 } else {
@@ -67,7 +66,7 @@ public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableT
             }
 
             @Override
-            public void visit(Path path, String name, FileContentSnapshot content) {
+            public void visit(String path, String name, FileContentSnapshot content) {
                 relativePath.addLast(name);
                 if (spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath, content, fileSystem))) {
                     visitor.visit(path, name, content);
@@ -95,14 +94,14 @@ public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableT
      * in dynamic Groovy code.
      */
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
-        private final Path _path;
+        private final String _path;
         private final Iterable<String> _relativePathIterable;
         private final FileContentSnapshot _content;
         private final FileSystem _fileSystem;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(Path path, Iterable<String> relativePathIterable, FileContentSnapshot content, FileSystem fileSystem) {
+        public LogicalFileTreeElement(String path, Iterable<String> relativePathIterable, FileContentSnapshot content, FileSystem fileSystem) {
             super(fileSystem);
             this._path = path;
             this._relativePathIterable = relativePathIterable;
@@ -118,7 +117,7 @@ public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableT
         @Override
         public File getFile() {
             if (_file == null) {
-                _file = _path.toFile();
+                _file = new File(_path);
             }
             return _file;
         }

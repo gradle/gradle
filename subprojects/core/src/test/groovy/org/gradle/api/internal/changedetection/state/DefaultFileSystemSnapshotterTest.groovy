@@ -28,8 +28,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.Path
-
 class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileHasher = new TestFileHasher()
@@ -186,7 +184,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(Path path, String name) {
+            boolean preVisitDirectory(String path, String name) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
@@ -197,7 +195,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(Path path, String name, FileContentSnapshot content) {
+            void visit(String path, String name, FileContentSnapshot content) {
                 relativePath.addLast(name)
                 paths.add(relativePath.join("/"))
                 relativePath.removeLast()
@@ -239,13 +237,13 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         getTreeInfo(snapshot) == [null, 1]
         snapshot.accept(new HierarchicalFileTreeVisitor() {
             @Override
-            boolean preVisitDirectory(Path path, String name) {
+            boolean preVisitDirectory(String path, String name) {
                 throw new UnsupportedOperationException()
             }
 
             @Override
-            void visit(Path path, String name, FileContentSnapshot content) {
-                assert path == d.toPath()
+            void visit(String path, String name, FileContentSnapshot content) {
+                assert path == d.getAbsolutePath()
                 assert name == d.name
             }
 
@@ -342,16 +340,16 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new HierarchicalFileTreeVisitor() {
             @Override
-            boolean preVisitDirectory(Path path, String name) {
+            boolean preVisitDirectory(String path, String name) {
                 if (rootPath == null) {
-                    rootPath = path.toString()
+                    rootPath = path
                 }
                 count++
                 return true
             }
 
             @Override
-            void visit(Path path, String name, FileContentSnapshot content) {
+            void visit(String path, String name, FileContentSnapshot content) {
                 count++
             }
 

@@ -17,16 +17,19 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.internal.cache.StringInterner;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot {
+    private final StringInterner stringInterner;
     private Map<String, PhysicalSnapshot> children = new LinkedHashMap<String, PhysicalSnapshot>();
 
-    public MutablePhysicalDirectorySnapshot(Path path, String name) {
+    public MutablePhysicalDirectorySnapshot(String path, String name, StringInterner stringInterner) {
         super(path, name);
+        this.stringInterner = stringInterner;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
             if (segments.length == offset + 1) {
                 child = snapshot;
             } else {
-                child = new MutablePhysicalDirectorySnapshot(getPath().resolve(currentSegment), currentSegment);
+                child = new MutablePhysicalDirectorySnapshot(stringInterner.intern(getPath() + File.separatorChar + currentSegment), currentSegment, stringInterner);
             }
             children.put(currentSegment, child);
         }

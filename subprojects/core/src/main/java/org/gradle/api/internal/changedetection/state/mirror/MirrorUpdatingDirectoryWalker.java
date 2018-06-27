@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
@@ -54,10 +55,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MirrorUpdatingDirectoryWalker {
     private final FileHasher hasher;
     private final FileSystem fileSystem;
+    private final StringInterner stringInterner;
 
-    public MirrorUpdatingDirectoryWalker(FileHasher hasher, FileSystem fileSystem) {
+    public MirrorUpdatingDirectoryWalker(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner) {
         this.hasher = hasher;
         this.fileSystem = fileSystem;
+        this.stringInterner = stringInterner;
     }
 
     public HierarchicalVisitableTree walkDir(final FileSnapshot fileSnapshot) {
@@ -73,7 +76,7 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public void accept(HierarchicalFileTreeVisitor visitor) {
-                    visitor.visit(Paths.get(fileSnapshot.getPath()), fileSnapshot.getName(), fileSnapshot.getContent());
+                    visitor.visit(fileSnapshot.getPath(), fileSnapshot.getName(), fileSnapshot.getContent());
                 }
             };
         }
@@ -139,7 +142,7 @@ public class MirrorUpdatingDirectoryWalker {
                     }
                     String directoryPath = relativePathHolder.isEmpty() ? rootDirectoryName.get() : relativePathHolder.removeLast();
                     ImmutableList.Builder<PhysicalSnapshot> builder = levelHolder.removeLast();
-                    ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(dir, directoryPath, builder.build());
+                    ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(internedAbsolutePath(dir), directoryPath, builder.build());
                     ImmutableList.Builder<PhysicalSnapshot> parentBuilder = levelHolder.peekLast();
                     if (parentBuilder != null) {
                         parentBuilder.add(directorySnapshot);
@@ -158,12 +161,16 @@ public class MirrorUpdatingDirectoryWalker {
                     String name = internedName(file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
-                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(file, name, metadata.getLastModified(), hash);
+                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, metadata.getLastModified(), hash);
                     levelHolder.peekLast().add(fileSnapshot);
                 }
 
                 private String internedName(Path dir) {
                     return RelativePath.PATH_SEGMENT_STRING_INTERNER.intern(dir.getFileName().toString());
+                }
+
+                private String internedAbsolutePath(Path file) {
+                    return stringInterner.intern(file.toString());
                 }
 
                 private boolean isAllowed(Path path, boolean isDirectory, @Nullable BasicFileAttributes attrs, Deque<String> relativePath) {

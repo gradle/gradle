@@ -21,23 +21,21 @@ import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-import java.nio.file.Path;
-
 @SuppressWarnings("Since15")
 public class PhysicalFileSnapshot implements PhysicalSnapshot {
     private final HashCode hash;
     private final long timestamp;
-    private final Path path;
+    private final String path;
     private final String name;
 
-    public PhysicalFileSnapshot(Path path, String name, long lastModified, HashCode contentMd5) {
+    public PhysicalFileSnapshot(String path, String name, long lastModified, HashCode contentMd5) {
         this.path = path;
         this.name = name;
         this.timestamp = lastModified;
         this.hash = contentMd5;
     }
 
-    public Path getPath() {
+    public String getPath() {
         return path;
     }
 

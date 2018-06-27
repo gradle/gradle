@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Joiner;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -64,7 +63,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @SuppressWarnings("Since15")
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
-    private static final Joiner PATH_JOINER = Joiner.on(File.separatorChar);
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -81,7 +79,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
         this.snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
-        this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem);
+        this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem, stringInterner);
     }
 
     @Override
@@ -202,12 +200,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                     }
 
                     private MutablePhysicalDirectorySnapshot physicalDirectorySnapshot(File file) {
-                        return new MutablePhysicalDirectorySnapshot(file.toPath(), file.getName());
+                        return new MutablePhysicalDirectorySnapshot(stringInterner.intern(file.getAbsolutePath()), file.getName(), stringInterner);
                     }
 
                     private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
                         FileHashSnapshot snapshot = fileSnapshot(fileDetails);
-                        return new PhysicalFileSnapshot(fileDetails.getFile().toPath(), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
+                        return new PhysicalFileSnapshot(fileDetails.getPath(), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
                     }
                 });
                 PhysicalSnapshot rootSnapshot = root.get();

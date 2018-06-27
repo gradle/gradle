@@ -29,7 +29,6 @@ import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTree
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 
 import javax.annotation.Nullable;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicReference;
@@ -54,10 +53,10 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
         final AtomicReference<String> rootName = new AtomicReference<String>();
         tree.accept(new HierarchicalFileTreeVisitor() {
             @Override
-            public boolean preVisitDirectory(Path path, String name) {
+            public boolean preVisitDirectory(String path, String name) {
                 if (levelHolder.isEmpty()) {
-                    rootPath.set(path.toString());
-                    rootName.set(path.getFileName().toString());
+                    rootPath.set(path);
+                    rootName.set(name);
                 } else {
                     relativePathHolder.addLast(name);
                 }
@@ -66,7 +65,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
             }
 
             @Override
-            public void visit(Path path, String name, FileContentSnapshot content) {
+            public void visit(String path, String name, FileContentSnapshot content) {
                 ImmutableList.Builder<LogicalSnapshot> parentBuilder = levelHolder.peekLast();
                 relativePathHolder.addLast(name);
                 FileContentSnapshot newContent = snapshotFileContents(path, relativePathHolder, content);
@@ -77,7 +76,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
                         parentBuilder.add(snapshot);
                     } else {
                         result.set(snapshot);
-                        rootPath.set(path.toString());
+                        rootPath.set(path);
                     }
                 }
             }
@@ -121,7 +120,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
     }
 
     @Nullable
-    public FileContentSnapshot snapshotFileContents(Path path, Deque<String> relativePath, FileContentSnapshot contentSnapshot) {
+    public FileContentSnapshot snapshotFileContents(String path, Deque<String> relativePath, FileContentSnapshot contentSnapshot) {
         return contentSnapshot;
     }
 }

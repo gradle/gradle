@@ -329,15 +329,16 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
         PhysicalSnapshot rootSnapshot = snapshots.get(propertyName);
         if (rootSnapshot == null && propertySpec.getOutputType() == OutputType.DIRECTORY) {
-            rootSnapshot = new MutablePhysicalDirectorySnapshot(propertyRoot.toPath(), propertyRoot.getName());
+            rootSnapshot = new MutablePhysicalDirectorySnapshot(stringInterner.intern(propertyRoot.getAbsolutePath()), propertyRoot.getName(), stringInterner);
             snapshots.put(propertyName, rootSnapshot);
         }
-        Path outputPath = outputFile.toPath();
-        RelativePath relativePath = root ? RelativePath.parse(!isDirEntry, outputFile.getName()) : RelativePath.parse(!isDirEntry, childPath);
+        String outputPath = stringInterner.intern(outputFile.getAbsolutePath());
+        String outputFileName = stringInterner.intern(outputFile.getName());
+        RelativePath relativePath = root ? RelativePath.parse(!isDirEntry, outputFileName) : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
             if (!root) {
-                rootSnapshot.add(relativePath.getSegments(), 0, new MutablePhysicalDirectorySnapshot(outputPath, outputFile.getName()));
+                rootSnapshot.add(relativePath.getSegments(), 0, new MutablePhysicalDirectorySnapshot(outputPath, outputFileName, stringInterner));
             }
         } else {
             OutputStream output = new FileOutputStream(outputFile);
@@ -347,7 +348,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             } finally {
                 IOUtils.closeQuietly(output);
             }
-            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFile.getName(), outputFile.lastModified(), hash);
+            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, outputFile.lastModified(), hash);
             if (root) {
                 snapshots.put(propertyName, fileSnapshot);
             } else {

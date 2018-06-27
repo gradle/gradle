@@ -68,8 +68,8 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
 
     @Nullable
     @Override
-    public FileContentSnapshot snapshotFileContents(Path path, Deque<String> relativePath, FileContentSnapshot contentSnapshot) {
-        HashCode hashCode = classpathResourceHasher.hash(path, relativePath, contentSnapshot);
+    public FileContentSnapshot snapshotFileContents(String path, Deque<String> relativePath, FileContentSnapshot contentSnapshot) {
+        HashCode hashCode = classpathResourceHasher.hash(Paths.get(path), relativePath, contentSnapshot);
         return hashCode == null ? null : new FileHashSnapshot(hashCode);
     }
 
