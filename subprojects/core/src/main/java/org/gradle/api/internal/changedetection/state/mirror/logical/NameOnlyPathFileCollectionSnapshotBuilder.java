@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -46,7 +46,7 @@ public class NameOnlyPathFileCollectionSnapshotBuilder extends RootFileCollectio
         @Nullable
         @Override
         public Map<String, NormalizedFileSnapshot> create() {
-            final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableSortedMap.naturalOrder();
+            final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
             final HashSet<String> processedEntries = new HashSet<String>();
             for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
                 entry.getValue().accept(new LogicalSnapshotVisitor() {

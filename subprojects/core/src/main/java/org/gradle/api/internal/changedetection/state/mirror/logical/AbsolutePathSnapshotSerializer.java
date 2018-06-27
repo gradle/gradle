@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -38,7 +38,7 @@ public class AbsolutePathSnapshotSerializer extends AbstractSerializer<Map<Strin
     @Override
     public Map<String, FileContentSnapshot> read(Decoder decoder) throws IOException {
         int snapshotsCount = decoder.readSmallInt();
-        ImmutableSortedMap.Builder<String, FileContentSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
             FileContentSnapshot snapshot = contentSnapshotSerializer.read(decoder);
