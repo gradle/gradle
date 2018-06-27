@@ -25,12 +25,16 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassDefiner;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
+import org.gradle.internal.classloader.ClassLoaderPackagesFetcher;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.LookupPackagesFetcher;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
+import org.gradle.internal.classloader.LookupClassDefiner;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.JavaMethod;
@@ -139,6 +143,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 BootstrapSecurityManager.class,
                 EncodedStream.EncodedInput.class,
                 ClassLoaderUtils.class,
+                ClassLoaderPackagesFetcher.class,
+                ClassDefiner.class,
+                LookupClassDefiner.class,
+                LookupPackagesFetcher.class,
                 FilteringClassLoader.class,
                 ClassLoaderHierarchy.class,
                 ClassLoaderVisitor.class,
