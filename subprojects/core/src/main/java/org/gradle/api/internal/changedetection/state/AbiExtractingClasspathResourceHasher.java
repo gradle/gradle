@@ -56,8 +56,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
         Path filePath = Paths.get(path);
-        String name = filePath.getFileName().toString();
-        if (!isClassFile(name)) {
+        if (!isClassFile(path)) {
             return null;
         }
         InputStream inputStream = null;
@@ -65,7 +64,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
             inputStream = Files.newInputStream(filePath);
             return hashClassBytes(inputStream);
         } catch (Exception e) {
-            LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", name, e);
+            LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", filePath.getFileName().toString(), e);
             return content.getContentMd5();
         } finally {
             IoActions.closeQuietly(inputStream);
