@@ -23,9 +23,11 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
+import org.gradle.cache.CleanupAction
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.CacheScopeMapping
+import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.hash.HashCode
@@ -56,13 +58,20 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
     def snapshotter = Mock(FileSystemSnapshotter)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
+    def cleanupActionFactory = Stub(CleanupActionFactory) {
+        create(_) >> { CleanupAction action -> action }
+    }
     DefaultTransformedFileCache cache
 
     def setup() {
         scopeMapping.getBaseDirectory(_, _, _) >> tmpDir.testDirectory
         scopeMapping.getRootDirectory(_) >> tmpDir.testDirectory
         artifactCacheMetaData.transformsStoreDirectory >> transformsStoreDirectory
-        cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
+        cache = createCache()
+    }
+
+    private DefaultTransformedFileCache createCache() {
+        new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal, cleanupActionFactory)
     }
 
     def "reuses result for given inputs and transform"() {
@@ -358,7 +367,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def result = cache.getResult(inputFile, HashCode.fromInt(123), transform)
 
         when:
-        def cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
+        def cache = createCache()
         result.first().delete()
         def result2 = cache.getResult(inputFile, HashCode.fromInt(123), transform)
 

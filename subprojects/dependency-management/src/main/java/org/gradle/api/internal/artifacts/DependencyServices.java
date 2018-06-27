@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
@@ -60,13 +61,13 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     }
 
     private static class DependencyManagementBuildSessionServices {
-        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal) {
-            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal);
+        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, CleanupActionFactory cleanupActionFactory) {
+            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, cleanupActionFactory);
         }
 
         TransformedFileCache createTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                        FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal) {
-            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal);
+                                                        FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal, CleanupActionFactory cleanupActionFactory) {
+            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal, cleanupActionFactory);
             listenerManager.addListener(transformedFileCache);
             return transformedFileCache;
         }

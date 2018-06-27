@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.cache.CleanupAction
+import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,9 +39,12 @@ class DefaultCacheLockingManagerTest extends Specification {
         getFileStoreDirectory() >> filesDir
     }
     def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
+    def cleanupActionFactory = Stub(CleanupActionFactory) {
+        create(_) >> { CleanupAction action -> action }
+    }
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal)
+    def cacheLockingManager = new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, cleanupActionFactory)
 
     def "cleans up resources"() {
         given:
