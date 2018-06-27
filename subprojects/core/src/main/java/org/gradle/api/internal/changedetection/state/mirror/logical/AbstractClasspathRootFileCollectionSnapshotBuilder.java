@@ -16,22 +16,30 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
+import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
+import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Map;
 
 public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
     private final ResourceSnapshotterCacheService cacheService;
@@ -50,7 +58,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
 
     @Override
     protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
-        return new ClasspathSnapshot(roots);
+        return new ClasspathSnapshot(new ClasspathSnapshotFactory(roots));
     }
 
     @Nullable
@@ -91,5 +99,57 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
 
     @Override
     public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
+    }
+
+    private class ClasspathSnapshotFactory implements Factory<Map<String, NormalizedFileSnapshot>> {
+        private final ListMultimap<String, LogicalSnapshot> roots;
+
+        public ClasspathSnapshotFactory(ListMultimap<String, LogicalSnapshot> roots) {
+            this.roots = roots;
+        }
+
+        @Nullable
+        @Override
+        public Map<String, NormalizedFileSnapshot> create() {
+            final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
+            final HashSet<String> processedEntries = new HashSet<String>();
+            for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
+                final String basePath = entry.getKey();
+                final int rootIndex = basePath.length() + 1;
+                final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder = ImmutableSortedMap.naturalOrder();
+                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+                    private boolean root = true;
+
+                    @Override
+                    public void preVisitDirectory(String path, String name) {
+                        root = false;
+                    }
+
+                    @Override
+                    public void visit(String path, String name, FileContentSnapshot content) {
+                        if (processedEntries.add(path)) {
+                            NormalizedFileSnapshot normalizedFileSnapshot = isRoot() ? new IgnoredPathFileSnapshot(content) : new IndexedNormalizedFileSnapshot(path, getIndex(name), content);
+                            rootBuilder.put(
+                                path,
+                                normalizedFileSnapshot);
+                        }
+                    }
+
+                    private int getIndex(String name) {
+                        return isRoot() ? basePath.length() - name.length() : rootIndex;
+                    }
+
+                    private boolean isRoot() {
+                        return root;
+                    }
+
+                    @Override
+                    public void postVisitDirectory() {
+                    }
+                });
+                builder.putAll(rootBuilder.build());
+            }
+            return builder.build();
+        }
     }
 }

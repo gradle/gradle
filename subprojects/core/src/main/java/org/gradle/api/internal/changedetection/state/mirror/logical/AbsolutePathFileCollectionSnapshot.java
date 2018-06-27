@@ -19,12 +19,10 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
@@ -33,7 +31,6 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -45,7 +42,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +50,7 @@ import java.util.Set;
 /**
  * File collection snapshot with absolute paths.
  */
-public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectionSnapshot {
+public class AbsolutePathFileCollectionSnapshot extends SnapshotFactoryFileCollectionSnapshot<FileContentSnapshot> {
     private static final Comparator<Map.Entry<String, FileContentSnapshot>> BY_STRING_KEY = new Comparator<Map.Entry<String, FileContentSnapshot>>() {
 
         @Override
@@ -63,8 +59,6 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
         }
     };
 
-    private final boolean includeMissingFiles;
-    private Map<String, FileContentSnapshot> content;
     private final Factory<List<File>> cachedElementsFactory = Factories.softReferenceCache(new Factory<List<File>>() {
         @Override
         public List<File> create() {
@@ -72,21 +66,18 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
         }
     });
 
-    public AbsolutePathFileCollectionSnapshot(ListMultimap<String, LogicalSnapshot> roots, boolean includeMissingFiles) {
-        super(roots);
-        this.includeMissingFiles = includeMissingFiles;
+    public AbsolutePathFileCollectionSnapshot(Map<String, FileContentSnapshot> content, @Nullable HashCode hashCode) {
+        super(content, hashCode);
     }
 
-    public AbsolutePathFileCollectionSnapshot(Map<String, FileContentSnapshot> content, @Nullable HashCode hashCode) {
-        super(hashCode);
-        this.content = content;
-        this.includeMissingFiles = false;
+    public AbsolutePathFileCollectionSnapshot(Factory<Map<String, FileContentSnapshot>> absolutePathSnapshotFactory) {
+        super(absolutePathSnapshotFactory);
     }
 
     @Override
     public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        Map<String, FileContentSnapshot> current = getContentSnapshots();
-        Map<String, FileContentSnapshot> previous = (oldSnapshot == EmptyFileCollectionSnapshot.INSTANCE) ? ImmutableMap.<String, FileContentSnapshot>of() : ((AbsolutePathFileCollectionSnapshot) oldSnapshot).getContentSnapshots();
+        Map<String, FileContentSnapshot> current = getFileSnapshots();
+        Map<String, FileContentSnapshot> previous = (oldSnapshot == EmptyFileCollectionSnapshot.INSTANCE) ? ImmutableMap.<String, FileContentSnapshot>of() : ((AbsolutePathFileCollectionSnapshot) oldSnapshot).getFileSnapshots();
         Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
 
         for (Map.Entry<String, FileContentSnapshot> currentEntry : current.entrySet()) {
@@ -146,43 +137,7 @@ public class AbsolutePathFileCollectionSnapshot extends RootHoldingFileCollectio
 
     @Override
     public Map<String, FileContentSnapshot> getContentSnapshots() {
-        Preconditions.checkState(content != null || getRoots() != null, "If no roots are given the content must be present.");
-        if (content == null) {
-            content = doGetContentSnapshots();
-        }
-        return content;
-    }
-
-    private Map<String, FileContentSnapshot> doGetContentSnapshots() {
-        final ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
-        final HashSet<String> processedEntries = new HashSet<String>();
-        for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {
-            entry.getValue().accept(new HierarchicalSnapshotVisitor() {
-
-                @Override
-                public void preVisitDirectory(String path, String name) {
-                    if (processedEntries.add(path)) {
-                        builder.put(path, DirContentSnapshot.INSTANCE);
-                    }
-                }
-
-                @Override
-                public void visit(String path, String name, FileContentSnapshot content) {
-                    if (!includeMissingFiles && content.getType() == FileType.Missing) {
-                        return;
-                    }
-                    if (processedEntries.add(path)) {
-                        builder.put(path, content);
-                    }
-                }
-
-                @Override
-                public void postVisitDirectory() {
-                }
-
-            });
-        }
-        return builder.build();
+        return getFileSnapshots();
     }
 
     @Override

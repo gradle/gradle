@@ -16,8 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
+import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.internal.Factory;
+import org.gradle.internal.file.FileType;
+
+import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Map;
 
 public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
 
@@ -29,6 +38,48 @@ public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectio
 
     @Override
     protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
-        return new AbsolutePathFileCollectionSnapshot(roots, includeMissing);
+        return new AbsolutePathFileCollectionSnapshot(new AbsolutePathSnapshotFactory(roots));
+    }
+
+    private class AbsolutePathSnapshotFactory implements Factory<Map<String, FileContentSnapshot>> {
+        private final ListMultimap<String, LogicalSnapshot> roots;
+
+        public AbsolutePathSnapshotFactory(ListMultimap<String, LogicalSnapshot> roots) {
+            this.roots = roots;
+        }
+
+        @Nullable
+        @Override
+        public Map<String, FileContentSnapshot> create() {
+            final ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
+            final HashSet<String> processedEntries = new HashSet<String>();
+            for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
+                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+
+                    @Override
+                    public void preVisitDirectory(String path, String name) {
+                        if (processedEntries.add(path)) {
+                            builder.put(path, DirContentSnapshot.INSTANCE);
+                        }
+                    }
+
+                    @Override
+                    public void visit(String path, String name, FileContentSnapshot content) {
+                        if (!includeMissing && content.getType() == FileType.Missing) {
+                            return;
+                        }
+                        if (processedEntries.add(path)) {
+                            builder.put(path, content);
+                        }
+                    }
+
+                    @Override
+                    public void postVisitDirectory() {
+                    }
+
+                });
+            }
+            return builder.build();
+        }
     }
 }

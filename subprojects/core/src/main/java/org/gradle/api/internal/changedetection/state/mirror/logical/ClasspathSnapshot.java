@@ -18,19 +18,15 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -41,27 +37,23 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
+public class ClasspathSnapshot extends SnapshotFactoryFileCollectionSnapshot<NormalizedFileSnapshot> {
 
-    public ClasspathSnapshot(ListMultimap<String, LogicalSnapshot> roots) {
-        super(roots);
+    public ClasspathSnapshot(Factory<Map<String, NormalizedFileSnapshot>> snapshotFactory) {
+        super(snapshotFactory);
     }
 
     private ClasspathSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode) {
-        super(hashCode);
-        this.snapshots = snapshots;
+        super(snapshots, hashCode);
     }
-
-    private Map<String, NormalizedFileSnapshot> snapshots;
 
     @Override
     public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = getSnapshots().entrySet().iterator();
-        Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = oldSnapshot.getSnapshots().entrySet().iterator();
+        Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = getFileSnapshots().entrySet().iterator();
+        Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = ((ClasspathSnapshot) oldSnapshot).getFileSnapshots().entrySet().iterator();
         while (true) {
             if (currentEntries.hasNext()) {
                 Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
@@ -115,7 +107,7 @@ public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
 
     @Override
     protected void doGetHash(DefaultBuildCacheHasher hasher) {
-        for (NormalizedFileSnapshot normalizedSnapshot : getSnapshots().values()) {
+        for (NormalizedFileSnapshot normalizedSnapshot : getFileSnapshots().values()) {
             normalizedSnapshot.appendToHasher(hasher);
         }
     }
@@ -127,53 +119,7 @@ public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
 
     @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
-        if (snapshots == null) {
-            snapshots = doGetSnapshots();
-        }
-        return snapshots;
-    }
-
-    private Map<String, NormalizedFileSnapshot> doGetSnapshots() {
-        Preconditions.checkNotNull(getRoots(), "If no roots are given the snapshots must be provided.");
-        final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
-        final HashSet<String> processedEntries = new HashSet<String>();
-        for (Map.Entry<String, LogicalSnapshot> entry : getRoots().entries()) {
-            final String basePath = entry.getKey();
-            final int rootIndex = basePath.length() + 1;
-            final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder = ImmutableSortedMap.naturalOrder();
-            entry.getValue().accept(new HierarchicalSnapshotVisitor() {
-                private boolean root = true;
-
-                @Override
-                public void preVisitDirectory(String path, String name) {
-                    root = false;
-                }
-
-                @Override
-                public void visit(String path, String name, FileContentSnapshot content) {
-                    if (processedEntries.add(path)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = isRoot() ? new IgnoredPathFileSnapshot(content) : new IndexedNormalizedFileSnapshot(path, getIndex(name), content);
-                        rootBuilder.put(
-                            path,
-                            normalizedFileSnapshot);
-                    }
-                }
-
-                private int getIndex(String name) {
-                    return isRoot() ? basePath.length() - name.length() : rootIndex;
-                }
-
-                private boolean isRoot() {
-                    return root;
-                }
-
-                @Override
-                public void postVisitDirectory() {
-                }
-            });
-            builder.putAll(rootBuilder.build());
-        }
-        return builder.build();
+        return getFileSnapshots();
     }
 
     @Override
