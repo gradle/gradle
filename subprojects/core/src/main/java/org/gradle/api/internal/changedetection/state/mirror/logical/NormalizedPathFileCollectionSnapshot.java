@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.FileChange;
@@ -53,7 +55,7 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
         }
     };
 
-    private NormalizedPathFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode) {
+    public NormalizedPathFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode) {
         super(snapshots, hashCode);
     }
 
@@ -83,7 +85,7 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
         Map<String, NormalizedFileSnapshot> previous = oldSnapshot.getSnapshots();
         Map<String, NormalizedFileSnapshot> current = getSnapshots();
         ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
-        ListMultimap<String, IncrementalFileSnapshotWithAbsolutePath> addedFiles = MultimapBuilder.hashKeys().linkedListValues().build();
+        ListMultimap<String, IncrementalFileSnapshotWithAbsolutePath> addedFiles = MultimapBuilder.linkedHashKeys().linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
@@ -146,7 +148,12 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
 
     @Override
     public Map<String, FileContentSnapshot> getContentSnapshots() {
-        throw new UnsupportedOperationException("Only supported for outputs");
+        return Maps.transformValues(getFileSnapshots(), new Function<NormalizedFileSnapshot, FileContentSnapshot>() {
+            @Override
+            public FileContentSnapshot apply(NormalizedFileSnapshot input) {
+                return input.getSnapshot();
+            }
+        });
     }
 
     private static class IncrementalFileSnapshotWithAbsolutePath {

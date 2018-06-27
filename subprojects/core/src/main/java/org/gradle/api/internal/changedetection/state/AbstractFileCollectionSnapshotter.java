@@ -48,7 +48,6 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(AbsolutePathFileCollectionSnapshot.class, new AbsolutePathFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(NormalizedPathFileCollectionSnapshot.class, new NormalizedPathFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(ClasspathSnapshot.class, new ClasspathSnapshot.SerializerImpl(stringInterner));
