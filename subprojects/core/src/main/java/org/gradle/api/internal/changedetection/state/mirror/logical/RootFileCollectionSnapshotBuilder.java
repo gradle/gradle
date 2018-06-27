@@ -30,7 +30,9 @@ import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitabl
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
@@ -48,7 +50,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
     public void visitFileTreeSnapshot(HierarchicalVisitableTree tree) {
         final Deque<String> relativePathHolder = new ArrayDeque<String>();
         final Deque<String> absolutePathHolder = new ArrayDeque<String>();
-        final Deque<ImmutableList.Builder<LogicalSnapshot>> levelHolder = new ArrayDeque<ImmutableList.Builder<LogicalSnapshot>>();
+        final Deque<List<LogicalSnapshot>> levelHolder = new ArrayDeque<List<LogicalSnapshot>>();
         final AtomicReference<LogicalSnapshot> result = new AtomicReference<LogicalSnapshot>();
         final AtomicReference<String> rootPath = new AtomicReference<String>();
         final AtomicReference<String> rootName = new AtomicReference<String>();
@@ -62,13 +64,13 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
                     relativePathHolder.addLast(name);
                 }
                 absolutePathHolder.addLast(path);
-                levelHolder.addLast(ImmutableList.<LogicalSnapshot>builder());
+                levelHolder.addLast(new ArrayList<LogicalSnapshot>());
                 return true;
             }
 
             @Override
             public void visit(String path, String name, FileContentSnapshot content) {
-                ImmutableList.Builder<LogicalSnapshot> parentBuilder = levelHolder.peekLast();
+                List<LogicalSnapshot> parentBuilder = levelHolder.peekLast();
                 relativePathHolder.addLast(name);
                 FileContentSnapshot newContent = snapshotFileContents(path, relativePathHolder, content);
                 relativePathHolder.removeLast();
@@ -85,12 +87,12 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
 
             @Override
             public void postVisitDirectory() {
-                ImmutableList.Builder<LogicalSnapshot> builder = levelHolder.removeLast();
+                List<LogicalSnapshot> children = levelHolder.removeLast();
                 String directoryPath = relativePathHolder.isEmpty() ? rootName.get() : relativePathHolder.removeLast();
-                LogicalDirectorySnapshot directorySnapshot = new LogicalDirectorySnapshot(absolutePathHolder.removeLast(), directoryPath, builder.build());
-                ImmutableList.Builder<LogicalSnapshot> parentBuilder = levelHolder.peekLast();
-                if (parentBuilder != null) {
-                    parentBuilder.add(directorySnapshot);
+                LogicalDirectorySnapshot directorySnapshot = new LogicalDirectorySnapshot(absolutePathHolder.removeLast(), directoryPath, children);
+                List<LogicalSnapshot> siblings = levelHolder.peekLast();
+                if (siblings != null) {
+                    siblings.add(directorySnapshot);
                 } else {
                     result.set(directorySnapshot);
                 }

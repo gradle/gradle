@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
@@ -47,8 +46,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("Since15")
@@ -92,7 +93,7 @@ public class MirrorUpdatingDirectoryWalker {
     public ImmutablePhysicalDirectorySnapshot walkDir(final Path rootPath, @Nullable PatternSet patterns) {
         final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
         final Deque<String> relativePathHolder = new ArrayDeque<String>();
-        final Deque<ImmutableList.Builder<PhysicalSnapshot>> levelHolder = new ArrayDeque<ImmutableList.Builder<PhysicalSnapshot>>();
+        final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
         final AtomicReference<ImmutablePhysicalDirectorySnapshot> result = new AtomicReference<ImmutablePhysicalDirectorySnapshot>();
         final AtomicReference<String> rootDirectoryName = new AtomicReference<String>();
 
@@ -108,7 +109,7 @@ public class MirrorUpdatingDirectoryWalker {
                             relativePathHolder.addLast(name);
 
                         }
-                        levelHolder.addLast(ImmutableList.<PhysicalSnapshot>builder());
+                        levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
                         return FileVisitResult.CONTINUE;
                     } else {
                         return FileVisitResult.SKIP_SUBTREE;
@@ -141,11 +142,11 @@ public class MirrorUpdatingDirectoryWalker {
                         throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
                     }
                     String directoryPath = relativePathHolder.isEmpty() ? rootDirectoryName.get() : relativePathHolder.removeLast();
-                    ImmutableList.Builder<PhysicalSnapshot> builder = levelHolder.removeLast();
-                    ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(internedAbsolutePath(dir), directoryPath, builder.build());
-                    ImmutableList.Builder<PhysicalSnapshot> parentBuilder = levelHolder.peekLast();
-                    if (parentBuilder != null) {
-                        parentBuilder.add(directorySnapshot);
+                    List<PhysicalSnapshot> children = levelHolder.removeLast();
+                    ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(internedAbsolutePath(dir), directoryPath, children);
+                    List<PhysicalSnapshot> siblings = levelHolder.peekLast();
+                    if (siblings != null) {
+                        siblings.add(directorySnapshot);
                     } else {
                         result.set(directorySnapshot);
                     }

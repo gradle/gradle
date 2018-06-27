@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot {
-    private final ImmutableList<PhysicalSnapshot> children;
+    private final List<PhysicalSnapshot> children;
 
-    public ImmutablePhysicalDirectorySnapshot(String path, String name, ImmutableList<PhysicalSnapshot> children) {
+    public ImmutablePhysicalDirectorySnapshot(String path, String name, List<PhysicalSnapshot> children) {
         super(path, name);
         this.children = children;
     }
 
     @Override
-    protected ImmutableList<PhysicalSnapshot> getChildren() {
+    protected List<PhysicalSnapshot> getChildren() {
         return children;
     }
 
