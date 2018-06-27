@@ -32,7 +32,7 @@ class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest
         file('src/main/resources/org/gradle/resource.txt').assertIsFile().delete()
         file('src/main/resources/org/gradle/resource2.txt').createFile()
 
-        executer.withTasks('classes', '--info').run()
+        executer.withTasks('classes').run()
         file('build/resources/main').assertHasDescendants('org/gradle/resource2.txt')
     }
 
