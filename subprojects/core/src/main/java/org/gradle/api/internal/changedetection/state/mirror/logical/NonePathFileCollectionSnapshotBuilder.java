@@ -23,10 +23,7 @@ import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 
 public class NonePathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
@@ -48,36 +45,21 @@ public class NonePathFileCollectionSnapshotBuilder extends RootFileCollectionSna
             final ImmutableSortedMap.Builder<String, FileContentSnapshot> builder = ImmutableSortedMap.naturalOrder();
             final HashSet<String> processedEntries = new HashSet<String>();
             for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                final String basePath = entry.getKey();
                 entry.getValue().accept(new HierarchicalSnapshotVisitor() {
-                    private Deque<String> absolutePaths = new LinkedList<String>();
 
                     @Override
-                    public void preVisitDirectory(String name) {
-                        String absolutePath = getAbsolutePath(name);
-                        absolutePaths.addLast(absolutePath);
+                    public void preVisitDirectory(String path, String name) {
                     }
 
                     @Override
-                    public void visit(String name, FileContentSnapshot content) {
-                        String absolutePath = getAbsolutePath(name);
-                        if (processedEntries.add(absolutePath)) {
-                            builder.put(absolutePath, content);
+                    public void visit(String path, String name, FileContentSnapshot content) {
+                        if (processedEntries.add(path)) {
+                            builder.put(path, content);
                         }
-                    }
-
-                    private String getAbsolutePath(String name) {
-                        String parent = absolutePaths.peekLast();
-                        return parent == null ? basePath : childPath(parent, name);
                     }
 
                     @Override
                     public void postVisitDirectory() {
-                        absolutePaths.removeLast();
-                    }
-
-                    private String childPath(String parent, String name) {
-                        return parent + File.separatorChar + name;
                     }
                 });
             }

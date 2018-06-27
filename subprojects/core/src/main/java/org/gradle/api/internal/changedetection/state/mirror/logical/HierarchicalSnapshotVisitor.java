@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
 public interface HierarchicalSnapshotVisitor {
-    void preVisitDirectory(String name);
-    void visit(String name, FileContentSnapshot content);
+    void preVisitDirectory(String path, String name);
+    void visit(String path, String name, FileContentSnapshot content);
     void postVisitDirectory();
 }

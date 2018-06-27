@@ -41,10 +41,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 
 public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
@@ -144,28 +142,21 @@ public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
             final int rootIndex = basePath.length() + 1;
             final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder = ImmutableSortedMap.naturalOrder();
             entry.getValue().accept(new HierarchicalSnapshotVisitor() {
-                private Deque<String> absolutePaths = new LinkedList<String>();
+                private boolean root = true;
 
                 @Override
-                public void preVisitDirectory(String name) {
-                    String absolutePath = getAbsolutePath(name);
-                    absolutePaths.addLast(absolutePath);
+                public void preVisitDirectory(String path, String name) {
+                    root = false;
                 }
 
                 @Override
-                public void visit(String name, FileContentSnapshot content) {
-                    String absolutePath = getAbsolutePath(name);
-                    if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = isRoot() ? new IgnoredPathFileSnapshot(content) : new IndexedNormalizedFileSnapshot(absolutePath, getIndex(name), content);
+                public void visit(String path, String name, FileContentSnapshot content) {
+                    if (processedEntries.add(path)) {
+                        NormalizedFileSnapshot normalizedFileSnapshot = isRoot() ? new IgnoredPathFileSnapshot(content) : new IndexedNormalizedFileSnapshot(path, getIndex(name), content);
                         rootBuilder.put(
-                            absolutePath,
+                            path,
                             normalizedFileSnapshot);
                     }
-                }
-
-                private String getAbsolutePath(String name) {
-                    String parent = absolutePaths.peekLast();
-                    return parent == null ? basePath : childPath(parent, name);
                 }
 
                 private int getIndex(String name) {
@@ -173,16 +164,11 @@ public class ClasspathSnapshot extends RootHoldingFileCollectionSnapshot {
                 }
 
                 private boolean isRoot() {
-                    return absolutePaths.isEmpty();
+                    return root;
                 }
 
                 @Override
                 public void postVisitDirectory() {
-                    absolutePaths.removeLast();
-                }
-
-                private String childPath(String parent, String name) {
-                    return parent + File.separatorChar + name;
                 }
             });
             builder.putAll(rootBuilder.build());

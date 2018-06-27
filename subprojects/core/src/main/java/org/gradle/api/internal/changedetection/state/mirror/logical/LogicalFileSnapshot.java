@@ -19,26 +19,18 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
 public class LogicalFileSnapshot implements LogicalSnapshot {
+    private final String path;
     private final String name;
     private final FileContentSnapshot content;
 
-    public LogicalFileSnapshot(String name, FileContentSnapshot content) {
+    public LogicalFileSnapshot(String path, String name, FileContentSnapshot content) {
+        this.path = path;
         this.name = name;
         this.content = content;
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public FileContentSnapshot getContent() {
-        return content;
-    }
-
-    @Override
     public void accept(HierarchicalSnapshotVisitor visitor) {
-        visitor.visit(name, content);
+        visitor.visit(path, name, content);
     }
 }

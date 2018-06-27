@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-
 public interface LogicalSnapshot {
-    String getName();
-    FileContentSnapshot getContent();
     void accept(HierarchicalSnapshotVisitor visitor);
 }

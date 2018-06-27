@@ -16,33 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-
 import java.util.List;
 
 public class LogicalDirectorySnapshot implements LogicalSnapshot {
+    private final String path;
     private final String name;
     private final List<LogicalSnapshot> children;
 
-    public LogicalDirectorySnapshot(String name, List<LogicalSnapshot> children) {
+    public LogicalDirectorySnapshot(String path, String name, List<LogicalSnapshot> children) {
+        this.path = path;
         this.name = name;
         this.children = children;
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public FileContentSnapshot getContent() {
-        return DirContentSnapshot.INSTANCE;
-    }
-
-    @Override
     public void accept(HierarchicalSnapshotVisitor visitor) {
-        visitor.preVisitDirectory(name);
+        visitor.preVisitDirectory(path, name);
         for (LogicalSnapshot logicalSnapshot : getChildren()) {
             logicalSnapshot.accept(visitor);
         }

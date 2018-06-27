@@ -205,7 +205,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
                     private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
                         FileHashSnapshot snapshot = fileSnapshot(fileDetails);
-                        return new PhysicalFileSnapshot(fileDetails.getPath(), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
+                        return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
                     }
                 });
                 PhysicalSnapshot rootSnapshot = root.get();
