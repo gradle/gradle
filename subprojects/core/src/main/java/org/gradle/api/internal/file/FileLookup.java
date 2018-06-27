@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
@@ -32,7 +33,17 @@ public interface FileLookup {
     FileResolver getFileResolver();
 
     /**
+     * Returns a file resolver with no base directory.
+     */
+    PathToFileResolver getPathToFileResolver();
+
+    /**
      * Returns a file resolver with the given base directory.
      */
     FileResolver getFileResolver(File baseDirectory);
+
+    /**
+     * Returns a file resolver with the given base directory.
+     */
+    PathToFileResolver getPathToFileResolver(File baseDirectory);
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.play.internal.toolchain
 
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.compile.BaseForkOptions
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
 import org.gradle.workers.internal.WorkerDaemonFactory
@@ -30,7 +30,7 @@ class DaemonPlayCompilerTest extends Specification {
     def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
-    def fileResolver = Mock(FileResolver)
+    def fileResolver = Mock(PathToFileResolver)
 
     def setup(){
         _ * spec.getForkOptions() >> forkOptions

@@ -17,12 +17,12 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -85,7 +85,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, resourceLockCoordinationService);
         }
 
-        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, FileResolver fileResolver,  WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
+        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, asyncWorkTracker, instantiatorFactory);
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorate().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, fileResolver, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, conditionalExecutionQueueFactory);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);

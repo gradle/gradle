@@ -18,13 +18,13 @@ package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
@@ -35,18 +35,18 @@ public class SimpleReport implements ConfigurableReport {
 
     private String name;
     private Factory<String> displayName;
-    private FileResolver fileResolver;
+    private PathToFileResolver fileResolver;
 
     private final Property<File> destination;
     private final Property<Boolean> enabled;
     private final Project project;
     private OutputType outputType;
 
-    public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver, Project project) {
+    public SimpleReport(String name, String displayName, OutputType outputType, PathToFileResolver fileResolver, Project project) {
         this(name, Factories.constant(displayName), outputType, fileResolver, project);
     }
 
-    public SimpleReport(String name, Factory<String> displayName, OutputType outputType, FileResolver fileResolver, Project project) {
+    public SimpleReport(String name, Factory<String> displayName, OutputType outputType, PathToFileResolver fileResolver, Project project) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;

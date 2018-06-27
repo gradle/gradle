@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
@@ -31,15 +32,28 @@ public class DefaultFileLookup implements FileLookup {
         fileResolver = new IdentityFileResolver(this.fileSystem, patternSetFactory);
     }
 
+    @Override
     public FileSystem getFileSystem() {
         return fileSystem;
     }
 
+    @Override
     public FileResolver getFileResolver() {
         return fileResolver;
     }
 
+    @Override
+    public PathToFileResolver getPathToFileResolver() {
+        return getFileResolver();
+    }
+
+    @Override
     public FileResolver getFileResolver(File baseDirectory) {
         return fileResolver.withBaseDir(baseDirectory);
+    }
+
+    @Override
+    public PathToFileResolver getPathToFileResolver(File baseDirectory) {
+        return getFileResolver(baseDirectory);
     }
 }

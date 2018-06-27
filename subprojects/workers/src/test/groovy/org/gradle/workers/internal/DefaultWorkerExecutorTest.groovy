@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
@@ -43,7 +43,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def fileResolver = Mock(FileResolver)
+    def fileResolver = Mock(PathToFileResolver)
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def runnable = Mock(Runnable)
     def instantiatorFactory = Mock(InstantiatorFactory)

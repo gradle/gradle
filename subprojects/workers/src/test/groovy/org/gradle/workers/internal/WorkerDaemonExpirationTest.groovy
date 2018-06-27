@@ -203,7 +203,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private JavaForkOptions javaForkOptions(String minHeap, String maxHeap, List<String> jvmArgs) {
-        JavaForkOptions options = new DefaultJavaForkOptions(TestFiles.resolver())
+        JavaForkOptions options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
         options.workingDir = systemSpecificAbsolutePath("foo")
         options.minHeapSize = minHeap
         options.maxHeapSize = maxHeap
@@ -212,7 +212,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private DaemonForkOptions daemonForkOptions(String minHeap, String maxHeap, List<String> jvmArgs) {
-        return new DaemonForkOptionsBuilder(TestFiles.resolver())
+        return new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
             .javaForkOptions(javaForkOptions(minHeap, maxHeap, jvmArgs))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()

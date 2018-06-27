@@ -19,7 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -33,12 +33,12 @@ import java.util.Map;
 
 public class DaemonForkOptionsBuilder {
     private final JavaForkOptionsInternal javaForkOptions;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private Iterable<File> classpath = Collections.emptyList();
     private Iterable<String> sharedPackages = Collections.emptyList();
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
 
-    public DaemonForkOptionsBuilder(FileResolver resolver) {
+    public DaemonForkOptionsBuilder(PathToFileResolver resolver) {
         this.fileResolver = resolver;
         javaForkOptions = new DefaultJavaForkOptions(resolver);
     }
