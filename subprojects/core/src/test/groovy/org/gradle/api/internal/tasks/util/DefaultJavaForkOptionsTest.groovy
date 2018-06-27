@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.util
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.JavaForkOptions
@@ -37,7 +37,7 @@ import static org.junit.Assert.assertThat
 
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {
-    private final FileResolver resolver = Mock(FileResolver)
+    private final resolver = Mock(PathToFileResolver)
     private DefaultJavaForkOptions options
 
     def setup() {
