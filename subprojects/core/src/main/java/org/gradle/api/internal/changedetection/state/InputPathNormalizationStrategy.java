@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.file.FileType;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.nio.file.Path;
 
-@SuppressWarnings("Since15")
 public enum InputPathNormalizationStrategy implements PathNormalizationStrategy {
     /**
      * Use the absolute path of the files.
@@ -37,18 +35,10 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             return true;
         }
 
+        @Nonnull
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(Path path, Iterable<String> relativePath, FileContentSnapshot content, StringInterner stringInterner) {
-            return getNormalizedSnapshot(path, content);
-        }
-
-        @Override
-        public NormalizedFileSnapshot getNormalizedRootSnapshot(Path path, String name, FileContentSnapshot content, StringInterner stringInterner) {
-            return getNormalizedSnapshot(path, content);
-        }
-
-        private NormalizedFileSnapshot getNormalizedSnapshot(Path path, FileContentSnapshot content) {
-            return new NonNormalizedFileSnapshot(path.toString(), content);
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+            return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
         }
     },
 
@@ -61,20 +51,14 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             return false;
         }
 
-        @Nullable
+        @Nonnull
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(Path path, Iterable<String> relativePath, FileContentSnapshot content, StringInterner stringInterner) {
-            String relativePathString = getRelativePathString(relativePath);
-            return getRelativeSnapshot(path, content, relativePathString, stringInterner);
-        }
-
-        @Nullable
-        @Override
-        public NormalizedFileSnapshot getNormalizedRootSnapshot(Path path, String name, FileContentSnapshot content, StringInterner stringInterner) {
-            if (content.getType() == FileType.Directory) {
-                return new IgnoredPathFileSnapshot(content);
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+            // Ignore path of root directories, use base name of root files
+            if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
+                return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }
-            return getNormalizedSnapshot(path, ImmutableList.of(name), content, stringInterner);
+            return getRelativeSnapshot(fileSnapshot, stringInterner);
         }
     },
 
@@ -87,19 +71,14 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             return false;
         }
 
-        @Nullable
+        @Nonnull
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(Path path, Iterable<String> relativePath, FileContentSnapshot content, StringInterner stringInterner) {
-            return getRelativeSnapshot(path, content, Iterables.getLast(relativePath), stringInterner);
-        }
-
-        @Nullable
-        @Override
-        public NormalizedFileSnapshot getNormalizedRootSnapshot(Path path, String name, FileContentSnapshot content, StringInterner stringInterner) {
-            if (content.getType() == FileType.Directory) {
-                return new IgnoredPathFileSnapshot(content);
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+            // Ignore path of root directories
+            if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
+                return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }
-            return getNormalizedSnapshot(path, ImmutableList.of(name), content, stringInterner);
+            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName(), stringInterner);
         }
     },
 
@@ -112,37 +91,15 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             return false;
         }
 
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(Path path, Iterable<String> relativePath, FileContentSnapshot content, StringInterner stringInterner) {
-            return getNormalizedSnapshot(content);
-        }
-
         @Nullable
         @Override
-        public NormalizedFileSnapshot getNormalizedRootSnapshot(Path path, String name, FileContentSnapshot content, StringInterner stringInterner) {
-            return getNormalizedSnapshot(content);
-        }
-
-        private NormalizedFileSnapshot getNormalizedSnapshot(FileContentSnapshot content) {
-            return (content.getType() == FileType.Directory) ? null : new IgnoredPathFileSnapshot(content);
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+            if (fileSnapshot.getType() == FileType.Directory) {
+                return null;
+            }
+            return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
         }
     };
-
-    private static String getRelativePathString(Iterable<String> relativePath) {
-        if (Iterables.isEmpty(relativePath)) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder(256);
-        int i = 0;
-        for (String segment : relativePath) {
-            if (i != 0) {
-                builder.append('/');
-            }
-            builder.append(segment);
-            i++;
-        }
-        return builder.toString();
-    }
 
     public static InputPathNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
@@ -159,17 +116,23 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
         }
     }
 
+    @VisibleForTesting
+    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+        return getRelativeSnapshot(fileSnapshot, fileSnapshot.getRelativePath(), stringInterner);
+    }
+
     /**
      * Creates a relative path while using as little additional memory as possible. If the absolute path and normalized path use the same
      * line separators in their area of overlap, the normalized path is created by remembering the absolute path and an index. Otherwise the
      * normalized path is converted to a String, which takes additional memory.
      */
-    static NormalizedFileSnapshot getRelativeSnapshot(Path path, FileContentSnapshot content, CharSequence normalizedPath, StringInterner stringInterner) {
-        String absolutePath = path.toString();
+    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, CharSequence normalizedPath, StringInterner stringInterner) {
+        String absolutePath = fileSnapshot.getPath();
+        FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
         if (lineSeparatorsMatch(absolutePath, normalizedPath)) {
-            return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), content);
+            return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), contentSnapshot);
         } else {
-            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath.toString()), content);
+            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath.toString()), contentSnapshot);
         }
     }
 
