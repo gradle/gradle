@@ -108,7 +108,7 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     @Override
     public FileCollection getCompileIncludePath() {
         // TODO: This should be modeled differently, perhaps as a dependency on the implementation configuration
-        return super.getCompileIncludePath().plus(getFileOperations().files(new Callable<FileCollection>() {
+        return super.getCompileIncludePath().plus(getFileOperations().immutableFiles(new Callable<FileCollection>() {
             @Override
             public FileCollection call() throws Exception {
                 CppComponent tested = testedComponent.getOrNull();

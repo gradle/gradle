@@ -119,7 +119,7 @@ class DefaultFileOperationsTest extends Specification {
 
     def resolvesImmutableFilesInOrder() {
         when:
-        def fileCollection = fileOperations.files('a', 'b', 'c')
+        def fileCollection = fileOperations.immutableFiles('a', 'b', 'c')
 
         then:
         fileCollection instanceof ImmutableFileCollection

@@ -90,7 +90,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
 
     @Override
     public FileCollection getIdeProjectFiles(final Class<? extends IdeProjectMetadata> type) {
-        return fileOperations.files(new Callable<List<FileCollection>>() {
+        return fileOperations.immutableFiles(new Callable<List<FileCollection>>() {
             @Override
             public List<FileCollection> call() {
                 return CollectionUtils.collect(

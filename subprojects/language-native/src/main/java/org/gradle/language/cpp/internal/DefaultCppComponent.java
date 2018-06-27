@@ -77,11 +77,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
-        return fileOperations.files(new Callable<Object>() {
+        return fileOperations.immutableFiles(new Callable<Object>() {
             @Override
             public Object call() {
                 if (dirs.getFrom().isEmpty()) {
-                    return fileOperations.files(conventionLocation);
+                    return fileOperations.immutableFiles(conventionLocation);
                 }
                 return dirs;
             }

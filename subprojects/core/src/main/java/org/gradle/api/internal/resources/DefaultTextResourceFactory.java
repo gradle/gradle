@@ -42,7 +42,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromFile(Object file, String charset) {
-        return new FileCollectionBackedTextResource(tempFileProvider, fileOperations.files(file), Charset.forName(charset));
+        return new FileCollectionBackedTextResource(tempFileProvider, fileOperations.immutableFiles(file), Charset.forName(charset));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromArchiveEntry(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.files(archive), entryPath, Charset.forName(charset));
+        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
     }
 
     @Override

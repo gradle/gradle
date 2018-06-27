@@ -122,7 +122,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     @Override
-    public FileCollection files(Object... paths) {
+    public ConfigurableFileCollection files(Object... paths) {
+        return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
+    }
+
+    @Override
+    public FileCollection immutableFiles(Object... paths) {
         return ImmutableFileCollection.usingResolver(fileResolver, paths);
     }
 
