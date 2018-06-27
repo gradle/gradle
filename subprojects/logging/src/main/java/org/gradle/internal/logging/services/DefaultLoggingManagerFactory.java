@@ -36,7 +36,14 @@ public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInter
         this.javaUtilLoggingSystem = javaUtilLoggingSystem;
         this.stdOutLoggingSystem = stdOutLoggingSystem;
         this.stdErrLoggingSystem = stdErrLoggingSystem;
-        rootManager = newManager();
+        rootManager = new DefaultLoggingManager(slfLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingRouter) {
+            @Override
+            public DefaultLoggingManager stop() {
+                flush();
+                super.stop();
+                return this;
+            }
+        };
     }
 
     public LoggingManagerInternal getRoot() {

@@ -167,7 +167,10 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         // Daemon is still running
         daemon.becomesIdle()
-        daemon.log.contains("Unable to receive command from client")
+        poll {
+            // Log message is written asynchronously, wait until present
+            assert daemon.log.contains("Unable to receive command from client")
+        }
 
         when:
         // Ensure daemon is functional
