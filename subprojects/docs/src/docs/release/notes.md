@@ -17,7 +17,7 @@ This release of Gradle includes a [new Publishing Overview chapter](/userguide/p
 
 ### Improved dependency insight report
 
-The dependency insight report is the distant ancestor of [build scans](https://scans.gradle.com) and helps you diagnose dependency management problems locally.
+The [dependency insight report](/userguide/inspecting_dependencies.html#sec:identifying_reason_dependency_selection) is the distant ancestor of [build scans](https://scans.gradle.com) and helps you diagnose dependency management problems locally.
 This release of Gradle implements several improvements:
 
 - using `failOnVersionConflict()` no longer fails the dependency insight report in case of conflict
