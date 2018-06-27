@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.resolve.suppliers
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -28,7 +30,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
     // we only need to check without experimental, it doesn't depend on this flag
     @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
 ])
-class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest {
+class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest implements CachingIntegrationFixture {
 
     def setup() {
         addDependenciesTo(buildFile)
@@ -1154,8 +1156,7 @@ group:projectB:2.2;release
         run '--stop'
         // bust the artifact cache because we don't want to fall into the smart behavior
         // of reusing metadata from cache for a different repository
-        new File(executer.gradleUserHomeDir, 'caches/modules-2').deleteDir()
-
+        getUserHomeCacheDir().file(CacheLayout.ROOT.getKey()).deleteDir()
         resetExpectations()
         // Changing the host makes Gradle consider that the 2 repositories are distinct
         buildFile.text = buildFile.text.replaceAll("(?m)http://localhost", "http://127.0.0.1")

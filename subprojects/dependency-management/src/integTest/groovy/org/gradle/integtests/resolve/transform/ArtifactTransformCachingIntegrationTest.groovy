@@ -16,13 +16,22 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
+import static java.util.concurrent.TimeUnit.DAYS
+import static java.util.concurrent.TimeUnit.MILLISECONDS
+import static java.util.concurrent.TimeUnit.SECONDS
+
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
+    private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -893,6 +902,37 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
+    def "cleans up cache"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        markForCleanup(outputDir1)
+        markForCleanup(gcFile)
+        assert journal.delete()
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("tasks").start().waitForFinish()
+
+        then:
+        outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+    }
+
     def multiProjectWithJarSizeTransform(Map options = [:]) {
         def paramValue = options.paramValue ?: "1"
         def fileValue = options.fileValue ?: "String.valueOf(input.length())"
@@ -1054,7 +1094,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     Set<TestFile> outputDirs(String from, String to) {
         Set<TestFile> dirs = []
-        def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/files-1.1/" + from).absolutePath + File.separator
+        def baseDir = cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey(), from).absolutePath + File.separator
         def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {
             def matcher = pattern.matcher(line)
@@ -1063,6 +1103,22 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             }
         }
         return dirs
+    }
+
+    TestFile getGcFile() {
+        return cacheDir.file("gc.properties")
+    }
+
+    TestFile getCacheFilesDir() {
+        return cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey())
+    }
+
+    TestFile getCacheDir() {
+        return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
+    }
+
+    void markForCleanup(File file) {
+        file.lastModified = System.currentTimeMillis() - DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS + 1)
     }
 
 }
