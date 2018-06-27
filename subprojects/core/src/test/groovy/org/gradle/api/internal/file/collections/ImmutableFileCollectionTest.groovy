@@ -76,7 +76,7 @@ class ImmutableFileCollectionTest extends Specification {
 
         then:
         def exception = thrown(UnsupportedOperationException)
-        exception.message == "Immutable file collection does not allow modification."
+        exception.message == "File collection does not allow modification."
 
         where:
         description        | collection
