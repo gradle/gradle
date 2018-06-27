@@ -823,8 +823,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return foundTasks;
     }
 
+    @Override
     @Inject
-    protected FileOperations getFileOperations() {
+    public FileOperations getFileOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

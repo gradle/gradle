@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.HasFileOperations;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -83,8 +84,8 @@ public abstract class DefaultScript extends BasicScript {
         StreamHasher streamHasher = services.get(StreamHasher.class);
         FileHasher fileHasher = services.get(FileHasher.class);
         TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
-        if (target instanceof FileOperations) {
-            fileOperations = (FileOperations) target;
+        if (target instanceof HasFileOperations) {
+            fileOperations = ((HasFileOperations) target).getFileOperations();
         } else {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
@@ -100,6 +101,11 @@ public abstract class DefaultScript extends BasicScript {
 
     public FileResolver getFileResolver() {
         return fileOperations.getFileResolver();
+    }
+
+    @Override
+    public FileOperations getFileOperations() {
+        return fileOperations;
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
