@@ -10,6 +10,11 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Use SNAPSHOT plugin versions with the `plugins {}` block
+
+Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -53,6 +58,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Björn Kautler](https://github.com/Vampire) - Update Spock version in docs and build init (gradle/gradle#5627)
 - [Kyle Moore](https://github.com/DPUkyle) - Use latest Gosu plugin 0.3.10 (gradle/gradle#5855)
 - [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
+- [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
 
 ## Known issues
 
