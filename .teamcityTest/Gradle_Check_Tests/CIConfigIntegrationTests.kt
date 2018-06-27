@@ -104,6 +104,44 @@ class CIConfigIntegrationTests {
     }
 
     @Test
+    fun canDeferSlowTestsToLaterStage() {
+        val ft = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8), TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))
+        val m = CIBuildModel(
+            projectPrefix = "",
+            parentBuildCache = NoBuildCache,
+            childBuildCache = NoBuildCache,
+            stages = listOf(
+                Stage("Stage1", "Stage1 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java7),
+                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = true),
+                Stage("Stage2", "Stage2 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java7),
+                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = true),
+                Stage("Stage3", "Stage3 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
+                       TestCoverage(TestType.platform, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = false),
+                Stage("Stage4", "Stage4 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7),
+                        TestCoverage(TestType.parallel, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = false)
+            ),
+            subProjects = listOf(
+                GradleSubproject("fastBuild"),
+                GradleSubproject("slowBuild", containsSlowTests = true)
+            )
+        )
+        val p = RootProject(m)
+        printTree(p)
+    }
+
+    @Test
     fun allSubprojectsAreListed() {
         val m = CIBuildModel()
         subProjectFolderList().forEach {

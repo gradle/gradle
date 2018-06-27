@@ -12,7 +12,7 @@ import model.Stage
 import model.TestType
 import model.Trigger
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType(model, init = {
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean) : BaseGradleBuildType(model, init = {
     uuid = "${model.projectPrefix}Stage_${stage.id}_Trigger"
     id = uuid
     name = stage.name + " (Trigger)"
@@ -130,6 +130,10 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
                     snapshot {}
                 }
             }
+        }
+
+        if (containsDeferredTests) {
+            dependency("deferred_tests") { snapshot {} }
         }
     }
 })

@@ -8,9 +8,9 @@ import jetbrains.buildServer.configs.kotlin.v2017_2.Project
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
-import model.TestType
+import model.*
 
-class StageProject(model: CIBuildModel, stage: Stage) : Project({
+class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.id}"
     this.id = uuid
     this.name = stage.name
@@ -58,5 +58,27 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
         } else {
             buildType(FunctionalTest(model, testCoverage, stage = stage))
         }
+    }
+
+    if (containsDeferredTests) {
+        val deferredTestsProject = Project {
+            uuid = "deferred_tests"
+            id = uuid
+            name = "Test coverage deferred from Quick Feedback and Build Branch accept"
+            model.subProjects.forEach { subProject ->
+                if (subProject.containsSlowTests) {
+                    FunctionalTestProject.missingTestCoverage.forEach { testConfig ->
+                        if (subProject.unitTests && testConfig.testType.unitTests) {
+                            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
+                        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
+                            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
+                        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
+                            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
+                        }
+                    }
+                }
+            }
+        }
+        subProject(deferredTestsProject)
     }
 })

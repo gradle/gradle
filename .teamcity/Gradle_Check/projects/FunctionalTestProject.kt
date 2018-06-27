@@ -17,6 +17,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
             return@forEach
         }
         if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+            addMissingTestCoverage(testConfig)
             return@forEach
         }
 
@@ -28,4 +29,12 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
             buildType(FunctionalTest(model, testConfig, subProject.name, stage))
         }
     }
-})
+}){
+    companion object {
+        val missingTestCoverage = mutableListOf<TestCoverage>()
+
+        private fun addMissingTestCoverage(coverage: TestCoverage) {
+            this.missingTestCoverage.add(coverage)
+        }
+    }
+}
