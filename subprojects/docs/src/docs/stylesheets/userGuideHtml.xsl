@@ -395,7 +395,7 @@
             <p>Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a <a href="http://groovy-lang.org/">Groovy</a> or <a href="https://kotlinlang.org/">Kotlin</a> DSL. Read about <a href="https://gradle.org/features/">Gradle features</a> to learn what is possible with Gradle.</p>
 
             <ul class="itemizedlist">
-                <li><p><strong>Highly customizable</strong> — Gradle is modeled in a way that customizable and extensible in the most fundamental ways.</p></li>
+                <li><p><strong>Highly customizable</strong> — Gradle is modeled in a way that is customizable and extensible in the most fundamental ways.</p></li>
                 <li><p><strong>Fast</strong> — Gradle completes tasks quickly by reusing outputs from previous executions, processing only inputs that changed, and executing tasks in parallel.</p></li>
                 <li><p><strong>Powerful</strong> — Gradle is the official build tool for Android, and comes with support for many popular languages and technologies.</p></li>
             </ul>
