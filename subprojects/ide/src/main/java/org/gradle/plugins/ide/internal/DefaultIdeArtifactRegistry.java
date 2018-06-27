@@ -98,7 +98,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                     new Transformer<FileCollection, Reference<?>>() {
                         @Override
                         public FileCollection transform(Reference<?> result) {
-                            ConfigurableFileCollection singleton = fileOperations.files(result.get().getFile());
+                            ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
                             singleton.builtBy(result.getBuildDependencies());
                             return singleton;
                         }

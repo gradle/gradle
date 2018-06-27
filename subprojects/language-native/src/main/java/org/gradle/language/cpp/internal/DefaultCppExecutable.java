@@ -65,7 +65,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
         this.runtimeElementsProperty = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
     }
 
     @Override

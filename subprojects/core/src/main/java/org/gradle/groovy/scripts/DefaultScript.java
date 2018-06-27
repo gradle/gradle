@@ -155,12 +155,12 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return fileOperations.files(paths);
+        return fileOperations.configurableFiles(paths);
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, fileOperations.files(paths));
+        return ConfigureUtil.configure(configureClosure, fileOperations.configurableFiles(paths));
     }
 
     @Override

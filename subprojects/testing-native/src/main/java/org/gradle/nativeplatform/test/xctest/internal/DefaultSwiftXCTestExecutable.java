@@ -50,7 +50,7 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
         debuggerExecutableFile = projectLayout.fileProperty();
         linkTask = objectFactory.property(LinkExecutable.class);
         installTask = objectFactory.property(InstallExecutable.class);
-        files = fileOperations.files();
+        files = fileOperations.configurableFiles();
     }
 
     @Override

@@ -35,7 +35,7 @@ public abstract class DefaultNativeComponent {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
         this.fileOperations = fileOperations;
 
-        source = fileOperations.files();
+        source = fileOperations.configurableFiles();
     }
 
     public abstract DisplayName getDisplayName();
