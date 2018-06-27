@@ -23,6 +23,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
@@ -42,6 +43,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     private transient Class<?> workerImplementation;
     private transient Object implementation;
     private InstantiatorFactory instantiatorFactory;
+    private LoggingManagerInternal loggingManager;
 
     public WorkerAction(Class<?> workerImplementation) {
         this.workerImplementationName = workerImplementation.getName();
@@ -49,6 +51,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
+        loggingManager = workerProcessContext.getLoggingManager();
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
@@ -109,6 +112,8 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                 }
                 return;
             }
+            // Ensure all batched logging messages have been forwarded before marking the operation as complete
+            loggingManager.flush();
             responder.completed(result);
         } catch (Throwable t) {
             responder.infrastructureFailed(t);

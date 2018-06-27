@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -38,4 +39,6 @@ public interface WorkerProcessContext {
     ClassLoader getApplicationClassLoader();
 
     ServiceRegistry getServiceRegistry();
+
+    LoggingManagerInternal getLoggingManager();
 }

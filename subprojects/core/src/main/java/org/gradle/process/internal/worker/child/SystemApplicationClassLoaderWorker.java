@@ -79,7 +79,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         // Read logging config and setup logging
         int logLevel = decoder.readSmallInt();
-        LoggingManagerInternal loggingManager = createLoggingManager();
+        final LoggingManagerInternal loggingManager = createLoggingManager();
         loggingManager.setLevelInternal(LogLevel.values()[logLevel]).start();
 
         // Read whether process info should be published
@@ -129,6 +129,11 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 @Override
                 public ServiceRegistry getServiceRegistry() {
                     return workerServices;
+                }
+
+                @Override
+                public LoggingManagerInternal getLoggingManager() {
+                    return loggingManager;
                 }
             });
         } finally {

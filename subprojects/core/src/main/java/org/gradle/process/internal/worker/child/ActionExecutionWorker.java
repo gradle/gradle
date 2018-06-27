@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.ServiceRegistry;
@@ -71,6 +72,11 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
             @Override
             public ServiceRegistry getServiceRegistry() {
                 return serviceRegistry;
+            }
+
+            @Override
+            public LoggingManagerInternal getLoggingManager() {
+                return workerContext.getLoggingManager();
             }
         };
 
