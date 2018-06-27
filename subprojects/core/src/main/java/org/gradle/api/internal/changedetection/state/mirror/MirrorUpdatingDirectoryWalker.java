@@ -100,8 +100,8 @@ public class MirrorUpdatingDirectoryWalker {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    String name = internedName(dir);
-                    if (levelHolder.size() == 0 || isAllowed(dir, true, name, attrs, relativePathHolder)) {
+                    if (levelHolder.size() == 0 || isAllowed(dir, true, attrs, relativePathHolder)) {
+                        String name = internedName(dir);
                         if (levelHolder.size() == 0) {
                             rootDirectoryName.set(name);
                         } else {
@@ -117,20 +117,19 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
-                    String name = internedName(file);
-                    if (isAllowed(file, false, name, attrs, relativePathHolder)) {
+                    if (isAllowed(file, false, attrs, relativePathHolder)) {
                         if (attrs != null && attrs.isSymbolicLink()) {
                             // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                             throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                         }
-                        addFileSnapshot(file, name, attrs);
+                        addFileSnapshot(file, attrs);
                     }
                     return FileVisitResult.CONTINUE;
                 }
 
                 @Override
                 public FileVisitResult visitFileFailed(Path file, @Nullable IOException exc) {
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, false, file.getFileName().toString(), null, relativePathHolder)) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, false, null, relativePathHolder)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -157,11 +156,11 @@ public class MirrorUpdatingDirectoryWalker {
                     return e != null && !(e instanceof FileSystemLoopException);
                 }
 
-                private void addFileSnapshot(Path path, String name, @Nullable BasicFileAttributes attrs) {
-                    Preconditions.checkNotNull(attrs, "Unauthorized access to %", path);
-                    File file = path.toFile();
+                private void addFileSnapshot(Path file, @Nullable BasicFileAttributes attrs) {
+                    Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
+                    String name = internedName(file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
-                    HashCode hash = hasher.hash(file, metadata);
+                    HashCode hash = hasher.hash(file.toFile(), metadata);
                     PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, metadata.getLastModified(), hash);
                     levelHolder.peekLast().add(fileSnapshot);
                 }
@@ -174,15 +173,11 @@ public class MirrorUpdatingDirectoryWalker {
                     return stringInterner.intern(file.toString());
                 }
 
-                private String internedAbsolutePath(File file) {
-                    return stringInterner.intern(file.getPath());
-                }
-
-                private boolean isAllowed(Path path, boolean isDirectory, String name, @Nullable BasicFileAttributes attrs, Deque<String> relativePath) {
+                private boolean isAllowed(Path path, boolean isDirectory, @Nullable BasicFileAttributes attrs, Deque<String> relativePath) {
                     if (spec == null) {
                         return true;
                     }
-                    relativePath.addLast(name);
+                    relativePath.addLast(path.getFileName().toString());
                     boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, isDirectory, attrs, relativePath, fileSystem));
                     relativePath.removeLast();
                     return allowed;
