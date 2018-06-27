@@ -101,7 +101,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'java'
                 id 'application'
-                id "com.bmuschko.docker-java-application" version "3.2.8"
+                id "com.bmuschko.docker-java-application" version "3.3.6"
             }
 
             mainClassName = 'org.gradle.JettyMain'
@@ -157,7 +157,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "org.springframework.boot" version "2.0.1.RELEASE"
+                id "org.springframework.boot" version "2.0.3.RELEASE"
             }
         """.stripIndent()
 

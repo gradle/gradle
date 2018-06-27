@@ -1,13 +1,19 @@
-apply plugin: 'java'
 // START SNIPPET use-plugin
-apply plugin: 'ivy-publish'
+plugins {
+// END SNIPPET use-plugin
+    id 'java'
+// START SNIPPET use-plugin
+    id 'ivy-publish'
+}
 // END SNIPPET use-plugin
 
 group = 'org.gradle.sample'
 version = '1.0'
 
-publishing {
 // START SNIPPET publish-component
+// START SNIPPET repositories
+publishing {
+// END SNIPPET repositories
     publications {
         ivyJava(IvyPublication) {
             from components.java
@@ -18,9 +24,10 @@ publishing {
     repositories {
         ivy {
             // change to point to your repo, e.g. http://my.org/repo
-            url "$buildDir/repo"
+            url = "$buildDir/repo"
         }
     }
-// END SNIPPET repositories
+// START SNIPPET publish-component
 }
-
+// END SNIPPET publish-component
+// END SNIPPET repositories
