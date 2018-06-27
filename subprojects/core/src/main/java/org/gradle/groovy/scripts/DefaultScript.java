@@ -98,7 +98,6 @@ public abstract class DefaultScript extends BasicScript {
         providerFactory = services.get(ProviderFactory.class);
     }
 
-    @Override
     public FileResolver getFileResolver() {
         return fileOperations.getFileResolver();
     }
@@ -204,12 +203,10 @@ public abstract class DefaultScript extends BasicScript {
         return copy(ConfigureUtil.configureUsing(closure));
     }
 
-    @Override
     public WorkResult copy(Action<? super CopySpec> action) {
         return fileOperations.copy(action);
     }
 
-    @Override
     public WorkResult sync(Action<? super CopySpec> action) {
         return fileOperations.sync(action);
     }
@@ -219,7 +216,6 @@ public abstract class DefaultScript extends BasicScript {
         return Actions.with(copySpec(), ConfigureUtil.configureUsing(closure));
     }
 
-    @Override
     public CopySpec copySpec() {
         return fileOperations.copySpec();
     }
@@ -234,7 +230,6 @@ public abstract class DefaultScript extends BasicScript {
         return fileOperations.delete(paths);
     }
 
-    @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
         return fileOperations.delete(action);
     }
