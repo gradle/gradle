@@ -17,33 +17,34 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class BuildStatusRendererFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     @Rule
-    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    BlockingHttpServer server = new BlockingHttpServer()
 
     GradleHandle gradle
 
     def setup() {
         executer.withConsole(ConsoleOutput.Rich)
+        server.start()
         settingsFile << """
             // wait for the initialization phase
-            new URL('${server.uri}').text
+            ${server.callFromBuild('settings')}
         """
         buildFile << """
             // wait for the configuration phase 
-            new URL('${server.uri}').text
+            ${server.callFromBuild('build-script')}
             task hello { 
                 doFirst {
                     // wait for the execution phase
                     println 'hello world' 
-                    new URL('${server.uri}').text
+                    ${server.callFromBuild('task')}
                 } 
             }
         """
@@ -51,22 +52,25 @@ class BuildStatusRendererFunctionalTest extends AbstractIntegrationSpec implemen
 
     def "shows progress bar and percent phase completion"() {
         given:
+        def settings = server.expectAndBlock('settings')
+        def buildScript = server.expectAndBlock('build-script')
+        def task = server.expectAndBlock('task')
         gradle = executer.withTasks("hello").start()
 
         expect:
-        server.waitFor()
+        settings.waitForAllPendingCalls()
         assertHasBuildPhase("INITIALIZING")
-        server.release()
+        settings.releaseAll()
 
         and:
-        server.waitFor()
+        buildScript.waitForAllPendingCalls()
         assertHasBuildPhase("CONFIGURING")
-        server.release()
+        buildScript.releaseAll()
 
         and:
-        server.waitFor()
+        task.waitForAllPendingCalls()
         assertHasBuildPhase("EXECUTING")
-        server.release()
+        task.releaseAll()
 
         cleanup:
         gradle?.waitForFinish()

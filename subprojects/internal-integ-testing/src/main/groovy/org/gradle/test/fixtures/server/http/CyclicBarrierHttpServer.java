@@ -39,7 +39,10 @@ import java.util.concurrent.TimeUnit;
  * Allows the test process and a single build process to synchronize.
  *
  * TODO - merge into {@link BlockingHttpServer} as they now have overlapping APIs.
+ *
+ * @deprecated Use {@link BlockingHttpServer} instead.
  */
+@Deprecated
 public class CyclicBarrierHttpServer extends ExternalResource {
     private ExecutorService executor;
     private ServerSocketChannel serverSocket;
