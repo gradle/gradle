@@ -50,6 +50,10 @@ We would like to thank the following community members for making contributions 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
+- [Björn Kautler](https://github.com/Vampire) - Update Spock version in docs and build init (gradle/gradle#5627)
+- [Kyle Moore](https://github.com/DPUkyle) - Use latest Gosu plugin 0.3.10 (gradle/gradle#5855)
+- [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
