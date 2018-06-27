@@ -20,6 +20,7 @@ java {
 }
 
 dependencies {
+    api(project(":baseServicesJava9"))
     api(project(":distributionsDependencies"))
 
     api(library("guava"))
