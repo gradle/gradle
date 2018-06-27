@@ -277,7 +277,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id 'org.gosu-lang.gosu' version '0.3.9'
+                id 'org.gosu-lang.gosu' version '0.3.10'
             }
 
             ${mavenCentralRepository()}
