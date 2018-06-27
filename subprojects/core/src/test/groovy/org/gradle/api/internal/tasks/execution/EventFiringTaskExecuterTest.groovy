@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -47,7 +48,7 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         1 * taskExecutionListenerSource.beforeExecute(task)
-        2 * task.getIdentityPath() >> Path.path(":a")
+        _ * task.getIdentityPath() >> Path.path(":a")
 
         then:
         1 * delegate.execute(task, state, executionContext)
@@ -59,6 +60,8 @@ class EventFiringTaskExecuterTest extends Specification {
         and:
         buildOperationExecutor.operations[0].name == ":a"
         buildOperationExecutor.operations[0].displayName == "Task :a"
+        buildOperationExecutor.operations[0].progressDisplayName == ":a"
+        buildOperationExecutor.operations[0].operationType == BuildOperationCategory.TASK
     }
 
     def "result of buildoperation is set even if listener throws exception"() {
@@ -69,7 +72,7 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         1 * taskExecutionListenerSource.beforeExecute(task)
-        2 * task.getIdentityPath() >> Path.path(":a")
+        _ * task.getIdentityPath() >> Path.path(":a")
 
         then:
         1 * delegate.execute(task, state, executionContext)

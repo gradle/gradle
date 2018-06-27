@@ -121,9 +121,10 @@ public class CrossBuildSessionScopeServices implements Closeable {
         }
 
         GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry, BuildProgressLogger buildProgressLogger) {
+            // the buildProgressLogger parameter is not used directly, but declaring it as a dependency triggers its creation and registration as a listener
+            // TODO - add a way to declare listener services instead and get rid of this work around
             return new DefaultGradleLauncherFactory(
                 userHomeDirServiceRegistry,
-                buildProgressLogger,
                 CrossBuildSessionScopeServices.this
             );
         }

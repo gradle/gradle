@@ -38,7 +38,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, false)
 
     def setup() {
-        logHeaderFormatter.format(_, _, _, _) >> { h, d, st, f -> [new StyledTextOutputEvent.Span("Header $d")] }
+        logHeaderFormatter.format(_, _, _) >> { d, st, f -> [new StyledTextOutputEvent.Span("Header $d")] }
     }
 
     def "forwards log event that does not belong to any operation"() {
