@@ -34,7 +34,7 @@ class DefaultCppLibraryTest extends Specification {
     DefaultCppLibrary library
 
     def setup() {
-        library = new DefaultCppLibrary("main", project.objects, project, project.configurations)
+        library = new DefaultCppLibrary("main", project.objects, project.fileOperations, project.configurations)
     }
 
     def "has display name"() {
@@ -172,8 +172,8 @@ class DefaultCppLibraryTest extends Specification {
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")
-        def c1 = new DefaultCppLibrary("a", project.objects, project, project.configurations)
-        def c2 = new DefaultCppLibrary("b", project.objects, project, project.configurations)
+        def c1 = new DefaultCppLibrary("a", project.objects, project.fileOperations, project.configurations)
+        def c2 = new DefaultCppLibrary("b", project.objects, project.fileOperations, project.configurations)
 
         expect:
         c1.publicHeaderDirs.files == [h1] as Set

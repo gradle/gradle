@@ -69,7 +69,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
 
     @Override
     public String getDisplayName() {
-        return "immutable file collection";
+        return "file collection";
     }
 
     @Override
