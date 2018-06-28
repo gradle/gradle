@@ -38,6 +38,10 @@ class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
     }
 
     @Override
+    public void addModules(Iterable<String> moduleNames) {
+    }
+
+    @Override
     public void setProcessors(Iterable<? extends Processor> processors) {
         delegate.setProcessors(processors);
     }

@@ -65,6 +65,10 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     }
 
     @Override
+    public void addModules(Iterable<String> moduleNames) {
+    }
+
+    @Override
     public void setProcessors(Iterable<? extends Processor> processors) {
         throw new UnsupportedOperationException("This decorator already handles annotation processing");
     }
