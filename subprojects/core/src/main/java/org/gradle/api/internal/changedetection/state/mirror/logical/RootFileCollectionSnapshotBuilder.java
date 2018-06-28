@@ -17,8 +17,7 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
@@ -38,19 +37,18 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
 
-    private final ListMultimap<String, LogicalSnapshot> roots = LinkedListMultimap.create();
+    private final List<LogicalSnapshot> roots = Lists.newArrayList();
 
     @Override
     public FileCollectionSnapshot build() {
         return build(roots);
     }
 
-    protected abstract FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots);
+    protected abstract FileCollectionSnapshot build(List<LogicalSnapshot> roots);
 
     @Override
     public void visitFileTreeSnapshot(PhysicalSnapshot tree) {
         final AtomicReference<LogicalSnapshot> result = new AtomicReference<LogicalSnapshot>();
-        final AtomicReference<String> rootPath = new AtomicReference<String>();
         tree.accept(new PhysicalSnapshotVisitor() {
             private final RelativePathTracker relativePath = new RelativePathTracker();
             private final Deque<List<LogicalSnapshot>> levelHolder = new ArrayDeque<List<LogicalSnapshot>>();
@@ -58,9 +56,6 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
 
             @Override
             public boolean preVisitDirectory(String path, String name) {
-                if (relativePath.isRoot()) {
-                    rootPath.set(path);
-                }
                 relativePath.enter(name);
                 absolutePathHolder.addLast(path);
                 levelHolder.addLast(new ArrayList<LogicalSnapshot>());
@@ -79,7 +74,6 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
                         parentBuilder.add(snapshot);
                     } else {
                         result.set(snapshot);
-                        rootPath.set(path);
                     }
                 }
             }
@@ -99,13 +93,13 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
         });
         LogicalSnapshot root = result.get();
         if (root != null) {
-            roots.put(rootPath.get(), root);
+            roots.add(root);
         }
     }
 
     @Override
     public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
-        roots.put(directory.getPath(), new LogicalDirectorySnapshot(directory.getPath(), directory.getName(), ImmutableList.<LogicalSnapshot>of()));
+        roots.add(new LogicalDirectorySnapshot(directory.getPath(), directory.getName(), ImmutableList.<LogicalSnapshot>of()));
     }
 
     @Override
@@ -114,7 +108,7 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
     }
 
     protected boolean addRoot(String path, String name, FileContentSnapshot content) {
-        return roots.put(path, new LogicalFileSnapshot(path, name, content));
+        return roots.add(new LogicalFileSnapshot(path, name, content));
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
@@ -27,18 +26,19 @@ import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.internal.Factory;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class RelativePathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
     @Override
-    protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
+    protected FileCollectionSnapshot build(List<LogicalSnapshot> roots) {
         return new NormalizedPathFileCollectionSnapshot(new RelativePathSnapshotFactory(roots));
     }
 
     private static class RelativePathSnapshotFactory implements Factory<Map<String, NormalizedFileSnapshot>> {
-        private final ListMultimap<String, LogicalSnapshot> roots;
+        private final List<LogicalSnapshot> roots;
 
-        public RelativePathSnapshotFactory(ListMultimap<String, LogicalSnapshot> roots) {
+        public RelativePathSnapshotFactory(List<LogicalSnapshot> roots) {
             this.roots = roots;
         }
 
@@ -46,14 +46,16 @@ public class RelativePathFileCollectionSnapshotBuilder extends RootFileCollectio
         public Map<String, NormalizedFileSnapshot> create() {
             final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
             final HashSet<String> processedEntries = new HashSet<String>();
-            for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                final String basePath = entry.getKey();
-                final int rootIndex = basePath.length() + 1;
-                entry.getValue().accept(new LogicalSnapshotVisitor() {
+            for (LogicalSnapshot root : roots) {
+                root.accept(new LogicalSnapshotVisitor() {
                     private boolean root = true;
+                    int rootIndex;
 
                     @Override
                     public void preVisitDirectory(String path, String name) {
+                        if (root) {
+                            rootIndex = path.length() + 1;
+                        }
                         if (processedEntries.add(path)) {
                             NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, getIndex(name), DirContentSnapshot.INSTANCE);
                             builder.put(path, snapshot);
@@ -63,6 +65,9 @@ public class RelativePathFileCollectionSnapshotBuilder extends RootFileCollectio
 
                     @Override
                     public void visit(String path, String name, FileContentSnapshot content) {
+                        if (root) {
+                            rootIndex = path.length() + 1;
+                        }
                         if (processedEntries.add(path)) {
                             builder.put(
                                 path,
@@ -72,7 +77,7 @@ public class RelativePathFileCollectionSnapshotBuilder extends RootFileCollectio
                     }
 
                     private int getIndex(String name) {
-                        return isRoot() ? basePath.length() - name.length() : rootIndex;
+                        return isRoot() ? rootIndex - name.length() - 1 : rootIndex;
                     }
 
                     private boolean isRoot() {

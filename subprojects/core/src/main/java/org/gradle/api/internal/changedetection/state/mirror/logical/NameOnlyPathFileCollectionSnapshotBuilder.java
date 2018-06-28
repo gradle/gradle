@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
@@ -28,18 +27,19 @@ import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class NameOnlyPathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
     @Override
-    protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
+    protected FileCollectionSnapshot build(List<LogicalSnapshot> roots) {
         return new NormalizedPathFileCollectionSnapshot(new NameOnlySnapshotFactory(roots));
     }
 
     private static class NameOnlySnapshotFactory implements Factory<Map<String, NormalizedFileSnapshot>> {
-        private final ListMultimap<String, LogicalSnapshot> roots;
+        private final List<LogicalSnapshot> roots;
 
-        public NameOnlySnapshotFactory(ListMultimap<String, LogicalSnapshot> roots) {
+        public NameOnlySnapshotFactory(List<LogicalSnapshot> roots) {
             this.roots = roots;
         }
 
@@ -48,8 +48,8 @@ public class NameOnlyPathFileCollectionSnapshotBuilder extends RootFileCollectio
         public Map<String, NormalizedFileSnapshot> create() {
             final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
             final HashSet<String> processedEntries = new HashSet<String>();
-            for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                entry.getValue().accept(new LogicalSnapshotVisitor() {
+            for (LogicalSnapshot root : roots) {
+                root.accept(new LogicalSnapshotVisitor() {
                     private boolean root = true;
 
                     @Override

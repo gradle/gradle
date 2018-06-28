@@ -17,25 +17,25 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class NonePathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
     @Override
-    protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
+    protected FileCollectionSnapshot build(List<LogicalSnapshot> roots) {
         return new NonePathFileCollectionSnapshot(new IgnoredPathSnapshotFactory(roots));
     }
 
     private class IgnoredPathSnapshotFactory implements Factory<Map<String, FileContentSnapshot>> {
-        private final ListMultimap<String, LogicalSnapshot> roots;
+        private final List<LogicalSnapshot> roots;
 
-        public IgnoredPathSnapshotFactory(ListMultimap<String, LogicalSnapshot> roots) {
+        public IgnoredPathSnapshotFactory(List<LogicalSnapshot> roots) {
             this.roots = roots;
         }
 
@@ -44,8 +44,8 @@ public class NonePathFileCollectionSnapshotBuilder extends RootFileCollectionSna
         public Map<String, FileContentSnapshot> create() {
             final ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
             final HashSet<String> processedEntries = new HashSet<String>();
-            for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                entry.getValue().accept(new LogicalSnapshotVisitor() {
+            for (LogicalSnapshot root : roots) {
+                root.accept(new LogicalSnapshotVisitor() {
 
                     @Override
                     public void preVisitDirectory(String path, String name) {

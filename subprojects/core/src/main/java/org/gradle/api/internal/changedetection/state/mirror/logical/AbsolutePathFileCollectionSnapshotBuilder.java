@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
@@ -26,6 +25,7 @@ import org.gradle.internal.file.FileType;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectionSnapshotBuilder {
@@ -37,14 +37,14 @@ public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectio
     }
 
     @Override
-    protected FileCollectionSnapshot build(ListMultimap<String, LogicalSnapshot> roots) {
+    protected FileCollectionSnapshot build(List<LogicalSnapshot> roots) {
         return new AbsolutePathFileCollectionSnapshot(new AbsolutePathSnapshotFactory(roots));
     }
 
     private class AbsolutePathSnapshotFactory implements Factory<Map<String, FileContentSnapshot>> {
-        private final ListMultimap<String, LogicalSnapshot> roots;
+        private final List<LogicalSnapshot> roots;
 
-        public AbsolutePathSnapshotFactory(ListMultimap<String, LogicalSnapshot> roots) {
+        public AbsolutePathSnapshotFactory(List<LogicalSnapshot> roots) {
             this.roots = roots;
         }
 
@@ -53,8 +53,8 @@ public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectio
         public Map<String, FileContentSnapshot> create() {
             final ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
             final HashSet<String> processedEntries = new HashSet<String>();
-            for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                entry.getValue().accept(new LogicalSnapshotVisitor() {
+            for (LogicalSnapshot root : roots) {
+                root.accept(new LogicalSnapshotVisitor() {
 
                     @Override
                     public void preVisitDirectory(String path, String name) {
