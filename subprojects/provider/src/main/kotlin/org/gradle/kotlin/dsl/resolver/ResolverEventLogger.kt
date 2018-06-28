@@ -38,11 +38,11 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 
-private
+internal
 const val offerTimeoutMillis = 50L
 
 
-private
+internal
 const val pollTimeoutMillis = 5_000L
 
 

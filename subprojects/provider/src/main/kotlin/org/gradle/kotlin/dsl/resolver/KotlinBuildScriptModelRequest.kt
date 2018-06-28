@@ -71,12 +71,12 @@ suspend fun fetchKotlinBuildScriptModelFor(
 }
 
 
-private
+internal
 fun projectConnectionFor(request: KotlinBuildScriptModelRequest): org.gradle.tooling.ProjectConnection =
     connectorFor(request).connect()
 
 
-private
+internal
 fun org.gradle.tooling.ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
     model(KotlinBuildScriptModel::class.java).apply {
         setJavaHome(request.javaHome)

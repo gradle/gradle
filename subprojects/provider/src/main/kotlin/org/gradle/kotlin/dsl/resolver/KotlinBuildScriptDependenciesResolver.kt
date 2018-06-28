@@ -28,6 +28,13 @@ import java.security.MessageDigest
 
 import java.util.Arrays.equals
 
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
+
+import kotlin.concurrent.thread
+import kotlin.coroutines.experimental.Continuation
+import kotlin.coroutines.experimental.suspendCoroutine
+
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptContents.Position
@@ -111,7 +118,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val request = modelRequestFrom(scriptFile, environment)
         log(SubmittedModelRequest(scriptFile, request))
 
-        val response = fetchKotlinBuildScriptModelFor(request)
+        val response = RequestQueue.post(request)
         log(ReceivedModelResponse(scriptFile, response))
 
         return when {
@@ -284,4 +291,60 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
         }
 
     return test(scriptFile.parentFile)
+}
+
+
+private
+typealias AsyncModelRequest = Pair<KotlinBuildScriptModelRequest, Continuation<KotlinBuildScriptModel>>
+
+
+private
+object RequestQueue {
+
+    suspend fun post(request: KotlinBuildScriptModelRequest) =
+        suspendCoroutine<KotlinBuildScriptModel> { k ->
+            put(request to k)
+        }
+
+    private
+    fun put(request: AsyncModelRequest) {
+        q.offer(request, offerTimeoutMillis, TimeUnit.MILLISECONDS)
+        ensureAliveConsumer()
+    }
+
+    private
+    val q = ArrayBlockingQueue<AsyncModelRequest>(64)
+
+    private
+    var consumer: Thread? = null
+
+    private
+    fun ensureAliveConsumer() = synchronized(RequestQueue) {
+        if (consumer?.isAlive != true) {
+            consumer = newConsumerThread()
+        }
+    }
+
+    private
+    fun newConsumerThread() = thread {
+
+        while (true) {
+            val (request, k) = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS) ?: break
+            try {
+                k.resume(serve(request))
+            } catch (e: Throwable) {
+                k.resumeWithException(e)
+            }
+        }
+    }
+
+    private
+    fun serve(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel {
+        val connection = projectConnectionFor(request)
+        try {
+            return connection.modelBuilderFor(request).get()
+        } finally {
+            connection.close()
+        }
+    }
 }
