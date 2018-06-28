@@ -30,7 +30,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
@@ -68,11 +68,11 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
         return getFileSnapshots();
     }
 
-    protected void doGetHash(DefaultBuildCacheHasher hasher) {
+    protected void doGetHash(BuildCacheHasher hasher) {
         appendToHasher(hasher, getSnapshots().values());
     }
 
-    public static void appendToHasher(DefaultBuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+    public static void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
         List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
         Collections.sort(normalizedSnapshots);
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
@@ -81,7 +81,7 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean doVisitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
         Map<String, NormalizedFileSnapshot> previous = oldSnapshot.getSnapshots();
         Map<String, NormalizedFileSnapshot> current = getSnapshots();
         ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();

@@ -25,7 +25,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
@@ -51,7 +51,7 @@ public class ClasspathSnapshot extends SnapshotFactoryFileCollectionSnapshot<Nor
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean doVisitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
         Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = getFileSnapshots().entrySet().iterator();
         Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = ((ClasspathSnapshot) oldSnapshot).getFileSnapshots().entrySet().iterator();
         while (true) {
@@ -106,7 +106,7 @@ public class ClasspathSnapshot extends SnapshotFactoryFileCollectionSnapshot<Nor
     }
 
     @Override
-    protected void doGetHash(DefaultBuildCacheHasher hasher) {
+    protected void doGetHash(BuildCacheHasher hasher) {
         for (NormalizedFileSnapshot normalizedSnapshot : getFileSnapshots().values()) {
             normalizedSnapshot.appendToHasher(hasher);
         }

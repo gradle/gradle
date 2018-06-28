@@ -27,7 +27,7 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
@@ -67,7 +67,7 @@ public class NonePathFileCollectionSnapshot extends SnapshotFactoryFileCollectio
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean doVisitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
         Map<String, FileContentSnapshot> previous = oldSnapshot.getContentSnapshots();
         Map<String, FileContentSnapshot> current = getContentSnapshots();
         ListMultimap<FileContentSnapshot, String> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
@@ -103,7 +103,7 @@ public class NonePathFileCollectionSnapshot extends SnapshotFactoryFileCollectio
     }
 
     @Override
-    protected void doGetHash(DefaultBuildCacheHasher hasher) {
+    protected void doGetHash(BuildCacheHasher hasher) {
         List<FileContentSnapshot> normalizedSnapshots = Lists.newArrayList(getContentSnapshots().values());
         Collections.sort(normalizedSnapshots, CONTENT_COMPARATOR);
         for (FileContentSnapshot normalizedSnapshot : normalizedSnapshots) {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -39,6 +40,16 @@ public abstract class SnapshotFactoryFileCollectionSnapshot<T> implements FileCo
         this.snapshots = snapshots;
         this.hashCode = hashCode;
     }
+
+    @Override
+    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        if (includeAdded && hasHash() && getHash().equals(oldSnapshot.getHash())) {
+            return true;
+        }
+        return doVisitChangesSince(oldSnapshot, title, includeAdded, visitor);
+    }
+
+    protected abstract boolean doVisitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     protected Map<String, T> getFileSnapshots() {
         if (snapshots == null) {
@@ -67,5 +78,5 @@ public abstract class SnapshotFactoryFileCollectionSnapshot<T> implements FileCo
         return hashCode != null;
     }
 
-    protected abstract void doGetHash(DefaultBuildCacheHasher hasher);
+    protected abstract void doGetHash(BuildCacheHasher hasher);
 }

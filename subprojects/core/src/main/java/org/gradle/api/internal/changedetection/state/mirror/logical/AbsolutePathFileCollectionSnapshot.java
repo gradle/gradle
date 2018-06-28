@@ -28,7 +28,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
@@ -75,7 +74,7 @@ public class AbsolutePathFileCollectionSnapshot extends SnapshotFactoryFileColle
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean doVisitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
         Map<String, FileContentSnapshot> current = getFileSnapshots();
         Map<String, FileContentSnapshot> previous = (oldSnapshot == EmptyFileCollectionSnapshot.INSTANCE) ? ImmutableMap.<String, FileContentSnapshot>of() : ((AbsolutePathFileCollectionSnapshot) oldSnapshot).getFileSnapshots();
         Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
@@ -107,7 +106,7 @@ public class AbsolutePathFileCollectionSnapshot extends SnapshotFactoryFileColle
     }
 
     @Override
-    protected void doGetHash(DefaultBuildCacheHasher hasher) {
+    protected void doGetHash(BuildCacheHasher hasher) {
         List<Map.Entry<String, FileContentSnapshot>> entries = Lists.newArrayList(getContentSnapshots().entrySet());
         Collections.sort(entries, BY_STRING_KEY);
         for (Map.Entry<String, FileContentSnapshot> entry : entries) {
