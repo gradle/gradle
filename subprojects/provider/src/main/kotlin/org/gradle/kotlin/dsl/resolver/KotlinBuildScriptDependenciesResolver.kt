@@ -16,17 +16,18 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-
+import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
 
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+
 import java.io.File
-
 import java.net.URI
-
 import java.security.MessageDigest
-
 import java.util.Arrays.equals
+
+import kotlin.coroutines.experimental.Continuation
+import kotlin.coroutines.experimental.suspendCoroutine
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
@@ -111,7 +112,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val request = modelRequestFrom(scriptFile, environment)
         log(SubmittedModelRequest(scriptFile, request))
 
-        val response = fetchKotlinBuildScriptModelFor(request)
+        val response = RequestQueue.post(request)
         log(ReceivedModelResponse(scriptFile, response))
 
         return when {
@@ -284,4 +285,34 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
         }
 
     return test(scriptFile.parentFile)
+}
+
+
+private
+typealias AsyncModelRequest = Pair<KotlinBuildScriptModelRequest, Continuation<KotlinBuildScriptModel>>
+
+
+/**
+ * Handles all incoming [KotlinBuildScriptModelRequest]s via a single [EventLoop] to avoid spawning
+ * multiple competing Gradle daemons.
+ */
+private
+object RequestQueue {
+
+    suspend fun post(request: KotlinBuildScriptModelRequest) =
+        suspendCoroutine<KotlinBuildScriptModel> { k ->
+            require(eventLoop.accept(request to k))
+        }
+
+    private
+    val eventLoop = EventLoop<AsyncModelRequest> { poll ->
+        while (true) {
+            val (request, k) = poll() ?: break
+            try {
+                k.resume(fetchKotlinBuildScriptModelFor(request))
+            } catch (e: Throwable) {
+                k.resumeWithException(e)
+            }
+        }
+    }
 }

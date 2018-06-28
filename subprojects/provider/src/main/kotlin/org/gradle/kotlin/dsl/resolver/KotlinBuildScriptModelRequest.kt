@@ -16,12 +16,12 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.concurrent.tapi
 import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
+import org.gradle.tooling.ProjectConnection
 
 import java.io.File
 
@@ -56,28 +56,27 @@ typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() ->
 
 
 internal
-suspend fun fetchKotlinBuildScriptModelFor(
+fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
     modelBuilderCustomization: ModelBuilderCustomization = {}
 ): KotlinBuildScriptModel {
 
     val connection = projectConnectionFor(request)
     try {
-        return tapi { connection.modelBuilderFor(request).apply(modelBuilderCustomization).get(it) }
+        return connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
     } finally {
-        // Run close on a separate thread as TAPI doesn't allow closing the connection from an executor thread
-        kotlin.concurrent.thread { connection.close() }
+        connection.close()
     }
 }
 
 
 private
-fun projectConnectionFor(request: KotlinBuildScriptModelRequest): org.gradle.tooling.ProjectConnection =
+fun projectConnectionFor(request: KotlinBuildScriptModelRequest): ProjectConnection =
     connectorFor(request).connect()
 
 
 private
-fun org.gradle.tooling.ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
+fun ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
     model(KotlinBuildScriptModel::class.java).apply {
         setJavaHome(request.javaHome)
         setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
@@ -96,7 +95,7 @@ const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
 internal
-fun connectorFor(request: KotlinBuildScriptModelRequest): org.gradle.tooling.GradleConnector =
+fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
     connectorFor(request.projectDir, request.gradleInstallation)
         .useGradleUserHomeDir(request.gradleUserHome)
 
@@ -112,7 +111,7 @@ fun connectorFor(projectDir: File, gradleInstallation: GradleInstallation): Grad
 
 
 private
-fun applyGradleInstallationTo(connector: GradleConnector, gradleInstallation: GradleInstallation): org.gradle.tooling.GradleConnector =
+fun applyGradleInstallationTo(connector: GradleConnector, gradleInstallation: GradleInstallation): GradleConnector =
     gradleInstallation.run {
         when (this) {
             is GradleInstallation.Local -> connector.useInstallation(dir)
