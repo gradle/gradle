@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-@SuppressWarnings("Since15")
 public class PhysicalSnapshotBackedVisitableTree implements HierarchicalVisitableTree {
     private final PhysicalSnapshot rootDirectory;
 

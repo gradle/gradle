@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.internal.cache.StringInterner;
 
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot {
+public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot implements MutablePhysicalSnaphot {
     private final StringInterner stringInterner;
-    private Map<String, PhysicalSnapshot> children = new LinkedHashMap<String, PhysicalSnapshot>();
+    private Map<String, MutablePhysicalSnaphot> children = new LinkedHashMap<String, MutablePhysicalSnaphot>();
 
     public MutablePhysicalDirectorySnapshot(String path, String name, StringInterner stringInterner) {
         super(path, name);
@@ -33,18 +32,20 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
     }
 
     @Override
-    protected Iterable<PhysicalSnapshot> getChildren() {
+    protected Iterable<MutablePhysicalSnaphot> getChildren() {
         return children.values();
     }
 
     @Override
-    public PhysicalSnapshot add(String[] segments, int offset, PhysicalSnapshot snapshot) {
+    public MutablePhysicalSnaphot add(String[] segments, int offset, MutablePhysicalSnaphot snapshot) {
         if (segments.length == offset) {
-            Preconditions.checkState(snapshot.getClass().equals(getClass()), "Expected different snapshot type: requested %s, but was: %s", snapshot.getClass().getSimpleName(), getClass().getSimpleName());
+            if (!snapshot.getClass().equals(getClass())) {
+                throw new IllegalStateException(String.format("Expected different snapshot type: requested %s, but was: %s", snapshot.getClass().getSimpleName(), getClass().getSimpleName()));
+            }
             return this;
         }
         String currentSegment = segments[offset];
-        PhysicalSnapshot child = children.get(currentSegment);
+        MutablePhysicalSnaphot child = children.get(currentSegment);
         if (child == null) {
             if (segments.length == offset + 1) {
                 child = snapshot;

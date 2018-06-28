@@ -136,7 +136,7 @@ public class TaskOutputCacheCommandFactory {
             };
         }
 
-        private void updateSnapshots(Map<String, PhysicalSnapshot> propertiesSnapshots, OriginTaskExecutionMetadata originMetadata) {
+        private void updateSnapshots(Map<String, ? extends PhysicalSnapshot> propertiesSnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();

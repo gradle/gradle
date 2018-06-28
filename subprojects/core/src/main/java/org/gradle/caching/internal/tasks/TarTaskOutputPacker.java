@@ -31,8 +31,8 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaphot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.OutputType;
@@ -254,7 +254,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
         TarArchiveEntry tarEntry;
         OriginTaskExecutionMetadata originMetadata = null;
-        Map<String, PhysicalSnapshot> fileSnapshots = new HashMap<String, PhysicalSnapshot>();
+        Map<String, MutablePhysicalSnaphot> fileSnapshots = new HashMap<String, MutablePhysicalSnaphot>();
 
         long entries = 0;
         while ((tarEntry = tarInput.getNextTarEntry()) != null) {
@@ -289,7 +289,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return new UnpackResult(originMetadata, entries, fileSnapshots);
     }
 
-    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, Map<String, PhysicalSnapshot> snapshots) throws IOException {
+    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, Map<String, MutablePhysicalSnaphot> snapshots) throws IOException {
         File propertyRoot = propertySpec.getOutputFile();
         String propertyName = propertySpec.getPropertyName();
         if (propertyRoot == null) {
@@ -327,7 +327,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             outputFile = new File(propertyRoot, childPath);
         }
 
-        PhysicalSnapshot rootSnapshot = snapshots.get(propertyName);
+        MutablePhysicalSnaphot rootSnapshot = snapshots.get(propertyName);
         if (rootSnapshot == null && propertySpec.getOutputType() == OutputType.DIRECTORY) {
             rootSnapshot = new MutablePhysicalDirectorySnapshot(stringInterner.intern(propertyRoot.getAbsolutePath()), propertyRoot.getName(), stringInterner);
             snapshots.put(propertyName, rootSnapshot);

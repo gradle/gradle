@@ -23,12 +23,13 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FilteredHierarchicalVisitableTree;
-import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaphot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotBackedVisitableTree;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -60,7 +61,6 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
-@SuppressWarnings("Since15")
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
@@ -165,58 +165,52 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public HierarchicalVisitableTree snapshotTree(final FileTreeInternal tree) {
-        return new HierarchicalVisitableTree() {
+        final AtomicReference<MutablePhysicalSnaphot> root = new AtomicReference<MutablePhysicalSnaphot>();
+        tree.visitTreeOrBackingFile(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                MutablePhysicalSnaphot rootSnapshot = root.get();
+                if (rootSnapshot == null) {
+                    File rootFile = dirDetails.getFile();
+                    for (String ignored : dirDetails.getRelativePath().getSegments()) {
+                        rootFile = rootFile.getParentFile();
+                    }
+                    rootSnapshot = physicalDirectorySnapshot(rootFile);
+                    root.set(rootSnapshot);
+                }
+                rootSnapshot.add(dirDetails.getRelativePath().getSegments(), 0, physicalDirectorySnapshot(dirDetails.getFile()));
+            }
 
             @Override
-            public void accept(HierarchicalFileTreeVisitor visitor) {
-                final AtomicReference<PhysicalSnapshot> root = new AtomicReference<PhysicalSnapshot>();
-                tree.visitTreeOrBackingFile(new FileVisitor() {
-                    @Override
-                    public void visitDir(FileVisitDetails dirDetails) {
-                        PhysicalSnapshot rootSnapshot = root.get();
-                        if (rootSnapshot == null) {
-                            File rootFile = dirDetails.getFile();
-                            for (String ignored : dirDetails.getRelativePath().getSegments()) {
-                                rootFile = rootFile.getParentFile();
-                            }
-                            rootSnapshot = physicalDirectorySnapshot(rootFile);
-                            root.set(rootSnapshot);
-                        }
-                        rootSnapshot.add(dirDetails.getRelativePath().getSegments(), 0, physicalDirectorySnapshot(dirDetails.getFile()));
+            public void visitFile(FileVisitDetails fileDetails) {
+                MutablePhysicalSnaphot rootSnapshot = root.get();
+                if (rootSnapshot == null) {
+                    File rootFile = fileDetails.getFile();
+                    for (String ignored : fileDetails.getRelativePath().getSegments()) {
+                        rootFile = rootFile.getParentFile();
                     }
-
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        PhysicalSnapshot rootSnapshot = root.get();
-                        if (rootSnapshot == null) {
-                            File rootFile = fileDetails.getFile();
-                            for (String ignored : fileDetails.getRelativePath().getSegments()) {
-                                rootFile = rootFile.getParentFile();
-                            }
-                            rootSnapshot = fileDetails.getRelativePath().length() == 0 ? physicalFileSnapshot(fileDetails) : physicalDirectorySnapshot(rootFile);
-                            root.set(rootSnapshot);
-                        }
-                        rootSnapshot.add(fileDetails.getRelativePath().getSegments(), 0, physicalFileSnapshot(fileDetails));
-                    }
-
-                    private MutablePhysicalDirectorySnapshot physicalDirectorySnapshot(File file) {
-                        return new MutablePhysicalDirectorySnapshot(stringInterner.intern(file.getAbsolutePath()), file.getName(), stringInterner);
-                    }
-
-                    private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
-                        FileHashSnapshot snapshot = fileSnapshot(fileDetails);
-                        return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
-                    }
-                });
-                PhysicalSnapshot rootSnapshot = root.get();
-                if (rootSnapshot != null) {
-                    rootSnapshot.accept(visitor);
+                    rootSnapshot = fileDetails.getRelativePath().length() == 0 ? physicalFileSnapshot(fileDetails) : physicalDirectorySnapshot(rootFile);
+                    root.set(rootSnapshot);
                 }
+                rootSnapshot.add(fileDetails.getRelativePath().getSegments(), 0, physicalFileSnapshot(fileDetails));
             }
-        };
+
+            private MutablePhysicalDirectorySnapshot physicalDirectorySnapshot(File file) {
+                return new MutablePhysicalDirectorySnapshot(stringInterner.intern(file.getAbsolutePath()), file.getName(), stringInterner);
+            }
+
+            private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
+                FileHashSnapshot snapshot = fileSnapshot(fileDetails);
+                return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
+            }
+        });
+        PhysicalSnapshot rootSnapshot = root.get();
+        if (rootSnapshot != null) {
+            return rootSnapshot;
+        }
+        return PhysicalSnapshotBackedVisitableTree.EMPTY;
     }
 
-    @SuppressWarnings("Since15")
     private HierarchicalVisitableTree snapshotAndCache(DirectoryFileTree directoryTree) {
         final FileSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
         HierarchicalVisitableTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walk(fileSnapshot);

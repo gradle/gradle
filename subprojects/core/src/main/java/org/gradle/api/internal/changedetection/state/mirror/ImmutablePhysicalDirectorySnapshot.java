@@ -30,9 +30,4 @@ public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirector
     protected List<PhysicalSnapshot> getChildren() {
         return children;
     }
-
-    @Override
-    public PhysicalSnapshot add(String[] segments, int offset, PhysicalSnapshot snapshot) {
-        throw new UnsupportedOperationException("Cannot add children to immutable directory snapshot");
-    }
 }

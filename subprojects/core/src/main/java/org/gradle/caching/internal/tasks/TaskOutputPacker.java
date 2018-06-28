@@ -57,9 +57,9 @@ public interface TaskOutputPacker {
     class UnpackResult {
         private final OriginTaskExecutionMetadata originMetadata;
         private final long entries;
-        private final Map<String, PhysicalSnapshot> snapshots;
+        private final Map<String, ? extends PhysicalSnapshot> snapshots;
 
-        public UnpackResult(OriginTaskExecutionMetadata originMetadata, long entries, Map<String, PhysicalSnapshot> snapshots) {
+        public UnpackResult(OriginTaskExecutionMetadata originMetadata, long entries, Map<String, ? extends PhysicalSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;
@@ -73,7 +73,7 @@ public interface TaskOutputPacker {
             return entries;
         }
 
-        public Map<String, PhysicalSnapshot> getSnapshots() {
+        public Map<String, ? extends PhysicalSnapshot> getSnapshots() {
             return snapshots;
         }
     }

@@ -16,9 +16,21 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import org.gradle.internal.file.FileType;
+public abstract class AbstractPhysicalSnapshot implements PhysicalSnapshot {
+    private final String path;
+    private final String name;
 
-public interface PhysicalSnapshot extends HierarchicalVisitableTree {
-    FileType getType();
-    String getName();
+    public AbstractPhysicalSnapshot(String path, String name) {
+        this.path = path;
+        this.name = name;
+    }
+
+    protected String getPath() {
+        return path;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
 }

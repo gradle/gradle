@@ -21,27 +21,14 @@ import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-@SuppressWarnings("Since15")
-public class PhysicalFileSnapshot implements PhysicalSnapshot {
+public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnaphot {
     private final HashCode hash;
     private final long timestamp;
-    private final String path;
-    private final String name;
 
     public PhysicalFileSnapshot(String path, String name, long lastModified, HashCode contentMd5) {
-        this.path = path;
-        this.name = name;
+        super(path, name);
         this.timestamp = lastModified;
         this.hash = contentMd5;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -50,7 +37,7 @@ public class PhysicalFileSnapshot implements PhysicalSnapshot {
     }
 
     @Override
-    public PhysicalSnapshot add(String[] segments, int offset, PhysicalSnapshot snapshot) {
+    public MutablePhysicalSnaphot add(String[] segments, int offset, MutablePhysicalSnaphot snapshot) {
         if (segments.length == offset) {
             Preconditions.checkState(snapshot.getClass().equals(getClass()), "Expected different snapshot type: requested %s, but was: %s", snapshot.getClass().getSimpleName(), getClass().getSimpleName());
             return this;

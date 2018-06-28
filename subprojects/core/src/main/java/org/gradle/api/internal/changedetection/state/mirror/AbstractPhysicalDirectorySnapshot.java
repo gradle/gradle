@@ -18,23 +18,10 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
-public abstract class AbstractPhysicalDirectorySnapshot implements PhysicalSnapshot {
-    private final String name;
-    private final String path;
+public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysicalSnapshot {
 
     public AbstractPhysicalDirectorySnapshot(String path, String name) {
-        this.path = path;
-        this.name = name;
-    }
-
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        super(path, name);
     }
 
     @Override
@@ -42,11 +29,11 @@ public abstract class AbstractPhysicalDirectorySnapshot implements PhysicalSnaps
         return FileType.Directory;
     }
 
-    protected abstract Iterable<PhysicalSnapshot> getChildren();
+    protected abstract Iterable<? extends PhysicalSnapshot> getChildren();
 
     @Override
     public void accept(HierarchicalFileTreeVisitor visitor) {
-        if (!visitor.preVisitDirectory(path, name)) {
+        if (!visitor.preVisitDirectory(getPath(), getName())) {
             return;
         }
         for (PhysicalSnapshot child : getChildren()) {
