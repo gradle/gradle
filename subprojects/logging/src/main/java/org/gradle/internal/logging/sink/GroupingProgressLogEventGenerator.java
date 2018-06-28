@@ -93,7 +93,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
             // Create a new group for tasks or configure project
             if (isGrouped) {
-                operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), startEvent.getLoggingHeader(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getParentBuildOperationId(), buildOpId, startEvent.getBuildOperationCategory()));
+                operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getParentBuildOperationId(), buildOpId, startEvent.getBuildOperationCategory()));
             } else {
                 operationsInProgress.put(buildOpId, new OperationState(startEvent.getParentBuildOperationId(), buildOpId));
             }
@@ -197,7 +197,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private class OperationGroup extends OperationState {
         private final String category;
-        private final String loggingHeader;
         private long lastUpdateTime;
         private final String description;
         private final BuildOperationCategory buildOperationCategory;
@@ -210,10 +209,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        OperationGroup(String category, @Nullable String loggingHeader, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
             super(parentBuildOp, buildOpIdentifier);
             this.category = category;
-            this.loggingHeader = loggingHeader;
             this.lastUpdateTime = startTime;
             this.description = description;
             this.lastUpdateTime = startTime;
@@ -221,7 +219,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, LogLevel.LIFECYCLE, buildOpIdentifier, headerFormatter.format(loggingHeader, description, status, failed));
+            return new StyledTextOutputEvent(lastUpdateTime, category, LogLevel.LIFECYCLE, buildOpIdentifier, headerFormatter.format(description, status, failed));
         }
 
         void bufferOutput(RenderableOutputEvent output) {
