@@ -62,10 +62,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
-    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory,
-                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
-                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager,
-                                         BuildOperationIdFactory buildOperationIdFactory) {
+    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager, BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
