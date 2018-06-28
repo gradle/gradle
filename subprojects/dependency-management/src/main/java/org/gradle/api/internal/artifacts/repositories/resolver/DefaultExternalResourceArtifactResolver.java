@@ -26,14 +26,13 @@ import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.DefaultResourceFileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.List;
 
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
@@ -110,11 +109,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, artifact.getId().getFileName(), new CacheAwareExternalResourceAccessor.ResourceFileStore() {
-                    public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                        return fileStore.move(artifact.getId(), downloadedResource);
-                    }
-                }, localCandidates);
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, artifact.getId().getFileName(), getFileStore(artifact), localCandidates);
                 if (resource != null) {
                     return resource;
                 }
@@ -135,11 +130,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, null, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
-                    public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                        return fileStore.move(artifact.getId(), downloadedResource);
-                    }
-                }, localCandidates);
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, null, getFileStore(artifact), localCandidates);
                 if (resource != null) {
                     return resource;
                 }
@@ -148,6 +139,15 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             }
         }
         return null;
+    }
+
+    private CacheAwareExternalResourceAccessor.ResourceFileStore getFileStore(final ModuleComponentArtifactMetadata artifact) {
+        return new DefaultResourceFileStore<ModuleComponentArtifactIdentifier>(fileStore) {
+            @Override
+            protected ModuleComponentArtifactIdentifier computeKey() {
+                return artifact.getId();
+            }
+        };
     }
 
     private boolean isIncomplete(ResourcePattern resourcePattern, ModuleComponentArtifactMetadata artifact) {

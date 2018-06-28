@@ -20,13 +20,12 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.DefaultResourceFileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.net.URI;
 
 public class DefaultExternalResourceAccessor implements ExternalResourceAccessor {
@@ -53,14 +52,15 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
         return resolve(resource);
     }
 
+    @Nullable
     private LocallyAvailableExternalResource resolve(final ExternalResourceName resource) {
         LOGGER.debug("Loading {}", resource);
 
         try {
-            return resourceAccessor.getResource(resource, null, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
-                public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                    String key = resource.toString();
-                    return fileStore.move(key, downloadedResource);
+            return resourceAccessor.getResource(resource, null, new DefaultResourceFileStore<String>(fileStore) {
+                @Override
+                protected String computeKey() {
+                    return resource.toString();
                 }
             }, null);
         } catch (Exception e) {

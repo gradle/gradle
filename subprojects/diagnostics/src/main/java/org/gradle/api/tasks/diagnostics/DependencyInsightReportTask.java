@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -90,7 +89,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * For more information please refer to {@link DependencyInsightReportTask#setDependencySpec(Object)}
  * and {@link DependencyInsightReportTask#setConfiguration(String)}
  */
-@Incubating
 public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;

@@ -19,6 +19,7 @@ package org.gradle.caching.local.internal
 import org.gradle.cache.PersistentCache
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
+import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,7 +37,8 @@ class DirectoryBuildCacheServiceTest extends Specification {
         getBaseDir() >> cacheDir
     }
     def tempFileStore = new DefaultBuildCacheTempFileStore(cacheDir)
-    def service = new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, ".failed")
+    def fileAccessTracker = Stub(FileAccessTracker)
+    def service = new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, ".failed")
     def key = Mock(BuildCacheKey)
 
     def "does not store partial result"() {

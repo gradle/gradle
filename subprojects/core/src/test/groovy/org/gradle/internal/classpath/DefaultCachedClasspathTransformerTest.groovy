@@ -21,6 +21,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.Factory
 import org.gradle.internal.file.JarCache
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -31,8 +32,10 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     TestFile testDir = testDirectoryProvider.testDirectory
 
+    TestFile cachedDir = testDir.file("cached")
+    TestFile otherStore = testDir.file("other-store").createDir()
     PersistentCache cache = Stub(PersistentCache) {
-        getBaseDir() >> testDir.file("cached")
+        getBaseDir() >> cachedDir
         useCache(_) >> { Factory f -> f.create() }
     }
     CacheBuilder cacheBuilder = Stub(CacheBuilder) {
@@ -40,24 +43,26 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         withDisplayName(_) >> { cacheBuilder }
         withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
+        withCleanup(_) >> { cacheBuilder }
     }
     CacheRepository cacheRepository = Stub(CacheRepository) {
         cache(_) >> cacheBuilder
     }
     CachedJarFileStore jarFileStore = Stub(CachedJarFileStore) {
-        getFileStoreRoots() >> [testDir.file("other-store")]
+        getFileStoreRoots() >> [otherStore]
     }
     JarCache jarCache = Mock(JarCache)
+    FileAccessTimeJournal fileAccessTimeJournal = Mock(FileAccessTimeJournal)
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, [jarFileStore])
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore])
 
     def "can convert a classpath to cached jars"() {
         given:
         File externalFile = testDir.file("external/file1").createFile()
-        File cachedFile = testDir.file("cached/file1").createFile()
-        File alreadyCachedFile = testDir.file("cached/file2").createFile()
-        File cachedInOtherStore = testDir.file("other-store/file3").createFile()
+        File cachedFile = cachedDir.file("file1").createFile()
+        File alreadyCachedFile = cachedDir.file("file2").createFile()
+        File cachedInOtherStore = otherStore.file("file3").createFile()
         File externalDir = testDir.file("external/dir1").createDir()
         ClassPath classPath = DefaultClassPath.of([externalFile, alreadyCachedFile, cachedInOtherStore, externalDir])
 
@@ -74,8 +79,8 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def "can convert a url collection to cached jars"() {
         given:
         File externalFile = testDir.file("external/file1").createFile()
-        File cachedFile = testDir.file("cached/file1").createFile()
-        URL alreadyCachedFile = testDir.file("cached/file2").createFile().toURI().toURL()
+        File cachedFile = cachedDir.file("file1").createFile()
+        URL alreadyCachedFile = cachedDir.file("file2").createFile().toURI().toURL()
         URL externalDir = testDir.file("external/dir").createDir().toURI().toURL()
         URL httpURL = new URL("http://some.where.com")
 
@@ -87,5 +92,23 @@ class DefaultCachedClasspathTransformerTest extends Specification {
 
         and:
         cachedUrls == [ cachedFile.toURI().toURL(), httpURL, alreadyCachedFile, externalDir ]
+    }
+
+    def "touches immediate children of cache dir when accessed"() {
+        given:
+        File externalFile = testDir.file("external/file1").createFile()
+        File cacheFileChecksumDir = cachedDir.file("e11f1cf5681161f98a43c55e341f1b93")
+        File cachedFile = cacheFileChecksumDir.file("sub/file1").createFile()
+        File alreadyCachedFile = cachedDir.file("file2").createFile()
+        File cachedInOtherStore = otherStore.file("file3").createFile()
+
+        when:
+        transformer.transform(DefaultClassPath.of([externalFile, alreadyCachedFile, cachedInOtherStore]))
+
+        then:
+        1 * jarCache.getCachedJar(externalFile, _) >> cachedFile
+        1 * fileAccessTimeJournal.setLastAccessTime(cacheFileChecksumDir, _)
+        1 * fileAccessTimeJournal.setLastAccessTime(alreadyCachedFile, _)
+        0 * fileAccessTimeJournal._
     }
 }

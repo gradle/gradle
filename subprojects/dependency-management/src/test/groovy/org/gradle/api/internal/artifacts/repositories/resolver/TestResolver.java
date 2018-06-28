@@ -40,7 +40,6 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
         super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, metadataArtifactProvider, null, null, null);
     }
 
-
     @Override
     protected Class<ModuleComponentResolveMetadata> getSupportedMetadataType() {
         throw new UnsupportedOperationException();

@@ -84,10 +84,10 @@ public class DefaultXcodeProject implements XcodeProject {
 
         @Inject
         public Groups(FileOperations fileOperations) {
-            this.sources = fileOperations.files();
-            this.tests = fileOperations.files();
-            this.headers = fileOperations.files();
-            this.root = fileOperations.files();
+            this.sources = fileOperations.configurableFiles();
+            this.tests = fileOperations.configurableFiles();
+            this.headers = fileOperations.configurableFiles();
+            this.root = fileOperations.configurableFiles();
         }
 
         public ConfigurableFileCollection getRoot() {

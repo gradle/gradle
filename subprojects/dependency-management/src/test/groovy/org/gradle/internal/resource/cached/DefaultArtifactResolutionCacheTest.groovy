@@ -16,13 +16,12 @@
 
 package org.gradle.internal.resource.cached
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManagerStub
 import org.gradle.internal.hash.HashValue
+import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.serialize.BaseSerializerFactory
-import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,25 +36,13 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         getCurrentTime() >> 1234L
     }
 
-    def cacheLockingManager = Stub(CacheLockingManager) {
-        useCache(_) >> { args ->
-            def action = args[0]
-            if (action instanceof org.gradle.internal.Factory) {
-                return action.create()
-            } else {
-                action.run()
-            }
-        }
-
-        createCache(_, _, _) >> { String file, Serializer keySerializer, Serializer valueSerializer ->
-            return new InMemoryIndexedCache<>(valueSerializer)
-        }
-    }
+    def cacheLockingManager = new CacheLockingManagerStub()
+    def fileAccessTracker = Stub(FileAccessTracker)
 
     DefaultCachedExternalResourceIndex<String> index
 
     def setup() {
-        index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager)
+        index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager, fileAccessTracker)
     }
 
     @Unroll

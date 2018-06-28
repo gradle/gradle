@@ -16,13 +16,23 @@
 
 package org.gradle.cache;
 
+import org.gradle.internal.time.CountdownTimer;
+
+/**
+ * An action that cleans up a {@link CleanableStore}.
+ *
+ * @see org.gradle.cache.internal.CompositeCleanupAction
+ * @see CacheBuilder#withCleanup(CleanupAction)
+ */
 public interface CleanupAction {
-    void clean(PersistentCache persistentCache);
+
+    void clean(CleanableStore cleanableStore, CountdownTimer timer);
 
     CleanupAction NO_OP = new CleanupAction() {
         @Override
-        public void clean(PersistentCache persistentCache) {
+        public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
             // no-op
         }
     };
+
 }

@@ -2,11 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Command line args supported by JavaExec
-
-Since Gradle 4.9, the command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`,
-you don't need to hardcode it into the build script - you can just run `gradle run --args 'foo --bar'` (see [application plugin](userguide/application_plugin.html) for more information).
-
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
@@ -14,6 +9,11 @@ Add-->
 <!--
 ### Example new and noteworthy
 -->
+
+### Use SNAPSHOT plugin versions with the `plugins {}` block
+
+Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
+
 
 ## Promoted features
 
@@ -41,44 +41,25 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### `EclipseProject` tasks defined for `gradle eclipse` may now run in Buildship
-
-The [EclipseClasspath](dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html) and [EclipseProject](dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html) tasks both accept `beforeMerged` and `whenMerged` closures, for advanced Eclipse-specific customisation.
-
-Previous versions of Gradle did not execute the closures defined in `EclipseProject` when invoked from Buildship (only those in `EclipseClasspath`). Now Gradle executes them both, similarly to when invoked from the command-line.
-
-This leads to a potential change of behavior in this scenario:
- - These closures were defined for use with `gradle eclipse`
- - The gradle project was later imported into Eclipse, but these definitions were not removed.
-
-The code in these closures will now become active in the `Gradle -> Refresh Gradle Project` action.
-
 <!--
 ### Example breaking change
 -->
-
-### Using Groovy GPath with `tasks.withType()`
-
-In previous versions of Gradle, it was sometimes possible to use a [GPath](http://docs.groovy-lang.org/latest/html/documentation/#gpath_expressions) expression with a project's task collection to build a list of a single property for all tasks.
-
-For instance, `tasks.withType(SomeTask).name` would create a list of `String`s containing all of the names of tasks of type `SomeTask`. This was only possible with the method [`TaskCollection.withType(Class)`](javadoc/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-).
-
-Plugins or build scripts attempting to do this will now get a runtime exception.  The easiest fix is to explicitly use the [spread operator](http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator).
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Luke Usherwood](https://github.com/lukeu) Fix `ClassCastException` when generating Eclipse files for Gradle (gradle/gradle#5278)
-- [Luke Usherwood](https://github.com/lukeu) Make Buildship's "Refresh Gradle Project" action honour more of the `EclipseProject` task (eclipse/buildship#694)
-- [Theodore Ni](https://github.com/tjni) Reduce string allocations when working with paths. (gradle/gradle#5543)
-- [Theodore Ni](https://github.com/tjni) Suppress redundant warning message (gradle/gradle#5544)
-- [Lars Grefer](https://github.com/larsgrefer) Remove dependencies between `javadoc` tasks of dependent Java projects (gradle/gradle#5221)
-- [Aaron Hill](https://github.com/Aaron1011) Continue executing tests if irreplaceable security manager is installed (gradle/gradle#5324)
-- [Jonathan Leitschuh](https://github.com/JLLeitschuh) Throw `UnknownDomainObjectException` instead of `NullPointerException` when extension isn't found (gradle/gradle#5547)
-- [thc202](https://github.com/thc202) Fix typo in TestKit chapter (gradle/gradle#5691)
+<!--
+ - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
+-->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
+
+- [Björn Kautler](https://github.com/Vampire) - Update Spock version in docs and build init (gradle/gradle#5627)
+- [Kyle Moore](https://github.com/DPUkyle) - Use latest Gosu plugin 0.3.10 (gradle/gradle#5855)
+- [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
+- [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
+- [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
 
 ## Known issues
 

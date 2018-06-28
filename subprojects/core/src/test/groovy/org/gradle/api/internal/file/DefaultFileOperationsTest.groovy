@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.classloader.ClasspathUtil
@@ -95,7 +96,7 @@ class DefaultFileOperationsTest extends Specification {
 
     def resolvesFilesInOrder() {
         when:
-        def fileCollection = fileOperations.files('a', 'b', 'c')
+        def fileCollection = fileOperations.configurableFiles('a', 'b', 'c')
 
         then:
         fileCollection instanceof DefaultConfigurableFileCollection
@@ -114,6 +115,25 @@ class DefaultFileOperationsTest extends Specification {
         then:
         files*.name as List == ['a', 'b', 'c']
         0 * _
+    }
+
+    def resolvesImmutableFilesInOrder() {
+        when:
+        def fileCollection = fileOperations.immutableFiles('a', 'b', 'c')
+
+        then:
+        fileCollection instanceof ImmutableFileCollection
+
+        when:
+        def files = fileCollection.files
+        files*.name as List == ['a', 'b', 'c']
+
+        then:
+        1 * resolver.resolve('a') >> new File('a')
+        then:
+        1 * resolver.resolve('b') >> new File('b')
+        then:
+        1 * resolver.resolve('c') >> new File('c')
     }
 
     def createsFileTree() {

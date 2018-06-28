@@ -16,30 +16,50 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.CompositeCleanupAction;
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.cached.ExternalResourceFileStore;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 
+import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheLockingManager implements CacheLockingManager, Closeable {
     private final PersistentCache cache;
 
-    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData) {
+    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, CleanupActionFactory cleanupActionFactory) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
+                .withCleanup(cleanupActionFactory.create(createCleanupAction(cacheMetaData, fileAccessTimeJournal)))
                 .open();
+    }
+
+    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal) {
+        long maxAgeInDays = DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
+        return CompositeCleanupAction.builder()
+                .add(cacheMetaData.getExternalResourcesStoreDirectory(),
+                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, maxAgeInDays))
+                .add(cacheMetaData.getFileStoreDirectory(),
+                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, maxAgeInDays))
+                .build();
     }
 
     @Override

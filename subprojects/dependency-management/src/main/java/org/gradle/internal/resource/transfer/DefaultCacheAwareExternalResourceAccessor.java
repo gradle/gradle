@@ -223,7 +223,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
-    public long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
+    private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
     }
 

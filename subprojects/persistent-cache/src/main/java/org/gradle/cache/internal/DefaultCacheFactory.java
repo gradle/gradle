@@ -163,6 +163,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
+        public String getDisplayName() {
+            return reference.cache.toString();
+        }
+
+        @Override
         public File getBaseDir() {
             return reference.cache.getBaseDir();
         }

@@ -208,8 +208,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Requires(value = [TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_LATER])
-    @Issue('https://github.com/gradle/gradle-private/issues/1341')
+    @Requires(TestPrecondition.ONLINE)
     def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
@@ -234,8 +233,8 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         succeeds("helloWorld")
     }
 
-    @Requires(TestPrecondition.ONLINE)
     @Issue("GRADLE-3502")
+    @Requires(TestPrecondition.ONLINE)
     def "Plugin Portal provides transitive dependencies for other plugins"() {
         given:
         publishPlugins(MAVEN)

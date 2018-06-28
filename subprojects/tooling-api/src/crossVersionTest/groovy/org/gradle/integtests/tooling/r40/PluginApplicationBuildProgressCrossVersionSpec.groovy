@@ -22,6 +22,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
@@ -89,6 +92,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         base.parent == javaBase
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Issue('https://github.com/gradle/gradle-private/issues/1341')
     def "generates plugin application events for community plugin applied through plugins dsl"() {
         given:
         def events = ProgressEvents.create()
