@@ -74,7 +74,7 @@ public class MirrorUpdatingDirectoryWalker {
             return MissingPhysicalSnapshot.INSTANCE;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
-            return new PhysicalFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getName(), ((FileHashSnapshot) fileSnapshot.getContent()).getLastModified(), fileSnapshot.getContent().getContentMd5());
+            return new PhysicalFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getName(), (FileHashSnapshot) fileSnapshot.getContent());
         }
         Path rootPath = Paths.get(fileSnapshot.getPath());
         return walkDir(rootPath, patterns);
@@ -150,7 +150,7 @@ public class MirrorUpdatingDirectoryWalker {
                     String name = internedName(file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
-                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, metadata.getLastModified(), hash);
+                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, new FileHashSnapshot(hash, metadata.getLastModified()));
                     levelHolder.peekLast().add(fileSnapshot);
                 }
 

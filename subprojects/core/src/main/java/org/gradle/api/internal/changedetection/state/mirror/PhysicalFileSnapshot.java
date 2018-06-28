@@ -19,21 +19,27 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
 
 public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnaphot {
-    private final HashCode hash;
-    private final long timestamp;
+    private final FileHashSnapshot content;
 
-    public PhysicalFileSnapshot(String path, String name, long lastModified, HashCode contentMd5) {
+    public PhysicalFileSnapshot(String path, String name, FileHashSnapshot content) {
         super(path, name);
-        this.timestamp = lastModified;
-        this.hash = contentMd5;
+        this.content = content;
     }
 
     @Override
     public FileType getType() {
         return FileType.RegularFile;
+    }
+
+    public FileHashSnapshot getContent() {
+        return content;
+    }
+
+    @Override
+    public void accept(PhysicalSnapshotVisitor visitor) {
+        visitor.visit(getPath(), getName(), content);
     }
 
     @Override
@@ -43,18 +49,5 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
             return this;
         }
         throw new UnsupportedOperationException("Cannot add children of file");
-    }
-
-    @Override
-    public void accept(PhysicalSnapshotVisitor visitor) {
-        visitor.visit(getPath(), getName(), new FileHashSnapshot(hash, timestamp));
-    }
-
-    public HashCode getHash() {
-        return hash;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
     }
 }

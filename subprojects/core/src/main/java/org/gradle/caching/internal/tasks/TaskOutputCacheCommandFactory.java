@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
@@ -160,7 +159,7 @@ public class TaskOutputCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
                         PhysicalFileSnapshot fileSnapshot = (PhysicalFileSnapshot) snapshot;
-                        RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(absolutePath, RelativePath.EMPTY_ROOT.append(true, snapshot.getName()), true, new FileHashSnapshot(fileSnapshot.getHash(), fileSnapshot.getTimestamp()));
+                        RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(absolutePath, RelativePath.EMPTY_ROOT.append(true, snapshot.getName()), true, fileSnapshot.getContent());
                         builder.visitFileSnapshot(regularFileSnapshot);
                         fileSystemMirror.putFile(regularFileSnapshot);
                         break;

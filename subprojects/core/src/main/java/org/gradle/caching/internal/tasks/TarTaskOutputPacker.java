@@ -30,6 +30,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaphot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
@@ -348,7 +349,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             } finally {
                 IOUtils.closeQuietly(output);
             }
-            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, outputFile.lastModified(), hash);
+            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, new FileHashSnapshot(hash, outputFile.lastModified()));
             if (root) {
                 snapshots.put(propertyName, fileSnapshot);
             } else {
