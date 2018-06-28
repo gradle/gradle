@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Optional;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -149,44 +151,9 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("4.8-rc-1")) {
-            return VersionNumber.parse("2.58");
-        } else if (isSameOrNewer("4.7-rc-1")) {
-            return VersionNumber.parse("2.56");
-        } else if (isSameOrNewer("4.6-rc-1")) {
-            return VersionNumber.parse("2.53");
-        } else if (isSameOrNewer("4.5.1-rc-1")) {
-            return VersionNumber.parse("2.51");
-        } else if (isSameOrNewer("4.5-rc-1")) {
-            return VersionNumber.parse("2.48");
-        } else if (isSameOrNewer("4.4-rc-1")) {
-            return VersionNumber.parse("2.36");
-        } else if (isSameOrNewer("4.3-rc-1")) {
-            return VersionNumber.parse("2.31");
-        } else if (isSameOrNewer("4.2-rc-1")) {
-            return VersionNumber.parse("2.24");
-        } else if (isSameOrNewer("3.2-rc-1")) {
-            return VersionNumber.parse("2.23");
-        } else if (isSameOrNewer("3.1-rc-1")) {
-            return VersionNumber.parse("2.21");
-        } else if (isSameOrNewer("3.0-milestone-1")) {
-            return VersionNumber.parse("2.17");
-        } else if (isSameOrNewer("2.8-rc-1")) {
-            return VersionNumber.parse("2.16");
-        } else if (isSameOrNewer("2.4-rc-1")) {
-            return VersionNumber.parse("2.15");
-        } else if (isSameOrNewer("2.2-rc-1")) {
-            return VersionNumber.parse("2.14");
-        } else if (isSameOrNewer("2.1-rc-3")) {
-            return VersionNumber.parse("2.13");
-        } else if (isSameOrNewer("2.0-rc-1")) {
-            return VersionNumber.parse("2.12");
-        } else if (isSameOrNewer("1.12-rc-1")) {
-            return VersionNumber.parse("2.6");
-        } else if (isSameOrNewer("1.11-rc-1")) {
-            return VersionNumber.parse("2.2");
-        } else if (isSameOrNewer("1.9-rc-2")) {
-            return VersionNumber.parse("2.1");
+        if (isSameOrNewer("1.9-rc-2")) {
+            Optional<Integer> version = CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version);
+            return new VersionNumber(CacheLayout.ROOT.getVersion().getMajor(), version.get(), 0, null);
         } else if (isSameOrNewer("1.9-rc-1")) {
             return VersionNumber.parse("1.31");
         } else if (isSameOrNewer("1.7-rc-1")) {

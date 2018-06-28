@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
@@ -28,6 +29,9 @@ class CacheLayoutTest extends Specification {
         cacheLayout.version == VersionNumber.parse("2.0.0")
         cacheLayout.formattedVersion == '2'
         cacheLayout.getPath(new File('some/dir')) == new File('some/dir/modules-2')
+        !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.8")).present
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).get() == 1
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == 2
     }
 
     def "use file store layout"() {
@@ -50,6 +54,8 @@ class CacheLayoutTest extends Specification {
         cacheLayout.version == VersionNumber.parse("2.58.0")
         cacheLayout.formattedVersion == '2.58'
         cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.58')
+        !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).present
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == 1
     }
 
     def "use transforms layout"() {
