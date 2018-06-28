@@ -28,6 +28,10 @@ This release of Gradle implements several improvements:
 - ability to restrict the report to one path to each dependency, for readability
 - resolution failures are displayed in the report
 
+### Continuing development of Native ecosystem
+
+[The Gradle Native project continues](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-49) to improve and evolve the native ecosystem support for Gradle.
+
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
