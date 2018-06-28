@@ -20,18 +20,18 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
     val buildScanValues = mapOf(
             "coverageOs" to testCoverage.os.name,
             "coverageJvmVendor" to testCoverage.vendor.name,
-            "coverageJvmVersion" to testCoverage.version.name
+            "coverageJvmVersion" to testCoverage.testJvmVersion.name
     )
     applyDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
             extraParameters = (
-                    listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.version}.${testCoverage.vendor}.64bit%"""")
+                    listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""")
                             + buildScanTags.map { buildScanTag(it) }
                             + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
                     ).joinToString(separator = " "),
             timeout = testCoverage.testType.timeout)
 
     params {
-        param("env.JAVA_HOME", "%${testCoverage.os}.java8.oracle.64bit%")
+        param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.oracle.64bit%")
         if (testCoverage.os == OS.linux) {
             param("env.ANDROID_HOME", "/opt/android/sdk")
         }

@@ -41,7 +41,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java8, JvmVendor.ibm))),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
                     functionalTests = listOf(
@@ -62,13 +62,14 @@ data class CIBuildModel (
             Stage("Experimental", "On demand: Run experimental tests",
                     trigger = Trigger.never,
                     runsIndependent = true,
-                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11))))
+                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java8, JvmVersion.java9))))
     ) {
 
     val subProjects = listOf(
             GradleSubproject("announce"),
             GradleSubproject("antlr"),
             GradleSubproject("baseServices"),
+            GradleSubproject("baseServicesJava9"),
             GradleSubproject("baseServicesGroovy", functionalTests = false),
             GradleSubproject("buildCache"),
             GradleSubproject("buildCacheHttp"),
@@ -183,9 +184,9 @@ data class Stage(val name: String, val description: String, val specificBuilds: 
     val id = name.replace(" ", "").replace("-", "")
 }
 
-data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
+data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java8, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
-        return "${model.projectPrefix}${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+        return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
     }
 
     fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
@@ -194,7 +195,7 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
     }
 
     fun asName(): String {
-        return "Test Coverage - ${testType.name.capitalize()} ${version.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
+        return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
     }
 }
 
