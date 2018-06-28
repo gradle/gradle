@@ -30,7 +30,8 @@ import spock.lang.Subject
 
 import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.CACHE_KEY
 import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.INCEPTION_TIMESTAMP_KEY
-import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.META_PROPERTIES_FILE_NAME
+import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.FILE_ACCESS_PROPERTIES_FILE_NAME
+import static org.gradle.cache.internal.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME
 import static org.gradle.util.GUtil.loadProperties
 
 class DefaultFileAccessTimeJournalTest extends Specification {
@@ -115,14 +116,14 @@ class DefaultFileAccessTimeJournalTest extends Specification {
     }
 
     private long loadInceptionTimestamp() {
-        Long.parseLong(loadProperties(metaPropertiesFile).getProperty(INCEPTION_TIMESTAMP_KEY))
+        Long.parseLong(loadProperties(fileAccessPropertiesFile).getProperty(INCEPTION_TIMESTAMP_KEY))
     }
 
     private void writeInceptionTimestamp(long millis) {
-        metaPropertiesFile.text = "${INCEPTION_TIMESTAMP_KEY} = $millis"
+        fileAccessPropertiesFile.text = "${INCEPTION_TIMESTAMP_KEY} = $millis"
     }
 
-    private TestFile getMetaPropertiesFile() {
-        userHome.file("caches", CACHE_KEY, META_PROPERTIES_FILE_NAME)
+    private TestFile getFileAccessPropertiesFile() {
+        userHome.file(GLOBAL_CACHE_DIR_NAME, CACHE_KEY, FILE_ACCESS_PROPERTIES_FILE_NAME)
     }
 }

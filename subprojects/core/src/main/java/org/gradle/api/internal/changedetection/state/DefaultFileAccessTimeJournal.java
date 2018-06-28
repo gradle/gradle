@@ -38,7 +38,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
 
     public static final String CACHE_KEY = "journal-1";
     public static final String FILE_ACCESS_CACHE_NAME = "file-access";
-    public static final String META_PROPERTIES_FILE_NAME = "meta.properties";
+    public static final String FILE_ACCESS_PROPERTIES_FILE_NAME = FILE_ACCESS_CACHE_NAME + ".properties";
     public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";
 
     private final PersistentCache cache;
@@ -61,7 +61,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
         return cache.useCache(new Factory<Long>() {
             @Override
             public Long create() {
-                File propertiesFile = new File(cache.getBaseDir(), META_PROPERTIES_FILE_NAME);
+                File propertiesFile = new File(cache.getBaseDir(), FILE_ACCESS_PROPERTIES_FILE_NAME);
                 if (propertiesFile.exists()) {
                     Properties properties = GUtil.loadProperties(propertiesFile);
                     String inceptionTimestamp = properties.getProperty(INCEPTION_TIMESTAMP_KEY);
