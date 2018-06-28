@@ -18,7 +18,8 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
-public interface PhysicalSnapshot extends HierarchicalVisitableTree {
+public interface PhysicalSnapshot {
     FileType getType();
     String getName();
+    void accept(HierarchicalFileTreeVisitor visitor);
 }

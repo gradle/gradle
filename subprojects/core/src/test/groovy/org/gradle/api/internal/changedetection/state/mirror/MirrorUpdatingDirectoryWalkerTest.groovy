@@ -126,7 +126,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         ] as Set
     }
 
-    private static HierarchicalVisitableTree walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
+    private static PhysicalSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
         walker.walk(new DirectoryFileSnapshot(dir.absolutePath, RelativePath.EMPTY_ROOT, true), patterns)
     }
 }

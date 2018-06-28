@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor
-import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.caching.internal.DefaultBuildCacheHasher
@@ -335,7 +335,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         TestFiles.directoryFileTreeFactory().create(dir)
     }
 
-    private static List getTreeInfo(HierarchicalVisitableTree tree) {
+    private static List getTreeInfo(PhysicalSnapshot tree) {
         String rootPath = null
         int count = 0
         tree.accept(new HierarchicalFileTreeVisitor() {

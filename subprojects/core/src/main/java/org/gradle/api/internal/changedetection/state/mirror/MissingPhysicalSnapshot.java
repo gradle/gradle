@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-public class PhysicalSnapshotBackedVisitableTree implements HierarchicalVisitableTree {
-    private final PhysicalSnapshot rootDirectory;
+import org.gradle.internal.file.FileType;
 
-    public static final HierarchicalVisitableTree EMPTY = new HierarchicalVisitableTree() {
+public class MissingPhysicalSnapshot implements PhysicalSnapshot {
+    public static final PhysicalSnapshot INSTANCE = new MissingPhysicalSnapshot();
 
-        @Override
-        public void accept(HierarchicalFileTreeVisitor visitor) {
-        }
-    };
+    @Override
+    public FileType getType() {
+        return FileType.Missing;
+    }
 
-    public PhysicalSnapshotBackedVisitableTree(PhysicalSnapshot rootDirectory) {
-        this.rootDirectory = rootDirectory;
+    @Override
+    public String getName() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void accept(HierarchicalFileTreeVisitor visitor) {
-        rootDirectory.accept(visitor);
     }
 }

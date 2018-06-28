@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
@@ -64,26 +65,19 @@ public class MirrorUpdatingDirectoryWalker {
         this.stringInterner = stringInterner;
     }
 
-    public HierarchicalVisitableTree walk(final FileSnapshot fileSnapshot) {
+    public PhysicalSnapshot walk(final FileSnapshot fileSnapshot) {
         return walk(fileSnapshot, null);
     }
 
-    public HierarchicalVisitableTree walk(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public PhysicalSnapshot walk(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
-            return PhysicalSnapshotBackedVisitableTree.EMPTY;
+            return MissingPhysicalSnapshot.INSTANCE;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
-            return new HierarchicalVisitableTree() {
-
-                @Override
-                public void accept(HierarchicalFileTreeVisitor visitor) {
-                    visitor.visit(fileSnapshot.getPath(), fileSnapshot.getName(), fileSnapshot.getContent());
-                }
-            };
+            return new PhysicalFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getName(), ((FileHashSnapshot) fileSnapshot.getContent()).getLastModified(), fileSnapshot.getContent().getContentMd5());
         }
         Path rootPath = Paths.get(fileSnapshot.getPath());
-        ImmutablePhysicalDirectorySnapshot rootDirectory = walkDir(rootPath, patterns);
-        return new PhysicalSnapshotBackedVisitableTree(rootDirectory);
+        return walkDir(rootPath, patterns);
     }
 
     private ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {

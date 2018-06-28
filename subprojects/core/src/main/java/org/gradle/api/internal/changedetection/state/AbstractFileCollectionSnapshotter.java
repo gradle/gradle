@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.NonePathFileCollectionSnapshot;
@@ -36,6 +37,7 @@ import java.io.File;
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
  */
+@NonNullApi
 public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final StringInterner stringInterner;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -97,13 +99,13 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            HierarchicalVisitableTree treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
+            PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
             fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            HierarchicalVisitableTree treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
+            PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
             fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
         }
     }

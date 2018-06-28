@@ -33,7 +33,6 @@ import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotBackedVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
@@ -167,7 +166,7 @@ public class TaskOutputCacheCommandFactory {
                         break;
                     case DIRECTORY:
                         builder.visitFileTreeSnapshot(snapshot);
-                        fileSystemMirror.putDirectory(absolutePath, new PhysicalSnapshotBackedVisitableTree(snapshot));
+                        fileSystemMirror.putDirectory(absolutePath, snapshot);
                         break;
                     default:
                         throw new AssertionError();

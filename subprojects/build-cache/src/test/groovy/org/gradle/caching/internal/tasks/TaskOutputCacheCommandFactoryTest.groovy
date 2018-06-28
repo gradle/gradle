@@ -30,7 +30,7 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotBackedVisitableTree
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
@@ -99,11 +99,11 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(outputProperties, input, _) >> new TaskOutputPacker.UnpackResult(originMetadata, 123, fileSnapshots)
 
         then:
-        1 * fileSystemMirror.putDirectory(_, _) >> { String path, PhysicalSnapshotBackedVisitableTree dir ->
-            def basePath = dir.rootDirectory.path.toString()
+        1 * fileSystemMirror.putDirectory(_, _) >> { String path, PhysicalSnapshot dir ->
+            def basePath = dir.path.toString()
             assert path == basePath
             assert basePath == outputDir.absolutePath
-            assert Iterables.getOnlyElement(dir.rootDirectory.children).path.toString() == outputDirFile.absolutePath
+            assert Iterables.getOnlyElement(dir.children).path.toString() == outputDirFile.absolutePath
         }
         1 * fileSystemMirror.putFile(_) >> { args ->
             RegularFileSnapshot snapshot = args[0]

@@ -23,13 +23,12 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FilteredHierarchicalVisitableTree;
-import org.gradle.api.internal.changedetection.state.mirror.HierarchicalVisitableTree;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
+import org.gradle.api.internal.changedetection.state.mirror.MissingPhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaphot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotBackedVisitableTree;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -138,22 +137,22 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * before any downstream task uses them.
      */
     @Override
-    public HierarchicalVisitableTree snapshotDirectoryTree(final DirectoryFileTree dirTree) {
+    public PhysicalSnapshot snapshotDirectoryTree(final DirectoryFileTree dirTree) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = dirTree.getDir().getAbsolutePath();
         final PatternSet patterns = dirTree.getPatterns();
 
-        HierarchicalVisitableTree snapshot = fileSystemMirror.getDirectoryTree(path);
+        PhysicalSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
         if (snapshot != null) {
             return filterSnapshot(snapshot, patterns);
         }
         if (!patterns.isEmpty()) {
             return snapshotWithoutCaching(dirTree);
         }
-        return producingTrees.guardByKey(path, new Factory<HierarchicalVisitableTree>() {
+        return producingTrees.guardByKey(path, new Factory<PhysicalSnapshot>() {
             @Override
-            public HierarchicalVisitableTree create() {
-                HierarchicalVisitableTree snapshot = fileSystemMirror.getDirectoryTree(path);
+            public PhysicalSnapshot create() {
+                PhysicalSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
                 if (snapshot == null) {
                     return snapshotAndCache(dirTree);
                 } else {
@@ -164,7 +163,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public HierarchicalVisitableTree snapshotTree(final FileTreeInternal tree) {
+    public PhysicalSnapshot snapshotTree(final FileTreeInternal tree) {
         final AtomicReference<MutablePhysicalSnaphot> root = new AtomicReference<MutablePhysicalSnaphot>();
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
@@ -208,12 +207,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (rootSnapshot != null) {
             return rootSnapshot;
         }
-        return PhysicalSnapshotBackedVisitableTree.EMPTY;
+        return MissingPhysicalSnapshot.INSTANCE;
     }
 
-    private HierarchicalVisitableTree snapshotAndCache(DirectoryFileTree directoryTree) {
+    private PhysicalSnapshot snapshotAndCache(DirectoryFileTree directoryTree) {
         final FileSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
-        HierarchicalVisitableTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walk(fileSnapshot);
+        PhysicalSnapshot visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walk(fileSnapshot);
         fileSystemMirror.putDirectory(fileSnapshot.getPath(), visitableDirectoryTree);
         return visitableDirectoryTree;
     }
@@ -222,11 +221,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * We don't reuse code between this and #snapshotAndCache, because we can avoid
      * some defensive copying when the result won't be shared.
      */
-    private HierarchicalVisitableTree snapshotWithoutCaching(DirectoryFileTree directoryTree) {
+    private PhysicalSnapshot snapshotWithoutCaching(DirectoryFileTree directoryTree) {
         return mirrorUpdatingDirectoryWalker.walk(snapshotSelf(directoryTree.getDir()), directoryTree.getPatterns());
     }
 
-    private HierarchicalVisitableTree filterSnapshot(final HierarchicalVisitableTree snapshot, PatternSet patterns) {
+    private PhysicalSnapshot filterSnapshot(final PhysicalSnapshot snapshot, PatternSet patterns) {
         if (patterns.isEmpty()) {
             return snapshot;
         }

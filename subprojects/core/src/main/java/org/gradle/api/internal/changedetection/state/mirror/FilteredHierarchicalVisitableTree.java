@@ -30,13 +30,13 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.InputStream;
 
-public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableTree {
+public class FilteredHierarchicalVisitableTree implements PhysicalSnapshot {
 
     private final Spec<FileTreeElement> spec;
-    private final HierarchicalVisitableTree delegate;
+    private final PhysicalSnapshot delegate;
     private final FileSystem fileSystem;
 
-    public FilteredHierarchicalVisitableTree(Spec<FileTreeElement> spec, HierarchicalVisitableTree delegate, FileSystem fileSystem) {
+    public FilteredHierarchicalVisitableTree(Spec<FileTreeElement> spec, PhysicalSnapshot delegate, FileSystem fileSystem) {
         this.spec = spec;
         this.delegate = delegate;
         this.fileSystem = fileSystem;
@@ -73,6 +73,16 @@ public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableT
                 visitor.postVisitDirectory();
             }
         });
+    }
+
+    @Override
+    public FileType getType() {
+        return delegate.getType();
+    }
+
+    @Override
+    public String getName() {
+        return delegate.getName();
     }
 
     /**
