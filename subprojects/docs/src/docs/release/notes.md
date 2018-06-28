@@ -59,6 +59,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Kyle Moore](https://github.com/DPUkyle) - Use latest Gosu plugin 0.3.10 (gradle/gradle#5855)
 - [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
 - [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
+- [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
 
 ## Known issues
 
