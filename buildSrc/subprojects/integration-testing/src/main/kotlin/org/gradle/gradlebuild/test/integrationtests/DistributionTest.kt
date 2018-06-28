@@ -60,7 +60,6 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
-        systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
     }
 }
 

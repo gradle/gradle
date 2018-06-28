@@ -47,7 +47,6 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
             withTasks('binZip')
-            withArgument("-Djava9Home=${System.getProperty('java9Home')}")
             withWarningMode(null)
         }.run()
 

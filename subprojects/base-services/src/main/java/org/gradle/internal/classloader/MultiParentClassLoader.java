@@ -16,6 +16,7 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.reflect.JavaMethod;
 
 import java.io.IOException;
 import java.net.URL;
@@ -35,6 +36,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * ClassLoaders that use it as a parent, to prevent every path in the ClassLoader graph being searched.
  */
 public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
+
+    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = ClassLoaderUtils.getPackagesMethod();
+    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD =  ClassLoaderUtils.getPackageMethod();
 
     private final List<ClassLoader> parents;
 
@@ -86,7 +90,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {
-            Package p = ClassLoaderUtils.getPackage(parent, name);
+            Package p = GET_PACKAGE_METHOD.invoke(parent, name);
             if (p != null) {
                 return p;
             }
@@ -98,7 +102,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     protected Package[] getPackages() {
         Set<Package> packages = new LinkedHashSet<Package>();
         for (ClassLoader parent : parents) {
-            Package[] parentPackages = ClassLoaderUtils.getPackages(parent);
+            Package[] parentPackages = GET_PACKAGES_METHOD.invoke(parent);
             packages.addAll(Arrays.asList(parentPackages));
         }
         return packages.toArray(new Package[0]);
