@@ -309,20 +309,10 @@ object RequestQueue {
         while (true) {
             val (request, k) = poll() ?: break
             try {
-                k.resume(serve(request))
+                k.resume(fetchKotlinBuildScriptModelFor(request))
             } catch (e: Throwable) {
                 k.resumeWithException(e)
             }
-        }
-    }
-
-    private
-    fun serve(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel {
-        val connection = projectConnectionFor(request)
-        try {
-            return connection.modelBuilderFor(request).get()
-        } finally {
-            connection.close()
         }
     }
 }
