@@ -36,4 +36,14 @@ public interface TaskProvider<T extends Task> extends Provider<T> {
      * @since 4.8
      */
     void configure(Action<? super T> action);
+
+    /**
+     * The task name referenced by this provider.
+     * <p>
+     * Must be constant for the life of the object.
+     *
+     * @return The task name. Never null.
+     * @since 4.9
+     */
+    String getName();
 }
