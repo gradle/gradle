@@ -16,6 +16,55 @@ data class CIBuildModel (
         val parentBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val childBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val buildScanTags: List<String> = emptyList(),
+        val stages: List<Stage> = listOf(
+            Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
+                    specificBuilds = listOf(
+                            SpecificBuild.SanityCheck),
+                    functionalTests = listOf(
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)), omitsSlowProjects = true),
+            Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+                    functionalTests = listOf(
+                            TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                    functionalTestsDependOnSpecificBuilds = true,
+                    omitsSlowProjects = true),
+            Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
+                    specificBuilds = listOf(
+                            SpecificBuild.BuildDistributions,
+                            SpecificBuild.Gradleception,
+                            SpecificBuild.SmokeTests),
+                    functionalTests = listOf(
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
+                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
+                    performanceTests = listOf(PerformanceTestType.test),
+                    omitsSlowProjects = true),
+            Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
+                    trigger = Trigger.eachCommit,
+                    functionalTests = listOf(
+                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
+                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
+            Stage("Release Accept", "Once a day: Rerun tests in more environments",
+                    trigger = Trigger.daily,
+                    functionalTests = listOf(
+                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
+                            TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7),
+                            TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7),
+                            TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8),
+                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9)),
+                    performanceTests = listOf(
+                            PerformanceTestType.experiment)),
+            Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
+                    trigger = Trigger.weekly,
+                    performanceTests = listOf(
+                            PerformanceTestType.historical)),
+            Stage("Experimental", "On demand: Run experimental tests",
+                    trigger = Trigger.never,
+                    runsIndependent = true,
+                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11)))),
         val subProjects: List<GradleSubproject> = listOf(
             GradleSubproject("announce"),
             GradleSubproject("antlr"),
@@ -98,56 +147,7 @@ data class CIBuildModel (
             GradleSubproject("performance", unitTests = false, functionalTests = false),
             GradleSubproject("runtimeApiInfo", unitTests = false, functionalTests = false),
             GradleSubproject("smokeTest", unitTests = false, functionalTests = false)
-        ),
-        val stages: List<Stage> = listOf(
-            Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
-                    specificBuilds = listOf(
-                            SpecificBuild.SanityCheck),
-                    functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)), omitsSlowProjects = true),
-            Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
-                    functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
-                    functionalTestsDependOnSpecificBuilds = true,
-                    omitsSlowProjects = true),
-            Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
-                    specificBuilds = listOf(
-                            SpecificBuild.BuildDistributions,
-                            SpecificBuild.Gradleception,
-                            SpecificBuild.SmokeTests),
-                    functionalTests = listOf(
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
-                    performanceTests = listOf(PerformanceTestType.test),
-                    omitsSlowProjects = true),
-            Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
-                    trigger = Trigger.eachCommit,
-                    functionalTests = listOf(
-                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
-            Stage("Release Accept", "Once a day: Rerun tests in more environments",
-                    trigger = Trigger.daily,
-                    functionalTests = listOf(
-                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9)),
-                    performanceTests = listOf(
-                            PerformanceTestType.experiment)),
-            Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
-                    trigger = Trigger.weekly,
-                    performanceTests = listOf(
-                            PerformanceTestType.historical)),
-            Stage("Experimental", "On demand: Run experimental tests",
-                    trigger = Trigger.never,
-                    runsIndependent = true,
-                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11))))
+        )
     )
 
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) {
