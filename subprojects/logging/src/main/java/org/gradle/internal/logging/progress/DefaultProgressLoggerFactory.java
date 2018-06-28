@@ -46,7 +46,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     public ProgressLogger newOperation(Class loggerCategory, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
-        return init(
+        ProgressLogger logger = init(
             loggerCategory.getName(),
             null,
             true,
@@ -54,6 +54,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             buildOperationDescriptor.getParentId(),
             buildOperationDescriptor.getOperationType()
         );
+
+        // Make some assumptions about the console output
+        if (buildOperationDescriptor.getOperationType() == BuildOperationCategory.TASK) {
+            logger.setLoggingHeader(buildOperationDescriptor.getProgressDisplayName());
+        }
+
+        return logger;
     }
 
     public ProgressLogger newOperation(String loggerCategory) {

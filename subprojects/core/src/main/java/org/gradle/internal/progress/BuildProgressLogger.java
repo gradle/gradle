@@ -19,7 +19,7 @@ package org.gradle.internal.progress;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
-public class BuildProgressLogger implements LoggerProvider {
+public class BuildProgressLogger {
     public static final String INITIALIZATION_PHASE_DESCRIPTION = "Initializing build";
     public static final String INITIALIZATION_PHASE_SHORT_DESCRIPTION = "INITIALIZING";
     public static final String CONFIGURATION_PHASE_DESCRIPTION = "Configuring projects";
