@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -48,6 +49,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  */
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
+@IntegrationTestTimeout(600)
 class AbstractIntegrationSpec extends Specification {
 
     @Rule
