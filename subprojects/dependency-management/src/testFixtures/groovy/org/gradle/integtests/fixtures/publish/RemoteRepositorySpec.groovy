@@ -42,6 +42,35 @@ class RemoteRepositorySpec {
         groups.values()*.build(repository)
     }
 
+    /**
+     * Defines modules using a simple path notation. Assuming group is "org", and default version is 1.0
+     * For example: foo -> bar
+     * would create 'org:foo:1.0' depending on 'org:bar:1.0'
+     * when: foo -> bar:2.0 -> baz
+     * would create 'org:foo:1.0' depending on 'org:bar:2.0' depending on `baz:1.0'
+     * @param pathSpec
+     */
+    void path(String pathSpec) {
+        def pathElements = (pathSpec.split("\\s?->\\s?") as List<String>).reverse()
+        def last = null
+        pathElements.each { String spec ->
+            if (!spec.contains(':')) {
+                spec += ':1.0'
+            }
+            def (name, v) = spec.split(':')
+            group('org') {
+                module(name) {
+                    version(v) {
+                        if (last) {
+                            dependsOn(last)
+                        }
+                    }
+                }
+            }
+            last = "org:$spec"
+        }
+    }
+
     void methodMissing(String name, args) {
         def (gid, aid, v) = name.split(':') as List
         Closure spec = {}

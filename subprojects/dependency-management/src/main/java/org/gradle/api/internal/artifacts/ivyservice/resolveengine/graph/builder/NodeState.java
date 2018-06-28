@@ -57,6 +57,7 @@ class NodeState implements DependencyGraphNode {
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
     private final List<EdgeState> outgoingEdges = Lists.newArrayList();
+    private final List<EdgeState.AlignmentEdgeState> alignmentEdges = Lists.newArrayList();
     private final ResolvedConfigurationIdentifier id;
 
     private final ConfigurationMetadata metaData;
@@ -158,6 +159,9 @@ class NodeState implements DependencyGraphNode {
         boolean hasIncomingEdges = !incomingEdges.isEmpty();
         List<EdgeState> transitiveIncoming = getTransitiveIncomingEdges();
 
+        // hack: re-add alignment edges
+        discoveredEdges.addAll(alignmentEdges);
+
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveIncoming.isEmpty() && !isRoot()) {
             // If node was previously traversed, need to remove outgoing edges.
@@ -190,6 +194,10 @@ class NodeState implements DependencyGraphNode {
         }
 
         visitDependencies(resolutionFilter, pendingDependenciesHandler, discoveredEdges);
+    }
+
+    void addAlignmentEdge(EdgeState.AlignmentEdgeState alignmentEdgeState) {
+        this.alignmentEdges.add(alignmentEdgeState);
     }
 
     /**

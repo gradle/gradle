@@ -20,11 +20,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -36,6 +43,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -116,6 +124,9 @@ class EdgeState implements DependencyGraphEdge {
         if (!targetNodes.isEmpty()) {
             selector.getTargetModule().removeUnattachedDependency(this);
         }
+        for (EdgeState state : from.getOutgoingEdges()) {
+            state.tryAlignmentTo(targetComponent);
+        }
     }
 
     public void removeFromTargetConfigurations() {
@@ -143,6 +154,29 @@ class EdgeState implements DependencyGraphEdge {
             removeFromTargetConfigurations();
             attachToTargetConfigurations();
         }
+    }
+
+    private void tryAlignmentTo(ComponentState selectedTarget) {
+        ComponentState fromComponent = from.getComponent();
+        ModuleVersionIdentifier fromId = fromComponent.getId();
+        ModuleVersionIdentifier targetId = selectedTarget.getId();
+        if (shouldTryToAlign(fromId, targetId)) {
+            ModuleIdentifier fromModule = fromId.getModule();
+            final ModuleComponentSelector cs = DefaultModuleComponentSelector.newSelector(fromModule, targetId.getVersion());
+            DependencyState dependencyState = new DependencyState(new AlignmentDependencyMetadata(cs), resolveState.getComponentSelectorConverter());
+            for (NodeState nodeState : selectedTarget.getNodes()) {
+                if (nodeState.isSelected()) {
+                    AlignmentEdgeState alignmentEdge = new AlignmentEdgeState(nodeState, dependencyState);
+                    nodeState.resetSelectionState();
+                    nodeState.addAlignmentEdge(alignmentEdge);
+                    alignmentEdge.getSelector().use();
+                }
+            }
+        }
+    }
+
+    private boolean shouldTryToAlign(ModuleVersionIdentifier fromId, ModuleVersionIdentifier targetId) {
+        return fromId.getGroup().equals(targetId.getGroup()) && !fromId.getVersion().equals(targetId.getVersion());
     }
 
     public ImmutableAttributes getAttributes() {
@@ -238,4 +272,79 @@ class EdgeState implements DependencyGraphEdge {
             }
         });
     }
+
+    private static class AlignmentDependencyMetadata implements ModuleDependencyMetadata {
+        private final ModuleComponentSelector cs;
+
+        AlignmentDependencyMetadata(ModuleComponentSelector cs) {
+            this.cs = cs;
+        }
+
+        @Override
+        public ModuleComponentSelector getSelector() {
+            return cs;
+        }
+
+        @Override
+        public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+            return this;
+        }
+
+        @Override
+        public ModuleDependencyMetadata withReason(String reason) {
+            return this;
+        }
+
+        @Override
+        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<ExcludeMetadata> getExcludes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<IvyArtifactName> getArtifacts() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public DependencyMetadata withTarget(ComponentSelector target) {
+            return this;
+        }
+
+        @Override
+        public boolean isChanging() {
+            return false;
+        }
+
+        @Override
+        public boolean isTransitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isPending() {
+            return false;
+        }
+
+        @Override
+        public String getReason() {
+            return null;
+        }
+    }
+
+    public class AlignmentEdgeState extends EdgeState {
+        public AlignmentEdgeState(NodeState from, DependencyState dependencyState) {
+            super(from, dependencyState, EdgeState.this.transitiveExclusions, EdgeState.this.resolveState);
+        }
+
+        @Override
+        public String toString() {
+            return "align to " + getDependencyMetadata().getSelector();
+        }
+    }
+
 }

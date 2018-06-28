@@ -111,10 +111,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
     void "should pass if transitive dependency version matches exactly the strict dependency version"() {
         given:
         repository {
-            'org:foo:1.0'()
-            'org:bar:1.0' {
-                dependsOn 'org:foo:1.0'
-            }
+            path 'bar -> foo'
         }
 
         buildFile << """
@@ -155,13 +152,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
     void "can upgrade a non-strict dependency"() {
         given:
         repository {
-            'org:foo' {
-                '1.0'()
-                '1.1'()
-            }
-            'org:bar:1.0' {
-                dependsOn 'org:foo:1.0'
-            }
+            path 'bar -> foo'
+            path 'foo:1.1'
         }
 
         buildFile << """
