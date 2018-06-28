@@ -18,6 +18,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.operations.OperationIdentifier;
 
 public class PromptOutputEvent extends RenderableOutputEvent {
 
@@ -37,5 +38,10 @@ public class PromptOutputEvent extends RenderableOutputEvent {
     @Override
     public String toString() {
         return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
+    }
+
+    @Override
+    public RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
+        throw new UnsupportedOperationException();
     }
 }

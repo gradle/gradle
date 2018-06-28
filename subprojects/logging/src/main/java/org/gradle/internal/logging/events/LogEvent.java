@@ -60,4 +60,9 @@ public class LogEvent extends RenderableOutputEvent implements LogEventBuildOper
     public String toString() {
         return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
     }
+
+    @Override
+    public RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
+        return new LogEvent(getTimestamp(), getCategory(), getLogLevel(), message, throwable, buildOperationId);
+    }
 }
