@@ -16,22 +16,16 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-
+import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
 
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+
 import java.io.File
-
 import java.net.URI
-
 import java.security.MessageDigest
-
 import java.util.Arrays.equals
 
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
-
-import kotlin.concurrent.thread
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
@@ -298,38 +292,22 @@ private
 typealias AsyncModelRequest = Pair<KotlinBuildScriptModelRequest, Continuation<KotlinBuildScriptModel>>
 
 
+/**
+ * Handles all incoming [KotlinBuildScriptModelRequest]s via a single [EventLoop] to avoid spawning
+ * multiple competing Gradle daemons.
+ */
 private
 object RequestQueue {
 
     suspend fun post(request: KotlinBuildScriptModelRequest) =
         suspendCoroutine<KotlinBuildScriptModel> { k ->
-            put(request to k)
+            require(eventLoop.accept(request to k))
         }
 
     private
-    fun put(request: AsyncModelRequest) {
-        q.offer(request, offerTimeoutMillis, TimeUnit.MILLISECONDS)
-        ensureAliveConsumer()
-    }
-
-    private
-    val q = ArrayBlockingQueue<AsyncModelRequest>(64)
-
-    private
-    var consumer: Thread? = null
-
-    private
-    fun ensureAliveConsumer() = synchronized(RequestQueue) {
-        if (consumer?.isAlive != true) {
-            consumer = newConsumerThread()
-        }
-    }
-
-    private
-    fun newConsumerThread() = thread {
-
+    val eventLoop = EventLoop<AsyncModelRequest> { poll ->
         while (true) {
-            val (request, k) = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS) ?: break
+            val (request, k) = poll() ?: break
             try {
                 k.resume(serve(request))
             } catch (e: Throwable) {
