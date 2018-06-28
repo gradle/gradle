@@ -17,6 +17,7 @@
 package org.gradle.internal.work
 
 import org.gradle.api.Transformer
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -25,11 +26,11 @@ import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
-
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 
 class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService();
@@ -293,7 +294,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     boolean lockIsHeld(final ResourceLock resourceLock) {
-        AtomicBoolean held = new AtomicBoolean()
+        MutableBoolean held = new MutableBoolean()
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
