@@ -201,6 +201,14 @@ The following types/formats are supported:
         normalize(provider2, baseDir) == baseDir.file("value")
     }
 
+    def "does not allow resolving null URI"() {
+        when:
+        resolver(tmpDir.testDirectory).resolveUri(null)
+        then:
+        def ex = thrown UnsupportedNotationException
+        ex.message.contains "Cannot convert a null value to a File or URI."
+    }
+
     def createLink(File link, File target) {
         createLink(link, target.absolutePath)
     }

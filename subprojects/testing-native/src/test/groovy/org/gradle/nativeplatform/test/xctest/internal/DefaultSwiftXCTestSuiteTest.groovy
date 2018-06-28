@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal
 
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.OperatingSystemFamily
@@ -30,9 +31,9 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def testSuite = new DefaultSwiftXCTestSuite("test", project.services.get(FileOperations), project.objects)
 
     def "has display name"() {
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 
         expect:
         testSuite.displayName.displayName == "XCTest suite 'test'"
@@ -40,8 +41,6 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     }
 
     def "has implementation dependencies"() {
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
-
         expect:
         testSuite.implementationDependencies == project.configurations.testImplementation
     }
@@ -50,7 +49,6 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
         def targetPlatform = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 
         expect:
         def exe = testSuite.addExecutable("Executable", identity, targetPlatform, toolChain, platformToolProvider)
@@ -61,8 +59,6 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     }
 
     def "can add a test bundle"() {
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
-
         expect:
         def exe = testSuite.addBundle("Executable", identity, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testExecutable'

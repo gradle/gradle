@@ -56,9 +56,9 @@ public class XcodeTarget implements Named {
     public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
         this.name = name;
         this.id = id;
-        this.sources = fileOperations.files();
-        this.headerSearchPaths = fileOperations.files();
-        this.compileModules = fileOperations.files();
+        this.sources = fileOperations.configurableFiles();
+        this.headerSearchPaths = fileOperations.configurableFiles();
+        this.compileModules = fileOperations.configurableFiles();
         this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
     }
 

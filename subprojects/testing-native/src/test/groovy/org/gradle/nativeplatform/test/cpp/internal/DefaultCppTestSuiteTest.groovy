@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.internal
 
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.nativeplatform.OperatingSystemFamily
@@ -30,25 +31,20 @@ class DefaultCppTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def testSuite = new DefaultCppTestSuite("test", project.objects, project.services.get(FileOperations))
 
     def "has display name"() {
-        def testSuite = new DefaultCppTestSuite("test", project.objects, project)
-
         expect:
         testSuite.displayName.displayName == "C++ test suite 'test'"
         testSuite.toString() == "C++ test suite 'test'"
     }
 
     def "has implementation dependencies"() {
-        def testSuite = new DefaultCppTestSuite("test", project.objects, project)
-
         expect:
         testSuite.implementationDependencies == project.configurations['testImplementation']
     }
 
     def "can add executable"() {
-        def testSuite = new DefaultCppTestSuite("test", project.objects, project)
-
         expect:
         def exe = testSuite.addExecutable("exe", identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testExe'

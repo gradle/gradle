@@ -57,7 +57,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         this.name = name;
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
-        privateHeaders = fileOperations.files();
+        privateHeaders = fileOperations.configurableFiles();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
         names = Names.of(name);
@@ -77,11 +77,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
-        return fileOperations.files(new Callable<Object>() {
+        return fileOperations.immutableFiles(new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
+            public Object call() {
                 if (dirs.getFrom().isEmpty()) {
-                    return fileOperations.files(conventionLocation);
+                    return fileOperations.immutableFiles(conventionLocation);
                 }
                 return dirs;
             }

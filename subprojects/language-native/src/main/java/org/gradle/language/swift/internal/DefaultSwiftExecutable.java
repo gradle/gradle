@@ -66,7 +66,7 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
         this.debuggerExecutableFile = projectLayout.fileProperty();
         this.runtimeElementsProperty = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
     }
 
     @Override

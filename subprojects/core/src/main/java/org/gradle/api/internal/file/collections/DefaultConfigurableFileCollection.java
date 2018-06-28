@@ -55,7 +55,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this(displayName, fileResolver, taskResolver, null);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Collection<?> files) {
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new LinkedHashSet<Object>();
@@ -65,38 +65,46 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public Set<Object> getFrom() {
         return files;
     }
 
+    @Override
     public void setFrom(Iterable<?> path) {
         files.clear();
         files.add(path);
     }
 
+    @Override
     public void setFrom(Object... paths) {
         files.clear();
         GUtil.addToCollection(files, Arrays.asList(paths));
     }
 
+    @Override
     public ConfigurableFileCollection from(Object... paths) {
         GUtil.addToCollection(files, Arrays.asList(paths));
         return this;
     }
 
+    @Override
     public ConfigurableFileCollection builtBy(Object... tasks) {
         buildDependency.add(tasks);
         return this;
     }
 
+    @Override
     public Set<Object> getBuiltBy() {
         return buildDependency.getMutableValues();
     }
 
+    @Override
     public ConfigurableFileCollection setBuiltBy(Iterable<?> tasks) {
         buildDependency.setValues(tasks);
         return this;
