@@ -137,7 +137,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
             ProgressLoggerFactory progressLoggerFactory,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ResourceLockCoordinationService resourceLockCoordinationService,
             ParallelismConfigurationManager parallelismConfigurationManager,
             BuildOperationIdFactory buildOperationIdFactory
         ) {
@@ -147,7 +146,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
                 progressLoggerFactory,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                resourceLockCoordinationService,
                 parallelismConfigurationManager,
                 buildOperationIdFactory
             );

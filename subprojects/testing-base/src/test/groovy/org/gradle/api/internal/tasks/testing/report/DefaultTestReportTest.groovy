@@ -22,12 +22,11 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
-import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.Clock
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
@@ -52,7 +51,7 @@ class DefaultTestReportTest extends Specification {
         ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(false, numThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelExecutionManager, new DefaultBuildOperationIdFactory())
         return new DefaultTestReport(buildOperationExecutor)
     }
 

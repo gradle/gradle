@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
 
@@ -1191,42 +1190,6 @@ task generate(type: TransformerTask) {
         then:
         result.assertTasksExecuted(":customTask")
         file("build/output/file.txt").assertExists()
-    }
-
-    @Unroll
-    def "produces a sensible error when a task #description causes dependency resolution"() {
-        buildFile << """
-            ${jcenterRepository()}
-            
-            configurations {
-                foo
-            }
-            
-            dependencies {
-                foo "commons-io:commons-io:1.2"
-            }
-            
-            task foobar(type: MisbehavingTask) {
-                misbehavingProperty = configurations.foo
-            }
-            
-            class MisbehavingTask extends DefaultTask {
-                @${propertyType.simpleName}
-                def misbehavingProperty 
-            }
-        """
-
-        when:
-        fails("foobar")
-
-        then:
-        failure.assertHasDescription message
-
-        where:
-        description   | propertyType | message
-        "output"      | OutputFiles  | "A deadlock was detected while resolving the outputs for task ':foobar'. This can be caused, for instance, by an output or local state property causing dependency resolution."
-        "local state" | LocalState   | "A deadlock was detected while resolving the outputs for task ':foobar'. This can be caused, for instance, by an output or local state property causing dependency resolution."
-        "destroyable" | Destroys     | "A deadlock was detected while resolving the destroyables for task ':foobar'. This can be caused, for instance, by a destroyable property causing dependency resolution."
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2180")
