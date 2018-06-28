@@ -120,7 +120,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
 
     private Processor instantiateProcessor(Class<?> processorClass) {
         try {
-            return (Processor) processorClass.newInstance();
+            return (Processor) processorClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'");
         }
