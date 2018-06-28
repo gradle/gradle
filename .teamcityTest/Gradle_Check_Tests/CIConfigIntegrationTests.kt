@@ -5,6 +5,7 @@ import model.*
 import org.junit.Test
 import projects.RootProject
 import java.io.File
+import java.util.regex.Pattern
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -138,7 +139,30 @@ class CIConfigIntegrationTests {
             )
         )
         val p = RootProject(m)
-        printTree(p)
+        assertTrue(!p.hasSubProject("Stage1", "deferred"))
+        assertTrue(!p.hasSubProject("Stage2", "deferred"))
+        assertTrue( p.hasSubProject("Stage3", "deferred"))
+        assertTrue(!p.hasSubProject("Stage4", "deferred"))
+        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("Quick", "slowBuild"))
+        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("NoDaemon", "slowBuild"))
+    }
+
+    private fun Project.hasSubProject(vararg patterns: String): Boolean {
+        return findSubProject(*patterns) != null
+    }
+
+    private fun Project.findSubProject(vararg patterns: String): Project? {
+        val tail = patterns.drop(1).toTypedArray()
+        val sub =  this.subProjects.find { it.name.contains(patterns[0]) }
+        return if (sub == null || tail.isEmpty()) sub else sub.findSubProject(*tail)
+    }
+
+    private fun Project.hasBuildType(vararg patterns: String): Boolean {
+        return this.buildTypes.find { buildType ->
+            patterns.all { pattern ->
+                buildType.id.contains(pattern)
+            }
+        } != null
     }
 
     @Test
