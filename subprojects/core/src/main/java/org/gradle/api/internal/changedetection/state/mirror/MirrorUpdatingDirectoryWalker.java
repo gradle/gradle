@@ -90,25 +90,20 @@ public class MirrorUpdatingDirectoryWalker {
         return walkDir(rootPath, null);
     }
 
-    public ImmutablePhysicalDirectorySnapshot walkDir(final Path rootPath, @Nullable PatternSet patterns) {
+    public ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
         final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
-        final Deque<String> relativePathHolder = new ArrayDeque<String>();
-        final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
         final AtomicReference<ImmutablePhysicalDirectorySnapshot> result = new AtomicReference<ImmutablePhysicalDirectorySnapshot>();
-        final AtomicReference<String> rootDirectoryName = new AtomicReference<String>();
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
+                private final RelativePathTracker relativePath = new RelativePathTracker();
+                private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
+
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    if (levelHolder.size() == 0 || isAllowed(dir, true, attrs, relativePathHolder)) {
+                    if (relativePath.isRoot() || isAllowed(dir, true, attrs, relativePath)) {
                         String name = internedName(dir);
-                        if (levelHolder.size() == 0) {
-                            rootDirectoryName.set(name);
-                        } else {
-                            relativePathHolder.addLast(name);
-
-                        }
+                        relativePath.enter(name);
                         levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
                         return FileVisitResult.CONTINUE;
                     } else {
@@ -118,7 +113,7 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
-                    if (isAllowed(file, false, attrs, relativePathHolder)) {
+                    if (isAllowed(file, false, attrs, relativePath)) {
                         if (attrs != null && attrs.isSymbolicLink()) {
                             // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                             throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
@@ -130,7 +125,7 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFileFailed(Path file, @Nullable IOException exc) {
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, false, null, relativePathHolder)) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, false, null, relativePath)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -141,7 +136,7 @@ public class MirrorUpdatingDirectoryWalker {
                     if (isNotFileSystemLoopException(exc)) {
                         throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
                     }
-                    String directoryPath = relativePathHolder.isEmpty() ? rootDirectoryName.get() : relativePathHolder.removeLast();
+                    String directoryPath = relativePath.leave();
                     List<PhysicalSnapshot> children = levelHolder.removeLast();
                     ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(internedAbsolutePath(dir), directoryPath, children);
                     List<PhysicalSnapshot> siblings = levelHolder.peekLast();
@@ -174,13 +169,13 @@ public class MirrorUpdatingDirectoryWalker {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, boolean isDirectory, @Nullable BasicFileAttributes attrs, Deque<String> relativePath) {
+                private boolean isAllowed(Path path, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathTracker relativePath) {
                     if (spec == null) {
                         return true;
                     }
-                    relativePath.addLast(path.getFileName().toString());
-                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, isDirectory, attrs, relativePath, fileSystem));
-                    relativePath.removeLast();
+                    relativePath.enter(path.getFileName().toString());
+                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, isDirectory, attrs, relativePath.get(), fileSystem));
+                    relativePath.leave();
                     return allowed;
                 }
             });

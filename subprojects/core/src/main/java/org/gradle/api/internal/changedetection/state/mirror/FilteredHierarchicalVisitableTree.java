@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
@@ -30,7 +29,6 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Deque;
 
 public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableTree {
 
@@ -47,40 +45,31 @@ public class FilteredHierarchicalVisitableTree implements HierarchicalVisitableT
     @Override
     public void accept(final HierarchicalFileTreeVisitor visitor) {
         delegate.accept(new HierarchicalFileTreeVisitor() {
-            private Deque<String> relativePath = Lists.newLinkedList();
-            private boolean seenRoot;
+            private final RelativePathTracker relativePath = new RelativePathTracker();
 
             @Override
             public boolean preVisitDirectory(String path, String name) {
-                if (!seenRoot) {
-                    seenRoot = true;
-                } else {
-                    relativePath.addLast(name);
-                }
-                if (relativePath.isEmpty() || spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath, DirContentSnapshot.INSTANCE, fileSystem))) {
+                relativePath.enter(name);
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.get(), DirContentSnapshot.INSTANCE, fileSystem))) {
                     visitor.preVisitDirectory(path, name);
                     return true;
                 }
-                relativePath.removeLast();
+                relativePath.leave();
                 return false;
             }
 
             @Override
             public void visit(String path, String name, FileContentSnapshot content) {
-                relativePath.addLast(name);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath, content, fileSystem))) {
+                relativePath.enter(name);
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.get(), content, fileSystem))) {
                     visitor.visit(path, name, content);
                 }
-                relativePath.removeLast();
+                relativePath.leave();
             }
 
             @Override
             public void postVisitDirectory() {
-                if (relativePath.isEmpty()) {
-                    seenRoot = false;
-                } else {
-                    relativePath.removeLast();
-                }
+                relativePath.leave();
                 visitor.postVisitDirectory();
             }
         });
