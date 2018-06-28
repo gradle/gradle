@@ -64,11 +64,11 @@ public class MirrorUpdatingDirectoryWalker {
         this.stringInterner = stringInterner;
     }
 
-    public HierarchicalVisitableTree walkDir(final FileSnapshot fileSnapshot) {
-        return walkDir(fileSnapshot, null);
+    public HierarchicalVisitableTree walk(final FileSnapshot fileSnapshot) {
+        return walk(fileSnapshot, null);
     }
 
-    public HierarchicalVisitableTree walkDir(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public HierarchicalVisitableTree walk(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
             return PhysicalSnapshotBackedVisitableTree.EMPTY;
         }
@@ -86,11 +86,7 @@ public class MirrorUpdatingDirectoryWalker {
         return new PhysicalSnapshotBackedVisitableTree(rootDirectory);
     }
 
-    public ImmutablePhysicalDirectorySnapshot walkDir(final Path rootPath) {
-        return walkDir(rootPath, null);
-    }
-
-    public ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
+    private ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
         final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
         final AtomicReference<ImmutablePhysicalDirectorySnapshot> result = new AtomicReference<ImmutablePhysicalDirectorySnapshot>();
 
@@ -114,7 +110,10 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
                     if (isAllowed(file, false, attrs, relativePath)) {
-                        if (attrs != null && attrs.isSymbolicLink()) {
+                        if (attrs == null) {
+                            throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
+                        }
+                        if (attrs.isSymbolicLink()) {
                             // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                             throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                         }
@@ -124,7 +123,7 @@ public class MirrorUpdatingDirectoryWalker {
                 }
 
                 @Override
-                public FileVisitResult visitFileFailed(Path file, @Nullable IOException exc) {
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
                     if (isNotFileSystemLoopException(exc) && isAllowed(file, false, null, relativePath)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
@@ -152,7 +151,7 @@ public class MirrorUpdatingDirectoryWalker {
                     return e != null && !(e instanceof FileSystemLoopException);
                 }
 
-                private void addFileSnapshot(Path file, @Nullable BasicFileAttributes attrs) {
+                private void addFileSnapshot(Path file, BasicFileAttributes attrs) {
                     Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
                     String name = internedName(file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
@@ -212,12 +211,16 @@ public class MirrorUpdatingDirectoryWalker {
 
         @Override
         public long getLastModified() {
-            return attrs.lastModifiedTime().toMillis();
+            return getAttributes().lastModifiedTime().toMillis();
         }
 
         @Override
         public long getSize() {
-            return attrs.size();
+            return getAttributes().size();
+        }
+
+        private BasicFileAttributes getAttributes() {
+            return Preconditions.checkNotNull(attrs, "Cannot read file attributes of %s", path);
         }
 
         @Override

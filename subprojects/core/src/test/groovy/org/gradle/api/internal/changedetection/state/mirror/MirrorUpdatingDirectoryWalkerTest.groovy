@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state.mirror
 
+import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
@@ -53,7 +55,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def relativePaths = []
 
         when:
-        def root = walker.walkDir(rootDir.toPath())
+        def root = walkDir(rootDir, null, walker)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String path, Deque<String> relativePath) {
@@ -98,7 +100,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def relativePaths = []
 
         when:
-        def root = walker.walkDir(rootDir.toPath(), patterns)
+        def root = walkDir(rootDir, patterns, walker)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String path, Deque<String> relativePath) {
@@ -122,6 +124,10 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
             'root/a/c', 'root/a/c/c.txt',
             'root/a.txt'
         ] as Set
+    }
+
+    private static HierarchicalVisitableTree walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
+        walker.walk(new DirectoryFileSnapshot(dir.absolutePath, RelativePath.EMPTY_ROOT, true), patterns)
     }
 }
 

@@ -219,7 +219,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     @SuppressWarnings("Since15")
     private HierarchicalVisitableTree snapshotAndCache(DirectoryFileTree directoryTree) {
         final FileSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
-        HierarchicalVisitableTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walkDir(fileSnapshot);
+        HierarchicalVisitableTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walk(fileSnapshot);
         fileSystemMirror.putDirectory(fileSnapshot.getPath(), visitableDirectoryTree);
         return visitableDirectoryTree;
     }
@@ -229,7 +229,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * some defensive copying when the result won't be shared.
      */
     private HierarchicalVisitableTree snapshotWithoutCaching(DirectoryFileTree directoryTree) {
-        return mirrorUpdatingDirectoryWalker.walkDir(snapshotSelf(directoryTree.getDir()), directoryTree.getPatterns());
+        return mirrorUpdatingDirectoryWalker.walk(snapshotSelf(directoryTree.getDir()), directoryTree.getPatterns());
     }
 
     private HierarchicalVisitableTree filterSnapshot(final HierarchicalVisitableTree snapshot, PatternSet patterns) {
