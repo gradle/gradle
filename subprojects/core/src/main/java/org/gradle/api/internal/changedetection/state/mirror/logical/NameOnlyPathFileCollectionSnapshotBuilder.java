@@ -49,7 +49,7 @@ public class NameOnlyPathFileCollectionSnapshotBuilder extends RootFileCollectio
             final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableSortedMap.naturalOrder();
             final HashSet<String> processedEntries = new HashSet<String>();
             for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+                entry.getValue().accept(new LogicalSnapshotVisitor() {
                     private boolean root = true;
 
                     @Override

@@ -30,7 +30,7 @@ public class LogicalFileSnapshot implements LogicalSnapshot {
     }
 
     @Override
-    public void accept(HierarchicalSnapshotVisitor visitor) {
+    public void accept(LogicalSnapshotVisitor visitor) {
         visitor.visit(path, name, content);
     }
 }

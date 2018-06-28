@@ -131,7 +131,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
     }
 }
 
-abstract class RelativePathTrackingVisitor implements HierarchicalFileTreeVisitor {
+abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override

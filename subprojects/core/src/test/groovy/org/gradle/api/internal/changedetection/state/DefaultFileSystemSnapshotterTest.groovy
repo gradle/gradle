@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.caching.internal.DefaultBuildCacheHasher
@@ -179,7 +179,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         when:
         def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
         def paths = [] as Set
-        snapshot.accept(new HierarchicalFileTreeVisitor() {
+        snapshot.accept(new PhysicalSnapshotVisitor() {
             private Deque<String> relativePath = new ArrayDeque<String>()
             private boolean seenRoot = false
 
@@ -235,7 +235,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         then:
         getTreeInfo(snapshot) == [null, 1]
-        snapshot.accept(new HierarchicalFileTreeVisitor() {
+        snapshot.accept(new PhysicalSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(String path, String name) {
                 throw new UnsupportedOperationException()
@@ -338,7 +338,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     private static List getTreeInfo(PhysicalSnapshot tree) {
         String rootPath = null
         int count = 0
-        tree.accept(new HierarchicalFileTreeVisitor() {
+        tree.accept(new PhysicalSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(String path, String name) {
                 if (rootPath == null) {

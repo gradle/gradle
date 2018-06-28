@@ -30,7 +30,7 @@ public class LogicalDirectorySnapshot implements LogicalSnapshot {
     }
 
     @Override
-    public void accept(HierarchicalSnapshotVisitor visitor) {
+    public void accept(LogicalSnapshotVisitor visitor) {
         visitor.preVisitDirectory(path, name);
         for (LogicalSnapshot logicalSnapshot : getChildren()) {
             logicalSnapshot.accept(visitor);

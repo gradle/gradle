@@ -32,7 +32,7 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
     protected abstract Iterable<? extends PhysicalSnapshot> getChildren();
 
     @Override
-    public void accept(HierarchicalFileTreeVisitor visitor) {
+    public void accept(PhysicalSnapshotVisitor visitor) {
         if (!visitor.preVisitDirectory(getPath(), getName())) {
             return;
         }

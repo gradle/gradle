@@ -32,6 +32,6 @@ public class MissingPhysicalSnapshot implements PhysicalSnapshot {
     }
 
     @Override
-    public void accept(HierarchicalFileTreeVisitor visitor) {
+    public void accept(PhysicalSnapshotVisitor visitor) {
     }
 }

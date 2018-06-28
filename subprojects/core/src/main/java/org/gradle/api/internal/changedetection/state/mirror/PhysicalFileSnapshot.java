@@ -46,7 +46,7 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
     }
 
     @Override
-    public void accept(HierarchicalFileTreeVisitor visitor) {
+    public void accept(PhysicalSnapshotVisitor visitor) {
         visitor.visit(getPath(), getName(), new FileHashSnapshot(hash, timestamp));
     }
 

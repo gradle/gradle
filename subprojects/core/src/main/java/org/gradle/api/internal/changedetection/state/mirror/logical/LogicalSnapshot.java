@@ -17,5 +17,5 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 public interface LogicalSnapshot {
-    void accept(HierarchicalSnapshotVisitor visitor);
+    void accept(LogicalSnapshotVisitor visitor);
 }

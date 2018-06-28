@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
-public interface HierarchicalSnapshotVisitor {
-    void preVisitDirectory(String path, String name);
+public interface PhysicalSnapshotVisitor {
+    /**
+     * Called before visiting the contents of a directory.
+     *
+     * @return whether the subtree should be visited.
+     */
+    boolean preVisitDirectory(String path, String name);
     void visit(String path, String name, FileContentSnapshot content);
     void postVisitDirectory();
 }

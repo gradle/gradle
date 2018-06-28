@@ -43,8 +43,8 @@ public class FilteredHierarchicalVisitableTree implements PhysicalSnapshot {
     }
 
     @Override
-    public void accept(final HierarchicalFileTreeVisitor visitor) {
-        delegate.accept(new HierarchicalFileTreeVisitor() {
+    public void accept(final PhysicalSnapshotVisitor visitor) {
+        delegate.accept(new PhysicalSnapshotVisitor() {
             private final RelativePathTracker relativePath = new RelativePathTracker();
 
             @Override

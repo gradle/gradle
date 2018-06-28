@@ -117,7 +117,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
                 final String basePath = entry.getKey();
                 final int rootIndex = basePath.length() + 1;
                 final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder = ImmutableSortedMap.naturalOrder();
-                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+                entry.getValue().accept(new LogicalSnapshotVisitor() {
                     private boolean root = true;
 
                     @Override

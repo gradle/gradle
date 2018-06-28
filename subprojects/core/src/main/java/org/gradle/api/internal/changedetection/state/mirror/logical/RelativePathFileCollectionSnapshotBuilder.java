@@ -49,7 +49,7 @@ public class RelativePathFileCollectionSnapshotBuilder extends RootFileCollectio
             for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
                 final String basePath = entry.getKey();
                 final int rootIndex = basePath.length() + 1;
-                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+                entry.getValue().accept(new LogicalSnapshotVisitor() {
                     private boolean root = true;
 
                     @Override

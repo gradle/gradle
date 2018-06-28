@@ -54,7 +54,7 @@ public class AbsolutePathFileCollectionSnapshotBuilder extends RootFileCollectio
             final ImmutableMap.Builder<String, FileContentSnapshot> builder = ImmutableMap.builder();
             final HashSet<String> processedEntries = new HashSet<String>();
             for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+                entry.getValue().accept(new LogicalSnapshotVisitor() {
 
                     @Override
                     public void preVisitDirectory(String path, String name) {

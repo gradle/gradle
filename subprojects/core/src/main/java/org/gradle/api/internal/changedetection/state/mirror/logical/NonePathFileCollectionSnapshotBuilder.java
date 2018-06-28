@@ -45,7 +45,7 @@ public class NonePathFileCollectionSnapshotBuilder extends RootFileCollectionSna
             final ImmutableSortedMap.Builder<String, FileContentSnapshot> builder = ImmutableSortedMap.naturalOrder();
             final HashSet<String> processedEntries = new HashSet<String>();
             for (Map.Entry<String, LogicalSnapshot> entry : roots.entries()) {
-                entry.getValue().accept(new HierarchicalSnapshotVisitor() {
+                entry.getValue().accept(new LogicalSnapshotVisitor() {
 
                     @Override
                     public void preVisitDirectory(String path, String name) {
