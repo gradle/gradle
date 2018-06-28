@@ -26,9 +26,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
-@SuppressWarnings("GroovyPointlessBoolean")
+@UsesNativeServices
 class AbstractCopyTaskTest extends WorkspaceTest {
 
     def taskPropertiesWithOutput = Mock(TaskProperties) {
@@ -64,8 +65,10 @@ class AbstractCopyTaskTest extends WorkspaceTest {
     def "task output caching is disabled when #description is used"() {
         when:
         method(task)
+
         then:
-        task.outputs.getCachingState(taskPropertiesWithOutput).enabled == false
+        def cachingState = task.outputs.getCachingState(taskPropertiesWithOutput)
+        !cachingState.enabled
 
         where:
         description                 | method

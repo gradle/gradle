@@ -19,7 +19,8 @@ package org.gradle.test.fixtures.file
 import org.junit.Rule
 import spock.lang.Specification
 
-class WorkspaceTest extends Specification {
+@CleanupTestDirectory
+abstract class WorkspaceTest extends Specification {
 
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
