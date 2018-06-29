@@ -38,10 +38,12 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short LOGGING_HEADER_IS_SHORT_DESCRIPTION = 1 << 5;
     private static final short STATUS = 1 << 6;
     private static final short BUILD_OPERATION_ID = 1 << 7;
-    private static final short BUILD_OPERATION_START = 1 << 8;
-    private static final short PARENT_BUILD_OPERATION_ID = 1 << 9;
-    private static final short BUILD_OPERATION_CATEGORY_TASK = 1 << 10;
-    private static final short BUILD_OPERATION_CATEGORY_PROJECT = 1 << 11;
+    private static final short BUILD_OPERATION_ID_IS_PROGRESS_ID = 1 << 8;
+    private static final short BUILD_OPERATION_START = 1 << 9;
+    private static final short PARENT_BUILD_OPERATION_ID = 1 << 10;
+    private static final short PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID = 1 << 11;
+    private static final short BUILD_OPERATION_CATEGORY_TASK = 1 << 12;
+    private static final short BUILD_OPERATION_CATEGORY_PROJECT = 1 << 13;
 
     @Override
     public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
@@ -75,11 +77,19 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
         OperationIdentifier buildOperationId = event.getBuildOperationId();
         if (buildOperationId != null) {
-            flags |= BUILD_OPERATION_ID;
+            if (buildOperationId.equals(event.getProgressOperationId())) {
+                flags |= BUILD_OPERATION_ID_IS_PROGRESS_ID;
+            } else {
+                flags |= BUILD_OPERATION_ID;
+            }
         }
         OperationIdentifier parentBuildOperationId = event.getParentBuildOperationId();
         if (parentBuildOperationId != null) {
-            flags |= PARENT_BUILD_OPERATION_ID;
+            if (parentBuildOperationId.equals(event.getParentProgressOperationId())) {
+                flags |= PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID;
+            } else {
+                flags |= PARENT_BUILD_OPERATION_ID;
+            }
         }
         BuildOperationCategory buildOperationCategory = event.getBuildOperationCategory();
         if (buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT) {
@@ -113,10 +123,10 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
         encoder.writeInt(event.getTotalProgress());
 
-        if (buildOperationId != null) {
+        if ((flags & BUILD_OPERATION_ID) != 0) {
             encoder.writeSmallLong(buildOperationId.getId());
         }
-        if (parentBuildOperationId != null) {
+        if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
             encoder.writeSmallLong(parentBuildOperationId.getId());
         }
     }
@@ -160,11 +170,15 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         OperationIdentifier buildOperationId = null;
         if ((flags & BUILD_OPERATION_ID) != 0) {
             buildOperationId = new OperationIdentifier(decoder.readSmallLong());
+        } else if ((flags & BUILD_OPERATION_ID_IS_PROGRESS_ID) != 0) {
+            buildOperationId = progressOperationId;
         }
 
         OperationIdentifier parentBuildOperationId = null;
         if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
             parentBuildOperationId = new OperationIdentifier(decoder.readSmallLong());
+        } else if ((flags & PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID) != 0) {
+            parentBuildOperationId = parentProgressOperationId;
         }
 
         BuildOperationCategory buildOperationCategory;
