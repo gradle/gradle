@@ -28,18 +28,10 @@ public class HttpClientHttpHeaderCredentials implements Credentials {
 
     private Header header;
 
-    public void setHeader(String headerName, String headerValue) {
-        this.header = new BasicHeader(headerName, headerValue);
-    }
-
-    public void setHeader(Header header) {
-        this.header = header;
-    }
-
     public void setHeader(String header) {
         final CharArrayBuffer charArrayBuffer = new CharArrayBuffer(header.length());
         charArrayBuffer.append(header);
-        this.setHeader(new BufferedHeader(charArrayBuffer));
+        this.header = new BufferedHeader(charArrayBuffer);
     }
 
     public Header getHeader() {
