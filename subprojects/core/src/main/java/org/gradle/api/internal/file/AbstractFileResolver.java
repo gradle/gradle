@@ -63,12 +63,15 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
     }
 
+    @Override
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
     }
 
+    @Override
     public NotationParser<Object, File> asNotationParser() {
         return new NotationParser<Object, File>() {
+            @Override
             public File parseNotation(Object notation) throws UnsupportedNotationException {
                 // TODO Further differentiate between unsupported notation errors and others (particularly when we remove the deprecated 'notation.toString()' resolution)
                 return resolve(notation, PathValidation.NONE);
@@ -81,6 +84,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         };
     }
 
+    @Override
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 
@@ -91,8 +95,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         return file;
     }
 
-
-    @Nullable
+    @Override
     public URI resolveUri(Object path) {
         return convertObjectToURI(path);
     }
@@ -149,6 +152,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
+    @Override
     public FileCollectionInternal resolveFiles(Object... paths) {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
             return Cast.cast(FileCollectionInternal.class, paths[0]);
@@ -156,14 +160,17 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new DefaultConfigurableFileCollection(this, null, paths);
     }
 
+    @Override
     public FileTreeInternal resolveFilesAsTree(Object... paths) {
         return Cast.cast(FileTreeInternal.class, resolveFiles(paths).getAsFileTree());
     }
 
+    @Override
     public FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees) {
         return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, fileTrees));
     }
 
+    @Override
     public ReadableResourceInternal resolveResource(Object path) {
         if (path instanceof ReadableResourceInternal) {
             return (ReadableResourceInternal) path;

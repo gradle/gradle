@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.text.TreeFormatter;
 
-public class RejectedVersion {
+public abstract class RejectedVersion {
     private final ModuleComponentIdentifier id;
 
     public RejectedVersion(ModuleComponentIdentifier id) {

@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -137,7 +138,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             ComponentSelectionDescriptorInternal substitutionReason = (ComponentSelectionDescriptorInternal) reason;
             @Override
             public Substitution because(String description) {
-                substitutionReason = substitutionReason.withReason(description);
+                substitutionReason = substitutionReason.withReason(Describables.of(description));
                 return this;
             }
 
@@ -239,7 +240,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         public void execute(DependencySubstitution dependencySubstitution) {
             if (dependencySubstitution.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requested = (ModuleComponentSelector) dependencySubstitution.getRequested();
-                if (moduleId.getGroup().equals(requested.getGroup()) && moduleId.getName().equals(requested.getModule())) {
+                if (moduleId.equals(requested.getModuleIdentifier())) {
                     ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
                 }
             }

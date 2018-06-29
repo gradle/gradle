@@ -16,9 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Maps;
-import org.gradle.internal.Pair;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,19 +32,53 @@ import java.util.Map;
  * the generated names to avoid recreating multiple times.
  */
 public class VariantNameBuilder {
-    private final Map<Pair<String, String>, String> names = Maps.newHashMap();
+    private final Map<List<String>, DisplayName> names = Maps.newHashMap();
 
-    public String getVariantName(@Nullable String baseName, String part) {
-        if (baseName == null) {
-            return part;
+    public DisplayName getVariantName(@Nullable List<String> parts) {
+        if (parts == null) {
+            return null;
         }
 
-        Pair<String, String> key = Pair.of(baseName, part);
-        String name = names.get(key);
-        if (name == null) {
-            name = baseName + "+" + part;
-            names.put(key, name);
+        DisplayName displayName = names.get(parts);
+        if (displayName == null) {
+            displayName = variantName(parts);
+            names.put(parts, displayName);
         }
-        return name;
+
+        return displayName;
+    }
+
+    private static DisplayName variantName(List<String> parts) {
+        if (parts.size() == 1) {
+            return Describables.of(parts.get(0));
+        }
+        return new MultipleVariantName(parts);
+    }
+
+    private static class MultipleVariantName implements DisplayName {
+        private final List<String> parts;
+
+        private MultipleVariantName(List<String> parts) {
+            this.parts = parts;
+        }
+
+        @Override
+        public String getCapitalizedDisplayName() {
+            return StringUtils.capitalize(getDisplayName());
+        }
+
+        @Override
+        public String getDisplayName() {
+            StringBuilder sb = new StringBuilder(16 * parts.size());
+            boolean appendPlus = false;
+            for (String part : parts) {
+                if (appendPlus) {
+                    sb.append("+");
+                }
+                sb.append(part);
+                appendPlus = true;
+            }
+            return sb.toString();
+        }
     }
 }

@@ -56,6 +56,7 @@ import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -106,6 +107,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     private final InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory;
     private final InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister;
+    private final Instantiator injector;
 
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
@@ -120,7 +122,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        ImmutableMetadataSources metadataSources,
                                        MetadataArtifactProvider metadataArtifactProvider,
                                        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister) {
+                                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister, Instantiator injector) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -132,6 +134,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.metadataArtifactProvider = metadataArtifactProvider;
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.providedVersionLister = providedVersionLister;
+        this.injector = injector;
     }
 
     public String getId() {
@@ -168,6 +171,10 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return local;
     }
 
+    public Instantiator getComponentMetadataInstantiator() {
+        return injector;
+    }
+
     @Override
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return componentMetadataSupplierFactory;
@@ -184,7 +191,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
+        ModuleIdentifier module = dependency.getSelector().getModuleIdentifier();
 
         tryListingViaRule(module, result);
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.rules
 
-import com.google.common.collect.AbstractIterator
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import spock.lang.Specification
@@ -26,29 +25,25 @@ class ErrorHandlingTaskStateChangesTest extends Specification {
     def delegate = Mock(TaskStateChanges)
     def changes = new ErrorHandlingTaskStateChanges(task, delegate)
 
-    def "iterator error reports task path"() {
+    def "accept error reports task path"() {
         when:
-        changes.iterator()
+        changes.accept(Mock(TaskStateChangeVisitor))
         then:
         def ex = thrown GradleException
         ex.message == "Cannot determine task state changes for Mock for type 'Task' named 'task'"
         ex.cause.message == "Error!"
-        1 * delegate.iterator() >> { throw new RuntimeException("Error!") }
+        1 * delegate.accept(_) >> { throw new RuntimeException("Error!") }
     }
 
-    def "iteration error reports task path"() {
-        when:
-        def iterator = changes.iterator()
-        then:
-        1 * delegate.iterator() >> { new AbstractIterator<String>() {
-            @Override
-            protected String computeNext() {
-                throw new RuntimeException("Error!")
-            }
-        } }
+    def "visitor error reports task path"() {
+        def visitor = Mock(TaskStateChangeVisitor)
 
         when:
-        iterator.next()
+        changes.accept(visitor)
+        then:
+        1 * delegate.accept(_) >> { it[0].visitChange(null) }
+        1 * visitor.visitChange(_) >> { throw new RuntimeException("Error!") }
+
         then:
         def ex = thrown GradleException
         ex.message == "Cannot determine task state changes for Mock for type 'Task' named 'task'"

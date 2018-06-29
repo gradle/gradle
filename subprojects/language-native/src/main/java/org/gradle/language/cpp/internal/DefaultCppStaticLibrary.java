@@ -61,7 +61,7 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
     }
 
     @Override

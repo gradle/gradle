@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 
@@ -28,4 +29,6 @@ public interface AttributeSelectionSchema {
     boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);
 
     Attribute<?> getAttribute(String name);
+
+    Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 }

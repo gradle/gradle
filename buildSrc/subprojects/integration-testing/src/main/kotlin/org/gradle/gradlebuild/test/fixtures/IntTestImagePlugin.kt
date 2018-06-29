@@ -41,12 +41,12 @@ import java.util.concurrent.Callable
 open class IntTestImagePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val intTestImage = tasks.createLater("intTestImage", Sync::class.java) {
+        val intTestImage = tasks.register("intTestImage", Sync::class.java) {
             group = "Verification"
             into(file("$buildDir/integ test"))
         }
 
-        tasks.withType(DistributionTest::class.java).configureEach {
+        tasks.withType<DistributionTest>().configureEach {
             dependsOn(intTestImage)
         }
 
@@ -61,7 +61,7 @@ open class IntTestImagePlugin : Plugin<Project> {
         if (useAllDistribution) {
             val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
 
-            val unpackAllDistribution = tasks.createLater("unpackAllDistribution", Sync::class.java) {
+            val unpackAllDistribution = tasks.register("unpackAllDistribution", Sync::class.java) {
                 dependsOn(":distributions:allZip")
                 // TODO: This should be modelled as a publication
                 from(Callable {
@@ -85,7 +85,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                 isCanBeConsumed = false
             }
             afterEvaluate {
-                if (project.tasks.findByName("jar") != null) {
+                if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {
                         selfRuntime(this@afterEvaluate)
                     }

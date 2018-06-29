@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.TaskInternal;
 
 import java.util.Collection;
 
@@ -26,8 +25,8 @@ import java.util.Collection;
  */
 public interface TaskPlanExecutor {
     /**
-     * @param taskWorker worker must be thread-safe.
      * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
+     * @param taskWorker worker must be thread-safe.
      */
-    void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Collection<? super Throwable> taskFailures);
+    void process(TaskExecutionPlan taskExecutionPlan, Collection<? super Throwable> failures, Action<WorkInfo> taskWorker);
 }

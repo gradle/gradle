@@ -164,6 +164,11 @@ class UserGuideSamplesRunner extends Runner {
                 executer.withArgument("--no-daemon")
             }
 
+            if (!run.envs.isEmpty() && JavaVersion.current().isJava9Compatible()) {
+                // resetting environment variables is not supported in Java 9+
+                executer.requireGradleDistribution().requireIsolatedDaemons()
+            }
+
             if (run.allowDeprecation) {
                 executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
             }

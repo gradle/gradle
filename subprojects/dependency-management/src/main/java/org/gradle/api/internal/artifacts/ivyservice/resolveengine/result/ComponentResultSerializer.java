@@ -58,7 +58,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
-        encoder.writeString(value.getVariantName());
+        encoder.writeString(value.getVariantName().getDisplayName());
         attributeContainerSerializer.write(encoder, value.getVariantAttributes());
     }
 

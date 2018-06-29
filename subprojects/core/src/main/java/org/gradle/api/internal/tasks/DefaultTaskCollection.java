@@ -21,8 +21,10 @@ import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
@@ -101,71 +103,63 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         if (task == null) {
             return findByNameLaterWithoutRules(name);
         }
-        return Cast.uncheckedCast(getInstantiator().newInstance(TaskLookupProvider.class, this, getType(), name));
+
+        TaskInternal taskInternal = (TaskInternal) task;
+        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task, taskIdentity));
     }
 
-    public static abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
-        final DefaultTaskCollection tasks;
-        final Class<T> type;
-        final String name;
+    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
+
+        final TaskIdentity<I> identity;
         boolean removed = false;
 
-        DefaultTaskProvider(DefaultTaskCollection tasks, Class<T> type, String name) {
-            this.tasks = tasks;
-            this.type = type;
-            this.name = name;
+        DefaultTaskProvider(TaskIdentity<I> identity) {
+            this.identity = identity;
         }
 
         @Override
         public String getName() {
-            return name;
+            return identity.name;
         }
 
         @Override
-        public Class<T> getType() {
-            return type;
+        public Class<I> getType() {
+            return identity.type;
         }
 
         @Override
         public boolean isPresent() {
-            return tasks.findTask(name) != null;
-        }
-
-        @Override
-        public void configure(final Action<? super T> action) {
-            tasks.configureEach(new Action<Task>() {
-                private boolean alreadyExecuted = false;
-
-                @Override
-                public void execute(Task task) {
-                    // Task specific configuration action should only be executed once
-                    if (task.getName().equals(name) && !removed && !alreadyExecuted) {
-                        alreadyExecuted = true;
-                        action.execute((T)task);
-                    }
-                }
-            });
+            return findTask(identity.name) != null;
         }
 
         @Override
         public String toString() {
-            return String.format("provider(task %s, %s)", name, type);
+            return String.format("provider(task %s, %s)", identity.name, identity.type);
         }
     }
 
-    public static class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
-        private T task;
+    // Cannot be private due to reflective instantiation
+    public class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
 
-        @SuppressWarnings("unused")
-        public TaskLookupProvider(DefaultTaskCollection tasks, Class<T> type, String name) {
-            super(tasks, type, name);
+        private final I task;
+
+        public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
+            super(identity);
+            this.task = task;
         }
 
         @Override
-        public T getOrNull() {
-            if (task == null) {
-                task = type.cast(tasks.findByName(name));
-            }
+        public void configure(Action<? super I> action) {
+            action.execute(task);
+        }
+
+        @Override
+        public boolean isPresent() {
+            return true;
+        }
+
+        public I getOrNull() {
             return task;
         }
     }

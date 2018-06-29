@@ -48,7 +48,7 @@ class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
-    private final List<SelectorState> selectors = Lists.newLinkedList();
+    private final List<SelectorState> selectors = Lists.newArrayListWithExpectedSize(4);
     private final VariantNameBuilder variantNameBuilder;
     private final ImmutableAttributesFactory attributesFactory;
     private ComponentState selected;
@@ -89,6 +89,10 @@ class ModuleResolveState implements CandidateModule {
             }
         }
         return versions;
+    }
+
+    public Collection<ComponentState> getAllVersions() {
+        return this.versions.values();
     }
 
     private static boolean areAllCandidatesForSelection(Collection<ComponentState> values) {
@@ -184,16 +188,17 @@ class ModuleResolveState implements CandidateModule {
             selector.overrideSelection(selected);
         }
         if (!unattachedDependencies.isEmpty()) {
-            restartUnattachedDependencies(selected);
+            restartUnattachedDependencies();
         }
     }
 
-    private void restartUnattachedDependencies(ComponentState selected) {
+    private void restartUnattachedDependencies() {
         if (unattachedDependencies.size() == 1) {
-            unattachedDependencies.get(0).restart(selected);
+            EdgeState singleDependency = unattachedDependencies.get(0);
+            singleDependency.restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
-                dependency.restart(selected);
+                dependency.restart();
             }
         }
         unattachedDependencies.clear();
@@ -216,9 +221,18 @@ class ModuleResolveState implements CandidateModule {
         return moduleRevision;
     }
 
-    public void addSelector(SelectorState selector) {
+    void addSelector(SelectorState selector) {
+        assert !selectors.contains(selector) : "Inconsistent call to addSelector: should only be done if the selector isn't in use";
         selectors.add(selector);
         mergedAttributes = appendAttributes(mergedAttributes, selector);
+    }
+
+    void removeSelector(SelectorState selector) {
+        selectors.remove(selector);
+        mergedAttributes = ImmutableAttributes.EMPTY;
+        for (SelectorState selectorState : selectors) {
+            mergedAttributes = appendAttributes(mergedAttributes, selectorState);
+        }
     }
 
     public List<SelectorState> getSelectors() {

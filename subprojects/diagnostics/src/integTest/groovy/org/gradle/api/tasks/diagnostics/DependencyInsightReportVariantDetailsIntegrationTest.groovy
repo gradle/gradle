@@ -54,6 +54,8 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
    variant "$expectedVariant" [
       $expectedAttributes
    ]
+
+project :$expectedProject
 \\--- $configuration"""
 
         where:
@@ -103,8 +105,11 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
       Requested attributes not found in the selected variant:
          org.gradle.blah   = something
    ]
+
+org.test:leaf:1.0
 \\--- org.test:a:1.0
-     \\--- compileClasspath"""
+     \\--- compileClasspath
+"""
     }
 
     def "Asking for variant details of 'FAILED' modules doesn't break the report"() {
@@ -168,6 +173,8 @@ org:leaf:1.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf:1.0
 \\--- org:top:1.0
      \\--- conf
 """
@@ -206,6 +213,8 @@ org:leaf:1.0
       Requested attributes not found in the selected variant:
          usage             = dummy
    ]
+
+org:leaf:1.0
 \\--- org:top:1.0
      \\--- conf
 """
@@ -263,6 +272,8 @@ org:testA:1.0
       custom            = dep_value
       org.gradle.status = release (not requested)
    ]
+
+org:testA:1.0
 \\--- conf
 
 org:testB:1.0

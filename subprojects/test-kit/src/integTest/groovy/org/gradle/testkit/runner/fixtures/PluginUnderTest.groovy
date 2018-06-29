@@ -37,6 +37,11 @@ class PluginUnderTest {
         void suppressCleanup() {
 
         }
+
+        @Override
+        void suppressCleanupErrors() {
+
+        }
     }
 
     private final int num

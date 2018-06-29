@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -33,17 +35,17 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, module, new DefaultMutableVersionConstraint(version)), newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version)), newModule(group, module, selectedVersion), newModule())
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
-        def requested = DefaultModuleComponentSelector.newSelector(group, module, new DefaultMutableVersionConstraint(version))
-        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(group, module, new DefaultMutableVersionConstraint(version)), "broken"))
+        def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version))
+        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version)), "broken"))
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
                                                         ComponentSelectionReason selectionReason = VersionSelectionReasons.requested(), ResolvedVariantResult variant = newVariant()) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version), variant)
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), variant)
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
@@ -55,6 +57,6 @@ class ResolutionResultDataBuilder {
         attributes.each {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
-        return new DefaultResolvedVariantResult(name, mutableAttributes)
+        return new DefaultResolvedVariantResult(Describables.of(name), mutableAttributes)
     }
 }

@@ -18,9 +18,11 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling
 
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.War
@@ -44,6 +46,34 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
         PublishArtifact artifact = new ArchivePublishArtifact(task)
 
         and:
+        _ * task.getArchivePath() >> project.file("file")
+
+        when:
+        GradleFileBuildOutcome outcome = transformer.transform(artifact, project)
+
+        then:
+        outcome.typeIdentifier == typeIdentifier.typeIdentifier
+        outcome.id == "file"
+
+        where:
+        taskClass           | typeIdentifier
+        Zip                 | ZIP_ARTIFACT
+        Jar                 | JAR_ARTIFACT
+        Ear                 | EAR_ARTIFACT
+        Tar                 | TAR_ARTIFACT
+        War                 | WAR_ARTIFACT
+        AbstractArchiveTask | ARCHIVE_ARTIFACT
+    }
+
+    @Unroll
+    "can create outcome for lazy #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
+        given:
+        AbstractArchiveTask task = Mock(taskClass)
+        TaskProvider taskProvider = Mock(TaskProvider)
+        PublishArtifact artifact = new LazyPublishArtifact(taskProvider)
+
+        and:
+        _ * taskProvider.get() >> task
         _ * task.getArchivePath() >> project.file("file")
 
         when:

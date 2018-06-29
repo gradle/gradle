@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder
@@ -45,7 +46,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
     private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())
 
-    def versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
+    def versionIdentifier = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "producer"), "1.0")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     def testAttribute = Attribute.of("someAttribute", String)
     def attributes = TestUtil.attributesFactory().of(testAttribute, "someValue")
@@ -151,9 +152,9 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
 
     void resolve(MutableModuleComponentResolveMetadata component) {
         def immutable = component.asImmutable()
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
-        def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
+        def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
 
         def configuration = consumer.selectConfigurations(attributes, immutable, schema)[0]

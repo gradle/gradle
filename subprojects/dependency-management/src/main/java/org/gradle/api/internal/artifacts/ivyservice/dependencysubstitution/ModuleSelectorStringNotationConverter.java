@@ -55,7 +55,7 @@ class ModuleSelectorStringNotationConverter extends TypedNotationConverter<Strin
         if (!GUtil.isTrue(version)) {
             throw new UnsupportedNotationException(notation);
         }
-        return DefaultModuleComponentSelector.newSelector(group, name, DefaultImmutableVersionConstraint.of(version));
+        return DefaultModuleComponentSelector.newSelector(moduleIdentifierFactory.module(group, name), DefaultImmutableVersionConstraint.of(version));
     }
 
     @Override

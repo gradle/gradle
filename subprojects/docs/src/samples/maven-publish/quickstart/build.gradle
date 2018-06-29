@@ -1,7 +1,11 @@
-apply plugin: 'java'
 // START SNIPPET use-plugin
-apply plugin: 'maven-publish'
+plugins {
+    id 'maven-publish'
+}
 // END SNIPPET use-plugin
+plugins {
+    id 'java'
+}
 
 group = 'org.gradle.sample'
 version = '1.0'
@@ -20,7 +24,7 @@ publishing {
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
-            url "$buildDir/repo"
+            url = "$buildDir/repo"
         }
     }
 }

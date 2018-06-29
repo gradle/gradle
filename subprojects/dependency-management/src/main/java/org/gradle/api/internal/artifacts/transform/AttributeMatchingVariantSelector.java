@@ -40,7 +40,13 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
 
-    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+    AttributeMatchingVariantSelector(
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        AttributesSchemaInternal schema,
+        ImmutableAttributesFactory attributesFactory,
+        AttributeContainerInternal requested,
+        boolean ignoreWhenNoMatches
+    ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
@@ -86,7 +92,10 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-            return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+            ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
+            AttributeContainerInternal attributes = result.getRight().attributes;
+            ArtifactTransformer transformer = result.getRight().transformer;
+            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer);
         }
 
         if (!candidates.isEmpty()) {

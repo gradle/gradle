@@ -90,4 +90,5 @@ public interface ResolutionResult {
      * @param closure - closure that is applied for each component
      */
     void allComponents(Closure closure);
+
 }

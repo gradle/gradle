@@ -44,7 +44,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         String name = decoder.readString();
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
         ImmutableAttributes attributes = readAttributes(decoder);
-        return newSelector(group, name, versionConstraint, attributes);
+        return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes);
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {

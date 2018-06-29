@@ -90,7 +90,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
 
     @Override
     public FileCollection getIdeProjectFiles(final Class<? extends IdeProjectMetadata> type) {
-        return fileOperations.files(new Callable<List<FileCollection>>() {
+        return fileOperations.immutableFiles(new Callable<List<FileCollection>>() {
             @Override
             public List<FileCollection> call() {
                 return CollectionUtils.collect(
@@ -98,7 +98,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                     new Transformer<FileCollection, Reference<?>>() {
                         @Override
                         public FileCollection transform(Reference<?> result) {
-                            ConfigurableFileCollection singleton = fileOperations.files(result.get().getFile());
+                            ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
                             singleton.builtBy(result.getBuildDependencies());
                             return singleton;
                         }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Buildable
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -114,6 +115,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def id = Stub(ComponentIdentifier)
+        def sourceArtifactId = Stub(ComponentArtifactIdentifier)
         def sourceArtifact = Stub(TestArtifact)
         def sourceArtifactFile = new File("thing-1.0.jar")
         def sourceFile = new File("thing-file.jar")
@@ -127,8 +129,10 @@ class DefaultArtifactTransformsTest extends Specification {
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
+        def variant1DisplayName = Describables.of('variant1')
 
         given:
+        sourceArtifact.id >> sourceArtifactId
         set.schema >> producerSchema
         set.variants >> variants
         variant1.attributes >> typeAttributes("jar")
@@ -142,21 +146,21 @@ class DefaultArtifactTransformsTest extends Specification {
             result.matched(to, transformer, 1)
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
-
         def result = transforms.variantSelector(targetAttributes, true).select(set)
 
         when:
         result.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), listener).visit(visitor)
 
         then:
+
         _ * variant1Artifacts.startVisit(_, _) >> { BuildOperationQueue q, ResolvedArtifactSet.AsyncArtifactListener l ->
             l.artifactAvailable(sourceArtifact)
             l.fileAvailable(sourceFile)
             return new ResolvedArtifactSet.Completion() {
                 @Override
                 void visit(ArtifactVisitor v) {
-                    v.visitArtifact('variant1', targetAttributes, sourceArtifact)
-                    v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), 'variant1', targetAttributes, sourceFile)
+                    v.visitArtifact(variant1DisplayName, targetAttributes, sourceArtifact)
+                    v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), variant1DisplayName, targetAttributes, sourceFile)
                 }
             }
         }
@@ -164,10 +168,10 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformer.getDisplayName() >> "transform"
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
-        1 * visitor.visitArtifact('variant1', targetAttributes, {it.file == outFile1})
-        1 * visitor.visitArtifact('variant1', targetAttributes, {it.file == outFile2})
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), 'variant1', targetAttributes, outFile3)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), 'variant1', targetAttributes, outFile4)
+        1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
+        1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), variant1DisplayName, targetAttributes, outFile3)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), variant1DisplayName, targetAttributes, outFile4)
         0 * visitor._
         0 * transformer._
     }

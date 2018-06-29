@@ -32,12 +32,14 @@ import java.io.IOException;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
+    public static final String FILE_HASHES_CACHE_KEY = "fileHashes";
+
     private final PersistentCache cache;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
     public CrossBuildFileHashCache(@Nullable File cacheDir, CacheRepository repository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        CacheBuilder cacheBuilder = cacheDir != null ? repository.cache(cacheDir) : repository.cache("fileHashes");
+        CacheBuilder cacheBuilder = cacheDir != null ? repository.cache(cacheDir) : repository.cache(FILE_HASHES_CACHE_KEY);
         cache = cacheBuilder
             .withDisplayName("file hash cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand

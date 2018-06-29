@@ -68,7 +68,7 @@ public class PublishingPlugin implements Plugin<Project> {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
         PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, determineExtensionClass(), repositories, publications);
-        project.getTasks().createLater(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
+        project.getTasks().register(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.setDescription("Publishes all publications produced by this project.");

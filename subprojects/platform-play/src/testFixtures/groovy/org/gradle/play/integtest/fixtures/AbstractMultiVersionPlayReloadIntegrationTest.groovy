@@ -16,12 +16,12 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.VersionNumber
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@TargetCoverage({ JavaVersion.current().isJava8Compatible() ? PlayCoverage.PLAY23_OR_LATER : PlayCoverage.PLAY23_OR_EARLIER })
+@TargetCoverage({ PlayCoverage.DEFAULT })
 abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     protected boolean serverRestart() {
         poll {
@@ -44,6 +44,28 @@ abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMul
     }
 
     protected getServerStartCount() {
-        gradle.standardOutput.count('play - Application started')
+        // play - Application started
+        // Play - Application started
+        gradle.standardOutput.count('lay - Application started')
+    }
+
+    protected String controllers() {
+        if (versionNumber >= VersionNumber.parse('2.6.0')) {
+            return "@controllers"
+        } else {
+            return "controllers"
+        }
+    }
+
+    static String playLogbackDependenciesIfPlay25(VersionNumber versionNumber) {
+        if (versionNumber.major == 2 && versionNumber.minor == 5) {
+            return """ 
+                    dependencies {
+                        play 'com.typesafe.play:play-logback_2.11:${versionNumber.toString()}'
+                    }
+           """
+        } else {
+            return ''
+        }
     }
 }

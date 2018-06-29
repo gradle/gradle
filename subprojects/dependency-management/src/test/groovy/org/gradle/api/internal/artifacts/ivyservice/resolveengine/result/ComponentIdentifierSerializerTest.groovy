@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
@@ -39,7 +40,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentIdentifier"() {
         given:
-        ModuleComponentIdentifier identifier = new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        ModuleComponentIdentifier identifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group-one', 'name-one'), 'version-one')
 
         when:
         ModuleComponentIdentifier result = serialize(identifier, serializer)

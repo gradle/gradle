@@ -153,7 +153,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
     }
 
     def dependency(String org, String module, String version, String fromConf, String toConf) {
-        dependencies.add(new IvyDependencyDescriptor(newSelector(org, module, new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of(fromConf, toConf)))
+        dependencies.add(new IvyDependencyDescriptor(newSelector(DefaultModuleIdentifier.newId(org, module), new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of(fromConf, toConf)))
     }
 
     def exclude(String name, List<String> confs = []) {

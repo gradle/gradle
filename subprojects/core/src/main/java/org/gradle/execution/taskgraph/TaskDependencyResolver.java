@@ -16,38 +16,33 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Task;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
+@NonNullApi
 public class TaskDependencyResolver {
-    private CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
-    private final TaskInfoFactory taskInfoFactory;
+    private final List<WorkInfoDependencyResolver> workResolvers;
+    private CachingTaskDependencyResolveContext<WorkInfo> context;
 
-    public TaskDependencyResolver(TaskInfoFactory taskInfoFactory) {
-        this.taskInfoFactory = taskInfoFactory;
+    public TaskDependencyResolver(List<WorkInfoDependencyResolver> workResolvers) {
+        this.workResolvers = workResolvers;
+        this.context = createTaskDependencyResolverContext(workResolvers);
     }
 
     public void clear() {
-        context = new CachingTaskDependencyResolveContext();
+        context = createTaskDependencyResolverContext(workResolvers);
     }
 
-    public Collection<? extends TaskInfo> resolveDependenciesFor(TaskInternal task, TaskDependency dependencySet) {
-        Set<? extends Task> dependencies = context.getDependencies(task, dependencySet);
-        if (dependencies.isEmpty()) {
-            return Collections.emptySet();
-        }
-        List<TaskInfo> dependencyNodes = new ArrayList<TaskInfo>(dependencies.size());
-        for (Task dependencyTask : dependencies) {
-            dependencyNodes.add(taskInfoFactory.getOrCreateNode(dependencyTask));
-        }
-        return dependencyNodes;
+    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkInfoDependencyResolver> workResolvers) {
+        return new CachingTaskDependencyResolveContext<WorkInfo>(workResolvers);
+    }
+
+    public Set<WorkInfo> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
+        return context.getDependencies(task, dependencies);
     }
 }

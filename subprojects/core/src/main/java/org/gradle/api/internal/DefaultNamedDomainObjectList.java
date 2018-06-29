@@ -47,7 +47,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         assertCanAdd(element);
         getStore().add(index, element);
         didAdd(element);
-        getEventRegister().getAddAction().execute(element);
+        getEventRegister().fireObjectAdded(element);
     }
 
     public boolean addAll(int index, Collection<? extends T> c) {
@@ -58,7 +58,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             if (!hasWithName(getNamer().determineName(t))) {
                 getStore().add(current, t);
                 didAdd(t);
-                getEventRegister().getAddAction().execute(t);
+                getEventRegister().fireObjectAdded(t);
                 changed = true;
                 current++;
             }
@@ -82,9 +82,9 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         if (oldElement != null) {
             didRemove(oldElement);
         }
-        getEventRegister().getRemoveAction().execute(oldElement);
+        getEventRegister().fireObjectRemoved(oldElement);
         didAdd(element);
-        getEventRegister().getAddAction().execute(element);
+        getEventRegister().fireObjectAdded(element);
         return oldElement;
     }
 
@@ -94,7 +94,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         if (element != null) {
             didRemove(element);
         }
-        getEventRegister().getRemoveAction().execute(element);
+        getEventRegister().fireObjectRemoved(element);
         return element;
     }
 
@@ -182,14 +182,14 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             assertCanAdd(t);
             iterator.add(t);
             didAdd(t);
-            getEventRegister().getAddAction().execute(t);
+            getEventRegister().fireObjectAdded(t);
         }
 
         public void remove() {
             assertMutable();
             iterator.remove();
             didRemove(lastElement);
-            getEventRegister().getRemoveAction().execute(lastElement);
+            getEventRegister().fireObjectRemoved(lastElement);
             lastElement = null;
         }
 
@@ -198,9 +198,9 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             assertCanAdd(t);
             iterator.set(t);
             didRemove(lastElement);
-            getEventRegister().getRemoveAction().execute(lastElement);
+            getEventRegister().fireObjectRemoved(lastElement);
             didAdd(t);
-            getEventRegister().getAddAction().execute(t);
+            getEventRegister().fireObjectAdded(t);
             lastElement = null;
         }
     }

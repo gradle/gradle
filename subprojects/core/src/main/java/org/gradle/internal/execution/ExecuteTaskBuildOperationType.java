@@ -49,15 +49,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         String getTaskPath();
 
         /**
-         * An ID for the task, that disambiguates it from other tasks with the same path.
-         *
-         * Due to a bug in Gradle, two tasks with the same path can be executed.
-         * This is very problematic for build scans.
-         * As such, scans need to be able to differentiate between different tasks with the same path.
-         * The combination of the path and ID does this.
-         *
-         * In later versions of Gradle, executing two tasks with the same path will be prevented
-         * and this value can be noop-ed.
+         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
          */
         long getTaskId();
 

@@ -104,11 +104,8 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         where:
         modifyOutputs | incremental | description
         "add"         | false       | "with additional outputs is fully rebuilt"
-        "add"         | false       | "with additional outputs is fully rebuilt"
-        "change"      | false       | "with changed outputs is fully rebuilt"
         "change"      | false       | "with changed outputs is fully rebuilt"
         "remove"      | false       | "with removed outputs is fully rebuilt"
-        "none"        | true        | "with unmodified outputs is executed as incremental"
         "none"        | true        | "with unmodified outputs is executed as incremental"
     }
 }

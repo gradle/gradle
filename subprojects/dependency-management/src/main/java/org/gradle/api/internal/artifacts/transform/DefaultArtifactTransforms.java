@@ -25,7 +25,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultArtifactTransforms(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
+    public DefaultArtifactTransforms(
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        AttributesSchemaInternal schema,
+        ImmutableAttributesFactory attributesFactory
+    ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;

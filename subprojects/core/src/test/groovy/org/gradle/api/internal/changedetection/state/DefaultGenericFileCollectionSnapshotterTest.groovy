@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.collect.Iterators
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.rules.ChangeType
+import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
@@ -121,7 +121,9 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file1, file2), ABSOLUTE, normalizationStrategy)
         file2.createFile()
         def target = snapshotter.snapshot(files(file1, file2, file3, file4), ABSOLUTE, normalizationStrategy)
-        Iterators.size(target.iterateContentChangesSince(snapshot, "TYPE", false)) == 0
+        def visitor = new CollectingTaskStateChangeVisitor()
+        target.visitChangesSince(snapshot, "TYPE", false, visitor)
+        visitor.changes.empty
 
         then:
         0 * _
@@ -290,8 +292,8 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
-    private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE", true).each { FileChange change ->
+    private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
+        newSnapshot.visitChangesSince(oldSnapshot, "TYPE", true) { FileChange change ->
             switch (change.type) {
                 case ChangeType.ADDED:
                     listener.added(change.path)
@@ -303,6 +305,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
                     listener.removed(change.path)
                     break
             }
+            return true
         }
     }
 

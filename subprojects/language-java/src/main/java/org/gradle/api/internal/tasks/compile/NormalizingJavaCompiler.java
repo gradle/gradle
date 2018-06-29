@@ -16,7 +16,9 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -24,8 +26,11 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+
+import static org.gradle.internal.FileUtils.hasExtension;
 
 /**
  * A Java {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
@@ -40,15 +45,24 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        resolveSourceFiles(spec);
+        resolveAndFilterSourceFiles(spec);
         resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
         return delegateAndHandleErrors(spec);
     }
 
-    private void resolveSourceFiles(JavaCompileSpec spec) {
-        spec.setSourceFiles(ImmutableSet.copyOf(spec.getSourceFiles()));
+    private void resolveAndFilterSourceFiles(JavaCompileSpec spec) {
+        // this mimics the behavior of the Ant javac task (and therefore AntJavaCompiler),
+        // which silently excludes files not ending in .java
+        Iterable<File> javaOnly = Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
+            @Override
+            public boolean apply(@Nullable File input) {
+                return hasExtension(input, ".java");
+            }
+        });
+
+        spec.setSourceFiles(ImmutableSet.copyOf(javaOnly));
     }
 
     private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {

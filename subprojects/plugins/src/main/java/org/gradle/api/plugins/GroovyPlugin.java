@@ -38,7 +38,7 @@ public class GroovyPlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc(final Project project) {
-        project.getTasks().createLater(GROOVYDOC_TASK_NAME, Groovydoc.class, new Action<Groovydoc>() {
+        project.getTasks().register(GROOVYDOC_TASK_NAME, Groovydoc.class, new Action<Groovydoc>() {
             @Override
             public void execute(Groovydoc groovyDoc) {
                 groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");

@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
-import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -34,23 +33,33 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
+import java.util.Collections;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * Simple dependency graph renderer that emits an ASCII tree.
  */
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
-    private LegendRenderer legendRenderer;
-
+    private final ConfigurationAction configurationAction = new ConfigurationAction();
     private boolean hasConfigs;
-    DependencyGraphRenderer dependencyGraphRenderer;
+    private GraphRenderer renderer;
+
+    DependencyGraphsRenderer dependencyGraphRenderer;
 
     @Override
     public void startProject(Project project) {
         super.startProject(project);
+        prepareVisit();
+    }
+
+    void prepareVisit() {
         hasConfigs = false;
-        legendRenderer = new LegendRenderer(getTextOutput());
+        renderer = new GraphRenderer(getTextOutput());
+        dependencyGraphRenderer = new DependencyGraphsRenderer(getTextOutput(), renderer, NodeRenderer.NO_OP, new SimpleNodeRenderer());
     }
 
     @Override
@@ -67,19 +76,9 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             getTextOutput().println();
         }
         hasConfigs = true;
-        GraphRenderer renderer = new GraphRenderer(getTextOutput());
-        renderer.visit(new Action<StyledTextOutput>() {
-            public void execute(StyledTextOutput styledTextOutput) {
-                getTextOutput().withStyle(Identifier).text(configuration.getName());
-                getTextOutput().withStyle(Description).text(getDescription(configuration));
-                if (!configuration.isCanBeResolved()) {
-                    getTextOutput().withStyle(Info).text(" (n)");
-                }
-            }
-        }, true);
+        configurationAction.setConfiguration(configuration);
+        renderer.visit(configurationAction, true);
 
-        NodeRenderer nodeRenderer = new SimpleNodeRenderer();
-        dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer, legendRenderer);
     }
 
     private String getDescription(Configuration configuration) {
@@ -107,12 +106,14 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             return;
         }
 
-        dependencyGraphRenderer.render(root);
+        dependencyGraphRenderer.render(Collections.singletonList(root));
     }
 
     @Override
     public void complete() {
-        legendRenderer.printLegend();
+        if (dependencyGraphRenderer != null) {
+            dependencyGraphRenderer.complete();
+        }
 
         getTextOutput().println();
         getTextOutput().text("A web-based, searchable dependency report is available by adding the ");
@@ -122,4 +123,19 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         super.complete();
     }
 
+    private class ConfigurationAction implements Action<StyledTextOutput> {
+        private Configuration configuration;
+
+        public void execute(StyledTextOutput styledTextOutput) {
+            getTextOutput().withStyle(Identifier).text(configuration.getName());
+            getTextOutput().withStyle(Description).text(getDescription(configuration));
+            if (!configuration.isCanBeResolved()) {
+                getTextOutput().withStyle(Info).text(" (n)");
+            }
+        }
+
+        public void setConfiguration(Configuration configuration) {
+            this.configuration = configuration;
+        }
+    }
 }

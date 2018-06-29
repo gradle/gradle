@@ -37,6 +37,7 @@ import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -52,6 +53,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.remote.MessagingServer
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.time.Clock
@@ -59,10 +61,10 @@ import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.WorkspaceTest
 import spock.lang.Unroll
 
-class GradleUserHomeScopeServicesTest extends Specification {
+class GradleUserHomeScopeServicesTest extends WorkspaceTest {
     ServiceRegistry parent = Stub(ServiceRegistry)
     ServiceRegistry registry
 
@@ -97,7 +99,10 @@ class GradleUserHomeScopeServicesTest extends Specification {
             _ * it.decorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
-            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) { _ * getBaseDir() >> new File("").absoluteFile }
+            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) {
+                getBaseDir() >> file("caches").createDir().absoluteFile
+                useCache(_) >> { Factory<?> factory -> factory.create() }
+            }
         }
         expectParentServiceLocated(LoggingManagerInternal)
         expectParentServiceLocated(Clock)
@@ -138,7 +143,8 @@ class GradleUserHomeScopeServicesTest extends Specification {
             CachedClasspathTransformer,
             WorkerProcessFactory,
             ClassPathRegistry,
-            WorkerProcessClassPathProvider
+            WorkerProcessClassPathProvider,
+            FileAccessTimeJournal
         ]
     }
 

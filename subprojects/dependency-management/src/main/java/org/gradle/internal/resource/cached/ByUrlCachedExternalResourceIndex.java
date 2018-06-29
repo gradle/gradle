@@ -17,11 +17,12 @@
 package org.gradle.internal.resource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 public class ByUrlCachedExternalResourceIndex extends DefaultCachedExternalResourceIndex<String> {
-    public ByUrlCachedExternalResourceIndex(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager);
+    public ByUrlCachedExternalResourceIndex(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, FileAccessTracker fileAccessTracker) {
+        super(persistentCacheFile, BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager, fileAccessTracker);
     }
 }

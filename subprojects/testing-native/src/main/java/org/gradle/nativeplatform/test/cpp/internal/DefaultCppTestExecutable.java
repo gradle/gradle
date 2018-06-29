@@ -25,6 +25,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -65,7 +66,7 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
         this.installationDirectory = projectLayout.directoryProperty();
         this.linkTaskProperty = objects.property(LinkExecutable.class);
         this.installTaskProperty = objects.property(InstallExecutable.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
         this.runTask = objects.property(RunTestExecutable.class);
     }
 
@@ -107,12 +108,12 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     @Override
     public FileCollection getCompileIncludePath() {
         // TODO: This should be modeled differently, perhaps as a dependency on the implementation configuration
-        return super.getCompileIncludePath().plus(getFileOperations().files(new Callable<FileCollection>() {
+        return super.getCompileIncludePath().plus(getFileOperations().immutableFiles(new Callable<FileCollection>() {
             @Override
             public FileCollection call() throws Exception {
                 CppComponent tested = testedComponent.getOrNull();
                 if (tested == null) {
-                    return getFileOperations().files();
+                    return ImmutableFileCollection.of();
                 }
                 return ((DefaultCppComponent) tested).getAllHeaderDirs();
             }

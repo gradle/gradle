@@ -80,7 +80,11 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("javaProject-1.0.jar", "javaProject-1.0-sources.jar", "javaProject-1.0.pom")
+        module.assertArtifactsPublished(
+            "javaProject-1.0.jar",
+            "javaProject-1.0-sources.jar",
+            "javaProject-1.0-javadoc.jar",
+            "javaProject-1.0.pom")
         module.parsedPom.packaging == null
         module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
     }
@@ -93,8 +97,8 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         and:
         def fileRepo = maven(sampleProject.dir.file("build/repo"))
         def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2")
-        def project2impl = fileRepo.module("org.gradle.sample.impl", "project2-impl", "2.3")
+        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3")
+        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3")
 
         when:
         succeeds "publish"

@@ -236,7 +236,7 @@ To enable the <<build_cache,Build Cache>> in your tests, you can pass the `--bui
 
 Note that TestKit re-uses a Gradle user home between tests (see api:org.gradle.testkit.runner.GradleRunner#withTestKitDir[]) which contains the default location for the local build cache.
 For testing with the build cache, the build cache directory should be cleaned between tests.
-The easiest way to accomplish this is to configure the local build cache to us a temporary directory.
+The easiest way to accomplish this is to configure the local build cache to use a temporary directory.
 
 ++++
 <sample id="testKitFunctionalTestSpockBuildCacheCleanBuildCache" dir="testKit/gradleRunner/testKitFunctionalTestSpockBuildCache/src/test/groovy/org/gradle/sample" title="Clean build cache between tests">

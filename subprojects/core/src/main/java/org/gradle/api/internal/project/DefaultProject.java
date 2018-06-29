@@ -243,7 +243,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        populateModelRegistry(services.get(ModelRegistry.class));
+        ruleBasedPluginListenerBroadcast.add(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                populateModelRegistry(services.get(ModelRegistry.class));
+            }
+        });
     }
 
     @SuppressWarnings("unused")
@@ -750,7 +755,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
-        if (projectToEvaluate.getState().getExecuting()) {
+        if (projectToEvaluate.getState().isConfiguring()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }
@@ -818,8 +823,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return foundTasks;
     }
 
+    @Override
     @Inject
-    protected FileOperations getFileOperations() {
+    public FileOperations getFileOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

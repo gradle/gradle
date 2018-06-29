@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -31,27 +32,43 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.inject.Inject;
+
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 class MavenPluginPublishPlugin implements Plugin<Project> {
+    private final FeaturePreviews featurePreviews;
+
+    @Inject
+    MavenPluginPublishPlugin(FeaturePreviews featurePreviews) {
+        this.featurePreviews = featurePreviews;
+    }
 
     @Override
     public void apply(Project project) {
-        project.afterEvaluate(new Action<Project>() {
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
+            project.afterEvaluate(new Action<Project>() {
+                @Override
+                public void execute(final Project project) {
+                    configurePublishing(project);
+                }
+            });
+        } else {
+            configurePublishing(project);
+        }
+    }
+
+    private void configurePublishing(final Project project) {
+        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
-            public void execute(final Project project) {
+            public void execute(PublishingExtension publishing) {
                 final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
                 if (!pluginDevelopment.isAutomatedPublishing()) {
                     return;
                 }
-                project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                    @Override
-                    public void execute(PublishingExtension publishing) {
-                        SoftwareComponent mainComponent = project.getComponents().getByName("java");
-                        MavenPublication mainPublication = addMainPublication(publishing, pluginDevelopment, mainComponent);
-                        addMarkerPublications(mainPublication, publishing, pluginDevelopment);
-                    }
-                });
+                SoftwareComponent mainComponent = project.getComponents().getByName("java");
+                MavenPublication mainPublication = addMainPublication(publishing, pluginDevelopment, mainComponent);
+                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
             }
         });
     }

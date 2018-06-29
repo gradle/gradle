@@ -19,11 +19,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
-import javax.annotation.Nullable;
-
-public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
+public abstract class AbstractRenderableDependencyResult extends AbstractRenderableDependency {
     @Override
     public ComponentIdentifier getId() {
         return getActual();
@@ -50,11 +47,6 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getSimpleName() + " -> " + selected.getDisplayName();
     }
 
-    @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return null;
-    }
-
     /**
      * Checks if requested and selected module component differ by version.
      *
@@ -63,8 +55,7 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
      * @return Indicates whether version differs
      */
     private boolean isSameGroupAndModuleButDifferentVersion(ModuleComponentSelector requested, ModuleComponentIdentifier selected) {
-        return requested.getGroup().equals(selected.getGroup())
-            && requested.getModule().equals(selected.getModule())
+        return requested.getModuleIdentifier().equals(selected.getModuleIdentifier())
             && !requested.getVersionConstraint().getPreferredVersion().equals(selected.getVersion());
     }
 
@@ -75,12 +66,6 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
      */
     private String getSimpleName() {
         return getRequested().getDisplayName();
-    }
-
-    @Override
-    @Nullable
-    public String getDescription() {
-        return null;
     }
 
     protected abstract ComponentSelector getRequested();

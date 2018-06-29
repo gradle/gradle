@@ -25,7 +25,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
-import org.gradle.api.ProjectState
 import org.gradle.api.Task
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -96,8 +95,19 @@ import java.awt.*
 import java.lang.reflect.Type
 import java.text.FieldPosition
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.lessThan
+import static org.hamcrest.Matchers.notNullValue
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertSame
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 class DefaultProjectTest {
@@ -451,16 +461,18 @@ class DefaultProjectTest {
 
     @Test(expected = CircularReferenceException)
     void testEvaluationDependsOnWithCircularDependency() {
-        final ProjectEvaluator mockReader1 = [evaluate: { DefaultProject project, ProjectState state ->
-            state.executing = true
+        final ProjectEvaluator mockReader1 = { project, state ->
+            state.toBeforeEvaluate()
+            state.toEvaluate()
             project.evaluationDependsOn(child1.path)
             testScript
-        }] as ProjectEvaluator
-        final ProjectEvaluator mockReader2 = [evaluate: { DefaultProject project, ProjectState state ->
-            state.executing = true
+        } as ProjectEvaluator
+        final ProjectEvaluator mockReader2 = { project, state ->
+            state.toBeforeEvaluate()
+            state.toEvaluate()
             project.evaluationDependsOn(project.path)
             testScript
-        }] as ProjectEvaluator
+        } as ProjectEvaluator
         project.projectEvaluator = mockReader1
         child1.projectEvaluator = mockReader2
         project.evaluate()

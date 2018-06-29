@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -63,7 +64,7 @@ public class ComponentSelectorParsers {
         }
 
         protected ModuleComponentSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
-            return newSelector(group, name, DefaultImmutableVersionConstraint.of(version));
+            return newSelector(DefaultModuleIdentifier.newId(group, name), DefaultImmutableVersionConstraint.of(version));
         }
     }
 
@@ -87,7 +88,7 @@ public class ComponentSelectorParsers {
                         "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
                                 + "'org.gradle:gradle-core:1.0'");
             }
-            result.converted(newSelector(parsed.getGroup(), parsed.getName(), DefaultImmutableVersionConstraint.of(parsed.getVersion())));
+            result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), DefaultImmutableVersionConstraint.of(parsed.getVersion())));
         }
     }
 

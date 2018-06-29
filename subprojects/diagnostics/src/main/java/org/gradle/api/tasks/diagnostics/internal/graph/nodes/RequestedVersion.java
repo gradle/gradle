@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -31,30 +30,16 @@ public class RequestedVersion extends AbstractRenderableDependencyResult impleme
     private final ComponentSelector requested;
     private final ComponentIdentifier actual;
     private final boolean resolvable;
-    private final String description;
     private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
-    private final ResolvedVariantResult variantResult;
 
-    public RequestedVersion(ComponentSelector requested, ComponentIdentifier actual, boolean resolvable, String description, ResolvedVariantResult resolvedVariant) {
+    public RequestedVersion(ComponentSelector requested, ComponentIdentifier actual, boolean resolvable) {
         this.requested = requested;
         this.actual = actual;
         this.resolvable = resolvable;
-        this.description = description;
-        this.variantResult = resolvedVariant;
     }
 
     public void addChild(DependencyEdge child) {
         children.addAll(child.getChildren());
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return variantResult;
     }
 
     @Override

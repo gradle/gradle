@@ -192,12 +192,13 @@
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
+                                    <li><a href="/userguide/publishing_overview.html">Overview</a></li>
                                     <li><a href="/userguide/publishing_maven.html">Maven Publish Plugin</a></li>
                                     <li><a href="/userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
-                                    <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
-                                    <li><a href="/userguide/maven_plugin.html">Old Maven Plugin</a></li>
                                     <li><a href="/userguide/signing_plugin.html">Signing Plugin</a></li>
                                     <li><a href="/userguide/distribution_plugin.html">Distribution Plugin</a></li>
+                                    <li><a href="/userguide/artifact_management.html">Legacy Publishing</a></li>
+                                    <li><a href="/userguide/maven_plugin.html">Old Maven Plugin</a></li>
                                 </ul>
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Sample Gradle Builds</a>
@@ -293,7 +294,7 @@
                                 </ul>
                             </li>
                             <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
-                            <li><a href="/userguide/lazy_configuration.html">Lazy Task Configuration</a></li>
+                            <li><a href="/userguide/lazy_configuration.html">Lazy Configuration</a></li>
                             <li><a href="/userguide/java_gradle_plugin.html">Plugin Development Plugin</a></li>
                             <li><a href="/userguide/custom_plugins.html">Writing Custom Plugins</a></li>
                         </ul>
@@ -395,7 +396,7 @@
             <p>Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a <a href="http://groovy-lang.org/">Groovy</a> or <a href="https://kotlinlang.org/">Kotlin</a> DSL. Read about <a href="https://gradle.org/features/">Gradle features</a> to learn what is possible with Gradle.</p>
 
             <ul class="itemizedlist">
-                <li><p><strong>Highly customizable</strong> — Gradle is modeled in a way that customizable and extensible in the most fundamental ways.</p></li>
+                <li><p><strong>Highly customizable</strong> — Gradle is modeled in a way that is customizable and extensible in the most fundamental ways.</p></li>
                 <li><p><strong>Fast</strong> — Gradle completes tasks quickly by reusing outputs from previous executions, processing only inputs that changed, and executing tasks in parallel.</p></li>
                 <li><p><strong>Powerful</strong> — Gradle is the official build tool for Android, and comes with support for many popular languages and technologies.</p></li>
             </ul>

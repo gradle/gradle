@@ -88,6 +88,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NOT_UNKNOWN_OS({
         !UNKNOWN_OS.fulfilled
     }),
+    JDK7({
+        JavaVersion.current() == JavaVersion.VERSION_1_7
+    }),
     JDK7_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_7
     }),
@@ -96,6 +99,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK8_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_8
+    }),
+    JDK8({
+        JavaVersion.current() == JavaVersion.VERSION_1_8
     }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8

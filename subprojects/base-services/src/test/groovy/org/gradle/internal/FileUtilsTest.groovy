@@ -27,6 +27,8 @@ import static org.gradle.internal.FileUtils.withExtension
 
 class FileUtilsTest extends Specification {
 
+    private static final String SEP = File.separator
+
     def "toSafeFileName encodes unsupported characters"() {
         expect:
         toSafeFileName(input) == output
@@ -83,5 +85,18 @@ class FileUtilsTest extends Specification {
         withExtension("\\some\\path\\to\\foo.baz", ".bar") == "\\some\\path\\to\\foo.bar"
         withExtension("/some/path/to/foo.boo.baz", ".bar") == "/some/path/to/foo.boo.bar"
         withExtension("/some/path/to/foo.bar", ".bar") == "/some/path/to/foo.bar"
+    }
+
+    def "can determine if one path start with another"(String path, String startsWithPath, boolean result) {
+        expect:
+        FileUtils.doesPathStartWith(path, startsWithPath) == result
+
+        where:
+        path              | startsWithPath || result
+        ""                | ""             || true
+        "a${SEP}a${SEP}a" | "a${SEP}b"     || false
+        "a${SEP}a"        | "a${SEP}a"     || true
+        "a${SEP}a${SEP}a" | "a${SEP}a"     || true
+        "a${SEP}ab"       | "a${SEP}a"     || false
     }
 }

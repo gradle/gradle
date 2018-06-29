@@ -17,20 +17,17 @@
 package org.gradle.execution.taskgraph;
 
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.build.BuildState;
-import org.gradle.util.Path;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -84,57 +81,29 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public Path getIdentityPath() {
-            return task.getIdentityPath();
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            // Do not expose the task to execution
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void collectTaskInto(ImmutableSet.Builder<Task> builder) {
+        public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
             // Expose the task to build logic (for now)
             builder.add(task);
         }
 
         @Override
-        public Throwable getTaskFailure() {
+        public Throwable getWorkFailure() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public boolean satisfies(Spec<? super Task> filter) {
-            // This is only present because something else in the graph requires it, and filters apply only to root build (for now) -> include
-            return true;
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
+        public void rethrowFailure() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void prepareForExecution() {
             // Should get back some kind of reference that can be queried below instead of looking the task up every time
             taskGraph.addTask(thisBuild, targetBuild, task.getPath());
+        }
+
+        @Override
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
         }
 
         @Override
@@ -163,12 +132,17 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public int compareTo(TaskInfo other) {
-            if (other.getClass() != getClass()) {
-                return 1;
+        public int compareTo(WorkInfo other) {
+            if (getClass() != other.getClass()) {
+                return getClass().getName().compareTo(other.getClass().getName());
             }
             TaskInAnotherBuild taskInfo = (TaskInAnotherBuild) other;
             return task.getIdentityPath().compareTo(taskInfo.task.getIdentityPath());
+        }
+
+        @Override
+        public String toString() {
+            return task.getIdentityPath().toString();
         }
     }
 }

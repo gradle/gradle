@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -503,7 +504,7 @@ public class ModuleMetadataSerializer {
         }
 
         private ModuleComponentIdentifier readId() throws IOException {
-            return DefaultModuleComponentIdentifier.newId(readString(), readString(), readString());
+            return DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(readString(), readString()), readString());
         }
 
         private Map<NamespaceId, String> readExtraInfo() throws IOException {
@@ -694,7 +695,7 @@ public class ModuleMetadataSerializer {
 
         private Set<String> readStringSet() throws IOException {
             int size = readCount();
-            Set<String> set = new LinkedHashSet<String>(size);
+            Set<String> set = new LinkedHashSet<String>(3 * size / 2, 0.9f);
             for (int i = 0; i < size; i++) {
                 set.add(readString());
             }

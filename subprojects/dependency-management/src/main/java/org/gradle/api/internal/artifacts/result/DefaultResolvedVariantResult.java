@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.DisplayName;
 
 public class DefaultResolvedVariantResult implements ResolvedVariantResult {
-    private final String displayName;
+    private final DisplayName displayName;
     private final AttributeContainer attributes;
 
-    public DefaultResolvedVariantResult(String displayName, AttributeContainer attributes) {
+    public DefaultResolvedVariantResult(DisplayName displayName, AttributeContainer attributes) {
         this.displayName = displayName;
         this.attributes = attributes;
     }
@@ -35,6 +36,6 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return displayName.getDisplayName();
     }
 }

@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -28,27 +29,26 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
-    private final String group;
-    private final String module;
+    private final ModuleIdentifier moduleIdentifier;
     private final ImmutableVersionConstraint versionConstraint;
     private final ImmutableAttributes attributes;
     private final int hashCode;
 
-    private DefaultModuleComponentSelector(String group, String module, ImmutableVersionConstraint version, ImmutableAttributes attributes) {
-        assert group != null : "group cannot be null";
+    private DefaultModuleComponentSelector(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes) {
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
         assert attributes != null : "attributes cannot be null";
-        this.group = group;
-        this.module = module;
+        this.moduleIdentifier = module;
         this.versionConstraint = version;
         this.attributes = attributes;
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = Objects.hashCode(version, module, attributes, group);
+        this.hashCode = Objects.hashCode(version, module, attributes);
     }
 
     public String getDisplayName() {
+        String group = moduleIdentifier.getGroup();
+        String module = moduleIdentifier.getName();
         StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getPreferredVersion().length() + 2);
         builder.append(group);
         builder.append(":");
@@ -66,11 +66,11 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public String getGroup() {
-        return group;
+        return moduleIdentifier.getGroup();
     }
 
     public String getModule() {
-        return module;
+        return moduleIdentifier.getName();
     }
 
     public String getVersion() {
@@ -83,6 +83,11 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     @Override
+    public ModuleIdentifier getModuleIdentifier() {
+        return moduleIdentifier;
+    }
+
+    @Override
     public AttributeContainer getAttributes() {
         return attributes;
     }
@@ -92,8 +97,8 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
-            return module.equals(moduleComponentIdentifier.getModule())
-                && group.equals(moduleComponentIdentifier.getGroup())
+            return moduleIdentifier.getName().equals(moduleComponentIdentifier.getModule())
+                && moduleIdentifier.getGroup().equals(moduleComponentIdentifier.getGroup())
                 && versionConstraint.getPreferredVersion().equals(moduleComponentIdentifier.getVersion());
         }
 
@@ -111,10 +116,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         DefaultModuleComponentSelector that = (DefaultModuleComponentSelector) o;
 
-        if (!group.equals(that.group)) {
-            return false;
-        }
-        if (!module.equals(that.module)) {
+        if (!moduleIdentifier.equals(that.moduleIdentifier)) {
             return false;
         }
         if (!versionConstraint.equals(that.versionConstraint)) {
@@ -137,19 +139,30 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return getDisplayName();
     }
 
-    public static ModuleComponentSelector newSelector(String group, String name, VersionConstraint version, AttributeContainer attributes) {
-        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal)attributes).asImmutable());
+    public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version, AttributeContainer attributes) {
+        assert attributes != null : "attributes cannot be null";
+        assert version != null : "version cannot be null";
+        assertModuleIdentifier(id);
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal)attributes).asImmutable());
     }
 
-    public static ModuleComponentSelector newSelector(String group, String name, VersionConstraint version) {
-        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY);
+    private static void assertModuleIdentifier(ModuleIdentifier id) {
+        assert id.getGroup() != null : "group cannot be null";
+        assert id.getName() != null : "name cannot be null";
     }
 
-    public static ModuleComponentSelector newSelector(String group, String name, String version) {
-        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY);
+    public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version) {
+        assert version != null : "version cannot be null";
+        assertModuleIdentifier(id);
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY);
+    }
+
+    public static ModuleComponentSelector newSelector(ModuleIdentifier id, String version) {
+        assertModuleIdentifier(id);
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY);
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
-        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), DefaultImmutableVersionConstraint.of(selector.getVersion()), ImmutableAttributes.EMPTY);
+        return new DefaultModuleComponentSelector(selector.getModule(), DefaultImmutableVersionConstraint.of(selector.getVersion()), ImmutableAttributes.EMPTY);
     }
 }

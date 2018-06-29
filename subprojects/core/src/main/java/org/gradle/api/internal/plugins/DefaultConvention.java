@@ -43,7 +43,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
-
+    private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
@@ -66,7 +66,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
-        add(ExtraPropertiesExtension.class, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
+        add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
     @Override
@@ -244,7 +244,20 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) extension).getPublicType());
         }
-        return TypeOf.<Object>typeOf(defaultType);
+        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(defaultType));
+    }
+
+    private Class<?> firstNonSyntheticClassOf(Class<?> clazz) {
+        if (!clazz.isSynthetic()) {
+            return clazz;
+        }
+        Class<?> next;
+        while ((next = clazz.getSuperclass()) != null) {
+            if (!next.isSynthetic()) {
+                return next;
+            }
+        }
+        return clazz;
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {

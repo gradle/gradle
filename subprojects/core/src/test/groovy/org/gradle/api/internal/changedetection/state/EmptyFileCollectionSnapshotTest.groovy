@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
+import org.gradle.api.internal.changedetection.rules.TaskStateChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -30,8 +32,8 @@ class EmptyFileCollectionSnapshotTest extends Specification {
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], ORDERED, false)
         expect:
-        snapshot.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", false).toList() == []
-        snapshot.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", true).toList() == [
+        getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, false).empty
+        getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, true) == [
             FileChange.added("file1.txt", "test", FileType.RegularFile),
             FileChange.added("file2.txt", "test", FileType.RegularFile)
         ]
@@ -43,11 +45,11 @@ class EmptyFileCollectionSnapshotTest extends Specification {
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], ORDERED, false)
         expect:
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(snapshot, "test", false).toList() == [
+        getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(snapshot, "test", true).toList() == [
+        getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, true).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
@@ -55,7 +57,13 @@ class EmptyFileCollectionSnapshotTest extends Specification {
 
     def "comparing to itself works"() {
         expect:
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", false).toList() == []
-        EmptyFileCollectionSnapshot.INSTANCE.iterateContentChangesSince(EmptyFileCollectionSnapshot.INSTANCE, "test", true).toList() == []
+        getChanges(EmptyFileCollectionSnapshot.INSTANCE, EmptyFileCollectionSnapshot.INSTANCE, false).toList() == []
+        getChanges(EmptyFileCollectionSnapshot.INSTANCE, EmptyFileCollectionSnapshot.INSTANCE, true).toList() == []
+    }
+
+    private static Collection<TaskStateChange> getChanges(FileCollectionSnapshot current, FileCollectionSnapshot previous, boolean includeAdded) {
+        def visitor = new CollectingTaskStateChangeVisitor()
+        current.visitChangesSince(previous, "test", includeAdded, visitor)
+        visitor.changes
     }
 }

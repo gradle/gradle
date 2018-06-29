@@ -30,7 +30,7 @@ Source sets
 Binaries
     Play Application Jar 'play:binary'
         build using task: :playBinary
-        target platform: Play Platform (Play 2.3.10, Scala: 2.11, Java: Java SE 8)
+        target platform: Play Platform (Play 2.6.15, Scala: 2.12, Java: Java SE 8)
         toolchain: Default Play Toolchain
         classes dir: build/playBinary/classes
         resources dir: build/playBinary/resources

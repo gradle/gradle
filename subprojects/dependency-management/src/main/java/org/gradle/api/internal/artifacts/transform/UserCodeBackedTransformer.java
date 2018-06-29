@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
@@ -98,5 +99,15 @@ class UserCodeBackedTransformer implements VariantTransformRegistry.Registration
     @Override
     public String getDisplayName() {
         return transformer.getDisplayName();
+    }
+
+    @Override
+    public void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
+        action.execute(this);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s[%s => %s]@%s", transformer.getDisplayName(), from, to, inputsHash);
     }
 }

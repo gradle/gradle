@@ -16,28 +16,35 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
+
+import static org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest.*
 
 abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersionIntegrationTest {
     abstract PlayApp getPlayApp()
 
     def setup() {
         playApp.writeSources(testDirectory)
-        buildFile << """
+        buildFile << playPlatformConfiguration(version.toString())
+        buildFile << playLogbackDependenciesIfPlay25(versionNumber)
+        settingsFile << """
+            rootProject.name = '${playApp.name}'
+        """
+    }
+
+    static String playPlatformConfiguration(String version) {
+        return """
+        allprojects {
             model {
                 components {
                     play {
-                        targetPlatform "play-${MultiVersionIntegrationSpec.version}"
+                        targetPlatform "play-${version}"
                     }
                 }
             }
-        """
-        settingsFile << """
-            rootProject.name = '${playApp.name}'
+        }
         """
     }
 
@@ -51,13 +58,5 @@ abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersi
 
     TarTestFixture tar(String fileName) {
         new TarTestFixture(file(fileName))
-    }
-
-    @Override
-    protected ExecutionResult succeeds(String... tasks) {
-        // trait Controller in package mvc is deprecated (since 2.6.0)
-        // application - Logger configuration in conf files is deprecated and has no effect (since 2.4.0)
-        executer.noDeprecationChecks()
-        return super.succeeds(tasks)
     }
 }

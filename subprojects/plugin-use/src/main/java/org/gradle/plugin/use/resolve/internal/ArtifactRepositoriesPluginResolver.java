@@ -69,11 +69,6 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             return;
         }
 
-        if (markerVersion.endsWith("-SNAPSHOT")) {
-            result.notFound(SOURCE_NAME, "snapshot plugin versions are not supported");
-            return;
-        }
-
         if (versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
             result.notFound(SOURCE_NAME, "dynamic plugin versions are not supported");
             return;

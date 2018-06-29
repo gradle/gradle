@@ -153,7 +153,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         if (dependency.isOptional() && ignoreOptionalDependencies()) {
             return false;
         }
-        return hierarchy.contains(dependencyScope.name().toLowerCase());
+        return hierarchy.contains(dependencyScope.getLowerName());
     }
 
     private boolean ignoreOptionalDependencies() {

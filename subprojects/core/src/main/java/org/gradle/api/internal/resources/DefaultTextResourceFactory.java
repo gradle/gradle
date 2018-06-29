@@ -35,23 +35,28 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
         this.textResourceLoader = textResourceLoader;
     }
 
+    @Override
     public TextResource fromString(String string) {
         return new StringBackedTextResource(tempFileProvider, string);
     }
 
+    @Override
     public TextResource fromFile(Object file, String charset) {
-        return new FileCollectionBackedTextResource(tempFileProvider, fileOperations.files(file), Charset.forName(charset));
+        return new FileCollectionBackedTextResource(tempFileProvider, fileOperations.immutableFiles(file), Charset.forName(charset));
     }
 
+    @Override
     public TextResource fromFile(Object file) {
         return fromFile(file, Charset.defaultCharset().name());
 
     }
 
+    @Override
     public TextResource fromArchiveEntry(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.files(archive), entryPath, Charset.forName(charset));
+        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
     }
 
+    @Override
     public TextResource fromArchiveEntry(Object archive, String entryPath) {
         return fromArchiveEntry(archive, entryPath, Charset.defaultCharset().name());
     }

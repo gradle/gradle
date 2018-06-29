@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -235,10 +236,12 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {
-        return DefaultModuleComponentSelector.newSelector(group, module, new DefaultImmutableVersionConstraint(version))
+        def mid = DefaultModuleIdentifier.newId(group, module)
+        return DefaultModuleComponentSelector.newSelector(mid, new DefaultImmutableVersionConstraint(version))
     }
 
     private static ModuleVersionSelector newVersionSelector(String group, String name, String version) {
-        return DefaultModuleVersionSelector.newSelector(group, name, new DefaultImmutableVersionConstraint(version))
+        def mid = DefaultModuleIdentifier.newId(group, name)
+        return DefaultModuleVersionSelector.newSelector(mid, new DefaultImmutableVersionConstraint(version))
     }
 }

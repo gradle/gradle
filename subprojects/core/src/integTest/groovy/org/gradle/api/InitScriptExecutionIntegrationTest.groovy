@@ -218,7 +218,7 @@ rootProject {
         long before = initScript.length()
 
         expect:
-        (10..40).each {
+        (10..20).each {
             initScript.text = "println 'counter: $it'"
             assert initScript.length() == before
 

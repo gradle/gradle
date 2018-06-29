@@ -77,7 +77,7 @@ The dependency tree in a link:https://scans.gradle.com/[build scan] renders the 
 </figure>
 +++++
 
-Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameter `--configuration` is optional but helps with filtering the output.
+Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameters `--configuration` and `--singlepath` are optional but help with filtering the output.
 
 ++++
 <sample id="dependencyInsightReport" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">

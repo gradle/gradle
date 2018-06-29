@@ -103,39 +103,275 @@ class ImmutableActionSetTest extends Specification {
     def "can create a set from multiple actions"() {
         def action1 = Mock(Action)
         def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def action5 = Mock(Action)
+        def action6 = Mock(Action)
 
         when:
-        def set1 = ImmutableActionSet.of(action1, action2)
+        def setWith6 = ImmutableActionSet.of(action1, action2, action3, action4, action5, action6)
 
         then:
-        !set1.empty
+        !setWith6.empty
 
         when:
-        set1.execute("value")
+        setWith6.execute("value")
 
         then:
         1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+
+        then:
+        1 * action6.execute("value")
+        0 * _
+
+        when:
+        def setWith5 = ImmutableActionSet.of(action1, action2, action3, action4, action5)
+
+        then:
+        !setWith5.empty
+
+        when:
+        setWith5.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+        0 * _
+
+        when:
+        def setWith4 = ImmutableActionSet.of(action1, action2, action3, action4)
+
+        then:
+        !setWith4.empty
+
+        when:
+        setWith4.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+
+        when:
+        def setWith3 = ImmutableActionSet.of(action1, action2, action3)
+
+        then:
+        !setWith3.empty
+
+        when:
+        setWith3.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+        0 * _
+
+        when:
+        def setWith2 = ImmutableActionSet.of(action1, action2)
+
+        then:
+        !setWith2.empty
+
+        when:
+        setWith2.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
         1 * action2.execute("value")
         0 * _
 
         when:
-        def set2 = ImmutableActionSet.of(action1)
+        def setWith1 = ImmutableActionSet.of(action1)
 
         then:
-        !set2.empty
+        !setWith1.empty
 
         when:
-        set2.execute("value")
+        setWith1.execute("value")
 
         then:
         1 * action1.execute("value")
         0 * _
 
         when:
-        def set3 = ImmutableActionSet.of()
+        def setWith0 = ImmutableActionSet.of()
 
         then:
-        set3.is(ImmutableActionSet.empty())
+        setWith0.is(ImmutableActionSet.empty())
+    }
+
+    def "can add multiple actions to a set"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def action5 = Mock(Action)
+        def action6 = Mock(Action)
+        def action7 = Mock(Action)
+
+        when:
+        def set = ImmutableActionSet.empty().add(action1)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+        0 * _
+
+        when:
+        set = set.add(action2)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+        0 * _
+
+        when:
+        set = set.add(action3)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+        0 * _
+
+        when:
+        set = set.add(action4)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+
+        when:
+        set = set.add(action5)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+        0 * _
+
+        when:
+        set = set.add(action6)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+
+        then:
+        1 * action6.execute("value")
+        0 * _
+
+        when:
+        set = set.add(action7)
+        set.execute("value")
+
+        then:
+        !set.empty
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+
+        then:
+        1 * action6.execute("value")
+
+        then:
+        1 * action7.execute("value")
+        0 * _
     }
 
     def "execution stops on first failure"() {
@@ -184,9 +420,116 @@ class ImmutableActionSetTest extends Specification {
         set.add(action2).is(set)
         set.add(ImmutableActionSet.of(action1)).is(set)
         set.add(ImmutableActionSet.of(action2)).is(set)
-        set.add(ImmutableActionSet.of(action1, action2)).is(set)
-        set.add(ImmutableActionSet.of(action2, action1)).is(set)
         ImmutableActionSet.of(action1).add(set).is(set)
+    }
+
+    def "can add duplicate actions to set"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def action5 = Mock(Action)
+        def action6 = Mock(Action)
+
+        when:
+        def set = ImmutableActionSet.of(action1, action2)
+        set = set.add(action1)
+        set = set.add(action2)
+        set = set.add(ImmutableActionSet.of(action2, action1))
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+        0 * _
+
+        when:
+        set = set.add(ImmutableActionSet.of(action1, action2, action3))
+        set = set.add(action1)
+        set = set.add(action3)
+        set = set.add(ImmutableActionSet.of(action3, action2, action1))
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+        0 * _
+
+        when:
+        set = set.add(ImmutableActionSet.of(action1, action2, action3, action4))
+        set = set.add(action1)
+        set = set.add(action4)
+        set = set.add(ImmutableActionSet.of(action4, action2, action1))
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+
+        when:
+        set = set.add(ImmutableActionSet.of(action1, action2, action3, action4, action5))
+        set = set.add(action1)
+        set = set.add(action5)
+        set = set.add(ImmutableActionSet.of(action5, action2, action1))
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+        0 * _
+
+        when:
+        set = set.add(ImmutableActionSet.of(action1, action2, action3, action4, action5, action6))
+        set = set.add(action1)
+        set = set.add(action6)
+        set = set.add(ImmutableActionSet.of(action6, action2, action1))
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+
+        then:
+        1 * action5.execute("value")
+
+        then:
+        1 * action6.execute("value")
+        0 * _
     }
 
     def "can add self to composite set"() {
@@ -219,7 +562,124 @@ class ImmutableActionSetTest extends Specification {
         0 * _
     }
 
-    def "deduplicates actions"() {
+    def "can merge empty set into empty set"() {
+        def empty = ImmutableActionSet.empty()
+
+        expect:
+        def set = empty.mergeFrom(empty)
+        set.is(empty)
+    }
+
+    def "can merge empty set into singleton set"() {
+        def action = Mock(Action)
+        def singleton = ImmutableActionSet.of(action)
+
+        expect:
+        def set = singleton.mergeFrom(ImmutableActionSet.empty())
+        set.is(singleton)
+    }
+
+    def "can merge singleton set into empty set"() {
+        def action = Mock(Action)
+        def singleton = ImmutableActionSet.of(action)
+
+        expect:
+        def set = ImmutableActionSet.empty().mergeFrom(singleton)
+        set.is(singleton)
+    }
+
+    def "can merge singleton set into itself"() {
+        def action = Mock(Action)
+        def original = ImmutableActionSet.of(action)
+
+        expect:
+        def set = original.mergeFrom(original)
+        set.is(original)
+    }
+
+    def "can merge singleton set into singleton set"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def set1 = ImmutableActionSet.of(action1)
+        def set2 = ImmutableActionSet.of(action2)
+
+        when:
+        def set = set1.mergeFrom(set2)
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+        0 * _
+    }
+
+    def "can merge composite set into itself"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def original = ImmutableActionSet.of(action1, action2)
+
+        expect:
+        def set = original.mergeFrom(original)
+        set.is(original)
+    }
+
+    def "can merge composite sets with common ancestors"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def set1 = ImmutableActionSet.of(action1, action2, action3)
+        def set2 = ImmutableActionSet.of(action1, action2, action4)
+
+        when:
+        def set = set1.mergeFrom(set2)
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+    }
+
+    def "can merge composite sets multiple times"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def action4 = Mock(Action)
+        def set1 = ImmutableActionSet.of(action1, action2)
+        def set2 = ImmutableActionSet.of(action1, action3)
+
+        when:
+        def set = set1.mergeFrom(set2)
+        set2 = set2.add(action4)
+        set = set.mergeFrom(set2)
+        set.execute("value")
+
+        then:
+        1 * action1.execute("value")
+
+        then:
+        1 * action2.execute("value")
+
+        then:
+        1 * action3.execute("value")
+
+        then:
+        1 * action4.execute("value")
+        0 * _
+    }
+
+    def "de-duplicates actions"() {
         def action1 = Mock(Action)
         def action2 = Mock(Action)
         def action3 = Mock(Action)

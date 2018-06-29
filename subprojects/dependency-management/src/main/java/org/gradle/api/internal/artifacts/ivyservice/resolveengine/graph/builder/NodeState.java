@@ -209,6 +209,7 @@ class NodeState implements DependencyGraphNode {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
                     discoveredEdges.add(dependencyEdge);
+                    dependencyEdge.getSelector().use();
                 }
             }
             previousTraversalExclusions = resolutionFilter;
@@ -303,8 +304,11 @@ class NodeState implements DependencyGraphNode {
     }
 
     private void removeOutgoingEdges() {
-        for (EdgeState outgoingDependency : outgoingEdges) {
-            outgoingDependency.removeFromTargetConfigurations();
+        if (!outgoingEdges.isEmpty()) {
+            for (EdgeState outgoingDependency : outgoingEdges) {
+                outgoingDependency.removeFromTargetConfigurations();
+                outgoingDependency.getSelector().release();
+            }
         }
         outgoingEdges.clear();
         previousTraversalExclusions = null;
@@ -318,17 +322,18 @@ class NodeState implements DependencyGraphNode {
             resolveState.onMoreSelected(this);
         } else {
             if (!incomingEdges.isEmpty()) {
-                restartIncomingEdges(selected);
+                restartIncomingEdges();
             }
         }
     }
 
-    private void restartIncomingEdges(ComponentState selected) {
+    private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            incomingEdges.iterator().next().restart(selected);
+            EdgeState singleEdge = incomingEdges.iterator().next();
+            singleEdge.restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(incomingEdges)) {
-                dependency.restart(selected);
+                dependency.restart();
             }
         }
         incomingEdges.clear();

@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -30,7 +31,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 abstract class ExternalDependencyDescriptorTest extends Specification {
     def attributesSchema = Stub(AttributesSchemaInternal)
 
-    def requested = newSelector("org", "module", v("1.2+"))
+    def requested = newSelector(DefaultModuleIdentifier.newId("org", "module"), v("1.2+"))
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
 
     static VersionConstraint v(String version) {
@@ -45,7 +46,7 @@ abstract class ExternalDependencyDescriptorTest extends Specification {
         given:
 
         when:
-        def target = newSelector("org", "module", v("1.3+"))
+        def target = newSelector(DefaultModuleIdentifier.newId("org", "module"), v("1.3+"))
         def copy = metadata.withRequested(target)
 
         then:

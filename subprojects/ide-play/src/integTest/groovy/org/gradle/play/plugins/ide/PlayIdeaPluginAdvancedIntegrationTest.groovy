@@ -21,15 +21,13 @@ import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.internal.platform.PlayMajorVersion
 
 class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTest {
-    static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_2_X): 111,
-                                                       (PlayMajorVersion.PLAY_2_3_X): 114,
-                                                       (PlayMajorVersion.PLAY_2_4_X): 108,
-                                                       (PlayMajorVersion.PLAY_2_5_X): 118,
-                                                       (PlayMajorVersion.PLAY_2_6_X): 108]
+    static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_4_X): 108,
+                                                       (PlayMajorVersion.PLAY_2_5_X): 121,
+                                                       (PlayMajorVersion.PLAY_2_6_X): 111]
 
     @Override
     PlayApp getPlayApp() {
-        new AdvancedPlayApp()
+        new AdvancedPlayApp(versionNumber)
     }
 
     String[] getSourcePaths() {

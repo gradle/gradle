@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
@@ -144,7 +145,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentSelector"() {
         given:
-        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector('group-one', 'name-one', constraint('version-one'))
+        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('version-one'))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)
@@ -190,7 +191,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes strict constraint"() {
         given:
-        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector('group-one', 'name-one', constraint('version-one', true))
+        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('version-one', true))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)

@@ -24,14 +24,13 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.DefaultResourceFileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -58,11 +57,10 @@ public class MavenMetadataLoader {
     }
 
     private void parseMavenMetadataInfo(final ExternalResourceName metadataLocation, final MavenMetadata metadata) throws IOException {
-        ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, null, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+        ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, null, new DefaultResourceFileStore<String>(resourcesFileStore) {
             @Override
-            public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                String key = metadataLocation.toString();
-                return resourcesFileStore.move(key, downloadedResource);
+            protected String computeKey() {
+                return metadataLocation.toString();
             }
         }, null);
         if (resource == null) {

@@ -18,10 +18,9 @@ package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
-import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
@@ -42,8 +41,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
-    def fileResolver = Mock(FileResolver)
-    def stoppableExecutor = Mock(ManagedExecutor)
+    def fileResolver = Mock(PathToFileResolver)
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def instantiatorFactory = Mock(InstantiatorFactory)
     def executionQueueFactory = Mock(ConditionalExecutionQueueFactory)

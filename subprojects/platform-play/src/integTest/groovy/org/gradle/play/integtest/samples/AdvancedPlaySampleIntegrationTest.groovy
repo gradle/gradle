@@ -17,13 +17,10 @@
 package org.gradle.play.integtest.samples
 
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
     Sample advancedPlaySample = new Sample(temporaryFolder, "play/advanced")

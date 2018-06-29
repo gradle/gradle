@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
@@ -30,7 +31,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
     def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "serializes"() {
-        def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'module', 'version')
+        def componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'module'), 'version')
         def attributes = TestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
@@ -48,7 +49,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.selectionReason == VersionSelectionReasons.requested()
         result.moduleVersion == newId("org", "foo", "2.0")
         result.componentId == componentIdentifier
-        result.variantName == 'default'
+        result.variantName.displayName == 'default'
         result.variantAttributes == attributes.asImmutable()
     }
 }

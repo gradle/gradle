@@ -17,15 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,7 +80,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return attributes;
     }
 
-    private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
+    private static class SingleArtifactSet implements BuildableSingleResolvedArtifactSet, ResolvedArtifactSet.Completion {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
         private final ResolvableArtifact artifact;
@@ -109,13 +111,28 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (failure != null) {
                 visitor.visitFailure(failure);
             } else {
-                visitor.visitArtifact(variantName.getDisplayName(), variantAttributes, artifact);
+                visitor.visitArtifact(variantName, variantAttributes, artifact);
             }
         }
 
         @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitDependency(((Buildable) artifact).getBuildDependencies());
+            visitor.visitDependency(getBuildDependencies());
+        }
+
+        @Override
+        public ComponentArtifactIdentifier getArtifactId() {
+            return artifact.getId();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return ((Buildable) artifact).getBuildDependencies();
+        }
+
+        @Override
+        public String toString() {
+            return getArtifactId().getDisplayName();
         }
     }
 

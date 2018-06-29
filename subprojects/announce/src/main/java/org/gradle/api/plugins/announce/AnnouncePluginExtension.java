@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.announce;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -39,7 +40,7 @@ public class AnnouncePluginExtension {
 
     public AnnouncePluginExtension(ProjectInternal project) {
         this.project = project;
-        this.announcerFactory = new DefaultAnnouncerFactory(this, project, new DefaultIconProvider(project.getServices().get(CurrentGradleInstallation.class).getInstallation()));
+        this.announcerFactory = new DefaultAnnouncerFactory(this, project.getServices().get(ProcessOperations.class), new DefaultIconProvider(project.getServices().get(CurrentGradleInstallation.class).getInstallation()));
         this.onDemandLocalAnnouncer = new LocalAnnouncer(this);
     }
 

@@ -109,22 +109,11 @@ resolve.doLast { assert IvyRule.ruleInvoked }
             }
         }
 
-        buildFile <<
-            """
-import java.util.concurrent.atomic.AtomicBoolean
-
-def ruleInvoked = new AtomicBoolean()
-
+        buildFile << """
 class IvyRule implements ComponentMetadataRule {
-    AtomicBoolean ruleInvoked
-
-    IvyRule(AtomicBoolean ruleInvoked) {
-        this.ruleInvoked = ruleInvoked
-    }
 
     @Override
     void execute(ComponentMetadataContext context) {
-            ruleInvoked.set(true)
             def descriptor = context.getDescriptor(IvyModuleDescriptor)
             descriptor.extraInfo.get('foo')
     }
@@ -132,13 +121,9 @@ class IvyRule implements ComponentMetadataRule {
 
 dependencies {
     components {
-        all(IvyRule, {
-            params(ruleInvoked)
-        })
+        all(IvyRule)
     }
 }
-
-resolve.doLast { assert ruleInvoked }
 """
 
         and:
@@ -153,7 +138,7 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(57)
+        failure.assertHasLineNumber(47)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")

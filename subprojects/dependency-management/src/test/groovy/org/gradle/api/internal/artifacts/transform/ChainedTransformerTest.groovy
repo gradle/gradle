@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.Lists
+import org.gradle.api.Action
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
@@ -69,6 +70,10 @@ class ChainedTransformerTest extends Specification {
         String getDisplayName() {
             return null;
         }
+
+        @Override
+        void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
+        }
     }
 
     class NonCachingTransformer implements ArtifactTransformer {
@@ -86,6 +91,10 @@ class ChainedTransformerTest extends Specification {
         @Override
         String getDisplayName() {
             return null;
+        }
+
+        @Override
+        void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
         }
     }
 }

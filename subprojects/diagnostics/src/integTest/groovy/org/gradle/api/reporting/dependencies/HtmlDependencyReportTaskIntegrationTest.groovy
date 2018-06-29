@@ -307,47 +307,58 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].moduleInsights.any { it.module == 'foo:bar' }
         json.project.configurations[0].moduleInsights.any { it.module == 'foo:baz' }
         def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
-        barInsight.size() == 2
+        barInsight.size() == 3
         barInsight[0].name == 'foo:bar:2.0'
         barInsight[0].resolvable == 'RESOLVED'
         barInsight[0].hasConflict == false
-        barInsight[0].description == 'conflict resolution'
-        barInsight[0].children.size() == 1
-        barInsight[0].children[0].name == 'compile'
-        barInsight[0].children[0].resolvable == 'RESOLVED'
-        barInsight[0].children[0].hasConflict == false
-        barInsight[0].children[0].isLeaf == true
-        barInsight[0].children[0].alreadyRendered == false
-        barInsight[0].children[0].children.size() == 0
+        barInsight[0].description == null
+        barInsight[0].children.size() == 0
 
-        barInsight[1].name == "foo:bar:1.0 \u27A1 2.0"
+        barInsight[1].name == 'foo:bar:2.0'
         barInsight[1].resolvable == 'RESOLVED'
-        barInsight[1].hasConflict == true
+        barInsight[1].hasConflict == false
+        barInsight[1].description == null
         barInsight[1].children.size() == 1
-        barInsight[1].children[0].name == 'foo:baz:1.0'
+        barInsight[1].children[0].name == 'compile'
         barInsight[1].children[0].resolvable == 'RESOLVED'
-        barInsight[1].children[0].isLeaf == false
+        barInsight[1].children[0].hasConflict == false
+        barInsight[1].children[0].isLeaf == true
         barInsight[1].children[0].alreadyRendered == false
-        barInsight[1].children[0].children.size() == 1
-        barInsight[1].children[0].children[0].name == 'compile'
-        barInsight[1].children[0].children[0].resolvable == 'RESOLVED'
-        barInsight[1].children[0].children[0].hasConflict == false
-        barInsight[1].children[0].children[0].isLeaf == true
-        barInsight[1].children[0].children[0].alreadyRendered == false
-        barInsight[1].children[0].children[0].children.size() == 0
+        barInsight[1].children[0].children.size() == 0
+
+        barInsight[2].name == "foo:bar:1.0 \u27A1 2.0"
+        barInsight[2].resolvable == 'RESOLVED'
+        barInsight[2].hasConflict == true
+        barInsight[2].children.size() == 1
+        barInsight[2].children[0].name == 'foo:baz:1.0'
+        barInsight[2].children[0].resolvable == 'RESOLVED'
+        barInsight[2].children[0].isLeaf == false
+        barInsight[2].children[0].alreadyRendered == false
+        barInsight[2].children[0].children.size() == 1
+        barInsight[2].children[0].children[0].name == 'compile'
+        barInsight[2].children[0].children[0].resolvable == 'RESOLVED'
+        barInsight[2].children[0].children[0].hasConflict == false
+        barInsight[2].children[0].children[0].isLeaf == true
+        barInsight[2].children[0].children[0].alreadyRendered == false
+        barInsight[2].children[0].children[0].children.size() == 0
 
         def bazInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:baz' }).insight
-        bazInsight.size() == 1
+        bazInsight.size() == 2
         bazInsight[0].name == 'foo:baz:1.0'
         bazInsight[0].resolvable == 'RESOLVED'
         bazInsight[0].hasConflict == false
-        bazInsight[0].children.size() == 1
-        bazInsight[0].children[0].name == 'compile'
-        bazInsight[0].children[0].resolvable == 'RESOLVED'
-        bazInsight[0].children[0].hasConflict == false
-        bazInsight[0].children[0].isLeaf == true
-        bazInsight[0].children[0].alreadyRendered == false
-        bazInsight[0].children[0].children.empty
+        bazInsight[0].children.size() == 0
+
+        bazInsight[1].name == 'foo:baz:1.0'
+        bazInsight[1].resolvable == 'RESOLVED'
+        bazInsight[1].hasConflict == false
+        bazInsight[1].children.size() == 1
+        bazInsight[1].children[0].name == 'compile'
+        bazInsight[1].children[0].resolvable == 'RESOLVED'
+        bazInsight[1].children[0].hasConflict == false
+        bazInsight[1].children[0].isLeaf == true
+        bazInsight[1].children[0].alreadyRendered == false
+        bazInsight[1].children[0].children.empty
     }
 
     def "doesn't add insight for dependency with same prefix"() {
@@ -373,8 +384,9 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
-        barInsight.size() == 1
+        barInsight.size() == 2
         barInsight[0].name == 'foo:bar:1.0'
+        barInsight[1].name == 'foo:bar:1.0'
     }
 
     @Issue("GRADLE-2979")

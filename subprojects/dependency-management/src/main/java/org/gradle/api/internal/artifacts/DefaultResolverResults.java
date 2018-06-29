@@ -21,18 +21,20 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
 
 public class DefaultResolverResults implements ResolverResults {
     private ResolvedConfiguration resolvedConfiguration;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
+    private ResolveException nonFatalFailure;
     private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private Object artifactResolveState;
     private VisitedArtifactSet visitedArtifacts;
 
     @Override
     public boolean hasError() {
-        if (fatalFailure != null) {
+        if (fatalFailure != null || nonFatalFailure != null) {
             return true;
         }
         if (resolvedConfiguration != null && resolvedConfiguration.hasError()) {
@@ -66,20 +68,29 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     private void assertHasVisitResult() {
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
+        maybeRethrowFatalError();
         if (visitedArtifacts == null) {
             throw new IllegalStateException("Resolution result has not been attached.");
         }
     }
 
     private void assertHasGraphResult() {
+        maybeRethrowFatalError();
+        if (resolvedLocalComponentsResult == null) {
+            throw new IllegalStateException("Resolution result has not been attached.");
+        }
+    }
+
+    private void maybeRethrowFatalError() {
         if (fatalFailure != null) {
             throw fatalFailure;
         }
-        if (resolvedLocalComponentsResult == null) {
-            throw new IllegalStateException("Resolution result has not been attached.");
+    }
+
+    private void maybeRethrowAnyError() {
+        maybeRethrowFatalError();
+        if (nonFatalFailure != null) {
+            throw nonFatalFailure;
         }
     }
 
@@ -107,9 +118,17 @@ public class DefaultResolverResults implements ResolverResults {
 
     @Override
     public void failed(ResolveException failure) {
-        this.resolutionResult = null;
-        this.resolvedLocalComponentsResult = null;
-        this.fatalFailure = failure;
+        if (isNonFatalError(failure)) {
+            nonFatalFailure = failure;
+        } else {
+            this.resolutionResult = null;
+            this.resolvedLocalComponentsResult = null;
+            this.fatalFailure = failure;
+        }
+    }
+
+    private static boolean isNonFatalError(ResolveException failure) {
+        return failure.getCause() instanceof GraphValidationException;
     }
 
     @Override
@@ -120,12 +139,38 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
+    public ResolveException consumeNonFatalFailure() {
+        try {
+            return nonFatalFailure;
+        } finally {
+            nonFatalFailure = null;
+        }
+    }
+
+    @Override
+    public Throwable getFailure() {
+        if (fatalFailure != null) {
+            return fatalFailure;
+        }
+        if (nonFatalFailure != null) {
+            return nonFatalFailure;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean hasResolutionResult() {
+        return resolutionResult != null;
+    }
+
+    @Override
     public void retainState(Object artifactResolveState) {
         this.artifactResolveState = artifactResolveState;
     }
 
     @Override
     public Object getArtifactResolveState() {
+        maybeRethrowAnyError();
         return artifactResolveState;
     }
 }

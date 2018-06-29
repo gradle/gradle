@@ -58,13 +58,13 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created and configured when included directly in task graph"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
-            tasks.createLater("task2", SomeTask) {
+            tasks.register("task2", SomeTask) {
                 println "Configure ${path}"
             }
-            tasks.createLater("task3", SomeTask)
+            tasks.register("task3", SomeTask)
         '''
 
         when:
@@ -96,10 +96,10 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created and configured when referenced as a task dependency"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
-            tasks.createLater("task2", SomeTask) {
+            tasks.register("task2", SomeTask) {
                 println "Configure ${path}"
                 dependsOn task1
             }
@@ -125,7 +125,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created and configured when referenced as task dependency via task provider"() {
         buildFile << '''
-            def t1 = tasks.createLater("task1", SomeTask) {
+            def t1 = tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
             tasks.create("task2", SomeTask) {
@@ -155,7 +155,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created and configured when referenced during configuration"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
             // Eager
@@ -178,10 +178,10 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created and configured eagerly when referenced using withType(type, action)"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
-            tasks.createLater("task2", SomeOtherTask) {
+            tasks.register("task2", SomeOtherTask) {
                 println "Configure ${path}"
             }
             tasks.create("other")
@@ -202,13 +202,16 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "build logic can configure each task only when required"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask).configure {
                 println "Configure ${path}"
             }
-            tasks.createLater("task2", SomeOtherTask) {
+            tasks.named("task1").configure {
+                println "Configure again ${path}"
+            }
+            tasks.register("task2", SomeOtherTask) {
                 println "Configure ${path}"
             }
-            tasks.createLater("task3")
+            tasks.register("task3")
             tasks.configureEach {
                 println "Received ${path}"
             }
@@ -233,6 +236,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Received :other")
         outputContains("Create :task1")
         outputContains("Configure :task1")
+        outputContains("Configure again :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
         result.assertNotOutput("task3")
@@ -242,7 +246,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "task is created and configured eagerly when referenced using all { action }"() {
         buildFile << """
             def configureCount = 0
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 configureCount++
                 println "Configure \${path} " + configureCount
             }
@@ -268,13 +272,16 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "build logic can configure each task of a given type only when required"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask).configure {
                 println "Configure ${path}"
             }
-            tasks.createLater("task2", SomeOtherTask) {
+            tasks.named("task1").configure {
+                println "Configure again ${path}"
+            }
+            tasks.register("task2", SomeOtherTask) {
                 println "Configure ${path}"
             }
-            tasks.createLater("task3", SomeOtherTask)
+            tasks.register("task3", SomeOtherTask)
 
             tasks.withType(SomeTask).configureEach {
                 println "Received ${path}"
@@ -298,6 +305,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Create :task1")
         outputContains("Configure :task1")
+        outputContains("Configure again :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
     }
@@ -305,7 +313,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/5148")
     def "can get a task by name with a filtered collection"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
             
@@ -323,7 +331,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails to get a task by name when it does not match the filtered type"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
             
@@ -343,7 +351,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails to get a task by name when it does not match the collection filter"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.register("task1", SomeTask) {
                 println "Configure ${path}"
             }
             
@@ -361,32 +369,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Task with name 'task1' not found")
     }
 
-    def "delegate of TaskProvider.configure is set properly"() {
-        buildFile << """
-            def eager = tasks.create("eager")
-            def eagerToo = tasks.create("eagerToo")
-            def lazy = tasks.createLater("lazy")
-            
-            tasks.configureEach {
-                doLast {
-                    println "Hello from " + path
-                }
-            }
-            
-            lazy.configure {
-                dependsOn eager 
-            }
-            
-            tasks.named("eagerToo").configure {
-                dependsOn lazy
-            }
-        """
-
-        expect:
-        succeeds("eagerToo")
-        result.assertTasksExecuted(":eager", ":lazy", ":eagerToo")
-    }
-
     @Issue("https://github.com/gradle/gradle-native/issues/661")
     def "executes each configuration actions once when realizing a task"() {
         buildFile << '''
@@ -402,7 +384,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 actionExecutionCount.a2++
             }
 
-            def a = tasks.createLater("a", A) {
+            def a = tasks.register("a", A) {
                 actionExecutionCount.a3++
             }
 
@@ -446,7 +428,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 actionExecutionOrderForTaskA << "2"
             }
 
-            def a = tasks.createLater("a", A) {
+            def a = tasks.register("a", A) {
                 actionExecutionOrderForTaskA << "3"
             }
 
@@ -506,7 +488,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can overwrite a lazy task creation with a eager task creation without executing any lazy rules"() {
         buildFile << '''
             class MyTask extends DefaultTask {}
-            def myTask = tasks.createLater("myTask", SomeTask) {
+            def myTask = tasks.register("myTask", SomeTask) {
                 assert false, "This task is overwritten before been realized"
             }
             myTask.configure {
@@ -528,7 +510,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can overwrite a lazy task creation with a eager task and configure lazy task again"() {
         buildFile << '''
             class MyTask extends DefaultTask {}
-            def myTask = tasks.createLater("myTask", SomeTask) {
+            def myTask = tasks.register("myTask", SomeTask) {
                 assert false, "This task is overwritten before been realized"
             }
             myTask.configure {
@@ -555,7 +537,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def creationRuleExecutionCount = 0
-            def myTask = tasks.createLater("myTask", SomeTask) {
+            def myTask = tasks.register("myTask", SomeTask) {
                assert creationRuleExecutionCount++ == 0, "This task creation rule should only execute once."
             }
             def configurationRuleExecutionCount = 0
@@ -584,7 +566,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 configureEachRuleExecutionCount++
             }
 
-            def myTask = tasks.createLater("myTask", SomeTask)
+            def myTask = tasks.register("myTask", SomeTask)
             myTask.get()
 
             tasks.create(name: "myTask", type: SomeTask, overwrite: true) {
@@ -609,7 +591,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 configureEachRuleExecutionCount++
             }
 
-            def myTask = tasks.createLater("myTask", SomeTask)
+            def myTask = tasks.register("myTask", SomeTask)
             
             tasks.create(name: "myTask", type: SomeTask, overwrite: true) {
                println "Configure ${path}"
@@ -628,7 +610,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can construct a custom task with constructor arguments"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
-        buildFile << "tasks.createLater('myTask', CustomTask, 'hello', 42)"
+        buildFile << "tasks.register('myTask', CustomTask, 'hello', 42)"
 
         when:
         run 'myTask'
@@ -640,7 +622,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "fails to create custom task if constructor arguments are missing"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
-        buildFile << "tasks.createLater('myTask', CustomTask, 'hello')"
+        buildFile << "tasks.register('myTask', CustomTask, 'hello')"
 
         when:
         fails 'myTask'
@@ -652,7 +634,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "fails to create custom task if all constructor arguments missing"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
-        buildFile << "tasks.createLater('myTask', CustomTask)"
+        buildFile << "tasks.register('myTask', CustomTask)"
 
         when:
         fails 'myTask'
@@ -665,7 +647,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "fails when #description constructor argument is wrong type"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
-        buildFile << "tasks.createLater('myTask', CustomTask, $constructorArgs)"
+        buildFile << "tasks.register('myTask', CustomTask, $constructorArgs)"
 
         when:
         fails 'myTask'
@@ -693,8 +675,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         position | script
-        1        | "tasks.createLater('myTask', CustomTask, null, 1)"
-        2        | "tasks.createLater('myTask', CustomTask, 'abc', null)"
+        1        | "tasks.register('myTask', CustomTask, null, 1)"
+        2        | "tasks.register('myTask', CustomTask, 'abc', null)"
     }
 
     def "can construct a task with @Inject services"() {
@@ -717,7 +699,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            tasks.createLater('myTask', CustomTask)
+            tasks.register('myTask', CustomTask)
         """
 
         when:
@@ -749,7 +731,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            tasks.createLater('myTask', CustomTask, 15)
+            tasks.register('myTask', CustomTask, 15)
         """
 
         when:
@@ -757,5 +739,38 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("got it 15")
+    }
+
+    def "configure rule can create additional tasks"() {
+        buildFile << '''
+            def fooTasks = tasks.withType(SomeTask)
+            
+            tasks.register('foo', SomeTask) {
+                dependsOn tasks.register('bar')
+            }
+            
+            task('baz') {
+                dependsOn fooTasks
+            }
+        '''
+
+        expect:
+        succeeds "baz"
+    }
+
+    def "lazy tasks that are removed cannot be recreated"() {
+        buildFile << '''
+            def fooTask = tasks.register('foo', SomeTask).get()
+            
+            tasks.remove(fooTask)
+            
+            tasks.all { }
+        '''
+
+        expect:
+        fails "foo"
+
+        and:
+        failure.assertHasDescription("Task 'foo' not found in root project")
     }
 }

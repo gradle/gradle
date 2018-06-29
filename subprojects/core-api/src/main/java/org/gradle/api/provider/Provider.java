@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -45,7 +46,7 @@ import javax.annotation.Nullable;
  * </p>
  *
  * <p>
- *  For a provider whose value can be mutated, see {@link PropertyState}.
+ *  For a provider whose value can be mutated, see {@link Property}.
  * </p>
  *
  * <p>
@@ -59,6 +60,7 @@ import javax.annotation.Nullable;
  */
 @Incubating
 @HasInternalProtocol
+@NonExtensible
 public interface Provider<T> {
 
     /**

@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
+import org.gradle.api.tasks.TaskProvider
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -151,6 +152,20 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
         context.add(Stub(Path))
 
         then:
+        0 * taskContext._
+    }
+
+    def taskProvider() {
+        def task = Stub(Task)
+        def taskProvider = Mock(TaskProvider) {
+            get() >> task
+        }
+
+        when:
+        context.add(taskProvider)
+
+        then:
+        1 * taskContext.add(task)
         0 * taskContext._
     }
 }

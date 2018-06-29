@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -57,9 +58,9 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             Path projectPath = Path.path(decoder.readString());
             return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, identityPath.getName());
         } else if (Implementation.MODULE.getId() == id) {
-            return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
         } else if (Implementation.SNAPSHOT.getId() == id) {
-            return new MavenUniqueSnapshotComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString(), decoder.readString());
+            return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }

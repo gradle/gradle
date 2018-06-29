@@ -36,9 +36,11 @@ import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
+import spock.lang.Timeout
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=2.6")
+@Timeout(120)
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     public static final GradleVersion GRADLE_VERSION_34 = GradleVersion.version("3.4")
 

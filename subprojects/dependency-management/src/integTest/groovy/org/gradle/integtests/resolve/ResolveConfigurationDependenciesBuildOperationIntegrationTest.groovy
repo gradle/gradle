@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Unroll
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -344,4 +345,133 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         mavenHttpRepo.module('org.foo', 'app-dep').publish().allowAll()
     }
 
+    def "failed resolved configurations are exposed via build operation"() {
+        given:
+        MavenHttpModule a
+        MavenHttpModule b
+        MavenHttpModule leaf1
+        MavenHttpModule leaf2
+        mavenHttpRepo.with {
+            a = module('org', 'a', '1.0').dependsOn('org', 'leaf', '1.0').publish()
+            b = module('org', 'b', '1.0').dependsOn('org', 'leaf', '2.0').publish()
+            leaf1 = module('org', 'leaf', '1.0').publish()
+            leaf2 = module('org', 'leaf', '2.0').publish()
+        }
+
+        when:
+        buildFile << """    
+            repositories {
+                maven { url = '${mavenHttpRepo.uri}' }
+            }
+            
+            configurations {
+                compile {
+                    resolutionStrategy.failOnVersionConflict()
+                }
+            }
+                        
+            dependencies {
+               compile 'org:a:1.0'
+               compile 'org:b:1.0'
+            }
+            
+            task resolve {
+              doLast {
+                  println(configurations.compile.files.name)
+              }
+            }
+"""
+        a.pom.expectGet()
+        b.pom.expectGet()
+        leaf1.pom.expectGet()
+        leaf2.pom.expectGet()
+
+        then:
+        fails "resolve"
+
+        and:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == "compile"
+        op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
+        failure.assertHasCause("""A conflict was found between the following modules:
+  - org:leaf:1.0
+  - org:leaf:2.0""")
+        op.result != null
+        op.result.resolvedDependenciesCount == 2
+    }
+
+    // This documents the current behavior, not necessarily the smartest one.
+    // FTR This behaves the same in 4.7, 4.8 and 4.9
+    def "non fatal errors incur no resolution failure"() {
+        def mod = mavenHttpRepo.module('org', 'a', '1.0')
+        mod.pomFile << "corrupt"
+
+        when:
+        buildFile << """    
+            repositories {
+                maven { url = '${mavenHttpRepo.uri}' }
+            }
+            
+            configurations {
+                compile
+            }
+                        
+            dependencies {
+               compile 'org:a:1.0'
+            }
+            
+            task resolve {
+              doLast {
+                  println(configurations.compile.files.name)
+              }
+            }
+"""
+        then:
+        mod.allowAll()
+        fails "resolve"
+
+        and:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == "compile"
+        op.failure == null
+        op.result.resolvedDependenciesCount == 1
+    }
+
+    def "a fatal failure is captured in resolution build operation result"() {
+        def mod = mavenHttpRepo.module('org', 'a', '1.0').publish()
+
+        when:
+        buildFile << """    
+            repositories {
+                maven { url = '${mavenHttpRepo.uri}' }
+            }
+            
+            configurations {
+                compile
+            }
+                        
+            dependencies {
+               compile 'org:a:1.0'
+            }
+            
+            task resolve {
+              doLast {
+                  // this will shutdown the project scope services, which is going to trigger a
+                  // fatal dependency resolution error
+                  services.close()
+                  println(configurations.compile.files.name)
+              }
+            }
+            
+"""
+        then:
+        mod.allowAll()
+        fails "resolve"
+
+        and:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == "compile"
+        op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
+        op.result == null
+    }
 }

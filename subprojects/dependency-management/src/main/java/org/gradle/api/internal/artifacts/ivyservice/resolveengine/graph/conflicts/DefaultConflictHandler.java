@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
@@ -91,9 +92,11 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
             if (replacement != null) {
                 String reason = replacement.getReason();
+                ComponentSelectionDescriptorInternal moduleReplacement = VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(identifier, "replaced with", replacement.getTarget()));
                 if (reason != null) {
-                    selected.addCause(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION, reason));
+                    moduleReplacement = moduleReplacement.withReason(Describables.of(reason));
                 }
+                selected.addCause(moduleReplacement);
             }
         }
     }

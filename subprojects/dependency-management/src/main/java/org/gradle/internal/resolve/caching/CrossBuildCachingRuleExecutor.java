@@ -37,6 +37,7 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.action.ConfigurableRule;
+import org.gradle.internal.action.ConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -106,16 +107,16 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         if (action == null) {
             return null;
         }
-        final ConfigurableRule<DETAILS> rule = action.getRule();
-        if (rule.isCacheable()) {
-            return tryFromCache(key, action, detailsToResult, onCacheMiss, cachePolicy, rule);
+        final ConfigurableRules<DETAILS> rules = action.getRules();
+        if (rules.isCacheable()) {
+            return tryFromCache(key, action, detailsToResult, onCacheMiss, cachePolicy, rules);
         } else {
             return executeRule(key, action, detailsToResult, onCacheMiss);
         }
     }
 
-    private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy, ConfigurableRule<DETAILS> rule) {
-        final ValueSnapshot snapshot = computeExplicitInputsSnapshot(key, rule);
+    private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy, ConfigurableRules<DETAILS> rules) {
+        final ValueSnapshot snapshot = computeExplicitInputsSnapshot(key, rules);
         DefaultImplicitInputRegistrar registrar = new DefaultImplicitInputRegistrar();
         ImplicitInputsCapturingInstantiator instantiator = findInputCapturingInstantiator(action);
         if (instantiator != null) {
@@ -125,22 +126,20 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         CachedEntry<RESULT> entry = store.get(snapshot);
         if (entry != null) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Found result for rule {} and key {} in cache", rule, key);
+                LOGGER.debug("Found result for rule {} and key {} in cache", rules, key);
             }
-            if (validator.isValid(cachePolicy, entry) && areImplicitInputsUpToDate(instantiator, key, rule, entry)) {
+            if (validator.isValid(cachePolicy, entry) && areImplicitInputsUpToDate(instantiator, key, rules, entry)) {
                 // Here it means that we have validated that the entry is still up-to-date, and that means a couple of things:
                 // 1. the cache policy said that the entry is still valid (for example, `--refresh-dependencies` wasn't called)
                 // 2. if the rule is cacheable, we have validated that its discovered inputs are still the same
                 return entry.getResult();
             } else if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Invalidating result for rule {} and key {} in cache", rule, key);
+                LOGGER.debug("Invalidating result for rule {} and key {} in cache", rules, key);
             }
         }
 
         RESULT result = executeRule(key, action, detailsToResult, onCacheMiss);
-        if (result != null) {
-            store.put(snapshot, new CachedEntry<RESULT>(timeProvider.getCurrentTime(), registrar.implicits, result));
-        }
+        store.put(snapshot, new CachedEntry<RESULT>(timeProvider.getCurrentTime(), registrar.implicits, result));
         return result;
     }
 
@@ -148,16 +147,18 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
      * This method computes a snapshot of the explicit inputs of the rule, which consist of the rule implementation,
      * the rule key (for example, a module identifier) and the optional rule parameters.
      * @param key the primary key
-     * @param rule the rule to be snapshotted
+     * @param rules the rules to be snapshotted
      * @return a snapshot of the inputs
      */
-    private ValueSnapshot computeExplicitInputsSnapshot(KEY key, ConfigurableRule<DETAILS> rule) {
-        List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(4);
+    private ValueSnapshot computeExplicitInputsSnapshot(KEY key, ConfigurableRules<DETAILS> rules) {
+        List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(2 + 2 * rules.getConfigurableRules().size());
         toBeSnapshotted.add(ketToSnapshottable.transform(key));
-        Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
-        Isolatable<Object[]> ruleParams = rule.getRuleParams();
-        toBeSnapshotted.add(ruleClass);
-        toBeSnapshotted.add(ruleParams);
+        for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
+            Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
+            Isolatable<Object[]> ruleParams = rule.getRuleParams();
+            toBeSnapshotted.add(ruleClass);
+            toBeSnapshotted.add(ruleParams);
+        }
         return snapshotter.snapshot(toBeSnapshotted);
     }
 
@@ -169,14 +170,14 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         return null;
     }
 
-    private boolean areImplicitInputsUpToDate(ImplicitInputsCapturingInstantiator serviceRegistry, KEY key, ConfigurableRule<DETAILS> rule, CachedEntry<RESULT> entry) {
+    private boolean areImplicitInputsUpToDate(ImplicitInputsCapturingInstantiator serviceRegistry, KEY key, ConfigurableRules<DETAILS> rules, CachedEntry<RESULT> entry) {
         for (Map.Entry<String, Collection<ImplicitInputRecord<?, ?>>> implicitEntry : entry.getImplicits().asMap().entrySet()) {
             String serviceName = implicitEntry.getKey();
             ImplicitInputsProvidingService<Object, Object, ?> provider = Cast.uncheckedCast(serviceRegistry.findInputCapturingServiceByName(serviceName));
             for (ImplicitInputRecord<?, ?> list : implicitEntry.getValue()) {
                 if (!provider.isUpToDate(list.getInput(), list.getOutput())) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Invalidating result for rule {} and key {} in cache because implicit input provided by service {} changed", rule, key, provider.getClass());
+                        LOGGER.debug("Invalidating result for rule {} and key {} in cache because implicit input provided by service {} changed", rules, key, provider.getClass());
                     }
                     return false;
                 }

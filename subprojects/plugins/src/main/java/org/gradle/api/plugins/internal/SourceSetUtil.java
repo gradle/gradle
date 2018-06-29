@@ -48,7 +48,6 @@ public class SourceSetUtil {
                 return sourceDirectorySet.getOutputDir();
             }
         }));
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target);
     }
 
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {

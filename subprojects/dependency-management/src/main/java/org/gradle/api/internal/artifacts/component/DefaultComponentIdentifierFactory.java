@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.component;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -39,7 +40,7 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
             return currentBuild.getIdentifierForProject(Path.path(projectPath));
         }
 
-        return new DefaultModuleComponentIdentifier(module.getGroup(), module.getName(), module.getVersion());
+        return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(module.getGroup(), module.getName()), module.getVersion());
     }
 
     @Override

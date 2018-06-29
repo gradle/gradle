@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.component.Artifact
 import org.gradle.api.component.Component
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
@@ -92,7 +93,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         def query = createArtifactResolutionQuery(givenComponentTypeRegistry)
 
         when:
-        ModuleComponentIdentifier componentIdentifier = new DefaultModuleComponentIdentifier('mygroup', 'mymodule', '1.0')
+        ModuleComponentIdentifier componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('mygroup', 'mymodule'), '1.0')
         ArtifactResolutionResult result = query
             .forComponents(componentIdentifier)
             .withArtifacts(selectedComponentType, selectedArtifactType)

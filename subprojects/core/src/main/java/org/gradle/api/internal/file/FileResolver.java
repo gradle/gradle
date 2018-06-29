@@ -24,7 +24,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -40,7 +39,6 @@ public interface FileResolver extends RelativeFilePathResolver, PathToFileResolv
 
     FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees);
 
-    @Nullable
     URI resolveUri(Object path);
 
     NotationParser<Object, File> asNotationParser();

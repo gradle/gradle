@@ -23,5 +23,5 @@ import org.gradle.model.internal.core.NamedEntityInstantiator;
 public interface ITaskFactory extends NamedEntityInstantiator<Task> {
     ITaskFactory createChild(ProjectInternal project, Instantiator instantiator);
 
-    <S extends Task> S create(String name, Class<S> type, Object... args);
+    <S extends Task> S create(TaskIdentity<S> taskIdentity, Object... args);
 }

@@ -20,13 +20,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ComponentResult
 import org.gradle.api.artifacts.result.UnresolvedComponentResult
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
 
 class MetadataArtifactResolveTestFixture {
     private final TestFile buildFile
     final String config
-    final ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId('some.group', 'some-artifact', '1.0')
+    final ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('some.group', 'some-artifact'), '1.0')
     private String requestedComponent
     private String requestedArtifact
     private Class<? extends ComponentResult> expectedComponentResult
@@ -54,11 +55,16 @@ dependencies {
 
     void configureChangingModule() {
         buildFile << """
+class ChangingRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        context.details.changing = true
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            details.changing = true
-        }
+        all(ChangingRule)
     }
 }
 

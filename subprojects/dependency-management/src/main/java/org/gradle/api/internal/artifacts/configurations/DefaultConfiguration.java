@@ -42,6 +42,7 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -85,6 +86,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -121,6 +123,13 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
+
+    private static final Action<Throwable> DEFAULT_ERROR_HANDLER = new Action<Throwable>() {
+        @Override
+        public void execute(Throwable throwable) {
+            throw UncheckedException.throwAsUncheckedException(throwable);
+        }
+    };
 
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
@@ -519,7 +528,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                final ResolvableDependencies incoming = getIncoming();
+                final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
                 cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
@@ -533,12 +542,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
-                context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
-                    @Override
-                    public ResolvedComponentResult getRootComponent() {
-                        return incoming.getResolutionResult().getRoot();
-                    }
-                });
+                captureBuildOperationResult(context, incoming);
+            }
+
+            private void captureBuildOperationResult(BuildOperationContext context, final ResolvableDependenciesInternal incoming) {
+                Throwable failure = cachedResolverResults.getFailure();
+                if (failure != null) {
+                    context.failed(failure);
+                }
+                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(incoming, failure != null));
             }
 
             @Override
@@ -783,7 +795,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         DomainObjectSet<DependencyConstraint> copiedDependencyConstraints = copiedConfiguration.getDependencyConstraints();
         for (DependencyConstraint dependencyConstraint : dependencyConstraints) {
-            copiedDependencyConstraints.add(((DefaultDependencyConstraint)dependencyConstraint).copy());
+            copiedDependencyConstraints.add(((DefaultDependencyConstraint) dependencyConstraint).copy());
         }
         return copiedConfiguration;
     }
@@ -924,6 +936,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public String getDisplayName() {
             return "configuration '" + identityPath + "'";
+        }
+    }
+
+    private static class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result {
+
+        private static final Action<? super Throwable> FAIL_SAFE = Actions.doNothing();
+
+        private final ResolvableDependenciesInternal incoming;
+        private final boolean failSafe;
+
+        public ResolveConfigurationResolutionBuildOperationResult(ResolvableDependenciesInternal incoming, boolean failSafe) {
+            this.incoming = incoming;
+            this.failSafe = failSafe;
+        }
+
+        @Override
+        public ResolvedComponentResult getRootComponent() {
+            if (failSafe) {
+                // When fail safe, we don't want the build operation listeners to fail whenever resolution throws an error
+                // because:
+                // 1. the `failed` method will have been called with the user facing error
+                // 2. such an error still leads to a valid dependency graph
+                return incoming.getResolutionResult(FAIL_SAFE).getRoot();
+            }
+            return incoming.getResolutionResult().getRoot();
         }
     }
 
@@ -1115,7 +1152,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return reply.toString();
     }
 
-    public class ConfigurationResolvableDependencies implements ResolvableDependencies {
+    public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
         public String getName() {
             return name;
         }
@@ -1160,8 +1197,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            DefaultConfiguration.this.resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
+            return new LenientResolutionResult(DEFAULT_ERROR_HANDLER);
         }
 
         @Override
@@ -1192,6 +1228,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return configurationAttributes;
         }
 
+        @Override
+        public ResolutionResult getResolutionResult(Action<? super Throwable> errorHandler) {
+            return new LenientResolutionResult(errorHandler);
+        }
+
         private class ConfigurationArtifactView implements ArtifactView {
             private final ImmutableAttributes viewAttributes;
             private final Spec<? super ComponentIdentifier> componentFilter;
@@ -1218,6 +1259,96 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public FileCollection getFiles() {
                 return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+            }
+        }
+
+        private void assertArtifactsResolved() {
+            DefaultConfiguration.this.resolveToStateOrLater(ARTIFACTS_RESOLVED);
+        }
+
+        private class LenientResolutionResult implements ResolutionResult {
+            private final Action<? super Throwable> errorHandler;
+            private volatile ResolutionResult delegate;
+
+            private LenientResolutionResult(Action<? super Throwable> errorHandler) {
+                this.errorHandler = errorHandler;
+            }
+
+            private void resolve() {
+                if (delegate == null) {
+                    synchronized (this) {
+                        if (delegate == null) {
+                            assertArtifactsResolved();
+                            delegate = cachedResolverResults.getResolutionResult();
+                            Throwable failure = cachedResolverResults.consumeNonFatalFailure();
+                            if (failure != null) {
+                                errorHandler.execute(failure);
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public ResolvedComponentResult getRoot() {
+                resolve();
+                return delegate.getRoot();
+            }
+
+            @Override
+            public Set<? extends DependencyResult> getAllDependencies() {
+                resolve();
+                return delegate.getAllDependencies();
+            }
+
+            @Override
+            public void allDependencies(Action<? super DependencyResult> action) {
+                resolve();
+                delegate.allDependencies(action);
+            }
+
+            @Override
+            public void allDependencies(Closure closure) {
+                resolve();
+                delegate.allDependencies(closure);
+            }
+
+            @Override
+            public Set<ResolvedComponentResult> getAllComponents() {
+                resolve();
+                return delegate.getAllComponents();
+            }
+
+            @Override
+            public void allComponents(Action<? super ResolvedComponentResult> action) {
+                resolve();
+                delegate.allComponents(action);
+            }
+
+            @Override
+            public void allComponents(Closure closure) {
+                resolve();
+                delegate.allComponents(closure);
+            }
+
+            @Override
+            public int hashCode() {
+                resolve();
+                return delegate.hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (obj instanceof LenientResolutionResult) {
+                    resolve();
+                    return delegate.equals(((LenientResolutionResult) obj).delegate);
+                }
+                return false;
+            }
+
+            @Override
+            public String toString() {
+                return "lenient resolution result for " + delegate;
             }
         }
     }

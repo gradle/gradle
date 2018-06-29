@@ -24,7 +24,7 @@ class PlayIdeaPluginMultiprojectIntegrationTest extends PlayIdeaPluginIntegratio
 
     @Override
     PlayApp getPlayApp() {
-        new PlayMultiProject()
+        new PlayMultiProject(versionNumber)
     }
 
     File getModuleFile() {

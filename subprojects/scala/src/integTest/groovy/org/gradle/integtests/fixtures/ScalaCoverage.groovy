@@ -22,7 +22,7 @@ class ScalaCoverage {
 
     static final boolean USE_SINGLE_VERSION_ONLY = GradleContextualExecuter.isDaemon()
 
-    static final String NEWEST = "2.11.11"
+    static final String NEWEST = "2.11.12"
 
-    static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["2.10.6", "2.12.4", NEWEST]
+    static final String[] DEFAULT = USE_SINGLE_VERSION_ONLY ? [NEWEST] : ["2.10.7", "2.12.6", NEWEST]
 }

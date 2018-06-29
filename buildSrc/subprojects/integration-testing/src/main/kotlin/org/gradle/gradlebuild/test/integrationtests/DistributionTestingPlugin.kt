@@ -42,7 +42,7 @@ import kotlin.collections.set
 class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        tasks.withType(DistributionTest::class.java).configureEach {
+        tasks.withType<DistributionTest>().configureEach {
             dependsOn(":toolingApi:toolingApiShadedJar")
             dependsOn(":cleanUpCaches")
             finalizedBy(":cleanUpDaemons")

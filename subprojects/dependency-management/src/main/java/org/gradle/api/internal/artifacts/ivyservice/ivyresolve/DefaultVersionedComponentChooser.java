@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -79,7 +80,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
         // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
-            MetadataProvider metadataProvider = createMetadataProvider(candidate);
+            DefaultMetadataProvider metadataProvider = createMetadataProvider(candidate);
 
             boolean versionMatches = versionMatches(requestedVersionMatcher, candidate, metadataProvider);
             if (metadataIsNotUsable(result, metadataProvider)) {
@@ -88,28 +89,31 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
             ModuleComponentIdentifier candidateId = candidate.getId();
             if (!versionMatches) {
-                result.notMatched(candidateId);
+                result.notMatched(candidateId, requestedVersionMatcher);
                 continue;
             }
 
             RejectedByAttributesVersion maybeRejectByAttributes = tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
             if (maybeRejectByAttributes != null) {
                 result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
-            } else if (isRejectedByConstraint(candidateId, rejectedVersionSelector)) {
+            } else if (isRejectedBySelector(candidateId, rejectedVersionSelector)) {
                 // Mark this version as rejected
-                result.rejectedByConstraint(candidateId);
-            } else if (isRejectedByRules(candidateId, rules, metadataProvider)) {
-                // Mark this version as rejected
-                result.rejectedByRule(candidateId);
-
-                // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
-                if (requestedVersionMatcher.matchesUniqueVersion()) {
-                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
-                    break;
-                }
+                result.rejectedBySelector(candidateId, rejectedVersionSelector);
             } else {
-                result.matches(candidateId);
-                return;
+                RejectedByRuleVersion rejectedByRules = isRejectedByRule(candidateId, rules, metadataProvider);
+                if (rejectedByRules != null) {
+                    // Mark this version as rejected
+                    result.rejectedByRule(rejectedByRules);
+
+                    // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
+                    if (requestedVersionMatcher.matchesUniqueVersion()) {
+                        // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
+                        break;
+                    }
+                } else {
+                    result.matches(candidateId);
+                    return;
+                }
             }
         }
 
@@ -145,7 +149,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
      * @param metadataProvider the metadata provider
      * @return true if metadata is not usable
      */
-    private boolean metadataIsNotUsable(ComponentSelectionContext result, MetadataProvider metadataProvider) {
+    private boolean metadataIsNotUsable(ComponentSelectionContext result, DefaultMetadataProvider metadataProvider) {
         if (!metadataProvider.isUsable()) {
             applyTo(metadataProvider, result);
             return true;
@@ -153,11 +157,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return false;
     }
 
-    private static MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
-        return new MetadataProvider(candidate);
+    private static DefaultMetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
+        return new DefaultMetadataProvider(candidate);
     }
 
-    private static void applyTo(MetadataProvider provider, ComponentSelectionContext result) {
+    private static void applyTo(DefaultMetadataProvider provider, ComponentSelectionContext result) {
         BuildableModuleComponentMetaDataResolveResult metaDataResult = provider.getResult();
         switch (metaDataResult.getState()) {
             case Unknown:
@@ -184,17 +188,20 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
-    public boolean isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
-        return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
+    public RejectedByRuleVersion isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
+        return isRejectedByRule(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
     }
 
-    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
+    private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
         rulesProcessor.apply(selection, rules, metadataProvider);
-        return selection.isRejected();
+        if (selection.isRejected()) {
+            return new RejectedByRuleVersion(candidateIdentifier, selection.getRejectionReason());
+        }
+        return null;
     }
 
-    private boolean isRejectedByConstraint(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
+    private boolean isRejectedBySelector(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
         return rejectedVersionSelector != null && rejectedVersionSelector.accept(candidateIdentifier.getVersion());
     }
 

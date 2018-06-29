@@ -18,6 +18,7 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.serialize.Decoder;
@@ -33,8 +34,8 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
     private static final CachedExternalResourceSerializer CACHED_EXTERNAL_RESOURCE_SERIALIZER = new CachedExternalResourceSerializer();
     private final BuildCommencedTimeProvider timeProvider;
 
-    public DefaultCachedExternalResourceIndex(String persistentCacheFile, Serializer<K> keySerializer, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, keySerializer, CACHED_EXTERNAL_RESOURCE_SERIALIZER, cacheLockingManager);
+    public DefaultCachedExternalResourceIndex(String persistentCacheFile, Serializer<K> keySerializer, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, FileAccessTracker fileAccessTracker) {
+        super(persistentCacheFile, keySerializer, CACHED_EXTERNAL_RESOURCE_SERIALIZER, cacheLockingManager, fileAccessTracker);
         this.timeProvider = timeProvider;
     }
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.performance.regression.inception
 
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentRunner
@@ -33,7 +34,6 @@ import org.junit.rules.TestName
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
-
 /**
  * Test Gradle's build performance against current Gradle.
  *
@@ -127,6 +127,59 @@ class GradleBuildPerformanceTest extends Specification {
         and:
         def baselineResults = buildBaselineResults(results, baselineBuildName)
         def currentResults = results.buildResult(currentBuildName)
+
+        then:
+        def speedStats = baselineResults.getSpeedStatsAgainst(currentResults.name, currentResults)
+        println(speedStats)
+        if (baselineResults.significantlyFasterThan(currentResults)) {
+            throw new AssertionError(speedStats)
+        }
+    }
+
+    def "eager vs lazy on the gradle build"() {
+
+        given:
+        runner.testId = testName.methodName
+
+        and:
+        def eagerBuildName = 'eager build'
+        def lazyBuildName = 'lazy build'
+
+        and:
+        runner.baseline {
+            displayName eagerBuildName
+            projectName 'gradleBuildCurrent'
+            warmUpCount warmupBuilds
+            invocationCount measuredBuilds
+            invocation {
+                // Force tasks to be realized even if they were created with the lazy API.
+                args("-D" + DefaultTaskContainer.EAGERLY_CREATE_LAZY_TASKS_PROPERTY + "=true")
+                tasksToRun("help")
+                useDaemon()
+            }
+        }
+
+        and:
+        runner.buildSpec {
+            displayName lazyBuildName
+            projectName 'gradleBuildCurrent'
+            warmUpCount warmupBuilds
+            invocationCount measuredBuilds
+            invocation {
+                tasksToRun("help")
+                useDaemon()
+            }
+        }
+
+        when:
+        def results = runner.run()
+
+        then:
+        results.assertEveryBuildSucceeds()
+
+        and:
+        def baselineResults = buildBaselineResults(results, eagerBuildName)
+        def currentResults = results.buildResult(lazyBuildName)
 
         then:
         def speedStats = baselineResults.getSpeedStatsAgainst(currentResults.name, currentResults)

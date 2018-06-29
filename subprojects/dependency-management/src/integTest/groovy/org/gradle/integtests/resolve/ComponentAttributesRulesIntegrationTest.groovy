@@ -39,6 +39,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
+                @javax.inject.Inject
                 public AttributeRule(Attribute attribute) {
                     targetAttribute = attribute
                 }
@@ -110,6 +111,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
+                @javax.inject.Inject
                 public AttributeRule(Attribute attribute) {
                     targetAttribute = attribute
                 }
@@ -181,6 +183,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
+                @javax.inject.Inject
                 public AttributeRule(Attribute attribute) {
                     targetAttribute = attribute
                 }
@@ -249,6 +252,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
+                @javax.inject.Inject
                 public AttributeRule(Attribute attribute) {
                     targetAttribute = attribute
                 }
@@ -320,6 +324,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
+                @javax.inject.Inject
                 public AttributeRule(Attribute attribute) {
                     targetAttribute = attribute
                 }

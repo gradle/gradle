@@ -62,7 +62,7 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
         this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
     }
 
     @Override

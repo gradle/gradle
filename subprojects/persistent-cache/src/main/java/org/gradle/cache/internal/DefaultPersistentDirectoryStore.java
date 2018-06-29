@@ -140,6 +140,11 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
+    public String getDisplayName() {
         return displayName;
     }
 

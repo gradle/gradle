@@ -18,17 +18,21 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheValidator
+import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
@@ -86,7 +90,26 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
 
     def rebuildsCacheWhenPropertiesHaveChanged() {
         given:
-        def dir = createCacheDir("prop", "other-value")
+        def dir = createCacheDir(prop: "other-value")
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), initializationAction, cleanupAction, lockManager, Mock(ExecutorFactory))
+
+        when:
+        try {
+            cache.open()
+        } finally {
+            cache.close()
+        }
+
+        then:
+        1 * initializationAction.execute(_ as PersistentCache)
+        0 * _
+        loadProperties(dir.file("cache.properties")) == properties
+    }
+
+    def rebuildsCacheWhenPropertyIsAdded() {
+        given:
+        def dir = createCacheDir()
+        def properties = properties + [newProp: 'newValue']
         def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), initializationAction, cleanupAction, lockManager, Mock(ExecutorFactory))
 
         when:
@@ -193,14 +216,17 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         gcFile.assertIsFile()
 
         when:
-        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(7))
+        markCacheForCleanup(gcFile)
+        def modificationTimeBefore = gcFile.lastModified()
         try {
             cache.open()
         } finally {
             cache.close()
         }
+
         then:
-        1 * cleanupAction.clean(cache)
+        gcFile.lastModified() > modificationTimeBefore
+        1 * cleanupAction.clean(cache, _)
         0 * _
     }
 
@@ -210,7 +236,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         def gcFile = dir.file("gc.properties")
         def failingCleanupAction = new CleanupAction() {
             @Override
-            void clean(PersistentCache persistentCache) {
+            void clean(CleanableStore cleanableStore, CountdownTimer timer) {
                 throw new Exception("Boom")
             }
         }
@@ -240,7 +266,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     }
 
     private void markCacheForCleanup(TestFile gcFile) {
-        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(7))
+        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(2))
     }
 
     def "does not use gc.properties when no cleanup action is defined"() {
@@ -261,6 +287,65 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         gcFile.assertDoesNotExist()
     }
 
+    def "will rebuild cache if not unlocked cleanly"() {
+        given:
+        def dir = temporaryFolder.testDirectory.createDir("cache")
+        def initialized = false
+        def init = { initialized = true } as Action
+        def cache = new DefaultPersistentDirectoryCache(dir, "test", null, [:], CacheBuilder.LockTarget.DefaultTarget,
+            mode(FileLockManager.LockMode.Exclusive), init, CleanupAction.NO_OP, createDefaultFileLockManager(), Mock(ExecutorFactory))
+
+        when:
+        unlockUncleanly(dir.file("cache.properties"))
+        cache.open()
+
+        then:
+        initialized
+
+        cleanup:
+        cache.close()
+    }
+
+    def "will rebuild cache if cache.properties is missing and properties are not empty"() {
+        given:
+        def dir = createCacheDir()
+        def initialized = false
+        def init = { initialized = true } as Action
+        def properties = [foo: 'bar']
+        def cache = new DefaultPersistentDirectoryCache(dir, "test", null, properties, CacheBuilder.LockTarget.DefaultTarget,
+            mode(FileLockManager.LockMode.Exclusive), init, CleanupAction.NO_OP, createDefaultFileLockManager(), Mock(ExecutorFactory))
+
+        when:
+        dir.file("cache.properties").delete()
+        cache.open()
+
+        then:
+        initialized
+
+        cleanup:
+        cache.close()
+    }
+
+    def "will not rebuild cache if cache.properties is missing but properties are empty"() {
+        given:
+        def dir = createCacheDir()
+        def initialized = false
+        def init = { initialized = true } as Action
+        def properties = [:]
+        def cache = new DefaultPersistentDirectoryCache(dir, "test", null, properties, CacheBuilder.LockTarget.DefaultTarget,
+            mode(FileLockManager.LockMode.Exclusive), init, CleanupAction.NO_OP, createDefaultFileLockManager(), Mock(ExecutorFactory))
+
+        when:
+        dir.file("cache.properties").delete()
+        cache.open()
+
+        then:
+        !initialized
+
+        cleanup:
+        cache.close()
+    }
+
     private static Map<String, String> loadProperties(TestFile file) {
         Properties properties = GUtil.loadProperties(file)
         Map<String, String> result = new HashMap<String, String>()
@@ -270,12 +355,12 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         return result
     }
 
-    private TestFile createCacheDir(String... extraProps) {
+    private TestFile createCacheDir(Map<String, ?> extraProps = [:]) {
         def dir = temporaryFolder.getTestDirectory()
 
         Map<String, Object> properties = new HashMap<String, Object>()
         properties.putAll(this.properties)
-        properties.putAll(GUtil.map((Object[]) extraProps))
+        properties.putAll(extraProps)
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), null, null, lockManager, Mock(ExecutorFactory))
 

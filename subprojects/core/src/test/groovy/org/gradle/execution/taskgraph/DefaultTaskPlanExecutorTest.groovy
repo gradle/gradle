@@ -45,7 +45,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
-        def node = Mock(TaskInfo)
+        def node = Mock(LocalTaskInfo)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle
@@ -53,15 +53,14 @@ class DefaultTaskPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(taskPlan, worker, [])
+        executor.process(taskPlan, [], worker)
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNextTask(_, _) >> node
-        1 * node.task >> task
-        1 * worker.execute(task)
+        1 * taskPlan.selectNext(_, _) >> node
+        1 * worker.execute(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
@@ -73,7 +72,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def "execution is canceled when cancellation requested"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
-        def node = Mock(TaskInfo)
+        def node = Mock(LocalTaskInfo)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle
@@ -81,17 +80,16 @@ class DefaultTaskPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(taskPlan, worker, [])
+        executor.process(taskPlan, [], worker)
 
         then:
         1 * taskPlan.getDisplayName() >> "task plan"
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNextTask(_, _) >> node
-        1 * node.task >> task
-        1 * worker.execute(task)
-        1 * taskPlan.taskComplete(node)
+        1 * taskPlan.selectNext(_, _) >> node
+        1 * worker.execute(node)
+        1 * taskPlan.workComplete(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true

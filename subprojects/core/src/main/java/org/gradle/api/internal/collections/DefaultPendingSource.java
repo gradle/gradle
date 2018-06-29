@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.List;
-import java.util.ListIterator;
 
 public class DefaultPendingSource<T> implements PendingSource<T> {
     private final List<ProviderInternal<? extends T>> pending = Lists.newArrayList();
@@ -29,24 +28,32 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
 
     @Override
     public void realizePending() {
-        for (ProviderInternal<? extends T> provider : pending) {
-            if (flushAction != null) {
-                flushAction.execute(provider);
-            } else {
-                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
-            }
+        if (!pending.isEmpty()) {
+            List<ProviderInternal<? extends T>> copied = Lists.newArrayList(pending);
+            realize(copied);
         }
-        pending.clear();
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        ListIterator<ProviderInternal<? extends T>> iterator = pending.listIterator();
-        while (iterator.hasNext()) {
-            ProviderInternal<? extends T> provider = iterator.next();
-            if (provider.getType() == null || type.isAssignableFrom(provider.getType())) {
+        if (!pending.isEmpty()) {
+            List<ProviderInternal<? extends T>> copied = Lists.newArrayList();
+            for (ProviderInternal<? extends T> provider : pending) {
+                if (provider.getType() == null || type.isAssignableFrom(provider.getType())) {
+                    copied.add(provider);
+                }
+            }
+            realize(copied);
+        }
+    }
+
+    private void realize(Iterable<ProviderInternal<? extends T>> elements) {
+        for (ProviderInternal<? extends T> provider : elements) {
+            if (flushAction != null) {
+                pending.remove(provider);
                 flushAction.execute(provider);
-                iterator.remove();
+            } else {
+                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
             }
         }
     }

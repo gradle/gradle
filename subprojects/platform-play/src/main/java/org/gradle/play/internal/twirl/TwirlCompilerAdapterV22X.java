@@ -32,38 +32,14 @@ import java.util.List;
 class TwirlCompilerAdapterV22X extends VersionedTwirlCompilerAdapter {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("play.templates");
 
-    // Based on https://github.com/playframework/playframework/blob/2.2.6/framework/src/sbt-plugin/src/main/scala/PlayKeys.scala
-    private static final Collection<String> DEFAULT_JAVA_IMPORTS = Arrays.asList(
-        "play.api.templates._",
-        "play.api.templates.PlayMagic._",
-        "models._",
-        "controllers._",
-        "java.lang._",
-        "java.util._",
-        "scala.collection.JavaConversions._",
-        "scala.collection.JavaConverters._",
-        "play.api.i18n._",
-        "play.core.j.PlayMagicForJava._",
-        "play.mvc._",
-        "play.data._",
-        "play.api.data.Field",
-        "play.mvc.Http.Context.Implicit._");
-
-    private static final Collection<String> DEFAULT_SCALA_IMPORTS = Arrays.asList(
-        "play.api.templates._",
-        "play.api.templates.PlayMagic._",
-        "models._",
-        "controllers._",
-        "play.api.i18n._",
-        "play.api.mvc._",
-        "play.api.data._");
-
     private final String twirlVersion;
     private final String scalaVersion;
+    private final VersionedPlayTwirlAdapter playTwirlAdapter;
 
-    public TwirlCompilerAdapterV22X(String twirlVersion, String scalaVersion) {
+    public TwirlCompilerAdapterV22X(String twirlVersion, String scalaVersion, VersionedPlayTwirlAdapter playTwirlAdapter) {
         this.twirlVersion = twirlVersion;
         this.scalaVersion = scalaVersion;
+        this.playTwirlAdapter = playTwirlAdapter;
     }
 
     @Override
@@ -82,12 +58,7 @@ class TwirlCompilerAdapterV22X extends VersionedTwirlCompilerAdapter {
 
     @Override
     public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        final Collection<String> defaultTwirlImports;
-        if (defaultImports == TwirlImports.JAVA) {
-            defaultTwirlImports = DEFAULT_JAVA_IMPORTS;
-        } else {
-            defaultTwirlImports = DEFAULT_SCALA_IMPORTS;
-        }
+        final Collection<String> defaultTwirlImports = playTwirlAdapter.getDefaultImports(defaultImports);
         return new Object[] {
                 file,
                 sourceDirectory,
