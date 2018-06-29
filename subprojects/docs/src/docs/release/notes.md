@@ -1,6 +1,6 @@
 
-Gradle 4.9 includes Kotlin DSL 0.18.2, bringing faster and leaner configuration time, improvements to the IntelliJ IDEA and Android Studio user experience as well as a set of bug fixes.
-See details in the [Kotlin DSL v0.18 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.18.2).
+Gradle 4.9 includes Kotlin DSL 0.18.4, bringing faster and leaner configuration time, improvements to the IntelliJ IDEA and Android Studio user experience as well as a set of bug fixes.
+See details in the [Kotlin DSL v0.18.x release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.18.4).
 
 ## New and noteworthy
 
