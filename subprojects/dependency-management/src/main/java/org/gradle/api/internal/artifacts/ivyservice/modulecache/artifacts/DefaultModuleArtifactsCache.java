@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetadataSerializer;
 import org.gradle.cache.PersistentIndexedCache;
@@ -33,13 +33,13 @@ import java.math.BigInteger;
 import java.util.Set;
 
 public class DefaultModuleArtifactsCache extends InMemoryModuleArtifactsCache {
-    private final CacheLockingManager cacheLockingManager;
+    private final ArtifactCacheLockingManager artifactCacheLockingManager;
 
     private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> cache;
 
-    public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager) {
         super(timeProvider);
-        this.cacheLockingManager = cacheLockingManager;
+        this.artifactCacheLockingManager = artifactCacheLockingManager;
     }
 
     private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> getCache() {
@@ -50,7 +50,7 @@ public class DefaultModuleArtifactsCache extends InMemoryModuleArtifactsCache {
     }
 
     private PersistentIndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
+        return artifactCacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
     @Override

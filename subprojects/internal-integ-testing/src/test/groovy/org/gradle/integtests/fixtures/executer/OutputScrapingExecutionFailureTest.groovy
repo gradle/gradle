@@ -348,19 +348,19 @@ Some text before
 FAILURE: broken
 
 * Exception is:
-org.gradle.internal.service.ServiceCreationException: Could not create service of type CacheLockingManager
+org.gradle.internal.service.ServiceCreationException: Could not create service of type ArtifactCacheLockingManager
     at org.gradle.internal.service.DefaultServiceRegistry.some(DefaultServiceRegistry.java:604)
 Caused by: java.io.IOException: Something in the middle
-    at org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager.initMetaDataStoreDir(DefaultCacheLockingManager.java:59)
+    at org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager.initMetaDataStoreDir(DefaultArtifactCacheLockingManager.java:59)
 Caused by: org.gradle.api.UncheckedIOException: Unable to create directory 'metadata-2.1'
-    at org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager.initMetaDataStoreDir(DefaultCacheLockingManager.java:59)
+    at org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager.initMetaDataStoreDir(DefaultArtifactCacheLockingManager.java:59)
 """
         when:
         def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
         failure.exception.class.simpleName == 'ServiceCreationException'
-        failure.exception.message == 'Could not create service of type CacheLockingManager'
+        failure.exception.message == 'Could not create service of type ArtifactCacheLockingManager'
         failure.exception.cause.class.simpleName == 'IOException'
         failure.exception.cause.message == 'Something in the middle'
         failure.exception.cause.cause.class.simpleName == 'UncheckedIOException'

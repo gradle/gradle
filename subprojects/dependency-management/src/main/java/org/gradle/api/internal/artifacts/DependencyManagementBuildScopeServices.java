@@ -24,8 +24,8 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
@@ -188,17 +188,17 @@ class DependencyManagementBuildScopeServices {
         return new AttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);
     }
 
-    ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+    ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
             new DefaultModuleVersionsCache(
                 timeProvider,
-                cacheLockingManager,
+                artifactCacheLockingManager,
                 moduleIdentifierFactory),
             new DefaultModuleMetadataCache(
                 timeProvider,
-                cacheLockingManager,
+                artifactCacheLockingManager,
                 artifactCacheMetadata,
                 moduleIdentifierFactory,
                 attributeContainerSerializer,
@@ -207,12 +207,12 @@ class DependencyManagementBuildScopeServices {
                 stringInterner),
             new DefaultModuleArtifactsCache(
                 timeProvider,
-                cacheLockingManager
+                artifactCacheLockingManager
             ),
             new DefaultModuleArtifactCache(
                 "module-artifact",
                 timeProvider,
-                cacheLockingManager,
+                artifactCacheLockingManager,
                 artifactIdentifierFileStore.getFileAccessTracker()
             )
         );
@@ -225,11 +225,11 @@ class DependencyManagementBuildScopeServices {
         return new ModuleRepositoryCacheProvider(caches, inMemoryCaches);
     }
 
-    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ExternalResourceFileStore externalResourceFileStore) {
+    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore) {
         return new ByUrlCachedExternalResourceIndex(
             "resource-at-url",
             timeProvider,
-            cacheLockingManager,
+            artifactCacheLockingManager,
             externalResourceFileStore.getFileAccessTracker()
         );
     }
@@ -270,7 +270,7 @@ class DependencyManagementBuildScopeServices {
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                                                CacheLockingManager cacheLockingManager,
+                                                                ArtifactCacheLockingManager artifactCacheLockingManager,
                                                                 List<ResourceConnectorFactory> resourceConnectorFactories,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
@@ -282,7 +282,7 @@ class DependencyManagementBuildScopeServices {
             temporaryFileProvider,
             externalResourceIndex,
             buildCommencedTimeProvider,
-            cacheLockingManager,
+            artifactCacheLockingManager,
             buildOperationExecutor,
             startParameterResolutionOverride,
             producerGuard,

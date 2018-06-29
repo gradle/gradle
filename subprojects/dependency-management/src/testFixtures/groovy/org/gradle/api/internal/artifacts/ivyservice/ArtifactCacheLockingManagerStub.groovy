@@ -21,7 +21,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 
-class CacheLockingManagerStub implements CacheLockingManager {
+class ArtifactCacheLockingManagerStub implements ArtifactCacheLockingManager {
     private final Map<String, PersistentIndexedCache<?, ?>> caches = [:]
 
     PersistentIndexedCache<?, ?> getCache(String cacheName) {
