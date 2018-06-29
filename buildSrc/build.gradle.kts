@@ -62,16 +62,15 @@ subprojects {
 
     afterEvaluate {
         if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-            tasks.create<ValidateTaskProperties>("validateTaskProperties") {
+            val validateTaskProperties = tasks.register("validateTaskProperties", ValidateTaskProperties::class.java) {
                 outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
 
                 val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
                 classes = mainSourceSet.output.classesDirs
                 classpath = mainSourceSet.compileClasspath
                 dependsOn(mainSourceSet.output)
-
-                project.tasks["check"].dependsOn(this)
             }
+            tasks.named("check").configure { dependsOn(validateTaskProperties) }
         }
     }
 }
@@ -131,23 +130,20 @@ fun readProperties(propertiesFile: File) = Properties().apply {
     }
 }
 
-tasks {
-    val checkSameDaemonArgs by creating {
-        doLast {
-            val buildSrcProperties = readProperties(File(project.rootDir, "gradle.properties"))
-            val rootProperties = readProperties(File(project.rootDir, "../gradle.properties"))
-            val jvmArgs = listOf(buildSrcProperties, rootProperties).map { it.getProperty("org.gradle.jvmargs") }.toSet()
-            if (jvmArgs.size > 1) {
-                throw GradleException("gradle.properties and buildSrc/gradle.properties have different org.gradle.jvmargs " +
-                    "which may cause two daemons to be spawned on CI and in IDEA. " +
-                    "Use the same org.gradle.jvmargs for both builds.")
-            }
+val checkSameDaemonArgs = tasks.register("checkSameDaemonArgs") {
+    doLast {
+        val buildSrcProperties = readProperties(File(project.rootDir, "gradle.properties"))
+        val rootProperties = readProperties(File(project.rootDir, "../gradle.properties"))
+        val jvmArgs = listOf(buildSrcProperties, rootProperties).map { it.getProperty("org.gradle.jvmargs") }.toSet()
+        if (jvmArgs.size > 1) {
+            throw GradleException("gradle.properties and buildSrc/gradle.properties have different org.gradle.jvmargs " +
+                "which may cause two daemons to be spawned on CI and in IDEA. " +
+                "Use the same org.gradle.jvmargs for both builds.")
         }
     }
-
-    val build by getting
-    build.dependsOn(checkSameDaemonArgs)
 }
+
+tasks.named("build").configure { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
     apply { plugin("groovy") }
@@ -162,7 +158,7 @@ fun Project.applyGroovyProjectConventions() {
         }
     }
 
-    tasks.withType<GroovyCompile> {
+    tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.apply {
             encoding = "utf-8"
         }
@@ -175,13 +171,13 @@ fun Project.applyGroovyProjectConventions() {
         inputs.property("javaInstallation", "$vendor ${JavaVersion.current()}")
     }
 
-    val compileGroovy: GroovyCompile by tasks
+    val compileGroovy: TaskProvider<GroovyCompile> = tasks.withType(GroovyCompile::class.java).named("compileGroovy")
 
     configurations {
         "apiElements" {
             outgoing.variants["classes"].artifact(
                 mapOf(
-                    "file" to compileGroovy.destinationDir,
+                    "file" to compileGroovy.get().destinationDir,
                     "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
                     "builtBy" to compileGroovy
                 ))
@@ -195,7 +191,7 @@ fun Project.applyKotlinProjectConventions() {
         plugin("org.gradle.kotlin.ktlint-convention")
     }
 
-    tasks.withType<KotlinCompile> {
+    tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs += listOf("-Xjsr305=strict")
         }

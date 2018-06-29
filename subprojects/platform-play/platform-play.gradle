@@ -36,7 +36,7 @@ testFixtures {
     from(':platformBase')
 }
 
-integTest {
+tasks.named("integTest").configure {
     exclude 'org/gradle/play/prepare/**'
 }
 
