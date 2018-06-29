@@ -62,7 +62,12 @@ data class CIBuildModel (
             Stage("Experimental", "On demand: Run experimental tests",
                     trigger = Trigger.never,
                     runsIndependent = true,
-                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java8, JvmVersion.java9))))
+                    functionalTests = listOf(
+                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java8, JvmVersion.java9)
+                        )))
     ) {
 
     val subProjects = listOf(
