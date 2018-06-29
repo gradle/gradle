@@ -21,7 +21,6 @@ import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
-import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.BaselineVersion
@@ -33,7 +32,6 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 /**
@@ -82,19 +80,11 @@ class GradleBuildPerformanceTest extends Specification {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
-                if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}")
-                }
             }
         }
         runner.testGroup = 'gradle build'
     }
 
-    @Ignore
-    // The performance regression is inevitable because
-    // extra time spent on probing Java 9 installation (See `JavaInstallationProbe`)
-    // Therefore, we have to accept this performance failure and re-enable this test after
-    // this is merged to master
     def "help on the gradle build comparing the build"() {
 
         given:
@@ -147,6 +137,7 @@ class GradleBuildPerformanceTest extends Specification {
     }
 
     def "eager vs lazy on the gradle build"() {
+
         given:
         runner.testId = testName.methodName
 
