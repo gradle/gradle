@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -28,9 +27,8 @@ import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
@@ -148,7 +146,7 @@ public class TaskOutputCacheCommandFactory {
                 AbsolutePathFileCollectionSnapshotBuilder builder = new AbsolutePathFileCollectionSnapshotBuilder(false);
 
                 if (snapshot == null) {
-                    fileSystemMirror.putFile(new MissingFileSnapshot(absolutePath, RelativePath.EMPTY_ROOT.append(true, property.getOutputFile().getName())));
+                    fileSystemMirror.putFile(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
                     propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
                     continue;
                 }
@@ -159,9 +157,8 @@ public class TaskOutputCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
                         PhysicalFileSnapshot fileSnapshot = (PhysicalFileSnapshot) snapshot;
-                        RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(absolutePath, RelativePath.EMPTY_ROOT.append(true, snapshot.getName()), true, fileSnapshot.getContent());
-                        builder.visitFileSnapshot(regularFileSnapshot);
-                        fileSystemMirror.putFile(regularFileSnapshot);
+                        builder.visitFileSnapshot(fileSnapshot);
+                        fileSystemMirror.putFile(fileSnapshot);
                         break;
                     case DIRECTORY:
                         builder.visitFileTreeSnapshot(snapshot);

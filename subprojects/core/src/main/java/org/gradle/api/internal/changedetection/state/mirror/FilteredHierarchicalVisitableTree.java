@@ -85,6 +85,11 @@ public class FilteredHierarchicalVisitableTree implements PhysicalSnapshot {
         return delegate.getName();
     }
 
+    @Override
+    public String getPath() {
+        return delegate.getPath();
+    }
+
     /**
      * Adapts a logical file snapshot to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.

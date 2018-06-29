@@ -29,8 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChangesListener, RootBuildLifecycleListener {
     // Maps from interned absolute path for a file to known details for the file.
-    private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
-    private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
+    private final Map<String, PhysicalSnapshot> files = new ConcurrentHashMap<String, PhysicalSnapshot>();
+    private final Map<String, PhysicalSnapshot> cacheFiles = new ConcurrentHashMap<String, PhysicalSnapshot>();
     // Maps from interned absolute path for a directory to known details for the directory.
     private final Map<String, PhysicalSnapshot> trees = new ConcurrentHashMap<String, PhysicalSnapshot>();
     private final Map<String, PhysicalSnapshot> cacheTrees = new ConcurrentHashMap<String, PhysicalSnapshot>();
@@ -45,7 +45,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public FileSnapshot getFile(String path) {
+    public PhysicalSnapshot getFile(String path) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
         if (wellKnownFileLocations.isImmutable(path)) {
@@ -55,7 +55,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putFile(FileSnapshot file) {
+    public void putFile(PhysicalSnapshot file) {
         if (wellKnownFileLocations.isImmutable(file.getPath())) {
             cacheFiles.put(file.getPath(), file);
         } else {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.hash.HashCode
@@ -42,7 +43,7 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "keeps state about a file until task outputs are generated"() {
         def file = tmpDir.file("a")
-        def fileSnapshot = Stub(RegularFileSnapshot)
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def snapshot = Stub(Snapshot)
 
@@ -74,7 +75,7 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "keeps state about a file until end of build"() {
         def file = tmpDir.file("a")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
@@ -109,7 +110,7 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "does not discard state about a file that lives in the caches when task outputs are generated"() {
         def file = cacheDir.file("some/dir/a")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)

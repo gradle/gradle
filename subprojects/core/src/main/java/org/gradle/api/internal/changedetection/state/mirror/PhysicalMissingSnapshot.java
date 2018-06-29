@@ -18,17 +18,26 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
-public class MissingPhysicalSnapshot implements PhysicalSnapshot {
-    public static final PhysicalSnapshot INSTANCE = new MissingPhysicalSnapshot();
+public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
+    public static final PhysicalSnapshot INSTANCE = new PhysicalMissingSnapshot("", "") {
+        @Override
+        public String getPath() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getName() {
+            throw new UnsupportedOperationException();
+        }
+    };
+
+    public PhysicalMissingSnapshot(String path, String name) {
+        super(path, name);
+    }
 
     @Override
     public FileType getType() {
         return FileType.Missing;
-    }
-
-    @Override
-    public String getName() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

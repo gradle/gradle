@@ -21,5 +21,6 @@ import org.gradle.internal.file.FileType;
 public interface PhysicalSnapshot {
     FileType getType();
     String getName();
+    String getPath();
     void accept(PhysicalSnapshotVisitor visitor);
 }

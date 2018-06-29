@@ -46,7 +46,7 @@ public interface FileSystemSnapshotter {
      * When the specified file is a directory, details about the directory itself is returned,
      * rather than details about the children of the directory.
      */
-    FileSnapshot snapshotSelf(File file);
+    PhysicalSnapshot snapshotSelf(File file);
 
     /**
      * Returns a simple snapshot of the contents and meta-data of the given file.

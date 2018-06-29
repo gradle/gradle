@@ -16,20 +16,21 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
 import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
@@ -69,7 +70,7 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     }
 
     @Override
-    public void visitFileSnapshot(RegularFileSnapshot file) {
+    public void visitFileSnapshot(PhysicalFileSnapshot file) {
         FileContentSnapshot newContentSnapshot = snapshotRootFile(file);
         if (newContentSnapshot != null) {
             addRoot(file.getPath(), file.getName(), newContentSnapshot);
@@ -77,9 +78,9 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     }
 
     @Nullable
-    private FileContentSnapshot snapshotRootFile(RegularFileSnapshot file) {
+    private FileContentSnapshot snapshotRootFile(PhysicalFileSnapshot file) {
         if (FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
-            return snapshotJarContents(file.getPath(), file.getRelativePath(), file.getContent());
+            return snapshotJarContents(file.getPath(), ImmutableList.of(file.getName()), file.getContent());
         }
         return snapshotNonJarContents(file.getContent());
     }
@@ -94,11 +95,11 @@ public abstract class AbstractClasspathRootFileCollectionSnapshotBuilder extends
     }
 
     @Override
-    public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
+    public void visitDirectorySnapshot(PhysicalSnapshot directory) {
     }
 
     @Override
-    public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
+    public void visitMissingFileSnapshot(PhysicalMissingSnapshot missingFile) {
     }
 
     private class ClasspathSnapshotFactory implements Factory<Map<String, NormalizedFileSnapshot>> {

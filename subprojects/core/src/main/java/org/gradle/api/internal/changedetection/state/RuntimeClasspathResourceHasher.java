@@ -29,7 +29,7 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Hashes contents of resources ({@link RegularFileSnapshot}s and {@link ZipEntry}s) in runtime classpath entries.
+ * Hashes contents of resources files and {@link ZipEntry}s) in runtime classpath entries.
  *
  * Currently, we take the unmodified content into account but we could be smarter at some point.
  */

@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathSnapshot;
@@ -78,17 +80,17 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
+                PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
                 switch (fileSnapshot.getType()) {
                     case Missing:
-                        fileSnapshotVisitor.visitMissingFileSnapshot((MissingFileSnapshot) fileSnapshot);
+                        fileSnapshotVisitor.visitMissingFileSnapshot((PhysicalMissingSnapshot) fileSnapshot);
                         break;
                     case RegularFile:
-                        fileSnapshotVisitor.visitFileSnapshot((RegularFileSnapshot) fileSnapshot);
+                        fileSnapshotVisitor.visitFileSnapshot((PhysicalFileSnapshot) fileSnapshot);
                         break;
                     case Directory:
                         // Visit the directory itself, then its contents
-                        fileSnapshotVisitor.visitDirectorySnapshot((DirectoryFileSnapshot) fileSnapshot);
+                        fileSnapshotVisitor.visitDirectorySnapshot(fileSnapshot);
                         visitDirectoryTree(directoryFileTreeFactory.create(file));
                         break;
                     default:

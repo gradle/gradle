@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Caches the result of hashing a {@link RegularFileSnapshot} with a {@link ResourceHasher}.
+ * Caches the result of hashing regular files with a {@link ResourceHasher}.
  * It does not cache the result of hashing {@link ZipEntry}s.
  * It also caches the absence of a hash.
  */

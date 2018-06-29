@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -23,11 +24,12 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FilteredHierarchicalVisitableTree;
+import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
-import org.gradle.api.internal.changedetection.state.mirror.MissingPhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaphot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -83,7 +85,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public boolean exists(File file) {
-        FileSnapshot snapshot = fileSystemMirror.getFile(file.getAbsolutePath());
+        PhysicalSnapshot snapshot = fileSystemMirror.getFile(file.getAbsolutePath());
         if (snapshot != null) {
             return snapshot.getType() != FileType.Missing;
         }
@@ -91,13 +93,13 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public FileSnapshot snapshotSelf(final File file) {
+    public PhysicalSnapshot snapshotSelf(final File file) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = file.getAbsolutePath();
-        return producingSelfSnapshots.guardByKey(path, new Factory<FileSnapshot>() {
+        return producingSelfSnapshots.guardByKey(path, new Factory<PhysicalSnapshot>() {
             @Override
-            public FileSnapshot create() {
-                FileSnapshot snapshot = fileSystemMirror.getFile(path);
+            public PhysicalSnapshot create() {
+                PhysicalSnapshot snapshot = fileSystemMirror.getFile(path);
                 if (snapshot == null) {
                     snapshot = calculateDetails(file);
                     fileSystemMirror.putFile(snapshot);
@@ -207,11 +209,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (rootSnapshot != null) {
             return rootSnapshot;
         }
-        return MissingPhysicalSnapshot.INSTANCE;
+        return PhysicalMissingSnapshot.INSTANCE;
     }
 
     private PhysicalSnapshot snapshotAndCache(DirectoryFileTree directoryTree) {
-        final FileSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
+        PhysicalSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
         PhysicalSnapshot visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walk(fileSnapshot);
         fileSystemMirror.putDirectory(fileSnapshot.getPath(), visitableDirectoryTree);
         return visitableDirectoryTree;
@@ -229,7 +231,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (patterns.isEmpty()) {
             return snapshot;
         }
-        final Spec<FileTreeElement> spec = patterns.getAsSpec();
+        Spec<FileTreeElement> spec = patterns.getAsSpec();
         return new FilteredHierarchicalVisitableTree(spec, snapshot, fileSystem);
     }
 
@@ -237,16 +239,17 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    private FileSnapshot calculateDetails(File file) {
+    private PhysicalSnapshot calculateDetails(File file) {
         String path = internPath(file);
         FileMetadataSnapshot stat = fileSystem.stat(file);
+        String name = RelativePath.PATH_SEGMENT_STRING_INTERNER.intern(file.getName());
         switch (stat.getType()) {
             case Missing:
-                return new MissingFileSnapshot(path, new RelativePath(true, file.getName()));
+                return new PhysicalMissingSnapshot(path, name);
             case Directory:
-                return new DirectoryFileSnapshot(path, new RelativePath(false, file.getName()), true);
+                return new ImmutablePhysicalDirectorySnapshot(path, name, ImmutableList.<PhysicalSnapshot>of());
             case RegularFile:
-                return new RegularFileSnapshot(path, new RelativePath(true, file.getName()), true, fileSnapshot(file, stat));
+                return new PhysicalFileSnapshot(path, name, fileSnapshot(file, stat));
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
         }

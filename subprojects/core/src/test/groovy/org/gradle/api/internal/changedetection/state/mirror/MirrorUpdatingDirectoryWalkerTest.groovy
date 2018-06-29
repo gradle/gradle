@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror
 
-import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
@@ -127,7 +125,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
     }
 
     private static PhysicalSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
-        walker.walk(new DirectoryFileSnapshot(dir.absolutePath, RelativePath.EMPTY_ROOT, true), patterns)
+        walker.walk(new ImmutablePhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), []), patterns)
     }
 }
 

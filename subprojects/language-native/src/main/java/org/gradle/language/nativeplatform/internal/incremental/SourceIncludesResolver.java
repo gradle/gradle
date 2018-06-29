@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
 
 import javax.annotation.Nullable;
@@ -38,7 +38,7 @@ public interface SourceIncludesResolver {
         boolean isQuotedInclude();
         String getPath();
         File getFile();
-        FileSnapshot getSnapshot();
+        HashCode getContentHash();
     }
 
     /**

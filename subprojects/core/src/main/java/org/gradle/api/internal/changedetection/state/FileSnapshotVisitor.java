@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 
 /**
@@ -29,17 +31,18 @@ public interface FileSnapshotVisitor {
     void visitFileTreeSnapshot(PhysicalSnapshot tree);
 
     /**
-     * Visits a {@link DirectoryFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
+     * Visits a {@link PhysicalSnapshot} which is a directory in the root of the {@link org.gradle.api.file.FileCollection}.
+     * @param directory
      */
-    void visitDirectorySnapshot(DirectoryFileSnapshot directory);
+    void visitDirectorySnapshot(PhysicalSnapshot directory);
 
     /**
-     * Visits a {@link RegularFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
+     * Visits a {@link PhysicalFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
      */
-    void visitFileSnapshot(RegularFileSnapshot file);
+    void visitFileSnapshot(PhysicalFileSnapshot file);
 
     /**
-     * Visits a {@link MissingFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
+     * Visits a {@link PhysicalMissingSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
      */
-    void visitMissingFileSnapshot(MissingFileSnapshot missingFile);
+    void visitMissingFileSnapshot(PhysicalMissingSnapshot missingFile);
 }

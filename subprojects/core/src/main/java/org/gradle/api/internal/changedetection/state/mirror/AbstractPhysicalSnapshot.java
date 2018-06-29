@@ -25,7 +25,8 @@ public abstract class AbstractPhysicalSnapshot implements PhysicalSnapshot {
         this.name = name;
     }
 
-    protected String getPath() {
+    @Override
+    public String getPath() {
         return path;
     }
 

@@ -18,12 +18,12 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
+import org.gradle.api.internal.changedetection.state.MissingFileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.VisitingFileCollectionSnapshotBuilder;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathTracker;
@@ -98,12 +98,12 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
     }
 
     @Override
-    public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
+    public void visitDirectorySnapshot(PhysicalSnapshot directory) {
         roots.add(new LogicalDirectorySnapshot(directory.getPath(), directory.getName(), ImmutableList.<LogicalSnapshot>of()));
     }
 
     @Override
-    public void visitFileSnapshot(RegularFileSnapshot file) {
+    public void visitFileSnapshot(PhysicalFileSnapshot file) {
         addRoot(file.getPath(), file.getName(), file.getContent());
     }
 
@@ -112,8 +112,10 @@ public abstract class RootFileCollectionSnapshotBuilder implements VisitingFileC
     }
 
     @Override
-    public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
-        addRoot(missingFile.getPath(), missingFile.getName(), missingFile.getContent());
+    public void visitMissingFileSnapshot(PhysicalMissingSnapshot missingFile) {
+        if (missingFile != PhysicalMissingSnapshot.INSTANCE) {
+            addRoot(missingFile.getPath(), missingFile.getName(), MissingFileContentSnapshot.INSTANCE);
+        }
     }
 
     @Nullable

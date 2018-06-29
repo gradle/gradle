@@ -23,7 +23,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
@@ -65,16 +64,16 @@ public class MirrorUpdatingDirectoryWalker {
         this.stringInterner = stringInterner;
     }
 
-    public PhysicalSnapshot walk(final FileSnapshot fileSnapshot) {
+    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot) {
         return walk(fileSnapshot, null);
     }
 
-    public PhysicalSnapshot walk(final FileSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
-            return MissingPhysicalSnapshot.INSTANCE;
+            return PhysicalMissingSnapshot.INSTANCE;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
-            return new PhysicalFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getName(), (FileHashSnapshot) fileSnapshot.getContent());
+            return fileSnapshot;
         }
         Path rootPath = Paths.get(fileSnapshot.getPath());
         return walkDir(rootPath, patterns);
