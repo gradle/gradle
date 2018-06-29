@@ -26,10 +26,12 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
@@ -160,22 +162,41 @@ class EdgeState implements DependencyGraphEdge {
         ComponentState fromComponent = from.getComponent();
         ModuleVersionIdentifier fromId = fromComponent.getId();
         ModuleVersionIdentifier targetId = selectedTarget.getId();
-        if (shouldTryToAlign(fromId, targetId)) {
+        if (shouldTryToAlign(fromId, targetId) && !fromComponent.getModule().hasSeenVersion(targetId.getVersion())) {
             ModuleIdentifier fromModule = fromId.getModule();
             final ModuleComponentSelector cs = DefaultModuleComponentSelector.newSelector(fromModule, targetId.getVersion());
             DependencyState dependencyState = new DependencyState(new AlignmentDependencyMetadata(cs), resolveState.getComponentSelectorConverter());
             for (NodeState nodeState : selectedTarget.getNodes()) {
                 if (nodeState.isSelected()) {
-                    AlignmentEdgeState alignmentEdge = new AlignmentEdgeState(nodeState, dependencyState);
-                    nodeState.resetSelectionState();
-                    nodeState.addAlignmentEdge(alignmentEdge);
-                    alignmentEdge.getSelector().use();
+                    maybeAddAlignmentEdge(fromComponent, targetId, fromModule, dependencyState, nodeState);
                 }
             }
         }
     }
 
-    private boolean shouldTryToAlign(ModuleVersionIdentifier fromId, ModuleVersionIdentifier targetId) {
+    private void maybeAddAlignmentEdge(ComponentState fromComponent, ModuleVersionIdentifier targetId, ModuleIdentifier fromModule, DependencyState dependencyState, NodeState nodeState) {
+        AlignmentEdgeState alignmentEdge = new AlignmentEdgeState(nodeState, dependencyState);
+        ModuleVersionIdentifier alignVersionId = DefaultModuleVersionIdentifier.newId(fromModule, targetId.getVersion());
+        ComponentState version = fromComponent.getModule().getVersion(alignVersionId, DefaultModuleComponentIdentifier.newId(alignVersionId));
+        SelectorState selector = alignmentEdge.getSelector();
+        version.selectedBy(selector);
+        // We need to check if the target version exists. For this,
+        // we have to try to get metadata for the aligned version. If it's there,
+        // it means we can align, otherwise, we must NOT add the edge, or resolution
+        // would fail
+        ComponentResolveMetadata metadata = version.getMetadata();
+        if (metadata != null) {
+            nodeState.resetSelectionState();
+            nodeState.addAlignmentEdge(alignmentEdge);
+            selector.use();
+        }
+    }
+
+    /**
+     * Tells if we should try to align two modules. In practice this is a very weak test, and it
+     * should be replaced with a better logic.
+     */
+    private static boolean shouldTryToAlign(ModuleVersionIdentifier fromId, ModuleVersionIdentifier targetId) {
         return fromId.getGroup().equals(targetId.getGroup()) && !fromId.getVersion().equals(targetId.getVersion());
     }
 

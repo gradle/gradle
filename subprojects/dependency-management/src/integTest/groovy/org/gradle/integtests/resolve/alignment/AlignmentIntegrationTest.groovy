@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.alignment
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -115,6 +116,57 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
                     module('org:core:1.1')
                 }
                 module('org:core:1.1')
+            }
+        }
+    }
+
+    def "shouldn't fail if target alignment version doesn't exist"() {
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'json:1.1 -> core:1.1'
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org:json:1.1'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:core:1.0' {
+                expectGetMetadata()
+            }
+            'org:xml:1.0' {
+                expectResolve()
+            }
+            'org:core:1.1' {
+                expectResolve()
+            }
+            'org:json:1.1' {
+                expectResolve()
+            }
+            'org:xml:1.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:xml:1.0") {
+                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.0 and 1.1")
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
             }
         }
     }
