@@ -18,7 +18,6 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.Header;
 import org.apache.http.auth.Credentials;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.CharArrayBuffer;
 

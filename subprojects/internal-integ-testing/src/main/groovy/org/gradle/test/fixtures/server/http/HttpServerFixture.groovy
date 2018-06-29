@@ -19,8 +19,6 @@ package org.gradle.test.fixtures.server.http
 import com.google.api.client.util.Maps
 import com.google.common.collect.Sets
 import groovy.transform.CompileStatic
-import org.apache.http.Header
-import org.apache.http.message.BasicHeader
 import org.gradle.internal.BiAction
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.gradle.util.ports.PortAllocator
@@ -35,7 +33,6 @@ import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 import org.mortbay.jetty.security.SecurityHandler
 import org.mortbay.jetty.security.SslSocketConnector
-import org.testng.collections.Lists
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
