@@ -28,7 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-class IvyConfigurationHelper {
+public class IvyConfigurationHelper {
 
     private final ImmutableList<Artifact> artifactDefinitions;
     private final Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
@@ -45,7 +45,7 @@ class IvyConfigurationHelper {
         this.componentId = componentId;
     }
 
-    ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
+    public ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
@@ -67,7 +67,7 @@ class IvyConfigurationHelper {
         }
     }
 
-    ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
+    public ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
         ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {
             for (String config : exclude.getConfigurations()) {
@@ -90,7 +90,7 @@ class IvyConfigurationHelper {
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
+    public ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
         return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 

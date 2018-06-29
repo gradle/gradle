@@ -38,6 +38,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
             return moduleMetadata.getContentHash().asBigInteger();
         }
     };
+    private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;
 
     public ComponentMetadataRuleExecutor(CacheRepository cacheRepository,
                                          InMemoryCacheDecoratorFactory cacheDecoratorFactory,
@@ -45,6 +46,11 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
                                          BuildCommencedTimeProvider timeProvider,
                                          Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer) {
         super("md-rule", cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), KEY_TO_SNAPSHOTTABLE, componentMetadataContextSerializer);
+        this.componentMetadataContextSerializer = componentMetadataContextSerializer;
+    }
+
+    public Serializer<ModuleComponentResolveMetadata> getComponentMetadataContextSerializer() {
+        return componentMetadataContextSerializer;
     }
 
     private static EntryValidator<ModuleComponentResolveMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {

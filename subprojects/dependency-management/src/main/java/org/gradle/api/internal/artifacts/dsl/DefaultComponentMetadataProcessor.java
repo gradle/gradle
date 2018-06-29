@@ -52,27 +52,64 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.rules.RuleAction;
 import org.gradle.internal.rules.SpecRuleAction;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
-    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
+    private final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
             @Override
             public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
                 ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
-                if (metadata instanceof DefaultIvyModuleResolveMetadata) {
-                    return RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
-                } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
-                    return RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
-                }
-                throw new IllegalStateException("Invalid type received: " + metadata.getClass());
-//                return metadata;
+                return metadata;
             }
         };
+
+    // This method and the next one can be used to force realisation and serialization, making sure all required state will be cached
+    private ModuleComponentResolveMetadata forceRealisation(ModuleComponentResolveMetadata metadata) {
+        if (metadata instanceof DefaultIvyModuleResolveMetadata) {
+            metadata = RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
+        } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
+            metadata = RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
+        } else {
+            throw new IllegalStateException("Invalid type received: " + metadata.getClass());
+        }
+        metadata = forceSerialization(metadata);
+        return metadata;
+    }
+
+    private ModuleComponentResolveMetadata forceSerialization(ModuleComponentResolveMetadata metadata) {
+        Serializer<ModuleComponentResolveMetadata> serializer = ruleExecutor.getComponentMetadataContextSerializer();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] bytes;
+        try {
+            serializer.write(new OutputStreamBackedEncoder(byteArrayOutputStream), metadata);
+            bytes = byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                byteArrayOutputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return metadata;
+    }
 
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;

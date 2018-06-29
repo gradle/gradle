@@ -48,7 +48,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
 
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
+    public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
@@ -63,6 +63,10 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
         this.alwaysUseAttributeMatching = true;
         return this;
+    }
+
+    public ExternalDependencyDescriptor getDependencyDescriptor() {
+        return dependencyDescriptor;
     }
 
     /**

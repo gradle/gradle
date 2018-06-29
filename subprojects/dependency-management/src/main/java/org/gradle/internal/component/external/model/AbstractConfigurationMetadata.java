@@ -103,7 +103,7 @@ abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, V
         return false;
     }
 
-    protected void setDependencies(List<ModuleDependencyMetadata> dependencies) {
+    public void setDependencies(List<ModuleDependencyMetadata> dependencies) {
         assert this.configDependencies == null; // Can only set once: should really be part of the constructor
         this.configDependencies = ImmutableList.copyOf(dependencies);
     }
