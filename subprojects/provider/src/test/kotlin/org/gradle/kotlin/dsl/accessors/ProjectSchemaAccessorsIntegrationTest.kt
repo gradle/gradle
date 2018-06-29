@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.withFolders
@@ -24,19 +25,70 @@ import java.io.File
 class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
+    fun `multiple generic extension targets`() {
+
+        projectRoot.withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin" {
+                    withFile("types.kt", """
+
+                        package my
+
+                        data class NamedString(val name: String, var value: String? = null)
+
+                        data class NamedLong(val name: String, var value: Long? = null)
+                    """)
+
+                    withFile("plugin.gradle.kts", """
+
+                        package my
+
+                        val strings = container(NamedString::class.java) { NamedString(it) }
+                        extensions.add("strings", strings)
+
+                        val longs = container(NamedLong::class.java) { NamedLong(it) }
+                        extensions.add("longs", longs)
+
+                        tasks.register("printStringsAndLongs") {
+                            doLast {
+                                strings.forEach { println("string: " + it) }
+                                longs.forEach { println("long: " + it) }
+                            }
+                        }
+                    """.trimIndent())
+                }
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("my.plugin") }
+
+            strings.create("foo") { value = "bar" }
+            longs.create("ltuae") { value = 42L }
+        """)
+
+        assertThat(
+            build("printStringsAndLongs", "-q").output,
+            containsMultiLineString("""
+                string: NamedString(name=foo, value=bar)
+                long: NamedLong(name=ltuae, value=42)
+            """)
+        )
+    }
+
+    @Test
     fun `conflicting extensions across build scripts with same body`() {
 
         projectRoot.withFolders {
 
             "buildSrc" {
 
-                withFile("build.gradle.kts", """
-                    plugins {
-                        `kotlin-dsl`
-                        `java-gradle-plugin`
-                    }
-                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-                """)
+                withPrecompiledPlugins()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -74,6 +126,16 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         build("tasks")
     }
+
+    private
+    fun FoldersDsl.withPrecompiledPlugins() =
+        withFile("build.gradle.kts", """
+            plugins {
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+        """)
 
     @Test
     fun `conflicting extensions across build runs`() {
@@ -610,7 +672,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     fun hasAccessorsSource() =
         hasItem(
             matching<File>({ appendText("accessors source") }) {
-                File(this, "org/gradle/kotlin/dsl/accessors.kt").isFile
+                File(this, "org/gradle/kotlin/dsl/ConfigurationAccessors.kt").isFile
             })
 
     private

@@ -9,24 +9,17 @@ buildscript {
 
     build.loadExtraPropertiesOf(project)
 
-    val kotlinVersion: String by extra
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-    }
-
-    repositories {
-        gradlePluginPortal()
-    }
 }
 
 plugins {
     base
+    kotlin("jvm") apply false
     id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
 }
 
 allprojects {
     group = "org.gradle"
-    version = "0.18.2-SNAPSHOT"
+    version = "0.18.3-SNAPSHOT"
     createOpenTestReportTasks()
 }
 

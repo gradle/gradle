@@ -22,33 +22,61 @@ import org.gradle.api.plugins.ExtensionAware
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
+import kotlin.coroutines.experimental.buildSequence
+
 
 internal
 fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
+    (extensionAccessors() + configurationAccessors()).forEach(action)
+}
+
+
+internal
+fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = buildSequence {
+
     val seen = SeenAccessorSpecs()
+
     extensions.mapNotNull(::typedAccessorSpec).forEach { spec ->
         extensionAccessorFor(spec)?.let { extensionAccessor ->
-            action(extensionAccessor)
+            yield(extensionAccessor)
             seen.add(spec)
         }
     }
+
     conventions.mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
-        conventionAccessorFor(spec)?.let(action)
+        conventionAccessorFor(spec)?.let {
+            yield(it)
+        }
     }
+}
+
+
+internal
+fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = buildSequence {
     configurations.map(::accessorNameSpec).forEach { spec ->
-        configurationAccessorFor(spec)?.let(action)
+        configurationAccessorFor(spec)?.let {
+            yield(it)
+        }
     }
 }
 
 
 private
-data class SeenAccessorSpecs(private val seen: MutableList<TypedAccessorSpec> = mutableListOf()) {
+data class SeenAccessorSpecs(
+    private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
+) {
 
     fun add(accessorSpec: TypedAccessorSpec) =
-        seen.add(accessorSpec)
+        setFor(accessorSpec.name).add(accessorSpec.targetTypeAccess)
 
     fun hasConflict(accessorSpec: TypedAccessorSpec) =
-        seen.any { it.targetTypeAccess == accessorSpec.targetTypeAccess && it.name == accessorSpec.name }
+        targetTypesByName[accessorSpec.name]?.let { targetTypes ->
+            accessorSpec.targetTypeAccess in targetTypes
+        } ?: false
+
+    private
+    fun setFor(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
+        targetTypesByName.computeIfAbsent(accessorNameSpec) { hashSetOf() }
 }
 
 
@@ -278,7 +306,11 @@ data class AccessorNameSpec(val original: String) {
 
 
 private
-data class TypedAccessorSpec(val targetTypeAccess: TypeAccessibility.Accessible, val name: AccessorNameSpec, val typeAccess: TypeAccessibility)
+data class TypedAccessorSpec(
+    val targetTypeAccess: TypeAccessibility.Accessible,
+    val name: AccessorNameSpec,
+    val typeAccess: TypeAccessibility
+)
 
 
 private

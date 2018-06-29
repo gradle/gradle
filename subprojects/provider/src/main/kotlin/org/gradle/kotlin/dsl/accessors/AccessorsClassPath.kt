@@ -106,6 +106,23 @@ fun jitProjectSchemaOf(project: Project) =
 
 
 internal
+fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
+    (extensions.map { it to EntryKind.Extension } + conventions.map { it to EntryKind.Convention })
+        .groupBy { (entry, _) -> entry.target }
+        .mapValues { (_, entries) ->
+            ProjectSchema(
+                extensions = entries.mapNotNull { (entry, kind) -> entry.takeIf { kind == EntryKind.Extension } },
+                conventions = entries.mapNotNull { (entry, kind) -> entry.takeIf { kind == EntryKind.Convention } },
+                configurations = emptyList()
+            )
+        }
+
+
+private
+enum class EntryKind { Extension, Convention }
+
+
+internal
 fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
     projectSchemaProviderOf(project).schemaFor(project)
 
@@ -121,10 +138,19 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 private
 fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
-    val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/kotlin/dsl/accessors.kt")
+
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-    writeAccessorsTo(sourceFile, availableSchema)
-    require(compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles)) {
+
+    val sourceFiles = sourceFilesWithAccessorsFor(availableSchema, outputDir)
+
+    require(
+        compileToJar(
+            accessorsJar(outputDir),
+            sourceFiles,
+            logger,
+            classPath.asFiles
+        )
+    ) {
         """
             Failed to compile accessors.
 
@@ -136,6 +162,39 @@ fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassP
 
         """.replaceIndent()
     }
+}
+
+
+private
+fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, outputDir: File): List<File> {
+
+    val schemaPerTarget =
+        projectSchema.groupedByTarget()
+
+    val sourceFiles =
+        ArrayList<File>(schemaPerTarget.size + 1)
+
+    val packageDir =
+        accessorsSourceDir(outputDir).resolve("org/gradle/kotlin/dsl")
+
+    fun sourceFile(name: String) =
+        packageDir.resolve(name).also { sourceFiles.add(it) }
+
+    packageDir.mkdirs()
+
+    for ((index, schemaSubset) in schemaPerTarget.values.withIndex()) {
+        writeAccessorsTo(
+            sourceFile("Accessors$index.kt"),
+            schemaSubset.extensionAccessors()
+        )
+    }
+
+    writeAccessorsTo(
+        sourceFile("ConfigurationAccessors.kt"),
+        projectSchema.configurationAccessors()
+    )
+
+    return sourceFiles
 }
 
 
@@ -480,17 +539,14 @@ fun enabledJitAccessors(project: Project) =
 
 
 private
-fun writeAccessorsTo(outputFile: File, projectSchema: ProjectSchema<TypeAccessibility>): File =
-    outputFile.apply {
-        parentFile.mkdirs()
-        bufferedWriter().use { writer ->
-            writeAccessorsFor(projectSchema, writer)
-        }
+fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>): Unit =
+    outputFile.bufferedWriter().use { writer ->
+        writeAccessorsTo(writer, accessors)
     }
 
 
 private
-fun writeAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, writer: BufferedWriter) {
+fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>) {
     writer.apply {
         write(fileHeader)
         newLine()
@@ -504,7 +560,7 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, writer: B
         newLine()
         appendln("import org.gradle.kotlin.dsl.*")
         newLine()
-        projectSchema.forEachAccessor {
+        accessors.forEach {
             appendln(it)
         }
     }

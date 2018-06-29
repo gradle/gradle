@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.internal.os.OperatingSystem
+
+import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.support.userHome
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
@@ -30,50 +32,20 @@ import java.io.StringWriter
 import java.text.SimpleDateFormat
 
 import java.util.*
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
 
-import kotlin.concurrent.thread
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
-
-
-private
-const val offerTimeoutMillis = 50L
-
-
-private
-const val pollTimeoutMillis = 5_000L
 
 
 internal
 object ResolverEventLogger {
 
     fun log(event: ResolverEvent) {
-        q.offer(now() to event, offerTimeoutMillis, TimeUnit.MILLISECONDS)
-        ensureAliveConsumer()
+        eventLoop.accept(now() to event)
     }
 
     private
-    val q = ArrayBlockingQueue<Pair<Date, ResolverEvent>>(64)
-
-    private
-    val outputFile by lazy {
-        File(outputDir(), "resolver-${timestampForFileName()}.log")
-    }
-
-    private
-    var consumer: Thread? = null
-
-    private
-    fun ensureAliveConsumer() = synchronized(ResolverEventLogger) {
-        if (consumer?.isAlive != true) {
-            consumer = newConsumerThread()
-        }
-    }
-
-    private
-    fun newConsumerThread() = thread {
+    val eventLoop = EventLoop<Pair<Date, ResolverEvent>> { poll ->
 
         val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
@@ -90,10 +62,15 @@ object ResolverEventLogger {
             }
 
             while (true) {
-                val (timestamp, event) = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS) ?: break
+                val (timestamp, event) = poll() ?: break
                 write(timestamp, event)
             }
         }
+    }
+
+    private
+    val outputFile by lazy {
+        File(outputDir(), "resolver-${timestampForFileName()}.log")
     }
 
     private

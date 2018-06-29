@@ -46,6 +46,7 @@ class ProjectSchemaTest : TestWithClassPath() {
 
     @Test
     fun `accessor name spec escapes string template dollar signs`() {
+
         val original = "foo${'$'}${'$'}bar"
         val spec = AccessorNameSpec(original)
 
@@ -164,6 +165,58 @@ class ProjectSchemaTest : TestWithClassPath() {
         assertThat(
             projectSchema.extension("generic").type,
             equalTo(accessible(genericTypeString)))
+    }
+
+    @Test
+    fun `#groupedByTarget`() {
+
+        val schema =
+            ProjectSchema(
+                extensions = listOf(
+                    ProjectSchemaEntry("Project", "ext", "Ext"),
+                    ProjectSchemaEntry("Project", "java", "Java"),
+                    ProjectSchemaEntry("Task", "ext", "Ext")
+                ),
+                conventions = listOf(
+                    ProjectSchemaEntry("Project", "base", "Base"),
+                    ProjectSchemaEntry("Task", "meta", "Meta")
+                ),
+                configurations = listOf(
+                    "api",
+                    "implementation"
+                )
+            )
+
+        val groupedSchema =
+            schema.groupedByTarget()
+
+        assertThat(
+            groupedSchema,
+            equalTo(
+                mapOf(
+                    "Project" to ProjectSchema(
+                        extensions = listOf(
+                            ProjectSchemaEntry("Project", "ext", "Ext"),
+                            ProjectSchemaEntry("Project", "java", "Java")
+                        ),
+                        conventions = listOf(
+                            ProjectSchemaEntry("Project", "base", "Base")
+                        ),
+                        configurations = emptyList()
+                    ),
+
+                    "Task" to ProjectSchema(
+                        extensions = listOf(
+                            ProjectSchemaEntry("Task", "ext", "Ext")
+                        ),
+                        conventions = listOf(
+                            ProjectSchemaEntry("Task", "meta", "Meta")
+                        ),
+                        configurations = emptyList()
+                    )
+                )
+            )
+        )
     }
 
     private

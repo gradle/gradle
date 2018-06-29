@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly(gradleKotlinDsl())
+    compileOnly(project(":provider"))
 
     implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:4.0.0")
     implementation(futureKotlin("stdlib-jdk8"))
