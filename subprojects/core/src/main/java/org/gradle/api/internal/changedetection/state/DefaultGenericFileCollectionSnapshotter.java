@@ -18,10 +18,12 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.mirror.logical.NameOnlyPathFileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.mirror.logical.NonePathFileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.mirror.logical.RelativePathFileCollectionSnapshotBuilder;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.AbsolutePathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.FileCollectionFingerprintBuilder;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.FingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.IgnoredPathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.NameOnlyFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.RelativePathFingerprintingStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.tasks.GenericFileNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
@@ -39,15 +41,20 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
-        if (pathNormalizationStrategy == OutputPathNormalizationStrategy.getInstance() || pathNormalizationStrategy == InputPathNormalizationStrategy.ABSOLUTE) {
-            return super.snapshot(files, new AbsolutePathFileCollectionSnapshotBuilder(pathNormalizationStrategy == InputPathNormalizationStrategy.ABSOLUTE));
+        FingerprintingStrategy strategy;
+        if (pathNormalizationStrategy == OutputPathNormalizationStrategy.getInstance()) {
+            strategy = new AbsolutePathFingerprintingStrategy(false);
+        } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.ABSOLUTE) {
+            strategy = new AbsolutePathFingerprintingStrategy(true);
         } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.RELATIVE) {
-            return super.snapshot(files, new RelativePathFileCollectionSnapshotBuilder());
+            strategy = new RelativePathFingerprintingStrategy();
         } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NAME_ONLY) {
-            return super.snapshot(files, new NameOnlyPathFileCollectionSnapshotBuilder());
+            strategy = new NameOnlyFingerprintingStrategy();
         } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NONE) {
-            return super.snapshot(files, new NonePathFileCollectionSnapshotBuilder());
+            strategy = new IgnoredPathFingerprintingStrategy();
+        } else {
+            throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
         }
-        throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
+        return super.snapshot(files, new FileCollectionFingerprintBuilder(strategy));
     }
 }

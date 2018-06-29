@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
 
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 
-/**
- * Builds a {@link ClasspathSnapshot} for a runtime classpath.
- *
- * We take the contents of jar files, non jar files and directories into account.
- */
-public class RuntimeClasspathRootFileCollectionSnapshotBuilder extends AbstractClasspathRootFileCollectionSnapshotBuilder {
-    public RuntimeClasspathRootFileCollectionSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+import javax.annotation.Nullable;
+
+public class CompileClasspathFingerprintingStrategy extends ClasspathFingerprintingStrategy {
+    public CompileClasspathFingerprintingStrategy(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
         super(classpathResourceHasher, cacheService);
     }
 
+    @Nullable
     @Override
     protected FileContentSnapshot snapshotNonJarContents(FileContentSnapshot contentSnapshot) {
-        return contentSnapshot;
+        return null;
     }
 }

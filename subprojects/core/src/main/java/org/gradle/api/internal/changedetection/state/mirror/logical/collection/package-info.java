@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+@NonNullApi
+package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
 
-/**
- * A logical snapshot of a file.
- */
-public interface LogicalSnapshot {
-    /**
-     * Visits the snapshot itself and its children depth first.
-     */
-    void accept(LogicalSnapshotVisitor visitor);
-}
+import org.gradle.api.NonNullApi;

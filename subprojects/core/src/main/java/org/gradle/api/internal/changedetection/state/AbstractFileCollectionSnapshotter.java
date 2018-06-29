@@ -22,10 +22,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.NonePathFileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.NormalizedPathFileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.collection.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -52,10 +49,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        registry.register(AbsolutePathFileCollectionSnapshot.class, new AbsolutePathFileCollectionSnapshot.SerializerImpl(stringInterner));
-        registry.register(NormalizedPathFileCollectionSnapshot.class, new NormalizedPathFileCollectionSnapshot.SerializerImpl(stringInterner));
-        registry.register(ClasspathSnapshot.class, new ClasspathSnapshot.SerializerImpl(stringInterner));
-        registry.register(NonePathFileCollectionSnapshot.class, new NonePathFileCollectionSnapshot.SerializerImpl(stringInterner));
+        registry.register(DefaultFileCollectionFingerprint.class, new DefaultFileCollectionFingerprint.SerializerImpl(stringInterner));
         registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
     }
 

@@ -14,40 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.Serializer;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCollectionSnapshot<NormalizedFileSnapshot> {
+public class NormalizedPathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
     private static final Comparator<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
         @Override
         public int compare(Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o1, Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o2) {
@@ -55,44 +39,17 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
         }
     };
 
-    public NormalizedPathFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode) {
-        super(snapshots, hashCode);
-    }
-
-    public NormalizedPathFileCollectionSnapshot(Factory<Map<String, NormalizedFileSnapshot>> snapshotFactory) {
-        super(snapshotFactory);
-    }
-
     @Override
-    public Map<String, NormalizedFileSnapshot> getSnapshots() {
-        return getFileSnapshots();
-    }
-
-    protected void doGetHash(BuildCacheHasher hasher) {
-        appendToHasher(hasher, getSnapshots().values());
-    }
-
-    public static void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
-        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
-        Collections.sort(normalizedSnapshots);
-        for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
-            normalizedSnapshot.appendToHasher(hasher);
-        }
-    }
-
-    @Override
-    public boolean doVisitChangesSince(FileCollectionSnapshot oldSnapshot, String propertyTitle, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        Map<String, NormalizedFileSnapshot> previous = oldSnapshot.getSnapshots();
-        Map<String, NormalizedFileSnapshot> current = getSnapshots();
-        ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentFingerprints, Map<String, NormalizedFileSnapshot> previousFingerprints, String propertyTitle, boolean includeAdded) {
+        ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
         ListMultimap<String, IncrementalFileSnapshotWithAbsolutePath> addedFiles = MultimapBuilder.linkedHashKeys().linkedListValues().build();
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : previousFingerprints.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
             unaccountedForPreviousSnapshots.put(previousSnapshot, new IncrementalFileSnapshotWithAbsolutePath(absolutePath, previousSnapshot.getSnapshot()));
         }
 
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : currentFingerprints.entrySet()) {
             String currentAbsolutePath = entry.getKey();
             NormalizedFileSnapshot currentNormalizedSnapshot = entry.getValue();
             FileContentSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
@@ -110,7 +67,6 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
                 }
             }
         }
-
         List<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
         for (Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
@@ -142,18 +98,16 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
     }
 
     @Override
-    public Collection<File> getElements() {
-        throw new UnsupportedOperationException("Only supported for outputs");
+    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        appendSortedToHasher(hasher, snapshots);
     }
 
-    @Override
-    public Map<String, FileContentSnapshot> getContentSnapshots() {
-        return Maps.transformValues(getFileSnapshots(), new Function<NormalizedFileSnapshot, FileContentSnapshot>() {
-            @Override
-            public FileContentSnapshot apply(NormalizedFileSnapshot input) {
-                return input.getSnapshot();
-            }
-        });
+    public static void appendSortedToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
+        Collections.sort(normalizedSnapshots);
+        for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
+            normalizedSnapshot.appendToHasher(hasher);
+        }
     }
 
     private static class IncrementalFileSnapshotWithAbsolutePath {
@@ -176,53 +130,6 @@ public class NormalizedPathFileCollectionSnapshot extends SnapshotFactoryFileCol
         @Override
         public String toString() {
             return String.format("%s (%s)", getSnapshot(), absolutePath);
-        }
-    }
-
-    public static class SerializerImpl implements Serializer<NormalizedPathFileCollectionSnapshot> {
-
-        private final HashCodeSerializer hashCodeSerializer;
-        private final SnapshotMapSerializer snapshotMapSerializer;
-
-        public SerializerImpl(StringInterner stringInterner) {
-            this.hashCodeSerializer = new HashCodeSerializer();
-            this.snapshotMapSerializer = new SnapshotMapSerializer(stringInterner);
-        }
-
-        @Override
-        public NormalizedPathFileCollectionSnapshot read(Decoder decoder) throws IOException {
-            int type = decoder.readSmallInt();
-            Preconditions.checkState(type == 2);
-            boolean hasHash = decoder.readBoolean();
-            HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
-            Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new NormalizedPathFileCollectionSnapshot(snapshots, hash);
-        }
-
-        @Override
-        public void write(Encoder encoder, NormalizedPathFileCollectionSnapshot value) throws Exception {
-            encoder.writeSmallInt(2);
-            encoder.writeBoolean(value.hasHash());
-            if (value.hasHash()) {
-                hashCodeSerializer.write(encoder, value.getHash());
-            }
-            snapshotMapSerializer.write(encoder, value.getSnapshots());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            NormalizedPathFileCollectionSnapshot.SerializerImpl rhs = (NormalizedPathFileCollectionSnapshot.SerializerImpl) obj;
-            return Objects.equal(snapshotMapSerializer, rhs.snapshotMapSerializer)
-                && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), snapshotMapSerializer, hashCodeSerializer);
         }
     }
 }
