@@ -17,7 +17,6 @@ package org.gradle.api.internal.file;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
@@ -33,6 +32,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
@@ -258,7 +258,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
             @Override
             public Set<File> getFiles() {
-                return Sets.filter(AbstractFileCollection.this.getFiles(), predicate);
+                return CollectionUtils.filter(AbstractFileCollection.this, new LinkedHashSet<File>(), filterSpec);
             }
 
             @Override
