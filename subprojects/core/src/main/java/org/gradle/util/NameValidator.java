@@ -16,14 +16,17 @@
 
 package org.gradle.util;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 
 public final class NameValidator {
 
-    private static final char[] FORBIDDEN_CHARACTERS = new char[] {' ', '/', '\\', ':', '<', '>', '"', '?', '*', '|'};
-    private static final char FORBIDDEN_LEADING_AND_TRAILING_CHARACTER = '.';
+    @VisibleForTesting
+    static final char[] FORBIDDEN_CHARACTERS = new char[] {' ', '/', '\\', ':', '<', '>', '"', '?', '*', '|'};
+    @VisibleForTesting
+    static final char FORBIDDEN_LEADING_AND_TRAILING_CHARACTER = '.';
 
     private NameValidator() { }
 

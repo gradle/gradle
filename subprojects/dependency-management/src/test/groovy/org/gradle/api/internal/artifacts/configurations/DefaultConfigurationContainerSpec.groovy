@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
@@ -63,10 +64,11 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     def immutableAttributesFactory = TestUtil.attributesFactory()
+    def variantTransformRegistry = Mock(VariantTransformRegistry)
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider);
+        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, variantTransformRegistry);
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

@@ -32,6 +32,8 @@ public interface VariantTransformRegistry {
 
     Iterable<Registration> getTransforms();
 
+    boolean hasTransforms();
+
     interface Registration {
         /**
          * Attributes that match the variant that is consumed.

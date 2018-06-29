@@ -186,7 +186,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
-                                                                    DependencyLockingProvider dependencyLockingProvider) {
+                                                                    DependencyLockingProvider dependencyLockingProvider, VariantTransformRegistry variantTransformRegistry) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -205,7 +205,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributesFactory,
                 moduleIdentifierFactory,
                 componentSelectorConverter,
-                dependencyLockingProvider
+                dependencyLockingProvider,
+                variantTransformRegistry
             );
         }
 

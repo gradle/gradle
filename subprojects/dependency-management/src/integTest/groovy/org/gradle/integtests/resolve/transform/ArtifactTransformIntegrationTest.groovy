@@ -1717,6 +1717,33 @@ Found the following transforms:
         output.count("Transforming") == 1
     }
 
+    def "applies transforms to artifacts for external dependencies before consuming task"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+            }
+
+            ${configurationAndTransform('FileSizer')}
+        """
+
+        when:
+        run "resolve"
+        def taskPosition = output.indexOf "> Task :resolve"
+        def transformPosition = output.indexOf "Transforming test-1.3.jar to test-1.3.jar.txt"
+
+        then:
+        taskPosition != -1
+        transformPosition != -1
+        taskPosition > transformPosition
+    }
+
     def declareTransform(String transformImplementation) {
         """
             dependencies {

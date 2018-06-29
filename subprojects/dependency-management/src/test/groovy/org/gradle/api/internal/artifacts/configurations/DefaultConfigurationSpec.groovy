@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
@@ -67,7 +68,9 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.artifacts.Configuration.State.*
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
+import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -84,6 +87,7 @@ class DefaultConfigurationSpec extends Specification {
     def immutableAttributesFactory = TestUtil.attributesFactory()
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
+    def variantTransformsRegistry = Mock(VariantTransformRegistry)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
@@ -1655,7 +1659,8 @@ All Artifacts:
 
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), Stub(NotationParser), immutableAttributesFactory,
+            rootComponentMetadataBuilder, variantTransformsRegistry)
     }
 
     private DefaultPublishArtifact artifact(String name) {

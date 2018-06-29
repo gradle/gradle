@@ -62,6 +62,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -159,6 +160,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
+    private final VariantTransformRegistry variantTransformRegistry;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
@@ -217,8 +219,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 NotationParser<Object, Capability> capabilityNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder
-
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
+                                VariantTransformRegistry variantTransformRegistry
     ) {
         this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
@@ -240,6 +242,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.variantTransformRegistry = variantTransformRegistry;
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
@@ -750,7 +753,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder);
+            rootComponentMetadataBuilder, variantTransformRegistry);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1487,6 +1490,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private boolean resolveGraphToDetermineTaskDependencies() {
+        return variantTransformRegistry.hasTransforms() || getResolutionStrategy().resolveGraphToDetermineTaskDependencies();
+    }
+
     private class ConfigurationTaskDependency extends AbstractTaskDependency {
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal requestedAttributes;
@@ -1505,7 +1512,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
             synchronized (resolutionLock) {
-                if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                if (resolveGraphToDetermineTaskDependencies()) {
                     // Force graph resolution as this is required to calculate build dependencies
                     resolveToStateOrLater(GRAPH_RESOLVED);
                 }
