@@ -55,7 +55,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     }
 
     @Unroll
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6") })
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
@@ -65,11 +65,11 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6")
     }
 
     @Unroll
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6") })
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
@@ -80,7 +80,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6")
     }
 
     private GradleExecuter prepareWrapperExecuter(GradleDistribution wrapperVersion, GradleDistribution executionVersion) {
