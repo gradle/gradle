@@ -51,7 +51,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         files.size() == 2
 
         when:
-        markForCleanup(gcFile)
+        forceCleanup(gcFile)
 
         and:
         succeeds 'tasks'
@@ -79,13 +79,12 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
-        assert journal.delete() // delete journal to clear access time information
-        markForCleanup(gcFile) // force cleanup
+        forceCleanup(gcFile)
 
-        and: // last modified timestamp is used when journal does not exist
-        markForCleanup(resource.parentFile)
-        markForCleanup(files[0].parentFile)
-        markForCleanup(files[1].parentFile)
+        and:
+        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
         // start as new process so journal is not restored from in-memory cache
@@ -289,7 +288,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         return getUserHomeCacheDir().file(CacheLayout.ROOT.getKey())
     }
 
-    void markForCleanup(File file) {
+    void forceCleanup(File file) {
         file.lastModified = System.currentTimeMillis() - DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS + 1)
     }
 }
