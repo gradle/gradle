@@ -31,32 +31,69 @@ import java.io.File
 /**
  * Generate source file with Kotlin extensions enhancing the given api for the Gradle Kotlin DSL.
  *
- * @param outputFile the file where the generated source will be written
+ * @param outputDirectory the directory where the generated source will be written
  * @param packageName the name of the package where the generated members will be added
+ * @param sourceFilesBaseName the base name for generated source files
  * @param classPath the api classpath elements
  * @param classPathDependencies the api classpath dependencies
  * @param includes the api include patterns
  * @param excludes the api exclude patterns
  * @param parameterNamesIndices the api function parameter names indices
+ *
+ * @return the list of generated source files
  */
 fun generateKotlinDslApiExtensionsSourceTo(
-    outputFile: File,
+    outputDirectory: File,
     packageName: String,
+    sourceFilesBaseName: String,
     classPath: List<File>,
     classPathDependencies: List<File>,
     includes: List<String>,
     excludes: List<String>,
     parameterNamesIndices: List<File>
-): Unit =
+): List<File> =
 
+    apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplierFor(parameterNamesIndices)).use { api ->
+
+        val extensionsPerTarget =
+            kotlinDslApiExtensionsDeclarationsFor(api, apiSpecFor(includes, excludes)).groupedByTarget()
+
+        val sourceFiles =
+            ArrayList<File>(extensionsPerTarget.size)
+
+        val packageDir =
+            outputDirectory.resolve(packageName.replace('.', File.separatorChar))
+
+        fun sourceFile(name: String) =
+            packageDir.resolve(name).also { sourceFiles.add(it) }
+
+        packageDir.mkdirs()
+
+        for ((index, extensionsSubset) in extensionsPerTarget.values.withIndex()) {
+            writeExtensionsTo(
+                sourceFile("$sourceFilesBaseName$index.kt"),
+                packageName,
+                extensionsSubset
+            )
+        }
+
+        sourceFiles
+    }
+
+
+private
+fun Sequence<KotlinExtensionFunction>.groupedByTarget(): Map<ApiType, List<KotlinExtensionFunction>> =
+    groupBy { it.targetType }
+
+
+private
+fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<KotlinExtensionFunction>) =
     outputFile.bufferedWriter().use {
         it.apply {
             write(fileHeaderFor(packageName))
             write("\n")
-            apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplierFor(parameterNamesIndices)).use { api ->
-                kotlinDslApiExtensionsDeclarationsFor(api, apiSpecFor(includes, excludes)).forEach {
-                    write("\n$it")
-                }
+            extensions.forEach {
+                write("\n${it.toKotlinString()}")
             }
         }
     }
@@ -89,8 +126,8 @@ fun patternSpecFor(patterns: List<String>) =
     })
 
 
-internal
-fun kotlinDslApiExtensionsDeclarationsFor(api: ApiTypeProvider, apiSpec: Spec<RelativePath>): Sequence<String> =
+private
+fun kotlinDslApiExtensionsDeclarationsFor(api: ApiTypeProvider, apiSpec: Spec<RelativePath>): Sequence<KotlinExtensionFunction> =
     api.allTypes()
         .filter { type ->
             apiSpec.isSatisfiedBy(RelativePath.parse(true, type.sourceName.replace(".", File.separator)))
@@ -98,7 +135,6 @@ fun kotlinDslApiExtensionsDeclarationsFor(api: ApiTypeProvider, apiSpec: Spec<Re
         }
         .flatMap { type -> kotlinExtensionFunctionsFor(type) }
         .distinctBy(::signatureKey)
-        .map { it.toKotlinString() }
 
 
 private

@@ -140,9 +140,12 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
             assertThat(it.readLines().sorted(), equalTo(entries.sorted()))
         }
 
-        existing("build/generated-sources").walkTopDown().single { it.isFile }.let {
-            assertThat(it.name, equalTo("GeneratedSomeExampleMainKotlinDslApiExtensions.kt"))
-            println(it.readText())
+        existing("build/generated-sources").walkTopDown().filter { it.isFile }.toList().let { sourceFiles ->
+
+            assertThat(
+                sourceFiles.map { it.name },
+                hasItems("GeneratedSomeExampleMainKotlinDslApiExtensions0.kt", "GeneratedSomeExampleMainKotlinDslApiExtensions1.kt"))
+
             val extensions = listOf(
                 "package org.gradle.kotlin.gradle.ext",
                 """
@@ -209,7 +212,10 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, vararg `properties`: Pair<String, *>, `action`: S.() -> Unit): some.example.Generics<S> =
                     `withType`(mapOf(*`properties`), `type`.java, `action`)
                 """)
-            assertThat(it.readText(), allOf(extensions.map { containsMultiLineString(it) }))
+
+            assertThat(
+                sourceFiles.joinToString("\n") { it.readText() },
+                allOf(extensions.map { containsMultiLineString(it) }))
         }
 
         run("assemble")
@@ -220,7 +226,8 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 extract.walkTopDown().filter { it.isFile }.map { it.relativeTo(extract).path }.toList(),
                 hasItems(*listOf(
                     "some/example/Some.class",
-                    "org/gradle/kotlin/gradle/ext/GeneratedSomeExampleMainKotlinDslApiExtensionsKt.class")
+                    "org/gradle/kotlin/gradle/ext/GeneratedSomeExampleMainKotlinDslApiExtensions0Kt.class",
+                    "org/gradle/kotlin/gradle/ext/GeneratedSomeExampleMainKotlinDslApiExtensions1Kt.class")
                     .map { it.replace('/', File.separatorChar) }.toTypedArray()))
         }
     }

@@ -98,8 +98,9 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
     private
     fun runEmbedded() =
         generateKotlinDslApiExtensionsSourceTo(
-            outputFile,
+            outputDirectory.get().asFile,
             packageName.get(),
+            generatedFilesBaseName,
             classes.toList(),
             classpath.toList(),
             includes.get(),
@@ -119,6 +120,7 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
                 "generateKotlinDslApiExtensionsSourceTo",
                 File::class.java,
                 String::class.java,
+                String::class.java,
                 List::class.java,
                 List::class.java,
                 List::class.java,
@@ -127,8 +129,9 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
             )
             generatorMethod.invoke(
                 null,
-                outputFile,
+                outputDirectory.get().asFile,
                 packageName.get(),
+                generatedFilesBaseName,
                 classes.toList(),
                 classpath.toList(),
                 includes.get(),
@@ -141,19 +144,9 @@ open class GenerateKotlinDslApiExtensions : DefaultTask() {
     }
 
     private
-    val outputFile
-        get() = outputDirectory.file("$packageDirectory/$generatedFileName").get().asFile.apply {
-            parentFile.mkdirs()
-        }
-
-    private
-    val packageDirectory
-        get() = packageName.get().replace('.', File.separatorChar)
-
-    private
-    val generatedFileName
+    val generatedFilesBaseName
         get() = nameComponents.get().joinToString("") { it.capitalizeNameComponent() }.let { name ->
-            "Generated${name}KotlinDslApiExtensions.kt"
+            "Generated${name}KotlinDslApiExtensions"
         }
 
     private
