@@ -133,10 +133,7 @@ public class HttpClientConfigurer {
             if (authentications.iterator().next() instanceof HttpHeaderAuthentication) {
                 return new HttpHeaderAuthScheme();
             }
-        } else {
-            // More than one authentication configured, don't know what scheme to return in this case
         }
-        // this was previous default.
         return new BasicScheme();
     }
 
