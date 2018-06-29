@@ -166,7 +166,8 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     }
 
     private void storeInsideLock(BuildCacheKey key, File file) {
-        fileStore.move(key.getHashCode(), file);
+        LocallyAvailableResource resource = fileStore.move(key.getHashCode(), file);
+        fileAccessTracker.markAccessed(resource.getFile());
     }
 
     @Override
