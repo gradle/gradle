@@ -190,7 +190,7 @@ task listJars {
 """
 
         when:
-        serverAuthScheme = authScheme
+        serverAuthScheme = HEADER
 
         and:
         moduleA.pom.expectGet()
@@ -199,11 +199,7 @@ task listJars {
         then:
         succeeds('listJars')
         and:
-        server.authenticationAttempts.asList() == authenticationAttempts
-
-        where:
-        authSchemeName     | authScheme        | authenticationAttempts
-        'header'           | HEADER            | ['TestHttpHeaderValue']
+        server.allHeaders.get("TestHttpHeaderName") == "TestHttpHeaderValue"
     }
 
     @Unroll

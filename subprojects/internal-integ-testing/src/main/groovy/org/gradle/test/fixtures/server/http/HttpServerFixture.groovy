@@ -16,8 +16,11 @@
 
 package org.gradle.test.fixtures.server.http
 
+import com.google.api.client.util.Maps
 import com.google.common.collect.Sets
 import groovy.transform.CompileStatic
+import org.apache.http.Header
+import org.apache.http.message.BasicHeader
 import org.gradle.internal.BiAction
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.gradle.util.ports.PortAllocator
@@ -32,6 +35,7 @@ import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 import org.mortbay.jetty.security.SecurityHandler
 import org.mortbay.jetty.security.SslSocketConnector
+import org.testng.collections.Lists
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -48,6 +52,7 @@ trait HttpServerFixture {
     private AuthScheme authenticationScheme = AuthScheme.BASIC
     private boolean logRequests = true
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
+    private final Map<String, String> allHeaders = Maps.newHashMap()
     private boolean configured
     private int assignedPort
 
@@ -81,6 +86,10 @@ trait HttpServerFixture {
         return authenticationAttempts
     }
 
+    Map<String, String> getAllHeaders() {
+        return allHeaders
+    }
+
     boolean getLogRequests() {
         return logRequests
     }
@@ -108,7 +117,7 @@ trait HttpServerFixture {
     void start() {
         if (!configured) {
             HandlerCollection handlers = new HandlerCollection()
-            handlers.addHandler(new LoggingHandler(authenticationAttempts, logRequests))
+            handlers.addHandler(new LoggingHandler(authenticationAttempts, allHeaders, logRequests))
             handlers.addHandler(collection)
             handlers.addHandler(getCustomHandler())
             server.setHandler(handlers)
@@ -148,18 +157,20 @@ trait HttpServerFixture {
 
     private static class LoggingHandler extends AbstractHandler {
         private final Set<String> authenticationAttempts
+        private final Map<String, String> allHeaders
         private final boolean logRequests
 
-        LoggingHandler(Set<String> authenticationAttempts, boolean logRequests) {
+        LoggingHandler(Set<String> authenticationAttempts, Map<String, String> allHeaders, boolean logRequests) {
             this.logRequests = logRequests
             this.authenticationAttempts = authenticationAttempts
+            this.allHeaders = allHeaders
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            allHeaders.putAll(request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] })
             String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {
-                    println authorization
                     authenticationAttempts << authorization.split(" ")[0]
                 }
             } else {
@@ -174,9 +185,6 @@ trait HttpServerFixture {
 
         protected String getAuthorizationHeader(HttpServletRequest request) {
             def header = request.getHeader(HttpHeaders.AUTHORIZATION)
-            if(header == null) {
-                header = request.getHeader("TestHttpHeaderName")
-            }
             return header
         }
     }

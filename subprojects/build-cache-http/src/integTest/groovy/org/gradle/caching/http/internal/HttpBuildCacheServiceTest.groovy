@@ -18,6 +18,7 @@ package org.gradle.caching.http.internal
 
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
+import org.apache.http.message.BasicHeader
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
@@ -313,8 +314,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
         then:
         result == 'Old'
-        server.authenticationAttempts == ['TestHttpHeaderValue'] as Set
-
+        server.allHeaders.get("TestHttpHeaderName") == "TestHttpHeaderValue"
         server.expectPut("/cache/${key.hashCode}", destFile)
 
         when:
@@ -322,7 +322,7 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer(content))
         then:
         destFile.bytes == content
-        server.authenticationAttempts == ['TestHttpHeaderValue'] as Set
+        server.allHeaders.get("TestHttpHeaderName") == "TestHttpHeaderValue"
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {
