@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -38,10 +38,10 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final ProjectInternal project;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private AnnotationProcessorDetector processorDetector;
 
-    public GroovyCompilerFactory(ProjectInternal project, WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, AnnotationProcessorDetector processorDetector) {
+    public GroovyCompilerFactory(ProjectInternal project, WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, PathToFileResolver fileResolver, AnnotationProcessorDetector processorDetector) {
         this.project = project;
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;

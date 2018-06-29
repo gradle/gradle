@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.DefaultContentHasherFactory;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
@@ -63,10 +64,24 @@ public class TestFiles {
     }
 
     /**
+     * Returns a resolver with no base directory.
+     */
+    public static PathToFileResolver pathToFileResolver() {
+        return FILE_LOOKUP.getPathToFileResolver();
+    }
+
+    /**
      * Returns a resolver with the given base directory.
      */
     public static FileResolver resolver(File baseDir) {
         return FILE_LOOKUP.getFileResolver(baseDir);
+    }
+
+    /**
+     * Returns a resolver with the given base directory.
+     */
+    public static PathToFileResolver pathToFileResolver(File baseDir) {
+        return FILE_LOOKUP.getPathToFileResolver(baseDir);
     }
 
     public static DirectoryFileTreeFactory directoryFileTreeFactory() {

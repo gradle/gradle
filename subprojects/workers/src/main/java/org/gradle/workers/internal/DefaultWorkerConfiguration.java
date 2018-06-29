@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.GUtil;
@@ -37,7 +37,7 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     private List<File> classpath = Lists.newArrayList();
     private String displayName;
 
-    public DefaultWorkerConfiguration(FileResolver fileResolver) {
+    public DefaultWorkerConfiguration(PathToFileResolver fileResolver) {
         this.forkOptions = new DefaultJavaForkOptions(fileResolver);
         forkOptions.workingDir(new File("").getAbsoluteFile());
         forkOptions.setEnvironment(Maps.<String, Object>newHashMap());

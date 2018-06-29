@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.platform.PlayMajorVersion
@@ -37,7 +37,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultPlayToolProviderTest extends Specification {
-    FileResolver fileResolver = Mock()
+    def fileResolver = Mock(PathToFileResolver)
     WorkerDaemonFactory workerDaemonFactory = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()

@@ -17,7 +17,7 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -42,7 +42,7 @@ import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
 
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final File daemonWorkingDir;
     private final PlayPlatform targetPlatform;
@@ -52,7 +52,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> javaScriptClasspath;
     private final ClasspathSnapshotter snapshotter;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
+    public DefaultPlayToolProvider(PathToFileResolver fileResolver, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
                                    WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath,
                                    ClasspathSnapshotter snapshotter) {

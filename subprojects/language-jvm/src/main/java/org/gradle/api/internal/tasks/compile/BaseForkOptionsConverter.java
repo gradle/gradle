@@ -17,15 +17,15 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 
 public class BaseForkOptionsConverter implements Transformer<JavaForkOptions, BaseForkOptions> {
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
 
-    public BaseForkOptionsConverter(FileResolver fileResolver) {
+    public BaseForkOptionsConverter(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
     }
 
