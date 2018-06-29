@@ -140,6 +140,20 @@ repositories {
 }
 //END SNIPPET authenticated-maven-repo
 
+//START SNIPPET header-authenticated-maven-repo
+repositories {
+    maven {
+        url "http://repo.mycompany.com/maven2"
+        credentials(HttpHeaderCredentials) {
+            header "Private-Token: TOKEN"
+        }
+        authentication {
+            header(HttpHeaderAuthentication)
+        }
+    }
+}
+//END SNIPPET header-authenticated-maven-repo
+
 //START SNIPPET flat-dir
 //START SNIPPET flat-dir-multi
 repositories {

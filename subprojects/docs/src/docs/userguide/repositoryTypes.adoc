@@ -110,6 +110,14 @@ You can specify credentials for Maven repositories secured by basic authenticati
 </sample>
 ++++
 
+You can specify any HTTP header for secured maven repositories requiring token, OAuth2 or other HTTP header based authentication.
+
+++++
+<sample id="mavenHeaderProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing header-protected Maven repository">
+    <sourcefile file="build.gradle" snippet="header-authenticated-maven-repo"/>
+</sample>
+++++
+
 [[sec:ivy_repositories]]
 === Custom Ivy repositories
 
