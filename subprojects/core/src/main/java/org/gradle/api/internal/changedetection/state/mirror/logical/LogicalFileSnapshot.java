@@ -18,6 +18,9 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
+/**
+ * A logical snapshot representing a file. The file may not exist.
+ */
 public class LogicalFileSnapshot implements LogicalSnapshot {
     private final String path;
     private final String name;

@@ -18,13 +18,32 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
+/**
+ * Visitor for {@link PhysicalSnapshot}.
+ */
 public interface PhysicalSnapshotVisitor {
+
     /**
      * Called before visiting the contents of a directory.
+     *
+     * @param path The absolute path of the directory.
+     * @param name The name of the directory.
      *
      * @return whether the subtree should be visited.
      */
     boolean preVisitDirectory(String path, String name);
+
+    /**
+     * Called for each regular/missing file.
+     *
+     * @param path The absolute path of the file.
+     * @param name The name of the file.
+     * @param content The content snapshot of the file.
+     */
     void visit(String path, String name, FileContentSnapshot content);
+
+    /**
+     * Called when leaving a directory.
+     */
     void postVisitDirectory();
 }

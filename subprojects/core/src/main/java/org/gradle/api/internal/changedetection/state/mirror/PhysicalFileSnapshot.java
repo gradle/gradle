@@ -20,6 +20,9 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.internal.file.FileType;
 
+/**
+ * A file snapshot for a regular file.
+ */
 public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnaphot {
     private final FileHashSnapshot content;
 
@@ -33,6 +36,9 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
         return FileType.RegularFile;
     }
 
+    /**
+     * The content hash and timestamp of the file.
+     */
     public FileHashSnapshot getContent() {
         return content;
     }
@@ -42,6 +48,16 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
         visitor.visit(getPath(), getName(), content);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * {@link PhysicalFileSnapshot} is a {@link MutablePhysicalSnaphot}, since one can try to add
+     * a child to it. This method then checks if the to be added child is also a {@link PhysicalFileSnapshot}
+     * and then discards the snapshot to be added. In any other case, an exception is thrown.
+     * </p>
+     *
+     */
     @Override
     public MutablePhysicalSnaphot add(String[] segments, int offset, MutablePhysicalSnaphot snapshot) {
         if (segments.length == offset) {

@@ -18,8 +18,36 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 
+/**
+ * Visitor of {@link LogicalSnapshot}.
+ *
+ * The visiting needs to happen depth first. The root {@link LogicalSnapshot} is always visited first.
+ */
 public interface LogicalSnapshotVisitor {
+    /**
+     * Called when entering a directory.
+     *
+     * @param path The absolute path of the directory.
+     * @param name The name of the directory.
+     */
     void preVisitDirectory(String path, String name);
+
+    /**
+     * Called when visiting a single file.
+     *
+     * <p>
+     * If {@link #preVisitDirectory(String, String)} has not been called before, this is the file at the root.
+     * Only root files may be missing files.
+     * </p>
+     *
+     * @param path The absolute path of the file.
+     * @param name The name of the file.
+     * @param content The content hash of the file.
+     */
     void visit(String path, String name, FileContentSnapshot content);
+
+    /**
+     * Called when leaving a directory.
+     */
     void postVisitDirectory();
 }

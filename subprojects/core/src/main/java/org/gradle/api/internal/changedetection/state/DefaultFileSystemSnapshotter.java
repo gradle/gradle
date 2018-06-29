@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.FilteredHierarchicalVisitableTree;
+import org.gradle.api.internal.changedetection.state.mirror.FilteredPhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
@@ -232,7 +232,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             return snapshot;
         }
         Spec<FileTreeElement> spec = patterns.getAsSpec();
-        return new FilteredHierarchicalVisitableTree(spec, snapshot, fileSystem);
+        return new FilteredPhysicalSnapshot(spec, snapshot, fileSystem);
     }
 
     private String internPath(File file) {

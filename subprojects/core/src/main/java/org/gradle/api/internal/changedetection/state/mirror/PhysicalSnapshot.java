@@ -18,9 +18,32 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
+/**
+ * A snapshot of a file/directory tree.
+ *
+ * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
+ */
 public interface PhysicalSnapshot {
+    
+    /**
+     * The type of the file.
+     */
     FileType getType();
+
+    /**
+     * The file name.
+     */
     String getName();
+
+    /**
+     * The absolute path of the file.
+     */
     String getPath();
+
+    /**
+     * Walks the whole hierarchy represented by this snapshot.
+     *
+     * The walk is depth first.
+     */
     void accept(PhysicalSnapshotVisitor visitor);
 }

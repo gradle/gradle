@@ -18,6 +18,9 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
+/**
+ * A file snapshot which can have children (i.e. a directory).
+ */
 public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysicalSnapshot {
 
     public AbstractPhysicalDirectorySnapshot(String path, String name) {

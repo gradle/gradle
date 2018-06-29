@@ -30,13 +30,13 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.InputStream;
 
-public class FilteredHierarchicalVisitableTree implements PhysicalSnapshot {
+public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
 
     private final Spec<FileTreeElement> spec;
     private final PhysicalSnapshot delegate;
     private final FileSystem fileSystem;
 
-    public FilteredHierarchicalVisitableTree(Spec<FileTreeElement> spec, PhysicalSnapshot delegate, FileSystem fileSystem) {
+    public FilteredPhysicalSnapshot(Spec<FileTreeElement> spec, PhysicalSnapshot delegate, FileSystem fileSystem) {
         this.spec = spec;
         this.delegate = delegate;
         this.fileSystem = fileSystem;

@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+/**
+ * A logical snapshot of a file.
+ */
 public interface LogicalSnapshot {
+    /**
+     * Visits the snapshot itself and its children depth first.
+     */
     void accept(LogicalSnapshotVisitor visitor);
 }

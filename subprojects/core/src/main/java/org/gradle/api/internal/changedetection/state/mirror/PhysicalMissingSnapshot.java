@@ -18,7 +18,14 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 
+/**
+ * Represents a missing file.
+ */
 public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
+    /**
+     * A missing file where we don't know where it actually is.
+     * This can happen if we try to get a {@link PhysicalSnapshot} for a {@link org.gradle.api.internal.file.FileTreeInternal} which is not a directory tree.
+     */
     public static final PhysicalSnapshot INSTANCE = new PhysicalMissingSnapshot("", "") {
         @Override
         public String getPath() {

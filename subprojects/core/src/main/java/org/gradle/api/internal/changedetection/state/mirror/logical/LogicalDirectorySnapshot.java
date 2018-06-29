@@ -18,6 +18,9 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import java.util.List;
 
+/**
+ * Logical snapshot representing a directory.
+ */
 public class LogicalDirectorySnapshot implements LogicalSnapshot {
     private final String path;
     private final String name;
