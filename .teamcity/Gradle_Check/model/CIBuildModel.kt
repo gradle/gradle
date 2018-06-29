@@ -200,7 +200,11 @@ data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: 
     }
 
     fun asName(): String {
-        return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
+        if (buildJvmVersion != JvmVersion.java8) {
+            return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()} On ${buildJvmVersion.name.capitalize()}"
+        } else {
+            return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
+        }
     }
 }
 
