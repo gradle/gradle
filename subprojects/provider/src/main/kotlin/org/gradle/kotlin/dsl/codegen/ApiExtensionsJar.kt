@@ -76,7 +76,7 @@ class ApiExtensionsJarGenerator(
 
     private
     fun sourceFileName(fileName: String) =
-        packageDir + "/" + fileName
+        "$packageDir/$fileName"
 
     private
     val packageDir = packageName.replace('.', '/')
