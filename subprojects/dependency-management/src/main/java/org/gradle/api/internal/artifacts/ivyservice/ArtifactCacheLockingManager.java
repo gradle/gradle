@@ -24,7 +24,7 @@ import org.gradle.internal.serialize.Serializer;
  * Provides synchronized access to the artifact cache.
  */
 @ThreadSafe
-public interface CacheLockingManager extends CacheAccess {
+public interface ArtifactCacheLockingManager extends CacheAccess {
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *
