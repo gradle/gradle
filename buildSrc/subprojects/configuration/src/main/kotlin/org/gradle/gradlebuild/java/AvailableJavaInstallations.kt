@@ -72,7 +72,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     init {
         val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
         val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
-        require(resolvedJava9Home != null) { "Required $java9HomePropertyName system property or project property not found" }
+        require(resolvedJava9Home != null || JavaVersion.current().isJava9Compatible) { "Building gradle on Java 7/8 requires $java9HomePropertyName system property or project property" }
         val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
         val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
         javaInstallations = findJavaInstallations(javaHomesForCompilation)

@@ -47,7 +47,7 @@ import java.util.jar.Attributes
 
 enum class ModuleType(val source: JavaVersion, val target: JavaVersion, val requiredCompiler: JavaVersion) {
     UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_5),
+    ENTRY_POINT(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
     WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
     CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
     PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),

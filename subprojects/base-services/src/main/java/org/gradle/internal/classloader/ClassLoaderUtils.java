@@ -23,6 +23,9 @@ import org.gradle.internal.reflect.JavaMethod;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -76,6 +79,16 @@ public abstract class ClassLoaderUtils {
         return CLASS_DEFINER.defineClass(targetClassLoader, className, clazzBytes);
     }
 
+    private interface ClassDefiner {
+        <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes);
+    }
+
+    private interface ClassLoaderPackagesFetcher {
+        Package[] getPackages(ClassLoader classLoader);
+
+        Package getPackage(ClassLoader classLoader, String name);
+    }
+
     private static class ReflectionClassDefiner implements ClassDefiner {
         private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
@@ -86,6 +99,31 @@ public abstract class ClassLoaderUtils {
         @Override
         public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
             return Cast.uncheckedCast(defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length));
+        }
+    }
+
+    private static class LookupClassDefiner implements ClassDefiner {
+        private final MethodHandle defineClassMethodHandle;
+
+        LookupClassDefiner() {
+            try {
+                MethodHandles.Lookup baseLookup = MethodHandles.lookup();
+                MethodType defineClassMethodType = MethodType.methodType(Class.class, new Class[]{String.class, byte[].class, int.class, int.class});
+                MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(ClassLoader.class, baseLookup);
+                defineClassMethodHandle = lookup.findVirtual(ClassLoader.class, "defineClass", defineClassMethodType);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
+            try {
+                return (Class) defineClassMethodHandle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -101,6 +139,42 @@ public abstract class ClassLoaderUtils {
         @Override
         public Package getPackage(ClassLoader classLoader, String name) {
             return GET_PACKAGE_METHOD.invoke(classLoader, name);
+        }
+    }
+
+    private static class LookupPackagesFetcher implements ClassLoaderPackagesFetcher {
+        private final MethodHandle getPackagesMethodHandle;
+        private final MethodHandle getDefinedPackageMethodHandle;
+
+        LookupPackagesFetcher() {
+            try {
+                MethodHandles.Lookup baseLookup = MethodHandles.lookup();
+                MethodType getPackagesMethodType = MethodType.methodType(Package[].class, new Class[]{});
+                MethodType getDefinedPackageMethodType = MethodType.methodType(Package.class, new Class[]{String.class});
+                MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(ClassLoader.class, baseLookup);
+                getPackagesMethodHandle = lookup.findVirtual(ClassLoader.class, "getPackages", getPackagesMethodType);
+                getDefinedPackageMethodHandle = lookup.findVirtual(ClassLoader.class, "getDefinedPackage", getDefinedPackageMethodType);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public Package[] getPackages(ClassLoader classLoader) {
+            try {
+                return (Package[]) getPackagesMethodHandle.bindTo(classLoader).invokeWithArguments();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public Package getPackage(ClassLoader classLoader, String name) {
+            try {
+                return (Package) getDefinedPackageMethodHandle.bindTo(classLoader).invokeWithArguments(name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

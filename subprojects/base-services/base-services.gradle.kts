@@ -15,12 +15,11 @@ plugins {
 
 java {
     gradlebuildJava {
-        moduleType = ModuleType.ENTRY_POINT
+        moduleType = ModuleType.REQUIRES_JAVA_9_COMPILER
     }
 }
 
 dependencies {
-    api(project(":baseServicesJava9"))
     api(project(":distributionsDependencies"))
 
     api(library("guava"))
