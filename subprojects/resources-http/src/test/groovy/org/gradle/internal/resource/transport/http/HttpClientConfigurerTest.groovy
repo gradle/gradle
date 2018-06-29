@@ -18,8 +18,8 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
-import org.gradle.api.artifacts.repositories.HttpHeaderCredentials
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.repositories.DefaultHttpHeaderCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.resource.UriTextResource
 import spock.lang.Specification
@@ -105,21 +105,21 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with http header auth credentials"() {
-        HttpHeaderCredentials httpHeaderCredentials = Mock()
+        def httpHeaderCredentials = new DefaultHttpHeaderCredentials()
+        httpHeaderCredentials.setHeader("TestHttpHeaderName: TestHttpHeaderValue")
         AllSchemesAuthentication httpHeaderAuthentication = Mock() {
             getCredentials() >> httpHeaderCredentials
         }
 
         httpSettings.authenticationSettings >> [httpHeaderAuthentication]
-        httpHeaderCredentials.header = "TestHttpHeaderName: TestHttpHeaderValue"
         httpSettings.sslContextFactory >> sslContextFactory
 
         when:
         configurer.configure(httpClientBuilder)
+        HttpClientHttpHeaderCredentials actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT))
 
         then:
-        def actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT)) as HttpHeaderCredentials
-        actualHttpHeaderCredentials.header == httpHeaderCredentials.header
+        actualHttpHeaderCredentials.header.toString() == httpHeaderCredentials.getHeader()
 
         and:
         httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
