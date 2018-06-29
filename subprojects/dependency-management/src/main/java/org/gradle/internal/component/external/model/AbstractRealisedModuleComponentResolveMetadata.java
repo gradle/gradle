@@ -77,7 +77,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         return result;
     }
 
-    static ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration, ImmutableMap<String, Configuration> configurationDefinitions) {
+    public static ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration, ImmutableMap<String, Configuration> configurationDefinitions) {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
             return ImmutableList.of(descriptorConfiguration.getName());
         }
@@ -186,7 +186,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         private final ImmutableCapabilities capabilities;
         private final ImmutableList<GradleDependencyMetadata> dependencyMetadata;
 
-        ImmutableRealisedVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes,
+        public ImmutableRealisedVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes,
                                      ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints,
                                      ImmutableList<? extends File> files, ImmutableCapabilities capabilities,
                                      List<GradleDependencyMetadata> dependencyMetadata) {

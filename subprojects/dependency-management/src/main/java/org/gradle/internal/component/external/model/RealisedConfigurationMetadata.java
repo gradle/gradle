@@ -27,14 +27,14 @@ import java.util.List;
 
 public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata {
 
-    RealisedConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+    public RealisedConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                          ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes componentLevelAttributes, ImmutableCapabilities capabilities) {
         this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, null);
     }
 
-    private RealisedConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ImmutableList<ModuleDependencyMetadata> configDependencies) {
+    public RealisedConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ImmutableList<ModuleDependencyMetadata> configDependencies) {
         super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities);
     }
 

@@ -93,12 +93,12 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return configuration;
     }
 
-    private static ConfigurationMetadata withUsageAttribute(AbstractConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, ImmutableAttributes additionalAttributes, NamedObjectInstantiator instantiator) {
+    public static ConfigurationMetadata withUsageAttribute(AbstractConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, ImmutableAttributes additionalAttributes, NamedObjectInstantiator instantiator) {
         ImmutableAttributes attributes = attributesFactory.concat(additionalAttributes, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, instantiator));
         return conf.withAttributes(attributes);
     }
 
-    private static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(ModuleComponentIdentifier id, String name) {
+    public static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(ModuleComponentIdentifier id, String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(id, new DefaultIvyArtifactName(id.getModule(), "jar", "jar")));
@@ -122,7 +122,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return filteredDependencies.build();
     }
 
-    private static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming, boolean improvedPomSupport) {
+    public static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming, boolean improvedPomSupport) {
         ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
         if (improvedPomSupport) {
             dependency.alwaysUseAttributeMatching();
@@ -187,7 +187,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return isJavaLibrary() ? Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants()) : Optional.<ImmutableList<? extends ConfigurationMetadata>>absent();
     }
 
-    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+    public ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
         return derivedVariants;
     }
 

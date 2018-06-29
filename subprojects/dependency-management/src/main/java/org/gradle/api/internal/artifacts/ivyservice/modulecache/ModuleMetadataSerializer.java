@@ -197,7 +197,9 @@ public class ModuleMetadataSerializer {
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeBinary(metadata.getContentHash().asByteArray());
             encoder.writeBoolean(metadata.isMissing());
+            encoder.writeBoolean(metadata.isChanging());
             encoder.writeString(metadata.getStatus());
+            writeStringList(metadata.getStatusScheme());
         }
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
@@ -399,7 +401,9 @@ public class ModuleMetadataSerializer {
         private void readSharedInfo(MutableModuleComponentResolveMetadata metadata) throws IOException {
             metadata.setContentHash(new HashValue(decoder.readBinary()));
             metadata.setMissing(decoder.readBoolean());
+            metadata.setChanging(decoder.readBoolean());
             metadata.setStatus(decoder.readString());
+            metadata.setStatusScheme(readStringList());
         }
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {

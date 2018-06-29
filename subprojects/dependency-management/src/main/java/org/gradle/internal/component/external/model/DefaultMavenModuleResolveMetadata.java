@@ -180,11 +180,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return JAR_PACKAGINGS.contains(packaging);
     }
 
-    boolean isImprovedPomSupportEnabled() {
+    public boolean isImprovedPomSupportEnabled() {
         return improvedPomSupportEnabled;
     }
 
-    NamedObjectInstantiator getObjectInstantiator() {
+    public NamedObjectInstantiator getObjectInstantiator() {
         return objectInstantiator;
     }
 

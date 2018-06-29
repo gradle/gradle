@@ -404,7 +404,8 @@ class DependencyManagementBuildScopeServices {
 
 
     ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(ImmutableAttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new ModuleComponentResolveMetadataSerializer(new ModuleMetadataSerializer(new FullAttributeContainerSerializer(attributesFactory), mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
+        FullAttributeContainerSerializer attributeContainerSerializer = new FullAttributeContainerSerializer(attributesFactory);
+        return new ModuleComponentResolveMetadataSerializer(new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), attributeContainerSerializer, moduleIdentifierFactory);
     }
 
     SuppliedComponentMetadataSerializer createSuppliedComponentMetadataSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
