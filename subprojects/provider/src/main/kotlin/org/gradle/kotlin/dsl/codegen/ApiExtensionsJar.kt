@@ -86,10 +86,19 @@ class ApiExtensionsJarGenerator(
 internal
 object StandardKotlinFileCompiler : KotlinFileCompiler {
     override fun compileToDirectory(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) {
-        compileToDirectory(
+
+        val success = compileToDirectory(
             outputDirectory,
             sourceFiles,
             loggerFor<StandardKotlinFileCompiler>(),
             classPath = classPath)
+
+        if (!success) {
+            throw IllegalStateException(
+                "Unable to compile Gradle Kotlin DSL API Extensions Jar\n" +
+                    "\tFrom:\n" +
+                    sourceFiles.joinToString("\n\t- ", prefix = "\t- ", postfix = "\n") +
+                    "\tSee compiler logs for details.")
+        }
     }
 }
