@@ -18,6 +18,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
+import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer
 import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer
 import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer
@@ -34,7 +35,8 @@ import org.junit.runner.RunWith
     SampleOutputNormalizer.class,
     FileSeparatorOutputNormalizer.class,
     ArtifactResolutionOmittingOutputNormalizer.class,
-    NativeComponentReportOutputNormalizer.class
+    NativeComponentReportOutputNormalizer.class,
+    PlayComponentReportOutputNormalizer.class
 ])
 class UserGuideSamplesIntegrationTest {
     /*
