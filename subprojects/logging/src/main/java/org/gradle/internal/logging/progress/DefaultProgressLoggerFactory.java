@@ -21,24 +21,25 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final Clock clock;
-    private final AtomicLong nextId = new AtomicLong(ROOT_PROGRESS_OPERATION_ID);
+    private final BuildOperationIdFactory buildOperationIdFactory;
     private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
-    public DefaultProgressLoggerFactory(ProgressListener progressListener, Clock clock) {
+    public DefaultProgressLoggerFactory(ProgressListener progressListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
         this.progressListener = progressListener;
         this.clock = clock;
+        this.buildOperationIdFactory = buildOperationIdFactory;
     }
 
     public ProgressLogger newOperation(Class loggerCategory) {
@@ -48,6 +49,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     public ProgressLogger newOperation(Class loggerCategory, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
         ProgressLogger logger = init(
             loggerCategory.getName(),
+            buildOperationDescriptor.getId(),
             null,
             true,
             buildOperationDescriptor.getId(),
@@ -77,6 +79,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     ) {
         return init(
             loggerCategory,
+            new OperationIdentifier(buildOperationIdFactory.nextId()),
             parentOperation,
             false,
             currentBuildOperationRef.getId(),
@@ -87,6 +90,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
     private ProgressLogger init(
         String loggerCategory,
+        OperationIdentifier operationId,
         @Nullable ProgressLogger parentOperation,
         boolean buildOperationStart,
         @Nullable OperationIdentifier buildOperationId,
@@ -98,7 +102,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
         return new ProgressLoggerImpl(
             (ProgressLoggerImpl) parentOperation,
-            new OperationIdentifier(nextId.getAndIncrement()),
+            operationId,
             loggerCategory,
             progressListener,
             clock,

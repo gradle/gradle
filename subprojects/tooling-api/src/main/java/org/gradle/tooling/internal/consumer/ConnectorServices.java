@@ -21,6 +21,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -92,8 +94,12 @@ public class ConnectorServices {
             return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
-        protected LoggingProvider createLoggingProvider(Clock clock) {
-            return new SynchronizedLogging(clock);
+        protected BuildOperationIdFactory createBuildOperationIdFactory() {
+            return new DefaultBuildOperationIdFactory();
+        }
+
+        protected LoggingProvider createLoggingProvider(Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
+            return new SynchronizedLogging(clock, buildOperationIdFactory);
         }
 
         protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {

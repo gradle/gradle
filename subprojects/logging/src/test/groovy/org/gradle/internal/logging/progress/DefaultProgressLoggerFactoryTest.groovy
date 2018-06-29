@@ -15,17 +15,19 @@
  */
 package org.gradle.internal.logging.progress
 
-import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
     def progressListener = Mock(ProgressListener)
     def timeProvider = Mock(Clock)
-    def factory = new DefaultProgressLoggerFactory(progressListener, timeProvider)
+    def buildOperationIdFactory = new DefaultBuildOperationIdFactory()
+    def factory = new DefaultProgressLoggerFactory(progressListener, timeProvider, buildOperationIdFactory)
 
     def progressLoggerBroadcastsEvents() {
         when:

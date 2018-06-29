@@ -163,6 +163,29 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.buildOperationCategory == BuildOperationCategory.UNCATEGORIZED
     }
 
+    def "can serialize ProgressStartEvent messages where build and progress ids are the same"() {
+        given:
+        def event = new ProgressStartEvent(progressId, parentProgressId, TIMESTAMP, CATEGORY, DESCRIPTION, DESCRIPTION, DESCRIPTION, "", 0, false, buildOperationId, parentBuildOperationId, BuildOperationCategory.UNCATEGORIZED)
+
+        when:
+        def result = serialize(event, serializer)
+
+        then:
+        result instanceof ProgressStartEvent
+        result.progressOperationId == progressId
+        result.parentProgressOperationId == parentProgressId
+        result.buildOperationId == buildOperationId
+        result.parentBuildOperationId == parentBuildOperationId
+
+        where:
+        progressId                 | parentProgressId           | buildOperationId           | parentBuildOperationId
+        new OperationIdentifier(1) | null                       | new OperationIdentifier(1) | null
+        new OperationIdentifier(1) | null                       | new OperationIdentifier(2) | null
+        new OperationIdentifier(1) | new OperationIdentifier(2) | new OperationIdentifier(1) | new OperationIdentifier(2)
+        new OperationIdentifier(1) | new OperationIdentifier(2) | new OperationIdentifier(1) | null
+        new OperationIdentifier(1) | new OperationIdentifier(3) | new OperationIdentifier(1) | new OperationIdentifier(4)
+    }
+
     def "can serialize build operation ids with large long values"() {
         given:
         def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", 0, true, new OperationIdentifier(42_000_000_000_000L), null, BuildOperationCategory.UNCATEGORIZED)

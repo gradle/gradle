@@ -98,7 +98,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     @Override
     public String toString() {
-        return "ProgressStart (" + progressOperationId + ") " + description;
+        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:" + buildOperationId + " parent b:" + parentBuildOperationId + ") " + description;
     }
 
     public OperationIdentifier getProgressOperationId() {
