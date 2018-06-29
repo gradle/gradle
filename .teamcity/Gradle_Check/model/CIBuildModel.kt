@@ -191,20 +191,20 @@ data class Stage(val name: String, val description: String, val specificBuilds: 
 
 data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java8, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
-        return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+        return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}" + suffix()
     }
 
     fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
         val shortenedSubprojectName = subproject.replace("internal", "i").replace("Testing", "T")
-        return asId(model) + "_" + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
+        return asId(model) + "_" + if (!subproject.isEmpty()) shortenedSubprojectName else "0" + suffix()
     }
 
     fun asName(): String {
-        if (buildJvmVersion != JvmVersion.java8) {
-            return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()} On ${buildJvmVersion.name.capitalize()}"
-        } else {
-            return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
-        }
+        return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}" + suffix()
+    }
+
+    fun suffix(): String {
+        return if(buildJvmVersion != JvmVersion.java8) "_${buildJvmVersion.name.capitalize()}" else ""
     }
 }
 
