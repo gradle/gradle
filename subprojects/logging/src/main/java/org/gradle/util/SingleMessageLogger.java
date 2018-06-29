@@ -16,7 +16,6 @@
 
 package org.gradle.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -42,8 +41,7 @@ public class SingleMessageLogger {
 
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
-    @VisibleForTesting
-    static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
+    private static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
     private static LoggingIncubatingFeatureHandler incubatingFeatureHandler = new LoggingIncubatingFeatureHandler();
 
     public synchronized static void reset() {
