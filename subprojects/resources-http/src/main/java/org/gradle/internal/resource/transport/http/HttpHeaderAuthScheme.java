@@ -36,10 +36,6 @@ public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
 		super();
 	}
 
-	public HttpHeaderAuthScheme(final Charset credentialsCharset) {
-		super();
-	}
-
 	@Override
 	public void processChallenge(final Header header) throws MalformedChallengeException {
 	}

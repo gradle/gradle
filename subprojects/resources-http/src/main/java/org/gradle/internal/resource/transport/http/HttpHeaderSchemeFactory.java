@@ -29,11 +29,8 @@ import java.nio.charset.Charset;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HttpHeaderSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
-    private final Charset charset;
-
     public HttpHeaderSchemeFactory(final Charset charset) {
         super();
-        this.charset = charset;
     }
 
     public HttpHeaderSchemeFactory() {
@@ -47,7 +44,7 @@ public class HttpHeaderSchemeFactory implements AuthSchemeFactory, AuthSchemePro
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new HttpHeaderAuthScheme(this.charset);
+        return new HttpHeaderAuthScheme();
     }
 
 }
