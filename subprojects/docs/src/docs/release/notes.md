@@ -32,6 +32,21 @@ This release of Gradle implements several improvements:
 
 [The Gradle Native project continues](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-49) to improve and evolve the native ecosystem support for Gradle.
 
+### Faster clean checkout builds
+
+Gradle now stores more state in the Gradle user home instead of the project directory. Clean checkout builds on CI should now be faster as long as the user home is preserved.
+
+### Support for projects with auxiliary publications
+
+Projects which add additional publications with the maven-publish or ivy-publish plugins (e.g. publishing test fixtures along with the main code) can now be depended on by other projects in the same build.
+This was a common blocker for users adopting those plugins.
+
+### Java and Groovy compiler no longer leak file descriptors
+
+The Java and Groovy compilers both used to leak file descriptors when run in-process (which is the default).
+This could lead to "cannot delete file" exceptions on Windows and "too many open file descriptors" on Unix.
+These leaks have been fixed.  If you had switched to forking mode because of this problem, it is now safe to switch back to in-process compilation.
+
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
