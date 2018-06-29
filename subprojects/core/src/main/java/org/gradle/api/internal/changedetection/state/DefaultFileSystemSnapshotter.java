@@ -21,7 +21,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FilteredPhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
@@ -243,7 +242,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private PhysicalSnapshot calculateDetails(File file) {
         String path = internPath(file);
         FileMetadataSnapshot stat = fileSystem.stat(file);
-        String name = RelativePath.PATH_SEGMENT_STRING_INTERNER.intern(file.getName());
+        String name = file.getName();
         switch (stat.getType()) {
             case Missing:
                 return new PhysicalMissingSnapshot(path, name);

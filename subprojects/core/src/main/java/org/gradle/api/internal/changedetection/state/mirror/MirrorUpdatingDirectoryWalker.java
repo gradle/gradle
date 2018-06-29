@@ -91,8 +91,8 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    if (relativePath.isRoot() || isAllowed(dir, true, attrs, relativePath)) {
-                        String name = internedName(dir);
+                    String name = dir.getFileName().toString();
+                    if (relativePath.isRoot() || isAllowed(dir, name, true, attrs, relativePath)) {
                         relativePath.enter(name);
                         levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
                         return FileVisitResult.CONTINUE;
@@ -103,7 +103,8 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
-                    if (isAllowed(file, false, attrs, relativePath)) {
+                    String name = file.getFileName().toString();
+                    if (isAllowed(file, name, false, attrs, relativePath)) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                         }
@@ -111,7 +112,7 @@ public class MirrorUpdatingDirectoryWalker {
                             // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
                             throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                         }
-                        addFileSnapshot(file, attrs);
+                        addFileSnapshot(file, name, attrs);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -121,7 +122,7 @@ public class MirrorUpdatingDirectoryWalker {
                     // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                     // so we include all the other files apart from the loop.
                     // This way, we include each file only once.
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, false, null, relativePath)) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, relativePath)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -151,29 +152,24 @@ public class MirrorUpdatingDirectoryWalker {
                     return e != null && !(e instanceof FileSystemLoopException);
                 }
 
-                private void addFileSnapshot(Path file, BasicFileAttributes attrs) {
+                private void addFileSnapshot(Path file, String name, BasicFileAttributes attrs) {
                     Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
-                    String name = internedName(file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
                     PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, new FileHashSnapshot(hash, metadata.getLastModified()));
                     levelHolder.peekLast().add(fileSnapshot);
                 }
 
-                private String internedName(Path dir) {
-                    return RelativePath.PATH_SEGMENT_STRING_INTERNER.intern(dir.getFileName().toString());
-                }
-
                 private String internedAbsolutePath(Path file) {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathTracker relativePath) {
+                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathTracker relativePath) {
                     if (spec == null) {
                         return true;
                     }
-                    relativePath.enter(path.getFileName().toString());
-                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, isDirectory, attrs, relativePath.getRelativePath(), fileSystem));
+                    relativePath.enter(name);
+                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath.getRelativePath(), fileSystem));
                     relativePath.leave();
                     return allowed;
                 }
@@ -186,13 +182,15 @@ public class MirrorUpdatingDirectoryWalker {
 
     private static class PathBackedFileTreeElement implements FileTreeElement {
         private final Path path;
+        private final String name;
         private final boolean isDirectory;
         private final BasicFileAttributes attrs;
         private final Iterable<String> relativePath;
         private final Stat stat;
 
-        public PathBackedFileTreeElement(Path path, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath, Stat stat) {
+        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath, Stat stat) {
             this.path = path;
+            this.name = name;
             this.isDirectory = isDirectory;
             this.attrs = attrs;
             this.relativePath = relativePath;
@@ -244,7 +242,7 @@ public class MirrorUpdatingDirectoryWalker {
 
         @Override
         public String getName() {
-            return path.getFileName().toString();
+            return name;
         }
 
         @Override
