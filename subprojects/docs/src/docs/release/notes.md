@@ -1,6 +1,40 @@
+The Gradle team is pleased to announce Gradle 4.9.
 
-Gradle 4.9 includes Kotlin DSL 0.18.4, bringing faster and leaner configuration time, improvements to the IntelliJ IDEA and Android Studio user experience as well as a set of bug fixes.
+First and foremost, this version of Gradle features experimental new [lazy task APIs](userguide/task_configuration_avoidance.html).
+Gradle can now _avoid configuring tasks_ that are not invoked when using these lazy task APIs, making your builds and IDE sync times faster. 
+
+We have been testing this feature at scale and have seen 10-15% faster configuration times.
+
+![lazy task perf chart](data:image/png;base64,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)
+
+You will see configuration times reduced more and more as Gradle tasks are converted to use them.
+Gradle task and plugin authors should read [the documentation](userguide/task_configuration_avoidance.html) to learn how to get started using this exciting new feature.
+
+Next, publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be depended upon by other projects in the same build.
+There is also a [new Publishing Overview chapter](/userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.
+
+In addition to lazy tasks use, Kotlin DSL build scripts are evaluated faster with version 0.18.4, included in this version of Gradle.
+IntelliJ IDEA and Android Studio user experience is also improved.
 See details in the [Kotlin DSL v0.18.x release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.18.4).
+
+You can now pass arguments to `JavaExec` tasks [directly from the command-line](#command-line-args-supported-by-javaexec) using `--args`:
+
+    ❯ gradle run --args 'foo --bar'
+    
+No more need to hard-code arguments in your build scripts. 
+Consult the documentation for the [Application Plugin](userguide/application_plugin.html#sec:application_usage) for more information.
+
+Last but not least, this version of Gradle has an _improved dependency insight report_. Read the [details further on](#improved-dependency-insight-report).   
+
+We hope you will build happiness with Gradle 4.9, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
+
+## Upgrade Instructions
+
+Switch your build to use Gradle 4.9 RC1 quickly by updating your wrapper properties:
+
+`./gradlew wrapper --gradle-version=4.9-rc-1`
+
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
 ## New and noteworthy
 
@@ -8,12 +42,9 @@ Here are the new features introduced in this Gradle release.
 
 ### Command line args supported by JavaExec
 
-Since Gradle 4.9, the command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`,
-you don't need to hardcode it into the build script - you can just run `gradle run --args 'foo --bar'` (see [application plugin](userguide/application_plugin.html) for more information).
-
-### Improved publishing documentation
-
-This release of Gradle includes a [new Publishing Overview chapter](/userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.  
+Command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`,
+you don't need to hardcode it into the build script - you can just run `gradle run --args 'foo --bar'`.
+See the [Application Plugin documentation](userguide/application_plugin.html#sec:application_usage) for more information.
 
 ### Improved dependency insight report
 
@@ -35,11 +66,6 @@ This release of Gradle implements several improvements:
 ### Faster clean checkout builds
 
 Gradle now stores more state in the Gradle user home instead of the project directory. Clean checkout builds on CI should now be faster as long as the user home is preserved.
-
-### Support for projects with auxiliary publications
-
-Projects which add additional publications with the maven-publish or ivy-publish plugins (e.g. publishing test fixtures along with the main code) can now be depended on by other projects in the same build.
-This was a common blocker for users adopting those plugins.
 
 ### Java and Groovy compiler no longer leak file descriptors
 
