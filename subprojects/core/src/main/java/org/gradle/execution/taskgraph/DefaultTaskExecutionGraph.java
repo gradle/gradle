@@ -219,6 +219,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         return false;
     }
 
+    @Override
+    public int size() {
+        return taskExecutionPlan.getTasks().size();
+    }
+
     public List<Task> getAllTasks() {
         ensurePopulated();
         if (allTasks == null) {

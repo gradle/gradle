@@ -36,7 +36,6 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -120,9 +119,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
             super(parent);
         }
 
-        GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry, BuildProgressLogger buildProgressLogger) {
-            // the buildProgressLogger parameter is not used directly, but declaring it as a dependency triggers its creation and registration as a listener
-            // TODO - add a way to declare listener services instead and get rid of this work around
+        GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
             return new DefaultGradleLauncherFactory(
                 userHomeDirServiceRegistry,
                 CrossBuildSessionScopeServices.this

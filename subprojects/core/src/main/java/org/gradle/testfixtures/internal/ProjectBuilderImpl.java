@@ -49,7 +49,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
@@ -127,11 +126,6 @@ public class ProjectBuilderImpl {
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
-
-        // Initialize progress logger infrastructure
-        // This is required if Task.execute is called
-        BuildProgressLogger progressLogger = project.getServices().get(BuildProgressLogger.class);
-        progressLogger.buildStarted();
 
         // Take a root worker lease, it won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = topLevelRegistry.get(ResourceLockCoordinationService.class);

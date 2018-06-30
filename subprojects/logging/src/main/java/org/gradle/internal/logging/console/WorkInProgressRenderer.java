@@ -20,13 +20,13 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -36,8 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.internal.logging.console.BuildStatusRenderer.BUILD_PROGRESS_CATEGORY;
 
 public class WorkInProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
@@ -158,9 +156,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
 
     // Any ProgressOperation in the parent chain has a message, the operation is considered renderable.
     private boolean isRenderable(ProgressOperation operation) {
-        for (ProgressOperation current = operation;
-             current != null && !BUILD_PROGRESS_CATEGORY.equals(current.getCategory());
-             current = current.getParent()) {
+        for (ProgressOperation current = operation; current != null; current = current.getParent()) {
             if (current.getMessage() != null) {
                 return true;
             }

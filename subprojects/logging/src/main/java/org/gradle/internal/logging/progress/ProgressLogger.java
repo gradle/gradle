@@ -134,7 +134,7 @@ public interface ProgressLogger {
      *
      * @param status The new status message. Can be null or empty.
      */
-    void progress(@Nullable  String status, boolean failing);
+    void progress(@Nullable String status, boolean failing);
 
     /**
      * Logs the completion of the operation, with no final status
