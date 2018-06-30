@@ -64,10 +64,14 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7, JvmVersion.java9),
-                        TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7, JvmVersion.java9),
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java10, JvmVersion.java9),
-                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java9, JvmVendor.ibm)
+                        TestCoverage(TestType.soak, OS.linux, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.soak, OS.windows, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.macos, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java9, JvmVersion.java9)
                         )))
     ) {
 
