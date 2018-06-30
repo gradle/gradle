@@ -247,7 +247,6 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         Logger logger = getLogger();
         ProgressLogger progressLogger = getProgressLoggerFactory().newOperation(getClass());
         progressLogger.setDescription("Gradle Build Comparison");
-        progressLogger.setShortDescription(getName());
 
         GradleBuildComparison comparison = new GradleBuildComparison(
                 sourceBuildExecuter, targetBuildExecuter,

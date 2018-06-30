@@ -71,7 +71,7 @@ public class OutputEventTransformer implements OutputEventListener {
 
             buildOperationForProgressOperation.put(startEvent.getProgressOperationId(), startEvent.getBuildOperationId());
 
-            if (startEvent.getParentBuildOperationId() == null || GUtil.isTrue(startEvent.getLoggingHeader()) || GUtil.isTrue(startEvent.getShortDescription()) || GUtil.isTrue(startEvent.getStatus()) || startEvent.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED) {
+            if (startEvent.getParentBuildOperationId() == null || GUtil.isTrue(startEvent.getLoggingHeader()) || GUtil.isTrue(startEvent.getStatus()) || startEvent.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED) {
                 effectiveBuildOperation.put(startEvent.getBuildOperationId(), startEvent.getBuildOperationId());
                 effectiveProgressOperation.put(startEvent.getProgressOperationId(), startEvent.getProgressOperationId());
                 forwarded.add(startEvent.getProgressOperationId());

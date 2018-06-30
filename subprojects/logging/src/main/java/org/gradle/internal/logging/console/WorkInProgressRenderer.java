@@ -182,7 +182,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
                     operationIdsToSkip.add(startEvent.getProgressOperationId());
                     // Don't attach to any labels
                 } else {
-                    attach(operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId()));
+                    attach(operations.start(startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId()));
                 }
             } else if (event instanceof ProgressCompleteEvent) {
                 ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;

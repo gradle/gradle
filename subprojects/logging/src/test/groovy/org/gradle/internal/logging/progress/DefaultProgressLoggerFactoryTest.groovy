@@ -42,7 +42,6 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
             assert event.timestamp == 100L
             assert event.category == 'logger'
             assert event.description == 'description'
-            assert event.shortDescription == null
             assert event.loggingHeader == null
             assert event.status == 'started'
         }
@@ -193,19 +192,6 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
             assert event.parentProgressOperationId == parentId
             assert event.progressOperationId != parentId
-        }
-    }
-
-    def canSpecifyShortDescription() {
-        when:
-        def logger = factory.newOperation('logger')
-        logger.description = 'description'
-        logger.shortDescription = 'short'
-        logger.started()
-
-        then:
-        1 * progressListener.started(!null) >> { ProgressStartEvent event ->
-            assert event.shortDescription == 'short'
         }
     }
 
@@ -372,8 +358,10 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         logger.description == "foo"
-        logger.shortDescription == "f"
-        1 * progressListener.started(!null)
+        1 * progressListener.started(!null) >> { ProgressStartEvent event ->
+            assert event.description == 'foo'
+            assert event.status == 'f'
+        }
     }
 }
 
