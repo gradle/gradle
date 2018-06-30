@@ -192,6 +192,11 @@ data class Stage(val name: String, val description: String, val specificBuilds: 
 
 data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java8, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
+        if(buildJvmVersion != JvmVersion.java8 && testType == TestType.quickFeedbackCrossVersion) {
+            // This is a hack for the limitation on long configuration name
+            // "Gradle_Check_QuickFeedbackCrossVersion_Java7_Oracle_Linux_Java9_dependencyManagement" is invalid: it is too long. ID should start with a latin letter and contain only latin letters, digits and underscores (at most 80 characters).
+            return "${model.projectPrefix}QkFdbkCrsVsn_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}" + suffix()
+        }
         return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}" + suffix()
     }
 
