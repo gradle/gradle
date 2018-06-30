@@ -101,7 +101,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         // Preserve logging of headers for progress operations started outside of the build operation executor as was done in Gradle 3.x
         // Basically, if we see an operation with a logging header and it's not grouped, just log it
-        if (GUtil.isTrue(startEvent.getLoggingHeader()) && !startEvent.getLoggingHeader().equals(startEvent.getShortDescription()) && (buildOpId == null || !isGrouped)) {
+        if ((buildOpId == null || !isGrouped) && GUtil.isTrue(startEvent.getLoggingHeader())) {
             onUngroupedOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, null));
         }
     }

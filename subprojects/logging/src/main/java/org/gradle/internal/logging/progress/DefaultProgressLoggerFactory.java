@@ -112,7 +112,6 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private ProgressLoggerImpl previous;
         private ProgressLoggerImpl parent;
         private String description;
-        private String shortDescription;
         private String loggingHeader;
         private State state = State.idle;
         private int totalProgress;
@@ -144,57 +143,59 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             return category + " - " + description;
         }
 
+        @Override
         public String getDescription() {
             return description;
         }
 
+        @Override
         public ProgressLogger setDescription(String description) {
             assertCanConfigure();
             this.description = description;
             return this;
         }
 
+        @Override
         public String getShortDescription() {
-            return shortDescription;
+            return null;
         }
 
+        @Override
         public ProgressLogger setShortDescription(String shortDescription) {
             assertCanConfigure();
-            this.shortDescription = shortDescription;
             return this;
         }
 
+        @Override
         public String getLoggingHeader() {
             return loggingHeader;
         }
 
+        @Override
         public ProgressLogger setLoggingHeader(String loggingHeader) {
             assertCanConfigure();
             this.loggingHeader = loggingHeader;
             return this;
         }
 
-        public ProgressLogger start(String description, String shortDescription) {
-            start(description, shortDescription, totalProgress);
-            return this;
-        }
-
-        public ProgressLogger start(String description, String shortDescription, int totalProgress) {
+        @Override
+        public ProgressLogger start(String description, String status) {
             setDescription(description);
-            setShortDescription(shortDescription);
-            started(null, totalProgress);
+            started(status);
             return this;
         }
 
+        @Override
         public void started() {
             started(null);
         }
 
+        @Override
         public void started(String status) {
-            started(status, 0);
+            started(status, totalProgress);
         }
 
-        public void started(String status, int totalProgress) {
+        private void started(String status, int totalProgress) {
             if (!GUtil.isTrue(description)) {
                 throw new IllegalStateException("A description must be specified before this operation is started.");
             }
@@ -222,7 +223,6 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 clock.getCurrentTime(),
                 category,
                 description,
-                shortDescription,
                 loggingHeader,
                 ensureNotNull(status),
                 totalProgress,

@@ -32,17 +32,14 @@ import org.gradle.internal.serialize.Serializer;
  */
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
     private static final short PARENT_PROGRESS_ID = 1;
-    private static final short SHORT_DESCRIPTION = 1 << 2;
-    private static final short SHORT_DESCRIPTION_IS_DESCRIPTION = 1 << 3;
-    private static final short LOGGING_HEADER = 1 << 4;
-    private static final short LOGGING_HEADER_IS_SHORT_DESCRIPTION = 1 << 5;
-    private static final short STATUS = 1 << 6;
-    private static final short BUILD_OPERATION_ID = 1 << 7;
-    private static final short BUILD_OPERATION_ID_IS_PROGRESS_ID = 1 << 8;
-    private static final short BUILD_OPERATION_START = 1 << 9;
-    private static final short PARENT_BUILD_OPERATION_ID = 1 << 10;
-    private static final short PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID = 1 << 11;
-    private static final short CATEGORY_OFFSET = 12;
+    private static final short LOGGING_HEADER = 1 << 2;
+    private static final short STATUS = 1 << 3;
+    private static final short BUILD_OPERATION_ID = 1 << 4;
+    private static final short BUILD_OPERATION_ID_IS_PROGRESS_ID = 1 << 5;
+    private static final short BUILD_OPERATION_START = 1 << 6;
+    private static final short PARENT_BUILD_OPERATION_ID = 1 << 7;
+    private static final short PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID = 1 << 8;
+    private static final short CATEGORY_OFFSET = 9;
     private static final short CATEGORY_MASK = 0x7;
 
     @Override
@@ -52,25 +49,9 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         if (parentProgressOperationId != null) {
             flags |= PARENT_PROGRESS_ID;
         }
-        String shortDescription = event.getShortDescription();
-        if (shortDescription != null) {
-            if (shortDescription.equals(event.getDescription())) {
-                // Optimize for a common case
-                // Should instead have a null short description in this case
-                flags |= SHORT_DESCRIPTION_IS_DESCRIPTION;
-            } else {
-                flags |= SHORT_DESCRIPTION;
-            }
-        }
         String loggingHeader = event.getLoggingHeader();
         if (loggingHeader != null) {
-            if (loggingHeader.equals(shortDescription)) {
-                // Optimize for a common case
-                // Should instead get rid of the logging header
-                flags |= LOGGING_HEADER_IS_SHORT_DESCRIPTION;
-            } else {
-                flags |= LOGGING_HEADER;
-            }
+            flags |= LOGGING_HEADER;
         }
         if (!event.getStatus().isEmpty()) {
             flags |= STATUS;
@@ -93,6 +74,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
         BuildOperationCategory buildOperationCategory = event.getBuildOperationCategory();
         flags |= (buildOperationCategory.ordinal() & CATEGORY_MASK) << CATEGORY_OFFSET;
+
         if (event.isBuildOperationStart()) {
             flags |= BUILD_OPERATION_START;
         }
@@ -106,9 +88,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         encoder.writeString(event.getDescription());
-        if ((flags & SHORT_DESCRIPTION) != 0) {
-            encoder.writeString(shortDescription);
-        }
         if ((flags & LOGGING_HEADER) != 0) {
             encoder.writeString(loggingHeader);
         }
@@ -139,17 +118,8 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         String category = decoder.readString();
         String description = decoder.readString();
 
-        String shortDescription = null;
-        if ((flags & SHORT_DESCRIPTION_IS_DESCRIPTION) != 0) {
-            shortDescription = description;
-        } else if ((flags & SHORT_DESCRIPTION) != 0) {
-            shortDescription = decoder.readString();
-        }
-
         String loggingHeader = null;
-        if ((flags & LOGGING_HEADER_IS_SHORT_DESCRIPTION) != 0) {
-            loggingHeader = shortDescription;
-        } else if ((flags & LOGGING_HEADER) != 0) {
+        if ((flags & LOGGING_HEADER) != 0) {
             loggingHeader = decoder.readString();
         }
 
@@ -183,7 +153,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             timestamp,
             category,
             description,
-            shortDescription,
             loggingHeader,
             status,
             totalProgress,

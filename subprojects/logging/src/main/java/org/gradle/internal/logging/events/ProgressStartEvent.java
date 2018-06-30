@@ -29,7 +29,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;
     private final String description;
-    private final String shortDescription;
     private final String loggingHeader;
     private final String status;
     private final int totalProgress;
@@ -46,7 +45,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         long timestamp,
         String category,
         String description,
-        @Nullable String shortDescription,
         @Nullable String loggingHeader,
         String status,
         int totalProgress,
@@ -59,7 +57,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
         this.description = description;
-        this.shortDescription = shortDescription;
         this.loggingHeader = loggingHeader;
         this.status = status;
         this.totalProgress = totalProgress;
@@ -76,11 +73,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     public String getDescription() {
         return description;
-    }
-
-    @Nullable
-    public String getShortDescription() {
-        return shortDescription;
     }
 
     @Nullable
@@ -128,10 +120,10 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, shortDescription, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
     }
 
     public ProgressStartEvent withParent(OperationIdentifier parentProgressOperationId, OperationIdentifier parentBuildOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, shortDescription, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
     }
 }
