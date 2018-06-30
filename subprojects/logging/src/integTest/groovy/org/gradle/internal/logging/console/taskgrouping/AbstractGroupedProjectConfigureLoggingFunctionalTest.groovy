@@ -55,17 +55,14 @@ configure :
 configure :a
 configure :b
 create :thing
-
 """)
         normalizedOutput.contains("""
 > Configure project :a
 project a
-
 """)
         normalizedOutput.contains("""
 > Configure project :b
 project b
-
 """)
     }
 }

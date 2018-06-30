@@ -42,8 +42,8 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short BUILD_OPERATION_START = 1 << 9;
     private static final short PARENT_BUILD_OPERATION_ID = 1 << 10;
     private static final short PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID = 1 << 11;
-    private static final short BUILD_OPERATION_CATEGORY_TASK = 1 << 12;
-    private static final short BUILD_OPERATION_CATEGORY_PROJECT = 1 << 13;
+    private static final short CATEGORY_OFFSET = 12;
+    private static final short CATEGORY_MASK = 0x7;
 
     @Override
     public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
@@ -92,13 +92,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             }
         }
         BuildOperationCategory buildOperationCategory = event.getBuildOperationCategory();
-        if (buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT) {
-            flags |= BUILD_OPERATION_CATEGORY_PROJECT;
-        } else if (buildOperationCategory == BuildOperationCategory.TASK) {
-            flags |= BUILD_OPERATION_CATEGORY_TASK;
-        } else if (buildOperationCategory != BuildOperationCategory.UNCATEGORIZED) {
-            throw new IllegalArgumentException("Can't handle build operation category " + buildOperationCategory);
-        }
+        flags |= (buildOperationCategory.ordinal() & CATEGORY_MASK) << CATEGORY_OFFSET;
         if (event.isBuildOperationStart()) {
             flags |= BUILD_OPERATION_START;
         }
@@ -181,14 +175,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             parentBuildOperationId = parentProgressOperationId;
         }
 
-        BuildOperationCategory buildOperationCategory;
-        if ((flags & BUILD_OPERATION_CATEGORY_PROJECT) != 0) {
-            buildOperationCategory = BuildOperationCategory.CONFIGURE_PROJECT;
-        } else if ((flags & BUILD_OPERATION_CATEGORY_TASK) != 0) {
-            buildOperationCategory = BuildOperationCategory.TASK;
-        } else {
-            buildOperationCategory = BuildOperationCategory.UNCATEGORIZED;
-        }
+        BuildOperationCategory buildOperationCategory = BuildOperationCategory.values()[(int)((flags >> CATEGORY_OFFSET) & CATEGORY_MASK)];
 
         return new ProgressStartEvent(
             progressOperationId,

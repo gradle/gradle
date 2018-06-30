@@ -91,8 +91,6 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
-import org.gradle.internal.progress.BuildProgressFilter;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
@@ -198,12 +196,6 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
         return new DefaultPluginModuleRegistry(moduleRegistry);
-    }
-
-    BuildProgressLogger createBuildProgressLogger(ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
-        BuildProgressLogger buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
-        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
-        return buildProgressLogger;
     }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {

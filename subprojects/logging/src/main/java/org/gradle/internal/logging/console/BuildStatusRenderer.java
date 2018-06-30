@@ -22,11 +22,14 @@ import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
-import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
@@ -38,13 +41,17 @@ public class BuildStatusRenderer implements OutputEventListener {
     public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
     public static final String PROGRESS_BAR_SUFFIX = ">";
 
-    public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
+    private enum Phase {
+        Initializing, Configuring, Executing
+    }
 
     private final OutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
-    private long currentPhaseProgressOperationId;
+    private Phase currentPhase;
+    private OperationIdentifier currentPhaseProgressOperationId;
+    private Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
     private long currentTimePeriod;
 
     // What actually shows up on the console
@@ -65,20 +72,31 @@ public class BuildStatusRenderer implements OutputEventListener {
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            if (BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
-                phaseStarted(startEvent);
-            } else if (buildStartTimestamp == 0 && startEvent.getBuildOperationId() != null && startEvent.getParentBuildOperationId() == null) {
-                buildStartTimestamp = startEvent.getTimestamp();
+            if (startEvent.isBuildOperationStart()) {
+                if (buildStartTimestamp == 0 && startEvent.getParentBuildOperationId() == null) {
+                    // TODO - should use BuildRequestMetaData to determine the build start time
+                    buildStartTimestamp = startEvent.getTimestamp();
+                    phaseStarted(startEvent, Phase.Initializing);
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
+                    phaseStarted(startEvent, Phase.Configuring);
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase == Phase.Configuring) {
+                    phaseHasMoreProgress(startEvent);
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_TASKS_ROOT_BUILD) {
+                    phaseStarted(startEvent, Phase.Executing);
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_TASKS && currentPhase == Phase.Executing) {
+                    phaseHasMoreProgress(startEvent);
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase == Phase.Configuring) {
+                    currentPhaseChildren.add(startEvent.getProgressOperationId());
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.TASK && currentPhase == Phase.Executing) {
+                    currentPhaseChildren.add(startEvent.getProgressOperationId());
+                }
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             if (isPhaseProgressEvent(completeEvent.getProgressOperationId())) {
-                phaseEnded(completeEvent);
-            }
-        } else if (event instanceof ProgressEvent) {
-            ProgressEvent progressEvent = (ProgressEvent) event;
-            if (isPhaseProgressEvent(progressEvent.getProgressOperationId())) {
-                phaseProgressed(progressEvent);
+                phaseEnded();
+            } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
+                phaseProgressed(completeEvent);
             }
         }
 
@@ -93,7 +111,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     }
 
     private boolean isPhaseProgressEvent(OperationIdentifier progressOpId) {
-        return progressOpId.getId() == currentPhaseProgressOperationId;
+        return progressOpId.equals(currentPhaseProgressOperationId);
     }
 
     private void renderNow(long now) {
@@ -103,20 +121,28 @@ public class BuildStatusRenderer implements OutputEventListener {
         console.flush();
     }
 
-    private void phaseStarted(ProgressStartEvent progressStartEvent) {
+    private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
         timerEnabled = true;
-        currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId().getId();
-        progressBar = newProgressBar(progressStartEvent.getShortDescription(), 0, progressStartEvent.getTotalProgress());
+        currentPhase = phase;
+        currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId();
+        progressBar = newProgressBar(phase.name().toUpperCase(), 0, progressStartEvent.getTotalProgress());
     }
 
-    private void phaseProgressed(ProgressEvent progressEvent) {
+    private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
+        progressBar.moreProgress(progressStartEvent.getTotalProgress());
+    }
+
+    private void phaseProgressed(ProgressCompleteEvent progressEvent) {
         if (progressBar != null) {
-            progressBar.update(progressEvent.isFailing());
+            progressBar.update(progressEvent.isFailed());
         }
     }
 
-    private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {
-        progressBar = newProgressBar(progressCompleteEvent.getStatus(), 0, 1);
+    private void phaseEnded() {
+        progressBar = newProgressBar("WAITING", 0, 1);
+        currentPhase = null;
+        currentPhaseProgressOperationId = null;
+        currentPhaseChildren.clear();
         timerEnabled = false;
     }
 
