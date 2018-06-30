@@ -41,7 +41,8 @@ data class CIBuildModel (
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java8, JvmVendor.ibm))),
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java8, JvmVendor.ibm))
+            ),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
                     functionalTests = listOf(
@@ -63,10 +64,10 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java8, JvmVersion.java9),
-                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7, JvmVersion.java9),
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java7, JvmVersion.java9),
-                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java8, JvmVersion.java9)
+                        TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java10, JvmVersion.java9),
+                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java9, JvmVendor.ibm)
                         )))
     ) {
 
