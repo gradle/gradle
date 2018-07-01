@@ -42,15 +42,25 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         this.buildOperationIdFactory = buildOperationIdFactory;
     }
 
+    @Override
     public ProgressLogger newOperation(Class loggerCategory) {
         return newOperation(loggerCategory.getName());
     }
 
-    public ProgressLogger newOperation(Class loggerCategory, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
+    @Override
+    public ProgressLogger newOperation(Class loggerCategory, BuildOperationDescriptor buildOperationDescriptor) {
+        String category = loggerCategory.getName();
+        if (buildOperationDescriptor.getOperationType() == BuildOperationCategory.TASK) {
+            // This is a legacy quirk.
+            // Scans use this to determine that progress logging is indicating start/finish of tasks.
+            // This can be removed in Gradle 5.0 (along with the concept of a “logging category” of an operation)
+            category = "class org.gradle.internal.buildevents.TaskExecutionLogger";
+        }
+
         ProgressLoggerImpl logger = new ProgressLoggerImpl(
             null,
             buildOperationDescriptor.getId(),
-            loggerCategory.getName(),
+            category,
             progressListener,
             clock,
             true,
