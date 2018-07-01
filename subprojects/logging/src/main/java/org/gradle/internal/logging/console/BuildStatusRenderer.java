@@ -73,7 +73,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             if (startEvent.isBuildOperationStart()) {
-                if (buildStartTimestamp == 0 && startEvent.getParentBuildOperationId() == null) {
+                if (buildStartTimestamp == 0 && startEvent.getParentProgressOperationId() == null) {
                     // TODO - should use BuildRequestMetaData to determine the build start time
                     buildStartTimestamp = startEvent.getTimestamp();
                     phaseStarted(startEvent, Phase.Initializing);

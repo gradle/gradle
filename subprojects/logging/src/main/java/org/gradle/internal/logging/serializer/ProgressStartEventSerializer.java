@@ -37,8 +37,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short BUILD_OPERATION_ID = 1 << 4;
     private static final short BUILD_OPERATION_ID_IS_PROGRESS_ID = 1 << 5;
     private static final short BUILD_OPERATION_START = 1 << 6;
-    private static final short PARENT_BUILD_OPERATION_ID = 1 << 7;
-    private static final short PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID = 1 << 8;
     private static final short CATEGORY_OFFSET = 9;
     private static final short CATEGORY_MASK = 0x7;
 
@@ -64,14 +62,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
                 flags |= BUILD_OPERATION_ID;
             }
         }
-        OperationIdentifier parentBuildOperationId = event.getParentBuildOperationId();
-        if (parentBuildOperationId != null) {
-            if (parentBuildOperationId.equals(event.getParentProgressOperationId())) {
-                flags |= PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID;
-            } else {
-                flags |= PARENT_BUILD_OPERATION_ID;
-            }
-        }
+
         BuildOperationCategory buildOperationCategory = event.getBuildOperationCategory();
         flags |= (buildOperationCategory.ordinal() & CATEGORY_MASK) << CATEGORY_OFFSET;
 
@@ -98,9 +89,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
 
         if ((flags & BUILD_OPERATION_ID) != 0) {
             encoder.writeSmallLong(buildOperationId.getId());
-        }
-        if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
-            encoder.writeSmallLong(parentBuildOperationId.getId());
         }
     }
 
@@ -138,13 +126,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             buildOperationId = progressOperationId;
         }
 
-        OperationIdentifier parentBuildOperationId = null;
-        if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
-            parentBuildOperationId = new OperationIdentifier(decoder.readSmallLong());
-        } else if ((flags & PARENT_BUILD_OPERATION_ID_IS_PARENT_PROGRESS_ID) != 0) {
-            parentBuildOperationId = parentProgressOperationId;
-        }
-
         BuildOperationCategory buildOperationCategory = BuildOperationCategory.values()[(int)((flags >> CATEGORY_OFFSET) & CATEGORY_MASK)];
 
         return new ProgressStartEvent(
@@ -158,7 +139,6 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             totalProgress,
             buildOperationStart,
             buildOperationId,
-            parentBuildOperationId,
             buildOperationCategory
         );
     }

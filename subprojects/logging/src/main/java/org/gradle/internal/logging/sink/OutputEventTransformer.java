@@ -36,12 +36,8 @@ import java.util.Set;
  * Transforms the stream of output events to discard progress operations that are not interesting to the logging subsystem. This reduces the amount of work that downstream consumers have to do to process the stream. For example, these discarded events don't need to be written to the daemon client.
  */
 public class OutputEventTransformer implements OutputEventListener {
-    // A map from build operation id seen in event -> build operation id that should be forwarded
-    private final Map<OperationIdentifier, OperationIdentifier> effectiveBuildOperation = new HashMap<OperationIdentifier, OperationIdentifier>();
     // A map from progress operation id seen in event -> progress operation id that should be forwarded
     private final Map<OperationIdentifier, OperationIdentifier> effectiveProgressOperation = new HashMap<OperationIdentifier, OperationIdentifier>();
-    // A map from progress operation to build operation
-    private final Map<OperationIdentifier, OperationIdentifier> buildOperationForProgressOperation = new HashMap<OperationIdentifier, OperationIdentifier>();
     // A set of progress operations that have been forwarded
     private final Set<OperationIdentifier> forwarded = new HashSet<OperationIdentifier>();
 
@@ -69,18 +65,9 @@ public class OutputEventTransformer implements OutputEventListener {
                 return;
             }
 
-            buildOperationForProgressOperation.put(startEvent.getProgressOperationId(), startEvent.getBuildOperationId());
-
-            if (startEvent.getParentBuildOperationId() == null || GUtil.isTrue(startEvent.getLoggingHeader()) || GUtil.isTrue(startEvent.getStatus()) || startEvent.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED) {
-                effectiveBuildOperation.put(startEvent.getBuildOperationId(), startEvent.getBuildOperationId());
+            if (startEvent.getParentProgressOperationId() == null || GUtil.isTrue(startEvent.getLoggingHeader()) || GUtil.isTrue(startEvent.getStatus()) || startEvent.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED) {
                 effectiveProgressOperation.put(startEvent.getProgressOperationId(), startEvent.getProgressOperationId());
                 forwarded.add(startEvent.getProgressOperationId());
-
-                OperationIdentifier parentBuildOperationId = startEvent.getParentBuildOperationId();
-                OperationIdentifier mappedParentBuildOperationId = parentBuildOperationId;
-                if (parentBuildOperationId != null) {
-                    mappedParentBuildOperationId = effectiveBuildOperation.get(parentBuildOperationId);
-                }
 
                 OperationIdentifier parentProgressOperationId = startEvent.getParentProgressOperationId();
                 OperationIdentifier mappedParentProgressOperationId = parentProgressOperationId;
@@ -88,18 +75,15 @@ public class OutputEventTransformer implements OutputEventListener {
                     mappedParentProgressOperationId = effectiveProgressOperation.get(parentProgressOperationId);
                 }
 
-                if (!Objects.equal(mappedParentBuildOperationId, parentBuildOperationId) || !Objects.equal(mappedParentProgressOperationId, parentProgressOperationId)) {
-                    startEvent = startEvent.withParent(mappedParentProgressOperationId, mappedParentBuildOperationId);
+                if (!Objects.equal(mappedParentProgressOperationId, parentProgressOperationId)) {
+                    startEvent = startEvent.withParentProgressOperation(mappedParentProgressOperationId);
                 }
                 listener.onOutput(startEvent);
             } else {
-                effectiveBuildOperation.put(startEvent.getBuildOperationId(), effectiveBuildOperation.get(startEvent.getParentBuildOperationId()));
                 effectiveProgressOperation.put(startEvent.getProgressOperationId(), effectiveProgressOperation.get(startEvent.getParentProgressOperationId()));
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-            OperationIdentifier buildOperationId = buildOperationForProgressOperation.remove(completeEvent.getProgressOperationId());
-            effectiveBuildOperation.remove(buildOperationId);
             effectiveProgressOperation.remove(completeEvent.getProgressOperationId());
             if (forwarded.remove(completeEvent.getProgressOperationId())) {
                 listener.onOutput(event);
@@ -113,11 +97,12 @@ public class OutputEventTransformer implements OutputEventListener {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;
             OperationIdentifier operationId = outputEvent.getBuildOperationId();
             if (operationId != null) {
-                OperationIdentifier mappedId = effectiveBuildOperation.get(operationId);
+                OperationIdentifier mappedId = effectiveProgressOperation.get(operationId);
                 // The null check is to take care of log events that are generated in a worker process but have a build operation from the parent process attached to them
                 // TODO - remove the null check, eg by attaching the build operation in the parent process
                 if (mappedId != null && !mappedId.equals(operationId)) {
-                    listener.onOutput(outputEvent.withBuildOperationId(mappedId));
+                    RenderableOutputEvent mapped = outputEvent.withBuildOperationId(mappedId);
+                    listener.onOutput(mapped);
                     return;
                 }
             }
