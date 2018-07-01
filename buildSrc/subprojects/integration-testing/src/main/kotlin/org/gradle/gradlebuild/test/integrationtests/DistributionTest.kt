@@ -44,11 +44,11 @@ open class DistributionTest : Test() {
         "${OperatingSystem.current().name} ${System.getProperty("os.arch")}"
     }
 
-    @Internal
-    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
+    @get:Input
+    val binaryDistributions = BinaryDistributions(project.layout)
 
     @Internal
-    val binaryDistributions = BinaryDistributions(project.layout)
+    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
 
     @Internal
     val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)

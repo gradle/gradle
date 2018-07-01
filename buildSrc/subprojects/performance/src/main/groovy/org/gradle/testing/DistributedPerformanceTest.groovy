@@ -45,12 +45,13 @@ import java.util.zip.ZipInputStream
  * blocks until all the jobs have finished and aggregates their status.
  */
 @CompileStatic
+@CacheableTask
 class DistributedPerformanceTest extends PerformanceTest {
 
-    @Input @Optional
+    @Internal
     String coordinatorBuildId
 
-    @Input @Optional
+    @Internal
     String branchName
 
     @Input
