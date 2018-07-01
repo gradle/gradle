@@ -374,7 +374,7 @@ BUILD SUCCESSFUL in 6s
 > Task :helloWorld
 Hello, World!
 
-> :otherBuild > root project"""
+> :otherBuild > :abc"""
 
         when:
         GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
