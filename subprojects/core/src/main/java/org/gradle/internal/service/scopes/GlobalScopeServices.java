@@ -81,15 +81,16 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
-import org.gradle.internal.progress.BuildProgressFilter;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
@@ -195,12 +196,6 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
         return new DefaultPluginModuleRegistry(moduleRegistry);
-    }
-
-    BuildProgressLogger createBuildProgressLogger(ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
-        BuildProgressLogger buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
-        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
-        return buildProgressLogger;
     }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
@@ -349,6 +344,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     BuildOperationIdFactory createBuildOperationIdProvider() {
         return new DefaultBuildOperationIdFactory();
+    }
+
+    ProgressLoggerFactory createProgressLoggerFactory(OutputEventListener outputEventListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
     ContentHasherFactory createHasherFactory() {

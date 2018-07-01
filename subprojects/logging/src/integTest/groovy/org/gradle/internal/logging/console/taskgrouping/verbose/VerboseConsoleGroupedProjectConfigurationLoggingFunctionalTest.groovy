@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.format;
 
-import org.gradle.internal.logging.events.StyledTextOutputEvent;
+package org.gradle.internal.logging.console.taskgrouping.verbose
 
-import java.util.List;
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.internal.logging.console.taskgrouping.AbstractGroupedProjectConfigureLoggingFunctionalTest
 
-public interface LogHeaderFormatter {
-    /**
-     * Given a message, return possibly-styled output for displaying message meant to categorize
-     * other messages "below" it, if any.
-     */
-    List<StyledTextOutputEvent.Span> format(String description, String status, boolean failed);
+
+class VerboseConsoleGroupedProjectConfigurationLoggingFunctionalTest extends AbstractGroupedProjectConfigureLoggingFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Verbose
 }

@@ -36,18 +36,14 @@ import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildProgressLogger;
-import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -68,17 +64,14 @@ import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    private final BuildProgressLogger buildProgressLogger;
     private final CrossBuildSessionScopeServices crossBuildSessionScopeServices;
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
-        BuildProgressLogger buildProgressLogger,
         CrossBuildSessionScopeServices crossBuildSessionScopeServices
     ) {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
-        this.buildProgressLogger = buildProgressLogger;
         this.crossBuildSessionScopeServices = crossBuildSessionScopeServices;
     }
 
@@ -145,8 +138,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         StartParameter startParameter = buildDefinition.getStartParameter();
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
 
-        LoggerProvider loggerProvider = (parent == null) ? buildProgressLogger : LoggerProvider.NO_OP;
-        listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (parent == null) {
             BuildStartedTime buildStartedTime = serviceRegistry.get(BuildStartedTime.class);
             Clock clock = serviceRegistry.get(Clock.class);

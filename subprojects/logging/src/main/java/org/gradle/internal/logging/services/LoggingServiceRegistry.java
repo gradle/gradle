@@ -24,8 +24,6 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.config.LoggingSystemAdapter;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
@@ -126,10 +124,6 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
             stdoutListener = new TextStreamOutputEventListener(get(OutputEventListenerManager.class).getBroadcaster());
         }
         return stdoutListener;
-    }
-
-    protected ProgressLoggerFactory createProgressLoggerFactory() {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(Clock.class));
     }
 
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {

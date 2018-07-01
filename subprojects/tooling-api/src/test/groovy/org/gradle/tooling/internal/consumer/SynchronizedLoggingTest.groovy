@@ -16,12 +16,14 @@
 
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.internal.operations.BuildOperationIdFactory
+import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CopyOnWriteArraySet
 
 public class SynchronizedLoggingTest extends ConcurrentSpec {
-    def logging = new SynchronizedLogging()
+    def logging = new SynchronizedLogging(Stub(Clock), Stub(BuildOperationIdFactory))
 
     def "initialises on first usage"() {
         expect:

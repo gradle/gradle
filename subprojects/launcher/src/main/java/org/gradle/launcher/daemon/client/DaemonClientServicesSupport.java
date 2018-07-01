@@ -26,6 +26,8 @@ import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.serialize.Serializer;
@@ -102,8 +104,12 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return Time.clock();
     }
 
-    ProgressLoggerFactory createProgressLoggerFactory(Clock clock) {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), clock);
+    BuildOperationIdFactory createBuildOperationIdFactory() {
+        return new DefaultBuildOperationIdFactory();
+    }
+
+    ProgressLoggerFactory createProgressLoggerFactory(Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), clock, buildOperationIdFactory);
     }
 
     DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {

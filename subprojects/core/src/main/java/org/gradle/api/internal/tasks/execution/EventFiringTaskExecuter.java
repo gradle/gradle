@@ -65,6 +65,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                 ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(task);
                 return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
                     .name(task.getIdentityPath().toString())
+                    .progressDisplayName(task.getIdentityPath().toString())
                     .operationType(BuildOperationCategory.TASK)
                     .details(taskOperation);
             }

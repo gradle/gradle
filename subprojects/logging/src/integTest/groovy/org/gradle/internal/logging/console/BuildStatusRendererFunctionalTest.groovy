@@ -17,56 +17,141 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class BuildStatusRendererFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     @Rule
-    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    BlockingHttpServer server = new BlockingHttpServer()
 
     GradleHandle gradle
 
     def setup() {
         executer.withConsole(ConsoleOutput.Rich)
-        settingsFile << """
-            // wait for the initialization phase
-            new URL('${server.uri}').text
-        """
-        buildFile << """
-            // wait for the configuration phase 
-            new URL('${server.uri}').text
-            task hello { 
-                doFirst {
-                    // wait for the execution phase
-                    println 'hello world' 
-                    new URL('${server.uri}').text
-                } 
-            }
-        """
+        server.start()
     }
 
     def "shows progress bar and percent phase completion"() {
+        settingsFile << """
+            ${server.callFromBuild('settings')}
+            include "a", "b", "c", "d"
+        """
+        buildFile << """
+            ${server.callFromBuild('root-build-script')}
+            task hello { 
+                doFirst {
+                    println 'hello world' 
+                    ${server.callFromBuild('task1')}
+                } 
+            }
+            task hello2 { 
+                dependsOn hello
+                doFirst {
+                    ${server.callFromBuild('task2')}
+                } 
+            }
+        """
+        file("b/build.gradle") << """
+            ${server.callFromBuild('b-build-script')}
+        """
+
         given:
-        gradle = executer.withTasks("hello").start()
+        def settings = server.expectAndBlock('settings')
+        def rootBuildScript = server.expectAndBlock('root-build-script')
+        def bBuildScript = server.expectAndBlock('b-build-script')
+        def task1 = server.expectAndBlock('task1')
+        def task2 = server.expectAndBlock('task2')
+        gradle = executer.withTasks("hello2").start()
 
         expect:
-        server.waitFor()
-        assertHasBuildPhase("INITIALIZING")
-        server.release()
+        settings.waitForAllPendingCalls()
+        assertHasBuildPhase("0% INITIALIZING")
+        settings.releaseAll()
 
         and:
-        server.waitFor()
-        assertHasBuildPhase("CONFIGURING")
-        server.release()
+        rootBuildScript.waitForAllPendingCalls()
+        assertHasBuildPhase("0% CONFIGURING")
+        rootBuildScript.releaseAll()
 
         and:
-        server.waitFor()
-        assertHasBuildPhase("EXECUTING")
-        server.release()
+        bBuildScript.waitForAllPendingCalls()
+        assertHasBuildPhase("40% CONFIGURING")
+        bBuildScript.releaseAll()
+
+        and:
+        task1.waitForAllPendingCalls()
+        assertHasBuildPhase("0% EXECUTING")
+        task1.releaseAll()
+
+        and:
+        task2.waitForAllPendingCalls()
+        assertHasBuildPhase("50% EXECUTING")
+        task2.releaseAll()
+
+        cleanup:
+        gradle?.waitForFinish()
+    }
+
+    def "shows progress bar and percent phase completion with included build"() {
+        settingsFile << """
+            ${server.callFromBuild('settings')}
+            includeBuild "child"
+        """
+        buildFile << """
+            ${server.callFromBuild('root-build-script')}
+            task hello2 { 
+                dependsOn gradle.includedBuild("child").task(":hello")
+                doFirst {
+                    ${server.callFromBuild('task2')}
+                } 
+            }
+        """
+        file("child/build.gradle") << """
+            ${server.callFromBuild('child-build-script')}
+            task hello { 
+                doFirst {
+                    println 'hello world' 
+                    ${server.callFromBuild('task1')}
+                } 
+            }
+        """
+
+        given:
+        def settings = server.expectAndBlock('settings')
+        def childBuildScript = server.expectAndBlock('child-build-script')
+        def rootBuildScript = server.expectAndBlock('root-build-script')
+        def task1 = server.expectAndBlock('task1')
+        def task2 = server.expectAndBlock('task2')
+        gradle = executer.withTasks("hello2").start()
+
+        expect:
+        settings.waitForAllPendingCalls()
+        assertHasBuildPhase("0% INITIALIZING")
+        settings.releaseAll()
+
+        and:
+        childBuildScript.waitForAllPendingCalls()
+        assertHasBuildPhase("0% CONFIGURING")
+        childBuildScript.releaseAll()
+
+        and:
+        rootBuildScript.waitForAllPendingCalls()
+        assertHasBuildPhase("50% CONFIGURING")
+        rootBuildScript.releaseAll()
+
+        and:
+        task1.waitForAllPendingCalls()
+        assertHasBuildPhase("0% EXECUTING")
+        task1.releaseAll()
+
+        and:
+        task2.waitForAllPendingCalls()
+        assertHasBuildPhase("50% EXECUTING")
+        task2.releaseAll()
 
         cleanup:
         gradle?.waitForFinish()
@@ -79,6 +164,6 @@ class BuildStatusRendererFunctionalTest extends AbstractIntegrationSpec implemen
     }
 
     private String regexFor(String message) {
-        /<.*> \d{1,3}% $message \[\d+s]/
+        /<.*> $message \[\d+s]/
     }
 }

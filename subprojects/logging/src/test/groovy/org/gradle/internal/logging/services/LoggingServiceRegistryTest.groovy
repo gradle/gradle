@@ -24,8 +24,6 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.LoggingCommandLineConverter
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil
@@ -57,15 +55,6 @@ class LoggingServiceRegistryTest extends Specification {
         expect:
         def factory = registry.get(StyledTextOutputFactory.class)
         factory instanceof DefaultStyledTextOutputFactory
-    }
-
-    def providesAProgressLoggerFactory() {
-        given:
-        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-
-        expect:
-        def factory = registry.get(ProgressLoggerFactory.class)
-        factory instanceof DefaultProgressLoggerFactory
     }
 
     def providesACommandLineConverter() {
