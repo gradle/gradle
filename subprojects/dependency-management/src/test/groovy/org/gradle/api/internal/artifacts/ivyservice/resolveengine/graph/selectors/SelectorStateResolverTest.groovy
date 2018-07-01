@@ -19,12 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version
@@ -43,6 +44,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
+import org.gradle.util.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -133,9 +135,10 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_FOUR_DEPENDENCIES
     }
 
-    def 'short circuits for identical versions'() {
-        def nine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
-        def otherNine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+    def 'short circuits for matching project selectors'() {
+        def projectId = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
+        def nine = new TestProjectSelectorState(projectId)
+        def otherNine = new TestProjectSelectorState(projectId)
         ModuleConflictResolver mockResolver = Mock()
         SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root)
 
@@ -143,16 +146,17 @@ class SelectorStateResolverTest extends Specification {
         def selected = resolverWithMock.selectBest(moduleId, [nine, otherNine])
 
         then:
-        selected.version == '9'
+        selected.componentId == projectId
+        selected.version == TestProjectSelectorState.VERSION
         0 * mockResolver._
     }
 
     def "performs partial resolve when some selectors fail"() {
-        def missingLow = new TestSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
-        def nine = new TestSelectorState(componentIdResolver, FIXED_9.versionConstraint)
-        def ten = new TestSelectorState(componentIdResolver, FIXED_10.versionConstraint)
-        def range = new TestSelectorState(componentIdResolver, RANGE_10_11.versionConstraint)
-        def missingHigh = new TestSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
+        def missingLow = new TestModuleSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
+        def nine = new TestModuleSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+        def ten = new TestModuleSelectorState(componentIdResolver, FIXED_10.versionConstraint)
+        def range = new TestModuleSelectorState(componentIdResolver, RANGE_10_11.versionConstraint)
+        def missingHigh = new TestModuleSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
 
         when:
         def selected = selectorStateResolver.selectBest(moduleId, [missingLow, nine, ten, range, missingHigh])
@@ -165,9 +169,9 @@ class SelectorStateResolverTest extends Specification {
     }
 
     def "rethrows failure when all selectors fail to resolve"() {
-        def missingLow = new TestSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
-        def missingHigh = new TestSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
-        def valid = new TestSelectorState(componentIdResolver, FIXED_10.versionConstraint)
+        def missingLow = new TestModuleSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
+        def missingHigh = new TestModuleSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
+        def valid = new TestModuleSelectorState(componentIdResolver, FIXED_10.versionConstraint)
 
         when:
         selectorStateResolver.selectBest(moduleId, [missingLow])
@@ -189,8 +193,8 @@ class SelectorStateResolverTest extends Specification {
     }
 
     String resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
-        List<TestSelectorState> selectors = versions.collect { version ->
-            new TestSelectorState(componentIdResolver, version.versionConstraint)
+        List<TestModuleSelectorState> selectors = versions.collect { version ->
+            new TestModuleSelectorState(componentIdResolver, version.versionConstraint)
         }
         def currentSelection = selectorStateResolver.selectBest(moduleId, selectors)
         if (currentSelection.isRejected()) {
@@ -205,7 +209,7 @@ class SelectorStateResolverTest extends Specification {
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
         ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentResolveMetadata metadata) {
-            return new TestComponentResolutionState(id)
+            return new TestComponentResolutionState(componentIdentifier, id)
         }
     }
 
@@ -318,19 +322,6 @@ class SelectorStateResolverTest extends Specification {
         @Override
         AttributeContainer getAttributes() {
             return ImmutableAttributes.EMPTY
-        }
-    }
-
-
-    static class NoConstraintSelectorState extends TestSelectorState {
-
-        NoConstraintSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
-            super(resolver, versionConstraint)
-        }
-
-        @Override
-        ResolvedVersionConstraint getVersionConstraint() {
-            return null
         }
     }
 
