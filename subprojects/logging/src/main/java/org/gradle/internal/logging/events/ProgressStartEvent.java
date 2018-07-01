@@ -26,16 +26,17 @@ import javax.annotation.Nullable;
 
 @UsedByScanPlugin
 public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
+    public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
+    public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";
+
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;
     private final String description;
-    private final String loggingHeader;
+    private final @Nullable String loggingHeader;
     private final String status;
     private final int totalProgress;
-
     private final boolean buildOperationStart;
-
-    private final OperationIdentifier buildOperationId;
+    private final @Nullable OperationIdentifier buildOperationId;
     private final BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(
