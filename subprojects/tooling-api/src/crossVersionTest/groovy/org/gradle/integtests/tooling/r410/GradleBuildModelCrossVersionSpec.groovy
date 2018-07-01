@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r49
+package org.gradle.integtests.tooling.r410
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -24,7 +24,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=3.3")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion(">=4.9")
+    @TargetGradleVersion(">=4.10")
     def "nested included builds are present only in the model of the containing build"() {
         given:
         def rootDir = singleProjectBuildInRootFolder("root") {
