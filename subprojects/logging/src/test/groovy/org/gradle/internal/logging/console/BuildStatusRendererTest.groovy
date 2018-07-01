@@ -236,7 +236,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def startRootBuildOperation(Long id) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), BuildOperationCategory.UNCATEGORIZED)
     }
 
     def startConfigureRootBuild(Long id, Long parentId, int totalProgress) {
@@ -264,7 +264,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def start(Long id, Long parentId, BuildOperationCategory category, int totalProgress = 0) {
-        new ProgressStartEvent(new OperationIdentifier(id), new OperationIdentifier(parentId), currentTimeMs, "category", "description", null, null, totalProgress, true, new OperationIdentifier(id), new OperationIdentifier(parentId), category)
+        new ProgressStartEvent(new OperationIdentifier(id), new OperationIdentifier(parentId), currentTimeMs, "category", "description", null, null, totalProgress, true, new OperationIdentifier(id), category)
     }
 
     private ConsoleStub.TestableRedrawableLabel getStatusBar() {

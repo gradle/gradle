@@ -35,7 +35,7 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize ProgressStartEvent messages"(BuildOperationCategory category) {
         given:
-        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "header", "status", 10, true, new OperationIdentifier(42L), new OperationIdentifier(43L), category)
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "header", "status", 10, true, new OperationIdentifier(42L), category)
 
         when:
         def result = serialize(event, serializer)
@@ -52,7 +52,6 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.totalProgress == 10
         result.buildOperationStart
         result.buildOperationId == new OperationIdentifier(42L)
-        result.parentBuildOperationId == new OperationIdentifier(43L)
         result.buildOperationCategory == category
 
         where:
@@ -61,7 +60,7 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize ProgressStartEvent messages with empty fields"() {
         given:
-        def event = new ProgressStartEvent(OPERATION_ID, null, TIMESTAMP, CATEGORY, DESCRIPTION, loggingHeader, "", 0, false, null, null, BuildOperationCategory.UNCATEGORIZED)
+        def event = new ProgressStartEvent(OPERATION_ID, null, TIMESTAMP, CATEGORY, DESCRIPTION, loggingHeader, "", 0, false, null, BuildOperationCategory.UNCATEGORIZED)
 
         when:
         def result = serialize(event, serializer)
@@ -78,7 +77,6 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.totalProgress == 0
         !result.buildOperationStart
         result.buildOperationId == null
-        result.parentBuildOperationId == null
         result.buildOperationCategory == BuildOperationCategory.UNCATEGORIZED
 
         where:
@@ -87,7 +85,7 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize ProgressStartEvent messages where build and progress ids are the same"() {
         given:
-        def event = new ProgressStartEvent(progressId, parentProgressId, TIMESTAMP, CATEGORY, DESCRIPTION, DESCRIPTION, "", 0, false, buildOperationId, parentBuildOperationId, BuildOperationCategory.UNCATEGORIZED)
+        def event = new ProgressStartEvent(progressId, parentProgressId, TIMESTAMP, CATEGORY, DESCRIPTION, DESCRIPTION, "", 0, false, buildOperationId, BuildOperationCategory.UNCATEGORIZED)
 
         when:
         def result = serialize(event, serializer)
@@ -97,20 +95,18 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.progressOperationId == progressId
         result.parentProgressOperationId == parentProgressId
         result.buildOperationId == buildOperationId
-        result.parentBuildOperationId == parentBuildOperationId
 
         where:
-        progressId                 | parentProgressId           | buildOperationId           | parentBuildOperationId
-        new OperationIdentifier(1) | null                       | new OperationIdentifier(1) | null
-        new OperationIdentifier(1) | null                       | new OperationIdentifier(2) | null
-        new OperationIdentifier(1) | new OperationIdentifier(2) | new OperationIdentifier(1) | new OperationIdentifier(2)
-        new OperationIdentifier(1) | new OperationIdentifier(2) | new OperationIdentifier(1) | null
-        new OperationIdentifier(1) | new OperationIdentifier(3) | new OperationIdentifier(1) | new OperationIdentifier(4)
+        progressId                 | parentProgressId           | buildOperationId
+        new OperationIdentifier(1) | null                       | new OperationIdentifier(1)
+        new OperationIdentifier(1) | null                       | new OperationIdentifier(2)
+        new OperationIdentifier(1) | new OperationIdentifier(2) | new OperationIdentifier(1)
+        new OperationIdentifier(1) | new OperationIdentifier(3) | new OperationIdentifier(1)
     }
 
     def "can serialize build operation ids with large long values"() {
         given:
-        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, "", 0, true, new OperationIdentifier(42_000_000_000_000L), null, BuildOperationCategory.UNCATEGORIZED)
+        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, "", 0, true, new OperationIdentifier(42_000_000_000_000L), BuildOperationCategory.UNCATEGORIZED)
 
         when:
         def result = serialize(event, serializer)

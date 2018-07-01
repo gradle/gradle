@@ -36,7 +36,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     private final boolean buildOperationStart;
 
     private final OperationIdentifier buildOperationId;
-    private final OperationIdentifier parentBuildOperationId;
     private final BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(
@@ -50,7 +49,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         int totalProgress,
         boolean buildOperationStart,
         @Nullable OperationIdentifier buildOperationId,
-        @Nullable OperationIdentifier parentBuildOperationId,
         @Nullable BuildOperationCategory buildOperationCategory
     ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
@@ -62,7 +60,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         this.totalProgress = totalProgress;
         this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
-        this.parentBuildOperationId = parentBuildOperationId;
         this.buildOperationCategory = buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
     }
 
@@ -90,7 +87,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     @Override
     public String toString() {
-        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:" + buildOperationId + " parent b:" + parentBuildOperationId + ") " + description;
+        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:" + buildOperationId + ") " + description;
     }
 
     public OperationIdentifier getProgressOperationId() {
@@ -105,14 +102,12 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return buildOperationStart;
     }
 
+    /**
+     * When this event is a build operation start event, this property will be non-null and will have the same value as {@link #getProgressOperationId()}.
+     */
     @Nullable
     public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
-    }
-
-    @Nullable
-    public OperationIdentifier getParentBuildOperationId() {
-        return parentBuildOperationId;
     }
 
     public BuildOperationCategory getBuildOperationCategory() {
@@ -120,10 +115,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
-    }
-
-    public ProgressStartEvent withParent(OperationIdentifier parentProgressOperationId, OperationIdentifier parentBuildOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
     }
 }

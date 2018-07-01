@@ -228,7 +228,6 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 totalProgress,
                 buildOperationStart,
                 buildOperationId,
-                parentBuildOperationId,
                 buildOperationCategory
             ));
         }
