@@ -6,16 +6,15 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Use SNAPSHOT plugin versions with the `plugins {}` block
+
+Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
+
 ### Nested included builds
 
 TBD - Composite builds can be included by other builds. Some combinations are not supported yet:
 - `buildSrc` cannot include other builds.
 - No duplicate root project names.
-
-### Use SNAPSHOT plugin versions with the `plugins {}` block
-
-Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
-
 
 ## Promoted features
 
