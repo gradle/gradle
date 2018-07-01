@@ -101,7 +101,47 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         new OperationIdentifier(1) | null                       | new OperationIdentifier(1)
         new OperationIdentifier(1) | null                       | new OperationIdentifier(2)
         new OperationIdentifier(1) | new OperationIdentifier(2) | new OperationIdentifier(1)
-        new OperationIdentifier(1) | new OperationIdentifier(3) | new OperationIdentifier(1)
+        new OperationIdentifier(1) | new OperationIdentifier(3) | new OperationIdentifier(2)
+    }
+
+    def "can serialize ProgressStartEvent messages where description ends with status or logging header"() {
+        given:
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, description, loggingHeader, status, 10, true, new OperationIdentifier(42L), BuildOperationCategory.UNCATEGORIZED)
+
+        when:
+        def result = serialize(event, serializer)
+
+        then:
+        result instanceof ProgressStartEvent
+        result.description == description
+        result.loggingHeader == loggingHeader
+        result.status == status
+
+        where:
+        description       | status                | loggingHeader
+        "the description" | "the description"     | "the description"
+        "the description" | "description"         | "description"
+        "the description" | "different"           | "different"
+        "the description" | "not the description" | "not the description"
+        "the description" | "description plus"    | "description plus"
+        "the description" | "the"                 | "the"
+        "the description" | ""                    | ""
+        "the description" | ""                    | null
+    }
+
+    def "can serialize ProgressStartEvent with common categories"() {
+        given:
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, category, DESCRIPTION, "header", "status", 10, true, new OperationIdentifier(42L), BuildOperationCategory.UNCATEGORIZED)
+
+        when:
+        def result = serialize(event, serializer)
+
+        then:
+        result instanceof ProgressStartEvent
+        result.category == category
+
+        where:
+        category << [ProgressStartEvent.BUILD_OP_CATEGORY, ProgressStartEvent.TASK_CATEGORY]
     }
 
     def "can serialize build operation ids with large long values"() {
