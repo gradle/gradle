@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import com.google.common.base.Objects;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -52,12 +51,11 @@ public class OutputEventTransformer implements OutputEventListener {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             if (!startEvent.isBuildOperationStart()) {
-                effectiveProgressOperation.put(startEvent.getProgressOperationId(), startEvent.getProgressOperationId());
                 forwarded.add(startEvent.getProgressOperationId());
                 OperationIdentifier parentProgressOperationId = startEvent.getParentProgressOperationId();
                 if (parentProgressOperationId != null) {
                     OperationIdentifier mappedId = effectiveProgressOperation.get(parentProgressOperationId);
-                    if (!parentProgressOperationId.equals(mappedId)) {
+                    if (mappedId != null) {
                         startEvent = startEvent.withParentProgressOperation(mappedId);
                     }
                 }
@@ -66,21 +64,22 @@ public class OutputEventTransformer implements OutputEventListener {
             }
 
             if (startEvent.getParentProgressOperationId() == null || GUtil.isTrue(startEvent.getLoggingHeader()) || GUtil.isTrue(startEvent.getStatus()) || startEvent.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED) {
-                effectiveProgressOperation.put(startEvent.getProgressOperationId(), startEvent.getProgressOperationId());
                 forwarded.add(startEvent.getProgressOperationId());
-
                 OperationIdentifier parentProgressOperationId = startEvent.getParentProgressOperationId();
-                OperationIdentifier mappedParentProgressOperationId = parentProgressOperationId;
                 if (parentProgressOperationId != null) {
-                    mappedParentProgressOperationId = effectiveProgressOperation.get(parentProgressOperationId);
-                }
-
-                if (!Objects.equal(mappedParentProgressOperationId, parentProgressOperationId)) {
-                    startEvent = startEvent.withParentProgressOperation(mappedParentProgressOperationId);
+                    OperationIdentifier mappedId = effectiveProgressOperation.get(parentProgressOperationId);
+                    if (mappedId != null) {
+                        startEvent = startEvent.withParentProgressOperation(mappedId);
+                    }
                 }
                 listener.onOutput(startEvent);
             } else {
-                effectiveProgressOperation.put(startEvent.getProgressOperationId(), effectiveProgressOperation.get(startEvent.getParentProgressOperationId()));
+                // Ignore this progress operation, and map any reference to it to its parent (or whatever its parent is mapped to
+                OperationIdentifier mappedParent = effectiveProgressOperation.get(startEvent.getParentProgressOperationId());
+                if (mappedParent == null) {
+                    mappedParent = startEvent.getParentProgressOperationId();
+                }
+                effectiveProgressOperation.put(startEvent.getProgressOperationId(), mappedParent);
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
@@ -98,15 +97,11 @@ public class OutputEventTransformer implements OutputEventListener {
             OperationIdentifier operationId = outputEvent.getBuildOperationId();
             if (operationId != null) {
                 OperationIdentifier mappedId = effectiveProgressOperation.get(operationId);
-                // The null check is to take care of log events that are generated in a worker process but have a build operation from the parent process attached to them
-                // TODO - remove the null check, eg by attaching the build operation in the parent process
-                if (mappedId != null && !mappedId.equals(operationId)) {
-                    RenderableOutputEvent mapped = outputEvent.withBuildOperationId(mappedId);
-                    listener.onOutput(mapped);
-                    return;
+                if (mappedId != null) {
+                    outputEvent = outputEvent.withBuildOperationId(mappedId);
                 }
             }
-            listener.onOutput(event);
+            listener.onOutput(outputEvent);
         } else {
             listener.onOutput(event);
         }
