@@ -94,6 +94,12 @@ class DistributedPerformanceTest extends PerformanceTest {
         this.cancellationToken = cancellationToken
     }
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    File getBinaryDistributionDir() {
+        new File(binaryDistributions.distsDir.asFile.get().absolutePath)
+    }
+
     @Override
     void addTestListener(TestListener listener) {
         testEventsGenerator.addTestListener(listener)

@@ -44,7 +44,7 @@ open class DistributionTest : Test() {
         "${OperatingSystem.current().name} ${System.getProperty("os.arch")}"
     }
 
-    @get:Input
+    @Internal
     val binaryDistributions = BinaryDistributions(project.layout)
 
     @Internal
