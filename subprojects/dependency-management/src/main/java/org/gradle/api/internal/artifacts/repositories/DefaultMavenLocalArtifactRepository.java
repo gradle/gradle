@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
@@ -61,8 +62,9 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                FileResourceRepository fileResourceRepository,
                                                FeaturePreviews featurePreviews,
                                                MavenMutableModuleMetadataFactory metadataFactory,
-                                               IsolatableFactory isolatableFactory) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory);
+                                               IsolatableFactory isolatableFactory,
+                                               ObjectFactory objectFactory) {
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 

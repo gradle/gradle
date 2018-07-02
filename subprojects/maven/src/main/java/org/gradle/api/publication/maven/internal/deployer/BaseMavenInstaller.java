@@ -27,7 +27,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 public class BaseMavenInstaller extends AbstractMavenResolver {
     public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager,
                               MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
+        super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator, null);
     }
 
     protected MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator) {

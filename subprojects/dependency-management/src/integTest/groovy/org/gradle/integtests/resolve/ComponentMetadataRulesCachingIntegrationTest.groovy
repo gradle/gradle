@@ -219,24 +219,7 @@ class AttributeCachedRule implements ComponentMetadataRule {
     }
 }
 
-class Thing implements Named, Serializable { 
-    String name
-    
-    int hashCode() {
-        return name.hashCode()
-    }
-    
-    boolean equals(Object other) {
-        if (other instanceof Thing) {
-            return ((Thing)other).name.equals(name)
-        }
-        return false;
-    }
-    
-    String toString() {
-        return 'Thing[' + name + ']'
-    }
-}
+interface Thing extends Named { }
 
 def thing = Attribute.of(Thing)
 
@@ -281,10 +264,12 @@ import javax.inject.Inject
 @CacheableRule
 class AttributeCachedRule implements ComponentMetadataRule {
 
+    ObjectFactory objects
     Attribute targetAttribute
 
     @Inject
-    AttributeCachedRule(Attribute attribute) {
+    AttributeCachedRule(ObjectFactory objects, Attribute attribute) {
+        this.objects = objects
         this.targetAttribute = attribute
     }
     
@@ -292,47 +277,30 @@ class AttributeCachedRule implements ComponentMetadataRule {
         println 'Attribute rule executed'
         context.details.withVariant('api') {
             attributes {
-                attribute(targetAttribute, new Thing(name: 'Foo'))
+                attribute(targetAttribute, objects.named(Thing, 'Foo'))
             }
         }
         context.details.withVariant('runtime') {
             attributes {
-                attribute(targetAttribute, new Thing(name: 'Bar'))
+                attribute(targetAttribute, objects.named(Thing, 'Bar'))
             }
         }
         context.details.withVariant('foo') {
             attributes {
-                attribute(targetAttribute, new Thing(name: 'Bar'))
+                attribute(targetAttribute, objects.named(Thing, 'Bar'))
             }
         }
     }
 }
 
-class Thing implements Named, Serializable { 
-    String name
-    
-    int hashCode() {
-        return name.hashCode()
-    }
-    
-    boolean equals(Object other) {
-        if (other instanceof Thing) {
-            return ((Thing)other).name.equals(name)
-        }
-        return false;
-    }
-    
-    String toString() {
-        return 'Thing[' + name + ']'
-    }
-}
+interface Thing extends Named { }
 
 def thing = Attribute.of(Thing)
 
 configurations {
     conf {
         attributes {
-            attribute thing, new Thing(name: 'Bar')
+            attribute thing, objects.named(Thing, 'Bar')
         }
     }
 }
@@ -358,7 +326,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Thing[Bar]'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Bar'])
                 }
             }
         }
@@ -370,7 +338,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Thing[Bar]'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Bar'])
                 }
             }
         }

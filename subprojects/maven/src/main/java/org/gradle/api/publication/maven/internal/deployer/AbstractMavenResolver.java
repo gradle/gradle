@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
@@ -69,7 +70,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
                                  LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider,
-                                 LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                                 LocalMavenRepositoryLocator mavenRepositoryLocator, ObjectFactory objectFactory) {
+        super(objectFactory);
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;

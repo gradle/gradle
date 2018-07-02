@@ -15,22 +15,18 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
 /**
  * A lossy attribute container serializer. It's lossy because it doesn't preserve the attribute
@@ -39,13 +35,15 @@ import java.io.Serializable;
  */
 public class FullAttributeContainerSerializer implements AttributeContainerSerializer {
     private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator namedObjectInstantiator;
 
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
     private static final byte SERIALIZED_ATTRIBUTE = 3;
 
-    public FullAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory) {
+    public FullAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
         this.attributesFactory = attributesFactory;
+        this.namedObjectInstantiator = namedObjectInstantiator;
     }
 
     @Override
@@ -61,19 +59,8 @@ public class FullAttributeContainerSerializer implements AttributeContainerSeria
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), value);
             } else if (type == SERIALIZED_ATTRIBUTE) {
-                Object value;
-                byte[] valueBytes = new byte[decoder.readInt()];
-                decoder.readBytes(valueBytes);
-                ByteArrayInputStream inputStream;
-                try {
-                    inputStream = new ByteArrayInputStream(valueBytes);
-                    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                    value = objectInputStream.readObject();
-                } catch (ClassNotFoundException e) {
-                    throw new GradleException("Unable to load attribute value", e);
-                }
-                // Ugly cast to make compiler happy - ideally it would notice that value and value.getClass() _must_ satisfy the contract
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, (Class<Object>) value.getClass()), value);
+                String value = decoder.readString();
+                attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, namedObjectInstantiator));
             }
         }
         return attributes;
@@ -91,21 +78,10 @@ public class FullAttributeContainerSerializer implements AttributeContainerSeria
                 encoder.writeByte(STRING_ATTRIBUTE);
                 encoder.writeString((String) container.getAttribute(attribute));
             } else {
-                assert Serializable.class.isAssignableFrom(attribute.getType());
-                Object attributeValue = container.getAttribute(attribute);
+                assert Named.class.isAssignableFrom(attribute.getType());
+                Named attributeValue = (Named) container.getAttribute(attribute);
                 encoder.writeByte(SERIALIZED_ATTRIBUTE);
-                ByteArrayOutputStream outputStream;
-                try {
-                    outputStream = new ByteArrayOutputStream();
-                    ObjectOutputStream objectStr = new ObjectOutputStream(outputStream);
-                    objectStr.writeObject(attributeValue);
-                    objectStr.flush();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-                byte[] bytes = outputStream.toByteArray();
-                encoder.writeInt(bytes.length);
-                encoder.writeBytes(bytes);
+                encoder.writeString(attributeValue.getName());
             }
         }
     }

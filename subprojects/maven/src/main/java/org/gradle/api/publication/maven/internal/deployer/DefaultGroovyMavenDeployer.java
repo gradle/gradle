@@ -32,7 +32,7 @@ import java.util.Map;
 public class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMavenDeployer, PomFilterContainer {
 
     public DefaultGroovyMavenDeployer(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
+        super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator, null);
     }
 
     public RemoteRepository repository(Map properties) {

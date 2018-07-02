@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -70,7 +71,9 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
                                             FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                             IvyMutableModuleMetadataFactory metadataFactory,
-                                            InstantiatorFactory instantiatorFactory) {
+                                            InstantiatorFactory instantiatorFactory,
+                                            ObjectFactory objectFactory) {
+        super(objectFactory);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
