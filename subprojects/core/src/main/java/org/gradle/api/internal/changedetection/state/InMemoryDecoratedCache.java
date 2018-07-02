@@ -57,13 +57,19 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         validateKeyType(key);
         Object value;
         try {
-            value = inMemoryCache.get(key, new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    Object out = delegate.get(key);
-                    return out == null ? NULL : out;
-                }
-            });
+            value = delegate.get(key);
+            if (value == null) {
+                value = NULL;
+            }
+            if (false ) {
+                value = inMemoryCache.get(key, new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        Object out = delegate.get(key);
+                        return out == null ? NULL : out;
+                    }
+                });
+            }
         } catch (UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (ExecutionException e) {

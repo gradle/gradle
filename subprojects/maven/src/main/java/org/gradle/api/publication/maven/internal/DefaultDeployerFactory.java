@@ -39,7 +39,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public DefaultDeployerFactory(MavenFactory mavenFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, MavenPomMetaInfoProvider pomMetaInfoProvider,
-                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping, 
+                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping,
                                   MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.mavenFactory = mavenFactory;
         this.loggingManagerFactory = loggingManagerFactory;
@@ -56,7 +56,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new DefaultGroovyMavenDeployer(pomFilterContainer, createArtifactPomContainer(
                 pomMetaInfoProvider, pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create(),
-                mavenSettingsProvider, mavenRepositoryLocator);
+                mavenSettingsProvider, mavenRepositoryLocator, null);
     }
 
     public MavenResolver createMavenInstaller() {
@@ -64,7 +64,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new BaseMavenInstaller(pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,
                 pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create(),
-                mavenSettingsProvider, mavenRepositoryLocator);
+                mavenSettingsProvider, mavenRepositoryLocator, null);
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

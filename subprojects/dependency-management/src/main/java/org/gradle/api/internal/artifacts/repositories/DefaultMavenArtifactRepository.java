@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -100,10 +101,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileResourceRepository fileResourceRepository,
                                           FeaturePreviews featurePreviews,
                                           MavenMutableModuleMetadataFactory metadataFactory,
-                                          IsolatableFactory isolatableFactory) {
+                                          IsolatableFactory isolatableFactory,
+                                          ObjectFactory objectFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
-            resourcesFileStore, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory);
+            resourcesFileStore, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory, objectFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -119,8 +121,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileResourceRepository fileResourceRepository,
                                           FeaturePreviews featurePreviews,
                                           MavenMutableModuleMetadataFactory metadataFactory,
-                                          IsolatableFactory isolatableFactory) {
-        super(instantiatorFactory.decorate(), authenticationContainer);
+                                          IsolatableFactory isolatableFactory,
+                                          ObjectFactory objectFactory) {
+        super(instantiatorFactory.decorate(), authenticationContainer, objectFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -201,7 +204,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         RepositoryTransport transport = getTransport(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore, getObjectFactory());
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector);
