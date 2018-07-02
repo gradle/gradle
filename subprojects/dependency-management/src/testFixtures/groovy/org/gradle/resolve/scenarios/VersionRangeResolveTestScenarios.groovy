@@ -75,7 +75,7 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [FIXED_12, RANGE_7_8],  // No version satisfies the range [7,8]
         expectedNoStrict: FAILED,
-        expectedStrict: [FAILED, REJECTED]
+        expectedStrict: [FAILED, FAILED]
     ).and(
         versions: [FIXED_12, RANGE_14_16], // No version satisfies the range [14,16]
         expectedNoStrict: FAILED,
