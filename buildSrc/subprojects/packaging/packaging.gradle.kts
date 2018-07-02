@@ -16,9 +16,9 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.1.0")
 }
 
-val test: Test by tasks
-
-test.useJUnitPlatform()
+tasks.withType(Test::class.java).named("test").configure {
+    useJUnitPlatform()
+}
 
 gradlePlugin {
     (plugins) {

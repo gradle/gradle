@@ -368,8 +368,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         // TODO: Make this lazy, see https://github.com/gradle/gradle-native/issues/718
         tasks.getByName("clean${name.capitalize()}") {
             delete(performanceTest)
-            dependsOn("clean${testResultsZipTask.get().name.capitalize()}")
-            dependsOn("clean${performanceReportTask.get().name.capitalize()}")
+            dependsOn(testResultsZipTask.map { "clean${it.name.capitalize()}" }) // Avoid realizing because of issue
+            dependsOn(performanceReportTask.map { "clean${it.name.capitalize()}" }) // Avoid realizing because of issue
         }
 
         return performanceTest

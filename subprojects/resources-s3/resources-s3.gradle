@@ -29,7 +29,7 @@ gradlebuildJava {
     moduleType = ModuleType.PLUGIN
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     def javaVersion = rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion
     if (javaVersion.java9Compatible) {
         jvmArgs '--add-modules', 'java.xml.bind'

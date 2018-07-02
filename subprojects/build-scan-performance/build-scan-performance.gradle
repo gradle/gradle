@@ -21,7 +21,7 @@ plugins {
 
 apply from: 'templates.gradle'
 
-performanceReport {
+tasks.named("performanceReport").configure {
     resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
 }
 
@@ -36,8 +36,8 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-tasks.withType(org.gradle.testing.PerformanceTest) {
+tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
 
-performanceAdhocTest.enabled = false
+tasks.named("performanceAdhocTest").configure { enabled = false }

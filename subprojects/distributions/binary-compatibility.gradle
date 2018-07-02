@@ -97,7 +97,7 @@ projects.each { projectName ->
     }
 }
 
-task checkBinaryCompatibility(type: JapicmpTask) {
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
@@ -133,9 +133,9 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
     }
 }
-check.dependsOn(checkBinaryCompatibility)
+tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
-task cleanAcceptedApiChanges(type: CleanAcceptedApiChanges) {
+tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
     description = 'Cleans up all existing accepted API changes.'
     jsonFile = apiChangesJsonFile
 }

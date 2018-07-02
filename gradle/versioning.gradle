@@ -40,7 +40,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     ext.buildTimestamp = timestampFormat.format(buildTime)
 }
 
-task determineCommitId {
+def determineCommitId = tasks.register("determineCommitId") {
     ext.commitId = null
 
     doLast {
@@ -110,18 +110,18 @@ task determineCommitId {
     }
 }
 
-task configureBuildReceipt {
+def configureBuildReceipt = tasks.register("configureBuildReceipt") {
     dependsOn determineCommitId
     doLast {
         createBuildReceipt.versionNumber = rootProject.version
         createBuildReceipt.baseVersion = rootProject.baseVersion
         createBuildReceipt.snapshot = rootProject.isSnapshot
         createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
-        createBuildReceipt.commitId = determineCommitId.commitId
+        createBuildReceipt.commitId = determineCommitId.get().commitId
     }
 }
 
-task createBuildReceipt(type: org.gradle.build.BuildReceipt) {
+tasks.register("createBuildReceipt", org.gradle.build.BuildReceipt) {
     dependsOn configureBuildReceipt
     destinationDir = file("${rootProject.buildDir}")
 }

@@ -48,8 +48,8 @@ open class ClassyclePlugin : Plugin<Project> {
                 reporting.file("classycle"),
                 extension.reportResourcesZip
             )
-        classycle.configure { dependsOn(sourceSetTask) }
-        tasks.named("check").configure { dependsOn(sourceSetTask) }
+            classycle.configure { dependsOn(sourceSetTask) }
+            tasks.named("check").configure { dependsOn(sourceSetTask) }
         tasks.named("codeQuality").configure { dependsOn(sourceSetTask) }
         }
     }

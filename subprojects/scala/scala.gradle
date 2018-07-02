@@ -41,6 +41,6 @@ testFixtures {
     from(':languageScala')
 }
 
-integTest {
+tasks.named("integTest").configure {
     jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }

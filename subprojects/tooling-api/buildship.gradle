@@ -16,7 +16,7 @@ import java.util.regex.Matcher
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-task buildshipEclipseProject(type: CreateBuildshipEclipseProjectTask) {
+tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
     dependsOn toolingApiShadedJar
 
