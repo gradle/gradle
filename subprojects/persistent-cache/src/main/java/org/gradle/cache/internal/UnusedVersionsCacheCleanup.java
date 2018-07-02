@@ -45,10 +45,10 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     private final CacheVersionMapping cacheVersionMapping;
     private final GradleVersionProvider gradleVersionProvider;
 
-    private Set<Integer> usedVersions;
+    private Set<CacheVersion> usedVersions;
 
     public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, GradleVersionProvider gradleVersionProvider) {
-        Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-(\\d+)$");
+        Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+" + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
         return new UnusedVersionsCacheCleanup(cacheNamePattern, cacheVersionMapping, gradleVersionProvider);
     }
 
@@ -84,8 +84,8 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     protected boolean shouldDelete(File cacheDir) {
         Matcher matcher = cacheNamePattern.matcher(cacheDir.getName());
         if (matcher.matches()) {
-            int version = Integer.parseInt(matcher.group(1));
-            return version < cacheVersionMapping.getLatestVersion() && !usedVersions.contains(version);
+            CacheVersion version = CacheVersion.parse(matcher.group(1));
+            return version.compareTo(cacheVersionMapping.getLatestVersion()) < 0 && !usedVersions.contains(version);
         }
         return false;
     }

@@ -16,12 +16,12 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 
 public interface GradleDistribution {
     /**
@@ -97,7 +97,7 @@ public interface GradleDistribution {
     /**
      * Returns the version of the artifact cache layout
      */
-    VersionNumber getArtifactCacheLayoutVersion();
+    CacheVersion getArtifactCacheLayoutVersion();
 
     /**
      * Returns true if the open API is supported by this distribution.

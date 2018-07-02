@@ -16,15 +16,14 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.base.Optional;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout;
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 
 public class DefaultGradleDistribution implements GradleDistribution {
 
@@ -150,22 +149,21 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("2.9-rc-1");
     }
 
-    public VersionNumber getArtifactCacheLayoutVersion() {
+    public CacheVersion getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("1.9-rc-2")) {
-            Optional<Integer> version = CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version);
-            return new VersionNumber(CacheLayout.ROOT.getVersion().getMajor(), version.get(), 0, null);
+            return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get();
         } else if (isSameOrNewer("1.9-rc-1")) {
-            return VersionNumber.parse("1.31");
+            return CacheVersion.parse("1.31");
         } else if (isSameOrNewer("1.7-rc-1")) {
-            return VersionNumber.parse("0.26");
+            return CacheVersion.parse("0.26");
         } else if (isSameOrNewer("1.6-rc-1")) {
-            return VersionNumber.parse("0.24");
+            return CacheVersion.parse("0.24");
         } else if (isSameOrNewer("1.4-rc-1")) {
-            return VersionNumber.parse("0.23");
+            return CacheVersion.parse("0.23");
         } else if (isSameOrNewer("1.3")) {
-            return VersionNumber.parse("0.15");
+            return CacheVersion.parse("0.15");
         } else {
-            return VersionNumber.parse("0.1");
+            return CacheVersion.parse("0.1");
         }
     }
 

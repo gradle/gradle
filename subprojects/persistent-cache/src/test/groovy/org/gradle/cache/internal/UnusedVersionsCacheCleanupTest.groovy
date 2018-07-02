@@ -38,12 +38,13 @@ class UnusedVersionsCacheCleanupTest extends Specification {
     @Unroll
     def "deletes unused cache directories for mapping #mapping, Gradle versions #gradleVersions and existing cache versions #existingCacheVersions"() {
         given:
+        def parentCacheVersion = CacheVersion.parse(parentVersion)
         existingCacheVersions.each { version ->
-            versionDir(version)
+            versionDir(parentCacheVersion.append(version))
                 .createDir()
                 .createFile("test.txt").text = "foo"
         }
-        def cacheVersionMapping = toCacheVersionMapping(mapping)
+        def cacheVersionMapping = toCacheVersionMapping(mapping, parentCacheVersion)
         def cleanableStore = Stub(CleanableStore) {
             getBaseDir() >> versionDir(cacheVersionMapping.latestVersion)
             getReservedCacheFiles() >> []
@@ -57,29 +58,29 @@ class UnusedVersionsCacheCleanupTest extends Specification {
         then:
         gradleVersionProvider.getRecentlyUsedVersions() >> (gradleVersions.collect { GradleVersion.version(it) } as SortedSet)
         for (version in (existingCacheVersions - expectedDeletedVersions)) {
-            versionDir(version).assertExists()
+            versionDir(parentCacheVersion.append(version)).assertExists()
         }
         for (version in expectedDeletedVersions) {
-            versionDir(version).assertDoesNotExist()
+            versionDir(parentCacheVersion.append(version)).assertDoesNotExist()
         }
 
         where:
-        mapping                              | gradleVersions        | existingCacheVersions || expectedDeletedVersions
-        [[1, "4.1"]]                         | []                    | [1]                   || []
-        [[1, "4.1"], [2, "4.3"], [5, "4.8"]] | ["3.9", "4.2", "4.9"] | [1, 2, 5, 6]          || [2]
-        [[1, "4.1"], [2, "4.3"], [5, "4.8"]] | []                    | [1, 2, 5, 6]          || [1, 2]
+        mapping                              | gradleVersions        | parentVersion | existingCacheVersions || expectedDeletedVersions
+        [[1, "4.1"]]                         | []                    | ""            | [1]                   || []
+        [[1, "4.1"], [2, "4.3"], [5, "4.8"]] | ["3.9", "4.2", "4.9"] | "42"          | [1, 2, 5, 6]          || [2]
+        [[1, "4.1"], [2, "4.3"], [5, "4.8"]] | []                    | "23"          | [1, 2, 5, 6]          || [1, 2]
     }
 
-    TestFile versionDir(int version) {
+    TestFile versionDir(CacheVersion version) {
         temporaryFolder.file("$CACHE_NAME-$version")
     }
 
-    CacheVersionMapping toCacheVersionMapping(List<List<?>> mapping) {
+    CacheVersionMapping toCacheVersionMapping(List<List<?>> mapping, CacheVersion parentCacheVersion) {
         assert mapping[0][0] == 1
         def builder = CacheVersionMapping.introducedIn(mapping[0][1])
         mapping.tail().each {
             builder.changedTo(it[0], it[1])
         }
-        return builder.build()
+        return builder.build(parentCacheVersion)
     }
 }

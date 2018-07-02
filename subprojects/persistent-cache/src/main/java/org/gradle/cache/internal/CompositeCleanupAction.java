@@ -24,6 +24,7 @@ import org.gradle.internal.time.CountdownTimer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class CompositeCleanupAction implements CleanupAction {
@@ -54,13 +55,15 @@ public class CompositeCleanupAction implements CleanupAction {
         private Builder() {
         }
 
-        public Builder add(CleanupAction cleanupAction) {
-            cleanups.add(cleanupAction);
+        public Builder add(CleanupAction... actions) {
+            Collections.addAll(cleanups, actions);
             return this;
         }
 
-        public Builder add(File baseDir, CleanupAction cleanupAction) {
-            cleanups.add(new ScopedCleanupAction(baseDir, cleanupAction));
+        public Builder add(File baseDir, CleanupAction... actions) {
+            for (CleanupAction action : actions) {
+                cleanups.add(new ScopedCleanupAction(baseDir, action));
+            }
             return this;
         }
 

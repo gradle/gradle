@@ -28,18 +28,21 @@ class CacheVersionMappingTest extends Specification {
         def mapping = CacheVersionMapping.introducedIn("1.0").build()
 
         then:
-        mapping.latestVersion == 1
+        mapping.latestVersion == CacheVersion.of(1)
     }
 
     def "returns latest version"() {
+        given:
+        def parentVersion = CacheVersion.of(2)
+
         when:
         def mapping = CacheVersionMapping.introducedIn("1.0")
             .incrementedIn("1.1")
             .changedTo(5, "1.2")
-            .build()
+            .build(parentVersion)
 
         then:
-        mapping.latestVersion == 5
+        mapping.latestVersion == parentVersion.append(5)
     }
 
     def "finds highest version with same base Gradle version for snapshot Gradle versions"() {
@@ -51,9 +54,9 @@ class CacheVersionMappingTest extends Specification {
 
         then:
         !mapping.getVersionUsedBy(version("0.9-SNAPSHOT")).present
-        mapping.getVersionUsedBy(version("1.0-SNAPSHOT")).get() == 1
-        mapping.getVersionUsedBy(version("1.1-SNAPSHOT")).get() == 3
-        mapping.getVersionUsedBy(version("1.2-SNAPSHOT")).get() == 3
+        mapping.getVersionUsedBy(version("1.0-SNAPSHOT")).get() == CacheVersion.of(1)
+        mapping.getVersionUsedBy(version("1.1-SNAPSHOT")).get() == CacheVersion.of(3)
+        mapping.getVersionUsedBy(version("1.2-SNAPSHOT")).get() == CacheVersion.of(3)
     }
 
     def "throws exception on invalid Gradle version"() {
@@ -108,15 +111,15 @@ class CacheVersionMappingTest extends Specification {
         !mapping.getVersionUsedBy(version("0.9.9")).present
         !mapping.getVersionUsedBy(version("1.0-rc-1")).present
         !mapping.getVersionUsedBy(version("1.0-milestone-2")).present
-        mapping.getVersionUsedBy(version("1.0-rc-2")).get() == 1
-        mapping.getVersionUsedBy(version("1.0-rc-3")).get() == 1
-        mapping.getVersionUsedBy(version("1.0")).get() == 1
-        mapping.getVersionUsedBy(version("1.1-milestone-1")).get() == 1
-        mapping.getVersionUsedBy(version("1.1-rc-1")).get() == 2
-        mapping.getVersionUsedBy(version("2.0")).get() == 2
-        mapping.getVersionUsedBy(version("2.0.1-rc-1")).get() == 2
-        mapping.getVersionUsedBy(version("2.0.1")).get() == 5
-        mapping.getVersionUsedBy(version("2.0.2")).get() == 5
-        mapping.getVersionUsedBy(version("3.0")).get() == 5
+        mapping.getVersionUsedBy(version("1.0-rc-2")).get() == CacheVersion.of(1)
+        mapping.getVersionUsedBy(version("1.0-rc-3")).get() == CacheVersion.of(1)
+        mapping.getVersionUsedBy(version("1.0")).get() == CacheVersion.of(1)
+        mapping.getVersionUsedBy(version("1.1-milestone-1")).get() == CacheVersion.of(1)
+        mapping.getVersionUsedBy(version("1.1-rc-1")).get() == CacheVersion.of(2)
+        mapping.getVersionUsedBy(version("2.0")).get() == CacheVersion.of(2)
+        mapping.getVersionUsedBy(version("2.0.1-rc-1")).get() == CacheVersion.of(2)
+        mapping.getVersionUsedBy(version("2.0.1")).get() == CacheVersion.of(5)
+        mapping.getVersionUsedBy(version("2.0.2")).get() == CacheVersion.of(5)
+        mapping.getVersionUsedBy(version("3.0")).get() == CacheVersion.of(5)
     }
 }

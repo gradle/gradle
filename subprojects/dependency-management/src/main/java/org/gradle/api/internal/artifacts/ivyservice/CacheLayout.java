@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.cache.internal.CacheVersionMapping;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
@@ -60,32 +60,23 @@ public enum CacheLayout {
     TRANSFORMS_STORE(TRANSFORMS, "files", introducedIn("3.5-rc-1"));
 
     private final String name;
-    private final CacheLayout parent;
     private final CacheVersionMapping versionMapping;
 
     CacheLayout(CacheLayout parent, String name, CacheVersionMapping.Builder versionMappingBuilder) {
-        this.parent = parent;
         this.name = name;
-        this.versionMapping = versionMappingBuilder.build();
+        this.versionMapping = parent == null ? versionMappingBuilder.build() : versionMappingBuilder.build(parent.getVersion());
     }
 
-    public VersionNumber getVersion() {
-        return VersionNumber.parse(getFormattedVersion());
+    public String getName() {
+        return name;
+    }
+
+    public CacheVersion getVersion() {
+        return versionMapping.getLatestVersion();
     }
 
     public String getKey() {
-        StringBuilder key = new StringBuilder();
-        key.append(name);
-        key.append("-");
-        key.append(getFormattedVersion());
-        return key.toString();
-    }
-
-    public String getFormattedVersion() {
-        if (parent == null) {
-            return String.valueOf(versionMapping.getLatestVersion());
-        }
-        return parent.getFormattedVersion() + '.' + String.valueOf(versionMapping.getLatestVersion());
+        return getName() + "-" + getVersion();
     }
 
     public CacheVersionMapping getVersionMapping() {

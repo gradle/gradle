@@ -27,25 +27,25 @@ import java.util.NavigableMap;
 
 public class CacheVersionMapping {
 
-    private static final Function<Map.Entry<GradleVersion, Integer>, Integer> TO_VALUE = new Function<Map.Entry<GradleVersion, Integer>, Integer>() {
+    private static final Function<Map.Entry<GradleVersion, CacheVersion>, CacheVersion> TO_VALUE = new Function<Map.Entry<GradleVersion, CacheVersion>, CacheVersion>() {
         @Override
-        public Integer apply(Map.Entry<GradleVersion, Integer> input) {
+        public CacheVersion apply(Map.Entry<GradleVersion, CacheVersion> input) {
             return input.getValue();
         }
     };
 
-    private final NavigableMap<GradleVersion, Integer> versions;
+    private final NavigableMap<GradleVersion, CacheVersion> versions;
 
-    private CacheVersionMapping(NavigableMap<GradleVersion, Integer> versions) {
+    private CacheVersionMapping(NavigableMap<GradleVersion, CacheVersion> versions) {
         Preconditions.checkArgument(!versions.isEmpty(), "versions must not be empty");
         this.versions = Maps.newTreeMap(versions);
     }
 
-    public int getLatestVersion() {
+    public CacheVersion getLatestVersion() {
         return versions.get(versions.lastKey());
     }
 
-    public Optional<Integer> getVersionUsedBy(GradleVersion gradleVersion) {
+    public Optional<CacheVersion> getVersionUsedBy(GradleVersion gradleVersion) {
         GradleVersion versionToFind = gradleVersion.isSnapshot() ? gradleVersion.getBaseVersion() : gradleVersion;
         return Optional.fromNullable(versions.floorEntry(versionToFind)).transform(TO_VALUE);
     }
@@ -81,7 +81,15 @@ public class CacheVersionMapping {
         }
 
         public CacheVersionMapping build() {
-            return new CacheVersionMapping(versions);
+            return build(CacheVersion.empty());
+        }
+
+        public CacheVersionMapping build(CacheVersion parentVersion) {
+            NavigableMap<GradleVersion, CacheVersion> convertedVersions = Maps.newTreeMap();
+            for (Map.Entry<GradleVersion, Integer> entry : versions.entrySet()) {
+                convertedVersions.put(entry.getKey(), parentVersion.append(entry.getValue()));
+            }
+            return new CacheVersionMapping(convertedVersions);
         }
     }
 }

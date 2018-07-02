@@ -257,10 +257,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     def "cleans up unused versions of jars cache"() {
         given:
         requireOwnGradleUserHomeDir() // messes with caches
-        def latestOldVersion = DefaultCachedClasspathTransformer.CACHE_VERSION_MAPPING.latestVersion - 1
-        def oldCacheDirs = (1..latestOldVersion).collect { version ->
-            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-$version")
-        }
+        def oldCacheDirs = [
+            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-1"),
+            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-2")
+        ]
         gcFile.createFile().lastModified = daysAgo(2)
 
         when:
