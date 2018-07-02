@@ -117,6 +117,9 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                    // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
+                    // so we include all the other files apart from the loop.
+                    // This way, we include each file only once.
                     if (isNotFileSystemLoopException(exc) && isAllowed(file, false, null, relativePath)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
@@ -125,6 +128,9 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult postVisitDirectory(Path dir, @Nullable IOException exc) {
+                    // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
+                    // so we include all the other files apart from the loop.
+                    // This way, we include each file only once.
                     if (isNotFileSystemLoopException(exc)) {
                         throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
                     }
