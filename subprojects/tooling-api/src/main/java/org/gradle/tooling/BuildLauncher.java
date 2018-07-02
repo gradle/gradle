@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
@@ -108,7 +107,6 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      * @return this
      * @since 1.12
      */
-    @Incubating
     BuildLauncher forLaunchables(Launchable... launchables);
 
     /**
@@ -118,7 +116,6 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      * @return this
      * @since 1.12
      */
-    @Incubating
     BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables);
 
     /**

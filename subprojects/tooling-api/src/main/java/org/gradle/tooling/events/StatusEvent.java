@@ -15,14 +15,11 @@
  */
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * An event that informs about an interim results of the operation.
  *
  * @since 3.5
  */
-@Incubating
 public interface StatusEvent extends ProgressEvent {
     /**
      * The amount of work already performed by the build operation.
