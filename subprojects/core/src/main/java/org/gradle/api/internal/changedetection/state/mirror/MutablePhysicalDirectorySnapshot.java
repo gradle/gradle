@@ -22,9 +22,9 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot implements MutablePhysicalSnaphot {
+public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot implements MutablePhysicalSnapshot {
     private final StringInterner stringInterner;
-    private Map<String, MutablePhysicalSnaphot> children = new LinkedHashMap<String, MutablePhysicalSnaphot>();
+    private Map<String, MutablePhysicalSnapshot> children = new LinkedHashMap<String, MutablePhysicalSnapshot>();
 
     public MutablePhysicalDirectorySnapshot(String path, String name, StringInterner stringInterner) {
         super(path, name);
@@ -32,12 +32,12 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
     }
 
     @Override
-    protected Iterable<MutablePhysicalSnaphot> getChildren() {
+    protected Iterable<MutablePhysicalSnapshot> getChildren() {
         return children.values();
     }
 
     @Override
-    public MutablePhysicalSnaphot add(String[] segments, int offset, MutablePhysicalSnaphot snapshot) {
+    public MutablePhysicalSnapshot add(String[] segments, int offset, MutablePhysicalSnapshot snapshot) {
         if (segments.length == offset) {
             if (!snapshot.getClass().equals(getClass())) {
                 throw new IllegalStateException(String.format("Expected different snapshot type: requested %s, but was: %s", snapshot.getClass().getSimpleName(), getClass().getSimpleName()));
@@ -45,7 +45,7 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
             return this;
         }
         String currentSegment = segments[offset];
-        MutablePhysicalSnaphot child = children.get(currentSegment);
+        MutablePhysicalSnapshot child = children.get(currentSegment);
         if (child == null) {
             if (segments.length == offset + 1) {
                 child = snapshot;

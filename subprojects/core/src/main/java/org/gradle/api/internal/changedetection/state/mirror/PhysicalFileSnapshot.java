@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.internal.file.FileType;
 
 /**
  * A file snapshot for a regular file.
  */
-public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnaphot {
+public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnapshot {
     private final FileHashSnapshot content;
 
     public PhysicalFileSnapshot(String path, String name, FileHashSnapshot content) {
@@ -52,16 +51,18 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
      * {@inheritDoc}
      *
      * <p>
-     * {@link PhysicalFileSnapshot} is a {@link MutablePhysicalSnaphot}, since one can try to add
+     * {@link PhysicalFileSnapshot} is a {@link MutablePhysicalSnapshot}, since one can try to add
      * a child to it. This method then checks if the to be added child is also a {@link PhysicalFileSnapshot}
      * and then discards the snapshot to be added. In any other case, an exception is thrown.
      * </p>
      *
      */
     @Override
-    public MutablePhysicalSnaphot add(String[] segments, int offset, MutablePhysicalSnaphot snapshot) {
+    public MutablePhysicalSnapshot add(String[] segments, int offset, MutablePhysicalSnapshot snapshot) {
         if (segments.length == offset) {
-            Preconditions.checkState(snapshot.getClass().equals(getClass()), "Expected different snapshot type: requested %s, but was: %s", snapshot.getClass().getSimpleName(), getClass().getSimpleName());
+            if (snapshot.getType() != getType()) {
+                throw new IllegalStateException(String.format("Expected different snapshot type: requested %s, but was: %s", snapshot.getType(), getType()));
+            }
             return this;
         }
         throw new UnsupportedOperationException("Cannot add children of file");

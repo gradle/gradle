@@ -27,7 +27,7 @@ import org.gradle.api.internal.changedetection.state.mirror.FilteredPhysicalSnap
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaphot;
+import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
@@ -166,11 +166,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public PhysicalSnapshot snapshotTree(final FileTreeInternal tree) {
-        final MutableReference<MutablePhysicalSnaphot> root = MutableReference.empty();
+        final MutableReference<MutablePhysicalSnapshot> root = MutableReference.empty();
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                MutablePhysicalSnaphot rootSnapshot = root.get();
+                MutablePhysicalSnapshot rootSnapshot = root.get();
                 if (rootSnapshot == null) {
                     File rootFile = dirDetails.getFile();
                     for (String ignored : dirDetails.getRelativePath().getSegments()) {
@@ -184,7 +184,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                MutablePhysicalSnaphot rootSnapshot = root.get();
+                MutablePhysicalSnapshot rootSnapshot = root.get();
                 if (rootSnapshot == null) {
                     File rootFile = fileDetails.getFile();
                     for (String ignored : fileDetails.getRelativePath().getSegments()) {

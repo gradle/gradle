@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state.mirror;
 /**
  * A physical snapshot which allows adding children.
  */
-public interface MutablePhysicalSnaphot extends PhysicalSnapshot {
+public interface MutablePhysicalSnapshot extends PhysicalSnapshot {
 
     /**
      * Adds the provided snapshot relative to the current snapshot.
@@ -35,5 +35,5 @@ public interface MutablePhysicalSnaphot extends PhysicalSnapshot {
      * @param snapshot the snapshot to add to the tree
      * @return the {@link PhysicalSnapshot} at the queried position, either snapshot or the pre-existing snapshot.
      */
-    MutablePhysicalSnaphot add(String[] segments, int offset, MutablePhysicalSnaphot snapshot);
+    MutablePhysicalSnapshot add(String[] segments, int offset, MutablePhysicalSnapshot snapshot);
 }

@@ -44,7 +44,7 @@ public class RelativePathTracker {
         }
     }
 
-    public Deque<String> getRelativePath() {
+    public Iterable<String> getRelativePath() {
         return relativePath;
     }
 
