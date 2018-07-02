@@ -34,6 +34,8 @@ import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata

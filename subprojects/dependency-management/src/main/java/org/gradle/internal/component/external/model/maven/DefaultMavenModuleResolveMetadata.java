@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -26,6 +26,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.MavenScope;
+import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
+import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -40,9 +47,9 @@ import java.util.List;
 public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
-    public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
+    static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
-    private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
+    static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
     private final boolean improvedPomSupportEnabled;
     private final NamedObjectInstantiator objectInstantiator;
@@ -180,7 +187,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return JAR_PACKAGINGS.contains(packaging);
     }
 
-    public boolean isImprovedPomSupportEnabled() {
+    boolean isImprovedPomSupportEnabled() {
         return improvedPomSupportEnabled;
     }
 
@@ -200,6 +207,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    protected VariantMetadataRules getVariantMetadataRules() {
+        // Added for package visibility
+        return super.getVariantMetadataRules();
     }
 
     @Override
@@ -238,10 +251,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
      *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
      *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
      */
-    private static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
+    static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
         private final MavenDependencyDescriptor dependencyDescriptor;
 
-        public OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {
+        OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {
             super(configuration, componentId, delegate);
             this.dependencyDescriptor = delegate;
         }

@@ -29,6 +29,8 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
+import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.util.TestUtil
 import spock.lang.Unroll

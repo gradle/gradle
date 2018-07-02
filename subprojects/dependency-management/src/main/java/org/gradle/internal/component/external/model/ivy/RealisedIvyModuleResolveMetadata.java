@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,6 +27,14 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -75,7 +83,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private final DefaultIvyModuleResolveMetadata metadata;
     private final String branch;
 
-    public RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
         super(metadata);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
@@ -86,7 +94,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata.metadata;
     }
 
-    public RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSource source) {
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
@@ -97,7 +105,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata.metadata.withSource(source);
     }
 
-    public RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
+    RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
                                             Map<String, ConfigurationMetadata> configurations) {
         super(metadata, variants, configurations);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();

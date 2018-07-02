@@ -33,8 +33,8 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter
 import org.gradle.cache.CacheRepository
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor

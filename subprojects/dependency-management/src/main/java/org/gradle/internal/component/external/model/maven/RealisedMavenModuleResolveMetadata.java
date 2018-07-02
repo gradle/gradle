@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -32,24 +31,30 @@ import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
+import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
+import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
+import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.USAGE_ATTRIBUTE;
 
-    public static final String POM_PACKAGING = "pom";
-    public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
-    private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
+public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static RealisedMavenModuleResolveMetadata transform(DefaultMavenModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
@@ -93,12 +98,12 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return configuration;
     }
 
-    public static ConfigurationMetadata withUsageAttribute(AbstractConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, ImmutableAttributes additionalAttributes, NamedObjectInstantiator instantiator) {
+    static ConfigurationMetadata withUsageAttribute(RealisedConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, ImmutableAttributes additionalAttributes, NamedObjectInstantiator instantiator) {
         ImmutableAttributes attributes = attributesFactory.concat(additionalAttributes, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, instantiator));
         return conf.withAttributes(attributes);
     }
 
-    public static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(ModuleComponentIdentifier id, String name) {
+    static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(ModuleComponentIdentifier id, String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(id, new DefaultIvyArtifactName(id.getModule(), "jar", "jar")));
@@ -114,7 +119,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
-                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, componentId, dependency));
+                filteredDependencies.add(new DefaultMavenModuleResolveMetadata.OptionalConfigurationDependencyMetadata(config, componentId, dependency));
             } else if (include(dependency, config.getHierarchy(), improvedPomSupport)) {
                 filteredDependencies.add(contextualize(config, componentId, dependency, improvedPomSupport));
             }
@@ -122,7 +127,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return filteredDependencies.build();
     }
 
-    public static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming, boolean improvedPomSupport) {
+    static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming, boolean improvedPomSupport) {
         ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
         if (improvedPomSupport) {
             dependency.alwaysUseAttributeMatching();
@@ -157,7 +162,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     private final ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
-    public RealisedMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
+    RealisedMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
                                               List<ConfigurationMetadata> derivedVariants, Map<String, ConfigurationMetadata> configurations) {
         super(metadata, variants, configurations);
         this.improvedPomSupportEnabled = metadata.isImprovedPomSupportEnabled();
@@ -187,7 +192,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return isJavaLibrary() ? Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants()) : Optional.<ImmutableList<? extends ConfigurationMetadata>>absent();
     }
 
-    public ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+    ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
         return derivedVariants;
     }
 
@@ -257,39 +262,5 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             packaging,
             relocated,
             snapshotTimestamp);
-    }
-
-    /**
-     * Adapts a MavenDependencyDescriptor to `DependencyMetadata` for the magic "optional" configuration.
-     *
-     * This configuration has special semantics:
-     *  - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
-     *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
-     *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
-     */
-    private static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
-        private final MavenDependencyDescriptor dependencyDescriptor;
-
-        public OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {
-            super(configuration, componentId, delegate);
-            this.dependencyDescriptor = delegate;
-        }
-
-        /**
-         * Dependencies markes as optional/pending in the "optional" configuration _can_ have dependency artifacts.
-         */
-        @Override
-        public List<IvyArtifactName> getArtifacts() {
-            IvyArtifactName dependencyArtifact = dependencyDescriptor.getDependencyArtifact();
-            return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
-        }
-
-        /**
-         * Dependencies in the "optional" configuration are never 'pending'.
-         */
-        @Override
-        public boolean isPending() {
-            return false;
-        }
     }
 }

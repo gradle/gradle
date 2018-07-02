@@ -33,7 +33,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor

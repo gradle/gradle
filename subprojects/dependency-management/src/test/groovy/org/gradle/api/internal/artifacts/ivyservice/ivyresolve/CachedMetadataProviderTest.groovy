@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification

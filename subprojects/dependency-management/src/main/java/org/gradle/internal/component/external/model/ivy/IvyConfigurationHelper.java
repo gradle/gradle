@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -28,7 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class IvyConfigurationHelper {
+class IvyConfigurationHelper {
 
     private final ImmutableList<Artifact> artifactDefinitions;
     private final Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
@@ -36,7 +40,7 @@ public class IvyConfigurationHelper {
     private final ImmutableList<IvyDependencyDescriptor> dependencies;
     private final ModuleComponentIdentifier componentId;
 
-    public IvyConfigurationHelper(ImmutableList<Artifact> artifactDefinitions, Map<Artifact, ModuleComponentArtifactMetadata> artifacts, ImmutableList<Exclude> excludes, ImmutableList<IvyDependencyDescriptor> dependencies, ModuleComponentIdentifier componentId) {
+    IvyConfigurationHelper(ImmutableList<Artifact> artifactDefinitions, Map<Artifact, ModuleComponentArtifactMetadata> artifacts, ImmutableList<Exclude> excludes, ImmutableList<IvyDependencyDescriptor> dependencies, ModuleComponentIdentifier componentId) {
 
         this.artifactDefinitions = artifactDefinitions;
         this.artifacts = artifacts;
@@ -45,7 +49,7 @@ public class IvyConfigurationHelper {
         this.componentId = componentId;
     }
 
-    public ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
+    ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
@@ -67,7 +71,7 @@ public class IvyConfigurationHelper {
         }
     }
 
-    public ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
+    ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
         ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {
             for (String config : exclude.getConfigurations()) {
@@ -90,7 +94,7 @@ public class IvyConfigurationHelper {
         return filteredDependencies.build();
     }
 
-    public ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
+    ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
         return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 

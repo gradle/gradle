@@ -40,7 +40,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     // Configurations are built on-demand, but only once.
     private final Map<String, ConfigurationMetadata> configurations = Maps.newHashMap();
 
-    AbstractLazyModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
+    protected AbstractLazyModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         super(metadata);
         configurationDefinitions = metadata.getConfigurationDefinitions();
         variantMetadataRules = metadata.getVariantMetadataRules();
@@ -49,7 +49,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     /**
      * Creates a copy of the given metadata
      */
-    AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
+    protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         super(metadata, source);
         this.configurationDefinitions = metadata.configurationDefinitions;
         variantMetadataRules = metadata.variantMetadataRules;

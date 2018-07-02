@@ -30,7 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata

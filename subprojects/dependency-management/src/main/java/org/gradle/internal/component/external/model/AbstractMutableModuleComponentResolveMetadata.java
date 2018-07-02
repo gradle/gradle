@@ -48,7 +48,7 @@ import java.util.List;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
+public abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private static final String DEFAULT_STATUS = "integration";
 
@@ -68,7 +68,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
 
-    AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
+    protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
@@ -76,7 +76,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
     }
 
-    AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
         this.componentId = metadata.getId();
         this.moduleVersionId = metadata.getModuleVersionId();
         this.changing = metadata.isChanging();

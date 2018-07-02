@@ -21,7 +21,7 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 
 import java.util.Collection;
 import java.util.List;
