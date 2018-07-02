@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
-import org.gradle.internal.component.external.model.MavenDependencyDescriptor
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.hash.HashUtil
 import spock.lang.Issue

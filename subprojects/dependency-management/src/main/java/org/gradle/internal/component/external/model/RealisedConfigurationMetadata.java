@@ -44,7 +44,7 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
     }
 
     @Override
-    protected ConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
+    public ConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
         return new RealisedConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(),
             ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), getExcludes(), attributes,
             ImmutableCapabilities.of(getCapabilities().getCapabilities()), getConfigDependencies());

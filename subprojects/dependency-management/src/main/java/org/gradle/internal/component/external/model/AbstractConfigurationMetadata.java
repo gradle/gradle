@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, VariantResolveMetadata {
+public abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, VariantResolveMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
@@ -46,7 +46,7 @@ abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, V
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
 
-    public AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+    AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                          ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableList<String> hierarchy,
                                          ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
                                          ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
@@ -138,7 +138,7 @@ abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, V
         return capabilities;
     }
 
-    protected ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {
+    ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {
         return configDependencies;
     }
 

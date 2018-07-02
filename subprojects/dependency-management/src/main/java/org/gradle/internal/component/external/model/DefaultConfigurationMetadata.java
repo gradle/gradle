@@ -39,7 +39,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private ImmutableAttributes computedAttributes;
     private CapabilitiesMetadata computedCapabilities;
 
-    protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+    public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                            VariantMetadataRules componentMetadataRules,
                                            ImmutableList<ExcludeMetadata> excludes,
@@ -81,7 +81,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return computedCapabilities;
     }
 
-    protected DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
+    public DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
         return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
     }
 

@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.IvyDependencyDescriptor
-import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
+import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile

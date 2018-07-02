@@ -37,7 +37,7 @@ import java.util.Set;
  * metadata format by default without breaking a bunch of consumers that depend on this assumption,
  * declaring no preference for a particular variant.
  */
-class PreferJavaRuntimeVariant extends EmptySchema {
+public class PreferJavaRuntimeVariant extends EmptySchema {
     private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
     private static final Usage API_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_API);
     private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(API_USAGE, RUNTIME_USAGE);

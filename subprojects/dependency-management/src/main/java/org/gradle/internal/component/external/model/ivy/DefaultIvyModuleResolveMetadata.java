@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -24,6 +24,11 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -34,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
-    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<IvyDependencyDescriptor> dependencies;
     private final ImmutableList<Artifact> artifactDefinitions;
@@ -146,6 +150,12 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     @Override
     public ImmutableList<IvyDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    protected VariantMetadataRules getVariantMetadataRules() {
+        // Added for package visibility
+        return super.getVariantMetadataRules();
     }
 
     @Override

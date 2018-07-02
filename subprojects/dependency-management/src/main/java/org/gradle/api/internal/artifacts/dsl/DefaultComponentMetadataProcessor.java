@@ -40,13 +40,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.RealisedIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.RealisedMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -66,7 +66,7 @@ import java.util.Set;
 
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
-    private final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
+    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
             @Override
             public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
                 ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
