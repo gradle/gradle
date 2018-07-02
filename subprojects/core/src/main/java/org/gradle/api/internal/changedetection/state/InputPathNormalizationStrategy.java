@@ -16,90 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.file.FileType;
-import org.gradle.util.GUtil;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public enum InputPathNormalizationStrategy implements PathNormalizationStrategy {
     /**
      * Use the absolute path of the files.
      */
-    ABSOLUTE {
-        @Override
-        public boolean isPathAbsolute() {
-            return true;
-        }
-
-        @Nonnull
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
-        }
-    },
+    ABSOLUTE,
 
     /**
      * Use the location of the file related to a hierarchy.
      */
-    RELATIVE {
-        @Override
-        public boolean isPathAbsolute() {
-            return false;
-        }
-
-        @Nonnull
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            // Ignore path of root directories, use base name of root files
-            if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
-                return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
-            }
-            return getRelativeSnapshot(fileSnapshot, stringInterner);
-        }
-    },
+    RELATIVE,
 
     /**
      * Use the file name only.
      */
-    NAME_ONLY {
-        @Override
-        public boolean isPathAbsolute() {
-            return false;
-        }
-
-        @Nonnull
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            // Ignore path of root directories
-            if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
-                return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
-            }
-            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName(), stringInterner);
-        }
-    },
+    NAME_ONLY,
 
     /**
      * Ignore the file path completely.
      */
-    NONE {
-        @Override
-        public boolean isPathAbsolute() {
-            return false;
-        }
-
-        @Nullable
-        @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            if (fileSnapshot.getType() == FileType.Directory) {
-                return null;
-            }
-            return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
-        }
-    };
+    NONE;
 
     public static InputPathNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
@@ -114,29 +52,5 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             default:
                 throw new IllegalArgumentException("Unknown path usage: " + pathSensitivity);
         }
-    }
-
-    @VisibleForTesting
-    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-        return getRelativeSnapshot(fileSnapshot, fileSnapshot.getRelativePath(), stringInterner);
-    }
-
-    /**
-     * Creates a relative path while using as little additional memory as possible. If the absolute path and normalized path use the same
-     * line separators in their area of overlap, the normalized path is created by remembering the absolute path and an index. Otherwise the
-     * normalized path is converted to a String, which takes additional memory.
-     */
-    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, CharSequence normalizedPath, StringInterner stringInterner) {
-        String absolutePath = fileSnapshot.getPath();
-        FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
-        if (lineSeparatorsMatch(absolutePath, normalizedPath)) {
-            return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), contentSnapshot);
-        } else {
-            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath.toString()), contentSnapshot);
-        }
-    }
-
-    private static boolean lineSeparatorsMatch(String absolutePath, CharSequence normalizedPath) {
-        return GUtil.endsWith(absolutePath, normalizedPath);
     }
 }

@@ -16,11 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.file.FileType;
-
-import javax.annotation.Nullable;
-
 /**
  * Path normalization strategy for output files.
  *
@@ -34,17 +29,4 @@ public class OutputPathNormalizationStrategy implements PathNormalizationStrateg
         return INSTANCE;
     }
 
-    @Override
-    public boolean isPathAbsolute() {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-        if (fileSnapshot.getType() == FileType.Missing) {
-            return null;
-        }
-        return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
-    }
 }

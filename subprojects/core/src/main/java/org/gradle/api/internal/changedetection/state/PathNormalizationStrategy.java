@@ -16,16 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
-
-import javax.annotation.Nullable;
-
 public interface PathNormalizationStrategy {
-    /**
-     * Returns true when the normalized path is an absolute path and so uniquely identifies each file in a collection snapshot.
-     */
-    boolean isPathAbsolute();
 
-    @Nullable
-    NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner);
 }
