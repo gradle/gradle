@@ -42,36 +42,4 @@ class MutableReferenceTest extends Specification {
         then:
         ref.get() == null
     }
-
-    def "equals works"() {
-        def ref1 = MutableReference.of(new String("A"))
-        def ref2 = MutableReference.of(new String("B"))
-        def emptyRef = MutableReference.empty()
-
-        expect:
-        ref1 == ref1
-        ref2 == ref2
-        emptyRef == emptyRef
-        ref1 != ref2
-        emptyRef != ref1
-        ref1 != emptyRef
-    }
-
-    def "hash code works"() {
-        def values = [
-            MutableReference.of(new String("A")),
-            MutableReference.of(new String("A")),
-            MutableReference.of(new String("B")),
-            MutableReference.of(new String("B")),
-            MutableReference.empty(),
-            MutableReference.empty(),
-        ] as Set
-
-        expect:
-        values == [
-            MutableReference.of(new String("A")),
-            MutableReference.of(new String("B")),
-            MutableReference.empty(),
-        ] as Set
-    }
 }

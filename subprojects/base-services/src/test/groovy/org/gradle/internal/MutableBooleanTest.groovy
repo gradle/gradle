@@ -40,34 +40,4 @@ class MutableBooleanTest extends Specification {
         then:
         !value.get()
     }
-
-    def "equals works"() {
-        expect:
-        new MutableBoolean(true) == new MutableBoolean(true)
-        new MutableBoolean(false) == new MutableBoolean(false)
-        new MutableBoolean(true) != new MutableBoolean(false)
-        new MutableBoolean(false) != new MutableBoolean(true)
-    }
-
-    def "compare works"() {
-        expect:
-        new MutableBoolean(true) <=> new MutableBoolean(true) == 0
-        new MutableBoolean(false) <=> new MutableBoolean(false) == 0
-        new MutableBoolean(true) <=> new MutableBoolean(false) == 1
-        new MutableBoolean(false) <=> new MutableBoolean(true) == -1
-    }
-
-    def "hash code works"() {
-        def values = [
-            new MutableBoolean(true),
-            new MutableBoolean(true),
-            new MutableBoolean(false),
-            new MutableBoolean(false),
-        ] as Set
-        expect:
-        values == [
-            new MutableBoolean(true),
-            new MutableBoolean(false),
-        ] as Set
-    }
 }

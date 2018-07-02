@@ -16,7 +16,6 @@
 
 package org.gradle.internal;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 
@@ -24,7 +23,7 @@ import java.io.Serializable;
  * A non-thread-safe type to hold a mutable boolean value.
  */
 @NotThreadSafe
-public final class MutableBoolean implements Serializable, Comparable<MutableBoolean> {
+public final class MutableBoolean implements Serializable {
     private boolean value;
 
     public MutableBoolean() {
@@ -41,29 +40,6 @@ public final class MutableBoolean implements Serializable, Comparable<MutableBoo
 
     public boolean get() {
         return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        MutableBoolean that = (MutableBoolean) o;
-        return value == that.value;
-    }
-
-    @Override
-    public int hashCode() {
-        return value ? 1 : 0;
-    }
-
-    @Override
-    public int compareTo(@Nonnull MutableBoolean o) {
-        return (value == o.value) ? 0 : (value ? 1 : -1);
     }
 
     @Override
