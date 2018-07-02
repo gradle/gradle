@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.logical.collection.FileCollectionFingerprintBuilder;
-import org.gradle.api.internal.changedetection.state.mirror.logical.collection.RuntimeClasspathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.FileCollectionFingerprintBuilder;
+import org.gradle.api.internal.changedetection.state.mirror.logical.RuntimeClasspathFingerprintingStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;

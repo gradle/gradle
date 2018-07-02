@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
+import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -27,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy {
+public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots) {
@@ -35,17 +37,29 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
         final HashSet<String> processedEntries = new HashSet<String>();
         for (PhysicalSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
+                private boolean root = true;
 
                 @Override
                 public boolean preVisitDirectory(String path, String name) {
+                    if (processedEntries.add(path)) {
+                        NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, path.length() - name.length(), DirContentSnapshot.INSTANCE);
+                        builder.put(path, snapshot);
+                    }
+                    root = false;
                     return true;
                 }
 
                 @Override
                 public void visit(String path, String name, FileContentSnapshot content) {
                     if (processedEntries.add(path)) {
-                        builder.put(path, new IgnoredPathFileSnapshot(content));
+                        builder.put(
+                            path,
+                            new IndexedNormalizedFileSnapshot(path, path.length() - name.length(), content));
                     }
+                }
+
+                private boolean isRoot() {
+                    return root;
                 }
 
                 @Override
@@ -58,7 +72,6 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
 
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.IGNORED_PATH;
+        return FingerprintCompareStrategy.NORMALIZED;
     }
-
 }

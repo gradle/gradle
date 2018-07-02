@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;

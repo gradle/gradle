@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.file.FileType;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class RelativePathFingerprintingStrategy implements FingerprintingStrategy {
+public class AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
+
+    private final boolean includeMissing;
+
+    public AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+        this.includeMissing = includeMissing;
+    }
 
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots) {
@@ -37,42 +43,29 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
         final HashSet<String> processedEntries = new HashSet<String>();
         for (PhysicalSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
-                private boolean root = true;
-                private int rootIndex;
 
                 @Override
                 public boolean preVisitDirectory(String path, String name) {
-                    if (root) {
-                        rootIndex = path.length() + 1;
-                    }
                     if (processedEntries.add(path)) {
-                        NormalizedFileSnapshot snapshot = root ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, getIndex(name), DirContentSnapshot.INSTANCE);
-                        builder.put(path, snapshot);
+                        builder.put(path, new NonNormalizedFileSnapshot(path, DirContentSnapshot.INSTANCE));
                     }
-                    root = false;
                     return true;
                 }
 
                 @Override
                 public void visit(String path, String name, FileContentSnapshot content) {
-                    if (root) {
-                        rootIndex = path.length() + 1;
+                    if (!includeMissing && content.getType() == FileType.Missing) {
+                        return;
                     }
                     if (processedEntries.add(path)) {
-                        builder.put(
-                            path,
-                            new IndexedNormalizedFileSnapshot(path, getIndex(name), content)
-                        );
+                        builder.put(path, new NonNormalizedFileSnapshot(path, content));
                     }
-                }
-
-                private int getIndex(String name) {
-                    return root ? rootIndex - name.length() - 1 : rootIndex;
                 }
 
                 @Override
                 public void postVisitDirectory() {
                 }
+
             });
         }
         return builder.build();
@@ -80,7 +73,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
 
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.NORMALIZED;
+        return FingerprintCompareStrategy.ABSOLUTE;
     }
 
 }

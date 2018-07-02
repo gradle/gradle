@@ -19,8 +19,8 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
-import org.gradle.api.internal.changedetection.state.mirror.logical.collection.DefaultFileCollectionFingerprint
-import org.gradle.api.internal.changedetection.state.mirror.logical.collection.FingerprintCompareStrategy
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint
+import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification

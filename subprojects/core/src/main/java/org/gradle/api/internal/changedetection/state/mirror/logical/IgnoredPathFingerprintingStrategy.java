@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.internal.file.FileType;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
-
-    private final boolean includeMissing;
-
-    public AbsolutePathFingerprintingStrategy(boolean includeMissing) {
-        this.includeMissing = includeMissing;
-    }
+public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy {
 
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots) {
@@ -46,26 +38,19 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
 
                 @Override
                 public boolean preVisitDirectory(String path, String name) {
-                    if (processedEntries.add(path)) {
-                        builder.put(path, new NonNormalizedFileSnapshot(path, DirContentSnapshot.INSTANCE));
-                    }
                     return true;
                 }
 
                 @Override
                 public void visit(String path, String name, FileContentSnapshot content) {
-                    if (!includeMissing && content.getType() == FileType.Missing) {
-                        return;
-                    }
                     if (processedEntries.add(path)) {
-                        builder.put(path, new NonNormalizedFileSnapshot(path, content));
+                        builder.put(path, new IgnoredPathFileSnapshot(content));
                     }
                 }
 
                 @Override
                 public void postVisitDirectory() {
                 }
-
             });
         }
         return builder.build();
@@ -73,7 +58,7 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
 
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.ABSOLUTE;
+        return FingerprintCompareStrategy.IGNORED_PATH;
     }
 
 }

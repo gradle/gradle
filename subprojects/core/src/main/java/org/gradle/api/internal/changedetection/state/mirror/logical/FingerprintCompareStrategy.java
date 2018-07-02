@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,43 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import static com.google.common.collect.Iterators.emptyIterator;
 import static com.google.common.collect.Iterators.singletonIterator;
 
-public enum TaskFilePropertyCompareStrategy {
-    ORDERED(new OrderSensitiveTaskFilePropertyCompareStrategy()),
-    UNORDERED(new OrderInsensitiveTaskFilePropertyCompareStrategy());
+public enum FingerprintCompareStrategy {
+    ABSOLUTE(new AbsolutePathFingerprintCompareStrategy()),
+    NORMALIZED(new NormalizedPathFingerprintCompareStrategy()),
+    IGNORED_PATH(new IgnoredPathCompareStrategy()),
+    CLASSPATH(new ClasspathCompareStrategy());
 
     private final Impl delegate;
 
-    TaskFilePropertyCompareStrategy(Impl delegate) {
-        this.delegate = delegate;
+    FingerprintCompareStrategy(FingerprintCompareStrategy.Impl compareStrategy) {
+        this.delegate = compareStrategy;
     }
 
-    public boolean accept(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean pathIsAbsolute, boolean includeAdded) {
+    interface Impl {
+        boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded);
+        void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots);
+    }
+
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {
@@ -52,17 +61,10 @@ public enum TaskFilePropertyCompareStrategy {
             }
             return true;
         }
-        return delegate.accept(visitor, current, previous, propertyTitle, pathIsAbsolute, includeAdded);
-
+        return delegate.visitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
     }
-
-    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
-        delegate.appendToHasher(hasher, snapshots);
-    }
-
-    interface Impl {
-        boolean accept(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean pathIsAbsolute, boolean includeAdded);
-        void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots);
+    public void appendToHasher(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots) {
+        delegate.appendToHasher(hasher, snapshots.values());
     }
 
     /**
@@ -77,6 +79,7 @@ public enum TaskFilePropertyCompareStrategy {
      * or {@code previous}.
      */
     @VisibleForTesting
+    @Nullable
     static Iterator<TaskStateChange> compareTrivialSnapshots(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean includeAdded) {
         switch (current.size()) {
             case 0:
@@ -84,7 +87,7 @@ public enum TaskFilePropertyCompareStrategy {
                     case 0:
                         return emptyIterator();
                     case 1:
-                        Entry<String, NormalizedFileSnapshot> entry = previous.entrySet().iterator().next();
+                        Map.Entry<String, NormalizedFileSnapshot> entry = previous.entrySet().iterator().next();
                         TaskStateChange change = FileChange.removed(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
                         return singletonIterator(change);
                     default:
@@ -95,15 +98,15 @@ public enum TaskFilePropertyCompareStrategy {
                 switch (previous.size()) {
                     case 0:
                         if (includeAdded) {
-                            Entry<String, NormalizedFileSnapshot> entry = current.entrySet().iterator().next();
+                            Map.Entry<String, NormalizedFileSnapshot> entry = current.entrySet().iterator().next();
                             TaskStateChange change = FileChange.added(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
                             return singletonIterator(change);
                         } else {
                             return emptyIterator();
                         }
                     case 1:
-                        Entry<String, NormalizedFileSnapshot> previousEntry = previous.entrySet().iterator().next();
-                        Entry<String, NormalizedFileSnapshot> currentEntry = current.entrySet().iterator().next();
+                        Map.Entry<String, NormalizedFileSnapshot> previousEntry = previous.entrySet().iterator().next();
+                        Map.Entry<String, NormalizedFileSnapshot> currentEntry = current.entrySet().iterator().next();
                         return compareTrivialSnapshotEntries(currentEntry, previousEntry, fileType, includeAdded);
                     default:
                         return null;
@@ -114,7 +117,7 @@ public enum TaskFilePropertyCompareStrategy {
         }
     }
 
-    private static Iterator<TaskStateChange> compareTrivialSnapshotEntries(Entry<String, NormalizedFileSnapshot> currentEntry, Entry<String, NormalizedFileSnapshot> previousEntry, String fileType, boolean includeAdded) {
+    private static Iterator<TaskStateChange> compareTrivialSnapshotEntries(Map.Entry<String, NormalizedFileSnapshot> currentEntry, Map.Entry<String, NormalizedFileSnapshot> previousEntry, String fileType, boolean includeAdded) {
         NormalizedFileSnapshot normalizedPrevious = previousEntry.getValue();
         NormalizedFileSnapshot normalizedCurrent = currentEntry.getValue();
         if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {

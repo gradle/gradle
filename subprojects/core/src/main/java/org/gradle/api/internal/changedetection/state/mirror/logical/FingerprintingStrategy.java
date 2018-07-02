@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+
+import java.util.List;
+import java.util.Map;
+
+public interface FingerprintingStrategy {
+
+    Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots);
+
+    FingerprintCompareStrategy getCompareStrategy();
+}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical.collection;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
+public class RelativePathFingerprintingStrategy implements FingerprintingStrategy {
 
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots) {
@@ -38,11 +38,15 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
         for (PhysicalSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
                 private boolean root = true;
+                private int rootIndex;
 
                 @Override
                 public boolean preVisitDirectory(String path, String name) {
+                    if (root) {
+                        rootIndex = path.length() + 1;
+                    }
                     if (processedEntries.add(path)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, path.length() - name.length(), DirContentSnapshot.INSTANCE);
+                        NormalizedFileSnapshot snapshot = root ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, getIndex(name), DirContentSnapshot.INSTANCE);
                         builder.put(path, snapshot);
                     }
                     root = false;
@@ -51,15 +55,19 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
                 @Override
                 public void visit(String path, String name, FileContentSnapshot content) {
+                    if (root) {
+                        rootIndex = path.length() + 1;
+                    }
                     if (processedEntries.add(path)) {
                         builder.put(
                             path,
-                            new IndexedNormalizedFileSnapshot(path, path.length() - name.length(), content));
+                            new IndexedNormalizedFileSnapshot(path, getIndex(name), content)
+                        );
                     }
                 }
 
-                private boolean isRoot() {
-                    return root;
+                private int getIndex(String name) {
+                    return root ? rootIndex - name.length() - 1 : rootIndex;
                 }
 
                 @Override
@@ -74,4 +82,5 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.NORMALIZED;
     }
+
 }
