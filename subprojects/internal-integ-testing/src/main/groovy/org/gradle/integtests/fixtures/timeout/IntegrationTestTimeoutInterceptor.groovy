@@ -27,6 +27,8 @@ import org.spockframework.runtime.SpockTimeoutError
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.extension.builtin.TimeoutInterceptor
 
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -47,7 +49,7 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         } catch (SpockTimeoutError e) {
             Object instance = invocation.getInstance()
             if (instance instanceof AbstractIntegrationSpec) {
-                String allThreadStackTraces = getAllThreads((AbstractIntegrationSpec) instance)
+                String allThreadStackTraces = getAllStackTraces((AbstractIntegrationSpec) instance)
                 throw new SpockAssertionError(allThreadStackTraces, e)
             } else {
                 throw e
@@ -57,12 +59,12 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         }
     }
 
-    static String getAllThreads(AbstractIntegrationSpec spec) {
+    static String getAllStackTraces(AbstractIntegrationSpec spec) {
         try {
             if (spec.executer.gradleExecuter.class == InProcessGradleExecuter) {
-                return getAllThreadsInCurrentJVM()
+                return getAllStackTracesInCurrentJVM()
             } else {
-                return getAllThreadsByJstack()
+                return getAllStackTracesByJstack()
             }
         } catch (Throwable e) {
             def stream = new ByteArrayOutputStream()
@@ -78,22 +80,24 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         String javaCommand
 
         String getJstackCommand() {
-            if (javaCommand.endsWith('java')) {
-                return javaCommand[0..-5] + 'jstack'
-            } else if (javaCommand.endsWith('java.exe')) {
-                return javaCommand[0..-9] + 'jstack.exe'
+            assert javaCommand.endsWith("java") || javaCommand.endsWith("java.exe"): "Unknown java command： $javaCommand"
+
+            Path javaPath = Paths.get(javaCommand)
+            String jstackExe = OperatingSystem.current().getExecutableName('jstack')
+            if (javaPath.parent.fileName.toString() == 'bin' && javaPath.parent.parent.fileName.toString() == 'jre') {
+                return javaPath.resolve("../../../bin/$jstackExe").normalize().toString()
             } else {
-                throw new RuntimeException("Unknown java command： $javaCommand")
+                return javaPath.resolve("../../bin/$jstackExe").normalize().toString()
             }
         }
 
         String jstack() {
-            def process = "${jstackCommand} -F ${pid}".execute()
+            def process = "${jstackCommand} ${pid}".execute()
             def stdout = new StringBuffer()
             def stderr = new StringBuffer()
             process.consumeProcessOutput(stdout, stderr)
             process.waitFor()
-            return "Run ${jstackCommand} -F ${pid}:\n${stdout}\n---------\n${stderr}\n"
+            return "Run ${jstackCommand} ${pid}:\n${stdout}\n---------\n${stderr}\n"
         }
     }
 
@@ -157,11 +161,11 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         }
     }
 
-    static String getAllThreadsByJstack() {
+    static String getAllStackTracesByJstack() {
         return ps().getSuspiciousDaemons().collect { it.jstack() }.join("\n")
     }
 
-    static String getAllThreadsInCurrentJVM() {
+    static String getAllStackTracesInCurrentJVM() {
         Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces()
         StringBuilder sb = new StringBuilder()
         sb.append("Threads in current JVM:\n")

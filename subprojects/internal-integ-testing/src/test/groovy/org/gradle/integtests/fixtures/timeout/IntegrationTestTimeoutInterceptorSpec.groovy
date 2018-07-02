@@ -83,29 +83,42 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
     }
 
     @Unroll
-    def 'can locate jstack'() {
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def 'can locate jstack on Unix'() {
         expect:
         new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
 
         where:
         javaCommand                                                | jstackCommand
-        "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"           | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
-        "C:\\Program Files\\Java\\jdk1.8/bin/java.exe"             | "C:\\Program Files\\Java\\jdk1.8/bin/jstack.exe"
         '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java' | '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/jstack'
         '/opt/jdk/oracle-jdk-8/bin/java'                           | '/opt/jdk/oracle-jdk-8/bin/jstack'
+        '/opt/jdk/oracle-jdk-8/jre/bin/java'                       | '/opt/jdk/oracle-jdk-8/bin/jstack'
+    }
+
+    @Unroll
+    @Requires(TestPrecondition.WINDOWS)
+    def 'can locate jstack on Windows'() {
+        expect:
+        new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
+
+        where:
+        javaCommand                                           | jstackCommand
+        "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"      | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
+        "C:\\Program Files\\Java\\jdk1.8\\jre\\bin\\java.exe" | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
+        "C:\\Program Files\\Java\\jdk1.8/bin/java.exe"        | "C:\\Program Files\\Java\\jdk1.8/bin/jstack.exe"
     }
 
     def 'can print all threads in current JVM'() {
         expect:
-        IntegrationTestTimeoutInterceptor.getAllThreadsInCurrentJVM().contains("Thread ${Thread.currentThread().getId()}: ${Thread.currentThread().getName()}")
+        IntegrationTestTimeoutInterceptor.getAllStackTracesInCurrentJVM().contains("Thread ${Thread.currentThread().getId()}: ${Thread.currentThread().getName()}")
     }
 
     def 'can print all threads of all running JVM by jstack'() {
         when:
-        String stacktraces = IntegrationTestTimeoutInterceptor.getAllThreadsByJstack()
+        String stacktraces = IntegrationTestTimeoutInterceptor.getAllStackTracesByJstack()
 
         then:
-        stacktraces.contains("Deadlock Detection:")
+        stacktraces.contains("Full thread dump")
         stacktraces.contains("${getClass().getName()}.\$spock_feature")
 //        - org.codehaus.groovy.runtime.ScriptBytecodeAdapter.invokeMethod0(java.lang.Class, java.lang.Object, java.lang.String) @bci=6, line=189 (Interpreted frame)
 //        - org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptorSpec.$spock_feature_1_4() @bci=98, line=105 (Interpreted frame)
