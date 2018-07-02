@@ -103,7 +103,7 @@ class BuildScanPluginPerformanceTest extends Specification {
             displayName(WITH_PLUGIN_LABEL)
             invocation {
                 args(*jobArgs)
-                args("-Dscan", "-Dscan.dump", "-Dorg.gradle.internal.tasks.createops")
+                args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
