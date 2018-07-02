@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -42,7 +42,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 @Override
                 public boolean preVisitDirectory(String path, String name) {
                     if (processedEntries.add(path)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, path.length() - name.length(), DirContentSnapshot.INSTANCE);
+                        NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new DefaultNormalizedFileSnapshot(name, DirContentSnapshot.INSTANCE);
                         builder.put(path, snapshot);
                     }
                     root = false;
@@ -54,7 +54,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                     if (processedEntries.add(path)) {
                         builder.put(
                             path,
-                            new IndexedNormalizedFileSnapshot(path, path.length() - name.length(), content));
+                            new DefaultNormalizedFileSnapshot(name, content));
                     }
                 }
 
