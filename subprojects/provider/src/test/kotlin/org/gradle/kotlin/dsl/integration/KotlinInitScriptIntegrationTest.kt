@@ -97,4 +97,38 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
                 containsString("*test-repository*"))
         }
     }
+
+    @Test
+    @LeaksFileHandles
+    fun `given a script plugin with an initscript block, it will be used to compute its classpath`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withFile("plugin.init.gradle.kts", """
+            initscript {
+                dependencies { classpath(files("fixture.jar")) }
+            }
+
+            rootProject {
+                task("compute") {
+                    doLast {
+                        val computer = ${DeepThought::class.qualifiedName}()
+                        val answer = computer.compute()
+                        println("*" + answer + "*")
+                    }
+                }
+            }
+        """)
+
+        val initScript =
+            withFile("init.gradle.kts", """
+                apply(from = "plugin.init.gradle.kts")
+            """)
+
+        withSettings("")
+
+        assertThat(
+            build("compute", "-I", initScript.canonicalPath).output,
+            containsString("*42*"))
+    }
 }
