@@ -83,8 +83,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                         fileSnapshotVisitor.visitFileSnapshot((PhysicalFileSnapshot) fileSnapshot);
                         break;
                     case Directory:
-                        // Visit the directory itself, then its contents
-                        fileSnapshotVisitor.visitDirectorySnapshot(fileSnapshot);
+                        // Visit the directory and its contents
                         visitDirectoryTree(directoryFileTreeFactory.create(file));
                         break;
                     default:
