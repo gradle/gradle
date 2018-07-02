@@ -134,7 +134,7 @@ public abstract class ClasspathFingerprintingStrategy implements FingerprintingS
         @Nullable
         private FileContentSnapshot fingerprintTreeFile(String path, String name, FileContentSnapshot content) {
             relativePathTracker.enter(name);
-            HashCode newHash = classpathResourceHasher.hash(path, relativePathTracker.get(), content);
+            HashCode newHash = classpathResourceHasher.hash(path, relativePathTracker.getRelativePath(), content);
             relativePathTracker.leave();
             return newHash == null ? null : new FileHashSnapshot(newHash);
         }

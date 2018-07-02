@@ -166,7 +166,7 @@ public class MirrorUpdatingDirectoryWalker {
                         return true;
                     }
                     relativePath.enter(path.getFileName().toString());
-                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, isDirectory, attrs, relativePath.get(), fileSystem));
+                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, isDirectory, attrs, relativePath.getRelativePath(), fileSystem));
                     relativePath.leave();
                     return allowed;
                 }

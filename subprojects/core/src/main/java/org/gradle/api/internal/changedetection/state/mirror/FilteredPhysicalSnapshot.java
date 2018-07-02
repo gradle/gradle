@@ -50,7 +50,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             @Override
             public boolean preVisitDirectory(String path, String name) {
                 relativePath.enter(name);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.get(), DirContentSnapshot.INSTANCE, fileSystem))) {
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
                     visitor.preVisitDirectory(path, name);
                     return true;
                 }
@@ -61,7 +61,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             @Override
             public void visit(String path, String name, FileContentSnapshot content) {
                 relativePath.enter(name);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.get(), content, fileSystem))) {
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.getRelativePath(), content, fileSystem))) {
                     visitor.visit(path, name, content);
                 }
                 relativePath.leave();
