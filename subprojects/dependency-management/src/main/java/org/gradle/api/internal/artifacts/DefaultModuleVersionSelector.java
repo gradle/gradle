@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
@@ -86,10 +85,6 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     public static ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
         return new DefaultModuleVersionSelector(module, version);
-    }
-
-    public static ModuleVersionSelector newSelector(ModuleIdentifier module, VersionConstraint version) {
-        return new DefaultModuleVersionSelector(module, version.getPreferredVersion());
     }
 
     public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {

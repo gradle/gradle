@@ -242,6 +242,6 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
     private static ModuleVersionSelector newVersionSelector(String group, String name, String version) {
         def mid = DefaultModuleIdentifier.newId(group, name)
-        return DefaultModuleVersionSelector.newSelector(mid, new DefaultImmutableVersionConstraint(version))
+        return DefaultModuleVersionSelector.newSelector(mid, version)
     }
 }
