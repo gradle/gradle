@@ -25,6 +25,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -50,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("Since15")
 public class MirrorUpdatingDirectoryWalker {
@@ -81,7 +81,7 @@ public class MirrorUpdatingDirectoryWalker {
 
     private ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
         final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
-        final AtomicReference<ImmutablePhysicalDirectorySnapshot> result = new AtomicReference<ImmutablePhysicalDirectorySnapshot>();
+        final MutableReference<ImmutablePhysicalDirectorySnapshot> result = MutableReference.empty();
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {

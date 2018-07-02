@@ -41,6 +41,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -49,7 +50,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Responsible for snapshotting various aspects of the file system.
@@ -166,7 +166,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public PhysicalSnapshot snapshotTree(final FileTreeInternal tree) {
-        final AtomicReference<MutablePhysicalSnaphot> root = new AtomicReference<MutablePhysicalSnaphot>();
+        final MutableReference<MutablePhysicalSnaphot> root = MutableReference.empty();
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
