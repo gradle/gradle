@@ -16,7 +16,6 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
  *
  * @since 2.6
  */
-@Incubating
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
     /**

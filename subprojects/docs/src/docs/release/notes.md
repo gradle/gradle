@@ -66,6 +66,10 @@ The following are the features that have been promoted in this Gradle release.
 
 The dependency insight report is now considered stable.
 
+### Tooling API types and methods
+
+Many types and methods that were previously marked `@Incubating` are now considered stable. 
+
 ## Fixed issues
 
 ## Deprecations

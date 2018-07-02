@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
@@ -28,7 +26,6 @@ import java.io.File;
  *
  * @since 2.13
  */
-@Incubating
 public interface BuildIdentifier extends Model {
     /**
      * The root directory of this build

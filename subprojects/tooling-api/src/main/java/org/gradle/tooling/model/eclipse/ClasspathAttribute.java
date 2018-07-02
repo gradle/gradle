@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * Optional description associated with Eclipse classpath entries.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 2.14
  */
-@Incubating
 public interface ClasspathAttribute {
 
     /**

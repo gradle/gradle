@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * Root interface for all events that signal progress while executing an operation. For example, an operation can be
  * the execution of a build, of a task, of a test, etc. A progress event can, for example, signal that a test has started, a
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 2.4
  */
-@Incubating
 public interface ProgressEvent {
 
     /**
