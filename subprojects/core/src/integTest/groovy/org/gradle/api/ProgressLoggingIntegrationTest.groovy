@@ -30,7 +30,7 @@ class ProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         then:
         events.progressLogged("Evaluate settings")
         events.progressLogged("Configure project :")
-        events.progressLogged("Execute :help")
+        events.progressLogged("Task :help")
     }
 
     def "generates buildSrc progress events when there is a nested buildSrc build"() {

@@ -37,14 +37,6 @@ public class IntegrationTestBuildContext {
         return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir()));
     }
 
-    public TestFile getUserGuideOutputDir() {
-        return file("integTest.userGuideOutputDir", "subprojects/docs/src/samples/userguideOutput");
-    }
-
-    public TestFile getUserGuideInfoDir() {
-        return file("integTest.userGuideInfoDir", "subprojects/docs/build/src");
-    }
-
     public TestFile getDistributionsDir() {
         return file("integTest.distsDir", "build/distributions");
     }

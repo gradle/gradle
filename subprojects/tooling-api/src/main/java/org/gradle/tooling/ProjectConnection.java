@@ -102,7 +102,6 @@ public interface ProjectConnection {
      * @return The launcher.
      * @since 2.6
      */
-    @Incubating
     TestLauncher newTestLauncher();
 
     /**
@@ -146,7 +145,6 @@ public interface ProjectConnection {
      * @since 1.8
      * @see #action() if you want to hook into different points of the build lifecycle.
      */
-    @Incubating
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
 
     /**

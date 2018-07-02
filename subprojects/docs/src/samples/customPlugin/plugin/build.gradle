@@ -31,7 +31,11 @@ version = '1.0-SNAPSHOT'
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri('../repo'))
+            repository(url: uri("$buildDir/repo"))
         }
     }
+}
+
+task cleanCustomPluginFromMavenLocal(type: Delete) {
+    delete file("${System.env.HOME}/.m2/repository/org/gradle/customPlugin/")
 }

@@ -40,6 +40,7 @@ dependencies {
     compile(library("jansi"))
     compile(library("commons_collections"))
     compile("org.apache.mina:mina-core")
+    compile(testLibrary("sampleCheck"))
 
     implementation(project(":dependencyManagement"))
 

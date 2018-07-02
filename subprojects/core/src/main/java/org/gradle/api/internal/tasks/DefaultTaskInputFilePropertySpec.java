@@ -62,6 +62,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
         return this;
     }
 
+    @Override
     public boolean isSkipWhenEmpty() {
         return skipWhenEmpty;
     }

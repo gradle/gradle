@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Actions;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -37,8 +38,6 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
@@ -50,13 +49,13 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private final ModelPath modelPath;
     private final ModelRegistry modelRegistry;
-    private AtomicBoolean executingDsl;
+    private final MutableBoolean executingDsl;
 
     public NonTransformedModelDslBacking(ModelRegistry modelRegistry) {
-        this(new AtomicBoolean(), null, modelRegistry);
+        this(new MutableBoolean(), null, modelRegistry);
     }
 
-    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
+    private NonTransformedModelDslBacking(MutableBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRegistry = modelRegistry;

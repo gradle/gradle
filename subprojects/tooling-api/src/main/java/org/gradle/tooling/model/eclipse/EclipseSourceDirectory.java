@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.SourceDirectory;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -42,7 +41,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @since 3.0
      */
-    @Incubating
     List<String> getIncludes() throws UnsupportedMethodException;
 
     /**
@@ -53,7 +51,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @since 3.0
      */
-    @Incubating
     List<String> getExcludes() throws UnsupportedMethodException;
 
     /**
@@ -64,7 +61,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @since 3.0
      */
-    @Incubating
     @Nullable
     String getOutput() throws UnsupportedMethodException;
 
@@ -75,6 +71,5 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @since 3.0
      */
-    @Incubating
     DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }

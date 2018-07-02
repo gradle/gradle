@@ -87,6 +87,6 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
     }
 
     private ProgressStartEvent progressStartEvent(OperationIdentifier operationId, String header = 'header') {
-        new ProgressStartEvent(null, null, 0, 'c', 'd', 'sd', header, 's', 0, false, operationId, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(null, null, 0, 'c', 'd', header, 's', 0, false, operationId, BuildOperationCategory.UNCATEGORIZED)
     }
 }

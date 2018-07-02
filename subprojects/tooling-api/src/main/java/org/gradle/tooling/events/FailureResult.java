@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.Failure;
 
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.List;
  *
  * @since 2.4
  */
-@Incubating
 public interface FailureResult extends OperationResult {
 
     /**

@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * A {@code ModelBuilder} allows you to fetch a snapshot of some model for a project or a build.
  * Instances of {@code ModelBuilder} are not thread-safe.
@@ -73,7 +71,6 @@ public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
      * @return this
      * @since 1.2
      */
-    @Incubating
     ModelBuilder<T> forTasks(String... tasks);
 
     /**
@@ -85,7 +82,6 @@ public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
      * @return this
      * @since 2.6
      */
-    @Incubating
     ModelBuilder<T> forTasks(Iterable<String> tasks);
 
     /**

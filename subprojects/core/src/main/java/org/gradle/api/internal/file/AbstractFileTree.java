@@ -30,13 +30,13 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.MutableBoolean;
 
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
@@ -64,7 +64,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public boolean isEmpty() {
-        final AtomicBoolean found = new AtomicBoolean();
+        final MutableBoolean found = new MutableBoolean();
         visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 found.set(true);
@@ -109,7 +109,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
      * Visits all the files of this tree.
      */
     protected boolean visitAll() {
-        final AtomicBoolean hasContent = new AtomicBoolean();
+        final MutableBoolean hasContent = new MutableBoolean();
         visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
                 dirDetails.getFile();

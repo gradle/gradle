@@ -33,7 +33,7 @@ public class GroupedOutputFixture {
      */
     private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
 
-    private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
+    private final static String EMBEDDED_BUILD_START = "> :\\w* > :\\w+";
     private final static String COMPILING_INTO_CACHE = "> :\\w* > Compiling[^\\n]+cache";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";

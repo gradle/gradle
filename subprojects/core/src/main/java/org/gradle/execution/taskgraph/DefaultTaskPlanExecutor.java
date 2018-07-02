@@ -23,6 +23,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -35,9 +37,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
@@ -156,8 +156,8 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
          * @return true if there are more work waiting to execute, false if all work has been executed.
          */
         private boolean executeWithWork(final WorkerLease workerLease, final Action<WorkInfo> workExecutor) {
-            final AtomicReference<WorkInfo> selected = new AtomicReference<WorkInfo>();
-            final AtomicBoolean workRemaining = new AtomicBoolean();
+            final MutableReference<WorkInfo> selected = MutableReference.empty();
+            final MutableBoolean workRemaining = new MutableBoolean();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {

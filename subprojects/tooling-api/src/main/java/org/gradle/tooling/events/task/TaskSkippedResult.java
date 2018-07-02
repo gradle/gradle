@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.SkippedResult;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.SkippedResult;
  *
  * @since 2.5
  */
-@Incubating
 public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
 
     /**

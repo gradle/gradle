@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.model.gradle;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.tooling.model.ProjectModel;
  *
  * @since 1.12
  */
-@Incubating
 public interface ProjectPublications extends Model, ProjectModel {
 
     /**
@@ -35,7 +33,6 @@ public interface ProjectPublications extends Model, ProjectModel {
      *
      * @since 2.13
      */
-    @Incubating
     ProjectIdentifier getProjectIdentifier();
 
     /**

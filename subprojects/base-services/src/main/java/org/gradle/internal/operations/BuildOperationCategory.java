@@ -22,5 +22,5 @@ package org.gradle.internal.operations;
  * @since 4.0
  */
 public enum BuildOperationCategory {
-    CONFIGURE_PROJECT, TASK, UNCATEGORIZED
+    CONFIGURE_PROJECT, TASK, CONFIGURE_ROOT_BUILD, CONFIGURE_BUILD, RUN_TASKS_ROOT_BUILD, RUN_TASKS, UNCATEGORIZED
 }

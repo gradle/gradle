@@ -32,16 +32,18 @@ import org.gradle.internal.serialize.Serializer;
  */
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
     private static final short PARENT_PROGRESS_ID = 1;
-    private static final short SHORT_DESCRIPTION = 1 << 2;
-    private static final short SHORT_DESCRIPTION_IS_DESCRIPTION = 1 << 3;
-    private static final short LOGGING_HEADER = 1 << 4;
-    private static final short LOGGING_HEADER_IS_SHORT_DESCRIPTION = 1 << 5;
-    private static final short STATUS = 1 << 6;
-    private static final short BUILD_OPERATION_ID = 1 << 7;
+    private static final short LOGGING_HEADER = 1 << 2;
+    private static final short LOGGING_HEADER_IS_SUB_DESCRIPTION = 1 << 3;
+    private static final short STATUS = 1 << 4;
+    private static final short STATUS_IS_SUB_DESCRIPTION = 1 << 5;
+    private static final short BUILD_OPERATION_ID = 1 << 6;
+    private static final short BUILD_OPERATION_ID_IS_PROGRESS_ID = 1 << 7;
     private static final short BUILD_OPERATION_START = 1 << 8;
-    private static final short PARENT_BUILD_OPERATION_ID = 1 << 9;
-    private static final short BUILD_OPERATION_CATEGORY_TASK = 1 << 10;
-    private static final short BUILD_OPERATION_CATEGORY_PROJECT = 1 << 11;
+    private static final short CATEGORY_IS_TASK = 1 << 9;
+    private static final short CATEGORY_IS_BUILD_OP = 1 << 10;
+    private static final short CATEGORY_NAME = 1 << 11;
+    private static final short BUILD_OP_CATEGORY_OFFSET = 12;
+    private static final short BUILD_OP_CATEGORY_MASK = 0x7;
 
     @Override
     public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
@@ -50,47 +52,49 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         if (parentProgressOperationId != null) {
             flags |= PARENT_PROGRESS_ID;
         }
-        String shortDescription = event.getShortDescription();
-        if (shortDescription != null) {
-            if (shortDescription.equals(event.getDescription())) {
-                // Optimize for a common case
-                // Should instead have a null short description in this case
-                flags |= SHORT_DESCRIPTION_IS_DESCRIPTION;
-            } else {
-                flags |= SHORT_DESCRIPTION;
-            }
-        }
+
+        String description = event.getDescription();
+
         String loggingHeader = event.getLoggingHeader();
         if (loggingHeader != null) {
-            if (loggingHeader.equals(shortDescription)) {
-                // Optimize for a common case
-                // Should instead get rid of the logging header
-                flags |= LOGGING_HEADER_IS_SHORT_DESCRIPTION;
+            if (description.endsWith(loggingHeader)) {
+                flags |= LOGGING_HEADER_IS_SUB_DESCRIPTION;
             } else {
                 flags |= LOGGING_HEADER;
             }
         }
-        if (!event.getStatus().isEmpty()) {
-            flags |= STATUS;
+
+        String status = event.getStatus();
+        if (!status.isEmpty()) {
+            if (description.endsWith(status)) {
+                flags |= STATUS_IS_SUB_DESCRIPTION;
+            } else {
+                flags |= STATUS;
+            }
         }
+
         OperationIdentifier buildOperationId = event.getBuildOperationId();
         if (buildOperationId != null) {
-            flags |= BUILD_OPERATION_ID;
+            if (buildOperationId.equals(event.getProgressOperationId())) {
+                flags |= BUILD_OPERATION_ID_IS_PROGRESS_ID;
+            } else {
+                flags |= BUILD_OPERATION_ID;
+            }
         }
-        OperationIdentifier parentBuildOperationId = event.getParentBuildOperationId();
-        if (parentBuildOperationId != null) {
-            flags |= PARENT_BUILD_OPERATION_ID;
-        }
+
         BuildOperationCategory buildOperationCategory = event.getBuildOperationCategory();
-        if (buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT) {
-            flags |= BUILD_OPERATION_CATEGORY_PROJECT;
-        } else if (buildOperationCategory == BuildOperationCategory.TASK) {
-            flags |= BUILD_OPERATION_CATEGORY_TASK;
-        } else if (buildOperationCategory != BuildOperationCategory.UNCATEGORIZED) {
-            throw new IllegalArgumentException("Can't handle build operation category " + buildOperationCategory);
-        }
+        flags |= (buildOperationCategory.ordinal() & BUILD_OP_CATEGORY_MASK) << BUILD_OP_CATEGORY_OFFSET;
+
         if (event.isBuildOperationStart()) {
             flags |= BUILD_OPERATION_START;
+        }
+
+        if (event.getCategory().equals(ProgressStartEvent.BUILD_OP_CATEGORY)) {
+            flags |= CATEGORY_IS_BUILD_OP;
+        } else if (event.getCategory().equals(ProgressStartEvent.TASK_CATEGORY)) {
+            flags |= CATEGORY_IS_TASK;
+        } else {
+            flags |= CATEGORY_NAME;
         }
 
         encoder.writeSmallInt(flags);
@@ -100,24 +104,24 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeSmallLong(parentProgressOperationId.getId());
         }
         encoder.writeLong(event.getTimestamp());
-        encoder.writeString(event.getCategory());
-        encoder.writeString(event.getDescription());
-        if ((flags & SHORT_DESCRIPTION) != 0) {
-            encoder.writeString(shortDescription);
+        if ((flags & CATEGORY_NAME) != 0) {
+            encoder.writeString(event.getCategory());
         }
+        encoder.writeString(description);
         if ((flags & LOGGING_HEADER) != 0) {
             encoder.writeString(loggingHeader);
+        } else if ((flags & LOGGING_HEADER_IS_SUB_DESCRIPTION) != 0) {
+            encoder.writeSmallInt(loggingHeader.length());
         }
         if ((flags & STATUS) != 0) {
-            encoder.writeString(event.getStatus());
+            encoder.writeString(status);
+        } else if ((flags & STATUS_IS_SUB_DESCRIPTION) != 0) {
+            encoder.writeSmallInt(status.length());
         }
-        encoder.writeInt(event.getTotalProgress());
+        encoder.writeSmallInt(event.getTotalProgress());
 
-        if (buildOperationId != null) {
+        if ((flags & BUILD_OPERATION_ID) != 0) {
             encoder.writeSmallLong(buildOperationId.getId());
-        }
-        if (parentBuildOperationId != null) {
-            encoder.writeSmallLong(parentBuildOperationId.getId());
         }
     }
 
@@ -132,49 +136,46 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
 
         long timestamp = decoder.readLong();
-        String category = decoder.readString();
-        String description = decoder.readString();
 
-        String shortDescription = null;
-        if ((flags & SHORT_DESCRIPTION_IS_DESCRIPTION) != 0) {
-            shortDescription = description;
-        } else if ((flags & SHORT_DESCRIPTION) != 0) {
-            shortDescription = decoder.readString();
+        String category;
+        if ((flags & CATEGORY_IS_TASK) != 0) {
+            category = ProgressStartEvent.TASK_CATEGORY;
+        } else if ((flags & CATEGORY_IS_BUILD_OP) != 0) {
+            category = ProgressStartEvent.BUILD_OP_CATEGORY;
+        } else {
+            category = decoder.readString();
         }
 
+        String description = decoder.readString();
+
         String loggingHeader = null;
-        if ((flags & LOGGING_HEADER_IS_SHORT_DESCRIPTION) != 0) {
-            loggingHeader = shortDescription;
-        } else if ((flags & LOGGING_HEADER) != 0) {
+        if ((flags & LOGGING_HEADER) != 0) {
             loggingHeader = decoder.readString();
+        } else if ((flags & LOGGING_HEADER_IS_SUB_DESCRIPTION) != 0) {
+            int length = decoder.readSmallInt();
+            loggingHeader = description.substring(description.length() - length);
         }
 
         String status = "";
         if ((flags & STATUS) != 0) {
             status = decoder.readString();
+        } else if ((flags & STATUS_IS_SUB_DESCRIPTION) != 0) {
+            int length = decoder.readSmallInt();
+            status = description.substring(description.length() - length);
         }
-        int totalProgress = decoder.readInt();
+
+        int totalProgress = decoder.readSmallInt();
 
         boolean buildOperationStart = (flags & BUILD_OPERATION_START) != 0;
 
         OperationIdentifier buildOperationId = null;
         if ((flags & BUILD_OPERATION_ID) != 0) {
             buildOperationId = new OperationIdentifier(decoder.readSmallLong());
+        } else if ((flags & BUILD_OPERATION_ID_IS_PROGRESS_ID) != 0) {
+            buildOperationId = progressOperationId;
         }
 
-        OperationIdentifier parentBuildOperationId = null;
-        if ((flags & PARENT_BUILD_OPERATION_ID) != 0) {
-            parentBuildOperationId = new OperationIdentifier(decoder.readSmallLong());
-        }
-
-        BuildOperationCategory buildOperationCategory;
-        if ((flags & BUILD_OPERATION_CATEGORY_PROJECT) != 0) {
-            buildOperationCategory = BuildOperationCategory.CONFIGURE_PROJECT;
-        } else if ((flags & BUILD_OPERATION_CATEGORY_TASK) != 0) {
-            buildOperationCategory = BuildOperationCategory.TASK;
-        } else {
-            buildOperationCategory = BuildOperationCategory.UNCATEGORIZED;
-        }
+        BuildOperationCategory buildOperationCategory = BuildOperationCategory.values()[(int) ((flags >> BUILD_OP_CATEGORY_OFFSET) & BUILD_OP_CATEGORY_MASK)];
 
         return new ProgressStartEvent(
             progressOperationId,
@@ -182,13 +183,11 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             timestamp,
             category,
             description,
-            shortDescription,
             loggingHeader,
             status,
             totalProgress,
             buildOperationStart,
             buildOperationId,
-            parentBuildOperationId,
             buildOperationCategory
         );
     }

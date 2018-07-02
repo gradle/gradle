@@ -38,7 +38,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, false)
 
     def setup() {
-        logHeaderFormatter.format(_, _, _, _) >> { h, d, st, f -> [new StyledTextOutputEvent.Span("Header $d")] }
+        logHeaderFormatter.format(_, _, _) >> { d, st, f -> [new StyledTextOutputEvent.Span("Header $d")] }
     }
 
     def "forwards log event that does not belong to any operation"() {
@@ -78,8 +78,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         given:
         def header = "Download http://repo.somewhere.com/foo.jar"
         def operationId = new OperationIdentifier(-3L)
-        def buildOpId = new OperationIdentifier(22L)
-        def downloadEvent = new ProgressStartEvent(operationId, new OperationIdentifier(-4L), tenAm, CATEGORY, "Download description", null, header, null, 0, true, buildOpId, null, BuildOperationCategory.UNCATEGORIZED)
+        def buildOpId = new OperationIdentifier(-3L)
+        def downloadEvent = new ProgressStartEvent(operationId, new OperationIdentifier(-4L), tenAm, CATEGORY, "Download description", header, null, 0, true, buildOpId, BuildOperationCategory.UNCATEGORIZED)
         def progressEvent = new LogEvent(tenAm, CATEGORY, LogLevel.INFO, "message", null, buildOpId)
         def endEvent = new ProgressCompleteEvent(operationId, tenAm, "all good", false)
 
@@ -98,7 +98,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "buffers log events for a grouped build operation until the operation is complete"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def warningMessage = event('Warning: some deprecation or something', LogLevel.WARN, taskStartEvent.buildOperationId)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS", false)
 
@@ -124,7 +124,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "forwards log events that are not grouped during execution of build operation that is grouped"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def warningMessage = event('Warning: some deprecation or something', LogLevel.WARN, taskStartEvent.buildOperationId)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS", false)
         def event = event('message')
@@ -154,7 +154,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "does not forward header for grouped build operation with no log events"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS", false)
 
         when:
@@ -167,7 +167,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "forwards header for grouped build operation with no log events when configured"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS", false)
         def listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, true)
 
@@ -183,14 +183,14 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "adds spacer line between build operations with log events and not between build operations with no log events"() {
         given:
-        def startEvent1 = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def startEvent1 = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def logEvent1 = event('a message', LogLevel.WARN, startEvent1.buildOperationId)
         def completeEvent1 = new ProgressCompleteEvent(startEvent1.progressOperationId, tenAm, "STATUS", false)
-        def startEvent2 = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :b", ":v", null, null, 0, true, new OperationIdentifier(3L), null, BuildOperationCategory.TASK)
+        def startEvent2 = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :b", null, null, 0, true, new OperationIdentifier(-5L), BuildOperationCategory.TASK)
         def completeEvent2 = new ProgressCompleteEvent(startEvent2.progressOperationId, tenAm, "STATUS", false)
-        def startEvent3 = new ProgressStartEvent(new OperationIdentifier(-6L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :c", ":c", null, null, 0, true, new OperationIdentifier(4L), null, BuildOperationCategory.TASK)
+        def startEvent3 = new ProgressStartEvent(new OperationIdentifier(-6L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :c", null, null, 0, true, new OperationIdentifier(-6L), BuildOperationCategory.TASK)
         def completeEvent3 = new ProgressCompleteEvent(startEvent3.progressOperationId, tenAm, "STATUS", false)
-        def startEvent4 = new ProgressStartEvent(new OperationIdentifier(-7L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :d", ":d", null, null, 0, true, new OperationIdentifier(5L), null, BuildOperationCategory.TASK)
+        def startEvent4 = new ProgressStartEvent(new OperationIdentifier(-7L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :d", null, null, 0, true, new OperationIdentifier(-7L), BuildOperationCategory.TASK)
         def logEvent4 = event('d message', LogLevel.WARN, startEvent4.buildOperationId)
         def completeEvent4 = new ProgressCompleteEvent(startEvent4.progressOperationId, tenAm, "STATUS", false)
         def listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, true)
@@ -231,8 +231,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "groups logs for child operations of tasks"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-        def subtaskStartEvent = new ProgressStartEvent(new OperationIdentifier(-4L), new OperationIdentifier(-5L), tenAm, CATEGORY, ":foo subtask", "subtask", null, null, 0, true, new OperationIdentifier(3L), taskStartEvent.buildOperationId, BuildOperationCategory.UNCATEGORIZED)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-2L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
+        def subtaskStartEvent = new ProgressStartEvent(new OperationIdentifier(-4L), new OperationIdentifier(-3L), tenAm, CATEGORY, ":foo subtask", null, null, 0, true, new OperationIdentifier(-4L), BuildOperationCategory.UNCATEGORIZED)
         def warningMessage = event('Child task log message', LogLevel.WARN, subtaskStartEvent.buildOperationId)
         def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, 'subtask complete', false)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, 'UP-TO-DATE', false)
@@ -259,9 +259,43 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         0 * downstreamListener._
     }
 
+    def "groups logs for child operations of tasks when progress operations interleaved"() {
+        given:
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-2L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
+        def progStartEvent = new ProgressStartEvent(new OperationIdentifier(-4L), new OperationIdentifier(-3L), tenAm, CATEGORY, ":foo subtask", null, null, 0, false, new OperationIdentifier(-3L), BuildOperationCategory.UNCATEGORIZED)
+        def subtaskStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-4L), tenAm, CATEGORY, ":foo subtask", null, null, 0, true, new OperationIdentifier(-5L), BuildOperationCategory.UNCATEGORIZED)
+        def warningMessage = event('Child task log message', LogLevel.WARN, subtaskStartEvent.buildOperationId)
+        def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, 'subtask complete', false)
+        def progCompleteEvent = new ProgressCompleteEvent(progStartEvent.progressOperationId, tenAm, 'subtask complete', false)
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, 'UP-TO-DATE', false)
+
+        when:
+        listener.onOutput(taskStartEvent)
+        listener.onOutput(progStartEvent)
+        listener.onOutput(subtaskStartEvent)
+        listener.onOutput(warningMessage)
+        listener.onOutput(subTaskCompleteEvent)
+        listener.onOutput(progCompleteEvent)
+
+        then:
+        0 * downstreamListener._
+
+        when:
+        listener.onOutput(taskCompleteEvent)
+
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :foo</Normal>" })
+        then:
+        1 * downstreamListener.onOutput({ it.toString() == "[WARN] [category] Child task log message" })
+        then:
+        0 * downstreamListener._
+    }
+
     def "flushes all remaining groups on end of build"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def warningMessage = event('Warning: some deprecation or something', LogLevel.WARN, taskStartEvent.buildOperationId)
         def endBuildEvent = new EndOutputEvent()
 
@@ -284,8 +318,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "handles multiple simultaneous operations"() {
         given:
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
-        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), tenAm, CATEGORY, "Execute :b", ":b", null, null, 0, true, new OperationIdentifier(3L), null, BuildOperationCategory.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
+        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), tenAm, CATEGORY, "Execute :b", null, null, 0, true, new OperationIdentifier(-5L), BuildOperationCategory.TASK)
         def taskAOutput = event('message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def taskBOutput = event('message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
         def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, tenAm, null, false)
@@ -318,7 +352,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     def "does not forward a batched group of events after receiving update now event before flush period"() {
         given:
         def olderTimestamp = 0
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def updateNowEvent = new UpdateNowEvent(olderTimestamp + 100)
 
@@ -339,7 +373,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     def "forwards a batched group of events after receiving update now event after flush period"() {
         given:
         def olderTimestamp = 0
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def updateNowEvent = new UpdateNowEvent(olderTimestamp + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
 
@@ -365,9 +399,9 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     def "forwards multiple batched groups of events after receiving update now event after flush period"() {
         given:
         def olderTimestamp = 0
-        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-13L), new OperationIdentifier(-14L), olderTimestamp, CATEGORY, "Execute :b", ":b", null, null, 0, true, new OperationIdentifier(12L), null, BuildOperationCategory.TASK)
+        def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-13L), new OperationIdentifier(-14L), olderTimestamp, CATEGORY, "Execute :b", null, null, 0, true, new OperationIdentifier(-13L), BuildOperationCategory.TASK)
         def taskBOutput = event(olderTimestamp, 'message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
         def updateNowEvent = new UpdateNowEvent(olderTimestamp + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
 
@@ -401,7 +435,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     @Unroll
     def "forwards header again when status changes after output is flushed (verbose: #verbose)"() {
         def olderTimestamp = 0
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", ":a", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def event1 = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskStartEvent.buildOperationId)
         def updateNowEvent = new UpdateNowEvent(olderTimestamp + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, olderTimestamp + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10, "STATUS", false)
@@ -432,7 +466,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
 
     def "forwards header when not verbose and task status is failed"() {
         given:
-        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, true, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
+        def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "FAILED", true)
         def listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, false)
 

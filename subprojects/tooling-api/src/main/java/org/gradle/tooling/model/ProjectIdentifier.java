@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * Identifies a Gradle project.
  *
@@ -27,7 +25,6 @@ import org.gradle.api.Incubating;
  *
  * @since 2.13
  */
-@Incubating
 public interface ProjectIdentifier extends Model {
 
     /**

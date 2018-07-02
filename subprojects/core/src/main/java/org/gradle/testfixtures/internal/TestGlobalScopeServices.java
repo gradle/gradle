@@ -24,11 +24,10 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -43,8 +42,8 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
         return new InMemoryCacheFactory();
     }
 
-    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, Clock clock, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
-        return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), clock, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, resourceLockCoordinationService, parallelismConfigurationManager);
+    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, Clock clock, WorkerLeaseService workerLeaseService, ProgressLoggerFactory progressLoggerFactory, ExecutorFactory executorFactory, ParallelismConfigurationManager parallelismConfigurationManager) {
+        return new ProjectBuilderBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), clock, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, parallelismConfigurationManager);
     }
 
     LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
@@ -53,8 +52,8 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
 
     private static class ProjectBuilderBuildOperationExecutor extends DefaultBuildOperationExecutor {
 
-        public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, Clock clock, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
-            super(broadcaster, clock, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, resourceLockCoordinationService, parallelismConfigurationManager, new DefaultBuildOperationIdFactory());
+        public ProjectBuilderBuildOperationExecutor(BuildOperationListener broadcaster, Clock clock, ProgressLoggerFactory progressLoggerFactory, DefaultBuildOperationQueueFactory defaultBuildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfigurationManager parallelismConfigurationManager) {
+            super(broadcaster, clock, progressLoggerFactory, defaultBuildOperationQueueFactory, executorFactory, parallelismConfigurationManager, new DefaultBuildOperationIdFactory());
             createRunningRootOperation("ProjectBuilder");
         }
     }

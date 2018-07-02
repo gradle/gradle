@@ -180,6 +180,36 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar", ":jar"
     }
 
+    def "can develop a buildscript dependency that is used by multiple projects of main build"() {
+        given:
+        buildA.settingsFile << """
+            include 'a1'
+            include 'a2'
+        """
+        buildA.file("a1/build.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:pluginDependencyA:1.0'
+                }
+            }
+        """
+        buildA.file("a2/build.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:pluginDependencyA:1.0'
+                }
+            }
+        """
+
+        includeBuild pluginDependencyA
+
+        when:
+        execute(buildA, "help")
+
+        then:
+        executed ":pluginDependencyA:jar"
+    }
+
     def "can use an included build that provides both a buildscript dependency and a compile dependency"() {
         given:
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -307,7 +337,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         then:
         executed ":pluginBuild:jar"
         outputContains("taskFromPluginBuild")
-
 
         when:
         includeBuild pluginBuild

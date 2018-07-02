@@ -31,7 +31,6 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
@@ -54,14 +53,17 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final PathToFileResolver resolver;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
     private final CleanupActionFactory cleanupActionFactory;
+    private final FileAccessTimeJournal fileAccessTimeJournal;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory, CleanupActionFactory cleanupActionFactory) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+                                             CleanupActionFactory cleanupActionFactory, FileAccessTimeJournal fileAccessTimeJournal) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
         this.fileStoreFactory = fileStoreFactory;
         this.cleanupActionFactory = cleanupActionFactory;
+        this.fileAccessTimeJournal = fileAccessTimeJournal;
     }
 
     @Override
@@ -81,16 +83,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
-        FileAccessTimeJournal fileAccessJournal = new ModificationTimeFileAccessTimeJournal();
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, removeUnusedEntriesAfterDays)))
+            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
         BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target);
-        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }

@@ -263,7 +263,7 @@ class UserGuideTransformTask extends DefaultTask {
                         exampleElement.appendChild(outputTitle)
 
                         Element screenElement = doc.createElement('screen')
-                        File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
+                        File srcFile = new File(sourceFile.parentFile, "../../../src/samples/$srcDir/$outputFile").canonicalFile
                         screenElement.appendChild(doc.createTextNode("> $executable $args\n" + normalise(srcFile.text)))
                         exampleElement.appendChild(screenElement)
                     }

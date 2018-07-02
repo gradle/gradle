@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Used to log the progress of a potentially long running operation.
@@ -67,7 +67,9 @@ public interface ProgressLogger {
      * <p>This must be called before {@link #started()}
      *
      * @param description The short description.
+     * @deprecated No replacement
      */
+    @Deprecated
     ProgressLogger setShortDescription(String description);
 
     /**
@@ -85,22 +87,18 @@ public interface ProgressLogger {
      * also logged at the end of the operation, along with the final status message. Defaults to null.
      *
      * @param header The header. May be empty or null.
+     * @deprecated Use {@link org.gradle.api.logging.Logger#lifecycle(String)} instead.
      */
+    @Deprecated
     ProgressLogger setLoggingHeader(String header);
 
     /**
      * Convenience method that sets descriptions and logs started() event.
      *
+     * @param status The initial status message. Can be null or empty.
      * @return this logger instance
      */
-    ProgressLogger start(String description, String shortDescription);
-
-    /**
-     * Convenience method that sets descriptions, total progress and logs started() event.
-     *
-     * @return this logger instance
-     */
-    ProgressLogger start(String description, String shortDescription, int totalProgress);
+    ProgressLogger start(String description, String status);
 
     /**
      * Logs the start of the operation, with no initial status.
@@ -115,14 +113,6 @@ public interface ProgressLogger {
     void started(String status);
 
     /**
-     * Logs the start of the operation, with the given status.
-     *
-     * @param status The initial status message. Can be null or empty.
-     * @param totalProgress total number of {@link #progress(String)}s calls that will be made (if known), 0 if unknown
-     */
-    void started(String status, int totalProgress);
-
-    /**
      * Logs some progress, indicated by a new status.
      *
      * @param status The new status message. Can be null or empty.
@@ -134,7 +124,7 @@ public interface ProgressLogger {
      *
      * @param status The new status message. Can be null or empty.
      */
-    void progress(@Nullable  String status, boolean failing);
+    void progress(@Nullable String status, boolean failing);
 
     /**
      * Logs the completion of the operation, with no final status

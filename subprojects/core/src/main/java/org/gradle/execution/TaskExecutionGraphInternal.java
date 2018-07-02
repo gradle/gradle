@@ -62,5 +62,10 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      */
     Set<Task> getFilteredTasks();
 
+    /**
+     * Returns the number of task in the graph.
+     */
+    int size();
+
     TaskExecutionListener getTaskExecutionListenerSource();
 }

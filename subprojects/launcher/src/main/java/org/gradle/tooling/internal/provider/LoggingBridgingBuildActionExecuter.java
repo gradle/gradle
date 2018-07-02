@@ -32,8 +32,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import java.io.OutputStream;
 
 /**
- * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build
- * request.
+ * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
  */
 public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
     private final LoggingManagerInternal loggingManager;

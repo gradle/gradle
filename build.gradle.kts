@@ -141,6 +141,7 @@ allprojects {
 
     repositories {
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
+        maven(url = "https://repo.gradle.org/gradle/libs")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
     }

@@ -444,7 +444,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.resolver(), executor, buildCancellationToken)
+        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getTestDirectory())

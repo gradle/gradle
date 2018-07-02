@@ -54,7 +54,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         }
 
         IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
-        final DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
+        DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
         executorService.submit(new BuildOpRunnable(newBuildController, rootBuildOperation));
         return newBuildController;
@@ -83,7 +83,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     @Override
     public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
         for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.stopTaskExecution(taskFailures);
+            buildController.awaitTaskCompletion(taskFailures);
         }
     }
 
