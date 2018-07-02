@@ -26,6 +26,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Tooling API types and methods
+
+Many types and methods that were previously marked `@Incubating` are now considered stable. 
+
 ## Fixed issues
 
 ## Deprecations

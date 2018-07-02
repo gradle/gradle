@@ -16,8 +16,6 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * Token that propagates notification that an operation should be cancelled. See {@link org.gradle.tooling.CancellationTokenSource} for details.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 2.1
  */
-@Incubating
 public interface CancellationToken {
     /**
      * Gets whether cancellation has been requested for this token.

@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * The output location of an Eclipse project.
  *
  * @since 3.0
  */
-@Incubating
 public interface EclipseOutputLocation {
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.internal.logging.console
 
-/**
- * Thrown when a {@link org.gradle.tooling.LongRunningOperation} is cancelled before the operation completes.
- *
- * @since 2.1
- */
-public class BuildCancelledException extends GradleConnectionException {
-    public BuildCancelledException(String message) {
-        super(message);
-    }
+import org.gradle.api.logging.configuration.ConsoleOutput
 
-    public BuildCancelledException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
+
+class VerboseConsoleConfigurationProgressFunctionalTest extends AbstractConsoleConfigurationProgressFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Verbose
 }
