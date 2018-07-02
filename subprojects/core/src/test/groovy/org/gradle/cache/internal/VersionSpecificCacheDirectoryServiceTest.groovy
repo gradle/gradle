@@ -58,4 +58,24 @@ class VersionSpecificCacheDirectoryServiceTest extends Specification {
         expect:
         versionSpecificCacheDirectoryService.getDirectory(GradleVersion.version("1.2.3")) == cacheBaseDir.file("1.2.3")
     }
+
+    def "returns Gradle versions from version-specific cache directories"() {
+        given:
+        cacheBaseDir.createDir("_foo")
+        cacheBaseDir.createDir("1.2.3-rc-1")
+        cacheBaseDir.createDir("0.9-20101220110000+1100")
+        cacheBaseDir.createDir("2.3.4")
+        cacheBaseDir.createDir("99_BAR")
+        cacheBaseDir.createDir("ZZZZ")
+
+        when:
+        def versions = versionSpecificCacheDirectoryService.getRecentlyUsedVersions()
+
+        then:
+        versions as List == [
+            GradleVersion.version("0.9-20101220110000+1100"),
+            GradleVersion.version("1.2.3-rc-1"),
+            GradleVersion.version("2.3.4")
+        ]
+    }
 }

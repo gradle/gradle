@@ -54,6 +54,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.GradleVersionProvider;
 import org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService;
 import org.gradle.cache.internal.VersionSpecificCacheDirectoryService;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
@@ -114,7 +115,7 @@ public class GradleUserHomeScopeServices {
             plugin.registerGradleUserHomeServices(registration);
         }
         VersionSpecificCacheDirectoryService versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryService(userHomeDir);
-        registration.add(VersionSpecificCacheDirectoryService.class, versionSpecificCacheDirectoryService);
+        registration.add(GradleVersionProvider.class, versionSpecificCacheDirectoryService);
         registration.add(VersionSpecificCacheAndWrapperDistributionCleanupService.class,
             new VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion.current(), versionSpecificCacheDirectoryService, userHomeDir));
     }
