@@ -53,7 +53,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection input, VisitingFileCollectionSnapshotBuilder builder) {
+    public FileCollectionSnapshot snapshot(FileCollection input, FileCollectionSnapshotBuilder builder) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(builder);
         fileCollection.visitRootElements(visitor);
@@ -65,10 +65,10 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final FileSnapshotVisitor fileSnapshotVisitor;
+        private final FileCollectionSnapshotBuilder builder;
 
-        FileCollectionVisitorImpl(FileSnapshotVisitor fileSnapshotVisitor) {
-            this.fileSnapshotVisitor = fileSnapshotVisitor;
+        FileCollectionVisitorImpl(FileCollectionSnapshotBuilder builder) {
+            this.builder = builder;
         }
 
         @Override
@@ -77,10 +77,10 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
                 switch (fileSnapshot.getType()) {
                     case Missing:
-                        fileSnapshotVisitor.visitMissingFileSnapshot((PhysicalMissingSnapshot) fileSnapshot);
+                        builder.visitMissingFileSnapshot((PhysicalMissingSnapshot) fileSnapshot);
                         break;
                     case RegularFile:
-                        fileSnapshotVisitor.visitFileSnapshot((PhysicalFileSnapshot) fileSnapshot);
+                        builder.visitFileSnapshot((PhysicalFileSnapshot) fileSnapshot);
                         break;
                     case Directory:
                         // Visit the directory and its contents
@@ -95,13 +95,13 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitTree(FileTreeInternal fileTree) {
             PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
-            fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
+            builder.visitFileTreeSnapshot(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
+            builder.visitFileTreeSnapshot(treeSnapshot);
         }
     }
 }

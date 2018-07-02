@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.VisitingFileCollectionSnapshotBuilder;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class FileCollectionFingerprintBuilder implements FileCollectionSnapshotBuilder, VisitingFileCollectionSnapshotBuilder {
+public class FileCollectionFingerprintBuilder implements FileCollectionSnapshotBuilder {
 
     private final List<PhysicalSnapshot> roots = new ArrayList<PhysicalSnapshot>();
     private final FingerprintingStrategy fingerprintingStrategy;
@@ -37,17 +39,20 @@ public class FileCollectionFingerprintBuilder implements FileCollectionSnapshotB
 
     @Override
     public FileCollectionSnapshot build() {
-        return new DefaultFileCollectionFingerprint(fingerprintingStrategy.getCompareStrategy(), fingerprintingStrategy.collectSnapshots(roots));
+        if (roots.isEmpty()) {
+            return EmptyFileCollectionSnapshot.INSTANCE;
+        }
+        Map<String, NormalizedFileSnapshot> snapshots = fingerprintingStrategy.collectSnapshots(roots);
+        if (snapshots.isEmpty()) {
+            return EmptyFileCollectionSnapshot.INSTANCE;
+        }
+
+        return new DefaultFileCollectionFingerprint(fingerprintingStrategy.getCompareStrategy(), snapshots);
     }
 
     @Override
     public void visitFileTreeSnapshot(PhysicalSnapshot tree) {
         roots.add(tree);
-    }
-
-    @Override
-    public void visitDirectorySnapshot(PhysicalSnapshot directory) {
-        roots.add(directory);
     }
 
     @Override
