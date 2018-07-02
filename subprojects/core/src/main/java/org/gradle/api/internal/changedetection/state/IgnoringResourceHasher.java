@@ -18,10 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 
-@SuppressWarnings("Since15")
 public class IgnoringResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final Set<String> ignores;
@@ -50,33 +49,26 @@ public class IgnoringResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
-        if (shouldBeIgnored(asRelativePath(relativePath))) {
+        if (shouldBeIgnored(Iterables.toArray(relativePath, String.class))) {
             return null;
         }
         return delegate.hash(path, relativePath, content);
     }
 
-    private RelativePath asRelativePath(Iterable<String> elements) {
-        if (elements instanceof RelativePath) {
-            return (RelativePath) elements;
-        }
-        return new RelativePath(true, Iterables.toArray(elements, String.class));
-    }
-
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        if (shouldBeIgnored(RelativePath.parse(true, zipEntry.getName()))) {
+        if (shouldBeIgnored(FilePathUtil.getPathSegments(zipEntry.getName()))) {
             return null;
         }
         return delegate.hash(zipEntry, zipInput);
     }
 
-    private boolean shouldBeIgnored(RelativePath relativePath) {
+    private boolean shouldBeIgnored(String[] relativePath) {
         if (ignoreMatchers.isEmpty()) {
             return false;
         }
         for (PathMatcher ignoreSpec : ignoreMatchers) {
-            if (ignoreSpec.matches(relativePath.getSegments(), 0)) {
+            if (ignoreSpec.matches(relativePath, 0)) {
                 return true;
             }
         }

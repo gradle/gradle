@@ -30,7 +30,6 @@ import java.util.zip.ZipEntry;
  * It does not cache the result of hashing {@link ZipEntry}s.
  * It also caches the absence of a hash.
  */
-@SuppressWarnings("Since15")
 public class CachingResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;

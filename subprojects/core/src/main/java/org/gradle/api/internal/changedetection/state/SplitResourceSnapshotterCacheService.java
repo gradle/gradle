@@ -22,7 +22,6 @@ import org.gradle.internal.hash.HashCode;
  * A {@link ResourceSnapshotterCacheService} that delegates to the global service for immutable files
  * and uses the local service for all other files. This ensures optimal cache utilization.
  */
-@SuppressWarnings("Since15")
 public class SplitResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private final ResourceSnapshotterCacheService globalCache;
     private final ResourceSnapshotterCacheService localCache;

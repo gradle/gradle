@@ -33,7 +33,6 @@ import java.util.zip.ZipEntry;
  *
  * Currently, we take the unmodified content into account but we could be smarter at some point.
  */
-@SuppressWarnings("Since15")
 public class RuntimeClasspathResourceHasher implements ResourceHasher {
 
     @Nullable

@@ -15,15 +15,13 @@
  */
 package org.gradle.api.file;
 
-import com.google.common.collect.Iterators;
-import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.file.FilePathUtil;
 
 import java.io.File;
 import java.io.Serializable;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.ListIterator;
 
 /**
@@ -32,9 +30,8 @@ import java.util.ListIterator;
  *
  * <p>{@code RelativePath} instances are immutable.</p>
  */
-public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence, Iterable<String> {
+public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence {
     public static final RelativePath EMPTY_ROOT = new RelativePath(false);
-    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -176,11 +173,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         if (endsWithFile != that.endsWithFile) {
             return false;
         }
-        if (!Arrays.equals(segments, that.segments)) {
-            return false;
-        }
-
-        return true;
+        return Arrays.equals(segments, that.segments);
     }
 
     @Override
@@ -218,7 +211,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     }
 
     public static RelativePath parse(boolean isFile, RelativePath parent, String path) {
-        String[] names = StringUtils.split(path, FILE_PATH_SEPARATORS);
+        String[] names = FilePathUtil.getPathSegments(path);
         return new RelativePath(isFile, parent, names);
     }
 
@@ -300,10 +293,5 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
             k++;
         }
         return 0;
-    }
-
-    @Override
-    public Iterator<String> iterator() {
-        return Iterators.forArray(segments);
     }
 }

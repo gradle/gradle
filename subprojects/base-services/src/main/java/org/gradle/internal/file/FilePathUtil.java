@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.file;
 
-import org.gradle.internal.hash.HashCode;
+import org.apache.commons.lang.StringUtils;
 
-public interface ResourceSnapshotterCacheService {
-    HashCode hashFile(String path, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash);
+import java.io.File;
+
+public class FilePathUtil {
+    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
+
+    private FilePathUtil() {
+    }
+
+    public static String[] getPathSegments(String path) {
+        return StringUtils.split(path, FILE_PATH_SEPARATORS);
+    }
 }
