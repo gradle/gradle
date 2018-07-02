@@ -19,8 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -77,13 +75,13 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
                 switch (fileSnapshot.getType()) {
                     case Missing:
-                        builder.visitMissingFileSnapshot((PhysicalMissingSnapshot) fileSnapshot);
+                        builder.collectRoot(fileSnapshot);
                         break;
                     case RegularFile:
-                        builder.visitFileSnapshot((PhysicalFileSnapshot) fileSnapshot);
+                        builder.collectRoot(fileSnapshot);
                         break;
                     case Directory:
-                        // Visit the directory and its contents
+                        // Collect the directory and its contents
                         visitDirectoryTree(directoryFileTreeFactory.create(file));
                         break;
                     default:
@@ -95,13 +93,13 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitTree(FileTreeInternal fileTree) {
             PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
-            builder.visitFileTreeSnapshot(treeSnapshot);
+            builder.collectRoot(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            builder.visitFileTreeSnapshot(treeSnapshot);
+            builder.collectRoot(treeSnapshot);
         }
     }
 }

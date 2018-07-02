@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import org.gradle.api.internal.changedetection.state.MissingFileContentSnapshot;
 import org.gradle.internal.file.FileType;
 
 /**
- * Represents a missing file.
+ * An empty tree.
+ *
+ * Path and name are not available, since we don't know where the root is.
  */
-public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
+public class PhysicalEmptyTree implements PhysicalSnapshot {
 
-    public PhysicalMissingSnapshot(String path, String name) {
-        super(path, name);
-    }
+    public static final PhysicalEmptyTree INSTANCE = new PhysicalEmptyTree();
 
     @Override
     public FileType getType() {
@@ -34,7 +33,16 @@ public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
     }
 
     @Override
+    public String getName() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getPath() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        visitor.visit(getPath(), getName(), MissingFileContentSnapshot.INSTANCE);
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDir
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalEmptyTree;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
@@ -209,7 +210,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (rootSnapshot != null) {
             return rootSnapshot;
         }
-        return PhysicalMissingSnapshot.INSTANCE;
+        return PhysicalEmptyTree.INSTANCE;
     }
 
     private PhysicalSnapshot snapshotAndCache(DirectoryFileTree directoryTree) {

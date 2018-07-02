@@ -70,7 +70,8 @@ public class MirrorUpdatingDirectoryWalker {
 
     public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
-            return PhysicalMissingSnapshot.INSTANCE;
+            // The root missing file should not be tracked for trees.
+            return PhysicalEmptyTree.INSTANCE;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
             return fileSnapshot;

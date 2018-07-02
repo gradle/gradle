@@ -20,8 +20,6 @@ import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 
 import java.util.ArrayList;
@@ -51,19 +49,7 @@ public class FileCollectionFingerprintBuilder implements FileCollectionSnapshotB
     }
 
     @Override
-    public void visitFileTreeSnapshot(PhysicalSnapshot tree) {
-        roots.add(tree);
-    }
-
-    @Override
-    public void visitFileSnapshot(PhysicalFileSnapshot file) {
-        roots.add(file);
-    }
-
-    @Override
-    public void visitMissingFileSnapshot(PhysicalMissingSnapshot missingFile) {
-        if (missingFile != PhysicalMissingSnapshot.INSTANCE) {
-            roots.add(missingFile);
-        }
+    public void collectRoot(PhysicalSnapshot root) {
+        roots.add(root);
     }
 }
