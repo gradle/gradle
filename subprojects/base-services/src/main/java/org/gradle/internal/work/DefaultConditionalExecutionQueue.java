@@ -18,6 +18,7 @@ package org.gradle.internal.work;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -26,7 +27,6 @@ import org.gradle.internal.resources.ResourceLockState;
 
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -139,7 +139,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
          * Gets the next ConditionalExecution object that is ready to be executed.
          */
         private ConditionalExecution getReadyExecution() {
-            final AtomicReference<ConditionalExecution> execution = new AtomicReference<ConditionalExecution>();
+            final MutableReference<ConditionalExecution> execution = MutableReference.empty();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {

@@ -37,6 +37,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.GFileUtils;
 
@@ -46,7 +47,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -191,7 +191,7 @@ public class AntlrTask extends SourceTask {
     public void execute(IncrementalTaskInputs inputs) {
         final Set<File> grammarFiles = new HashSet<File>();
         final Set<File> sourceFiles = getSource().getFiles();
-        final AtomicBoolean cleanRebuild = new AtomicBoolean();
+        final MutableBoolean cleanRebuild = new MutableBoolean();
         inputs.outOfDate(
             new Action<InputFileDetails>() {
                 public void execute(InputFileDetails details) {
