@@ -83,7 +83,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def outputFileContent = new FileHashSnapshot(HashCode.fromInt(234))
         def outputFileSnapshot = new PhysicalFileSnapshot(outputFile.absolutePath, outputFile.name, outputFileContent)
         def fileSnapshots = ImmutableMap.of(
-            "outputDir", new ImmutablePhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, new FileHashSnapshot(outputDirFileContent.contentMd5, outputDirFileContent.lastModified)))),
+            "outputDir", new ImmutablePhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, outputDirFileContent))),
             "outputFile", outputFileSnapshot)
 
         when:

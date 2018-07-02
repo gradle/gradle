@@ -81,8 +81,4 @@ public class FileHashSnapshot implements FileContentSnapshot {
     public HashCode getContentMd5() {
         return hash;
     }
-
-    public long getLastModified() {
-        return lastModified;
-    }
 }
