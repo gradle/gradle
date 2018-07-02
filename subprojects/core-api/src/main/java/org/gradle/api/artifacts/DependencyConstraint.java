@@ -75,4 +75,13 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      */
     @Incubating
     DependencyConstraint attributes(Action<? super AttributeContainer> configureAction);
+
+    /**
+     * Returns the version constraint to be used during selection.
+     * @return the version constraint
+     *
+     * @since 4.4
+     */
+    @Incubating
+    VersionConstraint getVersionConstraint();
 }

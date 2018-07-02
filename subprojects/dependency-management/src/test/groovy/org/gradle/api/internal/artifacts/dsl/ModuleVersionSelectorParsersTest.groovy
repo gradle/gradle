@@ -38,8 +38,6 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '1.0'
-        v[0].versionConstraint.preferredVersion == '1.0'
-        v[0].versionConstraint.rejectedVersions == []
     }
 
     def "works with CharSequences"() {
@@ -64,8 +62,6 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '2.0'
-        v[0].versionConstraint.preferredVersion == '2.0'
-        v[0].versionConstraint.rejectedVersions == []
     }
 
     def "allows list of objects on input"() {
@@ -91,8 +87,6 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '1.0'
-        v[0].versionConstraint.preferredVersion == '1.0'
-        v[0].versionConstraint.rejectedVersions == []
     }
 
     def "fails for unknown types"() {
@@ -159,7 +153,5 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v.group == 'org.foo'
         v.name  == 'bar'
         v.version  == '1.0'
-        v.versionConstraint.preferredVersion == '1.0'
-        v.versionConstraint.rejectedVersions == []
     }
 }
