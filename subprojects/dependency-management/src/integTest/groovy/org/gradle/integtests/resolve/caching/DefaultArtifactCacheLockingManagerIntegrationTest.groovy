@@ -19,10 +19,10 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
@@ -238,6 +238,26 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
 
         and:
         jarFile.assertExists()
+    }
+
+    def "cleans up unused versions of caches"() {
+        given:
+        requireOwnGradleUserHomeDir() // messes with caches
+        def oldCacheDirs = [
+            userHomeCacheDir.createDir("${CacheLayout.ROOT.name}-1"),
+            userHomeCacheDir.file(CacheLayout.ROOT.key).createDir("${CacheLayout.META_DATA.name}-2.56")
+        ]
+        def currentMetaDataDir = userHomeCacheDir.file(CacheLayout.ROOT.key, CacheLayout.META_DATA.key).createDir()
+        gcFile.createFile().lastModified = daysAgo(2)
+
+        when:
+        succeeds("tasks")
+
+        then:
+        oldCacheDirs.each {
+            it.assertDoesNotExist()
+        }
+        currentMetaDataDir.assertExists()
     }
 
     private static TestFile findFile(File baseDir, String includePattern) {
