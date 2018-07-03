@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 
 public class FilePathUtil {
+    // On Windows, / and \ are separators, on Unix only / is a separator.
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
 
     private FilePathUtil() {

@@ -110,7 +110,7 @@ include 'a', 'b'
 """
 
         then:
-        succeeds ':b:compileJava', "--info"
+        succeeds ':b:compileJava'
         executedAndNotSkipped ':a:compileJava'
         skipped ':b:compileJava'
 
