@@ -13,7 +13,7 @@ Gradle task and plugin authors: we need your feedback on this new API!
 Please read [the documentation](userguide/task_configuration_avoidance.html), try it out in non-production environments, and [file issues](https://github.com/gradle/gradle/issues) on GitHub or discuss on [the forum](https://discuss.gradle.org).
 
 Next, publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be [depended upon by other projects](https://github.com/gradle/gradle/issues/1061) in the same build.
-There is also a [new Publishing Overview chapter](/userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.
+There is also a [new Publishing Overview chapter](userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.
 
 In addition to lazy tasks use, Kotlin DSL build scripts are evaluated faster with version 0.18.4, included in this version of Gradle.
 IntelliJ IDEA and Android Studio user experience is also improved.
@@ -50,7 +50,7 @@ See the [Application Plugin documentation](userguide/application_plugin.html#sec
 
 ### Improved dependency insight report
 
-The [dependency insight report](/userguide/inspecting_dependencies.html#sec:identifying_reason_dependency_selection) is the distant ancestor of [build scans](https://scans.gradle.com) and helps you diagnose dependency management problems locally.
+The [dependency insight report](userguide/inspecting_dependencies.html#sec:identifying_reason_dependency_selection) is the distant ancestor of [build scans](https://scans.gradle.com) and helps you diagnose dependency management problems locally.
 This release of Gradle implements several improvements:
 
 - using `failOnVersionConflict()` no longer fails the dependency insight report in case of conflict
