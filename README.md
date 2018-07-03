@@ -34,3 +34,9 @@ Come chat with us in the #gradle channel of the public [Kotlin Slack](http://sla
 License
 -------
 Like the rest of Gradle, the _Gradle Kotlin DSL_ is released under version 2.0 of the [Apache License](LICENSE.md).
+
+
+Contributing
+------------
+
+Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details of how to build and contribute to _Gradle Kotlin DSL_. 
