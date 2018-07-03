@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -61,7 +60,6 @@ task sleep {
         }
     }
 
-    @Timeout(25)
     def "promptly shows decent message when daemon cannot be started"() {
         when:
         executer.withArguments("-Dorg.gradle.jvmargs=-Xyz").run()

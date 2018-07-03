@@ -18,10 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
-import spock.lang.Timeout
 
-
-@Timeout(60)
 class WorkerDaemonWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
     @Rule
     Sample workerExecutorSample = new Sample(temporaryFolder, "workerApi/workerDaemon")

@@ -18,9 +18,7 @@ package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import spock.lang.Timeout
 
-@Timeout(120)
 class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
 
     static final String ORIGINAL_HELLO_WORLD = """

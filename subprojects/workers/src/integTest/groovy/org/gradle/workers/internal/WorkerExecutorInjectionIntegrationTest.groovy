@@ -18,10 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
-import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(120)
 class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll

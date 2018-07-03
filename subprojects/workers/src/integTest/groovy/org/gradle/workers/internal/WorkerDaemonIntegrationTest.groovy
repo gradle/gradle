@@ -22,13 +22,11 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
-import spock.lang.Timeout
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.notNullValue
 
-@Timeout(90)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     def "sets the working directory to the project directory by default during worker execution"() {
         withRunnableClassInBuildScript()

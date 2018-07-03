@@ -24,10 +24,8 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
-import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(300)
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     static final EXPIRATION_CHECK_FREQUENCY = 50
     public static final String EXPIRATION_EVENT = "expiration_event.txt"

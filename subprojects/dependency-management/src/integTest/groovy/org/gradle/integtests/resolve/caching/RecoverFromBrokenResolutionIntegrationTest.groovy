@@ -20,11 +20,9 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.hamcrest.Matchers
-import spock.lang.Timeout
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-@Timeout(120)
 class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     MavenHttpRepository repo

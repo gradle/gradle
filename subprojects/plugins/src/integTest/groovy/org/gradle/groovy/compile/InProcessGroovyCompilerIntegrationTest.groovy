@@ -15,9 +15,6 @@
  */
 package org.gradle.groovy.compile
 
-import spock.lang.Timeout
-
-@Timeout(300)
 class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
 
     def setup() {

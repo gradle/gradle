@@ -16,10 +16,8 @@
 
 package org.gradle.workers.internal
 
-import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll
