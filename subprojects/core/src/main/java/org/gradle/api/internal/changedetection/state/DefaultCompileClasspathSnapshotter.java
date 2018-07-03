@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.logical.CompileClasspathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFingerprintingStrategy;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FileCollectionFingerprintBuilder;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
@@ -39,7 +39,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         return super.snapshot(
             files,
-            new FileCollectionFingerprintBuilder(new CompileClasspathFingerprintingStrategy(classpathResourceHasher, cacheService)));
+            new FileCollectionFingerprintBuilder(new ClasspathFingerprintingStrategy(true, classpathResourceHasher, cacheService)));
     }
 
     @Override

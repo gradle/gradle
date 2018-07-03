@@ -40,14 +40,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
+public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
+    private final boolean includeOnlyJars;
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
     private final JarHasher jarHasher;
     private final HashCode jarHasherConfigurationHash;
 
-    public ClasspathFingerprintingStrategy(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+    public ClasspathFingerprintingStrategy(boolean includeOnlyJars, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+        this.includeOnlyJars = includeOnlyJars;
         this.cacheService = cacheService;
         this.classpathResourceHasher = classpathResourceHasher;
         this.jarHasher = new JarHasher(classpathResourceHasher);
@@ -151,11 +153,8 @@ public abstract class ClasspathFingerprintingStrategy implements FingerprintingS
         if (FileUtils.hasExtensionIgnoresCase(name, ".jar")) {
             return snapshotJarContents(path, ImmutableList.of(name), content);
         }
-        return snapshotNonJarContents(content);
+        return includeOnlyJars ? null: content;
     }
-
-    @Nullable
-    protected abstract FileContentSnapshot snapshotNonJarContents(FileContentSnapshot contentSnapshot);
 
     @Nullable
     private FileContentSnapshot snapshotJarContents(String path, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
