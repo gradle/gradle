@@ -18,13 +18,14 @@ package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.file.FileTree
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 import spock.lang.Subject
 
 class JarClasspathSnapshotFactoryTest extends Specification {
 
     def snapshotter = Mock(JarSnapshotter)
-    @Subject factory = new JarClasspathSnapshotFactory(snapshotter)
+    @Subject factory = new JarClasspathSnapshotFactory(snapshotter, new TestBuildOperationExecutor())
 
     def "creates classpath snapshot with correct duplicate classes"() {
         def jar1 = stubArchive("f1"); def jar2 = stubArchive("f2"); def jar3 = stubArchive("f3")
