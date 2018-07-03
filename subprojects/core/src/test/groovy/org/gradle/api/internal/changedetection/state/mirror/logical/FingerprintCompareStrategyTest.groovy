@@ -43,15 +43,15 @@ class FingerprintCompareStrategyTest extends Specification {
         ) as List == []
 
         where:
-        strategy                             | includeAdded
-        CLASSPATH | true
-        CLASSPATH | false
-        NORMALIZED | true
-        NORMALIZED | false
+        strategy     | includeAdded
+        CLASSPATH    | true
+        CLASSPATH    | false
+        NORMALIZED   | true
+        NORMALIZED   | false
         IGNORED_PATH | true
         IGNORED_PATH | false
-        ABSOLUTE  | true
-        ABSOLUTE  | false
+        ABSOLUTE     | true
+        ABSOLUTE     | false
     }
 
     @Unroll
@@ -113,11 +113,11 @@ class FingerprintCompareStrategyTest extends Specification {
         ) as List == [removed("one-old")]
 
         where:
-        strategy  | includeAdded
-        CLASSPATH    | true
-        CLASSPATH    | false
-        NORMALIZED   | true
-        NORMALIZED   | false
+        strategy   | includeAdded
+        CLASSPATH  | true
+        CLASSPATH  | false
+        NORMALIZED | true
+        NORMALIZED | false
         ABSOLUTE   | true
         ABSOLUTE   | false
     }
@@ -131,11 +131,11 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [removed("two-old")]
 
         where:
-        strategy  | includeAdded
-        CLASSPATH    | true
-        CLASSPATH    | false
-        NORMALIZED   | true
-        NORMALIZED   | false
+        strategy   | includeAdded
+        CLASSPATH  | true
+        CLASSPATH  | false
+        NORMALIZED | true
+        NORMALIZED | false
     }
 
     @Unroll
@@ -147,9 +147,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [removed("two")]
 
         where:
-        strategy  | includeAdded
-        ABSOLUTE   | true
-        ABSOLUTE   | false
+        strategy | includeAdded
+        ABSOLUTE | true
+        ABSOLUTE | false
     }
 
     @Unroll
@@ -161,11 +161,11 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
 
         where:
-        strategy  | includeAdded
-        CLASSPATH    | true
-        CLASSPATH    | false
-        NORMALIZED   | true
-        NORMALIZED   | false
+        strategy   | includeAdded
+        CLASSPATH  | true
+        CLASSPATH  | false
+        NORMALIZED | true
+        NORMALIZED | false
     }
 
     @Unroll
@@ -189,9 +189,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
-        strategy  | includeAdded
-        ABSOLUTE   | true
-        ABSOLUTE   | false
+        strategy | includeAdded
+        ABSOLUTE | true
+        ABSOLUTE | false
     }
 
     @Unroll
@@ -203,9 +203,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ) as List == results
 
         where:
-        strategy  | includeAdded | results
-        CLASSPATH   | true         | [removed("one-old"), added("two-new")]
-        CLASSPATH   | false        | [removed("one-old")]
+        strategy   | includeAdded | results
+        CLASSPATH  | true         | [removed("one-old"), added("two-new")]
+        CLASSPATH  | false        | [removed("one-old")]
         NORMALIZED | true         | [removed("one-old"), added("two-new")]
         NORMALIZED | false        | [removed("one-old")]
     }
@@ -219,9 +219,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | includeAdded | results
-        CLASSPATH   | true         | [removed("three-old"), added("two-new")]
-        CLASSPATH   | false        | [removed("three-old")]
+        strategy   | includeAdded | results
+        CLASSPATH  | true         | [removed("three-old"), added("two-new")]
+        CLASSPATH  | false        | [removed("three-old")]
         NORMALIZED | true         | [removed("three-old"), added("two-new")]
         NORMALIZED | false        | [removed("three-old")]
     }
@@ -235,7 +235,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | includeAdded | results
+        strategy | includeAdded | results
         ABSOLUTE | true         | [added("two"), removed("three")]
         ABSOLUTE | false        | [removed("three")]
     }
@@ -249,9 +249,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | includeAdded | results
-        CLASSPATH   | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
-        CLASSPATH   | false        | [removed("three-old"), removed("two-old")]
+        strategy   | includeAdded | results
+        CLASSPATH  | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
+        CLASSPATH  | false        | [removed("three-old"), removed("two-old")]
         NORMALIZED | true         | []
         NORMALIZED | false        | []
     }
@@ -265,7 +265,7 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | includeAdded | results
+        strategy | includeAdded | results
         ABSOLUTE | true         | []
         ABSOLUTE | false        | []
     }
@@ -279,9 +279,9 @@ class FingerprintCompareStrategyTest extends Specification {
         ) == []
 
         where:
-        strategy  | includeAdded
-        CLASSPATH   | true
-        CLASSPATH   | false
+        strategy   | includeAdded
+        CLASSPATH  | true
+        CLASSPATH  | false
         NORMALIZED | true
         NORMALIZED | false
     }
