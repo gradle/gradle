@@ -108,8 +108,8 @@ class DefaultResolutionStrategySpec extends Specification {
         _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
-        _ * details.getOldRequested() >> newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
+        _ * details.getOldRequested() >> newSelector(mid, "1.0")
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -137,8 +137,8 @@ class DefaultResolutionStrategySpec extends Specification {
         then: //forced modules:
         dependencySubstitutions.ruleAction >> substitutionAction
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
-        _ * details.oldRequested >> newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
+        _ * details.oldRequested >> newSelector(mid, "1.0")
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:
