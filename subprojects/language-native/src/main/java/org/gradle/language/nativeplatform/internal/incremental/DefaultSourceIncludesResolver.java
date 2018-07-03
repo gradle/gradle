@@ -16,9 +16,12 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -350,8 +353,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
 
             File candidate = new File(searchDir, includePath);
-            FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
-            includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSnapshot) : MISSING_INCLUDE_FILE;
+            PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
+            includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, ((PhysicalFileSnapshot) fileSnapshot).getContent()) : MISSING_INCLUDE_FILE;
             contents.put(includePath, includeFile);
             return includeFile;
         }
@@ -381,9 +384,9 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static class SystemIncludeFile extends CachedIncludeFile implements IncludeFile {
         final File file;
         final String includePath;
-        final FileSnapshot snapshot;
+        final FileContentSnapshot snapshot;
 
-        SystemIncludeFile(File file, String includePath, FileSnapshot snapshot) {
+        SystemIncludeFile(File file, String includePath, FileContentSnapshot snapshot) {
             this.file = file;
             this.includePath = includePath;
             this.snapshot = snapshot;
@@ -410,8 +413,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public FileSnapshot getSnapshot() {
-            return snapshot;
+        public HashCode getContentHash() {
+            return snapshot.getContentMd5();
         }
 
         @Override
@@ -439,7 +442,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         private static class QuotedIncludeFile extends SystemIncludeFile {
-            QuotedIncludeFile(File file, String includePath, FileSnapshot snapshot) {
+            QuotedIncludeFile(File file, String includePath, FileContentSnapshot snapshot) {
                 super(file, includePath, snapshot);
             }
 

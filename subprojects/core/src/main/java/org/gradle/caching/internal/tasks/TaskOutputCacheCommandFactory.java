@@ -16,27 +16,22 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
 import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
-import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.FileCollectionFingerprintBuilder;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -53,22 +48,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 public class TaskOutputCacheCommandFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TaskOutputCacheCommandFactory.class);
-    private static final Predicate<? super FileSnapshot> EXCLUDE_ROOT_SNAPSHOTS = new Predicate<FileSnapshot>() {
-        @Override
-        public boolean apply(FileSnapshot snapshot) {
-            return !snapshot.isRoot();
-        }
-    };
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
@@ -148,7 +133,7 @@ public class TaskOutputCacheCommandFactory {
             };
         }
 
-        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
+        private void updateSnapshots(Map<String, ? extends PhysicalSnapshot> propertiesSnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
@@ -157,33 +142,33 @@ public class TaskOutputCacheCommandFactory {
                     propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
                     continue;
                 }
-                List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
+                PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
+                String absolutePath = internedAbsolutePath(outputFile);
+                FileCollectionFingerprintBuilder builder = new FileCollectionFingerprintBuilder(new AbsolutePathFingerprintingStrategy(false));
 
-                CollectingFileCollectionSnapshotBuilder builder = new CollectingFileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
-                for (FileSnapshot fileSnapshot : fileSnapshots) {
-                    builder.collectFileSnapshot(fileSnapshot);
+                if (snapshot == null) {
+                    fileSystemMirror.putFile(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
+                    propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
+                    continue;
                 }
-                propertySnapshotsBuilder.put(propertyName, builder.build());
 
                 switch (property.getOutputType()) {
                     case FILE:
-                        FileSnapshot singleSnapshot = Iterables.getOnlyElement(fileSnapshots, null);
-                        if (singleSnapshot != null) {
-                            if (singleSnapshot.getType() != FileType.RegularFile) {
-                                throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, singleSnapshot.getType()));
-                            }
-                            fileSystemMirror.putFile(singleSnapshot);
-                        } else {
-                            fileSystemMirror.putFile(new MissingFileSnapshot(internedAbsolutePath(outputFile), RelativePath.EMPTY_ROOT));
+                        if (snapshot.getType() != FileType.RegularFile) {
+                            throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
+                        PhysicalFileSnapshot fileSnapshot = (PhysicalFileSnapshot) snapshot;
+                        builder.visitFileSnapshot(fileSnapshot);
+                        fileSystemMirror.putFile(fileSnapshot);
                         break;
                     case DIRECTORY:
-                        Collection<FileSnapshot> descendants = Collections2.filter(fileSnapshots, EXCLUDE_ROOT_SNAPSHOTS);
-                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(internedAbsolutePath(outputFile), descendants));
+                        builder.visitFileTreeSnapshot(snapshot);
+                        fileSystemMirror.putDirectory(absolutePath, snapshot);
                         break;
                     default:
                         throw new AssertionError();
                 }
+                propertySnapshotsBuilder.put(propertyName, builder.build());
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
+public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentSnapshots, Map<String, NormalizedFileSnapshot> previousSnapshots, String propertyTitle, boolean pathIsAbsolute, boolean includeAdded) {
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentSnapshots, Map<String, NormalizedFileSnapshot> previousSnapshots, String propertyTitle, boolean includeAdded) {
         Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = currentSnapshots.entrySet().iterator();
         Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previousSnapshots.entrySet().iterator();
         while (true) {

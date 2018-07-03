@@ -16,6 +16,33 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+
+/**
+ * A {@link FileCollectionSnapshotBuilder} is used to visit all snapshots created by the {@link FileSystemSnapshotter} for a {@link org.gradle.api.file.FileCollection}
+ * and then create a {@link FileCollectionSnapshot} from them.
+ */
 public interface FileCollectionSnapshotBuilder {
+
+    /**
+     * Visits the root and the descendants of a {@link org.gradle.api.file.FileTree} or a {@link org.gradle.api.internal.file.collections.DirectoryFileTree}.
+     */
+    void visitFileTreeSnapshot(PhysicalSnapshot tree);
+
+    /**
+     * Visits a {@link PhysicalFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
+     */
+    void visitFileSnapshot(PhysicalFileSnapshot file);
+
+    /**
+     * Visits a {@link PhysicalMissingSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.
+     */
+    void visitMissingFileSnapshot(PhysicalMissingSnapshot missingFile);
+
+    /**
+     * Creates the {@link FileCollectionSnapshot} containing the visited elements.
+     */
     FileCollectionSnapshot build();
 }
