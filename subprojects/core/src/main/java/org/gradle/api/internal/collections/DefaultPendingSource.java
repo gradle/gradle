@@ -49,12 +49,16 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
 
     private void realize(Iterable<ProviderInternal<? extends T>> elements) {
         for (ProviderInternal<? extends T> provider : elements) {
-            if (flushAction != null) {
-                pending.remove(provider);
-                flushAction.execute(provider);
-            } else {
-                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
-            }
+            realize(provider);
+        }
+    }
+
+    private void realize(ProviderInternal<? extends T> provider) {
+        if (flushAction != null) {
+            pending.remove(provider);
+            flushAction.execute(provider);
+        } else {
+            throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
         }
     }
 
