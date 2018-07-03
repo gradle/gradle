@@ -21,7 +21,7 @@ import java.io.File;
 public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String absolutePath;
     private final int index;
-    private int hash;
+    private long hash = Long.MAX_VALUE;
 
     public IndexedNormalizedFileSnapshot(String absolutePath, int index, FileContentSnapshot snapshot) {
         super(snapshot);
@@ -59,14 +59,14 @@ public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
 
     @Override
     protected int hashNormalizedPath() {
-        if (hash == 0) {
+        if (hash == Long.MAX_VALUE) {
             int h = 0;
             for (int i = index; i < absolutePath.length(); i++) {
                 h = 31 * h + absolutePath.charAt(i);
             }
             hash = h;
         }
-        return hash;
+        return (int) hash;
     }
 
     @Override
