@@ -33,7 +33,7 @@ class HttpHeaderAuthSchemeTest extends Specification {
         HttpHeaderAuthScheme headerAuthScheme = new HttpHeaderAuthScheme()
 
         when:
-        def header = headerAuthScheme.authenticate(Mock(Credentials), null, null)
+        def header = headerAuthScheme.authenticate(Stub(Credentials), null, null)
 
         then:
         thrown(IllegalArgumentException)
@@ -42,8 +42,7 @@ class HttpHeaderAuthSchemeTest extends Specification {
     def "test authenticate"() {
         given:
         HttpHeaderAuthScheme headerAuthScheme = new HttpHeaderAuthScheme()
-        def credentials = new HttpClientHttpHeaderCredentials()
-        credentials.setHeader("TestHttpHeaderName: TestHttpHeaderValue")
+        def credentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName: TestHttpHeaderValue")
 
         when:
         def header = headerAuthScheme.authenticate(credentials, null, null)

@@ -25,10 +25,10 @@ import java.security.Principal;
 
 public class HttpClientHttpHeaderCredentials implements Credentials {
 
-    private Header header;
+    private final Header header;
 
-    public void setHeader(String header) {
-        final CharArrayBuffer charArrayBuffer = new CharArrayBuffer(header.length());
+    public HttpClientHttpHeaderCredentials(String header) {
+        CharArrayBuffer charArrayBuffer = new CharArrayBuffer(header.length());
         charArrayBuffer.append(header);
         this.header = new BufferedHeader(charArrayBuffer);
     }

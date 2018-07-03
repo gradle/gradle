@@ -30,10 +30,6 @@ public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
 
     public static final String AUTH_SCHEME_NAME = "header";
 
-    public HttpHeaderAuthScheme() {
-        super();
-    }
-
     @Override
     public void processChallenge(final Header header) throws MalformedChallengeException {
     }

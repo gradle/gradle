@@ -119,7 +119,8 @@ public class HttpClientConfigurerTest extends Specification {
         HttpClientHttpHeaderCredentials actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT))
 
         then:
-        actualHttpHeaderCredentials.header.toString() == httpHeaderCredentials.getHeader()
+        actualHttpHeaderCredentials.header.name == 'TestHttpHeaderName'
+        actualHttpHeaderCredentials.header.value == 'TestHttpHeaderValue'
 
         and:
         httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth

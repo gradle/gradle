@@ -174,9 +174,7 @@ public class HttpClientConfigurer {
 
             if (credentials instanceof HttpHeaderCredentials) {
                 HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
-
-                Credentials httpCredentials = new HttpClientHttpHeaderCredentials();
-                ((HttpClientHttpHeaderCredentials) httpCredentials).setHeader(httpHeaderCredentials.getHeader());
+                Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getHeader());
 
                 credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
 

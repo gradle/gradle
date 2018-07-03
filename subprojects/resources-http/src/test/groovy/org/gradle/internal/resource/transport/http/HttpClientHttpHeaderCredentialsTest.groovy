@@ -21,14 +21,11 @@ import spock.lang.Specification
 class HttpClientHttpHeaderCredentialsTest extends Specification {
 
     def "test set header by string"() {
-        given:
-        HttpClientHttpHeaderCredentials httpHeaderCredentials = new HttpClientHttpHeaderCredentials()
-
         when:
-        httpHeaderCredentials.setHeader("TestHttpHeaderName: TestHttpHeaderValue")
+        HttpClientHttpHeaderCredentials httpHeaderCredentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName: TestHttpHeaderValue")
 
         then:
-        httpHeaderCredentials.getHeader().name == "TestHttpHeaderName"
-        httpHeaderCredentials.getHeader().value == "TestHttpHeaderValue"
+        httpHeaderCredentials.header.name == "TestHttpHeaderName"
+        httpHeaderCredentials.header.value == "TestHttpHeaderValue"
     }
 }
