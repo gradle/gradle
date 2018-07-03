@@ -39,6 +39,7 @@ public class DefaultArtifactPublicationSet {
     public void addCandidate(PublishArtifact artifact) {
         if (defaultArtifactProvider == null) {
             defaultArtifactProvider = new DefaultArtifactProvider(artifact);
+            artifactStore.addLater(defaultArtifactProvider);
         }
 
         defaultArtifactProvider.addCandidate(artifact);
@@ -93,8 +94,6 @@ public class DefaultArtifactPublicationSet {
                             replaceCurrent(artifact);
                         }
                     } else if (!newType.equals("jar")) {
-                        // we need to do this add so that we can ensure that artifacts are added in the correct order
-                        artifactStore.add(currentDefault);
                         artifactStore.add(artifact);
                     }
                 }
@@ -105,7 +104,6 @@ public class DefaultArtifactPublicationSet {
 
         private void replaceCurrent(PublishArtifact artifact) {
             artifactStore.remove(currentDefault);
-            artifactStore.add(artifact);
             currentDefault = artifact;
         }
     }

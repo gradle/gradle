@@ -80,7 +80,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
         then:
         defaultArtifact == war
         1 * publications.remove(jar)
-        1 * publications.add(war)
 
         when:
         publication.addCandidate(jar)
@@ -106,7 +105,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
         then:
         defaultArtifact == ear
         1 * publications.remove(jar)
-        1 * publications.add(ear)
 
         when:
         publication.addCandidate(jar)
@@ -132,7 +130,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
         then:
         defaultArtifact == ear
         1 * publications.remove(war)
-        1 * publications.add(ear)
 
         when:
         publication.addCandidate(war)
@@ -157,7 +154,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
 
         then:
         defaultArtifact == jar
-        1 * publications.add(jar)
         1 * publications.add(exe)
     }
 
@@ -177,7 +173,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
 
         then:
         defaultArtifact == zip
-        1 * publications.add(zip)
         1 * publications.add(exe)
     }
 
@@ -229,7 +224,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
         then:
         defaultArtifact == ear
         1 * publications.remove(exe)
-        1 * publications.add(ear)
     }
 
     def "current default is cached after realizing the provider"() {
@@ -250,7 +244,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
 
         then:
         1 * publications.remove(jar)
-        1 * publications.add(war)
 
         then:
         publication.defaultArtifactProvider.get() == war
