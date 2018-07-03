@@ -105,7 +105,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         javaCommand                                           | jstackCommand
         "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"      | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
         "C:\\Program Files\\Java\\jdk1.8\\jre\\bin\\java.exe" | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
-        "C:\\Program Files\\Java\\jdk1.8/bin/java.exe"        | "C:\\Program Files\\Java\\jdk1.8/bin/jstack.exe"
+        "C:\\Program Files\\Java\\jdk1.8/bin/java.exe"        | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
     }
 
     def 'can print all threads in current JVM'() {
