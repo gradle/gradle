@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -28,7 +29,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
-public class TestSelectorState implements ResolvableSelectorState {
+public class TestModuleSelectorState implements ResolvableSelectorState {
 
     private static final VersionParser VERSION_PARSER = new VersionParser();
     private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
@@ -38,7 +39,7 @@ public class TestSelectorState implements ResolvableSelectorState {
     private ResolvedVersionConstraint versionConstraint;
     public ComponentIdResolveResult resolved;
 
-    public TestSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
+    public TestModuleSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
         this.resolver = resolver;
         this.versionConstraint = new DefaultResolvedVersionConstraint(versionConstraint, VERSION_SELECTOR_SCHEME);
     }
@@ -46,6 +47,11 @@ public class TestSelectorState implements ResolvableSelectorState {
     @Override
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
+    }
+
+    @Override
+    public ComponentSelector getSelector() {
+        throw new UnsupportedOperationException();
     }
 
     private ComponentIdResolveResult resolveVersion(ResolvedVersionConstraint mergedConstraint) {
