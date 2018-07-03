@@ -1,0 +1,3 @@
+ - Experimental APIs for creating and configuring tasks lazily
+ - Pass arguments to JavaExec via CLI
+ - Improved dependency insight report
