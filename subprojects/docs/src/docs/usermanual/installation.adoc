@@ -160,6 +160,6 @@ Now that you have Gradle installed, use these resources for getting started:
 
  * Create your first Gradle project by following the link:https://guides.gradle.org/creating-new-gradle-builds/[Creating New Gradle Builds] tutorial.
  * Sign up for a link:https://gradle.org/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
- * Learn how to achieve common tasks through the <<command_line_interface,command-line interface>>.
- * <<build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
+ * Learn how to achieve common tasks through the <<command_line_interface#,command-line interface>>.
+ * <<build_environment#,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
  * Subscribe to the link:https://newsletter.gradle.com/[Gradle Newsletter] for monthly release and community updates.

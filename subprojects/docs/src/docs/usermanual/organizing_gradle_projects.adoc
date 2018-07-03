@@ -23,7 +23,7 @@ The following sections also touch on common problems and how to avoid them.
 == Separate language-specific source files
 
 Gradle's language plugins establish conventions for discovering and compiling source code.
-For example, a project applying the <<java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`.
+For example, a project applying the <<java_plugin#,Java plugin>> will automatically compile the code in the directory `src/main/java`.
 Other language plugins follow the same pattern.
 The last portion of the directory path usually indicates the expected language of the source files.
 
@@ -86,7 +86,7 @@ include::{samples-path}/userguide/organizingGradleProjects/separatedTestTypes/gr
 ----
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
-For the purpose of test execution, a corresponding task of type api:org.gradle.api.tasks.testing.Test[] needs to be established.
+For the purpose of test execution, a corresponding task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` needs to be established.
 
 === Example: Integration test task
 
@@ -101,7 +101,7 @@ include::{samples-path}/userguide/organizingGradleProjects/separatedTestTypes/gr
 
 All Gradle core plugins follow the software engineering paradigm link:https://en.wikipedia.org/wiki/Convention_over_configuration[convention over configuration].
 The plugin logic provides users with sensible defaults and standards, the conventions, in a certain context.
-Let’s take the <<java_plugin,Java plugin>> as an example.
+Let’s take the <<java_plugin#,Java plugin>> as an example.
 
 * It defines the directory `src/main/java` as the default source directory for compilation.
 * The output directory for compiled source code and other artifacts (like the JAR file) is `build`.
@@ -201,14 +201,14 @@ Tasks should define inputs and outputs to get the performance benefits of <<sec:
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
 Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.
-In turn, these filesystem changes may prevent Gradle's <<build_cache,build cache>> from properly identifying and caching what would otherwise be cacheable tasks.
+In turn, these filesystem changes may prevent Gradle's <<build_cache#,build cache>> from properly identifying and caching what would otherwise be cacheable tasks.
 
 [[sec:custom_gradle_distribution]]
 == Standardizing builds with a custom Gradle distribution
 
 Often enterprises want to standardize the build platform for all projects in the organization by defining common conventions or rules.
 You can achieve that with the help of initialization scripts.
-<<init_scripts,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
+<<init_scripts#,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
 For example, to declare a in-house repository and its credentials.
 
 There are some drawbacks to the approach.
@@ -218,7 +218,7 @@ Furthermore, updating the initialization script logic uniformly can prove challe
 Custom Gradle distributions are a practical solution to this very problem.
 A custom Gradle distribution is comprised of the standard Gradle distribution plus one or many custom initialization scripts.
 The initialization scripts come bundled with the distribution and are applied every time the build is run.
-Developers only need to point their checked-in <<gradle_wrapper,Wrapper>> files to the URL of the custom Gradle distribution.
+Developers only need to point their checked-in <<gradle_wrapper#,Wrapper>> files to the URL of the custom Gradle distribution.
 
 The following steps are typical for creating a custom Gradle distribution:
 

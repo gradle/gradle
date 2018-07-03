@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-The JaCoCo plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The JaCoCo plugin is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
@@ -44,7 +44,7 @@ If the Java plugin is also applied to your project, a new task named `jacocoTest
 [[sec:configuring_the_jacoco_plugin]]
 == Configuring the JaCoCo Plugin
 
-The JaCoCo plugin adds a project extension named `jacoco` of type api:org.gradle.testing.jacoco.plugins.JacocoPluginExtension[], which allows configuring defaults for JaCoCo usage in your build.
+The JaCoCo plugin adds a project extension named `jacoco` of type `link:{groovy-dsl-path}/org.gradle.testing.jacoco.plugins.JacocoPluginExtension.html[JacocoPluginExtension]`, which allows configuring defaults for JaCoCo usage in your build.
 
 === Example: Configuring JaCoCo plugin settings
 
@@ -68,7 +68,7 @@ include::{samples-path}/testing/jacoco/quickstart/build.gradle[tag=jacoco-config
 [[sec:jacoco_report_configuration]]
 == JaCoCo Report configuration
 
-The api:org.gradle.testing.jacoco.tasks.JacocoReport[] task can be used to generate code coverage reports in different formats. It implements the standard Gradle type api:org.gradle.api.reporting.Reporting[] and exposes a report container of type api:org.gradle.testing.jacoco.tasks.JacocoReportsContainer[].
+The `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]` task can be used to generate code coverage reports in different formats. It implements the standard Gradle type `link:{groovy-dsl-path}/org.gradle.api.reporting.Reporting.html[Reporting]` and exposes a report container of type `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReportsContainer.html[JacocoReportsContainer]`.
 
 === Example: Configuring test task
 
@@ -90,7 +90,7 @@ This feature requires the use of JaCoCo version 0.6.3 or higher.
 
 ====
 
-The api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification[] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification#violationRules(org.gradle.api.Action)[] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of api:org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer[] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
+The `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]` task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification#violationRules(org.gradle.api.Action)[] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of `link:{javadoc-path}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer]` providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
 
 Code coverage requirements can be specified for a project as a whole, for individual files, and for particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example describes the syntax.
 
@@ -103,12 +103,12 @@ include::{samples-path}/testing/jacoco/quickstart/build.gradle[tag=violation-rul
 ----
 NOTE: The code for this example can be found at **`samples/testing/jacoco/quickstart`** in the ‘-all’ distribution of Gradle.
 
-The api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification[] task is not a task dependency of the `check` task provided by the Java plugin. There is a good reason for it. The task is currently not incremental as it doesn't declare any outputs. Any violation of the declared rules would automatically result in a failed build when executing the `check` task. This behavior might not be desirable for all users. Future versions of Gradle might change the behavior.
+The `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]` task is not a task dependency of the `check` task provided by the Java plugin. There is a good reason for it. The task is currently not incremental as it doesn't declare any outputs. Any violation of the declared rules would automatically result in a failed build when executing the `check` task. This behavior might not be desirable for all users. Future versions of Gradle might change the behavior.
 
 [[sec:jacoco_specific_task_configuration]]
 == JaCoCo specific task configuration
 
-The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtension[] extension to all tasks of type api:org.gradle.api.tasks.testing.Test[]. This extension allows the configuration of the JaCoCo specific properties of the test task.
+The JaCoCo plugin adds a `link:{groovy-dsl-path}/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html[JacocoTaskExtension]` extension to all tasks of type `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`. This extension allows the configuration of the JaCoCo specific properties of the test task.
 
 === Example: Configuring test task
 
@@ -173,7 +173,7 @@ If `append = true`, Gradle disables caching for the Test task since it cannot gu
 | `false`
 |===
 
-While all tasks of type api:org.gradle.api.tasks.testing.Test[] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements api:org.gradle.process.JavaForkOptions[] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
+While all tasks of type `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements `link:{javadoc-path}/org/gradle/process/JavaForkOptions.html[JavaForkOptions]` can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
 
 For example you can configure your build to generate code coverage using the `application` plugin.
 
@@ -211,12 +211,12 @@ For projects that also apply the Java Plugin, The JaCoCo plugin automatically ad
 
 | `jacocoTestReport`
 | -
-| api:org.gradle.testing.jacoco.tasks.JacocoReport[]
+| `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]`
 | Generates code coverage report for the test task.
 
 | `jacocoTestCoverageVerification`
 | -
-| api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification[]
+| `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]`
 | Verifies code coverage metrics based on specified rules for the test task.
 |===
 

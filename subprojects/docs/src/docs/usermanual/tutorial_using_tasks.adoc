@@ -30,7 +30,7 @@ For now, we will look at defining some simple tasks in a build with one project.
 [[sec:hello_world]]
 == Hello world
 
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface>>)] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface#,"Command-Line Interface">>)] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 To try this out, create the following build script named `build.gradle`.
 
@@ -48,7 +48,7 @@ In a command-line shell, move to the containing directory and execute the build 
 .What does `-q` do?
 ====
 
-Most of the examples in this user guide are run with the `-q` command-line option. This suppresses Gradle's log messages, so that only the output of the tasks is shown. This keeps the example output in this user guide a little clearer. You don't need to use this option if you don't want to. See <<logging>> for more details about the command-line options which affect Gradle's output.
+Most of the examples in this user guide are run with the `-q` command-line option. This suppresses Gradle's log messages, so that only the output of the tasks is shown. This keeps the example output in this user guide a little clearer. You don't need to use this option if you don't want to. See <<logging#,"Logging">> for more details about the command-line options which affect Gradle's output.
 
 ====
 
@@ -280,7 +280,7 @@ include::{samples-path}/userguide/tutorial/antLoadfile/build.gradle[]
 include::{samples-path}/userguide/tutorial/antLoadfile/antLoadfile.out[]
 ----
 
-There is lots more you can do with Ant in your build scripts. You can find out more in <<ant>>.
+There is lots more you can do with Ant in your build scripts. You can find out more in <<ant#,"Ant">>.
 
 [[sec:using_methods]]
 == Using methods
@@ -301,7 +301,7 @@ include::{samples-path}/userguide/tutorial/antLoadfileWithMethod/build.gradle[]
 include::{samples-path}/userguide/tutorial/antLoadfileWithMethod/antLoadfileWithMethod.out[]
 ----
 
-Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See <<organizing_gradle_projects>>.
+Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See <<organizing_gradle_projects#,"Organizing Gradle Projects">>.
 
 [[sec:default_tasks]]
 == Default tasks
@@ -327,7 +327,7 @@ This is equivalent to running `gradle clean run`. In a multi-project build every
 [[configure-by-dag]]
 == Configure by DAG
 
-As we later describe in full detail (see <<build_lifecycle>>), Gradle has a configuration phase and an execution phase. After the configuration phase, Gradle knows all tasks that should be executed. Gradle offers you a hook to make use of this information. A use-case for this would be to check if the release task is among the tasks to be executed. Depending on this, you can assign different values to some variables.
+As we later describe in full detail (see <<build_lifecycle#,"Build Lifecycle">>), Gradle has a configuration phase and an execution phase. After the configuration phase, Gradle knows all tasks that should be executed. Gradle offers you a hook to make use of this information. A use-case for this would be to check if the release task is among the tasks to be executed. Depending on this, you can assign different values to some variables.
 
 In the following example, execution of the `distribution` and `release` tasks results in different value of the `version` variable.
 
@@ -354,7 +354,7 @@ If your build script needs to use external libraries, you can add them to the sc
 include::{samples-path}/userguide/tutorial/externalDependency/build.gradle[tag=declare-classpath]
 ----
 
-The closure passed to the `buildscript()` method configures a api:org.gradle.api.initialization.dsl.ScriptHandler[] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<dependency_types>>, except project dependencies.
+The closure passed to the `buildscript()` method configures a `link:{groovy-dsl-path}/org.gradle.api.initialization.dsl.ScriptHandler.html[ScriptHandler]` instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types#,dependency types>> except project dependencies.
 
 Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
 
@@ -374,13 +374,13 @@ include::{samples-path}/userguide/tutorial/externalDependency/externalBuildDepen
 
 For multi-project builds, the dependencies declared with a project's `buildscript()` method are available to the build scripts of all its sub-projects.
 
-Build script dependencies may be Gradle plugins. Please consult <<plugins>> for more information on Gradle plugins.
+Build script dependencies may be Gradle plugins. Please consult <<plugins#,"Plugins">> for more information on Gradle plugins.
 
-Every project automatically has a `buildEnvironment` task of type api:org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask[] that can be invoked to report on the resolution of the build script dependencies.
+Every project automatically has a `buildEnvironment` task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask]` that can be invoked to report on the resolution of the build script dependencies.
 
 [[sec:tasks_tutorial_where_to_next]]
 == Where to next?
 
-In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details, have a look at <<more_about_tasks>>.
+In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details, have a look at <<more_about_tasks#,"More About Tasks">>.
 
-Otherwise, continue on to the tutorials in <<tutorial_java_projects>> and <<dependency_management_for_java_projects>>.
+Otherwise, continue on to <<tutorial_java_projects#,the tutorials>> and <<dependency_management_for_java_projects#,"Dependency Management for Java Projects">>.

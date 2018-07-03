@@ -17,7 +17,7 @@
 
 Gradle provides an extensive API for navigating, inspecting and post-processing metadata and artifacts of resolved dependencies.
 
-The main entry point for this functionality is the api:org.gradle.api.artifacts.Configuration[] API. To learn more about the fundamentals of configurations, see <<managing_dependency_configurations>>.
+The main entry point for this functionality is the `link:{groovy-dsl-path}/org.gradle.api.artifacts.Configuration.html[Configuration]` API. To learn more about the fundamentals of configurations, see <<managing_dependency_configurations#,"Managing Dependency Configurations">>.
 
 == Iterating over dependencies assigned to a configuration
 
@@ -33,9 +33,9 @@ include::{samples-path}/userguide/dependencyManagement/workingWithDependencies/i
 
 == Iterating over artifacts resolved for a module
 
-None of the <<inspecting_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
+None of the <<inspecting_dependencies#,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
 
-You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Every file instance returned from the method points to its location in the <<dependency_cache,dependency cache>>. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
+You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Every file instance returned from the method points to its location in the <<dependency_cache#,dependency cache>>. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
 === Example: Iterating over the artifacts resolved for a module
 
@@ -52,9 +52,9 @@ Iterating over the artifacts of a module automatically resolves the configuratio
 
 == Navigating the dependency graph
 
-As a plugin developer, you may want to navigate the full graph of dependencies assigned to a configuration e.g. for turning the dependency graph into a visualization. You can access the full graph of dependencies for a configuration with the help of the api:org.gradle.api.artifacts.result.ResolutionResult[].
+As a plugin developer, you may want to navigate the full graph of dependencies assigned to a configuration e.g. for turning the dependency graph into a visualization. You can access the full graph of dependencies for a configuration with the help of the `link:{javadoc-path}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult]`.
 
-The resolution result provides various methods for accessing the resolved and unresolved dependencies. For demonstration purposes the sample code uses api:org.gradle.api.artifacts.result.ResolutionResult#getRoot()[] to access the root node the resolved dependency graph. Each dependency of this component returns an instance of api:org.gradle.api.artifacts.result.ResolvedDependencyResult[] or api:org.gradle.api.artifacts.result.UnresolvedDependencyResult[] providing detailed information about the node.
+The resolution result provides various methods for accessing the resolved and unresolved dependencies. For demonstration purposes the sample code uses api:org.gradle.api.artifacts.result.ResolutionResult#getRoot()[] to access the root node the resolved dependency graph. Each dependency of this component returns an instance of `link:{javadoc-path}/org/gradle/api/artifacts/result/ResolvedDependencyResult.html[ResolvedDependencyResult]` or `link:{javadoc-path}/org/gradle/api/artifacts/result/UnresolvedDependencyResult.html[UnresolvedDependencyResult]` providing detailed information about the node.
 
 === Example: Walking the resolved and unresolved dependencies of a configuration
 
@@ -68,7 +68,7 @@ include::{samples-path}/userguide/dependencyManagement/workingWithDependencies/w
 
 As part of the dependency resolution process, Gradle downloads the metadata file of a module and stores it in the dependency cache. Some organizations enforce strong restrictions on accessing repositories outside of internal network. Instead of downloading artifacts, those organizations prefer to provide an "installable" Gradle cache with all artifacts contained in it to fulfill the build's dependency requirements.
 
-The artifact query API provides access to the raw files of a module. Currently, it allows getting a handle to the metadata file and some selected, additional artifacts (e.g. a JVM-based module's source and Javadoc files). The main API entry point is api:org.gradle.api.artifacts.query.ArtifactResolutionQuery[].
+The artifact query API provides access to the raw files of a module. Currently, it allows getting a handle to the metadata file and some selected, additional artifacts (e.g. a JVM-based module's source and Javadoc files). The main API entry point is `link:{groovy-dsl-path}/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html[ArtifactResolutionQuery]`.
 
 Let's say you wanted to post-process the metadata file of a Maven module. The group, name and version of the module component serve as input to the artifact resolution query. After executing the query, you get a handle to all components that match the criteria and their underlying files. Additionally, it's very easy to post-process the metadata file. The example code uses Groovy's link:http://docs.groovy-lang.org/latest/html/api/groovy/util/XmlSlurper.html[XmlSlurper] to ask for POM element values.
 

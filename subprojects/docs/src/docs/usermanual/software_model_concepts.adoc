@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-Support for the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+Support for the software model is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
 
 ====
 

@@ -47,22 +47,22 @@ The Scala plugin adds the following tasks to the project.
 
 | `compileScala`
 | `compileJava`
-| api:org.gradle.api.tasks.scala.ScalaCompile[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`
 | Compiles production Scala source files.
 
 | `compileTestScala`
 | `compileTestJava`
-| api:org.gradle.api.tasks.scala.ScalaCompile[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`
 | Compiles test Scala source files.
 
 | `compile__SourceSet__Scala`
 | `compile__SourceSet__Java`
-| api:org.gradle.api.tasks.scala.ScalaCompile[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`
 | Compiles the given source set's Scala source files.
 
 | `scaladoc`
 | -
-| api:org.gradle.api.tasks.scala.ScalaDoc[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]`
 | Generates API documentation for the production Scala source files.
 |===
 
@@ -228,7 +228,7 @@ The Scala plugin adds the following convention properties to each source set in 
 | Description
 
 |  `scala`
-|  api:org.gradle.api.file.SourceDirectorySet[] (read-only)
+|  `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]` (read-only)
 | Not null
 | The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files.
 
@@ -238,12 +238,12 @@ The Scala plugin adds the following convention properties to each source set in 
 | The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
 
 |  `allScala`
-|  api:org.gradle.api.file.FileTree[] (read-only)
+|  `link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]` (read-only)
 | Not null
 | All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories.
 |===
 
-These convention properties are provided by a convention object of type api:org.gradle.api.tasks.ScalaSourceSet[].
+These convention properties are provided by a convention object of type `link:{groovy-dsl-path}/org.gradle.api.tasks.ScalaSourceSet.html[ScalaSourceSet]`.
 
 The Scala plugin also modifies some source set properties:
 
@@ -319,7 +319,7 @@ When the Eclipse plugin encounters a Scala project, it adds additional configura
 [[sec:intellij_idea_integration]]
 == IntelliJ IDEA Integration
 
-When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically, the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path. The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK by configuring `targetVersion` on api:org.gradle.plugins.ide.idea.model.IdeaModel[].
+When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically, the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path. The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK by configuring `targetVersion` on `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]`.
 === Example: Explicitly specify a target IntelliJ IDEA version
 
 [source.multi-language-sample,groovy]

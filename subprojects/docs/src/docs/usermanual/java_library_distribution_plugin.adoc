@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-The Java library distribution plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The Java library distribution plugin is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
@@ -66,7 +66,7 @@ The Java library distribution plugin adds the following tasks to the project.
 
 | `distZip`
 | `jar`
-| api:org.gradle.api.tasks.bundling.Zip[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`
 | Creates a full distribution ZIP archive including runtime libraries.
 |===
 

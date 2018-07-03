@@ -20,9 +20,9 @@ The following is a collection of common issues and suggestions for addressing th
 [[sec:troubleshooting_installation]]
 == Troubleshooting Gradle installation
 
-If you followed the <<installation,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
+If you followed the <<installation#,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
 
-If you installed Gradle outside of just invoking the <<gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+If you installed Gradle outside of just invoking the <<gradle_wrapper#,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
 
 You should see something like this:
 
@@ -75,7 +75,7 @@ If not, then the problem exists within the execution of one or more of the reque
 [[sec:troubleshooting_dependency_resolution]]
 == Debugging dependency resolution
 
-Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution>>.
+Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution#,"Troubleshooting Dependency Resolution">>.
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
@@ -132,7 +132,7 @@ In addition to <<sec:command_line_logging,controlling logging verbosity>>, you c
 You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
 
 [NOTE]
-Additional logs from the <<gradle_daemon,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
+Additional logs from the <<gradle_daemon#,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
 
 === Task executed when it should have been UP-TO-DATE
 

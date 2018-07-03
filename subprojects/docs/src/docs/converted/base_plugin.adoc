@@ -53,16 +53,16 @@ Assembles those artifacts attached to the named configuration. For example, `bui
 Does the same as `build__Configuration__`, but also uploads all the artifacts attached to the given configuration.
 
 `clean__Task__` — task rule::
-Removes the <<sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+Removes the <<more_about_tasks#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
 
 
 [[sec:base_plugin_configurations]]
 == Dependency management
 
-The Base Plugin adds no <<managing_dependency_configurations,configurations for dependencies>>, but it does add the following configurations for <<sec:artifacts_and_configurations,artifacts>>:
+The Base Plugin adds no <<managing_dependency_configurations#,configurations for dependencies>>, but it does add the following configurations for <<artifact_management#sec:artifacts_and_configurations,artifacts>>:
 
 `default`::
-A fallback configuration used by consumer projects. Let's say you have project B with a _<<sub:project_dependencies,project dependency>>_ on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
+A fallback configuration used by consumer projects. Let's say you have project B with a _<<dependency_types#sub:project_dependencies,project dependency>>_ on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
 +
 *New builds and plugins should not be using the `default` configuration!* It remains for the reason of backwards compatibility.
 
@@ -77,7 +77,7 @@ Note that the `assemble` task generates all artifacts that are attached to the `
 The Base Plugin only adds conventions related to the creation of archives, such as ZIPs, TARs and JARs. Specifically, it provides the following project properties that you can set:
 
 `archivesBaseName` — default: `$project.name`::
-Provides the default api:org.gradle.api.tasks.bundling.AbstractArchiveTask#getBaseName()[] for archive tasks.
+Provides the default `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:baseName[AbstractArchiveTask.getBaseName()]` for archive tasks.
 
 `distsDirName` — default: _distributions_::
 Default name of the directory in which distribution archives, i.e. non-JARs, are created.
@@ -85,7 +85,7 @@ Default name of the directory in which distribution archives, i.e. non-JARs, are
 `libsDirName` — default: _libs_::
 Default name of the directory in which library archives, i.e. JARs, are created.
 
-The plugin also provides default values for the following properties on any task that extends api:org.gradle.api.tasks.bundling.AbstractArchiveTask[]:
+The plugin also provides default values for the following properties on any task that extends `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]`:
 
 `destinationDir`::
 Defaults to __``$buildDir``/``$distsDirName``__ for non-JAR archives and __``$buildDir``/``$libsDirName``__ for JARs and derivatives of JAR, such as WARs.

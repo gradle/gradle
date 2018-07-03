@@ -31,22 +31,22 @@ These plugins add support for various languages which can be compiled for and ex
 | Works with
 | Description
 
-| <<java_plugin, `java` >>
+| <<java_plugin#, `java` >>
 | `java-base`
 | -
-| Adds Java compilation, testing and bundling capabilities to a project. It serves as the basis for many of the other Gradle plugins. See also <<tutorial_java_projects>>.
+| Adds Java compilation, testing and bundling capabilities to a project. It serves as the basis for many of the other Gradle plugins. See also <<tutorial_java_projects#,this tutorial on Java projects>>.
 
-| <<groovy_plugin, `groovy` >>
+| <<groovy_plugin#, `groovy` >>
 | `java`, `groovy-base`
 | -
-| Adds support for building Groovy projects. See also <<tutorial_groovy_projects>>.
+| Adds support for building Groovy projects. See also <<tutorial_groovy_projects#,this tutorial for Groovy projects>>.
 
-| <<scala_plugin, `scala` >>
+| <<scala_plugin#, `scala` >>
 | `java`, `scala-base`
 | -
 | Adds support for building Scala projects.
 
-| <<antlr_plugin, `antlr` >>
+| <<antlr_plugin#, `antlr` >>
 | `java`
 | -
 | Adds support for generating parsers using http://www.antlr.org/[Antlr].
@@ -66,32 +66,32 @@ These plugins add support for various languages:
 | Works with
 | Description
 
-| <<native_software, `assembler` >>
+| <<native_software#, `assembler` >>
 | -
 | -
 | Adds native assembly language capabilities to a project.
 
-| <<native_software, `c` >>
+| <<native_software#, `c` >>
 | -
 | -
 | Adds C source compilation capabilities to a project.
 
-| <<native_software, `cpp` >>
+| <<native_software#, `cpp` >>
 | -
 | -
 | Adds C++ source compilation capabilities to a project.
 
-| <<native_software, `objective-c` >>
+| <<native_software#, `objective-c` >>
 | -
 | -
 | Adds Objective-C source compilation capabilities to a project.
 
-| <<native_software, `objective-cpp` >>
+| <<native_software#, `objective-cpp` >>
 | -
 | -
 | Adds Objective-C++ source compilation capabilities to a project.
 
-| <<native_software, `windows-resources` >>
+| <<native_software#, `windows-resources` >>
 | -
 | -
 | Adds support for including Windows resources in native binaries.
@@ -111,40 +111,40 @@ These plugins provide some integration with various runtime technologies.
 | Works with
 | Description
 
-| <<application_plugin, `application` >>
+| <<application_plugin#, `application` >>
 | `java`, `distribution`
 | -
 | Adds tasks for running and bundling a Java project as a command-line application.
 
-| <<ear_plugin, `ear` >>
+| <<ear_plugin#, `ear` >>
 | -
 | `java`
 | Adds support for building J2EE applications.
 
-| <<publishing_ivy, `ivy-publish` >>
+| <<publishing_ivy#, `ivy-publish` >>
 | -
 | `application`, `distribution`, `java`, `war`
 | Provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
 
-| <<publishing_maven, `maven-publish` >>
+| <<publishing_maven#, `maven-publish` >>
 | -
 | `application`, `distribution`, `java`, `war`
 | Provides a new DSL to support publishing artifacts to Maven repositories, which improves on the existing DSL.
 
-| <<maven_plugin, `maven` >>
+| <<maven_plugin#, `maven` >>
 | -
 | `java`, `war`
-| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management>>.
+| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management#,"Artifact Management">>.
 
-| <<osgi_plugin, `osgi` >>
+| <<osgi_plugin#, `osgi` >>
 | `java-base`
 | `java`
 | Adds support for building OSGi bundles.
 
-| <<war_plugin, `war` >>
+| <<war_plugin#, `war` >>
 | `java`
 | -
-| Adds support for assembling web application WAR files. See also <<web_project_tutorial>>.
+| Adds support for assembling web application WAR files. See also <<web_project_tutorial#,this tutorial for web projects>>.
 |===
 
 
@@ -161,12 +161,12 @@ These plugins provide some integration with various runtime technologies.
 | Works with
 | Description
 
-| <<distribution_plugin, `distribution` >>
+| <<distribution_plugin#, `distribution` >>
 | -
 | -
 | Adds support for building ZIP and TAR distributions.
 
-| <<java_library_distribution_plugin, `java-library-distribution` >>
+| <<java_library_distribution_plugin#, `java-library-distribution` >>
 | `java`, `distribution`
 | -
 | Adds support for building ZIP and TAR distributions for a Java library.
@@ -186,62 +186,62 @@ These plugins provide help with your software development process.
 | Works with
 | Description
 
-| <<announce_plugin, `announce` >>
+| <<announce_plugin#, `announce` >>
 | -
 | -
 | Publish messages to your favourite platforms, such as Twitter or Growl.
 
-| <<build_announcements_plugin, `build-announcements` >>
+| <<build_announcements_plugin#, `build-announcements` >>
 | announce
 | -
 | Sends local announcements to your desktop about interesting events in the build lifecycle.
 
-| <<checkstyle_plugin, `checkstyle` >>
+| <<checkstyle_plugin#, `checkstyle` >>
 | `java-base`
 | -
 | Performs quality checks on your project's Java source files using http://checkstyle.sourceforge.net/index.html[Checkstyle] and generates reports from these checks.
 
-| <<codenarc_plugin, `codenarc` >>
+| <<codenarc_plugin#, `codenarc` >>
 | `groovy-base`
 | -
 | Performs quality checks on your project's Groovy source files using http://codenarc.sourceforge.net/index.html[CodeNarc] and generates reports from these checks.
 
-| <<eclipse_plugin, `eclipse` >>
+| <<eclipse_plugin#, `eclipse` >>
 | -
 | `java`,`groovy`, `scala`
-| Generates files that are used by http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse. See also <<tutorial_java_projects>>.
+| Generates files that are used by http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse. See also <<tutorial_java_projects#,this tutorial for Java projects>>.
 
-| <<eclipse_plugin, `eclipse-wtp` >>
+| <<eclipse_plugin#, `eclipse-wtp` >>
 | -
 | `ear`, `war`
-| Does the same as the eclipse plugin plus generates eclipse WTP (Web Tools Platform) configuration files. After importing to eclipse your war/ear projects should be configured to work with WTP. See also <<tutorial_java_projects>>.
+| Does the same as the eclipse plugin plus generates eclipse WTP (Web Tools Platform) configuration files. After importing to eclipse your war/ear projects should be configured to work with WTP. See also <<tutorial_java_projects#,this tutorial for Java projects>>.
 
-| <<findbugs_plugin, `findbugs` >>
+| <<findbugs_plugin#, `findbugs` >>
 | `java-base`
 | -
 | Performs quality checks on your project's Java source files using http://findbugs.sourceforge.net[FindBugs] and generates reports from these checks.
 
-| <<idea_plugin, `idea` >>
+| <<idea_plugin#, `idea` >>
 | -
 | `java`
 | Generates files that are used by http://www.jetbrains.com/idea/index.html[Intellij IDEA IDE], thus making it possible to import the project into IDEA.
 
-| <<jdepend_plugin, `jdepend` >>
+| <<jdepend_plugin#, `jdepend` >>
 | `java-base`
 | -
 | Performs quality checks on your project's source files using http://clarkware.com/software/JDepend.html[JDepend] and generates reports from these checks.
 
-| <<pmd_plugin, `pmd` >>
+| <<pmd_plugin#, `pmd` >>
 | `java-base`
 | -
 | Performs quality checks on your project's Java source files using http://pmd.sourceforge.net[PMD] and generates reports from these checks.
 
-| <<project_reports_plugin, `project-report` >>
+| <<project_reports_plugin#, `project-report` >>
 | `reporting-base`
 | -
 | Generates reports containing useful information about your Gradle build.
 
-| <<signing_plugin, `signing` >>
+| <<signing_plugin#, `signing` >>
 | base
 | -
 | Adds the ability to digitally sign built files and artifacts.
@@ -261,27 +261,27 @@ These plugins provide help with your software development process.
 | Works with
 | Description
 
-| <<build_dashboard_plugin, `build-dashboard` >>
+| <<build_dashboard_plugin#, `build-dashboard` >>
 | reporting-base
 | -
 | Generates build dashboard report.
 
-| <<native_software, `cunit` >>
+| <<native_software#, `cunit` >>
 | -
 | -
 | Adds support for running http://cunit.sourceforge.net[CUnit] tests.
 
-| <<jacoco_plugin, `jacoco` >>
+| <<jacoco_plugin#, `jacoco` >>
 | reporting-base
 | java
 | Provides integration with the http://www.eclemma.org/jacoco/[JaCoCo] code coverage library for Java.
 
-| <<native_software, `visual-studio` >>
+| <<native_software#, `visual-studio` >>
 | -
 | native language plugins
 | Adds integration with Visual Studio.
 
-| <<java_gradle_plugin, `java-gradle-plugin` >>
+| <<java_gradle_plugin#, `java-gradle-plugin` >>
 | java
 |
 | Assists with development of Gradle plugins by providing standard plugin build configuration and validation.
@@ -304,7 +304,7 @@ These plugins form the basic building blocks which the other plugins are assembl
 
 * adds build __ConfigurationName__ tasks. Those tasks assemble the artifacts belonging to the specified configuration.
 * adds upload __ConfigurationName__ tasks. Those tasks assemble and upload the artifacts belonging to the specified configuration.
-* configures reasonable default values for all archive tasks (e.g. tasks that inherit from api:org.gradle.api.tasks.bundling.AbstractArchiveTask[]). For example, the archive tasks are tasks of types: api:org.gradle.api.tasks.bundling.Jar[], api:org.gradle.api.tasks.bundling.Tar[], api:org.gradle.api.tasks.bundling.Zip[]. Specifically, `destinationDir`, `baseName` and `version` properties of the archive tasks are preconfigured with defaults. This is extremely useful because it drives consistency across projects; the consistency regarding naming conventions of archives and their location after the build completed.
+* configures reasonable default values for all archive tasks (e.g. tasks that inherit from `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]`). For example, the archive tasks are tasks of types: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`. Specifically, `destinationDir`, `baseName` and `version` properties of the archive tasks are preconfigured with defaults. This is extremely useful because it drives consistency across projects; the consistency regarding naming conventions of archives and their location after the build completed.
 
 
 | java-base

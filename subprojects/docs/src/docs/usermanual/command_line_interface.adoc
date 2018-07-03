@@ -18,7 +18,7 @@
 [.lead]
 The command-line interface is one of the primary methods of interacting with Gradle. The following serves as a reference of executing and customizing Gradle use of a command-line or when writing scripts or configuring continuous integration.
 
-Use of the <<gradle_wrapper, Gradle Wrapper>> is highly encouraged. You should substitute `./gradlew` or `gradlew.bat` for `gradle` in all following examples when using the Wrapper.
+Use of the <<gradle_wrapper#, Gradle Wrapper>> is highly encouraged. You should substitute `./gradlew` or `gradlew.bat` for `gradle` in all following examples when using the Wrapper.
 
 Executing Gradle on the command-line conforms to the following structure. Options are allowed before and after task names.
 ----
@@ -62,7 +62,7 @@ You can run a task and all of its <<sec:task_dependencies,dependencies>>.
 You can learn about what projects and tasks are available in the <<sec:command_line_project_reporting, project reporting section>>.
 
 === Executing tasks in multi-project builds
-In a <<intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
+In a <<intro_multi_project_builds#, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
 
 ----
 ❯ gradle :mySubproject:taskName
@@ -252,7 +252,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::img/gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<inspecting_dependencies>>.
+Learn more in <<inspecting_dependencies#,"Inspecting Dependencies">>.
 
 === Listing project dependencies
 
@@ -262,7 +262,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 ❯ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<inspecting_dependencies>>.
+Concrete examples of build scripts and output available in the <<inspecting_dependencies#,"Inspecting Dependencies">>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 
@@ -291,7 +291,7 @@ Running `gradle properties` gives you a list of the properties of the selected p
 
 === Software Model reports
 
-You can get a hierarchical view of elements for <<software_model,software model>> projects using the `model` task:
+You can get a hierarchical view of elements for <<software_model#,software model>> projects using the `model` task:
 
 ----
 ❯ gradle model
@@ -336,7 +336,7 @@ Create a https://gradle.com/build-scans[build scan] with fine-grained informatio
 Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
 `-Dorg.gradle.daemon.debug=true`::
-Debug <<gradle_daemon, Gradle Daemon>> process.
+Debug <<gradle_daemon#, Gradle Daemon>> process.
 
 [[sec:command_line_performance]]
 == Performance options
@@ -345,7 +345,7 @@ Try these options when optimizing build performance. Learn more about https://gu
 Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<sec:gradle_configuration_properties, configuring build environment guide>>.
 
 `--build-cache`, `--no-build-cache`::
-Toggles the <<build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
+Toggles the <<build_cache#, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
 Toggles <<sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
@@ -365,10 +365,10 @@ Generate a build scan with detailed performance diagnostics.
 image:img/gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
 === Gradle daemon options
-You can manage the <<gradle_daemon,Gradle Daemon>> through the following command line options.
+You can manage the <<gradle_daemon#,Gradle Daemon>> through the following command line options.
 
 `--daemon`, `--no-daemon`::
-Use the <<gradle_daemon, Gradle Daemon>> to run the build. Starts the daemon if not running or existing daemon busy. _Default is on_.
+Use the <<gradle_daemon#, Gradle Daemon>> to run the build. Starts the daemon if not running or existing daemon busy. _Default is on_.
 
 `--foreground`::
 Starts the Gradle Daemon in a foreground process.
@@ -387,7 +387,7 @@ Gradle Daemon will stop itself after this number of milliseconds of idle time. _
 == Logging options
 
 === Setting log level
-You can customize the verbosity of Gradle logging with the following options, ordered from least verbose to most verbose. Learn more in the <<logging, logging documentation>>.
+You can customize the verbosity of Gradle logging with the following options, ordered from least verbose to most verbose. Learn more in the <<logging#, logging documentation>>.
 
 `-Dorg.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 Set logging level via Gradle properties.
@@ -462,7 +462,7 @@ Features:
 The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
 
 `--include-build`::
-Run the build as a composite, including the specified build. See <<composite_builds, Composite Builds>>.
+Run the build as a composite, including the specified build. See <<composite_builds#, Composite Builds>>.
 
 `--offline`::
 Specifies that the build should operate without accessing network resources. Learn more about <<sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
@@ -475,15 +475,15 @@ Run Gradle with all task actions disabled. Use this to show which task would hav
 
 `--write-locks`::
 Indicates that all resolved configurations that are _lockable_ should have their lock state persisted.
-Learn more about this in <<dependency_locking,dependency locking>>.
+Learn more about this in <<dependency_locking#,dependency locking>>.
 
 `--update-locks <group:name>[,<group:name>]*`::
 Indicates that versions for the specified modules have to be updated in the lock file.
 This flag also implies `--write-locks`.
-Learn more about this in <<dependency_locking,dependency locking>>.
+Learn more about this in <<dependency_locking#,dependency locking>>.
 
 == Environment options
-You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment, build environment>>.
+You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment#, build environment>>.
 
 `-b`, `--build-file`::
 Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`, then `myProjectName.gradle`.
@@ -507,7 +507,7 @@ Don't search in parent directories for a `settings.gradle` file.
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_system_properties>>.
 
 `-I`, `--init-script`::
-Specifies an initialization script. See <<init_scripts>>.
+Specifies an initialization script. See <<init_scripts#,"Init Scripts">>.
 
 `-P`, `--project-prop`::
 Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<sec:project_properties>>.
@@ -528,7 +528,7 @@ Use the built-in `gradle init` task to create a new Gradle builds, with new or e
 ❯ gradle init
 ----
 
-Most of the time you'll want to specify a project type. Available types include `basic` (default), `java-library`, `java-application`, and more. See <<build_init_plugin, init plugin documentation>> for details.
+Most of the time you'll want to specify a project type. Available types include `basic` (default), `java-library`, `java-application`, and more. See <<build_init_plugin#, init plugin documentation>> for details.
 
 ----
 ❯ gradle init --type java-library
@@ -541,7 +541,7 @@ The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a
 ❯ gradle wrapper --gradle-version=4.4
 ----
 
-You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper,Gradle wrapper section>>.
+You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper#,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous Build
@@ -565,7 +565,7 @@ If Gradle is attached to an interactive input source, such as a terminal, the co
 
 [NOTE]
 ====
-Continuous build is an <<feature_lifecycle,incubating>> feature.
+Continuous build is an <<feature_lifecycle#,incubating>> feature.
 ====
 
 There are several issues to be aware with the current implementation of continuous build. These are likely to be addressed in future Gradle releases.

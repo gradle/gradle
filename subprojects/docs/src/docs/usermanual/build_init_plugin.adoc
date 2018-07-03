@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-The Build Init plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The Build Init plugin is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
@@ -45,12 +45,12 @@ The plugin adds the following tasks to the project:
 
 | `init`
 | `wrapper`
-| api:org.gradle.buildinit.tasks.InitBuild[]
+| `link:{groovy-dsl-path}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]`
 | Generates a Gradle project.
 
 | `wrapper`
 | -
-| api:org.gradle.api.tasks.wrapper.Wrapper[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]`
 | Generates Gradle wrapper files.
 |===
 
@@ -76,14 +76,14 @@ Note that the migration from Maven builds only supports the Groovy DSL for gener
 
 [NOTE]
 ====
-As this plugin is currently <<feature_lifecycle,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
+As this plugin is currently <<feature_lifecycle#,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
 ====
 
 
 [[sec:pom_maven_conversion_]]
 === “`pom`” (Maven conversion)
 
-The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<gradle_command_line,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
+The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface#,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
 

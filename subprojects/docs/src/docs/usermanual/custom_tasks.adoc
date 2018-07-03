@@ -15,9 +15,9 @@
 [[custom_tasks]]
 = Writing Custom Task Classes
 
-Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
+Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks#,this chapter about tasks>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
 
-The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
+The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks#,this chapter about tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
 
 The behaviour and properties of an enhanced task is defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
 
@@ -35,7 +35,7 @@ You can include the task class directly in the build script. This has the benefi
 `buildSrc` project::
 You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
 +
-See <<organizing_gradle_projects>> for more details about the `buildSrc` project.
+See <<organizing_gradle_projects#,"Organizing Gradle Projects">> for more details about the `buildSrc` project.
 
 Standalone project::
 You can create a separate project for your task class. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some custom plugins, or bundle several related task classes into a single library. Or some combination of the two.
@@ -45,7 +45,7 @@ In our examples, we will start with the task class in the build script, to keep 
 [[sec:writing_a_simple_task_class]]
 == Writing a simple task class
 
-To implement a custom task class, you extend api:org.gradle.api.DefaultTask[].
+To implement a custom task class, you extend `link:{groovy-dsl-path}/org.gradle.api.DefaultTask.html[DefaultTask]`.
 
 === Example: Defining a custom task
 
@@ -55,7 +55,7 @@ To implement a custom task class, you extend api:org.gradle.api.DefaultTask[].
 include::{samples-path}/userguide/tasks/customTask/build.gradle[tag=define-task]
 ----
 
-This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark it with the api:org.gradle.api.tasks.TaskAction[] annotation. Gradle will call the method when the task executes. You don't have to use a method to define the behaviour for the task. You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add behaviour.
+This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark it with the `link:{javadoc-path}/org/gradle/api/tasks/TaskAction.html[TaskAction]` annotation. Gradle will call the method when the task executes. You don't have to use a method to define the behaviour for the task. You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add behaviour.
 
 === Example: A hello world task
 
@@ -127,7 +127,7 @@ include::{samples-path}/customPlugin/consumer/build.gradle[tag=use-task]
 [[sec:writing_tests_for_your_task_class]]
 === Writing tests for your task class
 
-You can use the api:org.gradle.testfixtures.ProjectBuilder[] class to create api:org.gradle.api.Project[] instances to use when you test your task class.
+You can use the `link:{javadoc-path}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder]` class to create `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` instances to use when you test your task class.
 
 === Example: Testing a custom task
 
@@ -145,11 +145,11 @@ include::{samples-path}/customPlugin/plugin/src/test/groovy/org/gradle/GreetingT
 [NOTE]
 ====
 
-Incremental tasks are an <<feature_lifecycle,incubating>> feature.
+Incremental tasks are an <<feature_lifecycle#,incubating>> feature.
 
 Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle), discussions within the Gradle community have produced superior ideas for exposing the information about changes to task implementors to what is described below. As such, the API for this feature will almost certainly change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community.
 
-The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle>>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
+The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle#,"Feature Lifecycle">>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
 
 ====
 
@@ -161,7 +161,7 @@ If you'd like to optimise your build so that only out-of-date inputs are process
 [[sec:implementing_an_incremental_task]]
 === Implementing an incremental task
 
-For a task to process inputs incrementally, that task must contain an _incremental task action_. This is a task action method that contains a single api:org.gradle.api.tasks.incremental.IncrementalTaskInputs[] parameter, which indicates to Gradle that the action will process the changed inputs only.
+For a task to process inputs incrementally, that task must contain an _incremental task action_. This is a task action method that contains a single `link:{javadoc-path}/org/gradle/api/tasks/incremental/IncrementalTaskInputs.html[IncrementalTaskInputs]` parameter, which indicates to Gradle that the action will process the changed inputs only.
 
 The incremental task action may supply an api:org.gradle.api.tasks.incremental.IncrementalTaskInputs#outOfDate[] action for processing any input file that is out-of-date, and a api:org.gradle.api.tasks.incremental.IncrementalTaskInputs#removed[] action that executes for any input file that has been removed since the previous execution.
 
@@ -272,7 +272,7 @@ However, if the state files are non-relocatable, then they can't be shared via t
 
 [NOTE]
 ====
-The API for exposing command line options is an <<feature_lifecycle,incubating>> feature.
+The API for exposing command line options is an <<feature_lifecycle#,incubating>> feature.
 ====
 
 Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
@@ -280,9 +280,9 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 [[sec:declaring_task_option]]
 === Declaring a command-line option
 
-Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with api:org.gradle.api.tasks.options.Option[]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
+Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with `link:{javadoc-path}/org/gradle/api/tasks/options/Option.html[Option]`. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
 
-Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with api:org.gradle.api.tasks.options.Option[].
+Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with `link:{javadoc-path}/org/gradle/api/tasks/options/Option.html[Option]`.
 
 === Example: Declaring a command line option
 
@@ -339,7 +339,7 @@ Describes an option that can takes multiple values of a given type. The values f
 [[sec:documenting_available_task_option_values]]
 === Documenting available values for an option
 
-In theory, an option for a property type `String` or `List<String>` can accept any arbitrary value. Expected values for such an option can be documented programmatically with the help of the annotation api:org.gradle.api.tasks.options.OptionValues[]. This annotation may be assigned to any method that returns a `List` of one of the supported data types. In addition, you have to provide the option identifier to indicate the relationship between option and available values.
+In theory, an option for a property type `String` or `List<String>` can accept any arbitrary value. Expected values for such an option can be documented programmatically with the help of the annotation `link:{javadoc-path}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]`. This annotation may be assigned to any method that returns a `List` of one of the supported data types. In addition, you have to provide the option identifier to indicate the relationship between option and available values.
 
 [NOTE]
 ====
@@ -359,7 +359,7 @@ include::{samples-path}/userguide/tasks/commandLineOption/optionValues/buildSrc/
 [[sec:listing_task_options]]
 === Listing command line options
 
-Command line options using the annotations api:org.gradle.api.tasks.options.Option[] and api:org.gradle.api.tasks.options.OptionValues[] are self-documenting. You will see <<sec:declaring_task_option,declared options>> and their <<sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
+Command line options using the annotations `link:{javadoc-path}/org/gradle/api/tasks/options/Option.html[Option]` and `link:{javadoc-path}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]` are self-documenting. You will see <<sec:declaring_task_option,declared options>> and their <<sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
 
 === Example: Listing available values for option
 
@@ -384,7 +384,7 @@ Support for declaring command line options currently comes with a few limitation
 [NOTE]
 ====
 
-The Worker API is an <<feature_lifecycle,incubating>> feature.
+The Worker API is an <<feature_lifecycle#,incubating>> feature.
 
 ====
 
@@ -395,7 +395,7 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 [[using-the-worker-api]]
 === Using the Worker API
 
-In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and a configuration for the unit of work. The implementation is simply a class that extends `java.lang.Runnable`. This class should have a constructor that is annotated with `javax.inject.Inject` and accepts parameters that configure the class for a single unit of work. When a unit of work is submitted to the api:org.gradle.workers.WorkerExecutor[], an instance of this class will be created and the parameters configured for the unit of work will be passed to the constructor.
+In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and a configuration for the unit of work. The implementation is simply a class that extends `java.lang.Runnable`. This class should have a constructor that is annotated with `javax.inject.Inject` and accepts parameters that configure the class for a single unit of work. When a unit of work is submitted to the `link:{javadoc-path}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]`, an instance of this class will be created and the parameters configured for the unit of work will be passed to the constructor.
 
 === Example: Creating a unit of work implementation
 
@@ -405,7 +405,7 @@ In order to submit work to the Worker API, two things must be provided: an imple
 include::{samples-path}/workerApi/noIsolation/build.gradle[tag=unit-of-work]
 ----
 
-The configuration of the worker is represented by a api:org.gradle.workers.WorkerConfiguration[] and is set by configuring an instance of this object at the time of submission. However, in order to submit the unit of work, it is necessary to first acquire the api:org.gradle.workers.WorkerExecutor[]. To do this, a constructor should be provided that is annotated with `javax.inject.Inject` and accepts a api:org.gradle.workers.WorkerExecutor[] parameter. Gradle will inject the instance of api:org.gradle.workers.WorkerExecutor[] at runtime when the task is created.
+The configuration of the worker is represented by a `link:{javadoc-path}/org/gradle/workers/WorkerConfiguration.html[WorkerConfiguration]` and is set by configuring an instance of this object at the time of submission. However, in order to submit the unit of work, it is necessary to first acquire the `link:{javadoc-path}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]`. To do this, a constructor should be provided that is annotated with `javax.inject.Inject` and accepts a `link:{javadoc-path}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]` parameter. Gradle will inject the instance of `link:{javadoc-path}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]` at runtime when the task is created.
 
 === Example: Submitting a unit of work for execution
 
@@ -415,13 +415,13 @@ The configuration of the worker is represented by a api:org.gradle.workers.Worke
 include::{samples-path}/workerApi/noIsolation/build.gradle[tag=task-implementation]
 ----
 
-Note that one element of the api:org.gradle.workers.WorkerConfiguration[] is the `params` property. These are the parameters passed to the constructor of the unit of work implementation for each item of work submitted. Any parameters provided to the unit of work _must_ be `java.io.Serializable`.
+Note that one element of the `link:{javadoc-path}/org/gradle/workers/WorkerConfiguration.html[WorkerConfiguration]` is the `params` property. These are the parameters passed to the constructor of the unit of work implementation for each item of work submitted. Any parameters provided to the unit of work _must_ be `java.io.Serializable`.
 
 Once all of the work for a task action has been submitted, it is safe to exit the task action. The work will be executed asynchronously and in parallel (up to the setting of `max-workers`). Of course, any tasks that are dependent on this task (and any subsequent task actions of this task) will not begin executing until all of the asynchronous work completes. However, other independent tasks that have no relationship to this task can begin executing immediately.
 
-If any failures occur while executing the asynchronous work, the task will fail and a api:org.gradle.workers.WorkerExecutionException[] will be thrown detailing the failure for each failed work item. This will be treated like any failure during task execution and will prevent any dependent tasks from executing.
+If any failures occur while executing the asynchronous work, the task will fail and a `link:{javadoc-path}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException]` will be thrown detailing the failure for each failed work item. This will be treated like any failure during task execution and will prevent any dependent tasks from executing.
 
-In some cases, however, it might be desirable to wait for work to complete before exiting the task action. This is possible using the api:org.gradle.workers.WorkerExecutor#await[] method. As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a api:org.gradle.workers.WorkerExecutionException[] thrown from the api:org.gradle.workers.WorkerExecutor#await[] method.
+In some cases, however, it might be desirable to wait for work to complete before exiting the task action. This is possible using the api:org.gradle.workers.WorkerExecutor#await[] method. As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a `link:{javadoc-path}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException]` thrown from the api:org.gradle.workers.WorkerExecutor#await[] method.
 
 [NOTE]
 ====
@@ -442,7 +442,7 @@ include::{samples-path}/workerApi/waitForCompletion/build.gradle[tag=wait-for-co
 [[isolation-modes]]
 === Isolation Modes
 
-Gradle provides three isolation modes that can be configured on a unit of work and are specified using the api:org.gradle.workers.IsolationMode[] enum:
+Gradle provides three isolation modes that can be configured on a unit of work and are specified using the `link:{javadoc-path}/org/gradle/workers/IsolationMode.html[IsolationMode]` enum:
 
 IsolationMode.NONE::
 This states that the work should be run in a thread with a minimum of isolation. For instance, it will share the same classloader that the task is loaded from. This is the fastest level of isolation.
@@ -497,6 +497,6 @@ Worker daemons will remain running until either the build daemon that started th
 
 There are different ways to re-use logic between task classes.
 The easiest case is when you can extract the logic you want to share in a separate method or class and then use the extracted piece of code in your tasks.
-For example, the api:org.gradle.api.tasks.Copy[] task re-uses the logic of the api:org.gradle.api.Project#copy(org.gradle.api.Action)[] method.
+For example, the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task re-uses the logic of the api:org.gradle.api.Project#copy(org.gradle.api.Action)[] method.
 Another option is to add a task dependency on the task which outputs you want to re-use.
 Other options include using <<sec:task_rules,task rules>> or the <<worker_api,worker API>>.

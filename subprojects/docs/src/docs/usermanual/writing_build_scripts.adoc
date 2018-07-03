@@ -27,13 +27,13 @@ A build script can contain any Groovy language element.footnote:[Any language el
 [[sec:project_api]]
 == The Project API
 
-In the tutorial in <<tutorial_java_projects>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type api:org.gradle.api.Project[] and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
+In <<tutorial_java_projects#,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
 
 [TIP]
 .Getting help writing build scripts
 ====
 
-Don't forget that your build script is simply Groovy code that drives the Gradle API. And the api:org.gradle.api.Project[] interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
+Don't forget that your build script is simply Groovy code that drives the Gradle API. And the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
 
 ====
 
@@ -71,7 +71,7 @@ The `Project` object provides some standard properties, which are available in y
 | Default Value
 
 | `project`
-| api:org.gradle.api.Project[]
+| `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]`
 | The `Project` instance
 
 | `name`
@@ -103,7 +103,7 @@ The `Project` object provides some standard properties, which are available in y
 | `unspecified`
 
 | `ant`
-| api:org.gradle.api.AntBuilder[]
+| `link:{javadoc-path}/org/gradle/api/AntBuilder.html[AntBuilder]`
 | An `AntBuilder` instance
 |===
 
@@ -111,7 +111,7 @@ The `Project` object provides some standard properties, which are available in y
 [[sec:the_script_api]]
 == The Script API
 
-When Gradle executes a script, it compiles the script into a class which implements api:org.gradle.api.Script[]. This means that all of the properties and methods declared by the `Script` interface are available in your script.
+When Gradle executes a script, it compiles the script into a class which implements `link:{groovy-dsl-path}/org.gradle.api.Script.html[Script]`. This means that all of the properties and methods declared by the `Script` interface are available in your script.
 
 [[sec:declaring_variables]]
 == Declaring variables
@@ -154,7 +154,7 @@ In this example, an `ext` block adds two extra properties to the `project` objec
 
 By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property but the property is misspelled or does not exist. Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables. Extra properties on a project are visible from its subprojects.
 
-For further details on extra properties and their API, see the api:org.gradle.api.plugins.ExtraPropertiesExtension[] class in the API documentation.
+For further details on extra properties and their API, see the `link:{groovy-dsl-path}/org.gradle.api.plugins.ExtraPropertiesExtension.html[ExtraPropertiesExtension]` class in the API documentation.
 
 [[sec:configuring_arbitrary_objects]]
 == Configuring arbitrary objects

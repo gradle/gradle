@@ -21,7 +21,7 @@
 
 Gradle provides a programmatic API called the Tooling API, which you can use for embedding Gradle into your own software. This API allows you to execute and monitor builds and to query Gradle about the details of a build. The main audience for this API is IDE, CI server, other UI authors; however, the API is open for anyone who needs to embed Gradle in their application.
 
-* <<test_kit,Gradle TestKit>> uses the Tooling API for functional testing of your Gradle plugins.
+* <<test_kit#,Gradle TestKit>> uses the Tooling API for functional testing of your Gradle plugins.
 * http://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship] uses the Tooling API for importing your Gradle project and running tasks.
 * https://www.jetbrains.com/idea/[IntelliJ IDEA] uses the Tooling API for importing your Gradle project and running tasks.
 
@@ -46,7 +46,7 @@ Some features that the Tooling API provides:
 [[sec:embedding_daemon]]
 == Tooling API and the Gradle Build Daemon
 
-The Tooling API always uses the Gradle daemon. This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process. <<gradle_daemon>> contains more details about the daemon, specifically information on situations when new daemons are forked.
+The Tooling API always uses the Gradle daemon. This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process. <<gradle_daemon#,"Gradle Daemon">> contains more details about the daemon, specifically information on situations when new daemons are forked.
 
 [[sec:embedding_quickstart]]
 == Quickstart
@@ -63,7 +63,7 @@ To use the Tooling API, add the following repository and dependency declarations
 include::{samples-path}/toolingApi/runBuild/build.gradle[tag=use-tooling-api]
 ----
 
-The main entry point to the Tooling API is the api:org.gradle.tooling.GradleConnector[]. You can navigate from there to find code samples and explore the available Tooling API models. You can use api:org.gradle.tooling.GradleConnector#connect()[] to create a api:org.gradle.tooling.ProjectConnection[]. A `ProjectConnection` connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
+The main entry point to the Tooling API is the `link:{javadoc-path}/org/gradle/tooling/GradleConnector.html[GradleConnector]`. You can navigate from there to find code samples and explore the available Tooling API models. You can use api:org.gradle.tooling.GradleConnector#connect()[] to create a `link:{javadoc-path}/org/gradle/tooling/ProjectConnection.html[ProjectConnection]`. A `ProjectConnection` connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
 [[sec:embedding_compatibility]]
 == Gradle version and Java version compatibility

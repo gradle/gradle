@@ -50,17 +50,17 @@ The JDepend plugin adds the following tasks to the project:
 
 | `jdependMain`
 | `classes`
-| api:org.gradle.api.plugins.quality.JDepend[]
+| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`
 | Runs JDepend against the production Java source files.
 
 | `jdependTest`
 | `testClasses`
-| api:org.gradle.api.plugins.quality.JDepend[]
+| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`
 | Runs JDepend against the test Java source files.
 
 | `jdepend__SourceSet__`
 | `__sourceSet__Classes`
-| api:org.gradle.api.plugins.quality.JDepend[]
+| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`
 | Runs JDepend against the given source set's Java source files.
 |===
 
@@ -95,4 +95,4 @@ The JDepend plugin adds the following dependency configurations:
 [[sec:jdepend_configuration]]
 == Configuration
 
-See the api:org.gradle.api.plugins.quality.JDependExtension[] class in the API documentation.
+See the `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDependExtension.html[JDependExtension]` class in the API documentation.

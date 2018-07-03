@@ -17,12 +17,12 @@
 
 [NOTE]
 ====
-Support for building Play applications is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+Support for building Play applications is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
 ====
 
 https://www.playframework.com/[Play] is a modern web application framework. The Play plugin adds support for building, testing and running Play applications with Gradle.
 
-The Play plugin makes use of the Gradle <<software_model,software model>>.
+The Play plugin makes use of the Gradle <<software_model#,software model>>.
 
 [[sec:play_usage]]
 == Usage
@@ -47,13 +47,13 @@ The Play plugin currently has a few limitations.
 * Gradle does not yet support aggregate reverse routes introduced in Play 2.4.x.
 * A given project may only define a single Play application. This means that a single project cannot build more than one Play application. However, a multi-project build can have many projects that each define their own Play application.
 * Play applications can only target a single “platform” (combination of Play, Scala and Java version) at a time. This means that it is currently not possible to define multiple variants of a Play application that, for example, produce jars for both Scala 2.10 and 2.11. This limitation may be lifted in future Gradle versions.
-* Support for generating IDE configurations for Play applications is limited to <<idea_plugin,IDEA>>.
+* Support for generating IDE configurations for Play applications is limited to <<idea_plugin#,IDEA>>.
 
 
 [[sec:play_software_model]]
 == Software Model
 
-The Play plugin uses a _software model_ to describe a Play application and how to build it. The Play software model extends the base Gradle <<software_model_concepts,software model>> to add support for building Play applications. A Play application is represented by a api:org.gradle.play.PlayApplicationSpec[] component type. The plugin automatically creates a single api:org.gradle.play.PlayApplicationBinarySpec[] instance when it is applied. Additional Play components cannot be added to a project.
+The Play plugin uses a _software model_ to describe a Play application and how to build it. The Play software model extends the base Gradle <<software_model_concepts#,software model>> to add support for building Play applications. A Play application is represented by a `link:{javadoc-path}/org/gradle/play/PlayApplicationSpec.html[PlayApplicationSpec]` component type. The plugin automatically creates a single `link:{javadoc-path}/org/gradle/play/PlayApplicationBinarySpec.html[PlayApplicationBinarySpec]` instance when it is applied. Additional Play components cannot be added to a project.
 
 ++++
 <figure>
@@ -79,41 +79,41 @@ A Play application component describes the application to be built and consists 
 | Filters
 
 | java
-| api:org.gradle.language.java.JavaSourceSet[]
+| `link:{javadoc-path}/org/gradle/language/java/JavaSourceSet.html[JavaSourceSet]`
 | app
 | \**/*.java
 
 | scala
-| api:org.gradle.language.scala.ScalaLanguageSourceSet[]
+| `link:{javadoc-path}/org/gradle/language/scala/ScalaLanguageSourceSet.html[ScalaLanguageSourceSet]`
 | app
 | \**/*.scala
 
 | routes
-| api:org.gradle.language.routes.RoutesSourceSet[]
+| `link:{javadoc-path}/org/gradle/language/routes/RoutesSourceSet.html[RoutesSourceSet]`
 | conf
 | routes, *.routes
 
 | twirlTemplates
-| api:org.gradle.language.twirl.TwirlSourceSet[]
+| `link:{javadoc-path}/org/gradle/language/twirl/TwirlSourceSet.html[TwirlSourceSet]`
 | app
 | \**/*.scala.*
 
 | javaScript
-| api:org.gradle.language.javascript.JavaScriptSourceSet[]
+| `link:{javadoc-path}/org/gradle/language/javascript/JavaScriptSourceSet.html[JavaScriptSourceSet]`
 | app/assets
 | \**/*.js
 |===
 
 These source sets can be configured or additional source sets can be added to the Play component. See <<configuring_play,Configuring Play>> for further information.
 
-Another element of configuring a Play application is the _platform_. To build a Play application, Gradle needs to understand which versions of Play, Scala and Java to use. The Play component specifies this requirement as a api:org.gradle.play.platform.PlayPlatform[]. If these values are not configured, a default version of Play, Scala and Java will be used. See <<configuring_play_platform,Targeting a certain version of Play>> for information on configuring the Play platform.
+Another element of configuring a Play application is the _platform_. To build a Play application, Gradle needs to understand which versions of Play, Scala and Java to use. The Play component specifies this requirement as a `link:{javadoc-path}/org/gradle/play/platform/PlayPlatform.html[PlayPlatform]`. If these values are not configured, a default version of Play, Scala and Java will be used. See <<configuring_play_platform,Targeting a certain version of Play>> for information on configuring the Play platform.
 
 Note that only a single platform can be specified for a given Play component. This means that only a single version of Play, Scala and Java can be used to build a Play component. In other words, a Play component can only produce one set of outputs, and those outputs will be built using the versions specified by the platform configured on the component.
 
 [[sec:the_play_application_binary]]
 === The Play application binary
 
-A Play application component is compiled and packaged to produce a set of outputs which are represented by a api:org.gradle.play.PlayApplicationBinarySpec[]. The Play binary specifies the jar files produced by building the component as well as providing elements by which additional content can be added to those jar files. It also exposes the tasks involved in building the component and creating the binary.
+A Play application component is compiled and packaged to produce a set of outputs which are represented by a `link:{javadoc-path}/org/gradle/play/PlayApplicationBinarySpec.html[PlayApplicationBinarySpec]`. The Play binary specifies the jar files produced by building the component as well as providing elements by which additional content can be added to those jar files. It also exposes the tasks involved in building the component and creating the binary.
 
 See <<configuring_play,Configuring Play>> for examples of configuring the Play binary.
 
@@ -156,17 +156,17 @@ The Play plugin hooks into the normal Gradle lifecycle tasks such as `assemble`,
 
 | `playBinary`
 | All compile tasks for source sets added to the Play application.
-| api:org.gradle.api.Task[]
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
 | Performs a build of just the Play application.
 
 | `dist`
 | `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
-| api:org.gradle.api.Task[]
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
 | Assembles the Play distribution.
 
 | `stage`
 | `stagePlayBinaryDist`
-| api:org.gradle.api.Task[]
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
 | Stages the Play distribution.
 |===
 
@@ -182,12 +182,12 @@ The plugin also provides tasks for running, testing and packaging your Play appl
 
 | `runPlayBinary`
 | `playBinary` to build Play application.
-| api:org.gradle.play.tasks.PlayRun[]
+| `link:{groovy-dsl-path}/org.gradle.play.tasks.PlayRun.html[PlayRun]`
 | Runs the Play application for local development. See <<play_continuous_build,how this works with continuous build.>>
 
 | `testPlayBinary`
 | `playBinary` to build Play application and `compilePlayBinaryTests`.
-| api:org.gradle.api.tasks.testing.Test[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`
 | Runs JUnit/TestNG tests for the Play application.
 |===
 
@@ -204,22 +204,22 @@ For the different types of sources in a Play application, the plugin adds the fo
 
 | `compilePlayBinaryScala`
 | Scala and Java
-| api:org.gradle.language.scala.tasks.PlatformScalaCompile[]
+| `link:{javadoc-path}/org/gradle/language/scala/tasks/PlatformScalaCompile.html[PlatformScalaCompile]`
 | Compiles all Scala and Java sources defined by the Play application.
 
 | `compilePlayBinaryPlayTwirlTemplates`
 | Twirl templates
-| api:org.gradle.play.tasks.TwirlCompile[]
+| `link:{groovy-dsl-path}/org.gradle.play.tasks.TwirlCompile.html[TwirlCompile]`
 | Compiles Twirl templates with the Twirl compiler. Gradle supports all of the built-in Twirl template formats (HTML, XML, TXT and JavaScript). Twirl templates need to match the pattern `\*.scala.*`.
 
 | `compilePlayBinaryPlayRoutes`
 | Play Route files
-| api:org.gradle.play.tasks.RoutesCompile[]
+| `link:{groovy-dsl-path}/org.gradle.play.tasks.RoutesCompile.html[RoutesCompile]`
 | Compiles routes files into Scala sources.
 
 | `minifyPlayBinaryJavaScript`
 | JavaScript files
-| api:org.gradle.play.tasks.JavaScriptMinify[]
+| `link:{groovy-dsl-path}/org.gradle.play.tasks.JavaScriptMinify.html[JavaScriptMinify]`
 | Minifies JavaScript files with the Google Closure compiler.
 |===
 
@@ -295,7 +295,7 @@ The following versions of Play and Scala are supported:
 [[sec:adding_dependencies]]
 === Adding dependencies
 
-You can add compile, test and runtime dependencies to a Play application through api:org.gradle.api.artifacts.Configuration[] created by the Play plugin.
+You can add compile, test and runtime dependencies to a Play application through `link:{groovy-dsl-path}/org.gradle.api.artifacts.Configuration.html[Configuration]` created by the Play plugin.
 
 If you are coming from SBT, the Play SBT plugin provides short names for common dependencies. For instance, if your project has a dependency on `ws`, you will need to add a dependency to `com.typesafe.play:play-ws_2.11:2.3.9` where `2.11` is your Scala version and `2.3.9` is your Play framework version.
 
@@ -404,12 +404,12 @@ include::{samples-path}/play/play-2.4/build.gradle[tag=play-injected-routes-comp
 [[sec:configuring_twirl_templates]]
 === Configuring Twirl templates
 
-A custom Twirl template format can be configured independently for each Twirl source set. See the api:org.gradle.language.twirl.TwirlSourceSet[] for an example.
+A custom Twirl template format can be configured independently for each Twirl source set. See the `link:{javadoc-path}/org/gradle/language/twirl/TwirlSourceSet.html[TwirlSourceSet]` for an example.
 
 [[sec:injecting_a_custom_asset_pipeline]]
 === Injecting a custom asset pipeline
 
-Gradle Play support comes with a simplistic asset processing pipeline that minifies JavaScript assets. However, many organizations have their own custom pipeline for processing assets. You can easily hook the results of your pipeline into the Play binary by utilizing the api:org.gradle.play.PublicAssets[] property on the binary.
+Gradle Play support comes with a simplistic asset processing pipeline that minifies JavaScript assets. However, many organizations have their own custom pipeline for processing assets. You can easily hook the results of your pipeline into the Play binary by utilizing the `link:{javadoc-path}/org/gradle/play/PublicAssets.html[PublicAssets]` property on the binary.
 
 === Example: Configuring a custom asset pipeline
 
@@ -452,32 +452,32 @@ The distribution can be created by running the `dist` lifecycle task and places 
 
 | `createPlayBinaryStartScripts`
 | -
-| api:org.gradle.api.tasks.application.CreateStartScripts[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.application.CreateStartScripts.html[CreateStartScripts]`
 | Generates scripts to run the Play application distribution.
 
 | `stagePlayBinaryDist`
 | `playBinary`, `createPlayBinaryStartScripts`
-| api:org.gradle.api.tasks.Copy[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`
 | Copies all jar files, dependencies and scripts into a staging directory.
 
 | `createPlayBinaryZipDist`
 |
-| api:org.gradle.api.tasks.bundling.Zip[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`
 | Bundles the Play application as a standalone distribution packaged as a zip.
 
 | `createPlayBinaryTarDist`
 |
-| api:org.gradle.api.tasks.bundling.Tar[]
+| `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`
 | Bundles the Play application as a standalone distribution packaged as a tar.
 
 | `stage`
 | `stagePlayBinaryDist`
-| api:org.gradle.api.Task[]
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
 | Lifecycle task for staging a Play distribution.
 
 | `dist`
 | `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
-| api:org.gradle.api.Task[]
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
 | Lifecycle task for creating a Play distribution.
 |===
 
@@ -485,7 +485,7 @@ The distribution can be created by running the `dist` lifecycle task and places 
 [[adding_files_to_play_distribution]]
 === Adding additional files to your Play application distribution
 
-You can add additional files to the distribution package using the api:org.gradle.api.distribution.Distribution[] API.
+You can add additional files to the distribution package using the `link:{javadoc-path}/org/gradle/api/distribution/Distribution.html[Distribution]` API.
 
 === Example: Add extra files to a Play application distribution
 
@@ -519,14 +519,14 @@ Source code generated by routes and Twirl templates cannot be generated by IDEA 
 For additional information about developing Play applications:
 
 * Play types in the Gradle DSL Guide:
-** api:org.gradle.play.PlayApplicationBinarySpec[]
-** api:org.gradle.play.PlayApplicationSpec[]
-** api:org.gradle.play.platform.PlayPlatform[]
-** api:org.gradle.play.JvmClasses[]
-** api:org.gradle.play.PublicAssets[]
-** api:org.gradle.play.distribution.PlayDistributionContainer[]
-** api:org.gradle.play.tasks.JavaScriptMinify[]
-** api:org.gradle.play.tasks.PlayRun[]
-** api:org.gradle.play.tasks.RoutesCompile[]
-** api:org.gradle.play.tasks.TwirlCompile[]
+** `link:{javadoc-path}/org/gradle/play/PlayApplicationBinarySpec.html[PlayApplicationBinarySpec]`
+** `link:{javadoc-path}/org/gradle/play/PlayApplicationSpec.html[PlayApplicationSpec]`
+** `link:{javadoc-path}/org/gradle/play/platform/PlayPlatform.html[PlayPlatform]`
+** `link:{javadoc-path}/org/gradle/play/JvmClasses.html[JvmClasses]`
+** `link:{javadoc-path}/org/gradle/play/PublicAssets.html[PublicAssets]`
+** `link:{javadoc-path}/org/gradle/play/distribution/PlayDistributionContainer.html[PlayDistributionContainer]`
+** `link:{groovy-dsl-path}/org.gradle.play.tasks.JavaScriptMinify.html[JavaScriptMinify]`
+** `link:{groovy-dsl-path}/org.gradle.play.tasks.PlayRun.html[PlayRun]`
+** `link:{groovy-dsl-path}/org.gradle.play.tasks.RoutesCompile.html[RoutesCompile]`
+** `link:{groovy-dsl-path}/org.gradle.play.tasks.TwirlCompile.html[TwirlCompile]`
 *  https://www.playframework.com/documentation[Play Framework Documentation].

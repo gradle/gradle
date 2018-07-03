@@ -20,7 +20,7 @@ Gradle provides multiple mechanisms for configuring behavior of Gradle itself an
 
 When configuring Gradle behavior you can use these methods, listed in order of highest to lowest precedence (first one wins):
 
-* <<command_line_interface, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
+* <<command_line_interface#, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
 * <<sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file.
 * <<sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `GRADLE_USER_HOME` environment variable.
 * <<sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
@@ -41,7 +41,7 @@ Setting up a consistent environment for your build is as simple as placing these
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
-When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache, using the build cache>>.
+When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache#, using the build cache>>.
 `org.gradle.caching.debug=(true,false)`::
 When set to true, individual input property hashes and the build cache key for each task are logged on the console. Learn more about <<sec:task_output_caching, task output caching>>.
 `org.gradle.configureondemand=(true,false)`::
@@ -49,7 +49,7 @@ Enables incubating <<sec:configuration_on_demand, configuration on demand>>, whe
 `org.gradle.console=(auto,plain,rich,verbose)`::
 Customize console output coloring or verbosity. Default depends on how Gradle is invoked. See <<sec:command_line_logging, command-line logging>> for additional details.
 `org.gradle.daemon=(true,false)`::
-When set to `true` the <<gradle_daemon, Gradle Daemon>> is used to run the build. Default is `true`.
+When set to `true` the <<gradle_daemon#, Gradle Daemon>> is used to run the build. Default is `true`.
 `org.gradle.daemon.idletimeout=(# of idle millis)`::
 Gradle Daemon will terminate itself after specified number of idle milliseconds. Default is `10800000` (3 hours).
 `org.gradle.debug=(true,false)`::
@@ -110,7 +110,7 @@ In a multi project build, “`systemProp.`” properties set in any project exce
 The following environment variables are available for the `gradle` command. Note that command-line options and system properties take precedence over environment variables.
 
 `GRADLE_OPTS`::
-Specifies <<command_line_interface, command-line arguments>> to use when starting the Gradle client. This can be useful for setting the properties to use when running Gradle.
+Specifies <<command_line_interface#, command-line arguments>> to use when starting the Gradle client. This can be useful for setting the properties to use when running Gradle.
 `GRADLE_USER_HOME`::
 Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
 `JAVA_HOME`::
@@ -119,7 +119,7 @@ Specifies the JDK installation directory to use.
 [[sec:project_properties]]
 == Project properties
 
-You can add properties directly to your api:org.gradle.api.Project[] object via the `-P` command line option.
+You can add properties directly to your `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` object via the `-P` command line option.
 
 Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
@@ -172,7 +172,7 @@ JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.en
 ----
 ====
 
-You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon, Gradle Daemon>>.
+You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon#, Gradle Daemon>>.
 
 .Changing JVM settings for forked Gradle JVMs
 ====
@@ -186,12 +186,12 @@ org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -
 ====
 Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
 
-When running with the <<gradle_daemon, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+When running with the <<gradle_daemon#, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
 ====
 
 Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests. You must configure these through the tasks themselves.
 
-.Set Java compile options for api:org.gradle.api.tasks.compile.JavaCompile[] tasks
+.Set Java compile options for `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]` tasks
 ====
 [source,groovy]
 ----
@@ -203,7 +203,7 @@ tasks.withType(JavaCompile) {
 ----
 ====
 
-See other examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
+See other examples in the `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
 
 link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option.
 

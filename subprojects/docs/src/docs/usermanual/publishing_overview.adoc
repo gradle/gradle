@@ -25,9 +25,9 @@ In Gradle, that process looks like this:
 
 Each of the these steps is dependent on the type of repository to which you want to publish artifacts. The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
 
-NOTE: Looking for information on upload tasks and the `archives` configuration? See the <<artifact_management>> chapter.
+NOTE: Looking for information on upload tasks and the `archives` configuration? See the <<artifact_management#,"Artifact Management">> chapter.
 
-Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the <<publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy,Ivy Publish Plugin>>. These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
+Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the <<publishing_maven#,Maven Publish Plugin>> and the <<publishing_ivy#,Ivy Publish Plugin>>. These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
 
 ++++
 <figure>
@@ -52,7 +52,7 @@ Gradle needs to know where to publish artifacts so that consumers can get hold o
 
 [[publishing_overview:how]]
 How to publish::
-Gradle automatically generates publishing tasks for all possible combinations of publication and repository, allowing you to publish any artifact to any repository. If you're publishing to a Maven repository, the tasks are of type api:org.gradle.api.publish.maven.tasks.PublishToMavenRepository[], while for Ivy repositories the tasks are of type api:org.gradle.api.publish.ivy.tasks.PublishToIvyRepository[].
+Gradle automatically generates publishing tasks for all possible combinations of publication and repository, allowing you to publish any artifact to any repository. If you're publishing to a Maven repository, the tasks are of type `link:{groovy-dsl-path}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]`, while for Ivy repositories the tasks are of type `link:{groovy-dsl-path}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository]`.
 
 What follows is a practical example that demonstrates the entire publishing process.
 
@@ -61,8 +61,8 @@ What follows is a practical example that demonstrates the entire publishing proc
 
 The first step in publishing, irrespective of your project type, is to apply the appropriate publishing plugin. As mentioned in the introduction, Gradle supports both Maven and Ivy repositories via the following plugins:
 
- * <<publishing_maven,Maven Publish Plugin>>
- * <<publishing_ivy,Ivy Publish Plugin>>
+ * <<publishing_maven#,Maven Publish Plugin>>
+ * <<publishing_ivy#,Ivy Publish Plugin>>
 
 These provide the specific publication and repository classes needed to configure publishing for the corresponding repository type. Since Maven repositories are the most commonly used ones, they will be the basis for this example and for the other samples in the chapter. Don't worry, we will explain how to adjust individual samples for Ivy repositories.
 
@@ -76,7 +76,7 @@ Let's assume we're working with a simple Java library project, so only the follo
 include::{samples-path}/userguide/publishing/javaLibrary/build.gradle[tag=apply-plugins]
 ----
 
-Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by api:org.gradle.api.publish.PublishingExtension[]:
+Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by `link:{groovy-dsl-path}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]`:
 
 === Example: Configuring a Java library for publishing
 
@@ -86,9 +86,9 @@ Once the appropriate plugin has been applied, you can configure the publications
 include::{samples-path}/userguide/publishing/javaLibrary/build.gradle[tag=configure-publishing]
 ----
 
-This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: api:org.gradle.api.publish.maven.MavenPublication[]. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<glossary:component,component>> of the project.
+This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]`. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<glossary:component,component>> of the project.
 
-NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` api:org.gradle.api.component.SoftwareComponent[], while the War Plugin defines `components.web`.
+NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` `link:{groovy-dsl-path}/org.gradle.api.component.SoftwareComponent.html[SoftwareComponent]`, while the War Plugin defines `components.web`.
 
 The example also defines a file-based Maven repository with the name "myRepo". Such a file-based repository is convenient for a sample, but real-world builds typically work with HTTPS-based repository servers, such as Maven Central or an internal company server.
 
@@ -100,7 +100,7 @@ You can either execute the individual publishing tasks directly, or you can exec
 
 [NOTE]
 ====
-Basic publishing to an Ivy repository is very similar: you simply use the Ivy Publish Plugin, replace  `MavenPublication` with api:org.gradle.api.publish.ivy.IvyPublication[], and use `ivy` instead of `maven` in the repository definition.
+Basic publishing to an Ivy repository is very similar: you simply use the Ivy Publish Plugin, replace  `MavenPublication` with `link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]`, and use `ivy` instead of `maven` in the repository definition.
 
 There are differences between the two types of repository, particularly around the extra metadata that each support — for example, Maven repositories require a POM file while Ivy ones have their own metadata format — so see the plugin chapters for comprehensive information on how to configure both publications and repositories for whichever repository type you're working with.
 ====
@@ -125,7 +125,7 @@ include::{samples-path}/maven-publish/javaProject/build.gradle[tag=publish-custo
 There are several important things to note about the sample:
 
  * The `artifact()` method accepts archive tasks as an argument — like `sourcesJar` in the sample — as well as any type of argument accepted by api:org.gradle.api.Project#file(java.lang.Object)[], such as a `File` instance or string file path.
- * Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <<publishing_maven,Maven Publish Plugin>> and the <<publishin_ivy,Ivy Publish Plugin>>.
+ * Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <<publishing_maven#,Maven Publish Plugin>> and the <<publishin_ivy#,Ivy Publish Plugin>>.
  * Custom artifacts need to be distinct within a publication, typically via a unique combination of `classifier` and `extension`. See the documentation for the plugin you're using for the precise requirements.
  * If you use `artifact()` with an archive task, Gradle automatically populates the artifact's metadata with the `classifier` and `extension` properties from that task. That's why the above sample does not specify those properties in the artifact configurations.
 
@@ -151,7 +151,7 @@ You start by defining a custom artifact and attaching it to a Gradle <<glossary:
 include::{samples-path}/maven-publish/publish-artifact/build.gradle[tag=custom-artifact]
 ----
 
-The `artifacts.add()` method — from api:org.gradle.api.artifacts.dsl.ArtifactHandler[] — returns an artifact object of type api:org.gradle.api.artifacts.PublishArtifact[] that can then be used in defining a publication, as shown in the following sample:
+The `artifacts.add()` method — from `link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.ArtifactHandler.html[ArtifactHandler]` — returns an artifact object of type `link:{groovy-dsl-path}/org.gradle.api.artifacts.PublishArtifact.html[PublishArtifact]` that can then be used in defining a publication, as shown in the following sample:
 
 === Example: Attaching a custom PublishArtifact to a publication
 
@@ -165,12 +165,12 @@ Now you can publish the RPM as well as depend on it from another project using t
 
 NOTE: There is currently no easy way to define dependency information for a custom artifact.
 
-The `groupId` and `artifactId` properties are specific to Maven publications. See api:org.gradle.api.publish.ivy.IvyPublication[] for the relevant Ivy properties.
+The `groupId` and `artifactId` properties are specific to Maven publications. See `link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]` for the relevant Ivy properties.
 
 [[publishing_maven:signing]]
 == Signing artifacts
 
-The <<signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module desciptors. In order to use it:
+The <<signing_plugin#, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module desciptors. In order to use it:
 
  1. Apply the Signing Plugin
  2. Configure the <<sec:signatory_credentials,signatory credentials>> — follow the link to see how
@@ -231,7 +231,7 @@ The following sample demonstrates how you can do this by defining an aggregate t
 include::{samples-path}/maven-publish/conditional-publishing/build.gradle[tag=shorthand-tasks]
 ----
 
-This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using api:org.gradle.api.tasks.TaskCollection#withType(java.lang.Class)[] with the api:org.gradle.api.publish.maven.tasks.PublishToMavenRepository[] task type. You can do the same with api:org.gradle.api.publish.ivy.tasks.PublishToIvyRepository[] if you're publishing to Ivy-compatible repositories.
+This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using api:org.gradle.api.tasks.TaskCollection#withType(java.lang.Class)[] with the `link:{groovy-dsl-path}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]` task type. You can do the same with `link:{groovy-dsl-path}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository]` if you're publishing to Ivy-compatible repositories.
 
 [[sec:configuring_publishing_tasks]]
 == Configuring publishing tasks

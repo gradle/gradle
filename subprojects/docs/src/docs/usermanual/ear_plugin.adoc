@@ -47,7 +47,7 @@ The Ear plugin adds the following tasks to the project.
 
 | `ear`
 | `compile` (only if the Java plugin is also applied)
-| api:org.gradle.plugins.ear.Ear[]
+| `link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]`
 | Assembles the application EAR file.
 |===
 
@@ -111,14 +111,14 @@ The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All de
 | Metadata to generate a deployment descriptor file, e.g. `application.xml`. If this file already exists in the `appDirName/META-INF` then the existing file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.
 |===
 
-These properties are provided by a api:org.gradle.plugins.ear.EarPluginConvention[] convention object.
+These properties are provided by a `link:{groovy-dsl-path}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention]` convention object.
 
 [[sec:ear_default_settings]]
 == Ear
 
 The default behavior of the Ear task is to copy the content of `src/main/application` to the root of the archive. If your `application` directory doesn't contain a `META-INF/application.xml` deployment descriptor then one will be generated for you.
 
-The api:org.gradle.plugins.ear.Ear[] class in the API documentation has additional useful information.
+The `link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]` class in the API documentation has additional useful information.
 
 [[sec:ear_customizing]]
 == Customizing
@@ -133,7 +133,7 @@ Here is an example with the most important customization options:
 include::{samples-path}/ear/earCustomized/ear/build.gradle[]
 ----
 
-You can also use customization options that the api:org.gradle.plugins.ear.Ear[] task provides, such as `from` and `metaInf`.
+You can also use customization options that the `link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]` task provides, such as `from` and `metaInf`.
 
 [[sec:using_custom_app_xml]]
 == Using custom descriptor file
