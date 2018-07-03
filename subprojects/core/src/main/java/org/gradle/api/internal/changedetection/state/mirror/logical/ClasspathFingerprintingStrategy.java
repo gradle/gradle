@@ -41,14 +41,14 @@ import java.util.Map;
 
 public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
-    private final boolean includeOnlyJars;
+    private final NonJarFingerprintingStrategy nonJarFingerprintingStrategy;
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
     private final JarHasher jarHasher;
     private final HashCode jarHasherConfigurationHash;
 
-    public ClasspathFingerprintingStrategy(boolean includeOnlyJars, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
-        this.includeOnlyJars = includeOnlyJars;
+    public ClasspathFingerprintingStrategy(NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+        this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.cacheService = cacheService;
         this.classpathResourceHasher = classpathResourceHasher;
         this.jarHasher = new JarHasher(classpathResourceHasher);
@@ -102,6 +102,25 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         return builder.build();
     }
 
+    public enum NonJarFingerprintingStrategy {
+        IGNORE {
+            @Nullable
+            @Override
+            public FileContentSnapshot determineNonJarFingerprint(FileContentSnapshot original) {
+                return null;
+            }
+        },
+        USE_FILE_HASH {
+            @Override
+            public FileContentSnapshot determineNonJarFingerprint(FileContentSnapshot original) {
+                return original;
+            }
+        };
+
+        @Nullable
+        public abstract FileContentSnapshot determineNonJarFingerprint(FileContentSnapshot original);
+    }
+
     private class ClasspathSnapshottingVisitor implements PhysicalSnapshotVisitor {
 
         private final PhysicalSnapshotVisitor delegate;
@@ -152,7 +171,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         if (FileUtils.hasExtensionIgnoresCase(name, ".jar")) {
             return snapshotJarContents(absolutePath, ImmutableList.of(name), content);
         }
-        return includeOnlyJars ? null: content;
+        return nonJarFingerprintingStrategy.determineNonJarFingerprint(content);
     }
 
     @Nullable

@@ -24,6 +24,8 @@ import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
+import static org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.IGNORE;
+
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private final ResourceHasher classpathResourceHasher;
     private final ResourceSnapshotterCacheService cacheService;
@@ -38,7 +40,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         return super.snapshot(
             files,
-            new ClasspathFingerprintingStrategy(true, classpathResourceHasher, cacheService));
+            new ClasspathFingerprintingStrategy(IGNORE, classpathResourceHasher, cacheService));
     }
 
     @Override
