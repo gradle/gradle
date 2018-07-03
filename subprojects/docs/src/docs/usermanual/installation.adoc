@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-== Installing Gradle
+[[installation]]
+= Installing Gradle
 
 You can install the Gradle build tool on Linux, macOS, or Windows.
 This document covers installing using a package manager like SDKMAN!, Homebrew, or Scoop, as well as manual installation.
@@ -22,7 +23,7 @@ Use of the <<sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to up
 You can find all releases and their checksums on the link:https://gradle.org/releases[releases page].
 
 [[sec:prerequisites]]
-=== Prerequisites
+== Prerequisites
 Gradle runs on all major operating systems and requires only a link:http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java JDK] version 7 or higher to run. To check, run `java -version`. You should see something like this:
 
 ----
@@ -36,12 +37,12 @@ Gradle ships with its own Groovy library, therefore Groovy does not need to be i
 
 Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to the installation directory of the desired JDK.
 
-=== Installing with a package manager
+== Installing with a package manager
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-based systems.
 
 ----
-❯ sdk install gradle 4.6
+❯ sdk install gradle
 ----
 
 link:http://brew.sh[Homebrew] is "the missing package manager for macOS".
@@ -71,9 +72,9 @@ link:https://www.macports.org[MacPorts] is a system for managing tools on macOS:
 <<sec:installation_next_steps,↓ Proceed to next steps>>
 
 
-=== Installing manually
+== Installing manually
 
-==== Step 1. link:https://gradle.org/releases[Download] the latest Gradle distribution
+=== Step 1. link:https://gradle.org/releases[Download] the latest Gradle distribution
 
 The distribution ZIP file comes in two flavors:
 
@@ -82,58 +83,61 @@ The distribution ZIP file comes in two flavors:
 
 Need to work with an older version? See the link:https://gradle.org/releases[releases page].
 
-==== Step 2. Unpack the distribution
+=== Step 2. Unpack the distribution
 
-===== Linux & MacOS users
+==== Linux & MacOS users
 
 Unzip the distribution zip file in the directory of your choosing, e.g.:
 
+[subs="attributes"]
 ----
 ❯ mkdir /opt/gradle
-❯ unzip -d /opt/gradle gradle-4.6-bin.zip
-❯ ls /opt/gradle/gradle-4.6
+❯ unzip -d /opt/gradle gradle-{gradleVersion}-bin.zip
+❯ ls /opt/gradle/gradle-{gradleVersion}
 LICENSE  NOTICE  bin  getting-started.html  init.d  lib  media
 ----
 
-===== Microsoft Windows users
+==== Microsoft Windows users
 
 Create a new directory `C:\Gradle` with **File Explorer**.
 
-Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content. Drag the content folder `gradle-4.6` to your newly created `C:\Gradle` folder.
+Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content. Drag the content folder `gradle-{gradleVersion}` to your newly created `C:\Gradle` folder.
 
 Alternatively you can unpack the Gradle distribution ZIP into `C:\Gradle` using an archiver tool of your choice.
 
-==== Step 3. Configure your system environment
+=== Step 3. Configure your system environment
 
 For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add `__GRADLE_HOME__/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
 
-===== Linux & MacOS users
+==== Linux & MacOS users
 
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
 
+[subs="attributes"]
 ----
-❯ export PATH=$PATH:/opt/gradle/gradle-4.6/bin
+❯ export PATH=$PATH:/opt/gradle/gradle-{gradleVersion}/bin
 ----
 
-===== Microsoft Windows users
+==== Microsoft Windows users
 
 In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then click `Properties` -> `Advanced System Settings` -> `Environmental Variables`.
 
-Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-4.6\bin`. Click OK to save.
+Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`. Click OK to save.
 
 <<sec:installation_next_steps,↓ Proceed to next steps>>
 
 
 [[sec:running_and_testing_your_installation]]
-=== Verifying installation
+== Verifying installation
 
 Open a console (or a Windows command prompt) and run `gradle -v` to run gradle and display the version, e.g.:
 
+[subs="attributes"]
 ----
 ❯ gradle -v
 
 ------------------------------------------------------------
-Gradle 4.6
+Gradle {gradleVersion}
 ------------------------------------------------------------
 
 Build time:   2018-02-21 15:28:42 UTC
@@ -145,12 +149,12 @@ JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
 OS:           Mac OS X 10.13.3 x86_64
 ----
 
-If you run into any trouble, see the <<troubleshooting#sec:troubleshooting_installation,section on troubleshooting installation>>.
+If you run into any trouble, see the <<sec:troubleshooting_installation,section on troubleshooting installation>>.
 
 You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:https://gradle.org/releases[releases page]) and following these <<sec:verification,verification instructions>>.
 
 [[sec:installation_next_steps]]
-=== Next steps
+== Next steps
 
 Now that you have Gradle installed, use these resources for getting started:
 

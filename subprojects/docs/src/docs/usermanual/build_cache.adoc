@@ -13,12 +13,12 @@
 // limitations under the License.
 
 [[build_cache]]
-== Build Cache
+= Build Cache
 
 NOTE: The build cache feature described here is different from the https://developer.android.com/studio/build/build-cache.html[Android plugin build cache].
 
 [[sec:build_cache_intro]]
-=== Overview
+== Overview
 
 The Gradle _build cache_ is a cache mechanism that aims to save time by reusing outputs produced by other builds.
 The build cache works by storing (locally or remotely) build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
@@ -33,7 +33,7 @@ Apart from task output caching, we expect other features to use the build cache 
 NOTE: A complete guide is available about https://guides.gradle.org/using-build-cache/[using the build cache]. It covers the different scenarios caching can improve, and detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
 [[sec:build_cache_enable]]
-=== Enable the Build Cache
+== Enable the Build Cache
 
 By default, the build cache is not enabled. You can enable the build cache in a couple of ways:
 
@@ -46,7 +46,7 @@ When the build cache is enabled, it will store build outputs in the Gradle user 
 For configuring this directory or different kinds of build caches see <<sec:build_cache_configure>>.
 
 [[sec:task_output_caching]]
-=== Task Output Caching
+== Task Output Caching
 
 Beyond incremental builds described in <<sec:up_to_date_checks>>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
 Task outputs can be reused between builds on one computer or even between builds running on different computers via a build cache.
@@ -62,7 +62,7 @@ You cannot expect faster builds or correct builds when enabling task output cach
 Task output caching is automatically enabled when you enable the build cache, see <<sec:build_cache_enable>>.
 
 [[sec:task_output_caching_example]]
-==== What does it look like
+=== What does it look like
 
 Let us start with a project using the Java plugin which has a few Java source files. We run the build the first time.
 
@@ -104,7 +104,7 @@ The other tasks have not been loaded from the build cache since they are not cac
 and `:jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-=== Cacheable tasks
+== Cacheable tasks
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or store new outputs in the build cache.
@@ -124,7 +124,7 @@ Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subcla
 Custom task types are _not_ cacheable by default.
 
 [[sec:task_output_caching_cacheable_tasks]]
-==== Built-in cacheable tasks
+=== Built-in cacheable tasks
 
 Currently, the following built-in Gradle tasks are cacheable:
 
@@ -164,14 +164,14 @@ Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bun
 It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
 
 [[sec:task_output_caching_cacheable_3rd_party]]
-==== Third party plugins
+=== Third party plugins
 
 There are third party plugins that work well with the build cache.
 The most prominent examples are the https://developer.android.com/studio/releases/gradle-plugin.html[Android plugin 3.1+] and the https://blog.gradle.org/kotlin-build-cache-use[Kotlin plugin 1.2.21+].
 For other third party plugins, check their documentation to find out whether they support the build cache.
 
 [[sec:task_output_caching_inputs]]
-==== Declaring task inputs and outputs
+=== Declaring task inputs and outputs
 
 It is very important that a cacheable task has a complete picture of its inputs and outputs, so that the results from one build can be safely re-used somewhere else.
 
@@ -192,7 +192,7 @@ We suggest adding tests to ensure that the task inputs are relocatable, i.e. tha
 In order to handle volatile inputs for your tasks consider <<sec:configure_input_normalization,configuring input normalization>>.
 
 [[sec:build_cache_configure]]
-=== Configure the Build Cache
+== Configure the Build Cache
 
 You can configure the build cache by using the api:org.gradle.api.initialization.Settings#buildCache(org.gradle.api.Action)[] block in `settings.gradle`.
 
@@ -207,7 +207,7 @@ The local build cache is pre-configured to be a api:org.gradle.caching.local.Dir
 The remote build cache can be configured by specifying the type of build cache to connect to (api:org.gradle.caching.configuration.BuildCacheConfiguration#remote(java.lang.Class)[]).
 
 [[sec:build_cache_configure_local]]
-==== Built-in local build cache
+=== Built-in local build cache
 
 The built-in local build cache, api:org.gradle.caching.local.DirectoryBuildCache[], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle user home directory, but its location is configurable.
@@ -218,6 +218,7 @@ For more details on the configuration options refer to the DSL documentation of 
 Here is an example of the configuration.
 
 === Example: Configure the local cache
+
 [source.multi-language-sample,groovy]
 .settings.gradle
 ----
@@ -225,16 +226,15 @@ include::{samples-path}/buildCache/configure-built-in-caches/settings.gradle[tag
 ----
 
 
-
 [[sec:build_cache_configure_remote]]
-==== Remote HTTP build cache
+=== Remote HTTP build cache
 
 Gradle has built-in support for connecting to a remote build cache backend via HTTP.
 For more details on what the protocol looks like see api:org.gradle.caching.http.HttpBuildCache[].
 Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
-
 === Example: Load from HttpBuildCache
+
 [source.multi-language-sample,groovy]
 .settings.gradle
 ----
@@ -243,8 +243,8 @@ include::{samples-path}/buildCache/http-build-cache/settings.gradle[tag=http-bui
 
 You can configure the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access the build cache server as shown in the following example.
 
-
 === Example: Configure remote HTTP cache
+
 [source.multi-language-sample,groovy]
 .settings.gradle
 ----
@@ -257,9 +257,8 @@ You may encounter problems with an untrusted SSL certificate when you try to use
 The ideal solution is for someone to add a valid SSL certificate to the build cache backend, but we recognize that you may not be able to do that.
 In that case, set api:org.gradle.caching.http.HttpBuildCache#isAllowUntrustedServer()[] to `true`:
 
-
-
 === Example: Allow untrusted SSL certificate for HttpBuildCache
+
 [source.multi-language-sample,groovy]
 .settings.gradle
 ----
@@ -270,16 +269,18 @@ This is a convenient workaround, but you shouldn’t use it as a long-term solut
 ====
 
 [[sec:build_cache_configure_use_cases]]
-==== Configuration use cases
+=== Configuration use cases
 
 The recommended use case for the build cache is that your continuous integration server populates the remote build cache from clean builds while developers load from the remote build cache and store in the local build cache.
 The configuration would then look as follows.
 
-++++
-<sample id="developerCiSetup" dir="buildCache/developer-ci-setup" title="Recommended setup for CI push use case">
-    <sourcefile file="settings.gradle" snippet="developer-ci-setup"/>
-</sample>
-++++
+=== Example: Recommended setup for CI push use case
+
+[source.multi-language-sample,groovy]
+.settings.gradle
+----
+include::{samples-path}/buildCache/developer-ci-setup/settings.gradle[tag=developer-ci-setup]
+----
 
 If you use a `buildSrc` directory, you should make sure that it uses the same build cache configuration as the main build.
 This can be achieved by applying the same script to `buildSrc/settings.gradle` and `settings.gradle` as shown in the following example.
@@ -297,12 +298,11 @@ It is also possible to configure the build cache from an <<sec:using_an_init_scr
 ++++
 <sample id="buildCacheConfigurationInitScript" dir="buildCache/configure-by-init-script" title="Init script to configure the build cache">
     <sourcefile file="init.gradle" />
-    <test args="-I init.gradle"/>
 </sample>
 ++++
 
 [[sec:build_cache_composite]]
-==== Build cache and composite builds
+=== Build cache and composite builds
 
 Gradle's <<composite_builds, composite build feature>> allows including other complete Gradle builds into another.
 Such included builds will inherit the build cache configuration from the top level build,
@@ -312,13 +312,13 @@ The build cache configuration present for any included build is effectively igno
 This also applies to any `buildSrc` projects of any included builds.
 
 [[sec:build_cache_setup_http_backend]]
-=== How to set up an HTTP build cache backend
+== How to set up an HTTP build cache backend
 
 Gradle provides a Docker image for a https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Gradle Enterprise for centralized management.
 The cache node can also be used without a Gradle Enterprise installation with restricted functionality.
 
 [[sec:build_cache_implement]]
-=== Implement your own Build Cache
+== Implement your own Build Cache
 
 Using a different build cache backend to store build outputs (which is not covered by the built-in support for connecting to an HTTP backend) requires implementing
 your own logic for connecting to your custom build cache backend.

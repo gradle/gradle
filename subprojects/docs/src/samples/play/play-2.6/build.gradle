@@ -3,7 +3,7 @@ plugins {
     id 'idea'
 }
 
-// tag::play-platform-2[].6
+// tag::play-platform-2.6[]
 model {
     components {
         play {
@@ -12,13 +12,13 @@ model {
         }
     }
 }
-// end::play-platform-2[].6
+// end::play-platform-2.6[]
 
-// tag::play-dependencies-2[].6
+// tag::play-dependencies-2.6[]
 dependencies {
     play "com.typesafe.play:play-guice_2.12:2.6.7"
 }
-// end::play-dependencies-2[].6
+// end::play-dependencies-2.6[]
 
 repositories {
     jcenter()
