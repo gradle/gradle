@@ -40,20 +40,24 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
-        FingerprintingStrategy strategy;
-        if (pathNormalizationStrategy == OutputPathNormalizationStrategy.getInstance()) {
-            strategy = new AbsolutePathFingerprintingStrategy(false);
-        } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.ABSOLUTE) {
-            strategy = new AbsolutePathFingerprintingStrategy(true);
-        } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.RELATIVE) {
-            strategy = new RelativePathFingerprintingStrategy();
-        } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NAME_ONLY) {
-            strategy = new NameOnlyFingerprintingStrategy();
-        } else if (pathNormalizationStrategy == InputPathNormalizationStrategy.NONE) {
-            strategy = new IgnoredPathFingerprintingStrategy();
-        } else {
-            throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
-        }
+        FingerprintingStrategy strategy = determineFingerprintStrategy(pathNormalizationStrategy);
         return super.snapshot(files, strategy);
+    }
+
+    private FingerprintingStrategy determineFingerprintStrategy(PathNormalizationStrategy pathNormalizationStrategy) {
+        switch (pathNormalizationStrategy) {
+            case ABSOLUTE:
+                return new AbsolutePathFingerprintingStrategy(true);
+            case OUTPUT:
+                return new AbsolutePathFingerprintingStrategy(false);
+            case RELATIVE:
+                return new RelativePathFingerprintingStrategy();
+            case NAME_ONLY:
+                return new NameOnlyFingerprintingStrategy();
+            case NONE:
+                return new IgnoredPathFingerprintingStrategy();
+            default:
+                throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
+        }
     }
 }

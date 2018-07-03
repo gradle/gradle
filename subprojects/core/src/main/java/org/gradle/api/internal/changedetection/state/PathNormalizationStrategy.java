@@ -16,6 +16,47 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-public interface PathNormalizationStrategy {
+import org.gradle.api.tasks.PathSensitivity;
 
+public enum PathNormalizationStrategy {
+
+    /**
+     * Use the absolute path of the files.
+     */
+    ABSOLUTE,
+
+    /**
+     * Like absolute, but ignoring missing files.
+     */
+    OUTPUT,
+
+    /**
+     * Use the location of the file related to a hierarchy.
+     */
+    RELATIVE,
+
+    /**
+     * Use the file name only.
+     */
+    NAME_ONLY,
+
+    /**
+     * Ignore the file path completely.
+     */
+    NONE;
+
+    public static PathNormalizationStrategy from(PathSensitivity pathSensitivity) {
+        switch (pathSensitivity) {
+            case ABSOLUTE:
+                return ABSOLUTE;
+            case RELATIVE:
+                return RELATIVE;
+            case NAME_ONLY:
+                return NAME_ONLY;
+            case NONE:
+                return NONE;
+            default:
+                throw new IllegalArgumentException("Unknown path usage: " + pathSensitivity);
+        }
+    }
 }

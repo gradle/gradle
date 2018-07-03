@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.GenericFileNormalizer
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 
-import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE
+import static org.gradle.api.internal.changedetection.state.PathNormalizationStrategy.ABSOLUTE
 
 class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest {
     static final NORMALIZATION_STRATEGY = InputNormalizationStrategy.NOT_CONFIGURED

@@ -30,7 +30,7 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static InputPathNormalizationStrategy.ABSOLUTE
+import static PathNormalizationStrategy.ABSOLUTE
 
 class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()

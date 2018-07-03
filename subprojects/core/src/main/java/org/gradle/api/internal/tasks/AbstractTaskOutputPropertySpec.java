@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -55,7 +54,7 @@ abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupp
     }
 
     public PathNormalizationStrategy getPathNormalizationStrategy() {
-        return OutputPathNormalizationStrategy.getInstance();
+        return PathNormalizationStrategy.OUTPUT;
     }
 
     @Override
