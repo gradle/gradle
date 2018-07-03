@@ -31,8 +31,7 @@ import java.util.Map;
 public class SnapshotMapSerializer extends AbstractSerializer<Map<String, NormalizedFileSnapshot>> {
     private static final byte NO_NORMALIZATION = 1;
     private static final byte DEFAULT_NORMALIZATION = 2;
-    private static final byte INDEXED_NORMALIZATION = 3;
-    private static final byte IGNORED_PATH_NORMALIZATION = 4;
+    private static final byte IGNORED_PATH_NORMALIZATION = 3;
 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ContentSnapshotSerializer contentSnapshotSerializer = new ContentSnapshotSerializer();
@@ -64,9 +63,6 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
             case DEFAULT_NORMALIZATION:
                 String normalizedPath = stringInterner.intern(decoder.readString());
                 return new DefaultNormalizedFileSnapshot(normalizedPath, snapshot);
-            case INDEXED_NORMALIZATION:
-                int index = decoder.readSmallInt();
-                return new IndexedNormalizedFileSnapshot(absolutePath, index, snapshot);
             case IGNORED_PATH_NORMALIZATION:
                 return new IgnoredPathFileSnapshot(snapshot);
             default:
@@ -107,9 +103,6 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         } else if (value instanceof DefaultNormalizedFileSnapshot) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
             encoder.writeString(value.getNormalizedPath());
-        } else if (value instanceof IndexedNormalizedFileSnapshot) {
-            encoder.writeByte(INDEXED_NORMALIZATION);
-            encoder.writeSmallInt(((IndexedNormalizedFileSnapshot) value).getIndex());
         } else if (value instanceof IgnoredPathFileSnapshot) {
             encoder.writeByte(IGNORED_PATH_NORMALIZATION);
         } else {

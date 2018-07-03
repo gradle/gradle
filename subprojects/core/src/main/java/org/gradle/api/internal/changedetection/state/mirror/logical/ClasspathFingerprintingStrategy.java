@@ -19,16 +19,17 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.IndexedNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathTracker;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
@@ -64,37 +65,34 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         for (PhysicalSnapshot root : roots) {
             final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder = ImmutableSortedMap.naturalOrder();
             root.accept(new ClasspathSnapshottingVisitor(new PhysicalSnapshotVisitor() {
-                private boolean root = true;
-                private int rootIndex;
+                private final RelativePathHolder relativePathHolder = new RelativePathHolder();
 
                 @Override
                 public boolean preVisitDirectory(String absolutePath, String name) {
-                    if (root) {
-                        rootIndex = absolutePath.length() + 1;
-                    }
-                    root = false;
+                    relativePathHolder.enter(name);
                     return true;
                 }
 
                 @Override
                 public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                    if (root) {
-                        rootIndex = absolutePath.length() + 1;
-                    }
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = root ? new IgnoredPathFileSnapshot(content) : new IndexedNormalizedFileSnapshot(absolutePath, getIndex(name), content);
+                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new IgnoredPathFileSnapshot(content) : createNormalizedSnapshot(name, content);
                         rootBuilder.put(
                             absolutePath,
                             normalizedFileSnapshot);
                     }
                 }
 
-                private int getIndex(String name) {
-                    return root ? rootIndex - 1 - name.length() : rootIndex;
+                private NormalizedFileSnapshot createNormalizedSnapshot(String name, FileContentSnapshot content) {
+                    relativePathHolder.enter(name);
+                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(relativePathHolder.getRelativePathString(), content);
+                    relativePathHolder.leave();
+                    return normalizedFileSnapshot;
                 }
 
                 @Override
                 public void postVisitDirectory() {
+                    relativePathHolder.leave();
                 }
             }));
             builder.putAll(rootBuilder.build());
