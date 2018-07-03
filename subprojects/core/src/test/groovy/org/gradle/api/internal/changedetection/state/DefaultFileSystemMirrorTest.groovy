@@ -49,9 +49,9 @@ class DefaultFileSystemMirrorTest extends Specification {
 
         given:
 
-        _ * fileSnapshot.path >> file.path
+        _ * fileSnapshot.absolutePath >> file.path
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(25), 37)
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileTreeSnapshot.absolutePath >> file.path
 
         expect:
         mirror.getFile(file.path) == null
@@ -82,9 +82,9 @@ class DefaultFileSystemMirrorTest extends Specification {
         def gradle = Stub(GradleInternal)
 
         given:
-        _ * fileSnapshot.path >> file.path
+        _ * fileSnapshot.absolutePath >> file.path
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(37), 346)
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 
@@ -117,8 +117,8 @@ class DefaultFileSystemMirrorTest extends Specification {
         def gradle = Stub(GradleInternal)
 
         given:
-        _ * fileSnapshot.path >> file.path
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 

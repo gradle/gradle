@@ -42,7 +42,7 @@ public interface PhysicalSnapshot {
         }
 
         @Override
-        public String getPath() {
+        public String getAbsolutePath() {
             throw new UnsupportedOperationException();
         }
 
@@ -64,7 +64,7 @@ public interface PhysicalSnapshot {
     /**
      * The absolute path of the file.
      */
-    String getPath();
+    String getAbsolutePath();
 
     /**
      * Walks the whole hierarchy represented by this snapshot.

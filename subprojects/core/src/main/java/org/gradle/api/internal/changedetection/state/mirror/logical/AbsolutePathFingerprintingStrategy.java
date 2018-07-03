@@ -45,20 +45,20 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
-                public boolean preVisitDirectory(String path, String name) {
-                    if (processedEntries.add(path)) {
-                        builder.put(path, new NonNormalizedFileSnapshot(path, DirContentSnapshot.INSTANCE));
+                public boolean preVisitDirectory(String absolutePath, String name) {
+                    if (processedEntries.add(absolutePath)) {
+                        builder.put(absolutePath, new NonNormalizedFileSnapshot(absolutePath, DirContentSnapshot.INSTANCE));
                     }
                     return true;
                 }
 
                 @Override
-                public void visit(String path, String name, FileContentSnapshot content) {
+                public void visit(String absolutePath, String name, FileContentSnapshot content) {
                     if (!includeMissing && content.getType() == FileType.Missing) {
                         return;
                     }
-                    if (processedEntries.add(path)) {
-                        builder.put(path, new NonNormalizedFileSnapshot(path, content));
+                    if (processedEntries.add(absolutePath)) {
+                        builder.put(absolutePath, new NonNormalizedFileSnapshot(absolutePath, content));
                     }
                 }
 

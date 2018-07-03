@@ -17,17 +17,17 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 public abstract class AbstractPhysicalSnapshot implements PhysicalSnapshot {
-    private final String path;
+    private final String absolutePath;
     private final String name;
 
-    public AbstractPhysicalSnapshot(String path, String name) {
-        this.path = path;
+    public AbstractPhysicalSnapshot(String absolutePath, String name) {
+        this.absolutePath = absolutePath;
         this.name = name;
     }
 
     @Override
-    public String getPath() {
-        return path;
+    public String getAbsolutePath() {
+        return absolutePath;
     }
 
     @Override

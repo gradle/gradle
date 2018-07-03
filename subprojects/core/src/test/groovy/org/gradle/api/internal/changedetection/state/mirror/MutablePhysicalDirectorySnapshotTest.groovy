@@ -46,19 +46,19 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
             private final relativePathTracker = new RelativePathTracker()
 
             @Override
-            boolean preVisitDirectory(String path, String name) {
+            boolean preVisitDirectory(String absolutePath, String name) {
                 def isRoot = relativePathTracker.root
                 relativePathTracker.enter(name)
                 if (!isRoot) {
-                    files[path] = DirContentSnapshot.INSTANCE
+                    files[absolutePath] = DirContentSnapshot.INSTANCE
                     relativePaths.add(relativePathTracker.relativePath.join("/"))
                 }
                 return true
             }
 
             @Override
-            void visit(String path, String name, FileContentSnapshot content) {
-                files[path] = content
+            void visit(String absolutePath, String name, FileContentSnapshot content) {
+                files[absolutePath] = content
                 relativePathTracker.enter(name)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()

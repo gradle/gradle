@@ -48,10 +48,10 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             private final RelativePathTracker relativePath = new RelativePathTracker();
 
             @Override
-            public boolean preVisitDirectory(String path, String name) {
+            public boolean preVisitDirectory(String absolutePath, String name) {
                 relativePath.enter(name);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
-                    visitor.preVisitDirectory(path, name);
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(absolutePath, relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
+                    visitor.preVisitDirectory(absolutePath, name);
                     return true;
                 }
                 relativePath.leave();
@@ -59,10 +59,10 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             }
 
             @Override
-            public void visit(String path, String name, FileContentSnapshot content) {
+            public void visit(String absolutePath, String name, FileContentSnapshot content) {
                 relativePath.enter(name);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(path, relativePath.getRelativePath(), content, fileSystem))) {
-                    visitor.visit(path, name, content);
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(absolutePath, relativePath.getRelativePath(), content, fileSystem))) {
+                    visitor.visit(absolutePath, name, content);
                 }
                 relativePath.leave();
             }
@@ -86,8 +86,8 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
     }
 
     @Override
-    public String getPath() {
-        return delegate.getPath();
+    public String getAbsolutePath() {
+        return delegate.getAbsolutePath();
     }
 
     /**
@@ -98,16 +98,16 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
      * in dynamic Groovy code.
      */
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
-        private final String _path;
+        private final String _absolutePath;
         private final Iterable<String> _relativePathIterable;
         private final FileContentSnapshot _content;
         private final FileSystem _fileSystem;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(String path, Iterable<String> relativePathIterable, FileContentSnapshot content, FileSystem fileSystem) {
+        public LogicalFileTreeElement(String absolutePath, Iterable<String> relativePathIterable, FileContentSnapshot content, FileSystem fileSystem) {
             super(fileSystem);
-            this._path = path;
+            this._absolutePath = absolutePath;
             this._relativePathIterable = relativePathIterable;
             this._content = content;
             this._fileSystem = fileSystem;
@@ -121,7 +121,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
         @Override
         public File getFile() {
             if (_file == null) {
-                _file = new File(_path);
+                _file = new File(_absolutePath);
             }
             return _file;
         }

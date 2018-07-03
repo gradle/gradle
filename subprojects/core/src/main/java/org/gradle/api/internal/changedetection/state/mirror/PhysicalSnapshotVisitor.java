@@ -26,21 +26,21 @@ public interface PhysicalSnapshotVisitor {
     /**
      * Called before visiting the contents of a directory.
      *
-     * @param path The absolute path of the directory.
+     * @param absolutePath The absolute path of the directory.
      * @param name The name of the directory.
      *
      * @return whether the subtree should be visited.
      */
-    boolean preVisitDirectory(String path, String name);
+    boolean preVisitDirectory(String absolutePath, String name);
 
     /**
      * Called for each regular/missing file.
      *
-     * @param path The absolute path of the file.
+     * @param absolutePath The absolute path of the file.
      * @param name The name of the file.
      * @param content The content snapshot of the file.
      */
-    void visit(String path, String name, FileContentSnapshot content);
+    void visit(String absolutePath, String name, FileContentSnapshot content);
 
     /**
      * Called when leaving a directory.

@@ -26,8 +26,8 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
     private final StringInterner stringInterner;
     private Map<String, MutablePhysicalSnapshot> children = new LinkedHashMap<String, MutablePhysicalSnapshot>();
 
-    public MutablePhysicalDirectorySnapshot(String path, String name, StringInterner stringInterner) {
-        super(path, name);
+    public MutablePhysicalDirectorySnapshot(String absolutePath, String name, StringInterner stringInterner) {
+        super(absolutePath, name);
         this.stringInterner = stringInterner;
     }
 
@@ -50,7 +50,7 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
             if (segments.length == offset + 1) {
                 child = snapshot;
             } else {
-                child = new MutablePhysicalDirectorySnapshot(stringInterner.intern(getPath() + File.separatorChar + currentSegment), currentSegment, stringInterner);
+                child = new MutablePhysicalDirectorySnapshot(stringInterner.intern(getAbsolutePath() + File.separatorChar + currentSegment), currentSegment, stringInterner);
             }
             children.put(currentSegment, child);
         }

@@ -37,14 +37,14 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
-                public boolean preVisitDirectory(String path, String name) {
+                public boolean preVisitDirectory(String absolutePath, String name) {
                     return true;
                 }
 
                 @Override
-                public void visit(String path, String name, FileContentSnapshot content) {
-                    if (processedEntries.add(path)) {
-                        builder.put(path, new IgnoredPathFileSnapshot(content));
+                public void visit(String absolutePath, String name, FileContentSnapshot content) {
+                    if (processedEntries.add(absolutePath)) {
+                        builder.put(absolutePath, new IgnoredPathFileSnapshot(content));
                     }
                 }
 

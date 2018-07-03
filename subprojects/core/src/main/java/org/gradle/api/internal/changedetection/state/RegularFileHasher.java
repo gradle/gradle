@@ -26,5 +26,5 @@ public interface RegularFileHasher {
      * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content);
+    HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content);
 }

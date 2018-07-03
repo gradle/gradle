@@ -97,15 +97,15 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(outputProperties, input, _) >> new TaskOutputPacker.UnpackResult(originMetadata, 123, fileSnapshots)
 
         then:
-        1 * fileSystemMirror.putDirectory(_, _) >> { String path, PhysicalSnapshot dir ->
-            def basePath = dir.path.toString()
-            assert path == basePath
+        1 * fileSystemMirror.putDirectory(_, _) >> { String absolutePath, PhysicalSnapshot dir ->
+            def basePath = dir.absolutePath.toString()
+            assert absolutePath == basePath
             assert basePath == outputDir.absolutePath
-            assert Iterables.getOnlyElement(dir.children).path.toString() == outputDirFile.absolutePath
+            assert Iterables.getOnlyElement(dir.children).absolutePath.toString() == outputDirFile.absolutePath
         }
         1 * fileSystemMirror.putFile(_) >> { args ->
             PhysicalFileSnapshot snapshot = args[0]
-            assert snapshot.path == outputFileSnapshot.path
+            assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.content == outputFileSnapshot.content
         }

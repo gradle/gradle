@@ -48,11 +48,11 @@ public class IgnoringResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
+    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
         if (shouldBeIgnored(Iterables.toArray(relativePath, String.class))) {
             return null;
         }
-        return delegate.hash(path, relativePath, content);
+        return delegate.hash(absolutePath, relativePath, content);
     }
 
     @Override

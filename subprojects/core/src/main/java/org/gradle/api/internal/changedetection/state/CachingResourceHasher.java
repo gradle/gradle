@@ -45,8 +45,8 @@ public class CachingResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
-        return resourceSnapshotterCacheService.hashFile(path, relativePath, content, delegate, delegateConfigurationHash);
+    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
+        return resourceSnapshotterCacheService.hashFile(absolutePath, relativePath, content, delegate, delegateConfigurationHash);
     }
 
     @Override

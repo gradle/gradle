@@ -76,7 +76,7 @@ public class MirrorUpdatingDirectoryWalker {
         if (fileSnapshot.getType() == FileType.RegularFile) {
             return fileSnapshot;
         }
-        Path rootPath = Paths.get(fileSnapshot.getPath());
+        Path rootPath = Paths.get(fileSnapshot.getAbsolutePath());
         return walkDir(rootPath, patterns);
     }
 

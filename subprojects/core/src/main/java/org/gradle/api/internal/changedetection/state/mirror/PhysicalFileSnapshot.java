@@ -25,8 +25,8 @@ import org.gradle.internal.file.FileType;
 public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnapshot {
     private final FileHashSnapshot content;
 
-    public PhysicalFileSnapshot(String path, String name, FileHashSnapshot content) {
-        super(path, name);
+    public PhysicalFileSnapshot(String absolutePath, String name, FileHashSnapshot content) {
+        super(absolutePath, name);
         this.content = content;
     }
 
@@ -44,7 +44,7 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
 
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        visitor.visit(getPath(), getName(), content);
+        visitor.visit(getAbsolutePath(), getName(), content);
     }
 
     /**

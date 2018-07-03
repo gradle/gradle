@@ -23,8 +23,8 @@ import org.gradle.internal.file.FileType;
  */
 public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysicalSnapshot {
 
-    public AbstractPhysicalDirectorySnapshot(String path, String name) {
-        super(path, name);
+    public AbstractPhysicalDirectorySnapshot(String absolutePath, String name) {
+        super(absolutePath, name);
     }
 
     @Override
@@ -36,7 +36,7 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
 
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        if (!visitor.preVisitDirectory(getPath(), getName())) {
+        if (!visitor.preVisitDirectory(getAbsolutePath(), getName())) {
             return;
         }
         for (PhysicalSnapshot child : getChildren()) {

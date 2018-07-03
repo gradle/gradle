@@ -214,7 +214,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private PhysicalSnapshot snapshotAndCache(DirectoryFileTree directoryTree) {
         PhysicalSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
         PhysicalSnapshot visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walk(fileSnapshot);
-        fileSystemMirror.putDirectory(fileSnapshot.getPath(), visitableDirectoryTree);
+        fileSystemMirror.putDirectory(fileSnapshot.getAbsolutePath(), visitableDirectoryTree);
         return visitableDirectoryTree;
     }
 

@@ -45,61 +45,61 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public PhysicalSnapshot getFile(String path) {
+    public PhysicalSnapshot getFile(String absolutePath) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
-        if (wellKnownFileLocations.isImmutable(path)) {
-            return cacheFiles.get(path);
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            return cacheFiles.get(absolutePath);
         }
-        return files.get(path);
+        return files.get(absolutePath);
     }
 
     @Override
     public void putFile(PhysicalSnapshot file) {
-        if (wellKnownFileLocations.isImmutable(file.getPath())) {
-            cacheFiles.put(file.getPath(), file);
+        if (wellKnownFileLocations.isImmutable(file.getAbsolutePath())) {
+            cacheFiles.put(file.getAbsolutePath(), file);
         } else {
-            files.put(file.getPath(), file);
+            files.put(file.getAbsolutePath(), file);
         }
     }
 
     @Nullable
     @Override
-    public Snapshot getContent(String path) {
-        if (wellKnownFileLocations.isImmutable(path)) {
-            return cacheSnapshots.get(path);
+    public Snapshot getContent(String absolutePath) {
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            return cacheSnapshots.get(absolutePath);
         } else {
-            return snapshots.get(path);
+            return snapshots.get(absolutePath);
         }
     }
 
     @Override
-    public void putContent(String path, Snapshot snapshot) {
-        if (wellKnownFileLocations.isImmutable(path)) {
-            cacheSnapshots.put(path, snapshot);
+    public void putContent(String absolutePath, Snapshot snapshot) {
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            cacheSnapshots.put(absolutePath, snapshot);
         } else {
-            snapshots.put(path, snapshot);
+            snapshots.put(absolutePath, snapshot);
         }
     }
 
     @Nullable
     @Override
-    public PhysicalSnapshot getDirectoryTree(String path) {
+    public PhysicalSnapshot getDirectoryTree(String absolutePath) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly also short-circuit some scanning if we have details for some sub trees
-        if (wellKnownFileLocations.isImmutable(path)) {
-            return cacheTrees.get(path);
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            return cacheTrees.get(absolutePath);
         } else {
-            return trees.get(path);
+            return trees.get(absolutePath);
         }
     }
 
     @Override
-    public void putDirectory(String path, PhysicalSnapshot directory) {
-        if (wellKnownFileLocations.isImmutable(path)) {
-            cacheTrees.put(path, directory);
+    public void putDirectory(String absolutePath, PhysicalSnapshot directory) {
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            cacheTrees.put(absolutePath, directory);
         } else {
-            trees.put(path, directory);
+            trees.put(absolutePath, directory);
         }
     }
 

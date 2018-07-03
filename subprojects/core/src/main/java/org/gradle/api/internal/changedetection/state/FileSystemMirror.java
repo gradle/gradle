@@ -29,17 +29,17 @@ import javax.annotation.Nullable;
 @ThreadSafe
 public interface FileSystemMirror {
     @Nullable
-    PhysicalSnapshot getFile(String path);
+    PhysicalSnapshot getFile(String absolutePath);
 
     void putFile(PhysicalSnapshot file);
 
     @Nullable
-    Snapshot getContent(String path);
+    Snapshot getContent(String absolutePath);
 
-    void putContent(String path, Snapshot snapshot);
+    void putContent(String absolutePath, Snapshot snapshot);
 
     @Nullable
-    PhysicalSnapshot getDirectoryTree(String path);
+    PhysicalSnapshot getDirectoryTree(String absolutePath);
 
-    void putDirectory(String path, PhysicalSnapshot directory);
+    void putDirectory(String absolutePath, PhysicalSnapshot directory);
 }

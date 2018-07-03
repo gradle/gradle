@@ -39,7 +39,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshotSelf(f)
-        snapshot.path == f.path
+        snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.RegularFile
         snapshot.content == new FileHashSnapshot(fileHasher.hash(f), f.lastModified())
@@ -53,7 +53,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshotSelf(d)
-        snapshot.path == d.path
+        snapshot.absolutePath == d.path
         snapshot.name == "d"
         snapshot.type == FileType.Directory
 
@@ -66,7 +66,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshotSelf(f)
-        snapshot.path == f.path
+        snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.Missing
 
@@ -164,26 +164,26 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         when:
         def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
-        def paths = [] as Set
+        def relativePaths = [] as Set
         snapshot.accept(new PhysicalSnapshotVisitor() {
             private Deque<String> relativePath = new ArrayDeque<String>()
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(String path, String name) {
+            boolean preVisitDirectory(String absolutePath, String name) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
                     relativePath.addLast(name)
-                    paths.add(relativePath.join("/"))
+                    relativePaths.add(relativePath.join("/"))
                 }
                 return true
             }
 
             @Override
-            void visit(String path, String name, FileContentSnapshot content) {
+            void visit(String absolutePath, String name, FileContentSnapshot content) {
                 relativePath.addLast(name)
-                paths.add(relativePath.join("/"))
+                relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
             }
 
@@ -198,7 +198,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         })
 
         then: "The filtered tree uses the cached state"
-        paths == ["d1", "d1/f1", "f1"] as Set
+        relativePaths == ["d1", "d1/f1", "f1"] as Set
     }
 
     def "snapshots a non-existing directory"() {
@@ -223,13 +223,13 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         getTreeInfo(snapshot) == [null, 1]
         snapshot.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String path, String name) {
+            boolean preVisitDirectory(String absolutePath, String name) {
                 throw new UnsupportedOperationException()
             }
 
             @Override
-            void visit(String path, String name, FileContentSnapshot content) {
-                assert path == d.getAbsolutePath()
+            void visit(String absolutePath, String name, FileContentSnapshot content) {
+                assert absolutePath == d.getAbsolutePath()
                 assert name == d.name
             }
 
@@ -326,16 +326,16 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String path, String name) {
+            boolean preVisitDirectory(String absolutePath, String name) {
                 if (rootPath == null) {
-                    rootPath = path
+                    rootPath = absolutePath
                 }
                 count++
                 return true
             }
 
             @Override
-            void visit(String path, String name, FileContentSnapshot content) {
+            void visit(String absolutePath, String name, FileContentSnapshot content) {
                 count++
             }
 

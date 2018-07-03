@@ -41,27 +41,27 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 private int rootIndex;
 
                 @Override
-                public boolean preVisitDirectory(String path, String name) {
+                public boolean preVisitDirectory(String absolutePath, String name) {
                     if (root) {
-                        rootIndex = path.length() + 1;
+                        rootIndex = absolutePath.length() + 1;
                     }
-                    if (processedEntries.add(path)) {
-                        NormalizedFileSnapshot snapshot = root ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(path, getIndex(name), DirContentSnapshot.INSTANCE);
-                        builder.put(path, snapshot);
+                    if (processedEntries.add(absolutePath)) {
+                        NormalizedFileSnapshot snapshot = root ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new IndexedNormalizedFileSnapshot(absolutePath, getIndex(name), DirContentSnapshot.INSTANCE);
+                        builder.put(absolutePath, snapshot);
                     }
                     root = false;
                     return true;
                 }
 
                 @Override
-                public void visit(String path, String name, FileContentSnapshot content) {
+                public void visit(String absolutePath, String name, FileContentSnapshot content) {
                     if (root) {
-                        rootIndex = path.length() + 1;
+                        rootIndex = absolutePath.length() + 1;
                     }
-                    if (processedEntries.add(path)) {
+                    if (processedEntries.add(absolutePath)) {
                         builder.put(
-                            path,
-                            new IndexedNormalizedFileSnapshot(path, getIndex(name), content)
+                            absolutePath,
+                            new IndexedNormalizedFileSnapshot(absolutePath, getIndex(name), content)
                         );
                     }
                 }

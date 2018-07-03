@@ -21,8 +21,8 @@ import java.util.List;
 public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot {
     private final List<PhysicalSnapshot> children;
 
-    public ImmutablePhysicalDirectorySnapshot(String path, String name, List<PhysicalSnapshot> children) {
-        super(path, name);
+    public ImmutablePhysicalDirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children) {
+        super(absolutePath, name);
         this.children = children;
     }
 

@@ -40,20 +40,20 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 private boolean root = true;
 
                 @Override
-                public boolean preVisitDirectory(String path, String name) {
-                    if (processedEntries.add(path)) {
+                public boolean preVisitDirectory(String absolutePath, String name) {
+                    if (processedEntries.add(absolutePath)) {
                         NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new DefaultNormalizedFileSnapshot(name, DirContentSnapshot.INSTANCE);
-                        builder.put(path, snapshot);
+                        builder.put(absolutePath, snapshot);
                     }
                     root = false;
                     return true;
                 }
 
                 @Override
-                public void visit(String path, String name, FileContentSnapshot content) {
-                    if (processedEntries.add(path)) {
+                public void visit(String absolutePath, String name, FileContentSnapshot content) {
+                    if (processedEntries.add(absolutePath)) {
                         builder.put(
-                            path,
+                            absolutePath,
                             new DefaultNormalizedFileSnapshot(name, content));
                     }
                 }

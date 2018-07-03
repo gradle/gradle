@@ -24,8 +24,8 @@ import org.gradle.internal.file.FileType;
  */
 public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
 
-    public PhysicalMissingSnapshot(String path, String name) {
-        super(path, name);
+    public PhysicalMissingSnapshot(String absolutePath, String name) {
+        super(absolutePath, name);
     }
 
     @Override
@@ -35,6 +35,6 @@ public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
 
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        visitor.visit(getPath(), getName(), MissingFileContentSnapshot.INSTANCE);
+        visitor.visit(getAbsolutePath(), getName(), MissingFileContentSnapshot.INSTANCE);
     }
 }

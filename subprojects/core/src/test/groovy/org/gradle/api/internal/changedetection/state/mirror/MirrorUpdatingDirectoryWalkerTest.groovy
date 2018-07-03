@@ -56,8 +56,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def root = walkDir(rootDir, null, walker)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
-            void visit(String path, Deque<String> relativePath) {
-                visited << path
+            void visit(String absolutePath, Deque<String> relativePath) {
+                visited << absolutePath
                 relativePaths << relativePath.join("/")
             }
         })
@@ -101,8 +101,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def root = walkDir(rootDir, patterns, walker)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
-            void visit(String path, Deque<String> relativePath) {
-                visited << path
+            void visit(String absolutePath, Deque<String> relativePath) {
+                visited << absolutePath
                 relativePaths << relativePath.join("/")
             }
         })
@@ -133,16 +133,16 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(String path, String name) {
+    boolean preVisitDirectory(String absolutePath, String name) {
         relativePath.addLast(name)
-        visit(path, relativePath)
+        visit(absolutePath, relativePath)
         return true
     }
 
     @Override
-    void visit(String path, String name, FileContentSnapshot content) {
+    void visit(String absolutePath, String name, FileContentSnapshot content) {
         relativePath.addLast(name)
-        visit(path, relativePath)
+        visit(absolutePath, relativePath)
         relativePath.removeLast()
     }
 
@@ -151,5 +151,5 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
         relativePath.removeLast()
     }
 
-    abstract void visit(String path, Deque<String> relativePath)
+    abstract void visit(String absolutePath, Deque<String> relativePath)
 }

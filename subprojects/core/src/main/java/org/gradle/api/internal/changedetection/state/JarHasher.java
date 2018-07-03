@@ -46,8 +46,8 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
     @Nullable
     @Override
-    public HashCode hash(String path, Iterable<String> relativePath, FileContentSnapshot content) {
-        return hashJarContents(path, content);
+    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
+        return hashJarContents(absolutePath, content);
     }
 
     @Override
