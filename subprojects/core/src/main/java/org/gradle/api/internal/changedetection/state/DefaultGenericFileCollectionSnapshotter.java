@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
-import org.gradle.api.internal.changedetection.state.mirror.logical.FileCollectionFingerprintBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.api.internal.changedetection.state.mirror.logical.IgnoredPathFingerprintingStrategy;
 import org.gradle.api.internal.changedetection.state.mirror.logical.NameOnlyFingerprintingStrategy;
@@ -55,6 +54,6 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         } else {
             throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
         }
-        return super.snapshot(files, new FileCollectionFingerprintBuilder(strategy));
+        return super.snapshot(files, strategy);
     }
 }

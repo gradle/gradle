@@ -26,13 +26,12 @@ import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 public class RelativePathFingerprintingStrategy implements FingerprintingStrategy {
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (PhysicalSnapshot root : roots) {

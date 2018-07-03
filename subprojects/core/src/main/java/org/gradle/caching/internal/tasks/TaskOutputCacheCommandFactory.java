@@ -30,7 +30,7 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
-import org.gradle.api.internal.changedetection.state.mirror.logical.FileCollectionFingerprintBuilder;
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -47,6 +47,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
@@ -134,6 +136,7 @@ public class TaskOutputCacheCommandFactory {
 
         private void updateSnapshots(Map<String, ? extends PhysicalSnapshot> propertiesSnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
+            AbsolutePathFingerprintingStrategy fingerprintingStrategy = new AbsolutePathFingerprintingStrategy(false);
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
@@ -143,7 +146,7 @@ public class TaskOutputCacheCommandFactory {
                 }
                 PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
                 String absolutePath = internedAbsolutePath(outputFile);
-                FileCollectionFingerprintBuilder builder = new FileCollectionFingerprintBuilder(new AbsolutePathFingerprintingStrategy(false));
+                List<PhysicalSnapshot> roots = new ArrayList<PhysicalSnapshot>();
 
                 if (snapshot == null) {
                     fileSystemMirror.putFile(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
@@ -156,17 +159,20 @@ public class TaskOutputCacheCommandFactory {
                         if (snapshot.getType() != FileType.RegularFile) {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
-                        builder.collectRoot(snapshot);
+                        roots.add(snapshot);
                         fileSystemMirror.putFile(snapshot);
                         break;
                     case DIRECTORY:
-                        builder.collectRoot(snapshot);
+                        roots.add(snapshot);
                         fileSystemMirror.putDirectory(absolutePath, snapshot);
                         break;
                     default:
                         throw new AssertionError();
                 }
-                propertySnapshotsBuilder.put(propertyName, builder.build());
+                propertySnapshotsBuilder.put(propertyName, new DefaultFileCollectionFingerprint(
+                    fingerprintingStrategy.getCompareStrategy(),
+                    fingerprintingStrategy.collectSnapshots(roots)
+                ));
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
         }

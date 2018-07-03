@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
+import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -30,6 +31,8 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.Serializers;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -51,11 +54,11 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection input, FileCollectionSnapshotBuilder builder) {
+    public FileCollectionSnapshot snapshot(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(builder);
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);
-        return builder.build();
+        return new DefaultFileCollectionFingerprint(strategy.getCompareStrategy(), strategy.collectSnapshots(visitor.getRoots()));
     }
 
     protected StringInterner getStringInterner() {
@@ -63,11 +66,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final FileCollectionSnapshotBuilder builder;
-
-        FileCollectionVisitorImpl(FileCollectionSnapshotBuilder builder) {
-            this.builder = builder;
-        }
+        private final List<PhysicalSnapshot> roots = new ArrayList<PhysicalSnapshot>();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -75,10 +74,10 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
                 switch (fileSnapshot.getType()) {
                     case Missing:
-                        builder.collectRoot(fileSnapshot);
+                        roots.add(fileSnapshot);
                         break;
                     case RegularFile:
-                        builder.collectRoot(fileSnapshot);
+                        roots.add(fileSnapshot);
                         break;
                     case Directory:
                         // Collect the directory and its contents
@@ -93,13 +92,17 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitTree(FileTreeInternal fileTree) {
             PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
-            builder.collectRoot(treeSnapshot);
+            roots.add(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            builder.collectRoot(treeSnapshot);
+            roots.add(treeSnapshot);
+        }
+
+        public List<PhysicalSnapshot> getRoots() {
+            return roots;
         }
     }
 }

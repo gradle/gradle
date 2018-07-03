@@ -37,7 +37,6 @@ import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
@@ -59,7 +58,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(List<PhysicalSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (PhysicalSnapshot root : roots) {
