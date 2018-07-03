@@ -17,8 +17,10 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.junit.Rule
 
+@IntegrationTestTimeout(60)
 class WorkerDaemonWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
     @Rule
     Sample workerExecutorSample = new Sample(temporaryFolder, "workerApi/workerDaemon")

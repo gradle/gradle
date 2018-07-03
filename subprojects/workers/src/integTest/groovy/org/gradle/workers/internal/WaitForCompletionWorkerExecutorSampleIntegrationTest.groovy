@@ -17,10 +17,11 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-
+@IntegrationTestTimeout(60)
 class WaitForCompletionWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
     @Rule
     Sample workerExecutorSample = new Sample(temporaryFolder, "workerApi/waitForCompletion")

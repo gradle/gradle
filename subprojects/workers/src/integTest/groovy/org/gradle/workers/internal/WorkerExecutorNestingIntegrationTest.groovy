@@ -16,8 +16,10 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import spock.lang.Unroll
 
+@IntegrationTestTimeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll

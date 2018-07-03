@@ -16,6 +16,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -24,6 +25,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 
+@IntegrationTestTimeout(240)
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
 class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 

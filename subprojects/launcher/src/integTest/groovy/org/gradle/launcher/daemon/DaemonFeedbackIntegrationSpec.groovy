@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
@@ -60,6 +61,7 @@ task sleep {
         }
     }
 
+    @IntegrationTestTimeout(25)
     def "promptly shows decent message when daemon cannot be started"() {
         when:
         executer.withArguments("-Dorg.gradle.jvmargs=-Xyz").run()
