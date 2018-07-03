@@ -27,7 +27,6 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-import kotlin.concurrent.thread
 
 
 open class BuildScanPlugin : Plugin<Project> {
@@ -107,51 +106,37 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVcsData() {
-
-        fun fork(action: () -> Unit) = thread {
-            try {
-                action()
-            } catch (e: Exception) {
-                rootProject.logger.warn("Build scan user data async exec failed", e)
+        buildScan.background {
+            system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
+                setCommitId(commitId)
             }
         }
 
-        val threads = listOf(
-
-            fork {
-                system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
-                    setCommitId(commitId)
-                }
-            },
-
-            fork {
-                system("git", "status", "--porcelain").let { status ->
-                    if (status.isNotEmpty()) {
-                        buildScan {
-                            tag("dirty")
-                            value("Git Status", status)
-                        }
+        buildScan.background {
+            system("git", "status", "--porcelain").let { status ->
+                if (status.isNotEmpty()) {
+                    buildScan {
+                        tag("dirty")
+                        value("Git Status", status)
                     }
                 }
-            },
+            }
+        }
 
-            fork {
-                system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
-                    if (branchName.isNotEmpty() && branchName != "HEAD") {
-                        buildScan {
-                            tag(branchName)
-                            value("Git Branch Name", branchName)
-                        }
+        buildScan.background {
+            system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
+                if (branchName.isNotEmpty() && branchName != "HEAD") {
+                    buildScan {
+                        tag(branchName)
+                        value("Git Branch Name", branchName)
                     }
                 }
-            })
-
-        buildScan.buildFinished {
-            awaitAll(threads)
+            }
         }
     }
 
     private
+
     fun Project.extractBuildCacheData() {
         if (gradle.startParameter.isBuildCacheEnabled) {
             buildScan.tag("CACHED")
@@ -209,8 +194,3 @@ fun Project.system(vararg args: String): String =
             assert(waitFor() == 0)
             inputStream.bufferedReader().use { it.readText().trim() }
         }
-
-
-private
-fun awaitAll(threads: Iterable<Thread>) =
-    threads.forEach(Thread::join)
