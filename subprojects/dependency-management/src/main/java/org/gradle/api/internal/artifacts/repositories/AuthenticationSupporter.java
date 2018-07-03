@@ -139,7 +139,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         } else if (publicType == HttpHeaderCredentials.class) {
             return Cast.uncheckedCast(DefaultHttpHeaderCredentials.class);
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName()));
+            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s, %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName(), HttpHeaderCredentials.class.getName()));
         }
     }
 
@@ -151,7 +151,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         } else if (HttpHeaderCredentials.class.isAssignableFrom(implType)) {
             return Cast.uncheckedCast(HttpHeaderCredentials.class);
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName()));
+            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
         }
     }
 }
