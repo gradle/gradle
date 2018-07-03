@@ -19,7 +19,7 @@ package org.gradle.api.credentials;
 import javax.annotation.Nullable;
 
 /**
- * Header credentials that can be used to login to something protected by using HTTP header.
+ * Credentials that can be used to login to something protected by using HTTP header.
  */
 public interface HttpHeaderCredentials extends Credentials {
     @Nullable

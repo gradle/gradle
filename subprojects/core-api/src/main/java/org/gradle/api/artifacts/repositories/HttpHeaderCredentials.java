@@ -17,7 +17,7 @@
 package org.gradle.api.artifacts.repositories;
 
 /**
- * HTTP header credentials that can be used to login to something protected by http header.
+ * Credentials that can be used to login to something protected by using HTTP header.
  */
 public interface HttpHeaderCredentials extends org.gradle.api.credentials.HttpHeaderCredentials {
 }
