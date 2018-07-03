@@ -24,7 +24,33 @@ import org.gradle.internal.file.FileType;
  * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
 public interface PhysicalSnapshot {
-    
+
+    /**
+     * An empty tree.
+     *
+     * Path and name are not available, since we don't know where the root is.
+     */
+    PhysicalSnapshot EMPTY = new PhysicalSnapshot() {
+        @Override
+        public FileType getType() {
+            return FileType.Missing;
+        }
+
+        @Override
+        public String getName() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getPath() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void accept(PhysicalSnapshotVisitor visitor) {
+        }
+    };
+
     /**
      * The type of the file.
      */
