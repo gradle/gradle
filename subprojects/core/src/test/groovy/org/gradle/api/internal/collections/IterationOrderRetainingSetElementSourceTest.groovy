@@ -17,20 +17,18 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
-import org.gradle.api.internal.provider.DefaultProvider
+import org.gradle.api.internal.provider.AbstractProvider
 import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
 
-import java.util.concurrent.Callable
-
 class IterationOrderRetainingSetElementSourceTest extends Specification {
-    IterationOrderRetainingSetElementSource<String> source = new IterationOrderRetainingSetElementSource<>()
+    IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
 
     def setup() {
         source.onRealize(new Action<ProviderInternal<? extends String>>() {
             @Override
             void execute(ProviderInternal<? extends String> providerInternal) {
-                source.add(providerInternal.get())
+                providerInternal.get()
             }
         })
     }
@@ -159,34 +157,48 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
     def "can realize a filtered set of providers and order is retained"() {
         when:
         source.addPending(provider("foo"))
-        source.addPending(subtypeProvider("bar"))
-        source.addPending(subtypeProvider("baz"))
+        source.addPending(provider(new StringBuffer("bar")))
+        source.addPending(provider(new StringBuffer("baz")))
         source.addPending(provider("fizz"))
 
         then:
         source.iteratorNoFlush().collect() == []
 
         when:
-        source.realizePending(SubtypeProvider.class)
+        source.realizePending(StringBuffer.class)
 
         then:
-        source.iteratorNoFlush().collect() == ["bar", "baz"]
+        source.iteratorNoFlush().collect { it.toString() } == ["bar", "baz"]
 
         and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
+        source.iterator().collect { it.toString() } == ["foo", "bar", "baz", "fizz"]
     }
 
     ProviderInternal<? extends String> provider(String value) {
-        return new DefaultProvider<String>({ return value })
+        return new TypedProvider<String>(String, value)
     }
 
-    SubtypeProvider<? extends String> subtypeProvider(String value) {
-        return new SubtypeProvider<String>({ return value })
+    ProviderInternal<? extends StringBuffer> provider(StringBuffer value) {
+        return new TypedProvider<StringBuffer>(StringBuffer, value)
     }
 
-    private static class SubtypeProvider<T> extends DefaultProvider<T> {
-        SubtypeProvider(Callable<? extends T> value) {
-            super(value)
+    private static class TypedProvider<T> extends AbstractProvider<T> {
+        final Class<T> type
+        final T value
+
+        TypedProvider(Class<T> type, T value) {
+            this.type = type
+            this.value = value
+        }
+
+        @Override
+        Class<T> getType() {
+            return type
+        }
+
+        @Override
+        T getOrNull() {
+            return value
         }
     }
 }

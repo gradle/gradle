@@ -28,6 +28,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     String b = "b"
     String c = "c"
     StringBuilder d = new StringBuilder("d")
+    boolean insertionOrderExpected = true
 
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {
