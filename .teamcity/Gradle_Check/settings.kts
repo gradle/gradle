@@ -25,5 +25,5 @@ Subprojects can be defined either in their own settings.kts or by
 calling the subProjects() method in this project.
 */
 
-version = "2017.2"
+version = "2018.1"
 project(RootProject(CIBuildModel(buildScanTags = listOf("Check"))))
