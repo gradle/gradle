@@ -56,10 +56,6 @@ private
 const val oracleJdk7 = "Oracle JDK 7"
 
 
-private
-const val oracleJdk9 = "Oracle JDK 9"
-
-
 open class AvailableJavaInstallations(project: Project, private val javaInstallationProbe: JavaInstallationProbe) {
     private
     val logger = LoggerFactory.getLogger(AvailableJavaInstallations::class.java)

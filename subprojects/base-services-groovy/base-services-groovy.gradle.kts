@@ -29,6 +29,7 @@ gradlebuildJava {
     moduleType = ModuleType.ENTRY_POINT
 }
 
+
 testFixtures {
     from(":core")
 }
