@@ -47,13 +47,13 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<String, NormalizedFileSnapshot>(snapshotsCount);
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
-            NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder, stringInterner);
+            NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder);
             snapshots.put(absolutePath, snapshot);
         }
         return snapshots;
     }
 
-    private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder, StringInterner stringInterner) throws IOException {
+    private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder) throws IOException {
         FileContentSnapshot snapshot = contentSnapshotSerializer.read(decoder);
 
         int normalizedSnapshotKind = decoder.readByte();
@@ -61,7 +61,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
             case NO_NORMALIZATION:
                 return new NonNormalizedFileSnapshot(absolutePath, snapshot);
             case DEFAULT_NORMALIZATION:
-                String normalizedPath = stringInterner.intern(decoder.readString());
+                String normalizedPath = decoder.readString();
                 return new DefaultNormalizedFileSnapshot(normalizedPath, snapshot);
             case IGNORED_PATH_NORMALIZATION:
                 return new IgnoredPathFileSnapshot(snapshot);
