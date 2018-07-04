@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -67,6 +68,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
+    private List<ComponentIdentifier> owners;
 
     protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
         this.attributesFactory = attributesFactory;
@@ -259,6 +261,18 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         return attributesFactory;
     }
 
+    @Override
+    public void belongsTo(ComponentIdentifier platform) {
+        if (owners == null) {
+            owners = Lists.newArrayListWithExpectedSize(1);
+        }
+        owners.add(platform);
+    }
+
+    @Override
+    public List<? extends ComponentIdentifier> getPlatformOwners() {
+        return owners;
+    }
 
     protected static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;

@@ -93,4 +93,6 @@ public interface ComponentResolveMetadata extends HasAttributes {
 
     List<String> getStatusScheme();
 
+    ImmutableList<? extends ComponentIdentifier> getPlatformOwners();
+
 }

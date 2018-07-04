@@ -16,25 +16,52 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,6 +90,8 @@ class NodeState implements DependencyGraphNode {
     private final ResolveState resolveState;
     private final boolean isTransitive;
     private ModuleExclusion previousTraversalExclusions;
+    // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
+    private List<EdgeState> virtualEdges;
 
     NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -138,6 +167,7 @@ class NodeState implements DependencyGraphNode {
     /**
      * Visits all of the dependencies that originate on this node, adding them as outgoing edges.
      * The {@link #outgoingEdges} collection is populated, as is the `discoveredEdges` parameter.
+     *
      * @param discoveredEdges A collector for visited edges.
      * @param pendingDependenciesHandler Handler for pending dependencies.
      */
@@ -190,6 +220,7 @@ class NodeState implements DependencyGraphNode {
         }
 
         visitDependencies(resolutionFilter, pendingDependenciesHandler, discoveredEdges);
+        visitOwners(discoveredEdges);
     }
 
     /**
@@ -197,7 +228,7 @@ class NodeState implements DependencyGraphNode {
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
      */
     private void visitDependencies(ModuleExclusion resolutionFilter, PendingDependenciesHandler pendingDependenciesHandler, Collection<EdgeState> discoveredEdges) {
-        PendingDependenciesHandler.Visitor pendingDepsVisitor =  pendingDependenciesHandler.start();
+        PendingDependenciesHandler.Visitor pendingDepsVisitor = pendingDependenciesHandler.start();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
@@ -220,6 +251,66 @@ class NodeState implements DependencyGraphNode {
             pendingDepsVisitor.complete();
         }
     }
+
+    /**
+     * If a component declares that it belongs to a platform, we add an edge to the platform.
+     *
+     * @param discoveredEdges the collection of edges for this component
+     */
+    private void visitOwners(Collection<EdgeState> discoveredEdges) {
+        ImmutableList<? extends ComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
+        if (!owners.isEmpty()) {
+            for (ComponentIdentifier owner : owners) {
+                if (owner instanceof ModuleComponentIdentifier) {
+                    ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
+                    final ModuleComponentSelector cs = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
+
+                    // There are 2 possibilities here:
+                    // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
+                    // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
+                    addPlatformEdges(discoveredEdges, platformId, cs);
+                }
+            }
+        }
+    }
+
+    private PotentialEdge potentialEdgeTo(ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector) {
+        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(toSelector, toComponent), resolveState.getComponentSelectorConverter());
+        EdgeState edge = new TransientEdge(dependencyState);
+        ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
+        ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);
+        SelectorState selector = edge.getSelector();
+        version.selectedBy(selector);
+        // We need to check if the target version exists. For this,
+        // we have to try to get metadata for the aligned version. If it's there,
+        // it means we can align, otherwise, we must NOT add the edge, or resolution
+        // would fail
+        ComponentResolveMetadata metadata = version.getMetadata();
+        return new PotentialEdge(edge, toModuleVersionId, metadata, version);
+    }
+
+    private void addPlatformEdges(Collection<EdgeState> discoveredEdges, ModuleComponentIdentifier platformComponentIdentifier, ModuleComponentSelector platformSelector) {
+        PotentialEdge potentialEdge = potentialEdgeTo(platformComponentIdentifier, platformSelector);
+        ComponentResolveMetadata metadata = potentialEdge.metadata;
+        VirtualPlatformState virtualPlatformState = null;
+        if (metadata == null || metadata instanceof LenientPlatformResolveMetadata) {
+            virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
+            virtualPlatformState.participatingComponent(component);
+        }
+        if (metadata == null) {
+            // the platform doesn't exist, so we're building a lenient one
+            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState.getParticipatingComponents());
+            potentialEdge.component.setMetadata(metadata);
+        }
+        if (virtualEdges == null) {
+            virtualEdges = Lists.newArrayList();
+        }
+        EdgeState edge = potentialEdge.edge;
+        virtualEdges.add(edge);
+        discoveredEdges.add(edge);
+        edge.getSelector().use();
+    }
+
 
     /**
      * Execute any dependency substitution rules that apply to this dependency.
@@ -311,6 +402,13 @@ class NodeState implements DependencyGraphNode {
             }
         }
         outgoingEdges.clear();
+        if (virtualEdges != null) {
+            for (EdgeState outgoingDependency : virtualEdges) {
+                outgoingDependency.removeFromTargetConfigurations();
+                outgoingDependency.getSelector().release();
+            }
+        }
+        virtualEdges = null;
         previousTraversalExclusions = null;
     }
 
@@ -346,10 +444,265 @@ class NodeState implements DependencyGraphNode {
     void resetSelectionState() {
         previousTraversalExclusions = null;
         outgoingEdges.clear();
+        virtualEdges = null;
         resolveState.onMoreSelected(this);
     }
 
     public ImmutableAttributesFactory getAttributesFactory() {
         return resolveState.getAttributesFactory();
+    }
+
+    private class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata {
+        private final ModuleComponentSelector cs;
+        private final ModuleComponentIdentifier platformId;
+
+        LenientPlatformDependencyMetadata(ModuleComponentSelector cs, ModuleComponentIdentifier platformId) {
+            this.cs = cs;
+            this.platformId = platformId;
+        }
+
+        @Override
+        public ModuleComponentSelector getSelector() {
+            return cs;
+        }
+
+        @Override
+        public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+            return this;
+        }
+
+        @Override
+        public ModuleDependencyMetadata withReason(String reason) {
+            return this;
+        }
+
+        @Override
+        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+            if (targetComponent instanceof LenientPlatformResolveMetadata) {
+                LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponent;
+                return Collections.<ConfigurationMetadata>singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.moduleVersionIdentifier.getVersion(), platformMetadata.getParticipatingComponents()));
+            }
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<ExcludeMetadata> getExcludes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<IvyArtifactName> getArtifacts() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public DependencyMetadata withTarget(ComponentSelector target) {
+            return this;
+        }
+
+        @Override
+        public boolean isChanging() {
+            return false;
+        }
+
+        @Override
+        public boolean isTransitive() {
+            return true;
+        }
+
+        @Override
+        public boolean isPending() {
+            return true;
+        }
+
+        @Override
+        public String getReason() {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return "virtual metadata for " + platformId;
+        }
+
+        private class LenientPlatformConfigurationMetadata extends DefaultConfigurationMetadata {
+
+            private final String targetVersion;
+            private final Set<ComponentState> participatingComponents;
+
+            LenientPlatformConfigurationMetadata(String targetVersion, Set<ComponentState> participatingComponents) {
+                super(platformId, "default", true, false, ImmutableList.of("default"), ImmutableList.<ModuleComponentArtifactMetadata>of(), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY);
+                this.targetVersion = targetVersion;
+                this.participatingComponents = participatingComponents;
+            }
+
+            @Override
+            public List<? extends DependencyMetadata> getDependencies() {
+                List<DependencyMetadata> result = null;
+                for (ComponentState componentState : participatingComponents) {
+                    if (componentState.isSelected() && !componentState.getId().getVersion().equals(targetVersion)) {
+                        ModuleComponentIdentifier leafId = DefaultModuleComponentIdentifier.newId(componentState.getModule().getId(), targetVersion);
+                        ModuleComponentSelector leafSelector = DefaultModuleComponentSelector.newSelector(componentState.getModule().getId(), targetVersion);
+                        // We will only add dependencies to the leaves if there is such a published module
+                        PotentialEdge potentialEdge = potentialEdgeTo(leafId, leafSelector);
+                        if (potentialEdge.metadata != null) {
+                            if (result == null) {
+                                result = Lists.newArrayListWithExpectedSize(participatingComponents.size());
+                            }
+                            result.add(new LenientPlatformDependencyMetadata(
+                                leafSelector,
+                                leafId
+                            ));
+                        }
+                    }
+                }
+                return result == null ? Collections.<DependencyMetadata>emptyList() : result;
+            }
+        }
+    }
+
+    private static class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
+
+        private final ModuleComponentIdentifier moduleComponentIdentifier;
+        private final ModuleVersionIdentifier moduleVersionIdentifier;
+        private final Set<ComponentState> participatingComponents;
+
+        private LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Set<ComponentState> participatingComponents) {
+            this.moduleComponentIdentifier = moduleComponentIdentifier;
+            this.moduleVersionIdentifier = moduleVersionIdentifier;
+            this.participatingComponents = participatingComponents;
+        }
+
+        @Override
+        public ModuleComponentIdentifier getId() {
+            return moduleComponentIdentifier;
+        }
+
+        @Override
+        public ModuleVersionIdentifier getModuleVersionId() {
+            return moduleVersionIdentifier;
+        }
+
+        @Override
+        public ModuleSource getSource() {
+            return null;
+        }
+
+        @Override
+        public AttributesSchemaInternal getAttributesSchema() {
+            return null;
+        }
+
+        @Override
+        public ModuleComponentResolveMetadata withSource(ModuleSource source) {
+            return this;
+        }
+
+        @Override
+        public Set<String> getConfigurationNames() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public ConfigurationMetadata getConfiguration(String name) {
+            return null;
+        }
+
+        @Override
+        public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+            return Optional.absent();
+        }
+
+        @Override
+        public boolean isMissing() {
+            return false;
+        }
+
+        @Override
+        public boolean isChanging() {
+            return false;
+        }
+
+        @Override
+        public String getStatus() {
+            return null;
+        }
+
+        @Override
+        public List<String> getStatusScheme() {
+            return null;
+        }
+
+        @Override
+        public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public MutableModuleComponentResolveMetadata asMutable() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public HashValue getContentHash() {
+            return null;
+        }
+
+        @Override
+        public ImmutableList<? extends ComponentVariant> getVariants() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public ImmutableAttributesFactory getAttributesFactory() {
+            return null;
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return ImmutableAttributes.EMPTY;
+        }
+
+        Set<ComponentState> getParticipatingComponents() {
+            return participatingComponents;
+        }
+    }
+
+    /**
+     * Represents an edge in the graph which is added only as an implementation detail. This
+     * is used for backlinks, from a component to its owner.
+     */
+    private class TransientEdge extends EdgeState {
+        TransientEdge(DependencyState dependencyState) {
+            super(NodeState.this, dependencyState, NodeState.this.previousTraversalExclusions, NodeState.this.resolveState);
+        }
+    }
+
+    /**
+     * This class wraps knowledge about a potential edge to a component. It's called potential,
+     * because when the edge is created we don't know if the target component exists, and, since
+     * the edge is created internally by the engine, we don't want to fail if the target component
+     * doesn't exist. This means that the edge would effectively be added if, and only if, the
+     * target component exists. Checking if it does exist is currently done by fetching metadata,
+     * but we could have a cheaper strategy (HEAD request, ...).
+     */
+    private static class PotentialEdge {
+        private final EdgeState edge;
+        private final ModuleVersionIdentifier toModuleVersionId;
+        private final ComponentResolveMetadata metadata;
+        private final ComponentState component;
+
+        PotentialEdge(EdgeState edge, ModuleVersionIdentifier toModuleVersionId, ComponentResolveMetadata metadata, ComponentState component) {
+            this.edge = edge;
+            this.toModuleVersionId = toModuleVersionId;
+            this.metadata = metadata;
+            this.component = component;
+        }
     }
 }

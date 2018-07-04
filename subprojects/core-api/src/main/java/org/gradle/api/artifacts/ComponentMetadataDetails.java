@@ -74,4 +74,13 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      */
     void allVariants(Action<? super VariantMetadata> action);
 
+    /**
+     * Declares that this component belongs to a platform, which should be
+     * considered during dependency resolution.
+     * @param notation the coordinates of the owner
+     *
+     * @since 4.10
+     */
+    void belongsTo(Object notation);
+
 }

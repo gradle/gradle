@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter
 import org.gradle.cache.CacheRepository
@@ -59,6 +60,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     def dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, stringInterner)
     def dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, stringInterner)
     def moduleIdentifierNotationParser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter(new DefaultImmutableModuleIdentifierFactory())).toComposite();
+    def componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()
 
     def 'setup'() {
         TestComponentMetadataRule.instanceCount = 0
@@ -67,7 +69,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     def "does nothing when no rules registered"() {
-        def processor = new DefaultComponentMetadataProcessor([] as Set, [] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, TestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor([] as Set, [] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, TestUtil.attributesFactory(), executor, context)
         def metadata = ivyMetadata().asImmutable()
 
         expect:
@@ -78,7 +80,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         given:
         context.injectingInstantiator >> instantiator
         String notation = "${GROUP}:${MODULE}"
-        def processor = new DefaultComponentMetadataProcessor([] as Set, [ruleForModule(notation)] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, TestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor([] as Set, [ruleForModule(notation)] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, TestUtil.attributesFactory(), executor, context)
 
 
         when:
@@ -92,7 +94,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         given:
         context.injectingInstantiator >> instantiator
         String notation = "${GROUP}:${MODULE}"
-        def processor = new DefaultComponentMetadataProcessor([] as Set, [ruleForModuleWithParams(notation, "foo", 42L)] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, TestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor([] as Set, [ruleForModuleWithParams(notation, "foo", 42L)] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, TestUtil.attributesFactory(), executor, context)
 
         when:
         processor.processMetadata(ivyMetadata().asImmutable())
@@ -103,7 +105,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     def "processing fails when status is not present in status scheme"() {
-        def processor = new DefaultComponentMetadataProcessor([] as Set, [] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, TestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor([] as Set, [] as Set, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, TestUtil.attributesFactory(), executor, context)
         def metadata = ivyMetadata()
         metadata.status = "green"
         metadata.statusScheme = ["alpha", "beta"]

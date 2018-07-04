@@ -54,6 +54,7 @@ class ModuleResolveState implements CandidateModule {
     private ComponentState selected;
     private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
     private AttributeMergingException attributeMergingError;
+    private VirtualPlatformState platformState;
 
     ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver, VariantNameBuilder variantNameBuilder, ImmutableAttributesFactory attributesFactory) {
         this.idGenerator = idGenerator;
@@ -271,4 +272,10 @@ class ModuleResolveState implements CandidateModule {
         return incoming;
     }
 
+    VirtualPlatformState getPlatformState() {
+        if (platformState == null) {
+            platformState = new VirtualPlatformState(id);
+        }
+        return platformState;
+    }
 }
