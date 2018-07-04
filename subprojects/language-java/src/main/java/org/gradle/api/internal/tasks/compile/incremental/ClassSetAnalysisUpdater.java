@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationResultAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -73,7 +74,8 @@ public class ClassSetAnalysisUpdater {
     }
 
     private void visitAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result, CompilationResultAnalyzer analyzer) {
-        if (!spec.getEffectiveAnnotationProcessors().isEmpty()) {
+        Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
+        if (processors != null && !processors.isEmpty()) {
             AnnotationProcessingResult annotationProcessingResult = null;
             if (result instanceof JdkJavaCompilerResult) {
                 annotationProcessingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
