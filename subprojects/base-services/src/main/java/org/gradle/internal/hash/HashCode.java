@@ -31,7 +31,7 @@ public class HashCode implements Serializable, Comparable<HashCode> {
 
     private final byte[] bytes;
 
-    private long hashCode = Long.MAX_VALUE;
+    private long hashCode;
 
     private HashCode(byte[] bytes) {
         this.bytes = bytes;
@@ -100,11 +100,13 @@ public class HashCode implements Serializable, Comparable<HashCode> {
 
     @Override
     public int hashCode() {
-        if (hashCode == Long.MAX_VALUE) {
+        if (hashCode == 0) {
             hashCode = (bytes[0] & 0xFF)
                 | ((bytes[1] & 0xFF) << 8)
                 | ((bytes[2] & 0xFF) << 16)
-                | ((bytes[3] & 0xFF) << 24);
+                | ((bytes[3] & 0xFF) << 24)
+                // Make sure it's always > 0 but without affecting the lower 32 bits
+                | (1L << 32);
         }
         return (int) hashCode;
     }
