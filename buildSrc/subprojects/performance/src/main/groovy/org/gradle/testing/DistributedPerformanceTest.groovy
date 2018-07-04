@@ -245,6 +245,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             response = client.get(path: "builds/id:$jobId")
             finished = response.data.@state == "finished"
             if (!finished) {
+                println "Waiting for scenario build $jobId to finish"
                 sleep(TimeUnit.MINUTES.toMillis(1))
             }
         }
