@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
@@ -72,7 +71,7 @@ public class TaskOutputCacheCommandFactory {
         return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskArtifactState);
     }
 
-    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, NormalizedFileSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Iterable<PhysicalSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
         return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, taskExecutionTime);
     }
 
@@ -170,8 +169,8 @@ public class TaskOutputCacheCommandFactory {
                         throw new AssertionError();
                 }
                 propertySnapshotsBuilder.put(propertyName, new DefaultFileCollectionFingerprint(
-                    fingerprintingStrategy.getCompareStrategy(),
-                    fingerprintingStrategy.collectSnapshots(roots)
+                    fingerprintingStrategy,
+                    roots
                 ));
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
@@ -217,11 +216,11 @@ public class TaskOutputCacheCommandFactory {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
-        private final Map<String, Map<String, NormalizedFileSnapshot>> outputSnapshots;
+        private final Map<String, Iterable<PhysicalSnapshot>> outputSnapshots;
         private final TaskInternal task;
         private final long taskExecutionTime;
 
-        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, NormalizedFileSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Iterable<PhysicalSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.outputSnapshots = outputSnapshots;

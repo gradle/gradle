@@ -36,9 +36,9 @@ import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -143,13 +143,17 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Map<String, Map<String, NormalizedFileSnapshot>> getOutputContentSnapshots() {
+        public Map<String, Iterable<PhysicalSnapshot>> getOutputSnapshots() {
             ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot = history.getCurrentExecution().getOutputFilesSnapshot();
-            return Maps.transformValues(outputFilesSnapshot, new Function<FileCollectionSnapshot, Map<String, NormalizedFileSnapshot>>() {
+            return Maps.transformValues(outputFilesSnapshot, new Function<FileCollectionSnapshot, Iterable<PhysicalSnapshot>>() {
                 @Override
                 @SuppressWarnings("NullableProblems")
-                public Map<String, NormalizedFileSnapshot> apply(FileCollectionSnapshot fileCollectionSnapshot) {
-                    return fileCollectionSnapshot.getSnapshots();
+                public Iterable<PhysicalSnapshot> apply(FileCollectionSnapshot fileCollectionSnapshot) {
+                    Iterable<PhysicalSnapshot> roots = fileCollectionSnapshot.getRoots();
+                    if (roots == null) {
+                        throw new IllegalStateException("Roots need to be stored in file collection snapshot: " + fileCollectionSnapshot);
+                    }
+                    return roots;
                 }
             });
         }

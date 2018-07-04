@@ -21,7 +21,7 @@ import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -138,7 +138,7 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public Map<String, Map<String, NormalizedFileSnapshot>> getOutputContentSnapshots() {
+    public Map<String, Iterable<PhysicalSnapshot>> getOutputSnapshots() {
         return Collections.emptyMap();
     }
 

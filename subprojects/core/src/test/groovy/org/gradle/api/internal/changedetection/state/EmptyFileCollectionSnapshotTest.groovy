@@ -30,7 +30,7 @@ class EmptyFileCollectionSnapshotTest extends Specification {
         def snapshot = new DefaultFileCollectionFingerprint(FingerprintCompareStrategy.ABSOLUTE, [
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-        ])
+        ], null)
         expect:
         getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, false).empty
         getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, true) == [
@@ -43,7 +43,7 @@ class EmptyFileCollectionSnapshotTest extends Specification {
         def snapshot = new DefaultFileCollectionFingerprint(FingerprintCompareStrategy.ABSOLUTE, [
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-        ])
+        ], null)
         expect:
         getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),

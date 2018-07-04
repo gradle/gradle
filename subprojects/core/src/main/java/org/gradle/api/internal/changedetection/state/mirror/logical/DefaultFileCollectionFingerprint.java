@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -38,16 +39,22 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
 
     private final FingerprintCompareStrategy strategy;
     private final Map<String, NormalizedFileSnapshot> snapshots;
+    private final Iterable<PhysicalSnapshot> roots;
     private HashCode hash;
 
     public DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash) {
+        this(strategy, snapshots, hash, null);
+    }
+
+    public DefaultFileCollectionFingerprint(FingerprintingStrategy strategy, Iterable<PhysicalSnapshot> roots) {
+        this(strategy.getCompareStrategy(), strategy.collectSnapshots(roots), null, roots);
+    }
+
+    private DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash, @Nullable Iterable<PhysicalSnapshot> roots) {
         this.strategy = strategy;
         this.snapshots = snapshots;
         this.hash = hash;
-    }
-
-    public DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots) {
-        this(strategy, snapshots, null);
+        this.roots = roots;
     }
 
     @Override
@@ -68,6 +75,12 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
     @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return snapshots;
+    }
+
+    @Override
+    @Nullable
+    public Iterable<PhysicalSnapshot> getRoots() {
+        return roots;
     }
 
     @Override

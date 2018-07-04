@@ -51,7 +51,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
-    def outputContentSnapshots = [:]
+    def outputSnapshots = [:]
 
     def executer = new SkipCachedTaskExecuter(buildCacheController, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
@@ -115,8 +115,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * taskArtifactState.getOutputSnapshots() >> outputSnapshots
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputSnapshots, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -148,8 +148,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * taskArtifactState.getOutputSnapshots() >> outputSnapshots
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputSnapshots, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -245,8 +245,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * taskArtifactState.getOutputSnapshots() >> outputSnapshots
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputSnapshots, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -309,7 +309,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * cacheKey.getDisplayName() >> "cache key"
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots()
+        1 * taskArtifactState.getOutputSnapshots()
         1 * buildCacheCommandFactory.createStore(*_)
         1 * buildCacheController.store(_) >> { throw new RuntimeException("unknown error") }
 
