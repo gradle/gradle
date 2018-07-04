@@ -149,6 +149,8 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         process.consumeProcessOutput(stdout, stderr)
 
         if (process.waitFor() == 0) {
+            println("Command $command stdout: ${stdout}")
+            println("Command $command stderr: ${stderr}")
             return new StdoutAndPatterns(stdout.toString())
         } else {
             def logFile = IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.file("error-${System.currentTimeMillis()}.log")
