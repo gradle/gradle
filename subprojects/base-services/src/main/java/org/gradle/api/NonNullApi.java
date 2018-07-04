@@ -30,6 +30,9 @@ import java.lang.annotation.Target;
  *
  * All parameter and return types are assumed to be {@link Nonnull} unless specifically marked as {@link Nullable}.
  *
+ * All types of an annotated package inherit the package rule.
+ * Subpackages do not inherit nullability rules and must be annotated.
+ *
  * @since 4.2
  */
 @Target({ElementType.TYPE, ElementType.PACKAGE})
