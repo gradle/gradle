@@ -30,7 +30,7 @@ public enum CacheLayout {
     FILE_STORE(ROOT, "files", introducedIn("1.9-rc-1")),
 
     META_DATA(ROOT, "metadata",
-        // 3-5, 7-11, 18-20, 22, 25-30, 32-35, 37-47, 49, 50, 52, 54, 55, 57 were never used in a release
+        // skipped versions were not used in a release
         introducedIn("1.9-rc-2")
         .changedTo(2, "1.11-rc-1")
         .changedTo(6, "1.12-rc-1")
