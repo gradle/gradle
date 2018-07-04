@@ -192,13 +192,11 @@ class TestingAStackDemo {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.TestingAStackDemo').assertTestCount(4, 0, 0)
             .assertTestPassed('isInstantiatedWithNew', 'is instantiated with new Stack')
-        result.testClass('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
-            .assertTestPassed('isEmpty', 'is empty')
-            .assertTestPassed('throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
-        result.testClass('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
-            .assertTestPassed('isNotEmpty', 'it is no longer empty')
+            .assertTestPassed('WhenNew', 'isEmpty', 'is empty')
+            .assertTestPassed('WhenNew', 'throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
+            .assertTestPassed('WhenNew$AfterPushing', 'isNotEmpty', 'it is no longer empty')
 
         where:
         maxParallelForks << [1, 3]
