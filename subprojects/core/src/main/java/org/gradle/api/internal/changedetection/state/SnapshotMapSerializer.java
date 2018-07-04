@@ -64,7 +64,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
                 String normalizedPath = decoder.readString();
                 return new DefaultNormalizedFileSnapshot(normalizedPath, snapshot);
             case IGNORED_PATH_NORMALIZATION:
-                return new IgnoredPathFileSnapshot(snapshot);
+                return snapshot;
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
@@ -103,7 +103,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         } else if (value instanceof DefaultNormalizedFileSnapshot) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
             encoder.writeString(value.getNormalizedPath());
-        } else if (value instanceof IgnoredPathFileSnapshot) {
+        } else if (value instanceof FileContentSnapshot) {
             encoder.writeByte(IGNORED_PATH_NORMALIZATION);
         } else {
             throw new AssertionError();

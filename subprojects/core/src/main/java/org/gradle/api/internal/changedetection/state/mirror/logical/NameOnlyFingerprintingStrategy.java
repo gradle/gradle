@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -41,7 +40,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 @Override
                 public boolean preVisitDirectory(String absolutePath, String name) {
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? new IgnoredPathFileSnapshot(DirContentSnapshot.INSTANCE) : new DefaultNormalizedFileSnapshot(name, DirContentSnapshot.INSTANCE);
+                        NormalizedFileSnapshot snapshot = isRoot() ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(name, DirContentSnapshot.INSTANCE);
                         builder.put(absolutePath, snapshot);
                     }
                     root = false;

@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
@@ -76,7 +75,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
                 @Override
                 public void visit(String absolutePath, String name, FileContentSnapshot content) {
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new IgnoredPathFileSnapshot(content) : createNormalizedSnapshot(name, content);
+                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? content : createNormalizedSnapshot(name, content);
                         rootBuilder.put(
                             absolutePath,
                             normalizedFileSnapshot);

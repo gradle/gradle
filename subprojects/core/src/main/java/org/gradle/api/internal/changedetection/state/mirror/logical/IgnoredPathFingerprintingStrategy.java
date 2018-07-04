@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.IgnoredPathFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -43,7 +42,7 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
                 @Override
                 public void visit(String absolutePath, String name, FileContentSnapshot content) {
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new IgnoredPathFileSnapshot(content));
+                        builder.put(absolutePath, content);
                     }
                 }
 
