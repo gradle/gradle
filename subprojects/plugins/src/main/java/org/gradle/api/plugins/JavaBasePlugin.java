@@ -218,7 +218,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         Configuration compileConfiguration = configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + " ' instead).");
+        compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + "' instead).");
 
         Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
         implementationConfiguration.setVisible(false);
@@ -230,7 +230,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         Configuration runtimeConfiguration = configurations.maybeCreate(runtimeConfigurationName);
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + " ' instead).");
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + "' instead).");
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
