@@ -196,16 +196,8 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType = ModuleType.UNDEFINED
         set(value) {
             field = value
-            // Entry points should run against Java so that we can give good error messages for people trying to run
-            // Gradle on Java 5. But Java 9 no longer support Java 5. Therefore, to be able to build Gradle on Java 9,
-            // we need to change the version to the minimum supported one.
-            if (BuildEnvironment.javaVersion.isJava9Compatible && moduleType == ModuleType.ENTRY_POINT) {
-                project.java.sourceCompatibility = JavaVersion.VERSION_1_6
-                project.java.targetCompatibility = JavaVersion.VERSION_1_6
-            } else {
-                project.java.targetCompatibility = moduleType.target
-                project.java.sourceCompatibility = moduleType.source
-            }
+            project.java.targetCompatibility = moduleType.target
+            project.java.sourceCompatibility = moduleType.source
         }
 
     init {

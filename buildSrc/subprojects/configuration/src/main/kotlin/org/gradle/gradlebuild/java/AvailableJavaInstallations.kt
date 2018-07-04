@@ -41,6 +41,10 @@ const val testJavaHomePropertyName = "testJavaHome"
 
 
 private
+const val oracleJdk9 = "Oracle JDK 9"
+
+
+private
 const val oracleJdk8 = "Oracle JDK 8"
 
 
@@ -109,8 +113,8 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
         return mapOf(
             "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
             validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.displayName != oracleJdk7),
-            "Must use Oracle JDK 8 to perform this build. Is currently ${currentJavaInstallation.displayName} at ${currentJavaInstallation.javaHome}." to
-                (currentJavaInstallation.displayName != oracleJdk8)
+            "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.displayName} at ${currentJavaInstallation.javaHome}." to
+                (currentJavaInstallation.displayName != oracleJdk8 && currentJavaInstallation.displayName != oracleJdk9)
         ).filterValues { it }.keys
     }
 
