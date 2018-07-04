@@ -174,6 +174,11 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
+        public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+            return ImmutableList.of();
+        }
+
+        @Override
         public AttributeContainer getAttributes() {
             return delegate.getAttributes();
         }

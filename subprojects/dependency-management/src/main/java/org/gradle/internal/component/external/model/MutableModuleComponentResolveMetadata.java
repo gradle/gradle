@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -95,4 +96,13 @@ public interface MutableModuleComponentResolveMetadata {
      * Returns the metadata rules container for this module
      */
     VariantMetadataRules getVariantMetadataRules();
+
+    /**
+     * Declares that this component belongs to a platform.
+     * @param platform the identifer of the platform
+     */
+    void belongsTo(ComponentIdentifier platform);
+
+    @Nullable
+    List<? extends ComponentIdentifier> getPlatformOwners();
 }

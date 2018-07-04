@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -53,6 +54,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
+    private final ImmutableList<? extends ComponentIdentifier> plaftormOwners;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -65,6 +67,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
+        plaftormOwners = metadata.getPlatformOwners() == null ? ImmutableList.<ComponentIdentifier>of() : ImmutableList.copyOf(metadata.getPlatformOwners());
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
@@ -91,6 +94,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
+        plaftormOwners = metadata.plaftormOwners;
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSource source) {
@@ -185,6 +189,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      */
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
         return Optional.absent();
+    }
+
+    @Override
+    public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+        return plaftormOwners;
     }
 
     @Override
