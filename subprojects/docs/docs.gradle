@@ -476,7 +476,7 @@ asciidoctor {
 
     attributes stylesdir      : '../css/',
         stylesheet            : 'manual.css',
-        imagesdir             : 'img',
+        imagesdir             : 'images',
         nofooter              : true,
         icons                 : null,
         'note-caption'        : '&#128161;',

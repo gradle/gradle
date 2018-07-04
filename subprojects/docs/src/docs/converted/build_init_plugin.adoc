@@ -25,9 +25,9 @@ The Build Init plugin is currently <<feature_lifecycle#,incubating>>. Please be 
 
 The Gradle Build Init plugin can be used to bootstrap the process of creating a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
 
-Gradle plugins typically need to be _applied_ to a project before they can be used (see <<sec:using_plugins>>). The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly. To use the plugin, simply execute the task named `init` where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
+Gradle plugins typically need to be _applied_ to a project before they can be used (see <<plugins#sec:using_plugins, "Using plugins">>). The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly. To use the plugin, simply execute the task named `init` where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
 
-It also leverages the `wrapper` task to <<sec:adding_wrapper,generate the Gradle Wrapper files>> for the project.
+It also leverages the `wrapper` task to <<gradle_wrapper#sec:adding_wrapper,generate the Gradle Wrapper files>> for the project.
 
 
 [[sec:build_init_tasks]]
@@ -35,25 +35,13 @@ It also leverages the `wrapper` task to <<sec:adding_wrapper,generate the Gradle
 
 The plugin adds the following tasks to the project:
 
-.Build Init plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`init` — type: `link:{groovy-dsl-path}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]`::
+_Depends on_: `wrapper`
++
+Generates a Gradle project.
 
-| `init`
-| `wrapper`
-| `link:{groovy-dsl-path}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]`
-| Generates a Gradle project.
-
-| `wrapper`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]`
-| Generates Gradle wrapper files.
-|===
-
+`wrapper` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]`::
+Generates Gradle wrapper files.
 
 [[sec:what_to_set_up]]
 == What to set up
