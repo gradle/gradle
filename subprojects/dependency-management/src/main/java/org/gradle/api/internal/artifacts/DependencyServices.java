@@ -77,8 +77,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return new TransformInfoDependencyResolver(transformInfoFactory);
         }
 
-        TransformInfoExecutor createTransformInfoExecutor() {
-            return new TransformInfoExecutor();
+        TransformInfoExecutor createTransformInfoExecutor(BuildOperationExecutor buildOperationExecutor) {
+            return new TransformInfoExecutor(buildOperationExecutor);
         }
     }
 }

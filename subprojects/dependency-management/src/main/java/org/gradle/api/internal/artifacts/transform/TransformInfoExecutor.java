@@ -18,13 +18,38 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.execution.taskgraph.WorkInfo;
 import org.gradle.execution.taskgraph.WorkInfoExecutor;
+import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class TransformInfoExecutor implements WorkInfoExecutor {
+    private final BuildOperationExecutor buildOperationExecutor;
+
+    public TransformInfoExecutor(BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationExecutor = buildOperationExecutor;
+    }
+
     @Override
     public boolean execute(WorkInfo work) {
         if (work instanceof TransformInfo) {
-            TransformInfo transform = (TransformInfo) work;
-            transform.execute();
+            final TransformInfo transform = (TransformInfo) work;
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    transform.execute();
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    String displayName = "Transform " + transform.toString();
+                    return BuildOperationDescriptor.displayName(displayName)
+                        .name(displayName)
+                        .progressDisplayName(displayName)
+                        .operationType(BuildOperationCategory.TASK);
+                }
+            });
             return true;
         } else {
             return false;
