@@ -47,7 +47,6 @@ class MavenPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(WarPlugin)
         project.pluginManager.apply(MavenPlugin)
-        project.evaluate()
 
         then:
         assertHasConfigurationAndMapping(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
@@ -76,7 +75,6 @@ class MavenPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaPlugin)
         project.pluginManager.apply(MavenPlugin)
-        project.evaluate()
 
         then:
         assertHasConfigurationAndMapping(JavaPlugin.COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
@@ -104,7 +102,6 @@ class MavenPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaLibraryPlugin)
         project.pluginManager.apply(MavenPlugin)
-        project.evaluate()
 
         then:
         assertHasConfigurationAndMapping(JavaPlugin.API_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,

@@ -36,7 +36,6 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.UploadRule;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -160,7 +159,7 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setStatus("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+        Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
 
         configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
@@ -172,22 +171,11 @@ public class BasePlugin implements Plugin<Project> {
 
         configurations.all(new Action<Configuration>() {
             public void execute(Configuration configuration) {
-                configuration.getArtifacts().all(new Action<PublishArtifact>() {
+                configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
                     public void execute(PublishArtifact artifact) {
                         defaultArtifacts.addCandidate(artifact);
                     }
                 });
-            }
-        });
-
-        // Register the default artifact provider after evaluation so that we don't realize/add the default artifact before all candidates have been added.
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                Provider<PublishArtifact> defaultArtifactProvider = defaultArtifacts.getDefaultArtifactProvider();
-                if (defaultArtifactProvider != null) {
-                    archivesConfiguration.getArtifacts().addLater(defaultArtifacts.getDefaultArtifactProvider());
-                }
             }
         });
     }

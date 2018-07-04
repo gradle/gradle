@@ -210,7 +210,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
     def addsJarAsPublication() {
         given:
         project.pluginManager.apply(JavaPlugin)
-        project.evaluate()
 
         when:
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
@@ -297,7 +296,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         new TestFile(project.file("src/main/resources/thing.txt")) << "foo"
         new TestFile(project.file("src/test/java/File.java")) << "foo"
         new TestFile(project.file("src/test/resources/thing.txt")) << "foo"
-        project.evaluate()
 
         when:
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]

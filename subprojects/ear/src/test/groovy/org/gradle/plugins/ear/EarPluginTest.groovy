@@ -78,7 +78,6 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
     def addsTasks() {
         when:
         project.pluginManager.apply(EarPlugin)
-        project.evaluate()
 
         and:
         def task = project.tasks[EarPlugin.EAR_TASK_NAME]
@@ -98,7 +97,6 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaPlugin.class)
         project.pluginManager.apply(EarPlugin)
-        project.evaluate()
 
         and:
         def task = project.tasks[EarPlugin.EAR_TASK_NAME]
@@ -174,7 +172,6 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
     def addsEarAsPublication() {
         when:
         project.pluginManager.apply(EarPlugin)
-        project.evaluate()
 
         and:
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
@@ -188,7 +185,6 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(WarPlugin)
-        project.evaluate()
 
         and:
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
@@ -202,7 +198,6 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(EarPlugin)
         project.pluginManager.apply(JavaPlugin)
-        project.evaluate()
 
         and:
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
