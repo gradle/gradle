@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle" uuid="Gradle_Check" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Check</name>
+  <parameters />
+  <project-extensions>
+    <extension id="PROJECT_EXT_3" type="versionedSettings">
+      <parameters>
+        <param name="buildSettings" value="PREFER_CURRENT" />
+        <param name="credentialsStorageType" value="credentialsJSON" />
+        <param name="enabled" value="true" />
+        <param name="rootId" value="Gradle_Branches_VersionedSettings" />
+        <param name="showChanges" value="false" />
+      </parameters>
+    </extension>
+  </project-extensions>
+  <cleanup />
+  <subprojectsOrder order="Gradle_Check_Stage_QuickFeedbackLinuxOnly,Gradle_Check_Stage_QuickFeedback,Gradle_Check_Stage_BranchBuildAccept,Gradle_Check_Stage_MasterAccept,Gradle_Check_Stage_ReleaseAccept,Gradle_Check_Stage_HistoricalPerformance,Gradle_Check_Stage_Experimental,Gradle_Check_Workers" />
+  <buildTypesOrder order="Gradle_Check_Stage_QuickFeedbackLinuxOnly_Trigger,Gradle_Check_Stage_QuickFeedback_Trigger,Gradle_Check_Stage_BranchBuildAccept_Trigger,Gradle_Check_Stage_MasterAccept_Trigger,Gradle_Check_Stage_ReleaseAccept_Trigger,Gradle_Check_Stage_HistoricalPerformance_Trigger,Gradle_Check_Stage_Experimental_Trigger" />
+</project>
+

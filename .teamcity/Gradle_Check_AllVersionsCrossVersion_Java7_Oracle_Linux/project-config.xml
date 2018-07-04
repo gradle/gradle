@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check_Stage_ReleaseAccept" uuid="Gradle_Check_AllVersionsCrossVersion_Java7_Oracle_Linux" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Test Coverage - AllVersionsCrossVersion Java7 Oracle Linux</name>
+  <parameters />
+  <cleanup />
+</project>
+

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="eeff4410-1e7d-4db6-b7b8-34c1f2754477" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2017.2/project-config.xsd">
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="eeff4410-1e7d-4db6-b7b8-34c1f2754477" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
   <name>Release - Snapshot (from Quick Feedback)</name>
   <description>Deploys the latest successful change on 'release' as a new snapshot</description>
   <settings>
@@ -8,7 +8,7 @@
       <option name="checkoutMode" value="ON_SERVER" />
     </options>
     <parameters />
-    <build-runners order="RUNNER_18">
+    <build-runners>
       <runner id="RUNNER_18" name="Promote" type="gradle-runner">
         <parameters>
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Check_Stage_QuickFeedback" uuid="Gradle_Check_Quick_Java7_Oracle_Windows" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Test Coverage - Quick Java7 Oracle Windows</name>
+  <parameters />
+  <cleanup />
+</project>
+
