@@ -16,20 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -37,10 +31,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot {
@@ -48,12 +39,6 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
     private final FingerprintCompareStrategy strategy;
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private HashCode hash;
-    private final Factory<List<File>> cachedElementsFactory = Factories.softReferenceCache(new Factory<List<File>>() {
-        @Override
-        public List<File> create() {
-            return doGetElements();
-        }
-    });
 
     public DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash) {
         this.strategy = strategy;
@@ -81,32 +66,8 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
     }
 
     @Override
-    public Collection<File> getElements() {
-        return cachedElementsFactory.create();
-    }
-
-    private List<File> doGetElements() {
-        Map<String, FileContentSnapshot> content = getContentSnapshots();
-        List<File> files = Lists.newArrayListWithCapacity(content.size());
-        for (String name : content.keySet()) {
-            files.add(new File(name));
-        }
-        return files;
-    }
-
-    @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return snapshots;
-    }
-
-    @Override
-    public Map<String, FileContentSnapshot> getContentSnapshots() {
-        return Maps.transformValues(snapshots, new Function<NormalizedFileSnapshot, FileContentSnapshot>() {
-            @Override
-            public FileContentSnapshot apply(NormalizedFileSnapshot normalizedSnapshot) {
-                return normalizedSnapshot.getSnapshot();
-            }
-        });
     }
 
     @Override

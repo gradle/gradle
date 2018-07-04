@@ -111,8 +111,8 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         }
         1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots, OriginTaskExecutionMetadata metadata ->
             assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
-            assert propertySnapshots["outputFile"].elements == [outputFile]
-            assert propertySnapshots["outputDir"].elements == [outputDir, outputDirFile]
+            assert propertySnapshots["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
+            assert propertySnapshots["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:

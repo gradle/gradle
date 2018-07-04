@@ -198,7 +198,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     ) {
         FileCollectionSnapshot filesSnapshot;
         Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
-        if (!beforeExecution.getContentSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
+        if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
             Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
             Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : ImmutableMap.<String, NormalizedFileSnapshot>of();
             int newEntryCount = 0;

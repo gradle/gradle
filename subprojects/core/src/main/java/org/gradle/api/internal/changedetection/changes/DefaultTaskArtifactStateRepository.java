@@ -35,8 +35,8 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
@@ -135,19 +135,21 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             ImmutableCollection<FileCollectionSnapshot> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionSnapshot fileCollectionSnapshot : outputFilesSnapshot) {
-                outputs.addAll(fileCollectionSnapshot.getElements());
+                for (String absolutePath : fileCollectionSnapshot.getSnapshots().keySet()) {
+                    outputs.add(new File(absolutePath));
+                }
             }
             return outputs;
         }
 
         @Override
-        public Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots() {
+        public Map<String, Map<String, NormalizedFileSnapshot>> getOutputContentSnapshots() {
             ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot = history.getCurrentExecution().getOutputFilesSnapshot();
-            return Maps.transformValues(outputFilesSnapshot, new Function<FileCollectionSnapshot, Map<String, FileContentSnapshot>>() {
+            return Maps.transformValues(outputFilesSnapshot, new Function<FileCollectionSnapshot, Map<String, NormalizedFileSnapshot>>() {
                 @Override
                 @SuppressWarnings("NullableProblems")
-                public Map<String, FileContentSnapshot> apply(FileCollectionSnapshot fileCollectionSnapshot) {
-                    return fileCollectionSnapshot.getContentSnapshots();
+                public Map<String, NormalizedFileSnapshot> apply(FileCollectionSnapshot fileCollectionSnapshot) {
+                    return fileCollectionSnapshot.getSnapshots();
                 }
             });
         }

@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.internal.file.FileType;
 
 import javax.annotation.Nullable;
@@ -34,13 +35,14 @@ public class OverlappingOutputs {
 
     @Nullable
     public static OverlappingOutputs detect(String propertyName, FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
-        Map<String, FileContentSnapshot> previousSnapshots = previousExecution.getContentSnapshots();
-        Map<String, FileContentSnapshot> beforeSnapshots = beforeExecution.getContentSnapshots();
+        Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
+        Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
 
-        for (Map.Entry<String, FileContentSnapshot> beforeSnapshot : beforeSnapshots.entrySet()) {
+        for (Map.Entry<String, NormalizedFileSnapshot> beforeSnapshot : beforeSnapshots.entrySet()) {
             String path = beforeSnapshot.getKey();
-            FileContentSnapshot fileSnapshot = beforeSnapshot.getValue();
-            FileContentSnapshot previousSnapshot = previousSnapshots.get(path);
+            FileContentSnapshot fileSnapshot = beforeSnapshot.getValue().getSnapshot();
+            NormalizedFileSnapshot normalizedFileSnapshot = previousSnapshots.get(path);
+            FileContentSnapshot previousSnapshot = normalizedFileSnapshot == null ? null : normalizedFileSnapshot.getSnapshot();
             // Missing files can be ignored
             if (fileSnapshot.getType() != FileType.Missing) {
                 if (createdSincePreviousExecution(previousSnapshot) || changedSincePreviousExecution(fileSnapshot, previousSnapshot)) {

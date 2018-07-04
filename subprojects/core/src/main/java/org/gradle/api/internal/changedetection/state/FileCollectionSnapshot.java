@@ -19,8 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -39,11 +37,7 @@ public interface FileCollectionSnapshot extends Snapshot {
     HashCode getHash();
 
     /**
-     * Returns the elements of this snapshot, including regular files, directories and missing files
+     * The underlying snapshots.
      */
-    Collection<File> getElements();
-
     Map<String, NormalizedFileSnapshot> getSnapshots();
-
-    Map<String, FileContentSnapshot> getContentSnapshots();
 }

@@ -29,8 +29,8 @@ import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
@@ -95,7 +95,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, NormalizedFileSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -123,11 +123,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TarArchiveOutputStream tarOutput) {
+    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, NormalizedFileSnapshot>> outputSnapshots, TarArchiveOutputStream tarOutput) {
         long entries = 0;
         for (ResolvedTaskOutputFilePropertySpec propertySpec : propertySpecs) {
             String propertyName = propertySpec.getPropertyName();
-            Map<String, FileContentSnapshot> outputs = outputSnapshots.get(propertyName);
+            Map<String, NormalizedFileSnapshot> outputs = outputSnapshots.get(propertyName);
             try {
                 entries += packProperty(propertySpec, outputs, tarOutput);
             } catch (Exception ex) {
@@ -137,7 +137,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return entries;
     }
 
-    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, Map<String, FileContentSnapshot> outputSnapshots, TarArchiveOutputStream tarOutput) throws IOException {
+    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, Map<String, NormalizedFileSnapshot> outputSnapshots, TarArchiveOutputStream tarOutput) throws IOException {
         String propertyName = propertySpec.getPropertyName();
         File root = propertySpec.getOutputFile();
         if (root == null) {
@@ -159,7 +159,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private long storeDirectoryProperty(String propertyPath, File directory, Map<String, FileContentSnapshot> outputSnapshots, final TarArchiveOutputStream tarOutput) throws IOException {
+    private long storeDirectoryProperty(String propertyPath, File directory, Map<String, NormalizedFileSnapshot> outputSnapshots, final TarArchiveOutputStream tarOutput) throws IOException {
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
         }
@@ -174,7 +174,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         String rootAbsolutePath = directory.getAbsolutePath();
         Path rootPath = directory.toPath();
 
-        for (Map.Entry<String, FileContentSnapshot> entry : outputSnapshots.entrySet()) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : outputSnapshots.entrySet()) {
             String absolutePath = entry.getKey();
             // We've already created the directory for the property
             if (absolutePath.equals(rootAbsolutePath)) {
@@ -184,7 +184,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             String relativePath = rootPath.relativize(file.toPath()).toString();
             String targetPath = propertyRoot + relativePath;
             int mode = fileSystem.getUnixMode(file);
-            switch (entry.getValue().getType()) {
+            switch (entry.getValue().getSnapshot().getType()) {
                 case RegularFile:
                     storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
                     break;
