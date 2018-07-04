@@ -29,6 +29,7 @@ import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 
 
+@Suppress("unused") // consumed as plugin gradlebuild.buildscan
 open class BuildScanPlugin : Plugin<Project> {
 
     private
@@ -47,11 +48,6 @@ open class BuildScanPlugin : Plugin<Project> {
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
-    }
-
-    private
-    fun buildScan(configure: BuildScanExtension.() -> Unit) {
-        buildScan.apply(configure)
     }
 
     private
@@ -77,7 +73,10 @@ open class BuildScanPlugin : Plugin<Project> {
                         codenarcPackage.getElementsByTag("File").flatMap { file ->
                             file.getElementsByTag("Violation").map { violation ->
                                 val filePath = rootProject.relativePath(file.attr("name"))
-                                val message = violation.getElementsByTag("Message").first() ?: violation.getElementsByTag("SourceLine").first()
+                                val message = violation.run {
+                                    getElementsByTag("Message").first()
+                                        ?: getElementsByTag("SourceLine").first()
+                                }
                                 "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
                             }
                         }
@@ -97,8 +96,8 @@ open class BuildScanPlugin : Plugin<Project> {
                 tag(System.getenv("TEAMCITY_BUILDCONF_NAME"))
                 link("TeamCity Build", System.getenv("BUILD_URL"))
                 value("Build ID", System.getenv("BUILD_ID"))
+                setCommitId(System.getenv("BUILD_VCS_NUMBER"))
             }
-            setCommitId(System.getenv("BUILD_VCS_NUMBER"))
         } else {
             buildScan.tag("LOCAL")
         }
@@ -106,27 +105,26 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVcsData() {
-        buildScan.background {
-            system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
-                setCommitId(commitId)
-            }
-        }
+        buildScan {
 
-        buildScan.background {
-            system("git", "status", "--porcelain").let { status ->
-                if (status.isNotEmpty()) {
-                    buildScan {
+            background {
+                system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
+                    setCommitId(commitId)
+                }
+            }
+
+            background {
+                system("git", "status", "--porcelain").let { status ->
+                    if (status.isNotEmpty()) {
                         tag("dirty")
                         value("Git Status", status)
                     }
                 }
             }
-        }
 
-        buildScan.background {
-            system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
-                if (branchName.isNotEmpty() && branchName != "HEAD") {
-                    buildScan {
+            background {
+                system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
+                    if (branchName.isNotEmpty() && branchName != "HEAD") {
                         tag(branchName)
                         value("Git Branch Name", branchName)
                     }
@@ -136,7 +134,6 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
-
     fun Project.extractBuildCacheData() {
         if (gradle.startParameter.isBuildCacheEnabled) {
             buildScan.tag("CACHED")
@@ -177,11 +174,15 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.setCommitId(commitId: String) =
-        buildScan {
-            value("Git Commit ID", commitId)
-            link("Source", "https://github.com/gradle/gradle/commit/" + commitId)
-        }
+    fun BuildScanExtension.setCommitId(commitId: String) {
+        value("Git Commit ID", commitId)
+        link("Source", "https://github.com/gradle/gradle/commit/$commitId")
+    }
+
+    private
+    inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
+        buildScan.apply(configure)
+    }
 }
 
 
