@@ -5,7 +5,7 @@ import configurations.DependenciesCheck
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
 
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",

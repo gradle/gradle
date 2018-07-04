@@ -1,16 +1,17 @@
 package projects
 
 import configurations.StagePasses
-import jetbrains.buildServer.configs.kotlin.v2017_2.Project
-import jetbrains.buildServer.configs.kotlin.v2017_2.projectFeatures.VersionedSettings
-import jetbrains.buildServer.configs.kotlin.v2017_2.projectFeatures.versionedSettings
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.Project
+import jetbrains.buildServer.configs.kotlin.v2018_1.projectFeatures.VersionedSettings
+import jetbrains.buildServer.configs.kotlin.v2018_1.projectFeatures.versionedSettings
 import model.CIBuildModel
 import model.Stage
 
 class RootProject(model: CIBuildModel) : Project({
     uuid = model.projectPrefix.removeSuffix("_")
-    id = uuid
-    parentId = "Gradle"
+    id = AbsoluteId(uuid)
+    parentId = AbsoluteId("Gradle")
     name = model.rootProjectName
 
     features {
@@ -37,5 +38,5 @@ class RootProject(model: CIBuildModel) : Project({
     }
 
     buildTypesOrder = buildTypes
-    subProjectsOrder = subProjects.map { it.id }
+    subProjectsOrder = subProjects
 })

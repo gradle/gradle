@@ -1,5 +1,6 @@
 package configurations
 
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
 import model.CIBuildModel
 import model.OS
 import model.Stage
@@ -8,7 +9,7 @@ import model.TestType
 
 class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = testCoverage.asConfigurationId(model, subProject)
-    id = uuid
+    id = AbsoluteId(uuid)
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
     val testTask = if (!subProject.isEmpty()) {
         subProject + ":"

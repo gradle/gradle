@@ -1,12 +1,13 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.TestType
@@ -14,7 +15,7 @@ import model.Trigger
 
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType(model, init = {
     uuid = "${model.projectPrefix}Stage_${stage.id}_Trigger"
-    id = uuid
+    id = AbsoluteId(uuid)
     name = stage.name + " (Trigger)"
 
     applyDefaultSettings(this)
@@ -88,7 +89,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
 
     dependencies {
         if (!stage.runsIndependent && prevStage != null) {
-            dependency("${model.projectPrefix}Stage_${prevStage.id}_Trigger") {
+            dependency(AbsoluteId("${model.projectPrefix}Stage_${prevStage.id}_Trigger")) {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
@@ -102,7 +103,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
         }
 
         stage.performanceTests.forEach { performanceTest ->
-            dependency(performanceTest.asId(model)) {
+            dependency(AbsoluteId(performanceTest.asId(model))) {
                 snapshot {}
             }
         }
@@ -115,15 +116,15 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
                         return@forEach
                     }
                     if (subProject.unitTests && testCoverage.testType.unitTests) {
-                        dependency(testCoverage.asConfigurationId(model, subProject.name)) { snapshot {} }
+                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
                     } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
-                        dependency(testCoverage.asConfigurationId(model, subProject.name)) { snapshot {} }
+                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
                     } else if (subProject.crossVersionTests && testCoverage.testType.crossVersionTests) {
-                        dependency(testCoverage.asConfigurationId(model, subProject.name)) { snapshot {} }
+                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
                     }
                 }
             } else {
-                dependency(testCoverage.asConfigurationId(model)) {
+                dependency(AbsoluteId(testCoverage.asConfigurationId(model))) {
                     snapshot {}
                 }
             }

@@ -4,7 +4,7 @@
   <name>Gradle_Check Config DSL Script</name>
   <properties>
     <kotlin.version>1.1.4-3</kotlin.version>
-    <teamcity.dsl.version>2017.2</teamcity.dsl.version>
+    <teamcity.dsl.version>2018.1</teamcity.dsl.version>
   </properties>
   <groupId>Gradle_Check</groupId>
   <artifactId>Gradle_Check_dsl</artifactId>
