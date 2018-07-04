@@ -20,7 +20,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
-@Requires(adhoc = { !AvailableJavaHomes.getJdks("1.5", "1.6").empty })
+@Requires(adhoc = { !AvailableJavaHomes.getJdks("1.6").empty })
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Unroll
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
@@ -33,7 +33,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6")
     }
 
     @Unroll
@@ -47,6 +47,6 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6")
     }
 }
