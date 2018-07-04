@@ -33,7 +33,7 @@ class UnusedVersionsCacheCleanupTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def gradleVersionProvider = Stub(GradleVersionProvider)
+    def usedGradleVersions = Stub(UsedGradleVersions)
 
     @Unroll
     def "deletes unused cache directories for mapping #mapping, Gradle versions #gradleVersions and existing cache versions #existingCacheVersions"() {
@@ -52,11 +52,11 @@ class UnusedVersionsCacheCleanupTest extends Specification {
         }
 
         when:
-        UnusedVersionsCacheCleanup.create(CACHE_NAME, cacheVersionMapping, gradleVersionProvider)
+        UnusedVersionsCacheCleanup.create(CACHE_NAME, cacheVersionMapping, usedGradleVersions)
             .clean(cleanableStore, Stub(CountdownTimer))
 
         then:
-        gradleVersionProvider.getRecentlyUsedVersions() >> (gradleVersions.collect { GradleVersion.version(it) } as SortedSet)
+        usedGradleVersions.getUsedGradleVersions() >> (gradleVersions.collect { GradleVersion.version(it) } as SortedSet)
         for (version in (existingCacheVersions - expectedDeletedVersions)) {
             versionDir(parentCacheVersion.append(version)).assertExists()
         }

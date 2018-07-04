@@ -19,7 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.GradleVersionProvider
+import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.Factory
 import org.gradle.internal.file.JarCache
 import org.gradle.internal.resource.local.FileAccessTimeJournal
@@ -53,10 +53,10 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     }
     def jarCache = Mock(JarCache)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def gradleVersionProvider = Stub(GradleVersionProvider)
+    def usedGradleVersions = Stub(UsedGradleVersions)
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore], gradleVersionProvider)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore], usedGradleVersions)
 
     def "can convert a classpath to cached jars"() {
         given:

@@ -30,6 +30,7 @@ import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,16 +44,16 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
 
     private final Pattern cacheNamePattern;
     private final CacheVersionMapping cacheVersionMapping;
-    private final GradleVersionProvider gradleVersionProvider;
+    private final UsedGradleVersions usedGradleVersions;
 
     private Set<CacheVersion> usedVersions;
 
-    public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, GradleVersionProvider gradleVersionProvider) {
+    public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
         Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+" + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
-        return new UnusedVersionsCacheCleanup(cacheNamePattern, cacheVersionMapping, gradleVersionProvider);
+        return new UnusedVersionsCacheCleanup(cacheNamePattern, cacheVersionMapping, usedGradleVersions);
     }
 
-    private UnusedVersionsCacheCleanup(final Pattern cacheNamePattern, CacheVersionMapping cacheVersionMapping, GradleVersionProvider gradleVersionProvider) {
+    private UnusedVersionsCacheCleanup(final Pattern cacheNamePattern, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
         super(new FilesFinder() {
             @Override
             public Iterable<File> find(File baseDir, FileFilter filter) {
@@ -64,7 +65,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
         });
         this.cacheNamePattern = cacheNamePattern;
         this.cacheVersionMapping = cacheVersionMapping;
-        this.gradleVersionProvider = gradleVersionProvider;
+        this.usedGradleVersions = usedGradleVersions;
     }
 
     @Override
@@ -75,9 +76,13 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
 
     private void determineUsedVersions() {
         usedVersions = Sets.newTreeSet();
-        for (GradleVersion gradleVersion : gradleVersionProvider.getRecentlyUsedVersions().headSet(GradleVersion.current())) {
+        for (GradleVersion gradleVersion : getUsedGradleVersionsSmallerThanCurrent()) {
             usedVersions.addAll(cacheVersionMapping.getVersionUsedBy(gradleVersion).asSet());
         }
+    }
+
+    private SortedSet<GradleVersion> getUsedGradleVersionsSmallerThanCurrent() {
+        return usedGradleVersions.getUsedGradleVersions().headSet(GradleVersion.current());
     }
 
     @Override

@@ -30,7 +30,7 @@ import java.util.SortedSet;
 
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 
-public class VersionSpecificCacheDirectoryService implements GradleVersionProvider {
+public class VersionSpecificCacheDirectoryService implements UsedGradleVersions {
 
     private final File cacheBaseDir;
 
@@ -39,7 +39,7 @@ public class VersionSpecificCacheDirectoryService implements GradleVersionProvid
     }
 
     @Override
-    public SortedSet<GradleVersion> getRecentlyUsedVersions() {
+    public SortedSet<GradleVersion> getUsedGradleVersions() {
         SortedSet<GradleVersion> result = Sets.newTreeSet();
         for (VersionSpecificCacheDirectory cacheDir : getExistingDirectories()) {
             result.add(cacheDir.getVersion());
