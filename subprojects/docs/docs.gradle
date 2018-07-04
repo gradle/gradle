@@ -210,7 +210,7 @@ artifacts {
 // Don't publish the CSS artifacts when calling uploadArchives
 configurations.archives.artifacts.removeAll(configurations.cssElements.artifacts)
 
-ext.cssFiles = fileTree(css.get().destinationDir) {
+ext.cssFiles = fileTree(css.map { it.destinationDir }) {
     builtBy css
 }
 
@@ -264,7 +264,7 @@ def samplesDocbook = tasks.register("samplesDocbook", AssembleSamplesDocTask) {
 }
 
 def samplesDocs = tasks.register("samplesDocs", Docbook2Xhtml) {
-    source samplesDocbook.get() // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+    source samplesDocbook
     destFile = new File(samples.get().destDir, 'readme.html')
     stylesheetName = 'standaloneHtml.xsl'
 }
@@ -314,7 +314,7 @@ def dslStandaloneDocbook = tasks.register("dslStandaloneDocbook", UserGuideTrans
 
 def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     group = "Documentation"
-    source dslStandaloneDocbook.get() // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+    source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
     stylesheetName = 'dslHtml.xsl'
     resources = cssFiles + fileTree(dslSrcDir) {
@@ -356,7 +356,7 @@ def pdfUserguideDocbook = tasks.register("pdfUserguideDocbook", UserGuideTransfo
 [userguideDocbook, pdfUserguideDocbook]*.configure {
     // The master userguide.xml pulls these files in via xi:include, making them input
     includes = files(
-        samplesDocbook.get(), // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+        samplesDocbook,
         defaultImports.get().importsDestFile,
         fileTree(dir: userguideSrcDir, includes: ['*.xml']),
         userguideAsciidoc.get().outputs.files
@@ -376,7 +376,7 @@ def resourceFiles = imageFiles + cssFiles
 
 def userguideHtml = tasks.register("userguideHtml", Docbook2Xhtml) {
     group = "Documentation"
-    source userguideDocbook.get() // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+    source userguideDocbook
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
     resources = resourceFiles
@@ -385,7 +385,7 @@ def userguideHtml = tasks.register("userguideHtml", Docbook2Xhtml) {
 
 def userguideSingleHtml = tasks.register("userguideSingleHtml", Docbook2Xhtml) {
     group = "Documentation"
-    source userguideDocbook.get() // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+    source userguideDocbook
     destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = resourceFiles
@@ -393,7 +393,7 @@ def userguideSingleHtml = tasks.register("userguideSingleHtml", Docbook2Xhtml) {
 }
 
 def pdfUserguideXhtml = tasks.register("pdfUserguideXhtml", Docbook2Xhtml) {
-    source pdfUserguideDocbook.get() // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+    source pdfUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
     resources = resourceFiles
@@ -474,7 +474,7 @@ def releaseNotes = tasks.register("releaseNotes", Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
     into "$docsDir"
-    from releaseNotesMarkdown.get() // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+    from releaseNotesMarkdown
     jsoup.plugins "src/transforms/release-notes.gradle"
     filter(ReplaceTokens, tokens: [version: project.version.toString(), baseVersion: rootProject.baseVersion])
     ext.entryPoint = file("$docsDir/$fileName")

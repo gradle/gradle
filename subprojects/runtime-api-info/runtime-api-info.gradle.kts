@@ -43,7 +43,7 @@ val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateT
 
 tasks.named("jar").configureAs<Jar> {
     into("org/gradle/api/internal/runtimeshaded") {
-        from(generateGradleApiPackageList.get()) // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
-        from(generateTestKitPackageList.get()) // TODO: Manually unpacking, see https://github.com/gradle/gradle-native/issues/737
+        from(generateGradleApiPackageList)
+        from(generateTestKitPackageList)
     }
 }
