@@ -22,7 +22,10 @@ import javax.annotation.Nullable;
 
 public final class Pair<L, R> {
 
+    @Nullable
     public final L left;
+
+    @Nullable
     public final R right;
 
     private Pair(@Nullable L left, @Nullable R right) {
