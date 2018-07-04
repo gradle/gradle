@@ -16,6 +16,8 @@
 
 package org.gradle.internal;
 
+import javax.annotation.Nullable;
+
 public abstract class Cast {
 
     /**
@@ -32,8 +34,8 @@ public abstract class Cast {
      * @param <I> The type of the object to be vast
      * @return The input object, cast to the output type
      */
-
-    public static <O, I> O cast(Class<O> outputType, I object) {
+    @Nullable
+    public static <O, I> O cast(Class<O> outputType, @Nullable I object) {
         try {
             return outputType.cast(object);
         } catch (ClassCastException e) {
@@ -44,7 +46,8 @@ public abstract class Cast {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T uncheckedCast(Object object) {
+    @Nullable
+    public static <T> T uncheckedCast(@Nullable Object object) {
         return (T) object;
     }
 }
