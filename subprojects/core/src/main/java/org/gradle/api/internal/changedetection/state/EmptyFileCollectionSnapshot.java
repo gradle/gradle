@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -56,10 +54,8 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
         return Collections.emptyMap();
     }
 
-    @Nullable
     @Override
-    public Iterable<PhysicalSnapshot> getRoots() {
-        return ImmutableList.of();
+    public void visitRoots(PhysicalSnapshotVisitor visitor) {
     }
 
     @Override

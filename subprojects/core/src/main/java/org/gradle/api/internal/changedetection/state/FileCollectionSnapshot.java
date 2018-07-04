@@ -17,10 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -44,12 +43,11 @@ public interface FileCollectionSnapshot extends Snapshot {
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
     /**
-     * Returns the root snapshots on disk of this file collection, when known.
+     * Visits the roots of this file collection snapshot.
      *
      * {@link FileCollectionSnapshot}s loaded from the task history don't have the roots available.
      *
-     * @return null if the roots are not available.
+     * @throws UnsupportedOperationException if the roots are not available.
      */
-    @Nullable
-    Iterable<PhysicalSnapshot> getRoots();
+    void visitRoots(PhysicalSnapshotVisitor visitor);
 }

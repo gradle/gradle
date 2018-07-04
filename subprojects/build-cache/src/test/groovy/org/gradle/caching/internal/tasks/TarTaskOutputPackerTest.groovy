@@ -19,8 +19,11 @@ package org.gradle.caching.internal.tasks
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
@@ -338,7 +341,7 @@ class TarTaskOutputPackerTest extends Specification {
     def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, PropertyDefinition... propertyDefs) {
         def propertySpecs = propertyDefs*.property as SortedSet
         def outputSnapshots = propertyDefs.collectEntries { propertyDef ->
-            return [(propertyDef.property.propertyName): propertyDef.outputSnapshots()]
+            return [(propertyDef.property.propertyName): propertyDef.outputSnapshot()]
         }
         packer.pack(propertySpecs, outputSnapshots, output, writeOrigin)
     }
@@ -353,16 +356,16 @@ class TarTaskOutputPackerTest extends Specification {
             case FILE:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
                     if (output == null) {
-                        return []
+                        return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    [snapshotter.snapshotSelf(output)]
+                    return new DefaultFileCollectionFingerprint(new AbsolutePathFingerprintingStrategy(false), [snapshotter.snapshotSelf(output)])
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
-                        return []
+                        return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    return [snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))]
+                    return new DefaultFileCollectionFingerprint(new AbsolutePathFingerprintingStrategy(false), [snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))])
                 })
             default:
                 throw new AssertionError()
@@ -371,11 +374,11 @@ class TarTaskOutputPackerTest extends Specification {
 
     private static class PropertyDefinition {
         ResolvedTaskOutputFilePropertySpec property
-        Callable<Iterable<PhysicalSnapshot>> outputSnapshots
+        Callable<FileCollectionSnapshot> outputSnapshot
 
-        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<Iterable<PhysicalSnapshot>> outputSnapshots) {
+        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<FileCollectionSnapshot> outputSnapshot) {
             this.property = property
-            this.outputSnapshots = outputSnapshots
+            this.outputSnapshot = outputSnapshot
         }
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -78,9 +79,13 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
     }
 
     @Override
-    @Nullable
-    public Iterable<PhysicalSnapshot> getRoots() {
-        return roots;
+    public void visitRoots(PhysicalSnapshotVisitor visitor) {
+        if (roots == null) {
+            throw new UnsupportedOperationException("Roots not available.");
+        }
+        for (PhysicalSnapshot root : roots) {
+            root.accept(visitor);
+        }
     }
 
     @Override
