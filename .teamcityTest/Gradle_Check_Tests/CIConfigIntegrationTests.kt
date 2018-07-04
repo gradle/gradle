@@ -1,6 +1,6 @@
 
 import configurations.shouldBeSkipped
-import jetbrains.buildServer.configs.kotlin.v2017_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_1.Project
 import model.*
 import org.junit.Test
 import projects.RootProject
