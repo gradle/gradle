@@ -16,32 +16,39 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.MARKER_FILE_PATH
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.WRAPPER_DISTRIBUTION_FILE_PATH
+import static org.gradle.cache.internal.VersionSpecificCacheCleanupAction.MARKER_FILE_PATH
 import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.MISSING_MARKER_FILE
+import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
 
+@CleanupTestDirectory
 trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+
+    GradleVersion currentVersion = GradleVersion.current()
 
     TestFile createVersionSpecificCacheDir(GradleVersion version, MarkerFileType type = MISSING_MARKER_FILE) {
         return createCacheSubDir(version.version, type)
     }
 
     TestFile createCacheSubDir(String name, MarkerFileType type = MISSING_MARKER_FILE) {
-        def cachesDir = getGradleUserHomeDir().file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME).createDir()
         def versionDir = cachesDir.file(name).createDir()
         def markerFile = versionDir.file(MARKER_FILE_PATH)
         type.process(markerFile)
         return versionDir
     }
 
+    TestFile getCachesDir() {
+        gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
+    }
+
     TestFile createDistributionDir(GradleVersion version, String distributionType) {
-        def cachesDir = getGradleUserHomeDir().file(WRAPPER_DISTRIBUTION_FILE_PATH).createDir()
-        def versionDir = cachesDir.file("gradle-${version.version}-$distributionType").createDir()
+        def distsDir = gradleUserHomeDir.createDir(WRAPPER_DISTRIBUTION_FILE_PATH)
+        def versionDir = distsDir.file("gradle-${version.version}-$distributionType").createDir()
         return versionDir
     }
 

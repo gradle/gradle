@@ -23,34 +23,28 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
-
-class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class WrapperDistributionCleanupActionTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def userHomeDir = temporaryFolder.createDir("user-home")
-    def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
 
-    @Subject def cleanupService = new VersionSpecificCacheAndWrapperDistributionCleanupService(userHomeDir)
+    @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir)
 
-    def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
+    def "deletes distributions for unused versions"() {
         given:
-        def oldVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldAllDist = createDistributionDir(oldVersion, "all")
-        def oldBinDist = createDistributionDir(oldVersion, "bin")
+        def versionToCleanUp = GradleVersion.version("2.3.4")
+        def oldAllDist = createDistributionDir(versionToCleanUp, "all")
+        def oldBinDist = createDistributionDir(versionToCleanUp, "bin")
         def currentAllDist = createDistributionDir(currentVersion, "all")
         def currentBinDist = createDistributionDir(currentVersion, "bin")
 
         when:
-        cleanupService.stop()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
-        oldCacheDir.assertDoesNotExist()
         oldAllDist.assertDoesNotExist()
         oldBinDist.assertDoesNotExist()
-        currentCacheDir.assertExists()
         currentAllDist.assertExists()
         currentBinDist.assertExists()
     }
