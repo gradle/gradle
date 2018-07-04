@@ -24,10 +24,9 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
-import org.gradle.internal.Cast.uncheckedCast
-
 import org.gradle.kotlin.dsl.support.excludeMapFor
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 
 /**

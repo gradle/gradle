@@ -20,7 +20,7 @@ import groovy.lang.Closure
 import groovy.lang.GroovyObject
 import groovy.lang.MetaClass
 
-import org.gradle.internal.Cast.uncheckedCast
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
 

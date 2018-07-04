@@ -9,8 +9,9 @@ import com.nhaarman.mockito_kotlin.verify
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
 
-import org.gradle.internal.Cast
 import org.gradle.util.ConfigureUtil
+
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -181,8 +182,8 @@ class GroovyInteroperabilityTest {
         val expectedInvokeResult = Any()
         val delegate = mock<GroovyObject> {
             on { invokeMethod(eq("nest"), any()) }.thenAnswer {
-                val varargs = Cast.uncheckedCast<Array<Any?>>(it.getArgument(1))
-                val closure = Cast.uncheckedCast<Closure<Any>?>(varargs[0])
+                val varargs = uncheckedCast<Array<Any?>>(it.getArgument(1))
+                val closure = uncheckedCast<Closure<Any>?>(varargs[0])
                 ConfigureUtil
                     .configureUsing<Any>(closure)
                     .execute(nestedDelegate)
