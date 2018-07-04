@@ -3,8 +3,9 @@ package projects
 import configurations.FunctionalTest
 import configurations.PerformanceTest
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2017_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_1.Project
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
@@ -12,7 +13,7 @@ import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.id}"
-    this.id = uuid
+    this.id = AbsoluteId(uuid)
     this.name = stage.name
     this.description = stage.description
 

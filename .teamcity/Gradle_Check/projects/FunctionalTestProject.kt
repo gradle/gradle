@@ -2,14 +2,15 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.shouldBeSkipped
-import jetbrains.buildServer.configs.kotlin.v2017_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.Project
 import model.CIBuildModel
 import model.Stage
 import model.TestCoverage
 
 class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage: Stage) : Project({
     this.uuid = testConfig.asId(model)
-    this.id = uuid
+    this.id = AbsoluteId(uuid)
     this.name = testConfig.asName()
 
     model.subProjects.forEach { subProject ->

@@ -1,7 +1,8 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
 import model.CIBuildModel
 import model.OS
 import model.PerformanceTestType
@@ -9,7 +10,7 @@ import model.Stage
 
 class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = type.asId(model)
-    id = uuid
+    id = AbsoluteId(uuid)
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
     applyDefaultSettings(this, timeout = type.timeout)

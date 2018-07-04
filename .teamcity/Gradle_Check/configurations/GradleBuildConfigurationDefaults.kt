@@ -1,15 +1,9 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2017_2.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2017_2.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_1.*
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
 import model.OS
@@ -75,7 +69,7 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
     """.trimIndent()
 
     buildType.vcs {
-        root(vcsRoot)
+        root(AbsoluteId(vcsRoot))
         checkoutMode = CheckoutMode.ON_AGENT
         buildDefaultBranch = !vcsRoot.contains("Branches")
     }
@@ -194,7 +188,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
         buildType.dependencies {
-            dependency("${model.projectPrefix}Stage_QuickFeedback_Trigger") {
+            dependency(AbsoluteId("${model.projectPrefix}Stage_QuickFeedback_Trigger")) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
@@ -208,14 +202,14 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         buildType.dependencies {
             val sanityCheckId = SanityCheck.buildTypeId(model)
             // Sanity Check has to succeed before anything else is started
-            dependency(sanityCheckId) {
+            dependency(AbsoluteId(sanityCheckId)) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
             // Get the build receipt from sanity check to reuse the timestamp
-            artifacts(sanityCheckId) {
+            artifacts(AbsoluteId(sanityCheckId)) {
                 id = "ARTIFACT_DEPENDENCY_$sanityCheckId"
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-distributions"

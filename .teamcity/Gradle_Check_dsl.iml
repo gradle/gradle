@@ -32,9 +32,9 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-converters:2017.1.3" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin:2017.2" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-compiler-embeddable:1.1.4-3" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-converters:2017.2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin:2018.1" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-converters:2018.1" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-file-content-replacer:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-dotnet.cli:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-ant:1.0-SNAPSHOT" level="project" />
@@ -49,6 +49,7 @@
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-perforce:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-svn:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-charisma:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-dotNetPackagesSupport:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-visualstudiotest:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-commandLineRunner:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.teamcity:configs-dsl-kotlin-dotNetRunners:1.0-SNAPSHOT" level="project" />
