@@ -16,32 +16,14 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import java.util.concurrent.TimeUnit
-
-import static org.gradle.cache.internal.VersionSpecificCacheCleanupAction.MARKER_FILE_PATH
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.MISSING_MARKER_FILE
 import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
 
-@CleanupTestDirectory
-trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements VersionSpecificCacheCleanupFixture {
 
-    GradleVersion currentVersion = GradleVersion.current()
-
-    TestFile createVersionSpecificCacheDir(GradleVersion version, MarkerFileType type = MISSING_MARKER_FILE) {
-        return createCacheSubDir(version.version, type)
-    }
-
-    TestFile createCacheSubDir(String name, MarkerFileType type = MISSING_MARKER_FILE) {
-        def versionDir = cachesDir.file(name).createDir()
-        def markerFile = versionDir.file(MARKER_FILE_PATH)
-        type.process(markerFile)
-        return versionDir
-    }
-
+    @Override
     TestFile getCachesDir() {
         gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
@@ -52,39 +34,6 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
         return versionDir
     }
 
-    TestFile getGcFile(TestFile currentCacheDir) {
-        currentCacheDir.file("gc.properties")
-    }
-
     abstract TestFile getGradleUserHomeDir()
 
-    static enum MarkerFileType {
-
-        USED_TODAY {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-            }
-        },
-
-        NOT_USED_WITHIN_30_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(31)
-            }
-        },
-
-        NOT_USED_WITHIN_7_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8)
-            }
-        },
-
-        MISSING_MARKER_FILE
-
-        void process(TestFile markerFile) {}
-    }
 }

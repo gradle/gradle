@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 
 class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 

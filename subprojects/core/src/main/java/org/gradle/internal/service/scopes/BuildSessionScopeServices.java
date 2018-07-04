@@ -133,10 +133,10 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
-    ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory) {
+    ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory, BuildOperationExecutor buildOperationExecutor) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
-        return new ProjectCacheDir(cacheDir);
+        return new ProjectCacheDir(cacheDir, buildOperationExecutor);
     }
 
     BuildScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {

@@ -14,43 +14,42 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
+package org.gradle.initialization.layout
 
+import org.gradle.cache.internal.VersionSpecificCacheCleanupFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_7_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
-class VersionSpecificCacheAndWrapperDistributionCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class ProjectCacheDirIntegrationTest extends AbstractIntegrationSpec implements VersionSpecificCacheCleanupFixture {
 
-    def "cleans up unused version-specific cache directories and corresponding distributions"() {
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def "cleans up unused version-specific cache directories from project directory"() {
         given:
-        requireOwnGradleUserHomeDir() // because we delete caches and distributions
-
-        and:
         def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), USED_TODAY)
-        def oldNotRecentlyUsedVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldNotRecentlyUsedVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldDist = createDistributionDir(oldNotRecentlyUsedVersion, "bin")
-        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_30_DAYS)
-        def currentDist = createDistributionDir(GradleVersion.current(), "all")
+        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_7_DAYS)
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_7_DAYS)
 
         when:
         succeeds("tasks")
 
         then:
+        buildOperations.hasOperation("Delete unused version-specific caches in ${cachesDir}")
+
+        and:
         oldButRecentlyUsedCacheDir.assertExists()
         oldCacheDir.assertDoesNotExist()
-        oldDist.assertDoesNotExist()
         currentCacheDir.assertExists()
-        currentDist.assertExists()
         getGcFile(currentCacheDir).assertExists()
     }
 
     @Override
-    TestFile getGradleUserHomeDir() {
-        return executer.gradleUserHomeDir
+    TestFile getCachesDir() {
+        testDirectory.file(".gradle")
     }
 }
