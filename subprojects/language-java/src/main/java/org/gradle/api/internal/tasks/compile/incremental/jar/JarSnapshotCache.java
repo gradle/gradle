@@ -23,5 +23,8 @@ import java.io.File;
 import java.util.Map;
 
 public interface JarSnapshotCache extends Cache<File, JarSnapshot> {
+    /**
+     * Returns the jar snapshots for the given files. The resulting map has the same order as the input.
+     */
     Map<File, JarSnapshot> getJarSnapshots(Map<File, HashCode> jarHashes);
 }

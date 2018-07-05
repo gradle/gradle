@@ -46,7 +46,6 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
         PersistentIndexedCacheParameters<HashCode, JarSnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, JarSnapshotData>("jarAnalysis", new HashCodeSerializer(), new JarSnapshotDataSerializer())
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
         this.jarSnapshotCache = new DefaultJarSnapshotCache(fileHasher, cache.createCache(jarCacheParameters));
-
     }
 
     @Override
