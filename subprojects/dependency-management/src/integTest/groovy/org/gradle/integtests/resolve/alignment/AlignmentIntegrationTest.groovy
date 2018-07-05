@@ -281,6 +281,224 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         }
     }
 
+    /**
+     * This test demonstrates a real world example, where some published versions are heterogeneous
+     * or even inconsistent. For example, databind 2.9.4 depends on annotations 2.9.0, but we still
+     * want to upgrade annotations to the highest version of the platform seen in the graph, which
+     * is 2.9.4.1, a **patch** release in this case. This patch release doesn't publish all versions
+     */
+    def "can align heterogeneous versions"() {
+        repository {
+            path 'databind:2.7.9 -> core:2.7.9'
+            path 'databind:2.7.9 -> annotations:2.7.9'
+            path 'databind:2.9.4 -> core:2.9.4'
+            path 'databind:2.9.4 -> annotations:2.9.0' // intentional!
+            path 'kt:2.9.4.1 -> databind:2.9.4'
+            'org:annotations:2.9.0'()
+            'org:annotations:2.9.4'()
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:core:2.9.4'
+                conf 'org:databind:2.7.9'
+                conf 'org:kt:2.9.4.1'
+            }
+        """
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        repositoryInteractions {
+            'org:core:2.9.4' {
+                expectResolve()
+            }
+            'org:databind:2.7.9' {
+                expectGetMetadata()
+            }
+            'org:kt:2.9.4.1' {
+                expectResolve()
+            }
+            'org:core:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:databind:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:annotations:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:databind:2.9.4' {
+                expectResolve()
+            }
+            'org:annotations:2.9.4' {
+                expectResolve()
+            }
+            'org:platform:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:platform:2.9.4' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:platform:2.9.0' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:platform:2.7.9' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:annotations:2.7.9' {
+                expectGetMetadata()
+            }
+            'org:annotations:2.9.0' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:core:2.9.4')
+                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:kt:2.9.4.1') {
+                    module('org:databind:2.9.4') {
+                        module('org:core:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * This test is a variant of the previous one where there's an additional catch: one
+     * of the modules (annotations) is supposely inexistent in 2.7.9 (say, it appeared in 2.9.x)
+     */
+    def "can align heterogeneous versions with new modules appearing in later releases"() {
+        repository {
+            path 'databind:2.7.9 -> core:2.7.9'
+            path 'databind:2.9.4 -> core:2.9.4'
+            path 'databind:2.9.4 -> annotations:2.9.0' // intentional!
+            path 'kt:2.9.4.1 -> databind:2.9.4'
+            'org:annotations:2.9.0'()
+            'org:annotations:2.9.4'()
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:core:2.9.4'
+                conf 'org:databind:2.7.9'
+                conf 'org:kt:2.9.4.1'
+            }
+        """
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        repositoryInteractions {
+            'org:core:2.9.4' {
+                expectResolve()
+            }
+            'org:databind:2.7.9' {
+                expectGetMetadata()
+            }
+            'org:kt:2.9.4.1' {
+                expectResolve()
+            }
+            'org:core:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:databind:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:annotations:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:databind:2.9.4' {
+                expectResolve()
+            }
+            'org:annotations:2.9.4' {
+                expectResolve()
+            }
+            'org:platform:2.9.4.1' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:platform:2.9.4' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:platform:2.9.0' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:platform:2.7.9' {
+                expectGetMetadataMissing()
+                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    expectHeadArtifactMissing()
+                }
+            }
+            'org:annotations:2.9.0' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:core:2.9.4')
+                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:kt:2.9.4.1') {
+                    module('org:databind:2.9.4') {
+                        module('org:core:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                    }
+                }
+            }
+        }
+
+    }
+
     private void "a rule which infers module set from group and version"() {
         buildFile << """
             dependencies {

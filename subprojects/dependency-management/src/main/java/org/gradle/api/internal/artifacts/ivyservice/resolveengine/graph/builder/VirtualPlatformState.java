@@ -15,25 +15,59 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
 public class VirtualPlatformState {
-    private final ModuleIdentifier platformModuleIdentifier;
-    private final Set<ComponentState> participatingComponents = Sets.newHashSet();
+    private final Comparator<String> vC;
+    private final ModuleResolveState platformModule;
 
-    public VirtualPlatformState(ModuleIdentifier platformModuleIdentifier) {
-        this.platformModuleIdentifier = platformModuleIdentifier;
+    private final Set<ModuleResolveState> participatingModules = Sets.newHashSet();
+
+    public VirtualPlatformState(final Comparator<Version> versionComparator, final VersionParser versionParser, ModuleResolveState platformModule) {
+        this.vC = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return versionComparator.compare(versionParser.transform(o2), versionParser.transform(o1));
+            }
+        };
+        this.platformModule = platformModule;
     }
 
-    void participatingComponent(ComponentState state) {
-        participatingComponents.add(state);
+    void participatingModule(ModuleResolveState state) {
+        if (participatingModules.add(state)) {
+            ComponentState selected = platformModule.getSelected();
+            if (selected != null) {
+                // There is a possibility that a platform version was selected before a new member
+                // of the platform was discovered. In this case, we need to restart the selection,
+                // or some members will not be upgraded
+                for (NodeState nodeState : selected.getNodes()) {
+                    nodeState.resetSelectionState();
+                }
+            }
+        }
     }
 
-    Set<ComponentState> getParticipatingComponents() {
-        return participatingComponents;
+    List<String> getCandidateVersions() {
+        List<String> sorted = Lists.newArrayListWithCapacity(participatingModules.size());
+        for (ModuleResolveState module : participatingModules) {
+            ComponentState selected = module.getSelected();
+            if (selected != null) {
+                sorted.add(selected.getVersion());
+            }
+        }
+        Collections.sort(sorted, vC);
+        return sorted;
     }
 
+    public Set<ModuleResolveState> getParticipatingModules() {
+        return participatingModules;
+    }
 }

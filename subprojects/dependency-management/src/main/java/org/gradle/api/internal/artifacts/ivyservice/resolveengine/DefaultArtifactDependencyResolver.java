@@ -130,7 +130,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
         VersionSelectorScheme versionSelectorScheme = createVersionSelectorScheme(resolutionStrategy.isDependencyLockingEnabled());
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme, versionComparator.asVersionComparator(), versionParser);
     }
 
     private VersionSelectorScheme createVersionSelectorScheme(boolean dependencyLockingEnabled) {
