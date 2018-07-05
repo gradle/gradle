@@ -20,15 +20,18 @@ import com.google.common.collect.Maps;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Map;
 
 public class DefaultJarSnapshotCache implements JarSnapshotCache {
+    private final FileHasher fileHasher;
     private final MinimalPersistentCache<HashCode, JarSnapshotData> cache;
 
-    public DefaultJarSnapshotCache(PersistentIndexedCache<HashCode, JarSnapshotData> persistentCache) {
+    public DefaultJarSnapshotCache(FileHasher fileHasher, PersistentIndexedCache<HashCode, JarSnapshotData> persistentCache) {
+        this.fileHasher = fileHasher;
         cache = new MinimalPersistentCache<HashCode, JarSnapshotData>(persistentCache);
     }
 
@@ -47,8 +50,9 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
     }
 
     @Override
-    public JarSnapshot get(HashCode key, final Factory<JarSnapshot> factory) {
-        return new JarSnapshot(cache.get(key, new Factory<JarSnapshotData>() {
+    public JarSnapshot get(File key, final Factory<JarSnapshot> factory) {
+        HashCode hash = fileHasher.hash(key);
+        return new JarSnapshot(cache.get(hash, new Factory<JarSnapshotData>() {
             public JarSnapshotData create() {
                 return factory.create().getData();
             }

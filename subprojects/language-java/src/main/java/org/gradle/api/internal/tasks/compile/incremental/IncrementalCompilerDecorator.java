@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
@@ -35,7 +35,7 @@ public class IncrementalCompilerDecorator {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
     private final JarClasspathSnapshotMaker jarClasspathSnapshotMaker;
-    private final CompileCaches compileCaches;
+    private final TaskScopedCompileCaches compileCaches;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
@@ -44,7 +44,7 @@ public class IncrementalCompilerDecorator {
     private final Compiler<JavaCompileSpec> rebuildAllCompiler;
     private final IncrementalCompilationInitializer compilationInitializer;
 
-    public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
+    public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, TaskScopedCompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                         RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
                                         CompilationSourceDirs sourceDirs, Compiler<JavaCompileSpec> rebuildAllCompiler) {

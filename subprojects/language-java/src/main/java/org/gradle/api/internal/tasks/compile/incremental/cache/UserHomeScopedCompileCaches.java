@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.cache.internal.Cache;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 
-import java.io.File;
-import java.util.Map;
-
-public interface JarSnapshotCache extends Cache<File, JarSnapshot> {
-    Map<File, JarSnapshot> getJarSnapshots(Map<File, HashCode> jarHashes);
+public interface UserHomeScopedCompileCaches {
+    JarSnapshotCache getJarSnapshotCache();
 }
