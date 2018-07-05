@@ -52,6 +52,7 @@ fun gradleKotlinDslOf(project: Project): List<File> =
     }
 
 
+private
 fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
@@ -82,10 +83,12 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
+    internal
     val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleKotlinDslJars
     }
 
+    private
     val gradleApi: ClassPath by lazy {
         DefaultClassPath.of(gradleApiJarsProvider())
     }
@@ -93,6 +96,7 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated extensions to the Gradle API.
      */
+    private
     val gradleApiExtensions: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslExtensions())
     }
@@ -100,6 +104,7 @@ class KotlinScriptClassPathProvider(
     /**
      * gradle-kotlin-dsl.jar plus kotlin libraries.
      */
+    private
     val gradleKotlinDslJars: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslJars())
     }
