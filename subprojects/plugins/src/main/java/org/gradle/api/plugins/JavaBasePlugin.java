@@ -42,6 +42,7 @@ import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -92,7 +93,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         });
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().add("sourceSets", javaConvention.getSourceSets());
+        project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
 
         configureSourceSetDefaults(javaConvention);
