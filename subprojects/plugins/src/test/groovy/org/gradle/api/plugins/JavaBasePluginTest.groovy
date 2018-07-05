@@ -158,7 +158,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation ' instead)."
+        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation' instead)."
 
         then:
         def implementation = project.configurations.customImplementation
@@ -173,7 +173,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly ' instead)."
+        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly' instead)."
 
         and:
         def runtimeOnly = project.configurations.customRuntimeOnly
