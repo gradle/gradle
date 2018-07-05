@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -31,20 +32,24 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def cacheRepository = new DefaultCacheRepository(null, new InMemoryCacheFactory())
-    def resourcesDir = temporaryFolder.createDir("resources")
-    def filesDir = temporaryFolder.createDir("files")
+    def cacheDir = temporaryFolder.createDir(CacheLayout.ROOT.key)
+    def resourcesDir = cacheDir.createDir(CacheLayout.RESOURCES.key)
+    def filesDir = cacheDir.createDir(CacheLayout.FILE_STORE.key)
+    def metaDataDir = cacheDir.createDir(CacheLayout.META_DATA.key)
     def artifactCacheMetadata = Stub(ArtifactCacheMetadata) {
-        getCacheDir() >> temporaryFolder.getTestDirectory()
+        getCacheDir() >> cacheDir
         getExternalResourcesStoreDirectory() >> resourcesDir
         getFileStoreDirectory() >> filesDir
+        getMetaDataStoreDirectory() >> metaDataDir.file("descriptors")
     }
     def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
     def cleanupActionFactory = Stub(CleanupActionFactory) {
         create(_) >> { CleanupAction action -> action }
     }
+    def usedGradleVersions = Stub(UsedGradleVersions)
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, cleanupActionFactory)
+    def cacheLockingManager = new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, cleanupActionFactory, usedGradleVersions)
 
     def "cleans up resources"() {
         given:
@@ -78,5 +83,27 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
         file1.assertExists()
         file2.assertDoesNotExist()
         file3.assertDoesNotExist()
+    }
+
+    def "deletes old versions of cache dir"() {
+        given:
+        def oldCacheDir = cacheDir.getParentFile().createDir("modules-1")
+
+        when:
+        cacheLockingManager.close()
+
+        then:
+        oldCacheDir.assertDoesNotExist()
+    }
+
+    def "deletes old versions of metadata dir"() {
+        given:
+        def oldCacheDir = metaDataDir.getParentFile().createDir("metadata-2.56")
+
+        when:
+        cacheLockingManager.close()
+
+        then:
+        oldCacheDir.assertDoesNotExist()
     }
 }

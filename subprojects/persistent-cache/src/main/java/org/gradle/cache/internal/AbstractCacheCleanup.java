@@ -53,7 +53,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
         LOGGER.info("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
     }
 
-    private int deleteEmptyParentDirectories(File baseDir, File dir) {
+    protected int deleteEmptyParentDirectories(File baseDir, File dir) {
         if (dir.equals(baseDir)) {
             return 0;
         }

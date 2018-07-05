@@ -54,7 +54,9 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService;
+import org.gradle.cache.internal.VersionSpecificCacheDirectoryService;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
@@ -112,7 +114,10 @@ public class GradleUserHomeScopeServices {
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
-        registration.add(VersionSpecificCacheAndWrapperDistributionCleanupService.class, new VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion.current(), userHomeDir));
+        VersionSpecificCacheDirectoryService versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryService(userHomeDir);
+        registration.add(UsedGradleVersions.class, versionSpecificCacheDirectoryService);
+        registration.add(VersionSpecificCacheAndWrapperDistributionCleanupService.class,
+            new VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion.current(), versionSpecificCacheDirectoryService, userHomeDir));
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
@@ -190,8 +195,9 @@ public class GradleUserHomeScopeServices {
         return new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, FileAccessTimeJournal fileAccessTimeJournal, List<CachedJarFileStore> fileStores) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileAccessTimeJournal, fileStores);
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, FileAccessTimeJournal fileAccessTimeJournal,
+                                                                List<CachedJarFileStore> fileStores, UsedGradleVersions usedGradleVersions) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileAccessTimeJournal, fileStores, usedGradleVersions);
     }
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,

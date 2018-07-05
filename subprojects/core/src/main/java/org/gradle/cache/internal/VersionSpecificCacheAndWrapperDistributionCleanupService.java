@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -32,17 +30,11 @@ import org.gradle.internal.time.Time;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache.FILE_HASHES_CACHE_KEY;
 
 public class VersionSpecificCacheAndWrapperDistributionCleanupService implements Stoppable {
@@ -57,12 +49,12 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
     private static final ImmutableList<String> DISTRIBUTION_TYPES = ImmutableList.of("bin", "all");
 
     private final GradleVersion currentVersion;
-    private final File cachesDir;
+    private final VersionSpecificCacheDirectoryService versionSpecificCacheDirectoryService;
     private final File distsDir;
 
-    public VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion currentVersion, File gradleUserHomeDirectory) {
+    public VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion currentVersion, VersionSpecificCacheDirectoryService versionSpecificCacheDirectoryService, File gradleUserHomeDirectory) {
         this.currentVersion = currentVersion;
-        this.cachesDir = new File(gradleUserHomeDirectory, DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME);
+        this.versionSpecificCacheDirectoryService = versionSpecificCacheDirectoryService;
         this.distsDir = new File(gradleUserHomeDirectory, WRAPPER_DISTRIBUTION_FILE_PATH);
     }
 
@@ -89,7 +81,7 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
     }
 
     private File getGcFile() {
-        File currentVersionCacheDir = new File(cachesDir, currentVersion.getVersion());
+        File currentVersionCacheDir = versionSpecificCacheDirectoryService.getDirectory(GradleVersion.current());
         return new File(currentVersionCacheDir, "gc.properties");
     }
 
@@ -112,27 +104,10 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
 
     private SortedSetMultimap<GradleVersion, VersionSpecificCacheDirectory> scanForVersionSpecificCacheDirs() {
         SortedSetMultimap<GradleVersion, VersionSpecificCacheDirectory> cacheDirsByBaseVersion = TreeMultimap.create();
-        for (File subDir : listVersionSpecificCacheDirs()) {
-            GradleVersion version = tryParseGradleVersion(subDir);
-            if (version != null) {
-                cacheDirsByBaseVersion.put(version.getBaseVersion(), new VersionSpecificCacheDirectory(subDir, version));
-            }
+        for (VersionSpecificCacheDirectory cacheDir : versionSpecificCacheDirectoryService.getExistingDirectories()) {
+            cacheDirsByBaseVersion.put(cacheDir.getVersion().getBaseVersion(), cacheDir);
         }
         return cacheDirsByBaseVersion;
-    }
-
-    private Collection<File> listVersionSpecificCacheDirs() {
-        FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter("^\\d.*"));
-        File[] result = cachesDir.listFiles(combinedFilter);
-        return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
-    }
-
-    private GradleVersion tryParseGradleVersion(File dir) {
-        try {
-            return GradleVersion.version(dir.getName());
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private boolean performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, CountdownTimer timer, MinimumTimestampProvider minimumTimestampProvider) {
@@ -217,30 +192,6 @@ public class VersionSpecificCacheAndWrapperDistributionCleanupService implements
 
         long forSnapshots() {
             return minimumSnapshotTimestamp;
-        }
-    }
-
-    private static class VersionSpecificCacheDirectory implements Comparable<VersionSpecificCacheDirectory> {
-
-        private final File dir;
-        private final GradleVersion version;
-
-        VersionSpecificCacheDirectory(File dir, GradleVersion version) {
-            this.dir = dir;
-            this.version = version;
-        }
-
-        File getDir() {
-            return dir;
-        }
-
-        GradleVersion getVersion() {
-            return version;
-        }
-
-        @Override
-        public int compareTo(@Nonnull VersionSpecificCacheDirectory that) {
-            return this.version.compareTo(that.version);
         }
     }
 }

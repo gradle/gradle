@@ -39,8 +39,9 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
     GradleVersion currentVersion = GradleVersion.current()
     TestFile userHomeDir = temporaryFolder.file("user-home").createDir()
     TestFile currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
+    def versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryService(userHomeDir)
 
-    @Subject def cleanupService = new VersionSpecificCacheAndWrapperDistributionCleanupService(currentVersion, userHomeDir)
+    @Subject def cleanupService = new VersionSpecificCacheAndWrapperDistributionCleanupService(currentVersion, versionSpecificCacheDirectoryService, userHomeDir)
 
     def "cleans up unused version-specific cache directories"() {
         given:
