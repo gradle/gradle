@@ -95,7 +95,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
     }
-
+l
     @Override
     void addTestListener(TestListener listener) {
         testEventsGenerator.addTestListener(listener)
@@ -139,14 +139,10 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         def scenarios = scenarioList.readLines()
             .collect { line ->
-                def parts = Splitter.on(';').split(line).toList()
-                new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
-            }
-            .sort{ it.estimatedRuntime }
-
-        scenarios = scenarios[0..<1]
-
-        assert scenarios.size() == 1
+            def parts = Splitter.on(';').split(line).toList()
+            new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
+        }
+        .sort{ -it.estimatedRuntime }
 
         createClient()
 
