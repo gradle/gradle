@@ -295,11 +295,11 @@ class NodeState implements DependencyGraphNode {
         VirtualPlatformState virtualPlatformState = null;
         if (metadata == null || metadata instanceof LenientPlatformResolveMetadata) {
             virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
-            virtualPlatformState.participatingComponent(component);
+            virtualPlatformState.participatingModule(component.getModule());
         }
         if (metadata == null) {
             // the platform doesn't exist, so we're building a lenient one
-            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState.getParticipatingComponents());
+            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState);
             potentialEdge.component.setMetadata(metadata);
         }
         if (virtualEdges == null) {
@@ -480,7 +480,7 @@ class NodeState implements DependencyGraphNode {
         public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
             if (targetComponent instanceof LenientPlatformResolveMetadata) {
                 LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponent;
-                return Collections.<ConfigurationMetadata>singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.moduleVersionIdentifier.getVersion(), platformMetadata.getParticipatingComponents()));
+                return Collections.<ConfigurationMetadata>singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState()));
             }
             return Collections.emptyList();
         }
@@ -527,36 +527,52 @@ class NodeState implements DependencyGraphNode {
 
         private class LenientPlatformConfigurationMetadata extends DefaultConfigurationMetadata {
 
-            private final String targetVersion;
-            private final Set<ComponentState> participatingComponents;
+            private final VirtualPlatformState platformState;
 
-            LenientPlatformConfigurationMetadata(String targetVersion, Set<ComponentState> participatingComponents) {
+            public LenientPlatformConfigurationMetadata(VirtualPlatformState platform) {
                 super(platformId, "default", true, false, ImmutableList.of("default"), ImmutableList.<ModuleComponentArtifactMetadata>of(), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY);
-                this.targetVersion = targetVersion;
-                this.participatingComponents = participatingComponents;
+                this.platformState = platform;
             }
 
             @Override
             public List<? extends DependencyMetadata> getDependencies() {
                 List<DependencyMetadata> result = null;
-                for (ComponentState componentState : participatingComponents) {
-                    if (componentState.isSelected() && !componentState.getId().getVersion().equals(targetVersion)) {
-                        ModuleComponentIdentifier leafId = DefaultModuleComponentIdentifier.newId(componentState.getModule().getId(), targetVersion);
-                        ModuleComponentSelector leafSelector = DefaultModuleComponentSelector.newSelector(componentState.getModule().getId(), targetVersion);
-                        // We will only add dependencies to the leaves if there is such a published module
-                        PotentialEdge potentialEdge = potentialEdgeTo(leafId, leafSelector);
-                        if (potentialEdge.metadata != null) {
-                            if (result == null) {
-                                result = Lists.newArrayListWithExpectedSize(participatingComponents.size());
+                List<String> candidateVersions = platformState.getCandidateVersions();
+                Set<ModuleResolveState> modules = platformState.getParticipatingModules();
+                for (ModuleResolveState module : modules) {
+                    ComponentState selected = module.getSelected();
+                    if (selected != null) {
+                        String componentVersion = selected.getId().getVersion();
+                        for (String target : candidateVersions) {
+                            ModuleComponentIdentifier leafId = DefaultModuleComponentIdentifier.newId(module.getId(), target);
+                            ModuleComponentSelector leafSelector = DefaultModuleComponentSelector.newSelector(module.getId(), target);
+                            if (!componentVersion.equals(target)) {
+                                // We will only add dependencies to the leaves if there is such a published module
+                                PotentialEdge potentialEdge = potentialEdgeTo(leafId, leafSelector);
+                                if (potentialEdge.metadata != null) {
+                                    result = registerPlatformEdge(result, modules, leafId, leafSelector);
+                                    break;
+                                }
+                            } else {
+                                // at this point we know the component exists
+                                result = registerPlatformEdge(result, modules, leafId, leafSelector);
+                                break;
                             }
-                            result.add(new LenientPlatformDependencyMetadata(
-                                leafSelector,
-                                leafId
-                            ));
                         }
                     }
                 }
                 return result == null ? Collections.<DependencyMetadata>emptyList() : result;
+            }
+
+            private List<DependencyMetadata> registerPlatformEdge(List<DependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector) {
+                if (result == null) {
+                    result = Lists.newArrayListWithExpectedSize(modules.size());
+                }
+                result.add(new LenientPlatformDependencyMetadata(
+                    leafSelector,
+                    leafId
+                ));
+                return result;
             }
         }
     }
@@ -565,12 +581,12 @@ class NodeState implements DependencyGraphNode {
 
         private final ModuleComponentIdentifier moduleComponentIdentifier;
         private final ModuleVersionIdentifier moduleVersionIdentifier;
-        private final Set<ComponentState> participatingComponents;
+        private final VirtualPlatformState platformState;
 
-        private LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Set<ComponentState> participatingComponents) {
+        private LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, VirtualPlatformState platformState) {
             this.moduleComponentIdentifier = moduleComponentIdentifier;
             this.moduleVersionIdentifier = moduleVersionIdentifier;
-            this.participatingComponents = participatingComponents;
+            this.platformState = platformState;
         }
 
         @Override
@@ -669,8 +685,8 @@ class NodeState implements DependencyGraphNode {
             return ImmutableAttributes.EMPTY;
         }
 
-        Set<ComponentState> getParticipatingComponents() {
-            return participatingComponents;
+        VirtualPlatformState getPlatformState() {
+            return platformState;
         }
     }
 
