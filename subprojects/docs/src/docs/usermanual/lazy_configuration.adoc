@@ -245,14 +245,14 @@ The Provider API is <<feature_lifecycle#,incubating>>. Please create new issues 
 |Collection of files
 |`link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]`
 |`link:{javadoc-path}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]`
-|* api:org.gradle.api.Project#files(java.lang.Object...)[]
+|* `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)]`
 * api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[]
 * api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[]
 
 |Hierarchy of files
 |`link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]`
 |`link:{javadoc-path}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree]`
-|* api:org.gradle.api.Project#fileTree(java.lang.Object)[]
+|* `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]`
 
 |List of any type
 |`link:{javadoc-path}/org/gradle/api/provider/Provider.html[Provider]`<List<T>>

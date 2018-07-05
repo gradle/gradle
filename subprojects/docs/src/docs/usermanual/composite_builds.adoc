@@ -38,9 +38,9 @@ A build that is included in a composite build is referred to, naturally enough, 
 
 Included builds interact with other builds via `dependency substitution`. If any build in the composite has a dependency that can be satisfied by the included build, then that dependency will be replaced by a project dependency on the included build.
 
-By default, Gradle will attempt to determine the dependencies that can be substituted by an included build. However for more flexibility, it is possible to explicitly declare these substitutions if the default ones determined by Gradle are not correct for the composite. See <<included_build_declaring_substitutions>>.
+By default, Gradle will attempt to determine the dependencies that can be substituted by an included build. However for more flexibility, it is possible to explicitly declare these substitutions if the default ones determined by Gradle are not correct for the composite. See <<#included_build_declaring_substitutions,Declaring substitutions>>.
 
-As well as consuming outputs via project dependencies, a composite build can directly declare task dependencies on included builds. Included builds are isolated, and are not able to declare task dependencies on the composite build or on other included builds. See <<included_build_task_dependencies>>.
+As well as consuming outputs via project dependencies, a composite build can directly declare task dependencies on included builds. Included builds are isolated, and are not able to declare task dependencies on the composite build or on other included builds. See <<#included_build_task_dependencies,Depending on tasks in an included build>>.
 
 [[defining_composite_builds]]
 == Defining a composite build
@@ -49,29 +49,33 @@ The following examples demonstrate the various ways that 2 Gradle builds that ar
 
 The `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares binary dependencies on the libraries produced by `my-utils`.
 
-++++
-<sample id="compositeBuilds_basic" dir="compositeBuilds/basic" title="Dependencies of my-app" includeLocation="true">
-            <sourcefile file="my-app/build.gradle"/>
-        </sample>
-++++
+=== Example: Dependencies of my-app
 
+[source.multi-language-sample,groovy]
+.my-app/build.gradle
+----
+include::{samples-path}/compositeBuilds/basic/my-app/build.gradle[]
+----
+
+NOTE: The code for this example can be found at **`samples/compositeBuilds/basic`** in the ‘-all’ distribution of Gradle.
 
 [[command_line_composite]]
 === Defining a composite build via `--include-build`
 
 The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
 
-++++
-<sample id="compositeBuilds_basic_cli" dir="compositeBuilds/basic/my-app" title="Declaring a command-line composite">
-                <output args="--include-build ../my-utils run" ignoreExtraLines="true" ignoreLineOrder="true"/>
-            </sample>
-++++
+=== Example: Declaring a command-line composite
 
+.Output of **`gradle --include-build ../my-utils run`**
+----
+> gradle --include-build ../my-utils run
+include::{samples-path}/compositeBuilds/basic/my-app/compositeBuilds_basic_cli.out[]
+----
 
 [[settings_defined_composite]]
 === Defining a composite build via `settings.gradle`
 
-It's possible to make the above arrangement persistent, by using api:org.gradle.api.initialization.Settings#includeBuild(java.lang.Object)[] to declare the included build in the `settings.gradle` file. The `settings.gradle` file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
+It's possible to make the above arrangement persistent, by using `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeBuild(java.lang.Object)[Settings.includeBuild(java.lang.Object)]` to declare the included build in the `settings.gradle` file. The `settings.gradle` file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
 
 [[separate_composite]]
 === Defining a separate composite build
@@ -126,7 +130,7 @@ Tasks from the composite build can be executed from the command line, or from yo
 [NOTE]
 ====
 
-There is not (yet) any means to directly execute a task from an included build via the command line. Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
+There is not (yet) any means to directly execute a task from an included build via the command line. Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
 
 ====
 
@@ -195,7 +199,7 @@ Builds using these features function incorrectly when included in a composite bu
 [[included_build_task_dependencies]]
 == Depending on tasks in an included build
 
-While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on its included builds. The included builds are accessed using api:org.gradle.api.invocation.Gradle#getIncludedBuilds()[] or api:org.gradle.api.invocation.Gradle#includedBuild(java.lang.String)[], and a task reference is obtained via the api:org.gradle.api.initialization.IncludedBuild#task(java.lang.String)[] method.
+While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on its included builds. The included builds are accessed using `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuilds[Gradle.getIncludedBuilds()]` or `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuild(java.lang.String)[Gradle.includedBuild(java.lang.String)]`, and a task reference is obtained via the `link:{groovy-dsl-path}/org.gradle.api.initialization.IncludedBuild.html#org.gradle.api.initialization.IncludedBuild:task(java.lang.String)[IncludedBuild.task(java.lang.String)]` method.
 
 Using these APIs, it is possible to declare a dependency on a task in a particular included build, or tasks with a certain path in all or some of the included builds.
 
@@ -223,7 +227,7 @@ We think composite builds are pretty useful already. However, there are some thi
 
 Limitations of the current implementation include:
 
-* No support for included builds that have publications that don't mirror the project default configuration. See <<included_build_substitution_limitations>>.
+* No support for included builds that have publications that don't mirror the project default configuration. See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
 * Native builds are not supported. (Binary dependencies are not yet supported for native builds).
 * Substituting plugins only works with the `buildscript` block but not with the `plugins` block.
 

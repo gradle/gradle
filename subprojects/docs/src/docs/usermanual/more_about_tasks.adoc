@@ -538,7 +538,7 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s `link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]` type and anything else that can be passed to either the api:org.gradle.api.Project#file(java.lang.Object)[] method - for single file/directory properties - or the api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[] methods.
+These consist of the standard `File` class but also derivatives of Gradle’s `link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]` type and anything else that can be passed to either the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]` method - for single file/directory properties - or the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)]`, api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[] methods.
 
 * Nested values
 +
@@ -677,12 +677,12 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 |===
 
 *::
-In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], or api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[].
+In fact, `File` can be any type accepted by `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]` and `Iterable&lt;File&gt;` can be any type accepted by `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)]`, api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], or api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
 
 **::
-Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
+Similar to the above, `File` can be any type accepted by `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]`. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 
 .Additional annotations used to further qualifying property type annotations
 [cols="a,a", options="header"]
@@ -1060,7 +1060,7 @@ Let's say you want to add a file `build-info.properties` to all your produced ja
 This file is only for auditing purposes, and has no effect on the outcome of running tests.
 Nonetheless, this file is part of the runtime classpath for the `test` task and changes on every build invocation.
 Therefore, the `test` would be never up-to-date or pulled from the build cache.
-In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using api:org.gradle.api.Project#normalization(org.gradle.api.Action)[]:
+In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)]`:
 
 === Example: Runtime classpath normalization
 

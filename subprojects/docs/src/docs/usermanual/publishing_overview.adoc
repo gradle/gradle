@@ -118,7 +118,7 @@ include::{samples-path}/maven-publish/javaProject/build.gradle[tag=publish-custo
 
 There are several important things to note about the sample:
 
- * The `artifact()` method accepts archive tasks as an argument — like `sourcesJar` in the sample — as well as any type of argument accepted by api:org.gradle.api.Project#file(java.lang.Object)[], such as a `File` instance or string file path.
+ * The `artifact()` method accepts archive tasks as an argument — like `sourcesJar` in the sample — as well as any type of argument accepted by `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]`, such as a `File` instance or string file path.
  * Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <<publishing_maven#,Maven Publish Plugin>> and the <<publishin_ivy#,Ivy Publish Plugin>>.
  * Custom artifacts need to be distinct within a publication, typically via a unique combination of `classifier` and `extension`. See the documentation for the plugin you're using for the precise requirements.
  * If you use `artifact()` with an archive task, Gradle automatically populates the artifact's metadata with the `classifier` and `extension` properties from that task. That's why the above sample does not specify those properties in the artifact configurations.
@@ -204,7 +204,7 @@ include::{samples-path}/maven-publish/conditional-publishing/build.gradle[tag=pu
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
 
-Gradle allows you to skip any task you want based on a condition via the api:org.gradle.api.Task#onlyIf(org.gradle.api.specs.Spec)[] method. The following sample demonstrates how to implement the constraints we just mentioned:
+Gradle allows you to skip any task you want based on a condition via the `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)]` method. The following sample demonstrates how to implement the constraints we just mentioned:
 
 ++++
 <sample dir="maven-publish/conditional-publishing" id="publishingMavenConditionally" title="Configuring which artifacts should be published to which repositories">

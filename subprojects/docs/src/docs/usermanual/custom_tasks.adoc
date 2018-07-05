@@ -497,6 +497,6 @@ Worker daemons will remain running until either the build daemon that started th
 
 There are different ways to re-use logic between task classes.
 The easiest case is when you can extract the logic you want to share in a separate method or class and then use the extracted piece of code in your tasks.
-For example, the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task re-uses the logic of the api:org.gradle.api.Project#copy(org.gradle.api.Action)[] method.
+For example, the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task re-uses the logic of the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)]` method.
 Another option is to add a task dependency on the task which outputs you want to re-use.
 Other options include using <<sec:task_rules,task rules>> or the <<worker_api,worker API>>.

@@ -71,7 +71,7 @@ If you think this looks similar to Ant's targets, you would be right. Gradle tas
 [NOTE]
 ====
 
-This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods api:org.gradle.api.Task#doFirst(org.gradle.api.Action)[] and api:org.gradle.api.Task#doLast(org.gradle.api.Action)[] to define an action instead, as demonstrated by the rest of the examples in this chapter.
+This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst(org.gradle.api.Action)]` and `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast(org.gradle.api.Action)]` to define an action instead, as demonstrated by the rest of the examples in this chapter.
 
 ====
 

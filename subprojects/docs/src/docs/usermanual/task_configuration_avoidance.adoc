@@ -63,7 +63,7 @@ Existing APIs like api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.
 [[sec:how_do_i_reference_a_task]]
 === How do I reference a task without creating/configuring it?
 
-Calling api:org.gradle.api.provider.Provider#get()[] or looking up a task by name with api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String)[] will cause the task to be created and configured. Methods like api:org.gradle.api.Task#dependsOn(java.lang.Object...)[] and api:org.gradle.api.file.ConfigurableFileCollection#builtBy(java.lang.Object...)[] work with `link:{javadoc-path}/org/gradle/api/tasks/TaskProvider.html[TaskProvider]` in the same way as `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`, so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
+Calling api:org.gradle.api.provider.Provider#get()[] or looking up a task by name with api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String)[] will cause the task to be created and configured. Methods like `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object...)[Task.dependsOn(java.lang.Object...)]` and api:org.gradle.api.file.ConfigurableFileCollection#builtBy(java.lang.Object...)[] work with `link:{javadoc-path}/org/gradle/api/tasks/TaskProvider.html[TaskProvider]` in the same way as `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`, so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
 
 If you are configuring a task by name, you will need to use the new API equivalent. See the <<sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
 
