@@ -59,7 +59,7 @@ public interface GradleBuild extends Model, BuildModel {
     /**
      * Returns all builds contained in this build, and for which tooling models should be built when importing into an IDE. This is not necessarily the same as {@link #getIncludedBuilds()}, as an included build is not necessarily 'owned' by a build that includes it.
      *
-     * <p>For the root build, this set contains all builds that participate in the composite build, including all nested included builds. For other builds, this set is empty.</p>
+     * <p>For the root build, this set contains all builds that participate in the composite build, including those from all nested included builds. For other builds, this set is empty.</p>
      *
      * @since 4.10
      */
