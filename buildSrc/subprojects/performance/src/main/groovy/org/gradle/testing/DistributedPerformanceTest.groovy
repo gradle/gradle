@@ -70,9 +70,11 @@ class DistributedPerformanceTest extends PerformanceTest {
     String teamCityPassword
 
     @OutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioList
 
     @OutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioReport
 
     private RESTClient client
@@ -92,12 +94,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
-    }
-
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    File getBinaryDistributionDir() {
-        new File(binaryDistributions.distsDir.asFile.get().absolutePath)
     }
 
     @Override

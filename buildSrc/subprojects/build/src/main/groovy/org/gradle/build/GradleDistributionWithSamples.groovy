@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,40 +20,19 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-class GradleDistribution {
-    private ConfigurableFileTree libs
-    private ConfigurableFileTree plugins
+class GradleDistributionWithSamples extends GradleDistribution {
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    ConfigurableFileTree staticContent
+    ConfigurableFileTree samples
 
-    @Classpath
-    SortedSet<File> getCoreJars() {
-        libs.files as SortedSet
-    }
-
-    @Classpath
-    SortedSet<File> getPluginJars() {
-        plugins.files as SortedSet
-    }
-
-    GradleDistribution(Project project, DirectoryProperty gradleHomeDir) {
-        staticContent  = project.fileTree(gradleHomeDir)
-        staticContent.exclude 'lib/**'
-        staticContent.exclude 'samples/**'
-        staticContent.exclude 'src/**'
-        staticContent.exclude 'docs/**'
-        libs = project.fileTree(gradleHomeDir.dir('lib'))
-        libs.include('*.jar')
-        libs.exclude('plugins/**')
-        plugins = project.fileTree(gradleHomeDir.dir('lib/plugins'))
-        plugins.include('*.jar')
+    GradleDistributionWithSamples(Project project, DirectoryProperty gradleHomeDir) {
+        super(project, gradleHomeDir)
+        samples = project.fileTree(gradleHomeDir.dir('samples'))
     }
 }

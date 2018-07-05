@@ -28,6 +28,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.testing.Test
 import org.gradle.build.GradleDistribution
+import org.gradle.build.GradleDistributionWithSamples
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
@@ -48,7 +49,7 @@ open class DistributionTest : Test() {
     val binaryDistributions = BinaryDistributions(project.layout)
 
     @Internal
-    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
+    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project, binaryDistributions.distributionsRequired)
 
     @Internal
     val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)
@@ -81,7 +82,7 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
 }
 
 
-class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
+class GradleInstallationForTestEnvironmentProvider(project: Project, distributionsRequired: Boolean) : CommandLineArgumentProvider, Named {
 
     @Internal
     val gradleHomeDir = project.layout.directoryProperty()
@@ -100,7 +101,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     val daemonRegistry = project.layout.directoryProperty()
 
     @Nested
-    val gradleDistribution = GradleDistribution(project, gradleHomeDir)
+    val gradleDistribution: GradleDistribution = if (distributionsRequired) GradleDistributionWithSamples(project, gradleHomeDir) else GradleDistribution(project, gradleHomeDir)
 
     override fun asArguments() =
         mapOf(
