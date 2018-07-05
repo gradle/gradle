@@ -46,10 +46,10 @@ open class DistributionTest : Test() {
     }
 
     @Internal
-    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project, binaryDistributions.distributionsRequired)
+    val binaryDistributions = BinaryDistributions(project.layout)
 
     @Internal
-    val binaryDistributions = BinaryDistributions(project.layout)
+    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project, binaryDistributions.distributionsRequired)
 
     @Internal
     val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)
