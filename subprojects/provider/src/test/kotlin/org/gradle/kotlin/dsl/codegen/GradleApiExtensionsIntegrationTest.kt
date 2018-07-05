@@ -97,7 +97,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.api.tasks.*
 
-            import org.gradle.kotlin.gradle.ext.*
+            import org.gradle.kotlin.dsl.*
 
             import org.apache.tools.ant.filters.ReplaceTokens
 
@@ -139,7 +139,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
 
         val (generatedSources, generatedClasses) = JarFile(generatedJar)
             .use { it.entries().toList().map { it.name } }
-            .filter { it.startsWith("org/gradle/kotlin/gradle/ext/GradleApiKotlinDslExtensions") }
+            .filter { it.startsWith("org/gradle/kotlin/dsl/GradleApiKotlinDslExtensions") }
             .groupBy { it.substring(it.lastIndexOf('.')) }
             .let { it[".kt"]!! to it[".class"]!! }
 
@@ -153,7 +153,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
         }
 
         val extensions = listOf(
-            "package org.gradle.kotlin.gradle.ext",
+            "package org.gradle.kotlin.dsl",
             """
             inline fun <S : T, T : Any> org.gradle.api.DomainObjectSet<T>.`withType`(`type`: kotlin.reflect.KClass<S>): org.gradle.api.DomainObjectSet<S> =
                 `withType`(`type`.java)

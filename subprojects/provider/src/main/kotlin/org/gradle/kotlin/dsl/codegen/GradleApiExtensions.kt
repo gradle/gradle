@@ -28,7 +28,7 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: List<
     (gradleApiJarsFrom(gradleJars) to gradleApiMetadataFrom(gradleJars)).let { (gradleApiJars, gradleApiMetadata) ->
         doGenerateKotlinDslApiExtensionsSourceTo(
             outputDirectory,
-            "org.gradle.kotlin.gradle.ext",
+            "org.gradle.kotlin.dsl",
             "GradleApiKotlinDslExtensions",
             gradleApiJars,
             gradleJars - gradleApiJars,
