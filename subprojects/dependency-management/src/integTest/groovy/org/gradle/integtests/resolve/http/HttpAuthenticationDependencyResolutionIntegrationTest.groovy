@@ -166,7 +166,7 @@ task listJars {
 
     @Unroll
     @Issue("gradle/gradle#5571")
-    public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated with http header HTTP maven repository"() {
+    public void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         and:
@@ -174,7 +174,10 @@ task listJars {
 repositories {
     maven {
         url "${mavenHttpRepo.uri}"
-        credentials(HttpHeaderCredentials) { header 'TestHttpHeaderName: TestHttpHeaderValue' }
+        credentials(HttpHeaderCredentials) {
+            name = "TestHttpHeaderName"
+            value = "TestHttpHeaderValue"
+        }
         authentication { header(HttpHeaderAuthentication) }
     }
 }
@@ -199,7 +202,7 @@ task listJars {
         then:
         succeeds('listJars')
         and:
-        server.allHeaders.get("TestHttpHeaderName") == "TestHttpHeaderValue"
+        server.allHeaders.every { it.get("TestHttpHeaderName") == "TestHttpHeaderValue" }
     }
 
     @Unroll

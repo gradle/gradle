@@ -17,26 +17,28 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.repositories.HttpHeaderCredentials;
 
+import javax.annotation.Nullable;
+
 public class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
-    private String header;
-
-    public DefaultHttpHeaderCredentials() {
-    }
-
-    public DefaultHttpHeaderCredentials(String header) {
-        this.header = header;
-    }
+    private String name;
+    private String value;
 
     public String getHeader() {
-        return header;
+        return name + ": " + value;
     }
 
-    public void setHeader(String header) {
-        this.header = header;
+    @Override
+    public void setName(@Nullable String name) {
+        this.name = name;
+    }
+
+    @Override
+    public void setValue(@Nullable String value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return String.format("Credentials [header: %s]", header);
+        return String.format("Credentials [header: %s]", getHeader());
     }
 }

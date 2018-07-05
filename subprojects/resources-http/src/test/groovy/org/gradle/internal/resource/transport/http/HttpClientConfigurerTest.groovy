@@ -106,7 +106,8 @@ public class HttpClientConfigurerTest extends Specification {
 
     def "configures http client with http header auth credentials"() {
         def httpHeaderCredentials = new DefaultHttpHeaderCredentials()
-        httpHeaderCredentials.setHeader("TestHttpHeaderName: TestHttpHeaderValue")
+        httpHeaderCredentials.setName("TestHttpHeaderName")
+        httpHeaderCredentials.setValue("TestHttpHeaderValue")
         AllSchemesAuthentication httpHeaderAuthentication = Mock() {
             getCredentials() >> httpHeaderCredentials
         }

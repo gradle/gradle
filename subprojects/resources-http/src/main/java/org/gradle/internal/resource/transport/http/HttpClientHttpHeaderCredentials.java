@@ -18,8 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.Header;
 import org.apache.http.auth.Credentials;
-import org.apache.http.message.BufferedHeader;
-import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.message.BasicHeader;
 
 import java.security.Principal;
 
@@ -27,10 +26,8 @@ public class HttpClientHttpHeaderCredentials implements Credentials {
 
     private final Header header;
 
-    public HttpClientHttpHeaderCredentials(String header) {
-        CharArrayBuffer charArrayBuffer = new CharArrayBuffer(header.length());
-        charArrayBuffer.append(header);
-        this.header = new BufferedHeader(charArrayBuffer);
+    public HttpClientHttpHeaderCredentials(String headerName, String headerValue) {
+        this.header = new BasicHeader(headerName, headerValue);
     }
 
     public Header getHeader() {

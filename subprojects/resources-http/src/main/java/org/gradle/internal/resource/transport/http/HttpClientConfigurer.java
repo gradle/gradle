@@ -53,8 +53,10 @@ import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
 import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
+import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
+import org.apache.http.util.CharArrayBuffer;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
@@ -172,9 +174,12 @@ public class HttpClientConfigurer {
             String scheme = getAuthScheme(authentication);
             org.gradle.api.credentials.Credentials credentials = getCredentials(authentication);
 
-            if (credentials instanceof HttpHeaderCredentials) {
+            if (credentials instanceof HttpHeaderCredentials && ((HttpHeaderCredentials) credentials).getHeader() != null) {
                 HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
-                Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getHeader());
+                CharArrayBuffer charArrayBuffer = new CharArrayBuffer(httpHeaderCredentials.getHeader().length());
+                charArrayBuffer.append(httpHeaderCredentials.getHeader());
+                BufferedHeader bufferedHeader = new BufferedHeader(charArrayBuffer);
+                Credentials httpCredentials = new HttpClientHttpHeaderCredentials(bufferedHeader.getName(), bufferedHeader.getValue());
 
                 credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
 

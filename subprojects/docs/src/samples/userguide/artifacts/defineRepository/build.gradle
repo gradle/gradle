@@ -145,7 +145,8 @@ repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
         credentials(HttpHeaderCredentials) {
-            header "Private-Token: TOKEN"
+            name = "Private-Token"
+            value = "TOKEN"
         }
         authentication {
             header(HttpHeaderAuthentication)

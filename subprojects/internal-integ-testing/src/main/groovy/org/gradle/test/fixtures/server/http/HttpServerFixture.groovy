@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.server.http
 
-import com.google.api.client.util.Maps
 import com.google.common.collect.Sets
 import groovy.transform.CompileStatic
 import org.gradle.internal.BiAction
@@ -49,7 +48,7 @@ trait HttpServerFixture {
     private AuthScheme authenticationScheme = AuthScheme.BASIC
     private boolean logRequests = true
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
-    private final Map<String, String> allHeaders = Maps.newHashMap()
+    private final Set<Map<String, String>> allHeaders = Sets.newLinkedHashSet()
     private boolean configured
     private int assignedPort
 
@@ -83,7 +82,7 @@ trait HttpServerFixture {
         return authenticationAttempts
     }
 
-    Map<String, String> getAllHeaders() {
+    Set<Map<String, String>> getAllHeaders() {
         return allHeaders
     }
 
@@ -154,17 +153,17 @@ trait HttpServerFixture {
 
     private static class LoggingHandler extends AbstractHandler {
         private final Set<String> authenticationAttempts
-        private final Map<String, String> allHeaders
+        private final Set<Map<String, String>> allHeaders
         private final boolean logRequests
 
-        LoggingHandler(Set<String> authenticationAttempts, Map<String, String> allHeaders, boolean logRequests) {
+        LoggingHandler(Set<String> authenticationAttempts, Set<Map<String, String>> allHeaders, boolean logRequests) {
             this.logRequests = logRequests
             this.authenticationAttempts = authenticationAttempts
             this.allHeaders = allHeaders
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            allHeaders.putAll(request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] })
+            allHeaders << request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
             String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {

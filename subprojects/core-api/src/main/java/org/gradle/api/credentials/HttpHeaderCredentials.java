@@ -16,13 +16,19 @@
 
 package org.gradle.api.credentials;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 
 /**
- * Credentials that can be used to login to something protected by using HTTP header.
+ * Credentials that can be used to login to a protected server, e.g. a remote repository by using HTTP header.
+ *
+ * @since 4.10
  */
+@Incubating
 public interface HttpHeaderCredentials extends Credentials {
     @Nullable
     String getHeader();
-    void setHeader(@Nullable String header);
+    void setName(@Nullable String name);
+    void setValue(@Nullable String value);
 }

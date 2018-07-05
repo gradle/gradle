@@ -16,8 +16,13 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Incubating;
+
 /**
- * Credentials that can be used to login to something protected by using HTTP header.
+ * Credentials that can be used to login to a protected server, e.g. a remote repository by using HTTP header.
+ *
+ * @since 4.10
  */
+@Incubating
 public interface HttpHeaderCredentials extends org.gradle.api.credentials.HttpHeaderCredentials {
 }
