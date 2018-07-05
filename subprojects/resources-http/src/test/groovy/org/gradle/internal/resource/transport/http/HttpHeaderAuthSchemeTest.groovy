@@ -42,7 +42,7 @@ class HttpHeaderAuthSchemeTest extends Specification {
     def "test authenticate"() {
         given:
         HttpHeaderAuthScheme headerAuthScheme = new HttpHeaderAuthScheme()
-        def credentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName: TestHttpHeaderValue")
+        def credentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName", "TestHttpHeaderValue")
 
         when:
         def header = headerAuthScheme.authenticate(credentials, null, null)

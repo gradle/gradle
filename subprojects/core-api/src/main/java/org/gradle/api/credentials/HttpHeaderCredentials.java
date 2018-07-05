@@ -27,8 +27,35 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface HttpHeaderCredentials extends Credentials {
+
+    /**
+     * Returns the header name to use when authenticating.
+     *
+     * @return The header name. May be null.
+     */
     @Nullable
-    String getHeader();
+    String getName();
+
+    /**
+     * Sets the header name to use when authenticating.
+     *
+     * @param name The header name. May be null.
+     */
     void setName(@Nullable String name);
+
+    /**
+     * Returns the header value to use when authenticating.
+     *
+     * @return The header value. May be null.
+     */
+    @Nullable
+    String getValue();
+
+    /**
+     * Sets the header value to use when authenticating.
+     *
+     * @param value The header value. May be null.
+     */
     void setValue(@Nullable String value);
+
 }

@@ -53,10 +53,8 @@ import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
 import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
-import org.apache.http.util.CharArrayBuffer;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
@@ -65,7 +63,6 @@ import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
-import org.gradle.internal.Cast;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.UriTextResource;
@@ -172,15 +169,11 @@ public class HttpClientConfigurer {
     private void useCredentials(CredentialsProvider credentialsProvider, String host, int port, Collection<? extends Authentication> authentications) {
         for (Authentication authentication : authentications) {
             String scheme = getAuthScheme(authentication);
-            org.gradle.api.credentials.Credentials credentials = getCredentials(authentication);
+            org.gradle.api.credentials.Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
 
-            if (credentials instanceof HttpHeaderCredentials && ((HttpHeaderCredentials) credentials).getHeader() != null) {
+            if (credentials instanceof HttpHeaderCredentials) {
                 HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
-                CharArrayBuffer charArrayBuffer = new CharArrayBuffer(httpHeaderCredentials.getHeader().length());
-                charArrayBuffer.append(httpHeaderCredentials.getHeader());
-                BufferedHeader bufferedHeader = new BufferedHeader(charArrayBuffer);
-                Credentials httpCredentials = new HttpClientHttpHeaderCredentials(bufferedHeader.getName(), bufferedHeader.getValue());
-
+                Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getName(), httpHeaderCredentials.getValue());
                 credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
 
                 LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
@@ -198,6 +191,8 @@ public class HttpClientConfigurer {
                 Credentials httpCredentials = new UsernamePasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
                 credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
                 LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", passwordCredentials, host, port, scheme);
+            } else {
+                throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
             }
         }
     }
@@ -253,17 +248,6 @@ public class HttpClientConfigurer {
     private void configureSocketConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).build());
-    }
-
-    private org.gradle.api.credentials.Credentials getCredentials(Authentication authentication) {
-        org.gradle.api.credentials.Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
-        if (credentials instanceof PasswordCredentials) {
-            return Cast.uncheckedCast(credentials);
-        } else if (credentials instanceof HttpHeaderCredentials) {
-            return Cast.uncheckedCast(credentials);
-        } else {
-            throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
-        }
     }
 
     private void configureRedirectStrategy(HttpClientBuilder builder) {

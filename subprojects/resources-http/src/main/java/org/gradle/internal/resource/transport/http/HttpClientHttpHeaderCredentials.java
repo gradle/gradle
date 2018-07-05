@@ -26,8 +26,8 @@ public class HttpClientHttpHeaderCredentials implements Credentials {
 
     private final Header header;
 
-    public HttpClientHttpHeaderCredentials(String headerName, String headerValue) {
-        this.header = new BasicHeader(headerName, headerValue);
+    public HttpClientHttpHeaderCredentials(String name, String value) {
+        this.header = new BasicHeader(name, value);
     }
 
     public Header getHeader() {

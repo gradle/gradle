@@ -20,9 +20,9 @@ import spock.lang.Specification
 
 class HttpClientHttpHeaderCredentialsTest extends Specification {
 
-    def "test set header by string"() {
+    def "creates header with supplied name and value"() {
         when:
-        HttpClientHttpHeaderCredentials httpHeaderCredentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName: TestHttpHeaderValue")
+        HttpClientHttpHeaderCredentials httpHeaderCredentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName", "TestHttpHeaderValue")
 
         then:
         httpHeaderCredentials.header.name == "TestHttpHeaderName"
