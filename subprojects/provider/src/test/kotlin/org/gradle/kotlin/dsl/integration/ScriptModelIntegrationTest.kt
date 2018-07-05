@@ -177,7 +177,11 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     fun assertContainsBuildSrc(classPath: List<File>) =
         assertThat(
             classPath.map { it.name },
-            hasItem("buildSrc.jar"))
+            hasBuildSrc())
+
+    protected
+    fun hasBuildSrc() =
+        hasItem("buildSrc.jar")
 
     protected
     fun assertIncludes(classPath: List<File>, vararg files: File) =

@@ -17,11 +17,11 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.InvalidUserCodeException
+
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.plugins.DslObject
-
-import org.gradle.internal.Cast.uncheckedCast
 import org.gradle.internal.metaobject.DynamicObject
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import kotlin.reflect.KProperty
 

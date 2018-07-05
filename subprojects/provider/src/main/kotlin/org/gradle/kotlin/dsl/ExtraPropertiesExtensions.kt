@@ -21,7 +21,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
-import org.gradle.internal.Cast.uncheckedCast
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import kotlin.reflect.KProperty
 
