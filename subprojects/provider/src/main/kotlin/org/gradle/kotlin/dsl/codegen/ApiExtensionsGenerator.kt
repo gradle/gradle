@@ -23,7 +23,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
-import org.gradle.util.GUtil
 
 import java.io.File
 
@@ -38,32 +37,10 @@ import java.io.File
  * @param classPathDependencies the api classpath dependencies
  * @param includes the api include patterns
  * @param excludes the api exclude patterns
- * @param parameterNamesIndices the api function parameter names indices
+ * @param parameterNamesSupplier the api function parameter names
  *
  * @return the list of generated source files
  */
-fun generateKotlinDslApiExtensionsSourceTo(
-    outputDirectory: File,
-    packageName: String,
-    sourceFilesBaseName: String,
-    classPath: List<File>,
-    classPathDependencies: List<File>,
-    includes: List<String>,
-    excludes: List<String>,
-    parameterNamesIndices: List<File>
-): List<File> =
-
-    doGenerateKotlinDslApiExtensionsSourceTo(
-        outputDirectory,
-        packageName,
-        sourceFilesBaseName,
-        classPath,
-        classPathDependencies,
-        includes,
-        excludes,
-        parameterNamesSupplierFor(parameterNamesIndices))
-
-
 internal
 fun doGenerateKotlinDslApiExtensionsSourceTo(
     outputDirectory: File,
@@ -120,18 +97,6 @@ fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<Ko
             }
         }
     }
-
-
-private
-fun parameterNamesSupplierFor(parameterNamesIndices: List<File>): ParameterNamesSupplier =
-    parameterNamesIndices
-        .map { GUtil.loadProperties(it) }
-        .reduce { acc, properties -> acc.apply { putAll(properties) } }
-        .let { index ->
-            { key: String ->
-                index.getProperty(key, null)?.split(",")
-            }
-        }
 
 
 private
