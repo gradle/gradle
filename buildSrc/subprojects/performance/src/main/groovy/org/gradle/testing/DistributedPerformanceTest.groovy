@@ -146,7 +146,11 @@ class DistributedPerformanceTest extends PerformanceTest {
                 def parts = Splitter.on(';').split(line).toList()
                 new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
             }
-            .sort{ -it.estimatedRuntime }
+            .sort{ it.estimatedRuntime }
+
+        scenarios = scenarios[0..<1]
+
+        assert scenarios.size() == 1
 
         createClient()
 
