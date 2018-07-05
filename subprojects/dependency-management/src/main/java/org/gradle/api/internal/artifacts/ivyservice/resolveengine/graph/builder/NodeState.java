@@ -54,6 +54,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -482,7 +483,8 @@ class NodeState implements DependencyGraphNode {
                 LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponent;
                 return Collections.<ConfigurationMetadata>singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState()));
             }
-            return Collections.emptyList();
+            // the target component exists, so we need to fallback to the traditional selection process
+            return new LocalComponentDependencyMetadata(platformId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, false, null).selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
         }
 
         @Override

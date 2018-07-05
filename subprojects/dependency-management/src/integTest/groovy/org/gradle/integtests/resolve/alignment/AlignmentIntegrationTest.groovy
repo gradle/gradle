@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -498,6 +500,119 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         }
 
     }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    ])
+    def "can align thanks to a published platform"() {
+        repository {
+            path 'databind:2.7.9 -> core:2.7.9'
+            path 'databind:2.7.9 -> annotations:2.7.9'
+            path 'databind:2.9.4 -> core:2.9.4'
+            path 'databind:2.9.4 -> annotations:2.9.0' // intentional!
+            path 'kt:2.9.4.1 -> databind:2.9.4'
+            'org:annotations:2.9.0'()
+            'org:annotations:2.9.4'()
+
+            // define "real" platforms, as published modules.
+            // The platforms are supposed to declare _in extenso_ what modules
+            // they include, by constraints
+            'org:platform' {
+                '2.7.9' {
+                    constraint("org:databind:2.7.9")
+                    constraint("org:core:2.7.9")
+                    constraint("org:annotations:2.7.9")
+                }
+                '2.9.0' {
+                    constraint("org:databind:2.9.0")
+                    constraint("org:core:2.9.0")
+                    constraint("org:annotations:2.9.0")
+                }
+                '2.9.4' {
+                    constraint("org:databind:2.9.4")
+                    constraint("org:core:2.9.4")
+                    constraint("org:annotations:2.9.0")
+                }
+                '2.9.4.1' {
+                    // versions here are intentionally lower
+                    constraint("org:databind:2.9.4")
+                    constraint("org:core:2.9.4")
+                    constraint("org:annotations:2.9.4")
+                }
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:core:2.9.4'
+                conf 'org:databind:2.7.9'
+                conf 'org:kt:2.9.4.1'
+                
+                components.all(DeclarePlatform)
+            }
+            
+            class DeclarePlatform implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        belongsTo("org:platform:\${id.version}")
+                    }
+                }
+            }
+        """
+
+
+        when:
+        repositoryInteractions {
+            'org:core:2.9.4' {
+                expectResolve()
+            }
+            'org:databind:2.7.9' {
+                expectGetMetadata()
+            }
+            'org:kt:2.9.4.1' {
+                expectResolve()
+            }
+            'org:databind:2.9.4' {
+                expectResolve()
+            }
+            'org:annotations:2.9.4' {
+                expectResolve()
+            }
+            'org:platform:2.7.9' {
+                expectGetMetadata()
+            }
+            'org:platform:2.9.4.1' {
+                expectGetMetadata()
+            }
+            'org:platform:2.9.4' {
+                expectGetMetadata()
+            }
+            'org:annotations:2.7.9' {
+                expectGetMetadata()
+            }
+            'org:annotations:2.9.0' {
+                expectGetMetadata()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:core:2.9.4')
+                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:kt:2.9.4.1') {
+                    module('org:databind:2.9.4') {
+                        module('org:core:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                    }
+                }
+            }
+        }
+
+    }
+
 
     private void "a rule which infers module set from group and version"() {
         buildFile << """
