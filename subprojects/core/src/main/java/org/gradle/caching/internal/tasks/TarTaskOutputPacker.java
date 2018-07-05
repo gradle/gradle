@@ -317,7 +317,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             this.propertyRoot = propertyPath + "/";
             this.outputType = outputType;
             this.fileSystem = fileSystem;
-            relativePathHolder = new RelativePathHolder();
+            this.relativePathHolder = new RelativePathHolder();
         }
 
         @Override

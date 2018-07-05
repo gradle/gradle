@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public abstract class AbstractFileContentSnapshot implements FileContentSnapshot, NormalizedFileSnapshot {
+public abstract class AbstractFileContentSnapshot implements FileContentSnapshot {
     @Override
     public String getNormalizedPath() {
         return "";
