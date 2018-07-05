@@ -21,7 +21,7 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-import org.gradle.util.CollectionUtils
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -56,7 +56,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         executed ":buildB:jar"
 
         and:
-        def root = CollectionUtils.single(operations.roots())
+        def root = operations.root(RunBuildBuildOperationType)
 
         def buildSrcOps = operations.all(BuildBuildSrcBuildOperationType)
         buildSrcOps.size() == 1
@@ -131,7 +131,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         executed ":buildB:jar"
 
         and:
-        def root = CollectionUtils.single(operations.roots())
+        def root = operations.root(RunBuildBuildOperationType)
 
         def buildSrcOps = operations.all(BuildBuildSrcBuildOperationType)
         buildSrcOps.size() == 2

@@ -32,6 +32,7 @@ import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -295,7 +296,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds "t"
 
         List<BuildOperationRecord.Progress> output = []
-        operations.walk(operations.roots().first()) {
+        operations.walk(operations.root(RunBuildBuildOperationType)) {
             output.addAll(it.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) })
         }
 
