@@ -38,40 +38,24 @@ The plugin adds a number of tasks to the project that perform the quality checks
 
 The CodeNarc plugin adds the following tasks to the project:
 
-.CodeNarc plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`codenarcMain` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`::
++
+Runs CodeNarc against the production Java source files.
 
-| `codenarcMain`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`
-| Runs CodeNarc against the production Groovy source files.
+`codenarcTest` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`::
++
+Runs CodeNarc against the test Java source files.
 
-| `codenarcTest`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`
-| Runs CodeNarc against the test Groovy source files.
+`codenarc__SourceSet__` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`::
++
+Runs CodeNarc against the given source set's Java source files.
 
-| `codenarc__SourceSet__`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`
-| Runs CodeNarc against the given source set's Groovy source files.
-|===
+=== Dependencies added to other tasks
 
 The CodeNarc plugin adds the following dependencies to tasks defined by the Groovy plugin.
 
-.CodeNarc plugin - additional task dependencies
-[cols="a,a", options="header"]
-|===
-| Task name
-| Depends on
-| `check`
-| All CodeNarc tasks, including `codenarcMain` and `codenarcTest`.
-|===
+`check`::
+_Depends on_: All CodeNarc tasks, including `codenarcMain` and `codenarcTest`.
 
 
 [[sec:codenarc_project_layout]]
@@ -79,15 +63,14 @@ The CodeNarc plugin adds the following dependencies to tasks defined by the Groo
 
 The CodeNarc plugin expects the following project layout:
 
-.CodeNarc plugin - project layout
-[cols="a,a", options="header"]
-|===
-| File
-| Meaning
-
-| `config/codenarc/codenarc.xml`
-| CodeNarc configuration file
-|===
+----
+<root>
+└── config
+    └── codenarc           // <1>
+        └── codenarc.xml   // <2>
+----
+<1> CodeNarc configuration files go here
+<2> Primary CodeNarc configuration file
 
 
 [[sec:codenarc_dependency_management]]

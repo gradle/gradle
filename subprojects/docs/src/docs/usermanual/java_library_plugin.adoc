@@ -120,7 +120,7 @@ include::{samples-path}/java-library/quickstart/build.gradle[tag=dependencies]
 
 The following graph describes the main configurations setup when the Java Library plugin is in use.
 
-image::img/java-library-ignore-deprecated-main.png[]
+image::java-library-ignore-deprecated-main.png[]
 
 * The configurations in _green_ are the ones a user should use to declare dependencies
 * The configurations in _pink_ are the ones used when a component compiles, or runs against the library
@@ -129,7 +129,7 @@ image::img/java-library-ignore-deprecated-main.png[]
 
 And the next graph describes the test configurations setup:
 
-image::img/java-library-ignore-deprecated-test.png[]
+image::java-library-ignore-deprecated-test.png[]
 
 [NOTE]
 ====

@@ -263,7 +263,7 @@ include::{samples-path}/plugins/publishing/build.gradle[tag=complete-plugin-publ
 
 Running `gradle publish` in the sample directory causes the following repo layouts to exist:
 
-image::img/pluginMarkers.png[]
+image::pluginMarkers.png[]
 
 [[sec:old_plugin_application]]
 === Legacy Plugin Application

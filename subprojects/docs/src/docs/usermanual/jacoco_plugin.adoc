@@ -77,7 +77,7 @@ The `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[Ja
 ----
 include::{samples-path}/testing/jacoco/quickstart/build.gradle[tag=report-configuration]
 ----
-image::img/jacocoHtmlReport.png[JaCoCo HTML report,903,277]
+image::jacocoHtmlReport.png[JaCoCo HTML report,903,277]
 
 [[sec:jacoco_report_violation_rules]]
 == Enforcing code coverage metrics

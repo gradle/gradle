@@ -915,8 +915,9 @@ table.tableblock > .title,
 
 .imageblock,
 .videoblock {
-    border: 1px solid #e5e5e5;
-    padding: 0.75em;
+    /*border: 1px solid #e5e5e5;*/
+    /* TODO: maybe a nice box-shadow */
+    padding: 0.25em;
 }
 
 p.lead,

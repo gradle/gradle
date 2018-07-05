@@ -46,20 +46,20 @@ Many long-form options, have short option equivalents. The following are equival
 
 [NOTE]
 ====
-Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_configuration_properties, configuring build environment guide>> for details.
+Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<build_environment#sec:gradle_configuration_properties, configuring build environment guide>> for details.
 ====
 
-The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>. For more information on exposing command line options for your own tasks, see <<sec:declaring_and_using_command_line_options>>.
+The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<java_testing#test_filtering,`--tests` for Java test filtering>>. For more information on exposing command line options for your own tasks, see <<custom_tasks#sec:declaring_and_using_command_line_options,Declaring and using command-line options>>.
 
 [[sec:command_line_executing_tasks]]
 == Executing tasks
 
-You can run a task and all of its <<sec:task_dependencies,dependencies>>.
+You can run a task and all of its <<tutorial_using_tasks#sec:task_dependencies,dependencies>>.
 ----
 ❯ gradle myTask
 ----
 
-You can learn about what projects and tasks are available in the <<sec:command_line_project_reporting, project reporting section>>.
+You can learn about what projects and tasks are available in the <<#sec:command_line_project_reporting, project reporting section>>.
 
 === Executing tasks in multi-project builds
 In a <<intro_multi_project_builds#, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
@@ -114,7 +114,7 @@ You can see that the `test` task is not executed, even though it is a dependency
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
 
-You can force Gradle to execute all tasks ignoring <<sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
+You can force Gradle to execute all tasks ignoring <<more_about_tasks#sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
 
 ----
 ❯ gradle test --rerun-tasks
@@ -244,7 +244,7 @@ Build scans give a full, visual report of what dependencies exist on which confi
 
 This will give you a link to a web-based report, where you can find dependency information like this.
 
-image::img/gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
+image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
 Learn more in <<inspecting_dependencies#,"Inspecting Dependencies">>.
 
@@ -277,11 +277,13 @@ Since a dependency report can get large, it can be useful to restrict the report
 
 Running `gradle properties` gives you a list of the properties of the selected project.
 
-++++
-<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
-    <output args="-q api:properties" ignoreExtraLines="true"/>
-</sample>
-++++
+=== Example: Information about properties
+
+.Output of `gradle -q api:properties`
+----
+> gradle -q api:properties
+include::{samples-path}/userguide/tutorial/projectReports/propertyListReport.out[]
+----
 
 === Software Model reports
 
@@ -291,7 +293,7 @@ You can get a hierarchical view of elements for <<software_model#,software model
 ❯ gradle model
 ----
 
-Learn more about <<model-report,the model report>> in the software model documentation.
+Learn more about <<software_model#model-report,the model report>> in the software model documentation.
 
 
 [[sec:command_line_completion]]
@@ -312,10 +314,10 @@ Shows a help message with all available CLI options.
 Prints Gradle, Groovy, Ant, JVM, and operating system version information.
 
 `-S`, `--full-stacktrace`::
-Print out the full (very verbose) stacktrace for any exceptions. See also <<sec:command_line_logging, logging options>>.
+Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec:command_line_logging, logging options>>.
 
 `-s`, `--stacktrace`::
-Print out the stacktrace also for user exceptions (e.g. compile error).  See also <<sec:command_line_logging, logging options>>.
+Print out the stacktrace also for user exceptions (e.g. compile error).  See also <<#sec:command_line_logging, logging options>>.
 
 `--scan`::
 Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.
@@ -330,19 +332,19 @@ Debug <<gradle_daemon#, Gradle Daemon>> process.
 == Performance options
 Try these options when optimizing build performance. Learn more about https://guides.gradle.org/performance/[improving performance of Gradle builds here].
 
-Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<sec:gradle_configuration_properties, configuring build environment guide>>.
+Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<build_environment#sec:gradle_configuration_properties, configuring build environment guide>>.
 
 `--build-cache`, `--no-build-cache`::
 Toggles the <<build_cache#, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
-Toggles <<sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
+Toggles <<multi_project_builds#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
 Sets maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
-Build projects in parallel. For limitations of this option please see <<sec:parallel_execution>>. _Default is off_.
+Build projects in parallel. For limitations of this option, see <<multi_project_builds#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
 
 `--profile`::
 Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
@@ -350,7 +352,7 @@ Generates a high-level performance report in the `$buildDir/reports/profile` dir
 `--scan`::
 Generate a build scan with detailed performance diagnostics.
 
-image:img/gradle-core-test-build-scan-performance.png[Build Scan performance report]
+image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
 === Gradle daemon options
 You can manage the <<gradle_daemon#,Gradle Daemon>> through the following command line options.
@@ -423,7 +425,7 @@ Deprecated Gradle features were used in this build, making it incompatible with 
 You can control the verbosity of warnings on the console with the following options:
 
 `-Dorg.gradle.warning.mode=(all,none,summary)`::
-Specify warning mode via <<sec:gradle_properties, Gradle properties>>. Different modes described immediately below.
+Specify warning mode via <<build_environment#sec:gradle_configuration_properties, Gradle properties>>. Different modes described immediately below.
 
 `--warning-mode=(all,none,summary)`::
 Specifies how to log warnings. Default is `summary`.
@@ -437,7 +439,7 @@ Set to `none` to suppress all warnings, including the summary at the end of the 
 === Rich Console
 Gradle's rich console displays extra information while builds are running.
 
-image::img/rich-cli.png[alt="Gradle Rich Console"]
+image::rich-cli.png[alt="Gradle Rich Console"]
 
 Features:
 
@@ -453,10 +455,10 @@ The following options affect how builds are executed, by changing what is built 
 Run the build as a composite, including the specified build. See <<composite_builds#, Composite Builds>>.
 
 `--offline`::
-Specifies that the build should operate without accessing network resources. Learn more about <<sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
+Specifies that the build should operate without accessing network resources. Learn more about <<troubleshooting_dependency_resolution#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
 `--refresh-dependencies`::
-Refresh the state of dependencies. Learn more about how to use this in the <<sec:controlling_dependency_caching_command_line,dependency management docs>>.
+Refresh the state of dependencies. Learn more about how to use this in the <<troubleshooting_dependency_resolution#sec:controlling_dependency_caching_command_line,dependency management docs>>.
 
 `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
@@ -492,13 +494,13 @@ Specifies the project-specific cache directory. Default value is `.gradle` in th
 Don't search in parent directories for a `settings.gradle` file.
 
 `-D`, `--system-prop`::
-Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_system_properties>>.
+Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<build_environment#sec:gradle_system_properties,System Properties>>.
 
 `-I`, `--init-script`::
 Specifies an initialization script. See <<init_scripts#,"Init Scripts">>.
 
 `-P`, `--project-prop`::
-Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<sec:project_properties>>.
+Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<build_environment#sec:project_properties,System Properties>>.
 
 `-Dorg.gradle.jvmargs`::
 Set JVM arguments.

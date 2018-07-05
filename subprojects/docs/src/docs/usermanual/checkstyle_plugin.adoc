@@ -40,40 +40,27 @@ Note that Checkstyle will run with the same Java version used to run Gradle.
 
 The Checkstyle plugin adds the following tasks to the project:
 
-.Checkstyle plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`checkstyleMain` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`::
+_Depends on_: `classes`
++
+Runs Checkstyle against the production Java source files.
 
-| `checkstyleMain`
-| `classes`
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`
-| Runs Checkstyle against the production Java source files.
+`checkstyleTest` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`::
+_Depends on_: `testClasses`
++
+Runs Checkstyle against the test Java source files.
 
-| `checkstyleTest`
-| `testClasses`
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`
-| Runs Checkstyle against the test Java source files.
+`checkstyle__SourceSet__` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`::
+_Depends on_: `__sourceSet__Classes`
++
+Runs Checkstyle against the given source set's Java source files.
 
-| `checkstyle__SourceSet__`
-| `__sourceSet__Classes`
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`
-| Runs Checkstyle against the given source set's Java source files.
-|===
+=== Dependencies added to other tasks
 
 The Checkstyle plugin adds the following dependencies to tasks defined by the Java plugin.
 
-.Checkstyle plugin - additional task dependencies
-[cols="a,a", options="header"]
-|===
-| Task name
-| Depends on
-| `check`
-| All Checkstyle tasks, including `checkstyleMain` and `checkstyleTest`.
-|===
+`check`::
+_Depends on_: All Checkstyle tasks, including `checkstyleMain` and `checkstyleTest`.
 
 
 [[sec:checkstyle_project_layout]]
@@ -81,18 +68,15 @@ The Checkstyle plugin adds the following dependencies to tasks defined by the Ja
 
 By default, the Checkstyle plugin expects configuration files to be placed in the root project, but this can be changed.
 
-.Checkstyle plugin - root project layout
-[cols="a,a", options="header"]
-|===
-| File
-| Meaning
-
-| `config/checkstyle`
-| Other Checkstyle configuration files (e.g., `suppressions.xml`)
-
-| `config/checkstyle/checkstyle.xml`
-| Checkstyle configuration file
-|===
+----
+<root>
+└── config
+    └── checkstyle           // <1>
+        └── checkstyle.xml   // <2>
+        └── suppressions.xml
+----
+<1> Checkstyle configuration files go here
+<2> Primary Checkstyle configuration file
 
 
 [[sec:checkstyle_dependency_management]]
