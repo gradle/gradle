@@ -57,9 +57,17 @@ class ApiExtensionsJarGenerator(
     fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
         compiler.compileToDirectory(
             outputDir,
-            listOf(builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir)),
+            gradleApiExtensionsSourceFilesFor(gradleJars, outputDir) +
+                builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir),
             classPath = gradleJars)
+        onProgress()
     }
+
+    private
+    fun gradleApiExtensionsSourceFilesFor(gradleJars: Iterable<File>, outputDir: File) =
+        writeGradleApiKotlinDslExtensionsTo(outputDir, gradleJars.toList()).also {
+            onProgress()
+        }
 
     private
     fun builtinPluginIdExtensionsSourceFileFor(gradleJars: Iterable<File>, outputDir: File) =

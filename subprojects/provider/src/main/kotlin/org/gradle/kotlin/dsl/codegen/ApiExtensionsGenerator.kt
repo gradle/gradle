@@ -53,7 +53,30 @@ fun generateKotlinDslApiExtensionsSourceTo(
     parameterNamesIndices: List<File>
 ): List<File> =
 
-    apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplierFor(parameterNamesIndices)).use { api ->
+    doGenerateKotlinDslApiExtensionsSourceTo(
+        outputDirectory,
+        packageName,
+        sourceFilesBaseName,
+        classPath,
+        classPathDependencies,
+        includes,
+        excludes,
+        parameterNamesSupplierFor(parameterNamesIndices))
+
+
+internal
+fun doGenerateKotlinDslApiExtensionsSourceTo(
+    outputDirectory: File,
+    packageName: String,
+    sourceFilesBaseName: String,
+    classPath: List<File>,
+    classPathDependencies: List<File>,
+    includes: List<String>,
+    excludes: List<String>,
+    parameterNamesSupplier: ParameterNamesSupplier
+): List<File> =
+
+    apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplier).use { api ->
 
         val extensionsPerTarget =
             kotlinDslApiExtensionsDeclarationsFor(api, apiSpecFor(includes, excludes)).groupedByTarget()
