@@ -19,7 +19,8 @@ import java.lang.annotation.*;
 
 /**
  * <p>Marks a task property as optional. This means that a value does not have to be specified for the property, but any
- * value specified must meet the validation constraints for the property.</p>
+ * value specified must meet the validation constraints for the property. When used with input files or directories,
+ * it is valid for the value to be specified even though it does not exist on disk.</p>
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>

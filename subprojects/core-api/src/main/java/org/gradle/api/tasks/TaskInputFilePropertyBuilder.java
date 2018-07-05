@@ -50,13 +50,15 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
-     * value specified must meet the validation constraints for the property.
+     * value specified must meet the validation constraints for the property. When used with input files or directories,
+     * it is valid for the value to be specified even though it does not exist on disk.
      */
     TaskInputFilePropertyBuilder optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
-     * specified for the property, but any value specified must meet the validation constraints for the property.
+     * specified for the property, but any value specified must meet the validation constraints for the property. Furthermore,
+     * when used with input files or directories, it is valid for the value to be specified even though it does not exist on disk.
      */
     TaskInputFilePropertyBuilder optional(boolean optional);
 
