@@ -217,9 +217,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private static ValidationAction wrapRuntimeApiValidator(final String method, final ValidationAction validator) {
         return new ValidationAction() {
             @Override
-            public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
                 try {
-                    validator.validate(propertyName, value, context, severity);
+                    validator.validate(propertyName, optional, value, context, severity);
                 } catch (UnsupportedNotationException ex) {
                     DeprecationLogger.nagUserOfDeprecated("Using TaskInputs." + method + "() with something that doesn't resolve to a File object", "Use TaskInputs.files() instead");
                 }
