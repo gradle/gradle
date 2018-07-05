@@ -117,21 +117,21 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
             val extensions = listOf(
                 "package org.gradle.kotlin.gradle.ext",
                 """
-                fun <S : T, T : Any> org.gradle.api.DomainObjectSet<T>.`withType`(`type`: kotlin.reflect.KClass<S>): org.gradle.api.DomainObjectSet<S> =
+                inline fun <S : T, T : Any> org.gradle.api.DomainObjectSet<T>.`withType`(`type`: kotlin.reflect.KClass<S>): org.gradle.api.DomainObjectSet<S> =
                     `withType`(`type`.java)
                 """,
                 """
-                fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<java.io.FilterReader>, vararg `properties`: Pair<String, *>): org.gradle.api.tasks.AbstractCopyTask =
+                inline fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<java.io.FilterReader>, vararg `properties`: Pair<String, *>): org.gradle.api.tasks.AbstractCopyTask =
                     `filter`(mapOf(*`properties`), `filterType`.java)
                 """,
                 """
                 @org.gradle.api.Incubating
-                fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, `configurationAction`: T.() -> Unit): org.gradle.api.tasks.TaskProvider<T> =
+                inline fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, noinline `configurationAction`: T.() -> Unit): org.gradle.api.tasks.TaskProvider<T> =
                     `register`(`name`, `type`.java, `configurationAction`)
                 """,
                 """
                 @Deprecated("Deprecated Gradle API")
-                fun org.gradle.api.file.FileCollection.`asType`(`type`: kotlin.reflect.KClass<*>): Any =
+                inline fun org.gradle.api.file.FileCollection.`asType`(`type`: kotlin.reflect.KClass<*>): Any =
                     `asType`(`type`.java)
                 """)
 

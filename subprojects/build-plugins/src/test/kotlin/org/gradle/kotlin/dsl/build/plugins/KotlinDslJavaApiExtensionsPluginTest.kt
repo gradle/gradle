@@ -149,67 +149,67 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
             val extensions = listOf(
                 "package org.gradle.kotlin.gradle.ext",
                 """
-                fun some.example.Some.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
+                inline fun some.example.Some.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
                     `rawClassTakingMethod`(`clazz`.java)
                 """,
                 """
-                fun some.example.Some.`typedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>): Unit =
+                inline fun some.example.Some.`typedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>): Unit =
                     `typedClassTakingMethod`(`clazz`.java)
                 """,
                 """
-                fun some.example.Some.`boundedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>): Unit =
+                inline fun some.example.Some.`boundedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>): Unit =
                     `boundedClassTakingMethod`(`clazz`.java)
                 """,
                 """
-                fun <T : Any> some.example.Some.`parameterizedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<T>): Unit =
+                inline fun <T : Any> some.example.Some.`parameterizedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<T>): Unit =
                     `parameterizedClassTakingMethod`(`clazz`.java)
                 """,
                 """
-                fun <T : some.example.Some> some.example.Some.`boundedParameterizedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<T>): Unit =
+                inline fun <T : some.example.Some> some.example.Some.`boundedParameterizedClassTakingMethod`(`clazz`: kotlin.reflect.KClass<T>): Unit =
                     `boundedParameterizedClassTakingMethod`(`clazz`.java)
                 """,
                 """
-                fun some.example.Some.`groovyNamedArgumentsRawMapTakingMethod`(vararg `args`: Pair<String, *>): String =
+                inline fun some.example.Some.`groovyNamedArgumentsRawMapTakingMethod`(vararg `args`: Pair<String, *>): String =
                     `groovyNamedArgumentsRawMapTakingMethod`(mapOf(*`args`))
                 """,
                 """
-                fun some.example.Some.`groovyNamedArgumentsUnboundedMapTakingMethod`(vararg `args`: Pair<String, *>): String =
+                inline fun some.example.Some.`groovyNamedArgumentsUnboundedMapTakingMethod`(vararg `args`: Pair<String, *>): String =
                     `groovyNamedArgumentsUnboundedMapTakingMethod`(mapOf(*`args`))
                 """,
                 """
-                fun some.example.Some.`groovyNamedArgumentsStringMapTakingMethod`(vararg `args`: Pair<String, *>): String =
+                inline fun some.example.Some.`groovyNamedArgumentsStringMapTakingMethod`(vararg `args`: Pair<String, *>): String =
                     `groovyNamedArgumentsStringMapTakingMethod`(mapOf(*`args`))
                 """,
                 """
-                fun some.example.Some.`groovyNamedArgumentsStringObjectMapTakingMethod`(vararg `args`: Pair<String, *>): String =
+                inline fun some.example.Some.`groovyNamedArgumentsStringObjectMapTakingMethod`(vararg `args`: Pair<String, *>): String =
                     `groovyNamedArgumentsStringObjectMapTakingMethod`(mapOf(*`args`))
                 """,
                 """
-                fun some.example.Some.`mapClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>, vararg `args`: Pair<String, *>): Unit =
+                inline fun some.example.Some.`mapClassTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>, vararg `args`: Pair<String, *>): Unit =
                     `mapClassTakingMethod`(mapOf(*`args`), `clazz`.java)
                 """,
                 """
-                fun some.example.Some.`mapClassActionTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>, vararg `args`: Pair<String, *>, `action`: some.example.Some.() -> Unit): Unit =
+                inline fun some.example.Some.`mapClassActionTakingMethod`(`clazz`: kotlin.reflect.KClass<some.example.Some>, vararg `args`: Pair<String, *>, noinline `action`: some.example.Some.() -> Unit): Unit =
                     `mapClassActionTakingMethod`(mapOf(*`args`), `clazz`.java, `action`)
                 """,
                 """
-                fun <T : some.example.Some> some.example.Generics<T>.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
+                inline fun <T : some.example.Some> some.example.Generics<T>.`rawClassTakingMethod`(`clazz`: kotlin.reflect.KClass<*>): Unit =
                     `rawClassTakingMethod`(`clazz`.java)
                 """,
                 """
                 @Deprecated("Deprecated Gradle API")
-                fun <T : some.example.Some> some.example.Generics<T>.`matching`(`specType`: kotlin.reflect.KClass<org.gradle.api.specs.Spec<T>>): some.example.Generics<T> =
+                inline fun <T : some.example.Some> some.example.Generics<T>.`matching`(`specType`: kotlin.reflect.KClass<org.gradle.api.specs.Spec<T>>): some.example.Generics<T> =
                     `matching`(`specType`.java)
                 """,
                 """
                 @Deprecated("Deprecated Gradle API")
                 @org.gradle.api.Incubating
-                fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, `action`: S.() -> Unit): some.example.Generics<S> =
+                inline fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, noinline `action`: S.() -> Unit): some.example.Generics<S> =
                     `withType`(`type`.java, `action`)
                 """,
                 """
                 @org.gradle.api.Incubating
-                fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, vararg `properties`: Pair<String, *>, `action`: S.() -> Unit): some.example.Generics<S> =
+                inline fun <S : T, T : some.example.Some> some.example.Generics<T>.`withType`(`type`: kotlin.reflect.KClass<S>, vararg `properties`: Pair<String, *>, noinline `action`: S.() -> Unit): some.example.Generics<S> =
                     `withType`(mapOf(*`properties`), `type`.java, `action`)
                 """)
 

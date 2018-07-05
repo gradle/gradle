@@ -285,7 +285,7 @@ data class KotlinExtensionFunction(
         """.trimIndent())
         if (isDeprecated) appendln("""@Deprecated("Deprecated Gradle API")""")
         if (isIncubating) appendln("@org.gradle.api.Incubating")
-        append("fun ")
+        append("inline fun ")
         if (typeParameters.isNotEmpty()) append("${typeParameters.joinInAngleBrackets { it.toTypeParameterString() }} ")
         append(targetType.sourceName)
         if (targetType.typeParameters.isNotEmpty()) append(targetType.typeParameters.toTypeArgumentsString(targetType))
@@ -307,7 +307,7 @@ data class KotlinExtensionFunction(
             list.mapIndexed { index, p ->
                 if (index == list.size - 1 && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
                 else if (index == list.size - 2 && list[index + 1].type.isGradleAction && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (p.type.isGradleAction) "`${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}.() -> Unit"
+                else if (p.type.isGradleAction) "noinline `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}.() -> Unit"
                 else "`${p.name}`: ${p.type.toTypeArgumentString()}"
             }.joinToString(separator = ", ")
         } ?: ""
