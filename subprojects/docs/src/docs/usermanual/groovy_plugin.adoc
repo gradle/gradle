@@ -83,14 +83,8 @@ The Groovy plugin adds the following dependencies to tasks added by the Java plu
 | `compile__SourceSet__Groovy`
 |===
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>Groovy plugin - tasks</title>
-            <imageobject>
-                <imagedata fileref="img/groovyPluginTasks.png"/>
-            </imageobject>
-        </figure>
-++++
+.Groovy plugin - tasks
+image::groovyPluginTasks.png[]
 
 
 [[sec:groovy_project_layout]]

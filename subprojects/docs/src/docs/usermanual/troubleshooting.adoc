@@ -79,14 +79,8 @@ Common dependency resolution issues such as resolving version conflicts are cove
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
-++++
-<figure>
-    <title>Debugging dependency conflicts with build scans</title>
-    <imageobject>
-        <imagedata fileref="img/troubleshooting-dependency-management-build-scan.png"/>
-    </imageobject>
-</figure>
-++++
+.Debugging dependency conflicts with build scans
+image::troubleshooting-dependency-management-build-scan.png[]
 
 The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
 
@@ -113,14 +107,8 @@ In addition, if you’ve adopted the Kotlin DSL, you can also debug build script
 
 The following video demonstrates how to debug an example build using IntelliJ IDEA.
 
-++++
-<figure>
-    <title>Interactive debugging of a build script</title>
-    <imageobject>
-        <imagedata fileref="img/remote-debug-gradle.gif"/>
-    </imageobject>
-</figure>
-++++
+.Interactive debugging of a build script
+image::remote-debug-gradle.gif[]
 
 [NOTE]
 You must either stop running Gradle Daemons or run with `--no-daemon` when using debug mode.
@@ -138,14 +126,8 @@ Additional logs from the <<gradle_daemon#,Gradle Daemon>> can be found under `GR
 
 `--info` logs explain why a task was executed, though build scans do this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
 
-++++
-<figure>
-    <title>Debugging incremental build with a build scan</title>
-    <imageobject>
-        <imagedata fileref="img/troubleshooting-task-execution-build-scan.png"/>
-    </imageobject>
-</figure>
-++++
+.Debugging incremental build with a build scan
+image::troubleshooting-task-execution-build-scan.png[]
 
 You can learn what the task outcomes mean from <<sec:task_outcomes,this listing>>.
 
@@ -162,27 +144,15 @@ See also more documentation on working with Gradle link:https://www.jetbrains.co
 
 From the main menu, go to `View` > `Tool Windows` > `Gradle`. Then click on the _Refresh_ icon.
 
-++++
-<figure>
-    <title>Refreshing a Gradle project in IntelliJ IDEA</title>
-    <imageobject>
-        <imagedata fileref="img/troubleshooting-refresh-intellij.png"/>
-    </imageobject>
-</figure>
-++++
+.Refreshing a Gradle project in IntelliJ IDEA
+image::troubleshooting-refresh-intellij.png[]
 
 === Refreshing Eclipse (using Buildship)
 
 If you're using link:https://projects.eclipse.org/projects/tools.buildship[Buildship] for the Eclipse IDE, you can re-synchronize your Gradle build by opening the "Gradle Tasks" view and clicking the "Refresh" icon, or by executing the `Gradle` > `Refresh Gradle Project` command from the context menu while editing a Gradle script.
 
-++++
-<figure>
-    <title>Refreshing a Gradle project in Eclipse Buildship</title>
-    <imageobject>
-        <imagedata fileref="img/troubleshooting-refresh-eclipse.png"/>
-    </imageobject>
-</figure>
-++++
+.Refreshing a Gradle project in Eclipse Buildship
+image::troubleshooting-refresh-eclipse.png[]
 
 == Getting additional help
 

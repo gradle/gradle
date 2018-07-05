@@ -20,14 +20,8 @@
 
 Nearly every Gradle user will experience the command-line interface at some point. Gradle's console output is optimized for rendering performance and usability, showing only relevant information and providing visually appealing feedback.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Gradle command-line in action</title>
-    <imageobject>
-        <imagedata fileref="img/console-animation.gif"/>
-    </imageobject>
-</figure>
-+++++
+.The Gradle command-line in action
+image::console-animation.gif[]
 
 == Command-line feedback
 
@@ -43,14 +37,8 @@ Gradle displays information while the build is running so you can concentrate on
 
 Output from build script log messages, tasks, forked processes, test output and compile warnings is displayed above the build progress bar.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Build output portion of the Gradle command-line</title>
-    <imageobject>
-        <imagedata fileref="img/console-build-output.jpg"/>
-    </imageobject>
-</figure>
-+++++
+.Build output portion of the Gradle command-line
+image::console-build-output.jpg[]
 
 Starting with Gradle 4.0, the volume of command-line console output has been reduced. The start and end of each task is not displayed anymore or the outcome of the task (e.g. `UP-TO-DATE`). The task's name is only displayed if some output is emitted during task execution. Gradle also groups output originating from a specific context together, e.g. all warnings from a compilation task, test execution or forked processes. Grouped output is especially useful for parallel task execution, as it prevents interleaved messages that do not clearly indicate their origin (see <<sec:parallel_execution>>).
 
@@ -90,14 +78,8 @@ Note: Recompile with -Xlint:deprecation for details.
 
 The build progress bar gives you a very fast way of knowing if the build will be finished soon. As the build performs work, the progress bar will fill from left to right. At any given time, the build progress bar also renders the current phase of the build lifecycle (see <<sec:build_phases>>) and the overall time spent during the build.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Build progress bar portion of the Gradle command-line</title>
-    <imageobject>
-        <imagedata fileref="img/console-build-progress-bar.jpg"/>
-    </imageobject>
-</figure>
-+++++
+.Build progress bar portion of the Gradle command-line
+image::console-build-progress-bar.jpg[]
 
 The following examples shows the progress bar during the initialization, configuration and execution phase of the build lifecycle:
 
@@ -112,14 +94,8 @@ The following examples shows the progress bar during the initialization, configu
 
 Gradle provides a fined-grained view of the actual work being performed directly underneath the <<sec:console_build_progress_bar,The build progress bar>>. Each line represents a thread or process that can perform work in parallel--resolving dependencies, executing a task and running tests. If an available worker is not being used then it is marked with `IDLE`. The number of available workers defaults to the number of processors on the machine executing the build.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Work in-progress portion of the Gradle command-line</title>
-    <imageobject>
-        <imagedata fileref="img/console-work-in-progress.jpg"/>
-    </imageobject>
-</figure>
-+++++
+.Work in-progress portion of the Gradle command-line
+image::console-work-in-progress.jpg[]
 
 NOTE: Parallel test execution is only displayed for JVM-based tests supported by Gradle core e.g. JUnit and TestNG. Future versions of Gradle might support other testing tools and frameworks.
 
@@ -142,14 +118,8 @@ The following portion of the console output shows the work in-progress display w
 
 At the end of the build, Gradle will display the result of the build (successful or failed) and the number of tasks that performed work and avoided work. The build result also displays the overall elapsed time it took to execute the build. The number of tasks that performed work provides an indication of how out-of-date or busy the build was.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Build progress bar portion of the Gradle command-line</title>
-    <imageobject>
-        <imagedata fileref="img/console-build-result.jpg"/>
-    </imageobject>
-</figure>
-+++++
+.Build progress bar portion of the Gradle command-line
+image::console-build-result.jpg[]
 
 The following build result represents a successful build and the amount of tasks including their statuses:
 

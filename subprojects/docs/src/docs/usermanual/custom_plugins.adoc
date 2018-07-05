@@ -58,12 +58,12 @@ include::{samples-path}/userguide/customPlugins/customPlugin/build.gradle[]
 include::{samples-path}/userguide/customPlugins/customPlugin/customPlugin.out[]
 ----
 
-One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[Plugin]` class is a generic type. This example has it receiving the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` type as a type parameter. A plugin can instead receive a parameter of type `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html[Settings]`, in which case the plugin can be applied in a settings script, or a parameter of type `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html[Gradle]`, in which case the plugin can be applied in an initialization script.
+One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[Plugin]` class is a generic type. This example has it receiving the `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` type as a type parameter. A plugin can instead receive a parameter of type `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html[Settings]`, in which case the plugin can be applied in a settings script, or a parameter of type `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html[Gradle]`, in which case the plugin can be applied in an initialization script.
 
 [[sec:getting_input_from_the_build]]
 == Making the plugin configurable
 
-Most plugins need to obtain some configuration from the build script. One method for doing this is to use _extension objects_. The Gradle `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` has an associated `link:{javadoc-path}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer]` object that contains all the settings and properties for the plugins that have been applied to the project. You can provide configuration for your plugin by adding an extension object to this container. An extension object is simply a Java Bean compliant class. Groovy is a good language choice to implement an extension object because plain old Groovy objects contain all the getter and setter methods that a Java Bean requires. Java and Kotlin are other good choices.
+Most plugins need to obtain some configuration from the build script. One method for doing this is to use _extension objects_. The Gradle `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` has an associated `link:{javadoc-path}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer]` object that contains all the settings and properties for the plugins that have been applied to the project. You can provide configuration for your plugin by adding an extension object to this container. An extension object is simply a Java Bean compliant class. Groovy is a good language choice to implement an extension object because plain old Groovy objects contain all the getter and setter methods that a Java Bean requires. Java and Kotlin are other good choices.
 
 Let's add a simple extension object to the project. Here we add a `greeting` extension object to the project, which allows you to configure the greeting.
 
@@ -215,7 +215,7 @@ include::{samples-path}/plugins/dsl/build.gradle[tag=use-community-plugin]
 [[sec:writing_tests_for_your_plugin]]
 === Writing tests for your plugin
 
-You can use the `link:{javadoc-path}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder]` class to create `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` instances to use when you test your plugin implementation.
+You can use the `link:{javadoc-path}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder]` class to create `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` instances to use when you test your plugin implementation.
 
 === Example: Testing a custom plugin
 

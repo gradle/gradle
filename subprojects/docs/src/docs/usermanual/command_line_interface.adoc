@@ -98,14 +98,8 @@ You can also specify multiple tasks. For example, the following will execute the
 === Excluding tasks from execution
 You can exclude a task from being executed using the `-x` or `--exclude-task` command-line option and providing the name of the task to exclude.
 
-++++
-<figure>
-    <title>Example Task Graph</title>
-    <imageobject>
-        <imagedata fileref="img/commandLineTutorialTasks.png"/>
-    </imageobject>
-</figure>
-++++
+.Example Task Graph
+image::commandLineTutorialTasks.png[]
 
 === Example: Excluding tasks
 
@@ -305,14 +299,8 @@ Learn more about <<model-report,the model report>> in the software model documen
 
 Gradle provides bash and zsh tab completion support for tasks, options, and Gradle properties through https://github.com/gradle/gradle-completion[gradle-completion], installed separately.
 
-++++
-<figure>
-    <title>Gradle Completion</title>
-    <imageobject>
-        <imagedata fileref="img/gradle-completion-4.0.gif"/>
-    </imageobject>
-</figure>
-++++
+.Gradle Completion
+image::gradle-completion-4.0.gif[]
 
 [[sec:command_line_debugging]]
 == Debugging options

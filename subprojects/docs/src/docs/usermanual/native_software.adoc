@@ -217,14 +217,8 @@ For each component defined, Gradle adds a `link:{javadoc-path}/org/gradle/langua
 Sometimes, you may need to _assemble_ (compile and link) or _build_ (compile, link and test) a component or binary and its _dependents_ (things that depend upon the component or binary). The native software model provides tasks that enable this capability. First, the _dependent components_ report gives insight about the relationships between each component. Second, the _build and assemble dependents_ tasks allow you to assemble or build a component and its dependents in one step.
 
 In the following example, the build file defines `OpenSSL` as a dependency of `libUtil` and `libUtil` as a dependency of `LinuxApp` and `WindowsApp`. Test suites are treated similarly. Dependents can be thought of as reverse dependencies.
-++++
-<figure>
-                <title>Dependent Components Example</title>
-                <imageobject>
-                    <imagedata fileref="img/nativeDependents.png"/>
-                </imageobject>
-            </figure>
-++++
+.Dependent Components Example
+image::nativeDependents.png[]
 
 [NOTE]
 ====

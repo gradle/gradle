@@ -209,7 +209,7 @@ To define a multi-project build, you need to create a _settings file_. The setti
 include::{samples-path}/java/multiproject/settings.gradle[tag=include-projects]
 ----
 
-You can find out more about the settings file in <<multi_project_builds#,"Multi-Project Builds">>.
+You can find out more about the settings file in <<multi_project_builds#,Authoring Multi-Project Builds>>.
 
 [[sec:common_configuration]]
 === Common configuration

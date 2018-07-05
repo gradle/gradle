@@ -69,7 +69,7 @@ The project report plugin defines the following tasks:
 
 |  `projectReport`
 |  `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Generates all project reports.
 |===
 

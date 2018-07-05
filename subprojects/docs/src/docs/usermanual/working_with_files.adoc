@@ -98,14 +98,8 @@ include::{samples-path}/userguide/files/copy/build.gradle[tag=copy-multiple-file
 
 One thing to note, as demonstrated in the following diagram, is that only the PDFs that reside directly in the `reports` directory are copied:
 
-++++
-<figure>
-    <title>The effect of a flat filter on copying</title>
-    <imageobject>
-        <imagedata fileref="img/copy-with-flat-filter-example.png" width="170mm"/>
-    </imageobject>
-</figure>
-++++
+.The effect of a flat filter on copying
+image::copy-with-flat-filter-example.png[]
 
 You can include files in subdirectories by using an Ant-style glob pattern (`\**/*`), as done in this updated example:
 
@@ -119,14 +113,8 @@ include::{samples-path}/userguide/files/copy/build.gradle[tag=copy-multiple-file
 
 This task has the following effect:
 
-++++
-<figure>
-    <title>The effect of a deep filter on copying</title>
-    <imageobject>
-        <imagedata fileref="img/copy-with-deep-filter-example.png" width="170mm"/>
-    </imageobject>
-</figure>
-++++
+.The effect of a deep filter on copying
+image::copy-with-deep-filter-example.png[]
 
 One thing to bear in mind is that a deep filter like this has the side effect of copying the directory structure below `reports` as well as the files. If you just want to copy the files without the directory structure, you need to use an explicit `fileTree(_dir_) { _includes_ }.files` expression. We talk more about the difference between file trees and file collections in the _<<sec:file_trees,File trees>>_ section.
 
@@ -463,14 +451,8 @@ If `collection` changes at any time, either by adding or removing files from its
 
 A _file tree_ is a file collection that retains the directory structure of the files it contains and has the type `link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]`. This means that all the paths in a file tree must have a shared parent directory. The following diagram highlights the distinction between file trees and file collections in the common case of copying files:
 
-++++
-<figure>
-    <title>The differences in how file trees and file collections behave when copying files</title>
-    <imageobject>
-        <imagedata fileref="img/file-collection-vs-file-tree.png" width="160mm"/>
-    </imageobject>
-</figure>
-++++
+.The differences in how file trees and file collections behave when copying files
+image::file-collection-vs-file-tree.png[]
 
 NOTE: Although `FileTree` extends `FileCollection` (an is-a relationship), their behaviors do differ. In other words, you can use a file tree wherever a file collection is required, but remember: a file collection is a flat list/set of files, while a file tree is a file and directory hierarchy. To convert a file tree to a flat collection, use the api:org.gradle.api.file.FileTree#getFiles()[] property.
 
@@ -752,14 +734,8 @@ In this case, we assign the copy configuration to its own variable and apply it 
 
 If you only use a single copy spec, the file filtering and renaming will apply to _all_ the files that are copied. Sometimes this is what you want, but not always. Consider the following example that copies files into a directory structure that can be used by a Java Servlet container to deliver a website:
 
-++++
-<figure>
-    <title>Creating an exploded WAR for a Servlet container</title>
-    <imageobject>
-        <imagedata fileref="img/exploded-war-child-copy-spec-example.png" width="160mm"/>
-    </imageobject>
-</figure>
-++++
+.Creating an exploded WAR for a Servlet container
+image::exploded-war-child-copy-spec-example.png[]
 
 This is not a straightforward copy as the `WEB-INF` directory and its subdirectories don't exist within the project, so they must be created during the copy. In addition, we only want HTML and image files going directly into the root folder — `build/explodedWar` — and only JavaScript files going into the `js` directory. So we need separate filter patterns for those two sets of files.
 

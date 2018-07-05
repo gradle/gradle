@@ -53,10 +53,10 @@ The Distribution Plugin adds a number of tasks to your project, as shown below.
 `distZip` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`::
 Creates a ZIP archive of the distribution contents.
 
-`distTar` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`::
+`distTar` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
 Creates a TAR archive of the distribution contents.
 
-`assembleDist` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`::
+`assembleDist` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
 _Depends on_: `distTar`, `distZip`
 +
 Creates ZIP and TAR archives of the distribution contents.
@@ -72,7 +72,7 @@ Creates a ZIP archive of the distribution contents.
 `__distributionName__DistTar` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`::
 Creates a TAR archive of the distribution contents.
 
-`assemble__DistributionName__Dist` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`::
+`assemble__DistributionName__Dist` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
 _Depends on_: `__distributionName__DistTar`, `__distributionName__DistZip`
 +
 Creates ZIP and TAR archives of the distribution contents.

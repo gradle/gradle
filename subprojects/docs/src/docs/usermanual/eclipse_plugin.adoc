@@ -92,7 +92,7 @@ The Eclipse plugins add the tasks shown below to a project.
 
 | `eclipse`
 | all Eclipse configuration file generation tasks
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Generates all Eclipse configuration files
 
 | `cleanEclipse`

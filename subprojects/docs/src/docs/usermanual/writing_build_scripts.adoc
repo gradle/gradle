@@ -27,13 +27,13 @@ A build script can contain any Groovy language element.footnote:[Any language el
 [[sec:project_api]]
 == The Project API
 
-In <<tutorial_java_projects#,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
+In <<tutorial_java_projects#,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
 
 [TIP]
 .Getting help writing build scripts
 ====
 
-Don't forget that your build script is simply Groovy code that drives the Gradle API. And the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
+Don't forget that your build script is simply Groovy code that drives the Gradle API. And the `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
 
 ====
 
@@ -71,7 +71,7 @@ The `Project` object provides some standard properties, which are available in y
 | Default Value
 
 | `project`
-| `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]`
+| `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]`
 | The `Project` instance
 
 | `name`

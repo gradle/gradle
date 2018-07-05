@@ -46,7 +46,7 @@ A plugin often starts out as a script plugin (because they are easy to write) an
 [[sec:using_plugins]]
 == Using plugins
 
-To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the target, usually a `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]`.
+To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the target, usually a `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]`.
 
 _Resolving_ a plugin means finding the correct version of the jar which contains a given plugin and adding it the script classpath. Once a plugin is resolved, its API can be used in a build script. Script plugins are self-resolving in that they are resolved from the specific file path or URL provided when applying them. Core binary plugins provided as part of the Gradle distribution are automatically resolved.
 

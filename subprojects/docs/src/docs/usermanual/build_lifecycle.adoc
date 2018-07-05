@@ -19,19 +19,17 @@ We said earlier that the core of Gradle is a language for dependency based progr
 
 Your build scripts configure this dependency graph. Therefore they are strictly speaking _build configuration scripts_.
 
-
 [[sec:build_phases]]
 == Build phases
 
 A Gradle build has three distinct phases.
 
 Initialization::
-Gradle supports single and multi-project builds. During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` instance for each of these projects.
+Gradle supports single and multi-project builds. During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` instance for each of these projects.
 Configuration::
-During this phase the project objects are configured. The build scripts of _all_ projects which are part of the build are executed. Gradle 1.4 introduced an <<feature_lifecycle#,incubating>> opt-in feature called _configuration on demand_. In this mode, Gradle configures only relevant projects (see <<sec:configuration_on_demand>>).
+During this phase the project objects are configured. The build scripts of _all_ projects which are part of the build are executed.
 Execution::
 Gradle determines the subset of the tasks, created and configured during the configuration phase, to be executed. The subset is determined by the task name arguments passed to the `gradle` command and the current directory. Gradle then executes each of the selected tasks.
-
 
 
 [[sec:settings_file]]
@@ -39,22 +37,34 @@ Gradle determines the subset of the tasks, created and configured during the con
 
 Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is `settings.gradle`. Later in this chapter we explain how Gradle looks for a settings file.
 
-The settings file is executed during the initialization phase. A multiproject build must have a `settings.gradle` file in the root project of the multiproject hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds#,"Multi-Project Builds">>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects#,"Organizing Gradle Projects">>). Let's first do some introspection with a single project build:
+The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds#,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects#,"Organizing Gradle Projects">>). Let's first do some introspection with a single project build:
 
-++++
-<sample id="buildlifecycle" dir="userguide/buildlifecycle/basic" title="Single project build">
-            <sourcefile file="settings.gradle"/>
-            <sourcefile file="build.gradle"/>
-            <output args="test testBoth"/>
-        </sample>
-++++
+=== Example: Single project build
+
+[source.multi-language-sample,groovy]
+.settings.gradle
+----
+include::{samples-path}/userguide/buildlifecycle/basic/settings.gradle[]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/buildlifecycle/basic/build.gradle[]
+----
+
+.Output of `gradle test testBoth`
+----
+> gradle test testBoth
+include::{samples-path}/userguide/buildlifecycle/basic/buildlifecycle.out[]
+----
 
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Look at the `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html[Settings]` class in the API documentation for more information.
 
 [[sec:multi_project_builds]]
 == Multi-project builds
 
-A multi-project build is a build where you build more than one project during a single execution of Gradle. You have to declare the projects taking part in the multiproject build in the settings file. There is much more to say about multi-project builds in the chapter dedicated to this topic (see <<multi_project_builds#,"Multi-Project Builds">>).
+A multi-project build is a build where you build more than one project during a single execution of Gradle. You have to declare the projects taking part in the multi-project build in the settings file. There is much more to say about multi-project builds in the chapter dedicated to this topic (see <<multi_project_builds#,Authoring Multi-Project Builds>>).
 
 
 [[sub:project_locations]]
@@ -81,7 +91,7 @@ include::{samples-path}/userguide/multiproject/standardLayouts/settings.gradle[t
 ----
 
 The `include` method takes project paths as arguments. The project path is assumed to be equal to the relative physical file system path. For example, a path 'services:api' is mapped by default to a folder 'services/api' (relative from the project root). You only need to specify the leaves of the tree. This means that the inclusion of the path 'services:hotels:api' will result in creating 3 projects: 'services', 'services:hotels' and 'services:hotels:api'.
-More examples of how to work with the project path can be found in the DSL documentation of api:org.gradle.api.initialization.Settings#include(java.lang.String...)[].
+More examples of how to work with the project path can be found in the DSL documentation of `link:{groovy-dsl-path}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])]`.
 
 [[sec:flat_layouts]]
 ==== Flat layouts
@@ -125,26 +135,26 @@ Look at the `link:{javadoc-path}/org/gradle/api/initialization/ProjectDescriptor
 [[sec:initialization]]
 == Initialization
 
-How does Gradle know whether to do a single or multiproject build? If you trigger a multiproject build from a directory with a settings file, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multiproject builds (see <<multi_project_builds#,"Multi-Project Builds">>).] If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
+How does Gradle know whether to do a single or multi-project build? If you trigger a multi-project build from a directory with a settings file, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<multi_project_builds#,Authoring Multi-Project Builds>>).] If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
 
 * It looks in a directory called `master` which has the same nesting level as the current dir.
 * If not found yet, it searches parent directories.
 * If not found yet, the build is executed as a single project build.
-* If a `settings.gradle` file is found, Gradle checks if the current project is part of the multiproject hierarchy defined in the found `settings.gradle` file. If not, the build is executed as a single project build. Otherwise a multiproject build is executed.
+* If a `settings.gradle` file is found, Gradle checks if the current project is part of the multi-project hierarchy defined in the found `settings.gradle` file. If not, the build is executed as a single project build. Otherwise a multi-project build is executed.
 
-What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multiproject build or not. Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multiproject build (see <<multi_project_builds#,"Multi-Project Builds">>). You can use the `-u` command line option to tell Gradle not to look in the parent hierarchy for a `settings.gradle` file. The current project is then always built as a single project build. If the current project contains a `settings.gradle` file, the `-u` option has no meaning. Such a build is always executed as:
+What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multi-project build or not. Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multi-project build (see <<multi_project_builds#,Authoring Multi-Project Builds>>). You can use the `-u` command line option to tell Gradle not to look in the parent hierarchy for a `settings.gradle` file. The current project is then always built as a single project build. If the current project contains a `settings.gradle` file, the `-u` option has no meaning. Such a build is always executed as:
 
-* a single project build, if the `settings.gradle` file does not define a multiproject hierarchy
-* a multiproject build, if the `settings.gradle` file does define a multiproject hierarchy.
+* a single project build, if the `settings.gradle` file does not define a multi-project hierarchy
+* a multi-project build, if the `settings.gradle` file does define a multi-project hierarchy.
 
-The automatic search for a `settings.gradle` file only works for multi-project builds with a physical hierarchical or flat layout. For a flat layout you must additionally follow the naming convention described above (“`master`”). Gradle supports arbitrary physical layouts for a multiproject build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located. For information on how to run partial builds from the root see <<sec:running_partial_build_from_the_root>>.
+The automatic search for a `settings.gradle` file only works for multi-project builds with a physical hierarchical or flat layout. For a flat layout you must additionally follow the naming convention described above (“`master`”). Gradle supports arbitrary physical layouts for a multi-project build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located. For information on how to run partial builds from the root, see <<multi_project_builds#sec:running_partial_build_from_the_root, "Running tasks by their absolute path">>.
 
 Gradle creates a Project object for every project taking part in the build. For a multi-project build these are the projects specified in the Settings object (plus the root project). Each project object has by default a name equal to the name of its top level directory, and every project except the root project has a parent project. Any project may have child projects.
 
 [[sec:configuration_and_execution_of_a_single_project_build]]
 == Configuration and execution of a single project build
 
-For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_builds#,"Multi-Project Builds">>.
+For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_builds#,Authoring Multi-Project Builds>>.
 
 [[build_lifecycle_events]]
 == Responding to the lifecycle in the build script
@@ -159,13 +169,25 @@ You can receive a notification immediately before and after a project is evaluat
 
 Below is an example which adds a `test` task to each project which has a `hasTests` property value of true.
 
-++++
-<sample id="projectEvaluateEvents" dir="userguide/buildlifecycle/projectEvaluateEvents" title="Adding of test task to each project which has certain property set">
-                <sourcefile file="build.gradle" snippet="after-evaluate"/>
-                <sourcefile file="projectA.gradle"/>
-                <output args="-q test"/>
-            </sample>
-++++
+=== Example: Adding of test task to each project which has certain property set
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/buildlifecycle/projectEvaluateEvents/build.gradle[tag=after-evaluate]
+----
+
+[source.multi-language-sample,groovy]
+.projectA.gradle
+----
+include::{samples-path}/userguide/buildlifecycle/projectEvaluateEvents/projectA.gradle[]
+----
+
+.Output of `gradle -q test`
+----
+> gradle -q test
+include::{samples-path}/userguide/buildlifecycle/projectEvaluateEvents/projectEvaluateEvents.out[]
+----
 
 This example uses method `Project.afterEvaluate()` to add a closure which is executed after the project is evaluated.
 
@@ -213,7 +235,7 @@ You can also add an `link:{javadoc-path}/org/gradle/api/Action.html[Action]` to 
 [[sec:task_execution_graph_ready]]
 === Task execution graph ready
 
-You can receive a notification immediately after the task execution graph has been populated. We have seen this already in <<configure-by-dag>>.
+You can receive a notification immediately after the task execution graph has been populated (See <<tutorial_using_tasks#configure-by-dag,Configure by DAG>>).
 
 You can also add a `link:{javadoc-path}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener]` to the `link:{javadoc-path}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph]` to receive these events.
 

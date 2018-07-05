@@ -53,14 +53,8 @@ _Depends on_: `war`
 
 The War plugin adds the following dependencies to tasks added by the Java plugin;
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>War plugin - tasks</title>
-    <imageobject>
-        <imagedata fileref="img/warPluginTasks.png"/>
-    </imageobject>
-</figure>
-++++
+.War plugin - tasks
+image::warPluginTasks.png[]
 
 [[sec:war_dependency_management]]
 == Dependency management

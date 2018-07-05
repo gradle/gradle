@@ -243,7 +243,7 @@ Compiles the given source set's Java source files using the JDK compiler.
 `process__SourceSet__Resources` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`::
 Copies the given source set's resources into the resources directory.
 
-`__sourceSet__Classes` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`::
+`__sourceSet__Classes` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
 _Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
 +
 Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
@@ -289,14 +289,8 @@ Assembles and uploads the artifacts in the specified configuration. This rule is
 
 The following diagram shows the relationships between these tasks.
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Java plugin - tasks</title>
-    <imageobject>
-        <imagedata fileref="img/javaPluginTasks.png"/>
-    </imageobject>
-</figure>
-++++
+.Java plugin - tasks
+image::javaPluginTasks.png[]
 
 
 
@@ -366,14 +360,8 @@ Artifacts (e.g. jars) produced by this project. Used by tasks `uploadArchives`.
 `default` extends `runtime`::
 The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Java plugin - dependency configurations</title>
-    <imageobject>
-        <imagedata fileref="img/javaPluginConfigurations.png"/>
-    </imageobject>
-</figure>
-++++
+.Java plugin - dependency configurations
+image::javaPluginConfigurations.png[]
 
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
 

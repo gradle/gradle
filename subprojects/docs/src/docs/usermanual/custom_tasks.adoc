@@ -127,7 +127,7 @@ include::{samples-path}/customPlugin/consumer/build.gradle[tag=use-task]
 [[sec:writing_tests_for_your_task_class]]
 === Writing tests for your task class
 
-You can use the `link:{javadoc-path}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder]` class to create `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project.html[Project]` instances to use when you test your task class.
+You can use the `link:{javadoc-path}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder]` class to create `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` instances to use when you test your task class.
 
 === Example: Testing a custom task
 

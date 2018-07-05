@@ -913,6 +913,12 @@ table.tableblock > .title,
     font-family: inherit;
 }
 
+.imageblock,
+.videoblock {
+    border: 1px solid #e5e5e5;
+    padding: 0.75em;
+}
+
 p.lead,
 .paragraph.lead > p,
 #preamble > .sectionbody > .paragraph:first-of-type p {

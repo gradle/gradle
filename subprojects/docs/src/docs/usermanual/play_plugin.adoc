@@ -55,14 +55,8 @@ The Play plugin currently has a few limitations.
 
 The Play plugin uses a _software model_ to describe a Play application and how to build it. The Play software model extends the base Gradle <<software_model_concepts#,software model>> to add support for building Play applications. A Play application is represented by a `link:{javadoc-path}/org/gradle/play/PlayApplicationSpec.html[PlayApplicationSpec]` component type. The plugin automatically creates a single `link:{javadoc-path}/org/gradle/play/PlayApplicationBinarySpec.html[PlayApplicationBinarySpec]` instance when it is applied. Additional Play components cannot be added to a project.
 
-++++
-<figure>
-    <title>Play plugin - software model</title>
-    <imageobject>
-        <imagedata fileref="img/playPluginModel.png"/>
-    </imageobject>
-</figure>
-++++
+.Play plugin - software model
+image::playPluginModel.png[]
 
 
 [[sec:the_play_application_component]]
@@ -156,17 +150,17 @@ The Play plugin hooks into the normal Gradle lifecycle tasks such as `assemble`,
 
 | `playBinary`
 | All compile tasks for source sets added to the Play application.
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Performs a build of just the Play application.
 
 | `dist`
 | `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Assembles the Play distribution.
 
 | `stage`
 | `stagePlayBinaryDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Stages the Play distribution.
 |===
 
@@ -472,12 +466,12 @@ The distribution can be created by running the `dist` lifecycle task and places 
 
 | `stage`
 | `stagePlayBinaryDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Lifecycle task for staging a Play distribution.
 
 | `dist`
 | `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]`
+| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Lifecycle task for creating a Play distribution.
 |===
 

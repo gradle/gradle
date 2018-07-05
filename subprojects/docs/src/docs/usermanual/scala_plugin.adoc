@@ -83,14 +83,8 @@ The Scala plugin adds the following dependencies to tasks added by the Java plug
 |  `compile__SourceSet__Scala`
 |===
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>Scala plugin - tasks</title>
-            <imageobject>
-                <imagedata fileref="img/scalaPluginTasks.png"/>
-            </imageobject>
-        </figure>
-++++
+.Scala plugin - tasks
+image::scalaPluginTasks.png[]
 
 
 [[sec:scala_project_layout]]

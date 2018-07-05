@@ -29,14 +29,8 @@ NOTE: Looking for information on upload tasks and the `archives` configuration? 
 
 Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the <<publishing_maven#,Maven Publish Plugin>> and the <<publishing_ivy#,Ivy Publish Plugin>>. These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
 
-++++
-<figure>
-    <title>The publishing process</title>
-    <imageobject>
-        <imagedata fileref="img/publishing-process.png" width="170mm"/>
-    </imageobject>
-</figure>
-++++
+.The publishing process
+image::publishing-process.png[]
 
 Let's take a look at those steps in more detail:
 

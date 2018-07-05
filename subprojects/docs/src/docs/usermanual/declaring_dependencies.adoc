@@ -143,7 +143,7 @@ Alternatively, you can also define the source directory of one or many file depe
 
 Software projects often break up software components into modules to improve maintainability and prevent strong coupling. Modules can define dependencies between each other to reuse code within the same project.
 
-Gradle can model dependencies between modules. Those dependencies are called _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. The chapter <<multi_project_builds#,"Multi-Project Builds">> discusses how to set up and configure multi-project builds in more detail.
+Gradle can model dependencies between modules. Those dependencies are called _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. The chapter <<multi_project_builds#,Authoring Multi-Project Builds>> discusses how to set up and configure multi-project builds in more detail.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">

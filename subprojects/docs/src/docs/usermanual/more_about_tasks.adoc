@@ -301,7 +301,7 @@ include::{samples-path}/userguide/tasks/addDependencyUsingClosure/build.gradle[]
 include::{samples-path}/userguide/tasks/addDependencyUsingClosure/addDependencyUsingClosure.out[]
 ----
 
-For more information about task dependencies, see the `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task.html[Task]` API.
+For more information about task dependencies, see the `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]` API.
 
 [[sec:ordering_tasks]]
 == Ordering tasks
@@ -505,14 +505,8 @@ How does incremental build work? And what does it take to make use of it in your
 
 In the most common case, a task takes some inputs and generates some outputs. If we use the compilation example from earlier, we can see that the source files are the inputs and, in the case of Java, the generated class files are the outputs. Other inputs might include things like whether debug information should be included.
 
-++++
-<figure>
-                <title>Example task inputs and outputs</title>
-                <imageobject>
-                    <imagedata fileref="img/taskInputsOutputs.png" width="160mm"/>
-                </imageobject>
-            </figure>
-++++
+.Example task inputs and outputs
+image::taskInputsOutputs.png[]
 
 An important characteristic of an input is that it affects one or more outputs, as you can see from the previous figure. Different bytecode is generated depending on the content of the source files and the minimum version of the Java runtime you want to run the code on. That makes them task inputs. But whether compilation has 500MB or 600MB of maximum memory available, determined by the `memoryMaximumSize` property, has no impact on what bytecode gets generated. In Gradle terminology, `memoryMaximumSize` is just an internal task property.
 
