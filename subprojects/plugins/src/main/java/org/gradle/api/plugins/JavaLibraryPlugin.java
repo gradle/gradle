@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.inject.Inject;
@@ -53,13 +54,13 @@ public class JavaLibraryPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        JavaPluginConvention convention = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
+        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
-        addApiToMainSourceSet(project, convention, configurations);
+        addApiToMainSourceSet(project, sourceSets, configurations);
     }
 
-    private void addApiToMainSourceSet(Project project, JavaPluginConvention convention, ConfigurationContainer configurations) {
-        SourceSet sourceSet = convention.getSourceSets().getByName("main");
+    private void addApiToMainSourceSet(Project project, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+        SourceSet sourceSet = sourceSets.getByName("main");
 
         Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
         apiConfiguration.setVisible(false);

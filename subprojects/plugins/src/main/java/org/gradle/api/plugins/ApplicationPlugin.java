@@ -27,6 +27,7 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.Sync;
@@ -106,6 +107,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         pluginConvention = new ApplicationPluginConvention(project);
         pluginConvention.setApplicationName(project.getName());
         project.getConvention().getPlugins().put("application", pluginConvention);
+        project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }
 
     private void addRunTask() {
