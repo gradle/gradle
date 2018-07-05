@@ -30,7 +30,7 @@ class FeatureUsageTest extends Specification {
     @Unroll
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {
         expect:
-        !usage.stack.empty
+        !usxage.stack.empty
         usage.message == expectedMessage
 
         def stackTraceRoot = usage.stack[0]

@@ -35,6 +35,30 @@ import org.gradle.api.Action;
  */
 @ThreadSafe
 public interface BuildOperationExecutor {
+    BuildOperationExecutor NOOP = new BuildOperationExecutor() {
+        @Override
+        public void run(RunnableBuildOperation buildOperation) {
+        }
+
+        @Override
+        public <T> T call(CallableBuildOperation<T> buildOperation) {
+            return null;
+        }
+
+        @Override
+        public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
+        }
+
+        @Override
+        public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
+        }
+
+        @Override
+        public BuildOperationRef getCurrentOperation() {
+            return null;
+        }
+    };
+
     /**
      * Runs the given build operation synchronously. Invokes the given operation from the current thread.
      *

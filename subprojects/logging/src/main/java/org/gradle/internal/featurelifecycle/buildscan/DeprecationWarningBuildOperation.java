@@ -44,7 +44,7 @@ public class DeprecationWarningBuildOperation implements RunnableBuildOperation 
 
                 @Override
                 public List<StackTraceElement> getStackTrace() {
-                    return usage.getStack();
+                    return usage.withStackTrace().getStack();
                 }
             });
     }

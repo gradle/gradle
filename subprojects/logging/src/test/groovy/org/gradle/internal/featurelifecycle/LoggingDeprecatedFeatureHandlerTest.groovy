@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
@@ -35,10 +36,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
-    final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
+    final handler = new LoggingDeprecatedFeatureHandler()
+    final TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
 
     def setup() {
-        handler.init(locationReporter, WarningMode.All)
+        handler.init(locationReporter, WarningMode.All, buildOperationExecutor)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -71,7 +73,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def "no warnings should be displayed in #mode"() {
         when:
-        handler.init(locationReporter, type)
+        handler.init(locationReporter, type, buildOperationExecutor)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
@@ -353,7 +355,40 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
+    @Unroll
+    def 'deprecation warnings are exposed as build operation'() {
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+
+        then:
+        def operations = buildOperationExecutor.log.records
+        operations.size() == 3
+
+        and:
+        operations[0].descriptor.details.message == 'feature1'
+        operations[0].descriptor.details.stackTrace.size() > 0
+        operations[1].descriptor.details.message == 'feature2'
+        operations[1].descriptor.details.stackTrace.size() > 0
+        operations[2].descriptor.details.message == 'feature2'
+        operations[2].descriptor.details.stackTrace.size() > 0
+
+    }
+
     private static FeatureUsage deprecatedFeatureUsage(String message) {
         new FeatureUsage(message, LoggingDeprecatedFeatureHandlerTest)
+    }
+
+    private static class FeatureUsageSource {
+        private FeatureHandler handler
+
+        FeatureUsageSource(FeatureHandler handler) {
+            this.handler = handler
+        }
+
+        def featureUsed(String message) {
+            return handler.featureUsed(new FeatureUsage(message, FeatureUsageSource))
+        }
     }
 }

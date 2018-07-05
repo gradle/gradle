@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.gradle.internal.operations.BuildOperationExecutor.NOOP;
+
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     public static final String WARNING_SUMMARY = "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
@@ -50,11 +52,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private WarningMode warningMode;
 
     public LoggingDeprecatedFeatureHandler() {
-        this(DoNothingReporter.INSTANCE);
+        this(DoNothingReporter.INSTANCE, NOOP);
     }
 
-    public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter) {
+    public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter, BuildOperationExecutor executor) {
         this.locationReporter = locationReporter;
+        this.buildOperationExecutor = executor;
     }
 
     public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationExecutor buildOperationExecutor) {
