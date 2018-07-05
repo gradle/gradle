@@ -17,8 +17,14 @@
 package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
+import org.hamcrest.CoreMatchers.allOf
+import org.junit.Assert.assertThat
+import org.junit.Assert.assertTrue
 import org.junit.Test
+
+import java.util.jar.JarFile
 
 
 class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
@@ -117,5 +123,58 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
         """)
 
         build("foo")
+    }
+
+    @Test
+    fun `generated jar contains Gradle API extensions sources and byte code`() {
+
+        withBuildScript("")
+
+        build("help", "-g", "guh")
+
+        val generatedJar = existing("guh/caches")
+            .listFiles { f -> f.isDirectory && f.name[0].isDigit() }.single()
+            .resolve("generated-gradle-jars")
+            .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }.single()
+
+        val (generatedSources, generatedClasses) = JarFile(generatedJar)
+            .use { it.entries().toList().map { it.name } }
+            .filter { it.startsWith("org/gradle/kotlin/gradle/ext/GradleApiKotlinDslExtensions") }
+            .groupBy { it.substring(it.lastIndexOf('.')) }
+            .let { it[".kt"]!! to it[".class"]!! }
+
+        assertTrue(generatedSources.isNotEmpty())
+        assertTrue(generatedClasses.size > generatedSources.size)
+
+        val generatedSourceCode = JarFile(generatedJar).use { jar ->
+            generatedSources.joinToString("\n") { name ->
+                jar.getInputStream(jar.getJarEntry(name)).bufferedReader().readText()
+            }
+        }
+
+        val extensions = listOf(
+            "package org.gradle.kotlin.gradle.ext",
+            """
+            inline fun <S : T, T : Any> org.gradle.api.DomainObjectSet<T>.`withType`(`type`: kotlin.reflect.KClass<S>): org.gradle.api.DomainObjectSet<S> =
+                `withType`(`type`.java)
+            """,
+            """
+            inline fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<java.io.FilterReader>, vararg `properties`: Pair<String, *>): org.gradle.api.tasks.AbstractCopyTask =
+                `filter`(mapOf(*`properties`), `filterType`.java)
+            """,
+            """
+            @org.gradle.api.Incubating
+            inline fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, noinline `configurationAction`: T.() -> Unit): org.gradle.api.tasks.TaskProvider<T> =
+                `register`(`name`, `type`.java, `configurationAction`)
+            """,
+            """
+            @Deprecated("Deprecated Gradle API")
+            inline fun org.gradle.api.file.FileCollection.`asType`(`type`: kotlin.reflect.KClass<*>): Any =
+                `asType`(`type`.java)
+            """)
+
+        assertThat(
+            generatedSourceCode,
+            allOf(extensions.map { containsMultiLineString(it) }))
     }
 }
