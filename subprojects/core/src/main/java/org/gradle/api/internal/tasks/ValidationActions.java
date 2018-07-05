@@ -32,8 +32,10 @@ public enum ValidationActions implements ValidationAction {
         @Override
         public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File file = toFile(context, value);
-            if (!optional && !file.exists()) {
-                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
+            if (!file.exists()) {
+                if (!optional) {
+                    context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
+                }
             } else if (!file.isFile()) {
                 context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
             }
@@ -43,8 +45,10 @@ public enum ValidationActions implements ValidationAction {
         @Override
         public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File directory = toDirectory(context, value);
-            if (!optional && !directory.exists()) {
-                context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
+            if (!directory.exists()) {
+                if (!optional) {
+                    context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
+                }
             } else if (!directory.isDirectory()) {
                 context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
             }
