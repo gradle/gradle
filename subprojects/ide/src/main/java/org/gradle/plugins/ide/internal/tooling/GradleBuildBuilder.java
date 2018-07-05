@@ -20,11 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -38,10 +40,10 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
     @Override
     public DefaultGradleBuild buildAll(String modelName, Project target) {
         Gradle gradle = target.getGradle();
-        return convert(gradle);
+        return convert(gradle, new ArrayList<DefaultGradleBuild>());
     }
 
-    private DefaultGradleBuild convert(Gradle gradle) {
+    private DefaultGradleBuild convert(Gradle gradle, Collection<DefaultGradleBuild> all) {
         DefaultGradleBuild model = new DefaultGradleBuild();
         Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
 
@@ -53,11 +55,20 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
             model.addProject(convertedProjects.get(project));
         }
 
+        if (gradle.getParent() != null) {
+            all.add(model);
+        }
+
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
             Gradle includedGradle = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-            DefaultGradleBuild convertedIncludedBuild = convert(includedGradle);
+            DefaultGradleBuild convertedIncludedBuild = convert(includedGradle, all);
             model.addIncludedBuild(convertedIncludedBuild);
         }
+
+        if (gradle.getParent() == null) {
+            model.addBuilds(all);
+        }
+
         return model;
     }
 

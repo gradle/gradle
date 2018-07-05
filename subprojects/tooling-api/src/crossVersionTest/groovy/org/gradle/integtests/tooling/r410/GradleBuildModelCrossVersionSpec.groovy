@@ -22,10 +22,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 
 
-@ToolingApiVersion(">=3.3")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
+    @ToolingApiVersion(">=3.3")
     @TargetGradleVersion(">=4.10")
-    def "nested included builds are present only in the model of the containing build"() {
+    def "nested included builds are visible only in the model of the containing build"() {
         given:
         def rootDir = singleProjectBuildInRootFolder("root") {
             settingsFile << """
@@ -59,5 +59,73 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.rootProject.name == "buildC"
         buildC.projects.size() == 1
         buildC.includedBuilds.empty
+    }
+
+    @ToolingApiVersion(">=4.10")
+    @TargetGradleVersion(">=4.10")
+    def "root build model exposes all builds that participate in the composite when nested included builds are present"() {
+        given:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                rootProject.name = 'root'
+                includeBuild 'buildB'
+            """
+        }
+        def buildBDir = multiProjectBuildInSubFolder("buildB", ["a", "b", "c"]) {
+            settingsFile << """
+                includeBuild '../buildC'
+            """
+        }
+        def buildCDir = singleProjectBuildInSubfolder("buildC")
+
+        when:
+        GradleBuild rootBuild = loadToolingModel(GradleBuild)
+
+        then:
+        rootBuild.allBuilds.size() == 2
+
+        def buildB = rootBuild.allBuilds[0]
+        buildB.buildIdentifier.rootDir == buildBDir
+        buildB.rootProject.name == "buildB"
+        buildB.allBuilds.empty
+
+        def buildC = rootBuild.allBuilds[1]
+        buildC.buildIdentifier.rootDir == buildCDir
+        buildC.rootProject.name == "buildC"
+        buildC.allBuilds.empty
+    }
+
+    @ToolingApiVersion(">=4.10")
+    @TargetGradleVersion(">=3.3")
+    def "root build model exposes all builds that participate in the composite"() {
+        given:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                rootProject.name = 'root'
+                includeBuild 'buildB'
+                includeBuild 'buildC'
+            """
+        }
+        def buildBDir = multiProjectBuildInSubFolder("buildB", ["a", "b", "c"]) {
+            settingsFile << """
+            """
+        }
+        def buildCDir = singleProjectBuildInSubfolder("buildC")
+
+        when:
+        GradleBuild rootBuild = loadToolingModel(GradleBuild)
+
+        then:
+        rootBuild.allBuilds.size() == 2
+
+        def buildB = rootBuild.allBuilds[0]
+        buildB.buildIdentifier.rootDir == buildBDir
+        buildB.rootProject.name == "buildB"
+        buildB.allBuilds.empty
+
+        def buildC = rootBuild.allBuilds[1]
+        buildC.buildIdentifier.rootDir == buildCDir
+        buildC.rootProject.name == "buildC"
+        buildC.allBuilds.empty
     }
 }
