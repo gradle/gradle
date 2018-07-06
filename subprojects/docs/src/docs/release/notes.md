@@ -19,6 +19,16 @@ There are a number of limitations to be aware of. These will be improved in late
 - A `buildSrc` build cannot include other builds, such as a shared plugin build.
 - The root project of each build must have a unique name.
 
+### Periodic cache cleanup
+
+Caching has always been one of the strong suits of Gradle. Over time, more and more persistent caches have been added to improve performance and support new features, requiring more and more disk space on build servers and developer workstations. Gradle now addresses one of the most highly voted issues on GitHub and introduces the following cleanup strategies:
+
+- Version-specific cache directories in `GRADLE_USER_HOME/caches/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity. Moreover, the corresponding Gradle distributions in `GRADLE_USER_HOME/wrapper/dists/` are deleted as well, if present.
+- Similarly, after building a project, version-specific cache directories in `PROJECT_DIR/.gradle/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. They are deleted if they haven't been used for 7 days.
+- Shared versioned cache directories in `GRADLE_USER_HOME/caches/` (e.g. `jars-*`) are checked periodically (at most every 24 hours) for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
+- Files in shared caches used by the current Gradle version in `GRADLE_USER_HOME/caches/` (e.g. `jars-3` or `modules-2`) are checked periodically (at most every 24 hours) for when they were last accessed. Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
