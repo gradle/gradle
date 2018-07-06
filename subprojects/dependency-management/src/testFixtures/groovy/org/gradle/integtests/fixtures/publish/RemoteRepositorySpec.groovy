@@ -54,12 +54,17 @@ class RemoteRepositorySpec {
         def pathElements = (pathSpec.split("\\s?->\\s?") as List<String>).reverse()
         def last = null
         pathElements.each { String spec ->
-            if (!spec.contains(':')) {
-                spec += ':1.0'
+            def gav = spec.split(':') as List<String>
+            if (gav.size()==1) {
+                // name only
+                gav = ["org", gav[0], "1.0"]
+            } else if (gav.size() == 2) {
+                // name, version
+                gav = ["org", *gav]
             }
-            def (name, v) = spec.split(':')
-            group('org') {
-                module(name) {
+            def (g, a, v) = gav
+            group(g) {
+                module(a) {
                     version(v) {
                         if (last) {
                             dependsOn(last)
@@ -67,7 +72,7 @@ class RemoteRepositorySpec {
                     }
                 }
             }
-            last = "org:$spec"
+            last = "$g:$a:$v"
         }
     }
 
