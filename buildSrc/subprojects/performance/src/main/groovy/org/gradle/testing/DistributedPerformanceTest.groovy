@@ -35,6 +35,7 @@ import org.gradle.internal.IoActions
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
+import javax.annotation.Nullable
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -94,6 +95,19 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
+    }
+
+    @Nullable
+    @Optional
+    @Input
+    String getBaselineCacheKey() {
+        List baselineList = baselines == null ? [] : baselines.split(',').collect { String it -> it.trim() }
+        if (baselineList.contains('last') || baselineList.contains('nightly')) {
+            // turn off cache if the baseline contains 'nightly' or 'last'
+            return UUID.randomUUID().toString()
+        } else {
+            return baselines
+        }
     }
 
     @Override
