@@ -22,7 +22,7 @@ dependencies {
     }
 }
 
-// tag::reject-version-1-1
+// tag::reject-version-1-1[]
 configurations {
     rejectConfig {
         resolutionStrategy {
@@ -41,7 +41,7 @@ configurations {
 dependencies {
     rejectConfig "org.sample:api:1.+"
 }
-// end::reject-version-1-1
+// end::reject-version-1-1[]
 
 task printRejectConfig {
     doLast {
