@@ -230,6 +230,11 @@ task samples(type: ExtractSnippetsTask) {
     snippetsDir = new File(buildDir, 'snippets')
 }
 
+task samplesAsciidoctor(type: Copy) {
+    into samplesDir
+    from samplesSrcDir
+}
+
 task userguideStyleSheets(type: Copy) {
     File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
     into new File(buildDir, 'stylesheets')
@@ -467,6 +472,7 @@ task userguide {
 }
 
 asciidoctor {
+    // FIXME: asciidoctor should re-run when CSS/JS or samples change
     sourceDir = new File(srcDocsDir, 'usermanual')
     sources { include '*.adoc' }
     outputDir = userguideDir
@@ -506,6 +512,8 @@ asciidoctor {
         'javadoc-path'        : "../javadoc",
         'samples-path'        : "../../samples"
 }
+
+asciidoctor.dependsOn(samplesAsciidoctor)
 
 task userManualPdf {
     // TODO: user manual single to PDF
