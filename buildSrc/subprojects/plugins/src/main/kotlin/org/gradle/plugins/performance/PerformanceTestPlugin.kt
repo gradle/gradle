@@ -443,8 +443,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.configureForAnyDistributedPerformanceTestTask(task: DistributedPerformanceTest) {
         task.apply {
             val registerInputs: (Task) -> Unit = { prepareSampleTask ->
-                val workerTaskProperties = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-                task.inputs.properties(workerTaskProperties)
+                val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
+                task.inputs.properties(prepareSampleTaskInputs)
             }
             tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
             tasks.withType<RemoteProject>().forEach(registerInputs)
