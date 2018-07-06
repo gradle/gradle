@@ -36,7 +36,7 @@ public class DeprecationWarningBuildOperation implements RunnableBuildOperation 
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName("Deprecation Message")
+        return BuildOperationDescriptor.displayName("Deprecation Warning - " + usage.getMessage())
             .details(new Details() {
                 public String getMessage() {
                     return usage.getMessage();
