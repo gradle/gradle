@@ -53,7 +53,7 @@ public enum FingerprintCompareStrategy {
 
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
-        Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, propertyTitle, includeAdded);
+        Iterator<TaskStateChange> trivialResult = compareTrivialFingerprints(current, previous, propertyTitle, includeAdded);
         if (trivialResult != null) {
             while (trivialResult.hasNext()) {
                 if (!visitor.visitChange(trivialResult.next())) {
@@ -69,10 +69,10 @@ public enum FingerprintCompareStrategy {
     }
 
     /**
-     * Compares snapshot collections if both current and previous states have at most one element.
+     * Compares fingerprints collections if both current and previous states have at most one element.
      *
-     * @param current the current state of the snapshot.
-     * @param previous the previous state of the snapshot.
+     * @param current the current state of the fingerprint.
+     * @param previous the previous state of the fingerprint.
      * @param fileType the file type to use when creating the {@link FileChange}.
      * @param includeAdded    whether or not to include added files.
      * @return either a single change representing the change that happened,
@@ -81,7 +81,7 @@ public enum FingerprintCompareStrategy {
      */
     @VisibleForTesting
     @Nullable
-    static Iterator<TaskStateChange> compareTrivialSnapshots(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean includeAdded) {
+    static Iterator<TaskStateChange> compareTrivialFingerprints(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean includeAdded) {
         switch (current.size()) {
             case 0:
                 switch (previous.size()) {

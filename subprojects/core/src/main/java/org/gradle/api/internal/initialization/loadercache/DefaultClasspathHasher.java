@@ -28,15 +28,15 @@ import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultClasspathHasher implements ClasspathHasher {
 
-    private final ClasspathFingerprinter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public DefaultClasspathHasher(ClasspathFingerprinter snapshotter) {
-        this.snapshotter = snapshotter;
+    public DefaultClasspathHasher(ClasspathFingerprinter fingerprinter) {
+        this.fingerprinter = fingerprinter;
     }
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(ImmutableFileCollection.of(classpath.getAsFiles()), null, InputNormalizationStrategy.NOT_CONFIGURED);
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(ImmutableFileCollection.of(classpath.getAsFiles()), null, InputNormalizationStrategy.NOT_CONFIGURED);
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         snapshot.appendToHasher(hasher);
         return hasher.hash();

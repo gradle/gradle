@@ -26,16 +26,16 @@ import org.gradle.internal.hash.HashCode;
 import java.util.Map;
 
 /**
- * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
+ * An immutable fingerprint of some aspects of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionFingerprint extends Snapshot {
 
     /**
-     * Visits the changes to file contents since the given snapshot, subject to the given filters.
+     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
      *
      * @return Whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
      */
-    boolean visitChangesSince(FileCollectionFingerprint oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
+    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
      * Returns the combined hash of the contents of this {@link FileCollectionFingerprint}.
@@ -48,7 +48,7 @@ public interface FileCollectionFingerprint extends Snapshot {
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
     /**
-     * Visits the roots of this file collection snapshot.
+     * Visits the roots of this file collection fingerprint.
      *
      * {@link FileCollectionFingerprint}s loaded from the task history don't have the roots available.
      *

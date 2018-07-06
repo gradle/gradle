@@ -30,7 +30,7 @@ import org.gradle.internal.file.fingerprint.fingerprinter.FileCollectionFingerpr
 
 import java.lang.annotation.Annotation;
 
-public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
+public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileFingerprinterPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
@@ -42,7 +42,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     }
 
     @Override
-    public Class<? extends FileCollectionFingerprinter> getSnapshotterImplementationType() {
+    public Class<? extends FileCollectionFingerprinter> getFingerprinterImplementationType() {
         return ClasspathFingerprinter.class;
     }
 

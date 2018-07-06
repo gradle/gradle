@@ -50,12 +50,12 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> twirlClasspath;
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
-    private final ClasspathFingerprinter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
     public DefaultPlayToolProvider(PathToFileResolver fileResolver, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
                                    WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath,
-                                   ClasspathFingerprinter snapshotter) {
+                                   ClasspathFingerprinter fingerprinter) {
         this.fileResolver = fileResolver;
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
@@ -64,7 +64,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.twirlClasspath = twirlClasspath;
         this.routesClasspath = routesClasspath;
         this.javaScriptClasspath = javaScriptClasspath;
-        this.snapshotter = snapshotter;
+        this.fingerprinter = fingerprinter;
         // validate that the targetPlatform is valid
         PlayMajorVersion.forPlatform(targetPlatform);
     }
@@ -87,7 +87,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T> T get(Class<T> toolType) {
         if (PlayApplicationRunner.class.isAssignableFrom(toolType)) {
-            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, workerProcessBuilderFactory, snapshotter));
+            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, workerProcessBuilderFactory, fingerprinter));
         }
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }

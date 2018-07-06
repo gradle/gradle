@@ -44,7 +44,7 @@ class DefaultPlayToolProviderTest extends Specification {
     PlayPlatform playPlatform = Mock()
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     File daemonWorkingDir = Mock()
-    ClasspathFingerprinter snapshotter = Mock()
+    ClasspathFingerprinter fingerprinter = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -52,7 +52,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DefaultPlayToolProvider playToolProvider
 
     private DefaultPlayToolProvider createProvider() {
-        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, snapshotter)
+        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter)
     }
 
     @Unroll

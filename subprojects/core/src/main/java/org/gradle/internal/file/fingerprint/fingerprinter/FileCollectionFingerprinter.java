@@ -29,12 +29,12 @@ public interface FileCollectionFingerprinter {
     Class<? extends FileNormalizer> getRegisteredType();
 
     /**
-     * Registers the serializer(s) that can be used to serialize the {@link FileCollectionFingerprint} implementations produced by this snapshotter.
+     * Registers the serializer(s) that can be used to serialize the {@link FileCollectionFingerprint} implementations produced by this fingerprinter.
      */
     void registerSerializers(SerializerRegistry registry);
 
     /**
-     * Creates a snapshot of the contents of the given collection.
+     * Creates a fingerprint of the contents of the given collection.
      */
-    FileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy);
+    FileCollectionFingerprint fingerprint(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy);
 }

@@ -34,12 +34,12 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
-    private final ClasspathFingerprinter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter snapshotter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter fingerprinter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
-        this.snapshotter = snapshotter;
+        this.fingerprinter = fingerprinter;
     }
 
     public PlayApplication start(PlayRunSpec spec, Deployment deployment) {
@@ -106,7 +106,7 @@ public class PlayApplicationRunner {
 
         private boolean applicationClasspathChanged() {
             HashCode oldSnapshot = snapshot;
-            snapshot = snapshotter.snapshot(applicationClasspath, PathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
+            snapshot = fingerprinter.fingerprint(applicationClasspath, PathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
             return !snapshot.equals(oldSnapshot);
         }
     }

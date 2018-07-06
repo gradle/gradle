@@ -89,7 +89,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             return temporaryFolder.createDir("history-cache")
         }
     }
-    DefaultGenericFileCollectionFingerprinter fileCollectionSnapshotter
+    DefaultGenericFileCollectionFingerprinter fileCollectionFingerprinter
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
@@ -106,20 +106,20 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        fileCollectionFingerprinter = new DefaultGenericFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
-        fileCollectionSnapshotter.registerSerializers(serializerRegistry)
-        def snapshotterRegistry = new DefaultFileCollectionFingerprinterRegistry([fileCollectionSnapshotter])
+        fileCollectionFingerprinter.registerSerializers(serializerRegistry)
+        def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([fileCollectionFingerprinter])
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
             serializerRegistry.build(FileCollectionFingerprint),
             stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
-            snapshotterRegistry
+            fingerprinterRegistry
         )
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
     }

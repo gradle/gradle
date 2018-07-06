@@ -21,7 +21,7 @@ import org.gradle.internal.file.fingerprint.fingerprinter.FileCollectionFingerpr
 import org.gradle.internal.file.fingerprint.fingerprinter.GenericFileCollectionFingerprinter;
 
 /**
- * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java classpath. Compared to {@link GenericFileCollectionFingerprinter} this snapshotter orders files within any sub-tree.
+ * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java classpath. Compared to {@link GenericFileCollectionFingerprinter} this fingerprinter orders files within any sub-tree.
  *
  * @see org.gradle.api.tasks.Classpath
  */

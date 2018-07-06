@@ -25,28 +25,28 @@ import java.util.Collection;
 import java.util.Map;
 
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
-    private final Map<Class<? extends FileNormalizer>, FileCollectionFingerprinter> snapshotters;
+    private final Map<Class<? extends FileNormalizer>, FileCollectionFingerprinter> fingerprinters;
 
-    public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> snapshotters) {
-        this.snapshotters = ImmutableMap.copyOf(Maps.uniqueIndex(snapshotters, new Function<FileCollectionFingerprinter, Class<? extends FileNormalizer>>() {
+    public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
+        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, new Function<FileCollectionFingerprinter, Class<? extends FileNormalizer>>() {
             @Override
-            public Class<? extends FileNormalizer> apply(FileCollectionFingerprinter snapshotter) {
-                return snapshotter.getRegisteredType();
+            public Class<? extends FileNormalizer> apply(FileCollectionFingerprinter fingerprinter) {
+                return fingerprinter.getRegisteredType();
             }
         }));
     }
 
     @Override
     public Collection<FileCollectionFingerprinter> getAllFingerprinters() {
-        return snapshotters.values();
+        return fingerprinters.values();
     }
 
     @Override
     public FileCollectionFingerprinter getFingerprinter(Class<? extends FileNormalizer> type) {
-        FileCollectionFingerprinter snapshotter = snapshotters.get(type);
-        if (snapshotter == null) {
-            throw new IllegalStateException(String.format("No snapshotter registered with type '%s'", type.getName()));
+        FileCollectionFingerprinter fingerprinter = fingerprinters.get(type);
+        if (fingerprinter == null) {
+            throw new IllegalStateException(String.format("No fingerprinter registered with type '%s'", type.getName()));
         }
-        return snapshotter;
+        return fingerprinter;
     }
 }

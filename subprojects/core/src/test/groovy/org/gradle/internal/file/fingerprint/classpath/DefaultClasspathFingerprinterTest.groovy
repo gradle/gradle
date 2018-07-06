@@ -52,7 +52,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
-    def snapshotter = new DefaultClasspathFingerprinter(
+    def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         directoryFileTreeFactory,
         fileSystemSnapshotter,
@@ -211,7 +211,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
     def snapshot(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
-        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, InputNormalizationStrategy.NOT_CONFIGURED)
+        def fileCollectionSnapshot = fingerprinter.fingerprint(files(classpath), null, InputNormalizationStrategy.NOT_CONFIGURED)
         return fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.snapshot.toString()]
         }

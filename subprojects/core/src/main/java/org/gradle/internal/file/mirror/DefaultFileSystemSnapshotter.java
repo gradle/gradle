@@ -76,7 +76,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.striped();
     private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
     private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
-    private final DefaultGenericFileCollectionFingerprinter snapshotter;
+    private final DefaultGenericFileCollectionFingerprinter fingerprinter;
     private final PhysicalSnapshotDirectoryWalker directoryWalker;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
@@ -84,7 +84,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.snapshotter = new DefaultGenericFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, this);
+        this.fingerprinter = new DefaultGenericFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, this);
         this.directoryWalker = new DefaultPhysicalSnapshotDirectoryWalker(hasher, fileSystem, stringInterner);
     }
 
@@ -123,7 +123,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public Snapshot create() {
                 Snapshot snapshot = fileSystemMirror.getContent(path);
                 if (snapshot == null) {
-                    FileCollectionFingerprint fileCollectionFingerprint = snapshotter.snapshot(ImmutableFileCollection.of(file), PathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
+                    // TODO wolfs: get rid of this. FileSystemSnapshotter should not use fingerprinters. With Merkle trees we would only need to store the absolute path and the hash of the root directory in the tree.
+                    FileCollectionFingerprint fileCollectionFingerprint = fingerprinter.fingerprint(ImmutableFileCollection.of(file), PathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
                     DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
                     fileCollectionFingerprint.appendToHasher(hasher);
                     HashCode hashCode = hasher.hash();

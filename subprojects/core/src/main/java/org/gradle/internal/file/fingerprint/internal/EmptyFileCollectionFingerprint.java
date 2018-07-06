@@ -37,8 +37,8 @@ public class EmptyFileCollectionFingerprint implements FileCollectionFingerprint
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionFingerprint oldSnapshot, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : oldSnapshot.getSnapshots().entrySet()) {
+    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : oldFingerprint.getSnapshots().entrySet()) {
             if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getSnapshot().getType()))) {
                 return false;
             }

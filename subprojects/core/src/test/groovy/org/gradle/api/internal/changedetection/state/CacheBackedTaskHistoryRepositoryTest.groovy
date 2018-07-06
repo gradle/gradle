@@ -33,15 +33,15 @@ class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest 
     def "adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        def mockInputFileSnapshotter = Mock(FileCollectionFingerprinter)
-        def mockInputFileSnapshotterRegistry = Mock(FileCollectionFingerprinterRegistry)
+        def mockInputFileFingerprinter = Mock(FileCollectionFingerprinter)
+        def mockInputFileFingerprinterRegistry = Mock(FileCollectionFingerprinterRegistry)
 
         when:
-        CacheBackedTaskHistoryRepository.snapshotTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
+        CacheBackedTaskHistoryRepository.snapshotTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileFingerprinterRegistry)
 
         then:
-        1 * mockInputFileSnapshotterRegistry.getFingerprinter(GenericFileNormalizer) >> mockInputFileSnapshotter
-        1 * mockInputFileSnapshotter.snapshot(_, ABSOLUTE, NORMALIZATION_STRATEGY) >> { throw cause }
+        1 * mockInputFileFingerprinterRegistry.getFingerprinter(GenericFileNormalizer) >> mockInputFileFingerprinter
+        1 * mockInputFileFingerprinter.fingerprint(_, ABSOLUTE, NORMALIZATION_STRATEGY) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

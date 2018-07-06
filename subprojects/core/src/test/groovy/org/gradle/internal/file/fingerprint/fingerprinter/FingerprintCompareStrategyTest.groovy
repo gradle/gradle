@@ -30,7 +30,7 @@ import static org.gradle.internal.file.fingerprint.fingerprinter.FingerprintComp
 import static org.gradle.internal.file.fingerprint.fingerprinter.FingerprintCompareStrategy.CLASSPATH
 import static org.gradle.internal.file.fingerprint.fingerprinter.FingerprintCompareStrategy.IGNORED_PATH
 import static org.gradle.internal.file.fingerprint.fingerprinter.FingerprintCompareStrategy.NORMALIZED
-import static org.gradle.internal.file.fingerprint.fingerprinter.FingerprintCompareStrategy.compareTrivialSnapshots
+import static org.gradle.internal.file.fingerprint.fingerprinter.FingerprintCompareStrategy.compareTrivialFingerprints
 
 class FingerprintCompareStrategyTest extends Specification {
 
@@ -289,8 +289,8 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
-        compareTrivialSnapshots(current, previous, "test", true) == null
-        compareTrivialSnapshots(current, previous, "test", false) == null
+        compareTrivialFingerprints(current, previous, "test", true) == null
+        compareTrivialFingerprints(current, previous, "test", false) == null
 
         where:
         current                                          | previous

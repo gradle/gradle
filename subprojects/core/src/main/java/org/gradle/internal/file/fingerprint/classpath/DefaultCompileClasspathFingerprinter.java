@@ -43,7 +43,7 @@ public class DefaultCompileClasspathFingerprinter extends AbstractFileCollection
     }
 
     @Override
-    public FileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
+    public FileCollectionFingerprint fingerprint(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         return super.snapshot(
             files,
             new ClasspathFingerprintingStrategy(IGNORE, classpathResourceHasher, cacheService));

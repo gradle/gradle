@@ -40,7 +40,7 @@ import static org.gradle.api.internal.changedetection.state.PathNormalizationStr
 class DefaultGenericFileCollectionFingerprinterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultGenericFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+    def fingerprinter = new DefaultGenericFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
     def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
     @Rule
@@ -53,7 +53,7 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file3 = tmpDir.createFile('file3')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file, file2, file3), ABSOLUTE, normalizationStrategy)
+        def snapshot = fingerprinter.fingerprint(files(file, file2, file3), ABSOLUTE, normalizationStrategy)
 
         then:
         snapshot.snapshots.keySet().collect { new File(it) } == [file, file2, file3]
@@ -68,7 +68,7 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile noExist = tmpDir.file('file3')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file, dir, noExist), ABSOLUTE, normalizationStrategy)
+        def snapshot = fingerprinter.fingerprint(files(file, dir, noExist), ABSOLUTE, normalizationStrategy)
 
         then:
         snapshot.snapshots.keySet().collect { new File(it) } == [file, dir, dir2, file2, noExist]
@@ -82,7 +82,7 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file4 = tmpDir.createFile('file4')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file, file2, file3, file4), ABSOLUTE, normalizationStrategy)
+        def snapshot = fingerprinter.fingerprint(files(file, file2, file3, file4), ABSOLUTE, normalizationStrategy)
 
         then:
         snapshot.snapshots.keySet().collect { new File(it) } == [file, file2, file3, file4]
@@ -94,9 +94,9 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file1), ABSOLUTE, normalizationStrategy)
+        def snapshot = fingerprinter.fingerprint(files(file1), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file1, file2), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file1, file2), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.added(file2.path)
@@ -111,9 +111,9 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file4 = tmpDir.createDir('file4')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file1, file2), ABSOLUTE, normalizationStrategy)
+        def snapshot = fingerprinter.fingerprint(files(file1, file2), ABSOLUTE, normalizationStrategy)
         file2.createFile()
-        def target = snapshotter.snapshot(files(file1, file2, file3, file4), ABSOLUTE, normalizationStrategy)
+        def target = fingerprinter.fingerprint(files(file1, file2, file3, file4), ABSOLUTE, normalizationStrategy)
         def visitor = new CollectingTaskStateChangeVisitor()
         target.visitChangesSince(snapshot, "TYPE", false, visitor)
         visitor.changes.empty
@@ -128,9 +128,9 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(files(file1, file2), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(files(file1, file2), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file1), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file1), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.removed(file2.path)
@@ -143,12 +143,12 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         file.setLastModified(1234L)
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
         file.setLastModified(45600L)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         0 * listener._
@@ -161,11 +161,11 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         def fileCollection = files(root)
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy)
         file.delete()
         file.createDir()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.changed(file.path)
@@ -176,10 +176,10 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy)
         file.write('new content')
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.changed(file.path)
@@ -190,9 +190,9 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile dir = tmpDir.createDir('dir')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(files(dir), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(files(dir), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(dir), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(dir), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         0 * _
@@ -204,11 +204,11 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile dir = root.createDir('dir')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy)
         dir.deleteDir()
         dir.createFile()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.changed(dir.path)
@@ -219,9 +219,9 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.file('unknown')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         0 * _
@@ -233,10 +233,10 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file = root.file('newfile')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy)
         file.createFile()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.added(file.path)
@@ -248,10 +248,10 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file = root.createFile('file')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy)
         file.delete()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(fileCollection, ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         1 * listener.removed(file.path)
@@ -262,9 +262,9 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint snapshot = snapshotter.snapshot(files(file1, file2), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint snapshot = fingerprinter.fingerprint(files(file1, file2), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file1), ABSOLUTE, normalizationStrategy), snapshot, listener)
+        changes(fingerprinter.fingerprint(files(file1), ABSOLUTE, normalizationStrategy), snapshot, listener)
 
         then:
         0 * _
@@ -275,7 +275,7 @@ class DefaultGenericFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint snapshot = EmptyFileCollectionFingerprint.INSTANCE
-        FileCollectionFingerprint newSnapshot = snapshotter.snapshot(files(file), ABSOLUTE, normalizationStrategy)
+        FileCollectionFingerprint newSnapshot = fingerprinter.fingerprint(files(file), ABSOLUTE, normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
         changes(newSnapshot, snapshot, listener)
 

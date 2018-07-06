@@ -43,8 +43,8 @@ class DefaultPlayToolChainTest extends Specification {
     PlayPlatform playPlatform = Stub(PlayPlatform)
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     WorkerDirectoryProvider workerDirectoryProvider = Mock()
-    ClasspathFingerprinter snapshotter = Mock()
-    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, snapshotter)
+    ClasspathFingerprinter fingerprinter = Mock()
+    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

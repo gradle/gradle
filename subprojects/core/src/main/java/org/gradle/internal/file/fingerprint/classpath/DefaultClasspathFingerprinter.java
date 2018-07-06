@@ -45,7 +45,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     }
 
     @Override
-    public FileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
+    public FileCollectionFingerprint fingerprint(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         ResourceHasher classpathResourceHasher = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceHasher();
         return super.snapshot(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, classpathResourceHasher, cacheService));
     }

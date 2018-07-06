@@ -37,7 +37,7 @@ public class DefaultGenericFileCollectionFingerprinter extends AbstractFileColle
     }
 
     @Override
-    public FileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
+    public FileCollectionFingerprint fingerprint(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         FingerprintingStrategy strategy = determineFingerprintStrategy(pathNormalizationStrategy);
         return super.snapshot(files, strategy);
     }

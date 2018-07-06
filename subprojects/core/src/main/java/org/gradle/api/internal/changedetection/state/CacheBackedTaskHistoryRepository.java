@@ -300,7 +300,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             try {
                 FileCollectionFingerprinter snapshotter = snapshotterRegistry.getFingerprinter(propertySpec.getNormalizer());
                 LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
+                result = snapshotter.fingerprint(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
             } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for %s property '%s' during up-to-date check.", title.toLowerCase(), task, propertySpec.getPropertyName()), e);
             }
