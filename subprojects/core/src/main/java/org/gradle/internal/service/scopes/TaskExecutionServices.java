@@ -24,14 +24,8 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
@@ -56,7 +50,7 @@ import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.annotations.FileSnapshottingPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.FileFingerprinterPropertyAnnotationHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -75,6 +69,12 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.file.fingerprint.fingerprinter.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.file.fingerprint.fingerprinter.FileCollectionFingerprinter;
+import org.gradle.internal.file.fingerprint.fingerprinter.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.file.fingerprint.fingerprinter.GenericFileCollectionFingerprinter;
+import org.gradle.internal.file.mirror.FileSystemSnapshotter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -154,35 +154,35 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {
-        List<FileSnapshottingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileSnapshottingPropertyAnnotationHandler.class);
-        ImmutableList.Builder<FileCollectionSnapshotter> snapshotterImplementations = ImmutableList.builder();
-        snapshotterImplementations.add(serviceRegistry.get(GenericFileCollectionSnapshotter.class));
-        for (FileSnapshottingPropertyAnnotationHandler handler : handlers) {
-            snapshotterImplementations.add(serviceRegistry.get(handler.getSnapshotterImplementationType()));
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(ServiceRegistry serviceRegistry) {
+        List<FileFingerprinterPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileFingerprinterPropertyAnnotationHandler.class);
+        ImmutableList.Builder<FileCollectionFingerprinter> fingerprinterImplementations = ImmutableList.builder();
+        fingerprinterImplementations.add(serviceRegistry.get(GenericFileCollectionFingerprinter.class));
+        for (FileFingerprinterPropertyAnnotationHandler handler : handlers) {
+            fingerprinterImplementations.add(serviceRegistry.get(handler.getFingerprinterImplementationType()));
         }
-        return new DefaultFileCollectionSnapshotterRegistry(snapshotterImplementations.build());
+        return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
     }
 
     TaskHistoryRepository createTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
+        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
-        FileCollectionSnapshotterRegistry snapshotterRegistry) {
+        FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
-            snapshotter.registerSerializers(serializerRegistry);
+        for (FileCollectionFingerprinter fingerprinter : fileCollectionFingerprinterRegistry.getAllFingerprinters()) {
+            fingerprinter.registerSerializers(serializerRegistry);
         }
 
         return new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            serializerRegistry.build(FileCollectionSnapshot.class),
+            serializerRegistry.build(FileCollectionFingerprint.class),
             stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,
-            snapshotterRegistry
+            fingerprinterRegistry
         );
     }
 

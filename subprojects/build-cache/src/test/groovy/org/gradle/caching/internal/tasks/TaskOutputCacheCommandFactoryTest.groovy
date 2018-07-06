@@ -23,12 +23,6 @@ import com.google.common.collect.Iterables
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
-import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
@@ -36,6 +30,12 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
+import org.gradle.internal.file.content.FileHashSnapshot
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.file.mirror.FileSystemMirror
+import org.gradle.internal.file.physical.PhysicalSnapshot
+import org.gradle.internal.file.physical.internal.ImmutablePhysicalDirectorySnapshot
+import org.gradle.internal.file.physical.internal.PhysicalFileSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -109,7 +109,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.content == outputFileSnapshot.content
         }
-        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots, OriginTaskExecutionMetadata metadata ->
+        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, FileCollectionFingerprint> propertySnapshots, OriginTaskExecutionMetadata metadata ->
             assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
             assert propertySnapshots["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
             assert propertySnapshots["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set

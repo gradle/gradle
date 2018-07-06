@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.Serializer;
 

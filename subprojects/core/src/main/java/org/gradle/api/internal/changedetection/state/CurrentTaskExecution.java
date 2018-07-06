@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 
@@ -30,8 +31,8 @@ import javax.annotation.Nullable;
 public class CurrentTaskExecution extends AbstractTaskExecution {
 
     private final ImmutableSet<String> declaredOutputFilePaths;
-    private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
+    private ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesSnapshot;
+    private final ImmutableSortedMap<String, FileCollectionFingerprint> inputFilesSnapshot;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private Boolean successful;
     private OriginTaskExecutionMetadata originExecutionMetadata;
@@ -42,8 +43,8 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        ImmutableSortedMap<String, FileCollectionFingerprint> inputFilesSnapshot,
+        ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesSnapshot,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
         super(taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
@@ -73,16 +74,16 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
 
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
+    public ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFilesSnapshot() {
         return outputFilesSnapshot;
     }
 
-    public void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
+    public void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesSnapshot) {
         this.outputFilesSnapshot = outputFilesSnapshot;
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
+    public ImmutableSortedMap<String, FileCollectionFingerprint> getInputFilesSnapshot() {
         return inputFilesSnapshot;
     }
 

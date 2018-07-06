@@ -17,12 +17,12 @@ package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
@@ -69,7 +69,7 @@ public interface TaskArtifactState {
     /**
      * Called on task being loaded from cache.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata);
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata);
 
     /**
      * Returns the history for this task.
@@ -79,7 +79,7 @@ public interface TaskArtifactState {
     /**
      * Returns the current output file snapshots indexed by property name.
      */
-    Map<String, FileCollectionSnapshot> getOutputSnapshots();
+    Map<String, FileCollectionFingerprint> getOutputSnapshots();
 
 
 }

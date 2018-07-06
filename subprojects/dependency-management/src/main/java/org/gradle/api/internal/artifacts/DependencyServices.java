@@ -25,12 +25,12 @@ import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolv
 import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformInfoFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.mirror.FileSystemSnapshotter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.service.ServiceRegistration;

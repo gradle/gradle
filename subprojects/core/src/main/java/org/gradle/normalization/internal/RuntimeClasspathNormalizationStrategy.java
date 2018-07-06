@@ -16,9 +16,8 @@
 
 package org.gradle.normalization.internal;
 
-import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
-import org.gradle.api.internal.changedetection.state.ResourceHasher;
-import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
+import org.gradle.internal.file.content.hasher.ResourceHasher;
+import org.gradle.internal.file.fingerprint.classpath.RuntimeClasspathResourceHasher;
 
 import java.util.Set;
 

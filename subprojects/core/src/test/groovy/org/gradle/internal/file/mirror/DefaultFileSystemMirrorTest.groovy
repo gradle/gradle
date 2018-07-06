@@ -1,0 +1,153 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.file.mirror
+
+import org.gradle.BuildResult
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.changedetection.state.Snapshot
+import org.gradle.cache.internal.DefaultWellKnownFileLocations
+import org.gradle.internal.classpath.CachedJarFileStore
+import org.gradle.internal.file.content.FileHashSnapshot
+import org.gradle.internal.file.physical.PhysicalSnapshot
+import org.gradle.internal.file.physical.internal.PhysicalFileSnapshot
+import org.gradle.internal.hash.HashCode
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
+
+class DefaultFileSystemMirrorTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    DefaultFileSystemMirror mirror
+    TestFile cacheDir
+
+    def setup() {
+        cacheDir = tmpDir.createDir("cache")
+        def fileStore = Stub(CachedJarFileStore)
+        fileStore.fileStoreRoots >> [cacheDir]
+        mirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([fileStore]))
+    }
+
+    def "keeps state about a file until task outputs are generated"() {
+        def file = tmpDir.file("a")
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
+        def fileTreeSnapshot = Stub(PhysicalSnapshot)
+        def snapshot = Stub(Snapshot)
+
+        given:
+
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(25), 37)
+        _ * fileTreeSnapshot.absolutePath >> file.path
+
+        expect:
+        mirror.getFile(file.path) == null
+        mirror.getDirectoryTree(file.path) == null
+        mirror.getContent(file.path) == null
+
+        mirror.putFile(fileSnapshot)
+        mirror.putDirectory(file.path, fileTreeSnapshot)
+        mirror.putContent(file.path, snapshot)
+
+        mirror.getFile(file.path).content == fileSnapshot.content
+        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getContent(file.path) == snapshot
+
+        mirror.beforeTaskOutputChanged()
+
+        mirror.getFile(file.path) == null
+        mirror.getDirectoryTree(file.path) == null
+        mirror.getContent(file.path) == null
+    }
+
+    def "keeps state about a file until end of build"() {
+        def file = tmpDir.file("a")
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
+        def fileTreeSnapshot = Stub(PhysicalSnapshot)
+        def snapshot = Stub(Snapshot)
+        def buildResult = Stub(BuildResult)
+        def gradle = Stub(GradleInternal)
+
+        given:
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(37), 346)
+        _ * fileTreeSnapshot.absolutePath >> file.path
+        _ * buildResult.gradle >> gradle
+        _ * gradle.parent >> null
+
+        expect:
+        mirror.getFile(file.path) == null
+        mirror.getDirectoryTree(file.path) == null
+        mirror.getContent(file.path) == null
+
+        mirror.putFile(fileSnapshot)
+        mirror.putDirectory(file.path, fileTreeSnapshot)
+        mirror.putContent(file.path, snapshot)
+
+        mirror.getFile(file.path).content == fileSnapshot.content
+        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getContent(file.path) == snapshot
+
+        mirror.beforeComplete()
+
+        mirror.getFile(file.path) == null
+        mirror.getDirectoryTree(file.path) == null
+        mirror.getContent(file.path) == null
+    }
+
+    def "does not discard state about a file that lives in the caches when task outputs are generated"() {
+        def file = cacheDir.file("some/dir/a")
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
+        def fileTreeSnapshot = Stub(PhysicalSnapshot)
+        def snapshot = Stub(Snapshot)
+        def buildResult = Stub(BuildResult)
+        def gradle = Stub(GradleInternal)
+
+        given:
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileTreeSnapshot.absolutePath >> file.path
+        _ * buildResult.gradle >> gradle
+        _ * gradle.parent >> null
+
+        expect:
+        mirror.getFile(file.path) == null
+        mirror.getDirectoryTree(file.path) == null
+        mirror.getContent(file.path) == null
+
+        mirror.putFile(fileSnapshot)
+        mirror.putDirectory(file.path, fileTreeSnapshot)
+        mirror.putContent(file.path, snapshot)
+
+        mirror.getFile(file.path) == fileSnapshot
+        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getContent(file.path) == snapshot
+
+        mirror.beforeTaskOutputChanged()
+
+        mirror.getFile(file.path) == fileSnapshot
+        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getContent(file.path) == snapshot
+
+        mirror.beforeComplete()
+
+        mirror.getFile(file.path) == null
+        mirror.getDirectoryTree(file.path) == null
+        mirror.getContent(file.path) == null
+    }
+}

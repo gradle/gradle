@@ -16,11 +16,11 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.content.FileContentSnapshot;
+import org.gradle.internal.file.mirror.FileSystemSnapshotter;
+import org.gradle.internal.file.physical.PhysicalSnapshot;
+import org.gradle.internal.file.physical.internal.PhysicalFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
