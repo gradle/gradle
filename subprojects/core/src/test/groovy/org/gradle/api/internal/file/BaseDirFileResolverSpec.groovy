@@ -118,7 +118,7 @@ class BaseDirFileResolverSpec extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "does not normalize windows 8.3 names"() {
         createFile(new File(tmpDir.testDirectory, 'dir/file-with-long-name.txt'))
-        def path = new File(tmpDir.testDirectory, 'dir/FILE-W~1.TXT')
+        def path = createFile(new File(tmpDir.testDirectory, 'dir/FILE-W~1.TXT'))
         assert path.exists() && path.file
 
         expect:
