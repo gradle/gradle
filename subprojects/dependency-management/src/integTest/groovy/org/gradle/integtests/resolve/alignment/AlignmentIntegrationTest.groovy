@@ -59,18 +59,8 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:xml:1.1' {
                 expectResolve()
             }
-            'org:platform:1.0' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:1.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:platform:1.0'(virtualPlatform)
+            'org:platform:1.1'(virtualPlatform)
         }
         run ':checkDeps'
 
@@ -83,6 +73,73 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
                 }
                 module("org:json:1.1") {
                     module('org:core:1.1')
+                }
+            }
+        }
+    }
+
+    def "should not align modules outside of platform"() {
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'xml:1.1 -> core:1.1'
+            path 'json:1.1 -> core:1.1'
+            path 'outside:module:1.0 -> core:1.0'
+            path 'outside:module:1.1 -> core:1.0'
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org:json:1.1'
+                conf 'outside:module:1.0'
+            }
+        """
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        repositoryInteractions {
+            'org:core:1.0' {
+                expectGetMetadata()
+            }
+            'org:xml:1.0' {
+                expectGetMetadata()
+            }
+            'org:core:1.1' {
+                expectResolve()
+            }
+            'org:json:1.1' {
+                expectResolve()
+            }
+            'org:xml:1.1' {
+                expectResolve()
+            }
+            'org:platform:1.0'(virtualPlatform)
+            'org:platform:1.1'(virtualPlatform)
+
+            'outside:module:1.0' {
+                // this will NOT upgrade to 1.1, despite core being 1.1, because this module
+                // does not belong to the same platform
+                expectResolve()
+            }
+            'outside:platform:1.0'(virtualPlatform)
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    module('org:core:1.1')
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
+                module("outside:module:1.0") {
+                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.0 and 1.1")
                 }
             }
         }
@@ -124,18 +181,8 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:xml:1.1' {
                 expectResolve()
             }
-            'org:platform:1.0' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:1.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:platform:1.0'(virtualPlatform)
+            'org:platform:1.1'(virtualPlatform)
         }
         run ':checkDeps'
 
@@ -186,24 +233,9 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:json:1.1' {
                 expectResolve()
             }
-            'org:xml:1.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:1.0' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:1.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:xml:1.1'(virtualPlatform)
+            'org:platform:1.0'(virtualPlatform)
+            'org:platform:1.1'(virtualPlatform)
         }
         run ':checkDeps'
 
@@ -248,30 +280,15 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:core:1.0' {
                 expectResolve()
             }
-            'org:core:1.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:core:1.1'(virtualPlatform)
             'org:json:1.1' {
                 expectResolve()
             }
             'org:xml:1.1' {
                 expectResolve()
             }
-            'org:platform:1.0' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:1.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:platform:1.0'(virtualPlatform)
+            'org:platform:1.1'(virtualPlatform)
         }
         run ':checkDeps'
 
@@ -328,54 +345,19 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:kt:2.9.4.1' {
                 expectResolve()
             }
-            'org:core:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:databind:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:annotations:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:core:2.9.4.1'(virtualPlatform)
+            'org:databind:2.9.4.1'(virtualPlatform)
+            'org:annotations:2.9.4.1'(virtualPlatform)
             'org:databind:2.9.4' {
                 expectResolve()
             }
             'org:annotations:2.9.4' {
                 expectResolve()
             }
-            'org:platform:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:2.9.4' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:2.9.0' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:2.7.9' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:platform:2.9.4.1'(virtualPlatform)
+            'org:platform:2.9.4'(virtualPlatform)
+            'org:platform:2.9.0'(virtualPlatform)
+            'org:platform:2.7.9'(virtualPlatform)
             'org:annotations:2.7.9' {
                 expectGetMetadata()
             }
@@ -437,54 +419,19 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:kt:2.9.4.1' {
                 expectResolve()
             }
-            'org:core:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:databind:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:annotations:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:core:2.9.4.1'(virtualPlatform)
+            'org:databind:2.9.4.1'(virtualPlatform)
+            'org:annotations:2.9.4.1'(virtualPlatform)
             'org:databind:2.9.4' {
                 expectResolve()
             }
             'org:annotations:2.9.4' {
                 expectResolve()
             }
-            'org:platform:2.9.4.1' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:2.9.4' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:2.9.0' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
-            'org:platform:2.7.9' {
-                expectGetMetadataMissing()
-                if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    expectHeadArtifactMissing()
-                }
-            }
+            'org:platform:2.9.4.1'(virtualPlatform)
+            'org:platform:2.9.4'(virtualPlatform)
+            'org:platform:2.9.0'(virtualPlatform)
+            'org:platform:2.7.9'(virtualPlatform)
             'org:annotations:2.9.0' {
                 expectGetMetadata()
             }
@@ -508,7 +455,7 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     ])
     def "can align thanks to a published platform"() {
         repository {
@@ -619,6 +566,161 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     }
 
+    def "can align 2 different platforms"() {
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'xml:1.1 -> core:1.1'
+            path 'json:1.1 -> core:1.1'
+
+            path 'org2:xml:1.0 -> org2:core:1.0'
+            path 'org2:json:1.0 -> org2:core:1.0'
+            path 'org2:xml:1.1 -> org2:core:1.1'
+            path 'org2:json:1.1 -> org2:core:1.1'
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org:json:1.1'
+
+                conf 'org2:xml:1.0'
+                conf 'org2:json:1.1'
+            }
+        """
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        repositoryInteractions {
+            ['org', 'org2'].each { group ->
+                "$group:core:1.0" {
+                    expectGetMetadata()
+                }
+                "$group:xml:1.0" {
+                    expectGetMetadata()
+                }
+                "$group:core:1.1" {
+                    expectResolve()
+                }
+                "$group:json:1.1" {
+                    expectResolve()
+                }
+                "$group:xml:1.1" {
+                    expectResolve()
+                }
+                "$group:platform:1.0" {
+                    expectGetMetadataMissing()
+                    if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                        expectHeadArtifactMissing()
+                    }
+                }
+                "$group:platform:1.1" {
+                    expectGetMetadataMissing()
+                    if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                        expectHeadArtifactMissing()
+                    }
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    module('org:core:1.1')
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
+
+                edge("org2:xml:1.0", "org2:xml:1.1") {
+                    byConstraint("belongs to platform org2:platform:1.1")
+                    module('org2:core:1.1')
+                }
+                module("org2:json:1.1") {
+                    module('org2:core:1.1')
+                }
+            }
+        }
+    }
+
+    def "doesn't align on evicted edge"() {
+        given:
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'xml:1.1 -> core:1.1'
+            path 'json:1.1 -> core:1.1'
+
+            path 'org2:foo:1.0 -> org4:a:1.0 -> org:json:1.1'
+            path 'org3:bar:1.0 -> org4:b:1.1 -> org4:a:1.1'
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org2:foo:1.0'
+                conf 'org3:bar:1.0'
+            }
+        """
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        repositoryInteractions {
+            'org:xml:1.0' {
+                expectResolve()
+            }
+            'org:core:1.0' {
+                expectResolve()
+            }
+            'org2:foo:1.0' {
+                expectResolve()
+            }
+            'org3:bar:1.0' {
+                expectResolve()
+            }
+            'org4:a:1.0' {
+                expectGetMetadata()
+            }
+            'org4:a:1.1' {
+                expectResolve()
+            }
+            'org4:b:1.1' {
+                expectResolve()
+            }
+            'org:json:1.1' {
+                expectGetMetadata()
+            }
+            'org:platform:1.0'(virtualPlatform)
+
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:xml:1.0') {
+                    module('org:core:1.0')
+                }
+                module('org2:foo:1.0') {
+                    edge('org4:a:1.0', 'org4:a:1.1') {
+                        byConflictResolution("between versions 1.0 and 1.1")
+                    }
+                }
+                module('org3:bar:1.0') {
+                    module('org4:b:1.1') {
+                        module('org4:a:1.1')
+                    }
+                }
+            }
+        }
+    }
 
     private void "a rule which infers module set from group and version"() {
         buildFile << """
@@ -634,5 +736,30 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
                 }
             }
         """
+    }
+
+    private void "align the 'org' group only"() {
+        buildFile << """
+            dependencies {
+                components.all(AlignOrgGroup)
+            }
+            
+            class AlignOrgGroup implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        if ('org' == id.group) {
+                           belongsTo("\${id.group}:platform:\${id.version}")
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    final Closure<Void> virtualPlatform = {
+        expectGetMetadataMissing()
+        if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+            expectHeadArtifactMissing()
+        }
     }
 }
