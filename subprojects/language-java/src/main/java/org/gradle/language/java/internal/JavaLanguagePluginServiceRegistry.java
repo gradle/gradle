@@ -16,6 +16,7 @@
 
 package org.gradle.language.java.internal;
 
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -63,8 +64,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaProjectScopeServices {
-        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor) {
-            return new IncrementalCompilerFactory(fileOperations, streamHasher, fileHasher, compileCaches, buildOperationExecutor);
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner) {
+            return new IncrementalCompilerFactory(fileOperations, streamHasher, fileHasher, compileCaches, buildOperationExecutor, interner);
         }
     }
 }

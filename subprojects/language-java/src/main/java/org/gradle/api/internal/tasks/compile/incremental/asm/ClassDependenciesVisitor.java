@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -41,16 +42,17 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final Set<String> superTypes;
     private final Set<String> types;
     private final Predicate<String> typeFilter;
+    private final StringInterner interner;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
     private final RetentionPolicyVisitor retentionPolicyVisitor;
     private final AnnotationVisitor annotationVisitor;
 
     private ClassDependenciesVisitor(IntSet constantsCollector) {
-        this(constantsCollector, null, null, null);
+        this(constantsCollector, null, null, null, null);
     }
 
-    private ClassDependenciesVisitor(IntSet constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
+    private ClassDependenciesVisitor(IntSet constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
         this.constants = constantsCollector;
         this.types = types;
@@ -63,14 +65,15 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         if (reader != null) {
             collectClassDependencies(reader);
         }
+        this.interner = interner;
     }
 
-    public static ClassAnalysis analyze(String className, ClassReader reader) {
+    public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
         IntSet constants = new IntOpenHashSet(2);
         Set<String> classDependencies = Sets.newHashSet();
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, classDependencies, new ClassRelevancyFilter(className), reader);
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, classDependencies, new ClassRelevancyFilter(className), reader, interner);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, visitor.getSuperTypes());
+        return new ClassAnalysis(interner.intern(className), classDependencies, visitor.isDependencyToAll(), constants, visitor.getSuperTypes());
     }
 
     public static IntSet retrieveConstants(ClassReader reader) {
@@ -123,14 +126,18 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     protected void maybeAddSuperType(String type) {
         if (superTypes != null && typeFilter.apply(type)) {
-            superTypes.add(type);
+            superTypes.add(intern(type));
         }
     }
 
     protected void maybeAddDependentType(String type) {
         if (types != null && typeFilter.apply(type)) {
-            types.add(type);
+            types.add(intern(type));
         }
+    }
+
+    private String intern(String type) {
+        return interner != null ? interner.intern(type) : type;
     }
 
     protected String typeOfFromSlashyString(String slashyStyleDesc) {
