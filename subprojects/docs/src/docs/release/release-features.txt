@@ -1,3 +1,4 @@
  - Experimental APIs for creating and configuring tasks lazily
  - Pass arguments to JavaExec via CLI
+ - Auxiliary publication dependency support for multi-project builds
  - Improved dependency insight report

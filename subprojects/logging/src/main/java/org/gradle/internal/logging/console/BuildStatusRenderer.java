@@ -49,8 +49,8 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
+    private OperationIdentifier buildProgressOperationId;
     private Phase currentPhase;
-    private OperationIdentifier currentPhaseProgressOperationId;
     private Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
     private long currentTimePeriod;
 
@@ -76,6 +76,7 @@ public class BuildStatusRenderer implements OutputEventListener {
                 if (buildStartTimestamp == 0 && startEvent.getParentProgressOperationId() == null) {
                     // TODO - should use BuildRequestMetaData to determine the build start time
                     buildStartTimestamp = startEvent.getTimestamp();
+                    buildProgressOperationId = startEvent.getProgressOperationId();
                     phaseStarted(startEvent, Phase.Initializing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     phaseStarted(startEvent, Phase.Configuring);
@@ -93,8 +94,8 @@ public class BuildStatusRenderer implements OutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-            if (isPhaseProgressEvent(completeEvent.getProgressOperationId())) {
-                phaseEnded();
+            if (completeEvent.getProgressOperationId().equals(buildProgressOperationId)) {
+                buildEnded();
             } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
                 phaseProgressed(completeEvent);
             }
@@ -110,10 +111,6 @@ public class BuildStatusRenderer implements OutputEventListener {
         }
     }
 
-    private boolean isPhaseProgressEvent(OperationIdentifier progressOpId) {
-        return progressOpId.equals(currentPhaseProgressOperationId);
-    }
-
     private void renderNow(long now) {
         if (progressBar != null) {
             buildStatusLabel.setText(progressBar.formatProgress(consoleMetaData.getCols(), timerEnabled, now - buildStartTimestamp));
@@ -124,7 +121,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
         timerEnabled = true;
         currentPhase = phase;
-        currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId();
+        currentPhaseChildren.clear();
         progressBar = newProgressBar(phase.name().toUpperCase(), 0, progressStartEvent.getTotalProgress());
     }
 
@@ -138,10 +135,10 @@ public class BuildStatusRenderer implements OutputEventListener {
         }
     }
 
-    private void phaseEnded() {
+    private void buildEnded() {
         progressBar = newProgressBar("WAITING", 0, 1);
         currentPhase = null;
-        currentPhaseProgressOperationId = null;
+        buildProgressOperationId = null;
         currentPhaseChildren.clear();
         timerEnabled = false;
     }

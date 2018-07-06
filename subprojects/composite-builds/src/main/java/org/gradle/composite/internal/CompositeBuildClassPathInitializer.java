@@ -41,18 +41,22 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     @Override
     public void execute(Configuration classpath) {
         ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
+        boolean found = false;
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            build(currentBuild, componentArtifactIdentifier);
+            found |= build(currentBuild, componentArtifactIdentifier);
         }
-        List<Throwable> taskFailures = new ArrayList<Throwable>();
-        includedBuildTaskGraph.awaitTaskCompletion(taskFailures);
-        if (!taskFailures.isEmpty()) {
-            throw new MultipleBuildFailures(taskFailures);
+        if (found) {
+            List<Throwable> taskFailures = new ArrayList<Throwable>();
+            includedBuildTaskGraph.awaitTaskCompletion(taskFailures);
+            if (!taskFailures.isEmpty()) {
+                throw new MultipleBuildFailures(taskFailures);
+            }
         }
     }
 
-    public void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
+    public boolean build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
+        boolean found = false;
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             BuildIdentifier targetBuild = compositeBuildArtifact.getComponentId().getBuild();
@@ -61,6 +65,8 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             for (Task task : tasks) {
                 includedBuildTaskGraph.addTask(requestingBuild, targetBuild, task.getPath());
             }
+            found = true;
         }
+        return found;
     }
 }

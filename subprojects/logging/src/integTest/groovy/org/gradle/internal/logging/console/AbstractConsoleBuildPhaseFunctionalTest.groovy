@@ -44,6 +44,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         buildFile << """
             ${server.callFromBuild('root-build-script')}
             task hello { 
+                dependsOn {                         
+                    // call during task graph calculation
+                    ${server.callFromBuild('task-graph')}
+                    null
+                }
                 doFirst {
                     ${server.callFromBuild('task1')}
                 } 
@@ -54,17 +59,26 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                     ${server.callFromBuild('task2')}
                 } 
             }
+            gradle.buildFinished {
+                ${server.callFromBuild('build-finished')}
+            }
         """
         file("b/build.gradle") << """
             ${server.callFromBuild('b-build-script')}
+            afterEvaluate {
+                ${server.callFromBuild('b-after-evaluate')}
+            }
         """
 
         given:
         def settings = server.expectAndBlock('settings')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def bBuildScript = server.expectAndBlock('b-build-script')
+        def bAfterEvaluate = server.expectAndBlock('b-after-evaluate')
+        def taskGraph = server.expectAndBlock('task-graph')
         def task1 = server.expectAndBlock('task1')
         def task2 = server.expectAndBlock('task2')
+        def buildFinished = server.expectAndBlock('build-finished')
         gradle = executer.withTasks("hello2").start()
 
         expect:
@@ -83,6 +97,16 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         bBuildScript.releaseAll()
 
         and:
+        bAfterEvaluate.waitForAllPendingCalls()
+        assertHasBuildPhase("40% CONFIGURING")
+        bAfterEvaluate.releaseAll()
+
+        and:
+        taskGraph.waitForAllPendingCalls()
+        assertHasBuildPhase("100% CONFIGURING")
+        taskGraph.releaseAll()
+
+        and:
         task1.waitForAllPendingCalls()
         assertHasBuildPhase("0% EXECUTING")
         task1.releaseAll()
@@ -91,6 +115,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         task2.waitForAllPendingCalls()
         assertHasBuildPhase("50% EXECUTING")
         task2.releaseAll()
+
+        and:
+        buildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("100% EXECUTING")
+        buildFinished.releaseAll()
 
         and:
         gradle.waitForFinish()
@@ -109,13 +138,21 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                     ${server.callFromBuild('task2')}
                 } 
             }
+            gradle.buildFinished {
+                ${server.callFromBuild('root-build-finished')}
+            }
         """
         file("child/settings.gradle") << """
             include 'a', 'b'
         """
         file("child/build.gradle") << """
             ${server.callFromBuild('child-build-script')}
-            task hello { 
+            task hello {
+                dependsOn {                         
+                    // call during task graph calculation
+                    ${server.callFromBuild('child-task-graph')}
+                    null
+                }
                 doFirst {
                     ${server.callFromBuild('task1')}
                 } 
@@ -126,8 +163,10 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         def settings = server.expectAndBlock('settings')
         def childBuildScript = server.expectAndBlock('child-build-script')
         def rootBuildScript = server.expectAndBlock('root-build-script')
+        def childTaskGraph = server.expectAndBlock('child-task-graph')
         def task1 = server.expectAndBlock('task1')
         def task2 = server.expectAndBlock('task2')
+        def rootBuildFinished = server.expectAndBlock('root-build-finished')
         gradle = executer.withTasks("hello2").start()
 
         expect:
@@ -146,6 +185,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         rootBuildScript.releaseAll()
 
         and:
+        childTaskGraph.waitForAllPendingCalls()
+        assertHasBuildPhase("100% CONFIGURING")
+        childTaskGraph.releaseAll()
+
+        and:
         task1.waitForAllPendingCalls()
         assertHasBuildPhase("0% EXECUTING")
         task1.releaseAll()
@@ -154,6 +198,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         task2.waitForAllPendingCalls()
         assertHasBuildPhase("50% EXECUTING")
         task2.releaseAll()
+
+        and:
+        rootBuildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("100% EXECUTING")
+        rootBuildFinished.releaseAll()
 
         and:
         gradle.waitForFinish()
@@ -170,23 +219,39 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                     ${server.callFromBuild('task2')}
                 } 
             }
+            gradle.buildFinished {
+                ${server.callFromBuild('root-build-finished')}
+            }
         """
         file("buildSrc/settings.gradle") << """
             include 'a', 'b'
         """
         file("buildSrc/build.gradle") << """
             ${server.callFromBuild('buildsrc-build-script')}
-            assemble.doFirst {
-                ${server.callFromBuild('buildsrc-task')}
+            assemble {
+                dependsOn {                         
+                    // call during task graph calculation
+                    ${server.callFromBuild('buildsrc-task-graph')}
+                    null
+                }
+                doFirst {
+                    ${server.callFromBuild('buildsrc-task')}
+                }
+            }
+            gradle.buildFinished {
+                ${server.callFromBuild('buildsrc-build-finished')}
             }
         """
 
         given:
         def childBuildScript = server.expectAndBlock('buildsrc-build-script')
+        def childTaskGraph = server.expectAndBlock('buildsrc-task-graph')
         def task1 = server.expectAndBlock('buildsrc-task')
+        def childBuildFinished = server.expectAndBlock('buildsrc-build-finished')
         def settings = server.expectAndBlock('settings')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def task2 = server.expectAndBlock('task2')
+        def rootBuildFinished = server.expectAndBlock('root-build-finished')
         gradle = executer.withTasks("hello").start()
 
         expect:
@@ -195,9 +260,19 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         childBuildScript.releaseAll()
 
         and:
+        childTaskGraph.waitForAllPendingCalls()
+        assertHasBuildPhase("0% INITIALIZING")
+        childTaskGraph.releaseAll()
+
+        and:
         task1.waitForAllPendingCalls()
         assertHasBuildPhase("0% INITIALIZING")
         task1.releaseAll()
+
+        and:
+        childBuildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("0% INITIALIZING")
+        childBuildFinished.releaseAll()
 
         and:
         settings.waitForAllPendingCalls()
@@ -213,6 +288,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         task2.waitForAllPendingCalls()
         assertHasBuildPhase("0% EXECUTING")
         task2.releaseAll()
+
+        and:
+        rootBuildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("100% EXECUTING")
+        rootBuildFinished.releaseAll()
 
         and:
         gradle.waitForFinish()

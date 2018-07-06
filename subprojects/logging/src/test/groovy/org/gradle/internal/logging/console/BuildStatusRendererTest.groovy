@@ -85,11 +85,32 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '<-------------> 0% WAITING'
     }
 
+    def "formats build"() {
+        given:
+        def event1 = startRootBuildOperation(1)
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '<-------------> 0% INITIALIZING [0s]'
+
+        when:
+        renderer.onOutput(complete(1))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '<-------------> 0% WAITING'
+    }
+
     def "formats configuration phase"() {
         given:
         def event1 = startRootBuildOperation(1)
         def event2 = startConfigureRootBuild(2, 1, 4)
         def event3 = startConfigureProject(3, 2)
+        def event4 = startConfigureProject(4, 2)
+        def event5 = startConfigureProject(5, 2)
 
         when:
         renderer.onOutput(event1)
@@ -114,11 +135,15 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '<===----------> 25% CONFIGURING [0s]'
 
         when:
+        renderer.onOutput(event4)
+        renderer.onOutput(complete(4))
+        renderer.onOutput(event5)
+        renderer.onOutput(complete(5))
         renderer.onOutput(complete(2))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% WAITING'
+        statusBar.display == '<=========----> 75% CONFIGURING [0s]'
     }
 
     def "formats configuration phase with nested builds"() {
@@ -157,7 +182,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% WAITING'
+        statusBar.display == '<=------------> 10% CONFIGURING [0s]'
     }
 
     def "formats execution phase"() {
@@ -193,7 +218,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% WAITING'
+        statusBar.display == '<===----------> 25% EXECUTING [0s]'
     }
 
     def "formats execution phase with nested builds"() {
@@ -232,6 +257,55 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
+        statusBar.display == '<=------------> 10% EXECUTING [0s]'
+    }
+
+    def "configuration phase runs until task graph execution"() {
+        given:
+        def event1 = startRootBuildOperation(1)
+        def event2 = startConfigureRootBuild(2, 1, 1)
+        def event3 = startConfigureProject(3, 2)
+        def event4 = startOther(4, 1)
+        def event5 = startExecuteRootBuild(5, 1, 1)
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '<-------------> 0% CONFIGURING [0s]'
+
+        when:
+        renderer.onOutput(event3)
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '<=============> 100% CONFIGURING [0s]'
+
+        when:
+        renderer.onOutput(event4)
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '<=============> 100% CONFIGURING [0s]'
+
+        when:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(event5)
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '<-------------> 0% EXECUTING [0s]'
+
+        when:
+        renderer.onOutput(complete(5))
+        renderer.onOutput(complete(1))
+        renderer.onOutput(updateNow())
+
+        then:
         statusBar.display == '<-------------> 0% WAITING'
     }
 
@@ -261,6 +335,10 @@ class BuildStatusRendererTest extends OutputSpecification {
 
     def startExecuteTask(Long id, Long parentId) {
         return start(id, parentId, BuildOperationCategory.TASK)
+    }
+
+    def startOther(Long id, Long parentId) {
+        return start(id, parentId, BuildOperationCategory.UNCATEGORIZED)
     }
 
     def start(Long id, Long parentId, BuildOperationCategory category, int totalProgress = 0) {
