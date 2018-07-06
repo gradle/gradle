@@ -22,7 +22,7 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-import org.gradle.util.CollectionUtils
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Unroll
@@ -68,7 +68,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         succeeds("assemble")
 
         then:
-        def root = CollectionUtils.single(operations.roots())
+        def root = operations.root(RunBuildBuildOperationType)
 
         def resolve = operations.first(ResolveConfigurationDependenciesBuildOperationType) { r -> r.details.buildPath == ":" && r.details.projectPath == ":" && r.details.configurationName == "compileClasspath" }
         resolve
