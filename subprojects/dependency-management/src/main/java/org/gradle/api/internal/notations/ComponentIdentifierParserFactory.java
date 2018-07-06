@@ -29,6 +29,8 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
+
 public class ComponentIdentifierParserFactory implements Factory<NotationParser<Object, ComponentIdentifier>> {
 
     @Nullable
@@ -47,8 +49,8 @@ public class ComponentIdentifierParserFactory implements Factory<NotationParser<
             @MapKey("version") String version) {
 
             return DefaultModuleComponentIdentifier.newId(
-                DefaultModuleIdentifier.newId(group, name),
-                version
+                DefaultModuleIdentifier.newId(validate(group.trim()), validate(name.trim())),
+                validate(version.trim())
             );
         }
     }
@@ -63,11 +65,11 @@ public class ComponentIdentifierParserFactory implements Factory<NotationParser<
         protected ModuleComponentIdentifier parseType(String notation) {
             String[] parts = notation.split(":");
             if (parts.length != 3) {
-                throw new InvalidUserDataException("Invalid module component notation");
+                throw new InvalidUserDataException("Invalid module component notation: " + notation + " : must be a valid 3 part identifier, eg.: org.gradle:gradle:1.0");
             }
             return DefaultModuleComponentIdentifier.newId(
-                DefaultModuleIdentifier.newId(parts[0], parts[1]),
-                parts[2]
+                DefaultModuleIdentifier.newId(validate(parts[0].trim(), notation), validate(parts[1].trim(), notation)),
+                validate(parts[2].trim(), notation)
             );
         }
     }
