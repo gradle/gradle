@@ -64,8 +64,8 @@ class ApiExtensionsJarGenerator(
     }
 
     private
-    fun gradleApiExtensionsSourceFilesFor(gradleJars: Iterable<File>, outputDir: File) =
-        writeGradleApiKotlinDslExtensionsTo(outputDir, gradleJars.toList()).also {
+    fun gradleApiExtensionsSourceFilesFor(gradleJars: Collection<File>, outputDir: File) =
+        writeGradleApiKotlinDslExtensionsTo(outputDir, gradleJars).also {
             onProgress()
         }
 

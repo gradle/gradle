@@ -24,7 +24,7 @@ import java.util.jar.JarFile
 
 
 internal
-fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: List<File>) =
+fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>) =
     (gradleApiJarsFrom(gradleJars) to gradleApiMetadataFrom(gradleJars)).let { (gradleApiJars, gradleApiMetadata) ->
         doGenerateKotlinDslApiExtensionsSourceTo(
             outputDirectory,
@@ -40,12 +40,12 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: List<
 
 
 private
-fun gradleApiJarsFrom(gradleJars: List<File>) =
+fun gradleApiJarsFrom(gradleJars: Collection<File>) =
     gradleJars.filter { it.name.startsWith("gradle-") && !it.name.contains("gradle-kotlin-") }
 
 
 private
-fun gradleApiMetadataFrom(gradleJars: List<File>) =
+fun gradleApiMetadataFrom(gradleJars: Collection<File>) =
     JarFile(gradleJars.single { it.name.startsWith(gradleApiMetadataModuleName) }).use { jar ->
         jar.loadProperties(gradleApiDeclarationPropertiesName) to jar.loadProperties(gradleApiParameterNamesPropertiesName)
     }.let { (apiDeclaration, parameterNames) ->
