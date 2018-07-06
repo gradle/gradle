@@ -38,8 +38,7 @@ class DeprecationMessageBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds "t"
 
         then:
-        def op = operations.first(DeprecationWarningBuildOperationType){true}
-        op.details.message.contains('test deprecation warning')
+        def op = operations.first(DeprecationWarningBuildOperationType) { it.details.message.contains('test deprecation warning') }
         op.details.stackTrace.size > 0
         op.details.stackTrace[0].fileName.endsWith('build.gradle')
         op.details.stackTrace[0].lineNumber == 4
