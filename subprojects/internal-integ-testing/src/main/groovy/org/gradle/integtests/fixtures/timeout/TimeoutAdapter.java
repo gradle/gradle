@@ -23,20 +23,27 @@ import java.util.concurrent.TimeUnit;
 
 public class TimeoutAdapter implements Timeout {
 
-    IntegrationTestTimeout timeout;
+    private int timeout;
+    private TimeUnit unit;
 
     TimeoutAdapter(IntegrationTestTimeout timeout) {
+        this.timeout = timeout.value();
+        this.unit = timeout.unit();
+    }
+
+    TimeoutAdapter(int timeout, TimeUnit unit) {
         this.timeout = timeout;
+        this.unit = unit;
     }
 
     @Override
     public int value() {
-        return timeout.value();
+        return timeout;
     }
 
     @Override
     public TimeUnit unit() {
-        return timeout.unit();
+        return unit;
     }
 
     @Override

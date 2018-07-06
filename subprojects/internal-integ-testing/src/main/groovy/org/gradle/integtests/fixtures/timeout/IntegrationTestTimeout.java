@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(IntegrationTestTimeoutExtension.class)
 public @interface IntegrationTestTimeout {
+    int DEFAULT_TIMEOUT_SECONDS = 600;
     /**
      * Returns the duration after which the execution of the annotated feature or fixture
      * method times out.

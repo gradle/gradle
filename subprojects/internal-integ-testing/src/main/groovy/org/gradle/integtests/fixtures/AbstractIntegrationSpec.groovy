@@ -40,6 +40,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.*
 import static org.gradle.util.Matchers.normalizedLineSeparators
 
 /**
@@ -49,7 +50,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  */
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
-@IntegrationTestTimeout(600)
+@IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
 class AbstractIntegrationSpec extends Specification {
 
     @Rule

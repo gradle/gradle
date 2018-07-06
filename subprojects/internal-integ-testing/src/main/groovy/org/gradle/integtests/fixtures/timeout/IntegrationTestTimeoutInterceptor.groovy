@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.timeout
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -25,10 +26,13 @@ import org.gradle.internal.os.OperatingSystem
 import org.spockframework.runtime.SpockAssertionError
 import org.spockframework.runtime.SpockTimeoutError
 import org.spockframework.runtime.extension.IMethodInvocation
+import org.spockframework.runtime.extension.MethodInvocation
 import org.spockframework.runtime.extension.builtin.TimeoutInterceptor
+import org.spockframework.runtime.model.MethodInfo
 
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -42,26 +46,40 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         super(new TimeoutAdapter(timeout))
     }
 
+    IntegrationTestTimeoutInterceptor(int timeoutSeconds) {
+        super(new TimeoutAdapter(timeoutSeconds, TimeUnit.SECONDS))
+    }
+
     @Override
     void intercept(final IMethodInvocation invocation) throws Throwable {
         try {
             super.intercept(invocation)
         } catch (SpockTimeoutError e) {
-            Object instance = invocation.getInstance()
-            if (instance instanceof AbstractIntegrationSpec) {
-                String allThreadStackTraces = getAllStackTraces((AbstractIntegrationSpec) instance)
-                throw new SpockAssertionError(allThreadStackTraces, e)
-            } else {
-                throw e
-            }
+            String allThreadStackTraces = getAllStackTraces(invocation)
+            throw new SpockAssertionError(allThreadStackTraces, e)
         } catch (Throwable t) {
             throw t
         }
     }
 
-    static String getAllStackTraces(AbstractIntegrationSpec spec) {
+    void intercept(Action<Void> action) {
+        MethodInfo methodInfo = new MethodInfo()
+        methodInfo.setName('MockMethod')
+        intercept(new MethodInvocation(null, null, null, null, null, methodInfo, null) {
+            void proceed() throws Throwable {
+                action.execute(null)
+            }
+        })
+    }
+
+    static boolean isInProcessExecuter(AbstractIntegrationSpec spec) {
+        return spec.executer.gradleExecuter.class == InProcessGradleExecuter
+    }
+
+    static String getAllStackTraces(IMethodInvocation invocation) {
         try {
-            if (spec.executer.gradleExecuter.class == InProcessGradleExecuter) {
+            Object instance = invocation.getInstance()
+            if (instance instanceof AbstractIntegrationSpec && isInProcessExecuter(instance)) {
                 return getAllStackTracesInCurrentJVM()
             } else {
                 return getAllStackTracesByJstack()
@@ -69,7 +87,7 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         } catch (Throwable e) {
             def stream = new ByteArrayOutputStream()
             e.printStackTrace(new PrintStream(stream))
-            return stream.toString()
+            return "Error in attempt to fetch  stacktraces: ${stream.toString()}"
         }
     }
 
