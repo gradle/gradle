@@ -127,7 +127,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         return new ImplicitInputsCapturingInstantiator(registry, instantiatorFactory);
     }
 
-    private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
+    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
