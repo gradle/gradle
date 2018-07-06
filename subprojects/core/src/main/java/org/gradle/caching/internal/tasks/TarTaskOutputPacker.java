@@ -31,15 +31,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.OutputType;
@@ -48,6 +39,15 @@ import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.content.DirContentSnapshot;
+import org.gradle.internal.file.content.FileContentSnapshot;
+import org.gradle.internal.file.content.FileHashSnapshot;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.file.physical.MutablePhysicalSnapshot;
+import org.gradle.internal.file.physical.PhysicalSnapshotVisitor;
+import org.gradle.internal.file.physical.internal.MutablePhysicalDirectorySnapshot;
+import org.gradle.internal.file.physical.internal.PhysicalFileSnapshot;
+import org.gradle.internal.file.physical.internal.RelativePathHolder;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -101,7 +101,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, FileCollectionSnapshot> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, FileCollectionFingerprint> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -129,11 +129,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, FileCollectionSnapshot> outputSnapshots, TarArchiveOutputStream tarOutput) {
+    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, FileCollectionFingerprint> outputSnapshots, TarArchiveOutputStream tarOutput) {
         long entries = 0;
         for (ResolvedTaskOutputFilePropertySpec propertySpec : propertySpecs) {
             String propertyName = propertySpec.getPropertyName();
-            FileCollectionSnapshot outputSnapshot = outputSnapshots.get(propertyName);
+            FileCollectionFingerprint outputSnapshot = outputSnapshots.get(propertyName);
             try {
                 entries += packProperty(propertySpec, outputSnapshot, tarOutput);
             } catch (Exception ex) {
@@ -143,7 +143,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return entries;
     }
 
-    private long packProperty(final CacheableTaskOutputFilePropertySpec propertySpec, FileCollectionSnapshot outputSnapshot, TarArchiveOutputStream tarOutput) {
+    private long packProperty(final CacheableTaskOutputFilePropertySpec propertySpec, FileCollectionFingerprint outputSnapshot, TarArchiveOutputStream tarOutput) {
         String propertyName = propertySpec.getPropertyName();
         File root = propertySpec.getOutputFile();
         if (root == null) {

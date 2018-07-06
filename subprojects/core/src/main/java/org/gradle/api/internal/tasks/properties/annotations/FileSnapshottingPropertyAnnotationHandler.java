@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.internal.file.fingerprint.fingerprinter.FileCollectionFingerprinter;
 
 public interface FileSnapshottingPropertyAnnotationHandler extends PropertyAnnotationHandler {
-    Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType();
+    Class<? extends FileCollectionFingerprinter> getSnapshotterImplementationType();
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.internal.file.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayApplicationRunnerFactory {
-    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory, ClasspathSnapshotter snapshotter) {
+    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory, ClasspathFingerprinter snapshotter) {
         return new PlayApplicationRunner(workerFactory, createPlayRunAdapter(playPlatform), snapshotter);
     }
 

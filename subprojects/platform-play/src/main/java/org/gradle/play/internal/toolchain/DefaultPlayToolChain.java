@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.file.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -48,9 +48,9 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final WorkerDirectoryProvider workerDirectoryProvider;
-    private final ClasspathSnapshotter snapshotter;
+    private final ClasspathFingerprinter snapshotter;
 
-    public DefaultPlayToolChain(PathToFileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathSnapshotter snapshotter) {
+    public DefaultPlayToolChain(PathToFileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter snapshotter) {
         this.fileResolver = fileResolver;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;

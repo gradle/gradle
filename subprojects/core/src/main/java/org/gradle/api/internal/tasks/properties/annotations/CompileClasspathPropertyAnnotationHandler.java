@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidationActions;
@@ -27,6 +25,8 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.internal.file.fingerprint.classpath.CompileClasspathFingerprinter;
+import org.gradle.internal.file.fingerprint.fingerprinter.FileCollectionFingerprinter;
 
 import java.lang.annotation.Annotation;
 
@@ -42,8 +42,8 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
-        return CompileClasspathSnapshotter.class;
+    public Class<? extends FileCollectionFingerprinter> getSnapshotterImplementationType() {
+        return CompileClasspathFingerprinter.class;
     }
 
     @Override

@@ -16,11 +16,11 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot
-import org.gradle.api.internal.changedetection.state.MissingFileContentSnapshot
-import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.file.FileType
+import org.gradle.internal.file.content.DirContentSnapshot
+import org.gradle.internal.file.content.MissingFileContentSnapshot
+import org.gradle.internal.file.mirror.TestFileSnapshotter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.language.nativeplatform.internal.Include

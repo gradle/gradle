@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
 
 @NonNullApi
 public class OutputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
@@ -29,7 +29,7 @@ public class OutputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     @Override
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
+    protected ImmutableSortedMap<String, FileCollectionFingerprint> getSnapshot(TaskExecution execution) {
         return execution.getOutputFilesSnapshot();
     }
 

@@ -17,10 +17,10 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -55,9 +55,9 @@ public class TaskCacheKeyCalculator {
             }
         }
 
-        SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();
-        for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshots.entrySet()) {
-            FileCollectionSnapshot snapshot = entry.getValue();
+        SortedMap<String, FileCollectionFingerprint> inputFilesSnapshots = execution.getInputFilesSnapshot();
+        for (Map.Entry<String, FileCollectionFingerprint> entry : inputFilesSnapshots.entrySet()) {
+            FileCollectionFingerprint snapshot = entry.getValue();
             builder.appendInputPropertyHash(entry.getKey(), snapshot.getHash());
         }
 

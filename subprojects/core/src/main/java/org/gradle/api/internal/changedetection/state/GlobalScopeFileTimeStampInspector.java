@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.file.content.hasher.CachingFileHasher;
 
 import java.util.HashSet;
 import java.util.Set;

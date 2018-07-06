@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.file.fingerprint.FileCollectionFingerprint;
 
 @NonNullApi
 public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
@@ -33,18 +33,18 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         this.title = title;
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
+    private ImmutableSortedMap<String, FileCollectionFingerprint> getPrevious() {
         return getSnapshot(previous);
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
+    private ImmutableSortedMap<String, FileCollectionFingerprint> getCurrent() {
         return getSnapshot(current);
     }
 
-    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
+    protected abstract ImmutableSortedMap<String, FileCollectionFingerprint> getSnapshot(TaskExecution execution);
 
     protected boolean accept(final TaskStateChangeVisitor visitor, final boolean includeAdded) {
-        return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {
+        return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionFingerprint>() {
             @Override
             public boolean removed(String previousProperty) {
                 return true;
@@ -56,7 +56,7 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
             }
 
             @Override
-            public boolean updated(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
+            public boolean updated(String property, FileCollectionFingerprint previousSnapshot, FileCollectionFingerprint currentSnapshot) {
                 String propertyTitle = title + " property '" + property + "'";
                 return currentSnapshot.visitChangesSince(previousSnapshot, propertyTitle, includeAdded, visitor);
             }
