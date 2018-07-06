@@ -61,7 +61,7 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * or if any of the predicates passed to {@link #doNotCacheIf(String, Spec)} returns {@code true}. If {@code cacheIf()} is not specified,
      * the task will not be cached unless the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
      *
-     * <p>Consider using {@link #cacheIf(String, Spec)} instead for also providing a reason for disabling caching.</p>
+     * <p>Consider using {@link #cacheIf(String, Spec)} instead for also providing a reason for enabling caching.</p>
      *
      * @param spec specifies if the results of the task should be cached.
      *
