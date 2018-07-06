@@ -42,7 +42,7 @@ In our examples, we will start with the plugin in the build script, to keep thin
 [[sec:writing_a_simple_plugin]]
 == Writing a simple plugin
 
-To create a Gradle plugin, you need to write a class that implements the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[Plugin]` interface. When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's api:org.gradle.api.Plugin#apply[] method. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to. The following sample contains a greeting plugin, which adds a `hello` task to the project.
+To create a Gradle plugin, you need to write a class that implements the `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` interface. When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's `link:{javadoc-path}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()]` method. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to. The following sample contains a greeting plugin, which adds a `hello` task to the project.
 
 === Example: A custom plugin
 
@@ -58,7 +58,7 @@ include::{samples-path}/userguide/customPlugins/customPlugin/build.gradle[]
 include::{samples-path}/userguide/customPlugins/customPlugin/customPlugin.out[]
 ----
 
-One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[Plugin]` class is a generic type. This example has it receiving the `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` type as a type parameter. A plugin can instead receive a parameter of type `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html[Settings]`, in which case the plugin can be applied in a settings script, or a parameter of type `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html[Gradle]`, in which case the plugin can be applied in an initialization script.
+One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` class is a generic type. This example has it receiving the `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` type as a type parameter. A plugin can instead receive a parameter of type `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html[Settings]`, in which case the plugin can be applied in a settings script, or a parameter of type `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html[Gradle]`, in which case the plugin can be applied in an initialization script.
 
 [[sec:getting_input_from_the_build]]
 == Making the plugin configurable
@@ -111,7 +111,7 @@ When developing custom tasks and plugins, it's a good idea to be very flexible w
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samples-path}/userguide/tasks/customTaskWithFileProperty/build.gradle[]
+include::{samples-path}/userguide/tasks/customTaskWithFileProperty/build.gradle[tags="task,config"]
 ----
 
 .Output of **`gradle -q sayGreeting`**
@@ -127,29 +127,42 @@ In this example, we configure the `greet` task `destination` property as a closu
 
 Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice. The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
-The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration#,"Lazy Configuration">> for more information.
+The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<build_lifecycle#sec:build_phases,the section on build phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration#,"Lazy Configuration">> for more information.
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 
-++++
-<sample id="mapExtensionPropertiesToTaskProperties" dir="userguide/tasks/mapExtensionPropertiesToTaskProperties" includeLocation="true" title="Mapping extension properties to task properties">
-            <sourcefile file="build.gradle"/>
-            <output args="-q hello"/>
-        </sample>
-++++
+=== Example: Mapping extension properties to task properties
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/mapExtensionPropertiesToTaskProperties/build.gradle[]
+----
+
+NOTE: The code for this example can be found at **`samples/userguide/tasks/mapExtensionPropertiesToTaskProperties`** in the ‘-all’ distribution of Gradle.
+
+.Output of `gradle -q hello`
+----
+> gradle -q hello
+include::{samples-path}/userguide/tasks/mapExtensionPropertiesToTaskProperties/mapExtensionPropertiesToTaskProperties.out[]
+----
 
 [[sec:custom_plugins_standalone_project]]
 == A standalone project
 
 Now we will move our plugin to a standalone project, so we can publish it and share it with others. This project is simply a Groovy project that produces a JAR containing the plugin classes. Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API as a compile-time dependency.
 
-++++
-<sample id="customPluginStandalone" dir="customPlugin/plugin" title="A build for a custom plugin" includeLocation="true">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: A build for a custom plugin
 
-So how does Gradle find the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[Plugin]` implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/customPlugin/plugin/build.gradle[tag=use-plugin]
+----
+
+NOTE: The code for this example can be found at **`samples/customPlugin/plugin`** in the ‘-all’ distribution of Gradle.
+
+So how does Gradle find the `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
 
 === Example: Wiring for a custom plugin
 
@@ -159,7 +172,7 @@ So how does Gradle find the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[P
 include::{samples-path}/customPlugin/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
 ----
 
-Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the `link:{groovy-dsl-path}/org.gradle.api.Plugin.html[Plugin]` implementation class.
+Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` implementation class.
 
 
 [[sec:creating_a_plugin_id]]
@@ -191,7 +204,7 @@ If you are interested in publishing your plugin to be used by the wider Gradle c
 [[sec:using_your_plugin_in_another_project]]
 === Using your plugin in another project
 
-To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To do this, you use a "`buildscript { }`" block, as described in <<sec:applying_plugins_buildscript>>. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
+To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To do this, you use a "`buildscript { }`" block, as described in see <<plugins#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
 
 === Example: Using a custom plugin in another project
 
@@ -201,7 +214,7 @@ To use a plugin in a build script, you need to add the plugin classes to the bui
 include::{samples-path}/customPlugin/consumer/build.gradle[tag=use-plugin]
 ----
 
-Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see <<sec:plugins_block>>) to apply the plugin:
+Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see <<plugins#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
 
 === Example: Applying a community plugin with the plugins DSL
 
