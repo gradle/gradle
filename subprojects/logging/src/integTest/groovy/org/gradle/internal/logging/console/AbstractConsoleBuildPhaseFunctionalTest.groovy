@@ -44,6 +44,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         buildFile << """
             ${server.callFromBuild('root-build-script')}
             task hello { 
+                dependsOn {                         
+                    // call during task graph calculation
+                    ${server.callFromBuild('task-graph')}
+                    null
+                }
                 doFirst {
                     ${server.callFromBuild('task1')}
                 } 
@@ -63,6 +68,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         def settings = server.expectAndBlock('settings')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def bBuildScript = server.expectAndBlock('b-build-script')
+        def taskGraph = server.expectAndBlock('task-graph')
         def task1 = server.expectAndBlock('task1')
         def task2 = server.expectAndBlock('task2')
         gradle = executer.withTasks("hello2").start()
@@ -81,6 +87,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         bBuildScript.waitForAllPendingCalls()
         assertHasBuildPhase("40% CONFIGURING")
         bBuildScript.releaseAll()
+
+        and:
+        taskGraph.waitForAllPendingCalls()
+        assertHasBuildPhase("100% CONFIGURING")
+        taskGraph.releaseAll()
 
         and:
         task1.waitForAllPendingCalls()
