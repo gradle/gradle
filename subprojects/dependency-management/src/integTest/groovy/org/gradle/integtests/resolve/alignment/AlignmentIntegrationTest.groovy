@@ -78,6 +78,7 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
                 module("org:json:1.1") {
@@ -142,9 +143,11 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
                 edge("org:json:1.0", "org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
                 module('org:core:1.1')
@@ -208,7 +211,9 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:xml:1.0") {
-                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.0 and 1.1")
+                    edge('org:core:1.0', 'org:core:1.1')
+                        .byConflictResolution("between versions 1.0 and 1.1")
+                        .byConstraint("belongs to platform org:platform:1.1")
                 }
                 module("org:json:1.1") {
                     module('org:core:1.1')
@@ -275,6 +280,7 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     module('org:core:1.0')
+                    byConstraint("belongs to platform org:platform:1.1")
                 }
                 module("org:json:1.1") {
                     module('org:core:1.0')
@@ -383,11 +389,11 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:core:2.9.4')
-                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                edge('org:databind:2.7.9', 'org:databind:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
                 module('org:kt:2.9.4.1') {
                     module('org:databind:2.9.4') {
-                        module('org:core:2.9.4')
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                        module('org:core:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
                     }
                 }
             }
@@ -488,12 +494,12 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:core:2.9.4')
-                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:core:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                edge('org:databind:2.7.9', 'org:databind:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
                 module('org:kt:2.9.4.1') {
                     module('org:databind:2.9.4') {
-                        module('org:core:2.9.4')
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                        module('org:core:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
                     }
                 }
             }
