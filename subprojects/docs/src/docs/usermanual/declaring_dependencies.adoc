@@ -50,7 +50,7 @@ A Gradle project can define other types of repositories hosting modules. You can
 
 === Declaring a dependency without version
 
-A recommended practice for larger projects is to declare dependencies without versions and use <<sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
+A recommended practice for larger projects is to declare dependencies without versions and use <<managing_transitive_dependencies#sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
 
 === Example: Declaring a dependency without version
 
@@ -89,7 +89,7 @@ A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic d
 </figure>
 +++++
 
-By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
+By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
 [[sub:declaring_dependency_with_changing_version]]
 === Declaring a changing version
@@ -106,14 +106,14 @@ In Maven repositories, changing versions are commonly referred to as link:https:
 include::{samples-path}/userguide/dependencyManagement/declaringDependencies/changingVersion/build.gradle[tag=dependencies]
 ----
 
-By default, Gradle caches changing versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+By default, Gradle caches changing versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
 
 Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module. All you need to do is to set the property api:org.gradle.api.artifacts.ExternalModuleDependency#setChanging(boolean)[] to `true`.
 
 [[sec:declaring_file_dependency]]
 == Declaring a file dependency
 
-Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
+Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<dependency_management_terminology#sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -136,7 +136,7 @@ include::{samples-path}/userguide/dependencyManagement/declaringDependencies/fil
 
 As you can see in the code example, every dependency has to define its exact location in the file system.
 The most prominent methods for creating a file reference are `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)]`, api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[], and `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]`
-Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
+Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<repository_types#sec:flat_dir_resolver,flat directory repository>>.
 
 [[sec:declaring_project_dependency]]
 == Declaring a project dependency

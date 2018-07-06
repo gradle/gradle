@@ -15,7 +15,7 @@
 [[artifact_management]]
 = Legacy publishing
 
-NOTE: This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview,an alternative model>>. The approach detailed in this chapter — based on `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]` tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
+NOTE: This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview#,an alternative model>>. The approach detailed in this chapter — based on `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]` tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
 
 [[sec:introduction]]
 == Introduction
@@ -29,7 +29,7 @@ Like dependencies, artifacts are grouped by configurations. In fact, a configura
 
 For each configuration in your project, Gradle provides the tasks `upload__ConfigurationName__` and `build__ConfigurationName__`.footnote:[To be exact, the Base plugin provides those tasks. This plugin is automatically applied if you use the Java plugin.] Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
 
-<<java_plugin#tab:configurations, This listing>> shows the configurations added by the Java plugin. Two of the configurations are relevant for the usage with artifacts. The `archives` configuration is the standard configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this configuration. We will talk more about the `runtime` configuration <<project_libraries, further on>>. As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
+<<java_plugin#tab:configurations, This listing>> shows the configurations added by the Java plugin. Two of the configurations are relevant for the usage with artifacts. The `archives` configuration is the standard configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this configuration. We will talk more about the `runtime` configuration <<#project_libraries, further on>>. As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
 
 [[sec:declaring_artifacts]]
 == Declaring artifacts
@@ -87,7 +87,7 @@ include::{samples-path}/userguide/artifacts/uploading/build.gradle[tag=map-file-
 [[sec:publishing_artifacts]]
 == Publishing artifacts
 
-We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in _<<declaring_repositories, "Declaring Repositories">>_) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
+We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in _<<declaring_repositories#, "Declaring Repositories">>_) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
 
 === Example: Configuration of the upload task
 

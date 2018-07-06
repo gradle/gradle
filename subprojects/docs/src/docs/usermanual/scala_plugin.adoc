@@ -227,7 +227,7 @@ The Scala plugin adds the following convention properties to each source set in 
 | The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files.
 
 |  `scala.srcDirs`
-|  `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
+|  `Set&lt;File&gt;`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 |  `[__projectDir__/src/__name__/scala]`
 | The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
 

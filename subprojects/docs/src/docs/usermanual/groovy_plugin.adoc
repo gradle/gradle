@@ -90,7 +90,7 @@ image::groovyPluginTasks.png[]
 [[sec:groovy_project_layout]]
 == Project layout
 
-The Groovy plugin assumes the project layout shown in <<groovylayout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[We are using the same conventions as introduced by Russel Winder's Gant tool (https://gant.github.io/[]).] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
+The Groovy plugin assumes the project layout shown in <<#groovylayout,Groovy Layout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[We are using the same conventions as introduced by Russel Winder's Gant tool (https://gant.github.io/[]).] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
 
 [[groovylayout]]
 include::javaProjectMainLayout.adoc[]
@@ -205,7 +205,7 @@ The Groovy plugin adds the following convention properties to each source set in
 | The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
 
 |  `groovy.srcDirs`
-|  `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
+|  `Set&lt;File&gt;`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Specifying Multiple Files>>.
 |  `[__projectDir__/src/__name__/groovy]`
 | The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation.
 
@@ -236,7 +236,7 @@ The Groovy plugin also modifies some source set properties:
 [[sec:groovyCompile]]
 == GroovyCompile
 
-The Groovy plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]` task for each source set in the project. The task type extends the `JavaCompile` task (see <<sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The Groovy plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]` task for each source set in the project. The task type extends the `JavaCompile` task (see <<java_plugin#sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
 
 .Groovy plugin - GroovyCompile properties
 [cols="a,a,a", options="header"]
@@ -250,7 +250,7 @@ The Groovy plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.Gr
 | `__sourceSet__.compileClasspath`
 
 |  `source`
-| `link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]`. Can set using anything described in <<sec:specifying_multiple_files>>.
+| `link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Specifying Multiple Files>>.
 | `__sourceSet__.groovy`
 
 |  `destinationDir`
@@ -266,7 +266,8 @@ The Groovy plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.Gr
 [[sec:groovy_cross_compilation]]
 == Compiling and testing for Java 6 or Java 7
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<building_java_projects#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
                 <sourcefile file="gradle.properties"/>

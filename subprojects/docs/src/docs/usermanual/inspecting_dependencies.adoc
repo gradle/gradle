@@ -20,7 +20,7 @@ Gradle provides sufficient tooling to navigate large dependency graphs and mitig
 [[sec:listing_dependencies]]
 == Listing dependencies in a project
 
-A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<sub:what_is_a_configuration,configuration>> available in the project.
+A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<managing_dependency_configurations#sub:what_is_a_configuration,configuration>> available in the project.
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
 
@@ -60,7 +60,7 @@ The dependencies report provides detailed information about the dependencies ava
 [[sec:identifying_reason_dependency_selection]]
 == Identifying which dependency version was selected and why
 
-Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
+Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<#sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
 
 Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. In this example the conflicting dependency is represented by `commons-codec:commons-codec`.
 
@@ -96,7 +96,7 @@ include::{samples-path}/userguide/dependencyManagement/inspectingDependencies/de
 [[sec:dependency_declaration_reasons]]
 == Justifying dependency declarations with custom reasons
 
-When you declare a <<declaring_dependencies#,dependency>> or a <<sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
+When you declare a <<declaring_dependencies#,dependency>> or a <<managing_transitive_dependencies#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
 === Example: Giving a reason for choosing a certain module version in a dependency declaration
 

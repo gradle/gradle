@@ -59,7 +59,7 @@ include::{samples-path}/java/customizedLayout/build.gradle[tag=define-main]
 [[sec:java_source_sets]]
 == Source sets
 
-The plugin adds the following <<sec:java_source_sets,source sets>>:
+The plugin adds the following <<building_java_projects#sec:java_source_sets,source sets>>:
 
 `main`::
 Contains the production source code of the project, which is compiled and assembled into a JAR.
@@ -109,12 +109,12 @@ The Java source files of this source set. Contains only `.java` files found in t
 `java.srcDirs` — `Set&lt;File&gt;`::
 _Default value_: `src/$name/java`, e.g. _src/main/java_
 +
-The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<sec:specifying_multiple_files,this section>>.
+The source directories containing the Java source files of this source set.  You can set this to any value that is described in sec:specifying_multiple_files<<working_with_files#sec:specifying_multiple_files,this section>>.
 
 `java.outputDir` — `File`::
 _Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
 +
-The directory to generate compiled Java sources into. You can set this to any value that is described in <<sec:single_file_paths,this section>>.
+The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files#sec:single_file_paths,this section>>.
 
 `resources` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`::
 The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource directories. Other plugins, such as the <<groovy_plugin#,Groovy Plugin>>, exclude additional types of files from this collection.
@@ -122,7 +122,7 @@ The resources of this source set. Contains only resources, and excludes any `.ja
 `resources.srcDirs` — `Set&lt;File&gt;`::
 _Default value_: `[src/$name/resources]`
 +
-The directories containing the resources of this source set. You can set this to any type of value that is described in <<sec:specifying_multiple_files,this section>>.
+The directories containing the resources of this source set. You can set this to any type of value that is described in <<working_with_files#sec:specifying_multiple_files,this section>>.
 
 `allJava` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`::
 _Default value_: Same as `java` property
@@ -137,7 +137,7 @@ All source files of this source set of any language. This includes all resource 
 [[sec:defining_new_source_sets]]
 === Defining new source sets
 
-See the <<sec:configuring_java_integration_tests,integration test example>> in the _Testing in Java & JVM projects_ chapter.
+See the <<#sec:configuring_java_integration_tests,integration test example>> in the _Testing in Java & JVM projects_ chapter.
 
 [[sec:some_source_set_examples]]
 === Some other simple source set examples
@@ -250,7 +250,7 @@ Prepares the given source set's classes and resources for packaging and executio
 
 === Lifecycle Tasks
 
-The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
+The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
 
 `assemble`::
 _Depends on_: `jar`, and all other tasks that create artifacts attached to the `archives` configuration
@@ -305,7 +305,7 @@ The Java plugin adds a number of <<managing_dependency_configurations#,dependenc
 [NOTE]
 ====
 
-To find information on the `api` configuration, please consult the <<sec:java_library_separation, Java Library Plugin>> reference documentation and the <<dependency_management_for_java_projects#, Dependency Management Tutorial>>.
+To find information on the `api` configuration, please consult the <<java_library_plugin#sec:java_library_separation, Java Library Plugin>> reference documentation and the <<dependency_management_for_java_projects#, Dependency Management Tutorial>>.
 
 ====
 
@@ -477,7 +477,7 @@ The `javadoc` task is an instance of `link:{groovy-dsl-path}/org.gradle.api.task
 Default value: `sourceSets.main.output` + `sourceSets.main.compileClasspath`
 
 ``link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]` source`::
-Default value: `sourceSets.main.allJava`. Can set using anything described in <<sec:specifying_multiple_files>>.
+Default value: `sourceSets.main.allJava`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 
 `File destinationDir`::
 Default value: `__docsDir__/javadoc`
@@ -499,15 +499,15 @@ Default value: `__buildDir__`
 [[sec:java_resources]]
 == Resources
 
-The Java plugin uses the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<sec:copying_files>>.
+The Java plugin uses the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files#sec:copying_files>>.
 
 === ProcessResources properties
 
 `Object srcDirs`::
-Default value: `__sourceSet__.resources`. Can set using anything described in <<sec:specifying_multiple_files>>.
+Default value: `__sourceSet__.resources`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 
 `File destinationDir`::
-Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<sec:locating_files>>.
+Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<#sec:locating_files,file paths in depth>>.
 
 
 [[sec:compile]]
@@ -521,7 +521,7 @@ The Java plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.Java
 Default value: `__sourceSet__.compileClasspath`
 
 ``link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]` source`::
-Default value: `__sourceSet__.java`. Can set using anything described in <<sec:specifying_multiple_files>>.
+Default value: `__sourceSet__.java`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 
 `File destinationDir`::
 Default value: `__sourceSet__.java.outputDir`
@@ -567,7 +567,7 @@ Incremental annotation processing will be deactivated if a custom `executable` o
 
 ==== Making an annotation processor incremental
 
-Please first have a look at <<sec:incremental_compile>>, as incremental annotation processing builds on top of it.
+Please first have a look at <<#sec:incremental_compile,incremental Java compilation>>, as incremental annotation processing builds on top of it.
 
 Gradle supports incremental compilation for two common categories of annotation processors: "isolating" and "aggregating".
 Please consult the information below to decide which category fits your processor.
@@ -693,7 +693,7 @@ See the _<<java_testing#,Testing in Java & JVM projects>>_ chapter for more deta
 [[sec:jar]]
 == Jar
 
-The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<sec:archives>> and artifact configurations in <<artifact_management#,"Artifact Management">>.
+The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files#sec:archives,file paths in depth>> and artifact configurations in <<artifact_management#,"Artifact Management">>.
 
 
 [[sub:manifest]]

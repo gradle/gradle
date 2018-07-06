@@ -43,7 +43,7 @@ Put `org.gradle.caching=true` in your `gradle.properties`::
 Gradle will try to reuse outputs from previous builds for all builds, unless explicitly disabled with `--no-build-cache`.
 
 When the build cache is enabled, it will store build outputs in the Gradle user home.
-For configuring this directory or different kinds of build caches see <<sec:build_cache_configure>>.
+For configuring this directory or different kinds of build caches see <<#sec:build_cache_configure>>.
 
 [[sec:task_output_caching]]
 == Task Output Caching
@@ -59,7 +59,7 @@ For your build to play well with task output caching it must work well with the 
 For example, when running your build twice in a row all tasks with outputs should be `UP-TO-DATE`.
 You cannot expect faster builds or correct builds when enabling task output caching when this prerequisite is not met.
 
-Task output caching is automatically enabled when you enable the build cache, see <<sec:build_cache_enable>>.
+Task output caching is automatically enabled when you enable the build cache, see <<#sec:build_cache_enable>>.
 
 [[sec:task_output_caching_example]]
 === What does it look like

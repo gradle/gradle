@@ -19,7 +19,7 @@ The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[
 
 [NOTE]
 ====
-If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<sec:idea_configuration,Configuration>> section for more details.
+If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<#sec:idea_configuration,Configuration>> section for more details.
 ====
 
 What exactly the IDEA plugin generates depends on which other plugins are used:
@@ -174,7 +174,7 @@ The following are the domain objects used for each of the model types:
 [[sec:partial-rewrite]]
 ==== Partial rewrite of existing content
 
-A <<sec:complete-rewrite,complete rewrite>> causes all existing content to be discarded, thereby losing any changes made directly in the IDE. The `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Module` domain object:
+A "complete rewrite" causes all existing content to be discarded, thereby losing any changes made directly in the IDE. The `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Module` domain object:
 
 === Example: Partial Rewrite for Module
 

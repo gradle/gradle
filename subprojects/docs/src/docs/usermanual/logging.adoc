@@ -15,7 +15,7 @@
 [[logging]]
 = Logging
 
-The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need relevant information for figuring out if things have gone wrong. Gradle defines 6 log levels, as shown in <<logLevels>>. There are two Gradle-specific log levels, in addition to the ones you might normally see. Those levels are _QUIET_ and _LIFECYCLE_. The latter is the default, and is used to report build progress.
+The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need relevant information for figuring out if things have gone wrong. Gradle defines 6 log levels, as shown in <<#logLevels,Log levels>>. There are two Gradle-specific log levels, in addition to the ones you might normally see. Those levels are _QUIET_ and _LIFECYCLE_. The latter is the default, and is used to report build progress.
 
 [[logLevels]]
 .Log levels
@@ -54,7 +54,7 @@ The rich components of the console (build status and work in progress area) are 
 [[sec:choosing_a_log_level]]
 == Choosing a log level
 
-You can use the command line switches shown in <<logLevelCommandLineOptions>> to choose different log levels. You can also configure the log level using gradle.properties, see <<sec:gradle_configuration_properties>>. In <<stacktraces>> you find the command line switches which affect stacktrace logging.
+You can use the command line switches shown in <<#logLevelCommandLineOptions, Log level command-line options>> to choose different log levels. You can also configure the log level using gradle.properties, see <<sec:gradle_configuration_properties>>. In <<#stacktraces,Stacktrace command-line options>> you find the command line switches which affect stacktrace logging.
 
 [[logLevelCommandLineOptions]]
 .Log level command-line options
@@ -187,7 +187,7 @@ include::{samples-path}/userguide/initScripts/customLogger/init.gradle[]
 include::{samples-path}/userguide/initScripts/customLogger/custom_logging_ui.out[]
 ----
 
-Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle_events>>.
+Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle#build_lifecycle_events,Build lifecycle events>>.
 
 * `link:{javadoc-path}/org/gradle/BuildListener.html[BuildListener]`
 * `link:{javadoc-path}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener]`

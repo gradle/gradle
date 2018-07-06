@@ -25,7 +25,7 @@ The Java Gradle plugin development plugin is currently <<feature_lifecycle#,incu
 
 The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins. It automatically applies the <<java_plugin#,Java>> plugin, adds the `gradleApi()` dependency to the compile configuration and performs validation of plugin metadata during `jar` task execution.
 
-The plugin also integrates with <<test_kit#,TestKit>>, a library that aids in writing and executing functional tests for plugin code. It automatically adds the `gradleTestKit()` dependency to the test compile configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found. Please refer to <<sub:test-kit-automatic-classpath-injection>> for more on its usage, configuration options and samples.
+The plugin also integrates with <<test_kit#,TestKit>>, a library that aids in writing and executing functional tests for plugin code. It automatically adds the `gradleTestKit()` dependency to the test compile configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found. Please refer to <<test_kit#sub:test-kit-automatic-classpath-injection,Automatic classpath injection with the Plugin Development Plugin>> for more on its usage, configuration options and samples.
 
 
 [[sec:gradle_plugin_dev_usage]]
@@ -65,4 +65,4 @@ include::{samples-path}/javaGradlePlugin/build.gradle[tag=gradle-plugin-block]
 The `gradlePlugin {}` block defines the plugins being built by the project including the `id` and `implementationClass` of the plugin. From this data about the plugins being developed, Gradle can automatically:
 
 * Generate the plugin descriptor in the `jar` file's `META-INF` directory.
-* Configure the <<publishing_maven#,Maven>> or <<publishing_ivy#,Ivy>> publishing plugins to publish a <<sec:plugin_markers,Plugin Marker Artifact>> for each plugin.
+* Configure the <<publishing_maven#,Maven>> or <<publishing_ivy#,Ivy>> publishing plugins to publish a <<plugins#sec:plugin_markers,Plugin Marker Artifact>> for each plugin.

@@ -35,9 +35,9 @@ The api:org.gradle.api.Project#dependencies[] code block declares that Hibernate
 [[sec:module_dependencies_java_tutorial]]
 == Declaring module dependencies
 
-There are various <<dependency_types#,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
+There are various <<dependency_types#,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<declaring_dependencies#sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
-To define an module dependency, you add it to a <<sec:configurations_java_tutorial,dependency configuration>>:
+To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
 
 === Example: Definition of a module dependency
 
@@ -61,7 +61,7 @@ A plugin uses configurations to find (and possibly download) inputs to the tasks
 Exposing artifacts for consumption::
 A plugin uses configurations to define what _artifacts_ it generates for other projects to consume. For example the project would like to publish its compiled source code packaged in the JAR file to an in-house Artifactory repository.
 
-With those three purposes in mind, let's take a look at a few of the <<sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
+With those three purposes in mind, let's take a look at a few of the <<java_library_plugin#sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
 
 implementation::
 The dependencies required to compile the production source of the project which _are not_ part of the API exposed by the project. For example the project uses Hibernate for its internal persistence layer implementation.

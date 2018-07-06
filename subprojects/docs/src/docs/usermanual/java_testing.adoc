@@ -25,11 +25,11 @@ Testing on the JVM is a rich subject matter. There are many different testing li
 
 It explains:
 
- * Ways to control how the tests are run (<<sec:test_execution,Test execution>>)
- * How to select specific tests to run (<<sec:test_filtering,Test filtering>>)
- * What test reports are generated and how to influence the process (<<test_reporting,Test reporting>>)
- * How Gradle finds tests to run (<<sec:test_detection,Test detection>>)
- * How to make use of the major frameworks' mechanisms for grouping tests together (<<test_grouping,Test grouping>>)
+ * Ways to control how the tests are run (<<#sec:test_execution,Test execution>>)
+ * How to select specific tests to run (<<#sec:test_filtering,Test filtering>>)
+ * What test reports are generated and how to influence the process (<<#test_reporting,Test reporting>>)
+ * How Gradle finds tests to run (<<#sec:test_detection,Test detection>>)
+ * How to make use of the major frameworks' mechanisms for grouping tests together (<<#test_grouping,Test grouping>>)
 
 But first, we look at the basics of JVM testing in Gradle.
 
@@ -48,9 +48,9 @@ When you're using a JVM language plugin — such as the <<java_plugin#,Java Plug
  * A dedicated `test` source set for unit tests
  * A `test` task of type `Test` that runs those unit tests
 
-The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <<sec:lifecycle_tasks,lifecycle task>>.
+The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <<more_about_tasks#sec:lifecycle_tasks,lifecycle task>>.
 
-It's also worth bearing in mind that the `test` source set automatically creates <<java_source_set_configurations,corresponding dependency configurations>> — of which the most useful are `testImplementation` and `testRuntimeOnly` — that the plugins tie into the `test` task's classpath.
+It's also worth bearing in mind that the `test` source set automatically creates <<java_plugin#java_source_set_configurations,corresponding dependency configurations>> — of which the most useful are `testImplementation` and `testRuntimeOnly` — that the plugins tie into the `test` task's classpath.
 
 All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit 4.x and changes the maximum heap size for the tests' JVM to 1 gigabyte:
 
@@ -64,7 +64,7 @@ include::{samples-path}/userguide/java/basic/build.gradle[tag=java-basic-test-co
 
 The `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` task has many generic configuration options as well as several framework-specific ones that you can find described in `link:{javadoc-path}/org/gradle/api/tasks/testing/junit/JUnitOptions.html[JUnitOptions]`, `link:{javadoc-path}/org/gradle/api/tasks/testing/junitplatform/JUnitPlatformOptions.html[JUnitPlatformOptions]` and `link:{javadoc-path}/org/gradle/api/tasks/testing/testng/TestNGOptions.html[TestNGOptions]`. We cover a significant number of them in the rest of the chapter.
 
-If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in _<<sec:configuring_java_integration_tests,Configuring integration tests>>_.
+If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in _<<#sec:configuring_java_integration_tests,Configuring integration tests>>_.
 
 [[sec:test_execution]]
 == Test execution
@@ -189,7 +189,7 @@ gradle test --tests '*ParameterizedTest.*[2]'
 
 Note that the wildcard '*' has no special understanding of the '.' package separator. It's purely text based. So `--tests *.SomeTestClass` will match any package, regardless of its 'depth'.
 
-You can also combine filters defined at the command line with <<sec:continuous_build, continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file. The following executes all tests in the 'com.mypackage.foo' package or subpackages whenever a change triggers the tests to run:
+You can also combine filters defined at the command line with <<command_line_interface#sec:continuous_build, continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file. The following executes all tests in the 'com.mypackage.foo' package or subpackages whenever a change triggers the tests to run:
 
 ```
 gradle test --continuous --tests "com.mypackage.foo.*"
@@ -216,7 +216,7 @@ The `Test` task generates the following results by default:
 
 In most cases, you'll work with the standard HTML report, which automatically includes the results from _all_ your `Test` tasks, even the ones you explicitly add to the build yourself. For example, if you add a `Test` task for integration tests, the report will include the results of both the unit tests and the integration tests if both tasks are run.
 
-Unlike with many of the testing configuration options, there are several project-level <<sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
+Unlike with many of the testing configuration options, there are several project-level <<java_plugin#sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
 === Example: Changing the default test report and results directories
 
@@ -430,7 +430,7 @@ A common requirement for projects is to incorporate integration tests in one for
 
 The simplest way to add integration tests to your build is by taking these steps:
 
- 1. Create a new <<sec:java_source_sets,source set>> for them
+ 1. Create a new <<building_java_projects#sec:java_source_sets,source set>> for them
  2. Add the dependencies you need to the appropriate configurations for that source set
  3. Configure the compilation and runtime classpaths for that source set
  4. Create a task to run the integration tests
@@ -449,12 +449,12 @@ include::{samples-path}/userguide/java/basic/build.gradle[tag=practical-integ-te
 
 This will set up a new source set called `intTest` that automatically creates:
 
- * `intTestImplementation`, `intTestCompileOnly`, `intTestRuntimeOnly` configurations (and <<java_source_set_configurations, a few others>> that are less commonly needed)
+ * `intTestImplementation`, `intTestCompileOnly`, `intTestRuntimeOnly` configurations (and <<java_plugin#java_source_set_configurations, a few others>> that are less commonly needed)
  * A `compileIntTestJava` task that will compile all the source files under _src/intTest/java_
 
 The example also does the following, not all of which you may need for your specific integration tests:
 
- * Adds the production classes from the `main` source set to the compilation and runtime classpaths of the integration tests — `sourceSets.main.output` is a <<sec:file_collections,file collection>> of all the directories containing compiled production classes and resources
+ * Adds the production classes from the `main` source set to the compilation and runtime classpaths of the integration tests — `sourceSets.main.output` is a <<working_with_files#sec:file_collections,file collection>> of all the directories containing compiled production classes and resources
  * Makes the `intTestImplementation` configuration extend from `implementation`, which means that all the declared dependencies of the production code also become dependencies of the integration tests
  * Does the same for the `intTestRuntimeOnly` configuration
 
@@ -484,7 +484,7 @@ Users commonly want to run integration tests after the unit tests, because they 
 [[sec:skipping_java_tests]]
 == Skipping the tests
 
-If you want to skip the tests when running a build, you have a few options. You can either do it via <<sec:excluding_tasks_from_the_command_line,command line arguments>> or <<sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
+If you want to skip the tests when running a build, you have a few options. You can either do it via <<command_line_interface#sec:excluding_tasks_from_the_command_line,command line arguments>> or <<sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
 
     gradle build -x test
 
@@ -511,7 +511,7 @@ You can force tests to run in this situation by cleaning the output of the relev
 
     gradle cleanTest test
 
-`cleanTest` is based on a _<<sec:task_rules,task rule>>_ provided by the <<sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
+`cleanTest` is based on a _<<more_about_tasks#sec:task_rules,task rule>>_ provided by the <<base_plugin#sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
 
 [[sec:debugging_java_tests]]
 == Debugging when running tests

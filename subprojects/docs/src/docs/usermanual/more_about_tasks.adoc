@@ -35,7 +35,7 @@ When Gradle executes a task, it can label the task with different outcomes in th
 |
 
 * Used whenever a task has actions and Gradle has determined they should be executed as part of a build.
-* Used whenever a task has no actions and some dependencies, and any of the dependencies are executed. See also <<sec:lifecycle_tasks>>.
+* Used whenever a task has no actions and some dependencies, and any of the dependencies are executed. See also <<more_about_tasks#sec:lifecycle_tasks,Lifecycle Tasks>>.
 
 
 | `UP-TO-DATE`
@@ -44,7 +44,7 @@ When Gradle executes a task, it can label the task with different outcomes in th
 
 * Used when a task has outputs and inputs and they have not changed. See <<more_about_tasks#sec:up_to_date_checks,Incremental Builds>>.
 * Used when a task has actions, but the task tells Gradle it did not change its outputs.
-* Used when a task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <<sec:lifecycle_tasks>>.
+* Used when a task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <<more_about_tasks#sec:lifecycle_tasks,Lifecycle Tasks>>.
 * Used when a task has no actions and no dependencies.
 
 
