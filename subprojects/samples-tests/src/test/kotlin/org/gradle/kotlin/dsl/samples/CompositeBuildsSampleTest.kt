@@ -2,11 +2,9 @@ package org.gradle.kotlin.dsl.samples
 
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore("gradle/gradle#5871")
 class CompositeBuildsSampleTest : AbstractSampleTest("composite-builds") {
 
     @Test
