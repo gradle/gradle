@@ -52,12 +52,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private WarningMode warningMode;
 
     public LoggingDeprecatedFeatureHandler() {
-        this(DoNothingReporter.INSTANCE, NOOP);
-    }
-
-    public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter, BuildOperationExecutor executor) {
-        this.locationReporter = locationReporter;
-        this.buildOperationExecutor = executor;
+        this.locationReporter = DoNothingReporter.INSTANCE;
+        this.buildOperationExecutor = NOOP;
     }
 
     public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationExecutor buildOperationExecutor) {
