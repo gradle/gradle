@@ -56,9 +56,9 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
             }
 
             @Override
-            public boolean updated(String property, FileCollectionFingerprint previousSnapshot, FileCollectionFingerprint currentSnapshot) {
+            public boolean updated(String property, FileCollectionFingerprint previousFingerprint, FileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
-                return currentSnapshot.visitChangesSince(previousSnapshot, propertyTitle, includeAdded, visitor);
+                return currentFingerprint.visitChangesSince(previousFingerprint, propertyTitle, includeAdded, visitor);
             }
         });
     }

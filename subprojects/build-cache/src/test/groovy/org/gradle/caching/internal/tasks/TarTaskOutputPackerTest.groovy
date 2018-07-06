@@ -341,7 +341,7 @@ class TarTaskOutputPackerTest extends Specification {
     def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, PropertyDefinition... propertyDefs) {
         def propertySpecs = propertyDefs*.property as SortedSet
         def outputSnapshots = propertyDefs.collectEntries { propertyDef ->
-            return [(propertyDef.property.propertyName): propertyDef.outputSnapshot()]
+            return [(propertyDef.property.propertyName): propertyDef.outputFingerprint()]
         }
         packer.pack(propertySpecs, outputSnapshots, output, writeOrigin)
     }
@@ -374,11 +374,11 @@ class TarTaskOutputPackerTest extends Specification {
 
     private static class PropertyDefinition {
         ResolvedTaskOutputFilePropertySpec property
-        Callable<FileCollectionFingerprint> outputSnapshot
+        Callable<FileCollectionFingerprint> outputFingerprint
 
-        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<FileCollectionFingerprint> outputSnapshot) {
+        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<FileCollectionFingerprint> outputFingerprint) {
             this.property = property
-            this.outputSnapshot = outputSnapshot
+            this.outputFingerprint = outputFingerprint
         }
     }
 }

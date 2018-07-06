@@ -33,10 +33,10 @@ import java.util.Map;
 
 public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
-    private final Serializer<FileCollectionFingerprint> fileCollectionSnapshotSerializer;
+    private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
 
-    TaskExecutionSnapshotSerializer(Serializer<FileCollectionFingerprint> fileCollectionSnapshotSerializer) {
-        this.fileCollectionSnapshotSerializer = fileCollectionSnapshotSerializer;
+    TaskExecutionSnapshotSerializer(Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer) {
+        this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
     }
 
@@ -122,8 +122,8 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         ImmutableSortedMap.Builder<String, FileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (int snapshotIdx = 0; snapshotIdx < count; snapshotIdx++) {
             String property = decoder.readString();
-            FileCollectionFingerprint snapshot = fileCollectionSnapshotSerializer.read(decoder);
-            builder.put(property, snapshot);
+            FileCollectionFingerprint fingerprint = fileCollectionFingerprintSerializer.read(decoder);
+            builder.put(property, fingerprint);
         }
         return builder.build();
     }
@@ -132,7 +132,7 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         encoder.writeSmallInt(ids.size());
         for (Map.Entry<String, FileCollectionFingerprint> entry : ids.entrySet()) {
             encoder.writeString(entry.getKey());
-            fileCollectionSnapshotSerializer.write(encoder, entry.getValue());
+            fileCollectionFingerprintSerializer.write(encoder, entry.getValue());
         }
     }
 }

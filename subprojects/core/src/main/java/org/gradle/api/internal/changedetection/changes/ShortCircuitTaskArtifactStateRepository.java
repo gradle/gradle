@@ -133,8 +133,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
-            delegate.snapshotAfterLoadedFromCache(newOutputSnapshot, originMetadata);
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata) {
+            delegate.snapshotAfterLoadedFromCache(newOutputFingerprints, originMetadata);
         }
     }
 }

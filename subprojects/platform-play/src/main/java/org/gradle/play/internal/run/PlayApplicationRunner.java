@@ -58,7 +58,7 @@ public class PlayApplicationRunner {
         private final Deployment delegate;
         private final FileCollection applicationClasspath;
         private final boolean isPlay22;
-        private HashCode snapshot;
+        private HashCode fingerprint;
 
         private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec, VersionedPlayRunAdapter adapter) {
             this.delegate = delegate;
@@ -105,9 +105,9 @@ public class PlayApplicationRunner {
         }
 
         private boolean applicationClasspathChanged() {
-            HashCode oldSnapshot = snapshot;
-            snapshot = fingerprinter.fingerprint(applicationClasspath, PathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
-            return !snapshot.equals(oldSnapshot);
+            HashCode oldFingerprint = fingerprint;
+            fingerprint = fingerprinter.fingerprint(applicationClasspath, PathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
+            return !fingerprint.equals(oldFingerprint);
         }
     }
 

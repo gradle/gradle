@@ -69,7 +69,7 @@ public interface TaskArtifactState {
     /**
      * Called on task being loaded from cache.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata);
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata);
 
     /**
      * Returns the history for this task.

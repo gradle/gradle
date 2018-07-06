@@ -76,7 +76,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     public CacheBackedTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        Serializer<FileCollectionFingerprint> fileCollectionSnapshotSerializer,
+        Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
@@ -86,7 +86,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.snapshotterRegistry = snapshotterRegistry;
-        TaskExecutionSnapshotSerializer serializer = new TaskExecutionSnapshotSerializer(fileCollectionSnapshotSerializer);
+        TaskExecutionSnapshotSerializer serializer = new TaskExecutionSnapshotSerializer(fileCollectionFingerprintSerializer);
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
@@ -182,7 +182,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 public FileCollectionFingerprint transformEntry(String propertyName, FileCollectionFingerprint beforeExecution) {
                     FileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
                     FileCollectionFingerprint afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
-                    return filterOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
+                    return filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
                 }
             }));
         }
@@ -197,12 +197,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     /**
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */
-    private static FileCollectionFingerprint filterOutputSnapshot(
+    private static FileCollectionFingerprint filterOutputFingerprint(
         @Nullable FileCollectionFingerprint afterPreviousExecution,
         FileCollectionFingerprint beforeExecution,
         FileCollectionFingerprint afterExecution
     ) {
-        FileCollectionFingerprint filesSnapshot;
+        FileCollectionFingerprint filesFingerprint;
         Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
         if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
             Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
@@ -220,16 +220,16 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
             // Are all files snapshot after execution accounted for as new entries?
             if (newEntryCount == afterSnapshots.size()) {
-                filesSnapshot = afterExecution;
+                filesFingerprint = afterExecution;
             } else if (newEntryCount == 0) {
-                filesSnapshot = EmptyFileCollectionFingerprint.INSTANCE;
+                filesFingerprint = EmptyFileCollectionFingerprint.INSTANCE;
             } else {
-                filesSnapshot = new DefaultFileCollectionFingerprint(FingerprintCompareStrategy.ABSOLUTE, outputEntries.build(), null);
+                filesFingerprint = new DefaultFileCollectionFingerprint(FingerprintCompareStrategy.ABSOLUTE, outputEntries.build(), null);
             }
         } else {
-            filesSnapshot = afterExecution;
+            filesFingerprint = afterExecution;
         }
-        return filesSnapshot;
+        return filesFingerprint;
     }
 
     /**

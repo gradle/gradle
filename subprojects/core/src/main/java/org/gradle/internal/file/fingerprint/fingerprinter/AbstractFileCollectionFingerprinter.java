@@ -56,7 +56,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
         registry.register(EmptyFileCollectionFingerprint.class, Serializers.constant(EmptyFileCollectionFingerprint.INSTANCE));
     }
 
-    public FileCollectionFingerprint snapshot(FileCollection input, FingerprintingStrategy strategy) {
+    public FileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);

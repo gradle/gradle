@@ -133,7 +133,7 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
+    public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata) {
     }
 
     @Override
