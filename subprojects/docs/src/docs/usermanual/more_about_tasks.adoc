@@ -42,7 +42,7 @@ When Gradle executes a task, it can label the task with different outcomes in th
 | Task's outputs did not change.
 |
 
-* Used when a task has outputs and inputs and they have not changed. See <<sec:up_to_date_checks>>.
+* Used when a task has outputs and inputs and they have not changed. See <<more_about_tasks#sec:up_to_date_checks,Incremental Builds>>.
 * Used when a task has actions, but the task tells Gradle it did not change its outputs.
 * Used when a task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <<sec:lifecycle_tasks>>.
 * Used when a task has no actions and no dependencies.
@@ -559,8 +559,8 @@ When you’re writing a custom task class, it’s easy to register properties as
 <sample id="customTaskClassWithInputOutputAnnotations" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Custom task class">
                     <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="custom-task-class"/>
                     <sourcefile file="buildSrc/src/main/java/org/example/TemplateData.java"/>
-                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true" outputFile="customTaskClassWithInputOutputAnnotationsUpToDate.out"/>
+                    <output args="processTemplates" />
+                    <output args="processTemplates" outputFile="customTaskClassWithInputOutputAnnotationsUpToDate.out"/>
                 </sample>
 ++++
 
@@ -804,12 +804,19 @@ These objects have methods that allow you to specify files, directories and valu
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 
-++++
-<sample id="incrementalAdHocTask" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Ad-hoc task">
-                        <sourcefile file="build.gradle" snippet="ad-hoc-task"/>
-                        <output args="processTemplatesAdHoc" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+=== Example: Ad-hoc task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=ad-hoc-task]
+----
+
+.Output of **`gradle processTemplatesAdHoc`**
+----
+> gradle processTemplatesAdHoc
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/incrementalAdHocTask.out[]
+----
 
 As before, there’s much to talk about. To begin with, you should really write a custom task class for this as it’s a non-trivial implementation that has several configuration options. In this case, there are no task properties to store the root source folder, the location of the output directory or any of the other settings. That’s deliberate to highlight the fact that the runtime API doesn’t require the task to have any state. In terms of incremental build, the above ad-hoc task will behave the same as the custom task class.
 
@@ -835,8 +842,8 @@ Another type of example involves adding input and output definitions to instance
 ++++
 <sample id="runtimeIncrementalApi" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Using runtime API with custom task type">
                         <sourcefile file="build.gradle" snippet="custom-class-runtime-api"/>
-                        <output args="processTemplatesRuntime" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                        <output args="processTemplatesRuntime" ignoreExtraLines="true" ignoreLineOrder="true" outputFile="runtimeIncrementalApiUpToDate.out"/>
+                        <output args="processTemplatesRuntime" />
+                        <output args="processTemplatesRuntime" outputFile="runtimeIncrementalApiUpToDate.out"/>
                     </sample>
 ++++
 
@@ -851,12 +858,19 @@ You can learn about all the options provided by the builder in its API documenta
 
 Let’s say we don’t want to run the `processTemplates` task if there are no source files, regardless of whether it’s a clean build or not. After all, if there are no source files, there’s nothing for the task to do. The builder allows us to configure this like so:
 
-++++
-<sample id="runtimeIncrementalApiConfiguration" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Using skipWhenEmpty() via the runtime API">
-                        <sourcefile file="build.gradle" snippet="runtime-api-conf"/>
-                        <output args="clean processTemplatesRuntimeConf" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+=== Example: Using skipWhenEmpty() via the runtime API
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=runtime-api-conf]
+----
+
+.Output of **`gradle clean processTemplatesRuntimeConf`**
+----
+> gradle clean processTemplatesRuntimeConf
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiConfiguration.out[]
+----
 
 The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<skip-when-empty,`@SkipWhenEmpty`>>.
 
@@ -877,23 +891,37 @@ We’ll look at this feature next and also some other features that come from Gr
 
 Consider an archive task that packages the output of the `processTemplates` task. A build author will see that the archive task obviously requires `processTemplates` to run first and so may add an explicit `dependsOn`. However, if you define the archive task like so:
 
-++++
-<sample id="inferredTaskDep" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Inferred task dependency via task outputs">
-                        <sourcefile file="build.gradle" snippet="inferred-task-dep-via-outputs"/>
-                        <output args="clean packageFiles" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+=== Example: Inferred task dependency via task outputs
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=inferred-task-dep-via-outputs]
+----
+
+.Output of **`gradle clean packageFiles`**
+----
+> gradle clean packageFiles
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/inferredTaskDep.out[]
+----
 
 Gradle will automatically make `packageFiles` depend on `processTemplates`. It can do this because it’s aware that one of the inputs of packageFiles requires the output of the processTemplates task. We call this an inferred task dependency.
 
 The above example can also be written as
 
-++++
-<sample id="inferredTaskDep2" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Inferred task dependency via a task argument">
-                        <sourcefile file="build.gradle" snippet="inferred-task-dep-via-task"/>
-                        <output args="clean packageFiles2" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+=== Example: Inferred task dependency via a task argument
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=inferred-task-dep-via-task]
+----
+
+.Output of **`gradle clean packageFiles2`**
+----
+> gradle clean packageFiles2
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/inferredTaskDep2.out[]
+----
 
 This is because the `from()` method can accept a task object as an argument. Behind the scenes, `from()` uses the `project.files()` method to wrap the argument, which in turn exposes the task’s formal outputs as a file collection. In other words, it’s a special case!
 
@@ -955,7 +983,7 @@ The implementation is quite simple and you can use the same technique for your o
 <sample id="incrementalBuildCustomMethods" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add task inputs">
                     <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="custom-task-class"/>
                     <sourcefile file="build.gradle" snippet="custom-task-class"/>
-                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    <output args="processTemplates" />
                 </sample>
 ++++
 
@@ -967,7 +995,7 @@ If we want to support tasks as arguments as well and treat their outputs as the 
 <sample id="incrementalBuildCustomMethodsWithTaskArg" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add a task as an input">
                     <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="task-arg-method"/>
                     <sourcefile file="build.gradle" snippet="task-arg-method"/>
-                    <output args="processTemplates2" ignoreExtraLines="true" ignoreLineOrder="true"/>
+                    <output args="processTemplates2" />
                 </sample>
 ++++
 
@@ -985,43 +1013,71 @@ Unfortunately, this approach breaks down when you want the files in a task’s `
 
 As an example, imagine you want to use the output of a Java compilation task - via the `destinationDir` property - as the input of a custom task that instruments a set of files containing Java bytecode. This custom task, which we’ll call `Instrument`, has a `classFiles` property annotated with `@InputFiles`. You might initially try to configure the task like so:
 
-++++
-<sample id="incrementalBuildBadInputFilesConfig" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Failed attempt at setting up an inferred task dependency">
-                    <sourcefile file="build.gradle" snippet="failed-inferred-task-dep"/>
-                    <output args="clean badInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Failed attempt at setting up an inferred task dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=failed-inferred-task-dep]
+----
+
+.Output of **`gradle clean badInstrumentClasses`**
+----
+> gradle clean badInstrumentClasses
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildBadInputFilesConfig.out[]
+----
 
 There’s nothing obviously wrong with this code, but you can see from the console output that the compilation task is missing. In this case you would need to add an explicit task dependency between `instrumentClasses` and `compileJava` via `dependsOn`. The use of `fileTree()` means that Gradle can’t infer the task dependency itself.
 
 One solution is to use the `TaskOutputs.files` property, as demonstrated by the following example:
 
-++++
-<sample id="incrementalBuildInputFilesConfig" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency between output dir and input files">
-                    <sourcefile file="build.gradle" snippet="inferred-task-dep"/>
-                    <output args="clean instrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Setting up an inferred task dependency between output dir and input files
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=inferred-task-dep]
+----
+
+.Output of **`gradle clean instrumentClasses`**
+----
+> gradle clean instrumentClasses
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildInputFilesConfig.out[]
+----
 
 Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.layout.configurableFiles()` in place of `project.fileTree()`:
 
-++++
-<sample id="incrementalBuildInputFilesConfigUsingTask" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency with filesFor()">
-                    <sourcefile file="build.gradle" snippet="inferred-task-dep-with-files"/>
-                    <output args="clean instrumentClasses2" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Setting up an inferred task dependency with filesFor()
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=inferred-task-dep-with-files]
+----
+
+.Output of **`gradle clean instrumentClasses2`**
+----
+> gradle clean instrumentClasses2
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildInputFilesConfigUsingTask.out[]
+----
 
 Remember that `files()`, `layout.files()` and `layout.configurableFiles()` can take tasks as arguments, whereas `fileTree()` cannot.
 
 The downside of this approach is that all file outputs of the source task become the input files of the target - `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
 
-++++
-<sample id="inferredTaskDependencyWithBuiltBy" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency with builtBy()">
-                    <sourcefile file="build.gradle" snippet="inferred-task-dep-with-builtby"/>
-                    <output args="clean instrumentClassesBuiltBy" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Setting up an inferred task dependency with builtBy()
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=inferred-task-dep-with-builtby]
+----
+
+.Output of **`gradle clean instrumentClassesBuiltBy`**
+----
+> gradle clean instrumentClassesBuiltBy
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/inferredTaskDependencyWithBuiltBy.out[]
+----
 
 You can of course just add an explicit task dependency via `dependsOn`, but the above approach provides more semantic meaning, explaining why `compileJava` has to run beforehand.
 
@@ -1035,8 +1091,8 @@ That’s where the `upToDateWhen()` method on `TaskOutputs` comes in. This takes
 ++++
 <sample id="incrementalBuildUpToDateWhen" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Ignoring up-to-date checks">
                     <sourcefile file="build.gradle" snippet="up-to-date-when"/>
-                    <output args="clean alwaysInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    <output args="alwaysInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true" outputFile="incrementalBuildUpToDateWhenAgain.out"/>
+                    <output args="clean alwaysInstrumentClasses" />
+                    <output args="alwaysInstrumentClasses" outputFile="incrementalBuildUpToDateWhenAgain.out"/>
                 </sample>
 ++++
 

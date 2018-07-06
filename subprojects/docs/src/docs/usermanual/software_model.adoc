@@ -335,7 +335,7 @@ There are various contexts in which these types can be used:
 ++++
 <sample id="model-language-support-all" dir="modelRules/language-support" includeLocation="true" title="strongly modelling sources sets">
     <sourcefile file="build.gradle" snippet="model-language-support"/>
-    <output args="help" ignoreExtraLines="true" name="model-language-support-all.out"/>
+    <output args="help" name="model-language-support-all.out"/>
 </sample>
 ++++
 

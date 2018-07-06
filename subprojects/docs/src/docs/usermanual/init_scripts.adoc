@@ -71,7 +71,7 @@ You can use an init script to configure the projects in the build. This works in
 [[sec:custom_classpath]]
 == External dependencies for the init script
 
-In <<sec:build_script_external_dependencies>> it was explained how to add external dependencies to a build script. Init scripts can also declare dependencies. You do this with the `initscript()` method, passing in a closure which declares the init script classpath.
+In <<tutorial_using_tasks#sec:build_script_external_dependencies,External dependencies for the build script>> it was explained how to add external dependencies to a build script. Init scripts can also declare dependencies. You do this with the `initscript()` method, passing in a closure which declares the init script classpath.
 
 === Example: Declaring external dependencies for an init script
 

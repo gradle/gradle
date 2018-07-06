@@ -300,7 +300,7 @@ The `JavaPlugin` symbol in the above sample refers to the `link:{javadoc-path}/o
 [[sec:applying_plugins_buildscript]]
 ==== Applying plugins with the buildscript block
 
-Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<sec:build_script_external_dependencies>>.
+Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<tutorial_using_tasks#sec:build_script_external_dependencies,External dependencies for the build script>>.
 
 === Example: Applying a plugin with the buildscript block
 
