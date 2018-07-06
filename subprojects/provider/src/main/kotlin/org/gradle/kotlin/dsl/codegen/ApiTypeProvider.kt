@@ -32,6 +32,7 @@ import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_VARARGS
 import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.TypePath
@@ -287,6 +288,7 @@ data class ApiTypeUsage(
 internal
 data class ApiFunctionParameter(
     val index: Int,
+    val isVarargs: Boolean,
     private val nameSupplier: () -> String?,
     val type: ApiTypeUsage
 ) {
@@ -334,6 +336,7 @@ fun ApiTypeProvider.Context.apiTypeParametersFor(visitedSignature: BaseSignature
 private
 fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
     delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
+        val functionHasVarargModifier = (ACC_VARARGS and delegate.access) > 0
         val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
             ?: Type.getArgumentTypes(delegate.desc).map { it.className }
         val names by lazy(NONE) {
@@ -347,7 +350,12 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             val signatureParameter = visitedSignature?.parameters?.get(idx)
             val parameterTypeName = signatureParameter?.binaryName ?: parameterTypeBinaryName
             val typeArguments = signatureParameter?.typeArguments ?: emptyList<TypeSignatureVisitor>()
-            ApiFunctionParameter(idx, { names?.get(idx) }, apiTypeUsageFor(parameterTypeName, isNullable, typeArguments))
+            ApiFunctionParameter(
+                index = idx,
+                isVarargs = idx == parameterTypesBinaryNames.size - 1 && functionHasVarargModifier,
+                nameSupplier = { names?.get(idx) },
+                type = apiTypeUsageFor(parameterTypeName, isNullable, typeArguments)
+            )
         }
     }
 

@@ -192,7 +192,7 @@ data class MappedApiFunctionParameter(
     val original: ApiFunctionParameter,
     val index: Int = original.index,
     val type: ApiTypeUsage = original.type,
-    val invocation: String = "`${original.name ?: "p$index"}`"
+    val invocation: String = "${if (original.isVarargs) "*" else ""}`${original.name ?: "p$index"}`"
 ) {
     val name: String
         get() = original.name ?: "p$index"
@@ -220,7 +220,7 @@ private
 fun List<MappedApiFunctionParameter>.javaClassToKotlinClass() =
     map { p ->
         if (p.type.isJavaClass) p.copy(type = p.type.toKotlinClass(), invocation = "${p.invocation}.java")
-        else if (p.type.isKotlinArray && p.type.typeArguments.single().isJavaClass) p.copy(type = p.type.toArrayOfKotlinClasses(), invocation = "*${p.invocation}.map { it.java }.toTypedArray()")
+        else if (p.type.isKotlinArray && p.type.typeArguments.single().isJavaClass) p.copy(type = p.type.toArrayOfKotlinClasses(), invocation = "${p.invocation}.map { it.java }.toTypedArray()")
         else if (p.type.isKotlinCollection && p.type.typeArguments.single().isJavaClass) p.copy(type = p.type.toCollectionOfKotlinClasses(), invocation = "${p.invocation}.map { it.java }")
         else p
     }

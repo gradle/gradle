@@ -171,6 +171,10 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             @Deprecated("Deprecated Gradle API")
             inline fun org.gradle.api.file.FileCollection.`asType`(`type`: kotlin.reflect.KClass<*>): Any =
                 `asType`(`type`.java)
+            """,
+            """
+            inline fun <T : Any> org.gradle.api.plugins.ExtensionContainer.`create`(`name`: String, `type`: kotlin.reflect.KClass<T>, vararg `constructionArguments`: Any): T =
+                `create`(`name`, `type`.java, *`constructionArguments`)
             """)
 
         assertThat(
