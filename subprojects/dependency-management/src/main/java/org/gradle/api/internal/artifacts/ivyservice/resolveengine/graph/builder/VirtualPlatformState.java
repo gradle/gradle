@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
@@ -67,7 +68,15 @@ public class VirtualPlatformState {
         return sorted;
     }
 
-    public Set<ModuleResolveState> getParticipatingModules() {
+    Set<ModuleResolveState> getParticipatingModules() {
         return participatingModules;
+    }
+
+    ComponentIdentifier getSelectedPlatformId() {
+        ComponentState selected = platformModule.getSelected();
+        if (selected != null) {
+            return selected.getComponentId();
+        }
+        return null;
     }
 }
