@@ -16,20 +16,24 @@
 
 package org.gradle.caching.internal.tasks
 
-import groovy.io.FileType
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
+import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -53,6 +57,9 @@ class TarTaskOutputPackerTest extends Specification {
     def streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
     def stringInterner = new StringInterner()
     def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
+    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
+    def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+    def dirTreeFactory = TestFiles.directoryFileTreeFactory()
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
@@ -334,7 +341,7 @@ class TarTaskOutputPackerTest extends Specification {
     def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, PropertyDefinition... propertyDefs) {
         def propertySpecs = propertyDefs*.property as SortedSet
         def outputSnapshots = propertyDefs.collectEntries { propertyDef ->
-            return [(propertyDef.property.propertyName): propertyDef.outputSnapshots()]
+            return [(propertyDef.property.propertyName): propertyDef.outputSnapshot()]
         }
         packer.pack(propertySpecs, outputSnapshots, output, writeOrigin)
     }
@@ -348,27 +355,17 @@ class TarTaskOutputPackerTest extends Specification {
         switch (type) {
             case FILE:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
-                    if (output == null || !output.exists()) {
-                        return [:]
+                    if (output == null) {
+                        return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    return [(output.absolutePath): new FileHashSnapshot(TestFile.md5(output))]
+                    return new DefaultFileCollectionFingerprint(new AbsolutePathFingerprintingStrategy(false), [snapshotter.snapshotSelf(output)])
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
-                    if (output == null || !output.exists()) {
-                        return [:]
+                    if (output == null) {
+                        return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    def descendants = []
-                    output.traverse(type: FileType.ANY, visitRoot: true) { descendants += it }
-                    return descendants.collectEntries { File file ->
-                        def snapshot
-                        if (file.isDirectory()) {
-                            snapshot = DirContentSnapshot.INSTANCE
-                        } else {
-                            snapshot = new FileHashSnapshot(TestFile.md5(file))
-                        }
-                        return [(file.absolutePath): snapshot]
-                    }
+                    return new DefaultFileCollectionFingerprint(new AbsolutePathFingerprintingStrategy(false), [snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))])
                 })
             default:
                 throw new AssertionError()
@@ -377,11 +374,11 @@ class TarTaskOutputPackerTest extends Specification {
 
     private static class PropertyDefinition {
         ResolvedTaskOutputFilePropertySpec property
-        Callable<Map<String, FileCollectionSnapshot>> outputSnapshots
+        Callable<FileCollectionSnapshot> outputSnapshot
 
-        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<Map<String, FileCollectionSnapshot>> outputSnapshots) {
+        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<FileCollectionSnapshot> outputSnapshot) {
             this.property = property
-            this.outputSnapshots = outputSnapshots
+            this.outputSnapshot = outputSnapshot
         }
     }
 }

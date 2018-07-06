@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.GenericFileNormalizer
@@ -54,7 +53,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: ImmutableFileCollection.of(new File(entry.value)),
-                pathNormalizationStrategy: InputPathNormalizationStrategy.ABSOLUTE
+                pathNormalizationStrategy: PathNormalizationStrategy.ABSOLUTE
             )
         })
     }

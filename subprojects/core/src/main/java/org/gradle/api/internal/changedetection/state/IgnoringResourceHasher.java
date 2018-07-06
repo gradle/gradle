@@ -17,12 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.file.RelativePath;
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
@@ -44,28 +46,29 @@ public class IgnoringResourceHasher implements ResourceHasher {
         this.ignoreMatchers = builder.build();
     }
 
+    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        if (shouldBeIgnored(fileSnapshot.getRelativePath())) {
+    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
+        if (shouldBeIgnored(Iterables.toArray(relativePath, String.class))) {
             return null;
         }
-        return delegate.hash(fileSnapshot);
+        return delegate.hash(absolutePath, relativePath, content);
     }
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        if (shouldBeIgnored(RelativePath.parse(true, zipEntry.getName()))) {
+        if (shouldBeIgnored(FilePathUtil.getPathSegments(zipEntry.getName()))) {
             return null;
         }
         return delegate.hash(zipEntry, zipInput);
     }
 
-    private boolean shouldBeIgnored(RelativePath relativePath) {
+    private boolean shouldBeIgnored(String[] relativePath) {
         if (ignoreMatchers.isEmpty()) {
             return false;
         }
         for (PathMatcher ignoreSpec : ignoreMatchers) {
-            if (ignoreSpec.matches(relativePath.getSegments(), 0)) {
+            if (ignoreSpec.matches(relativePath, 0)) {
                 return true;
             }
         }

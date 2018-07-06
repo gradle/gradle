@@ -18,7 +18,10 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.internal.classpath.CachedJarFileStore
+import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -40,13 +43,15 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "keeps state about a file until task outputs are generated"() {
         def file = tmpDir.file("a")
-        def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
+        def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def snapshot = Stub(Snapshot)
 
         given:
-        _ * fileSnapshot.path >> file.path
-        _ * fileTreeSnapshot.path >> file.path
+
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(25), 37)
+        _ * fileTreeSnapshot.absolutePath >> file.path
 
         expect:
         mirror.getFile(file.path) == null
@@ -54,10 +59,10 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getContent(file.path) == null
 
         mirror.putFile(fileSnapshot)
-        mirror.putDirectory(fileTreeSnapshot)
+        mirror.putDirectory(file.path, fileTreeSnapshot)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path) == fileSnapshot
+        mirror.getFile(file.path).content == fileSnapshot.content
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 
@@ -70,15 +75,16 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "keeps state about a file until end of build"() {
         def file = tmpDir.file("a")
-        def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
+        def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
         given:
-        _ * fileSnapshot.path >> file.path
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(37), 346)
+        _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 
@@ -88,10 +94,10 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getContent(file.path) == null
 
         mirror.putFile(fileSnapshot)
-        mirror.putDirectory(fileTreeSnapshot)
+        mirror.putDirectory(file.path, fileTreeSnapshot)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path) == fileSnapshot
+        mirror.getFile(file.path).content == fileSnapshot.content
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 
@@ -104,15 +110,15 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "does not discard state about a file that lives in the caches when task outputs are generated"() {
         def file = cacheDir.file("some/dir/a")
-        def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileSnapshot = Stub(PhysicalFileSnapshot)
+        def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
         given:
-        _ * fileSnapshot.path >> file.path
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileSnapshot.absolutePath >> file.path
+        _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 
@@ -122,7 +128,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getContent(file.path) == null
 
         mirror.putFile(fileSnapshot)
-        mirror.putDirectory(fileTreeSnapshot)
+        mirror.putDirectory(file.path, fileTreeSnapshot)
         mirror.putContent(file.path, snapshot)
 
         mirror.getFile(file.path) == fileSnapshot

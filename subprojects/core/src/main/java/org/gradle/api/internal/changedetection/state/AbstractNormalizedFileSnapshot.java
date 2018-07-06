@@ -38,7 +38,7 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
 
     @Override
     public final int compareTo(NormalizedFileSnapshot o) {
-        int result = compareNormalizedPathTo(o);
+        int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
             result = getSnapshot().getContentMd5().compareTo(o.getSnapshot().getContentMd5());
         }
@@ -55,49 +55,18 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
         return snapshot.equals(that.snapshot)
-            && hasSameNormalizedPathAs(that);
+            && getNormalizedPath().equals(that.getNormalizedPath());
     }
 
     @Override
     public final int hashCode() {
         int result = snapshot.hashCode();
-        result = 31 * result + hashNormalizedPath();
+        result = 31 * result + getNormalizedPath().hashCode();
         return result;
     }
 
     @Override
     public final String toString() {
         return String.format("'%s' / %s", getNormalizedPath(), snapshot);
-    }
-
-    /**
-     * This is a performance optimization and must return the same result as
-     * <pre>
-     *     getNormalizedPath().equals(other.getNormalizedPath());
-     * </pre>
-     */
-    protected boolean hasSameNormalizedPathAs(AbstractNormalizedFileSnapshot other) {
-        return getNormalizedPath().equals(other.getNormalizedPath());
-    }
-
-
-    /**
-     * This is a performance optimization and must return the same result as
-     * <pre>
-     *     getNormalizedPath().hashCode();
-     * </pre>
-     */
-    protected int hashNormalizedPath() {
-        return getNormalizedPath().hashCode();
-    }
-
-    /**
-     * This is a performance optimization and must return the same result as
-     * <pre>
-     *     getNormalizedPath().compareTo(other.getNormalizedPath());
-     * </pre>
-     */
-    protected int compareNormalizedPathTo(NormalizedFileSnapshot other) {
-        return getNormalizedPath().compareTo(other.getNormalizedPath());
     }
 }

@@ -34,11 +34,11 @@ public class SplitResourceSnapshotterCacheService implements ResourceSnapshotter
     }
 
     @Override
-    public HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash) {
-        if (wellKnownFileLocations.isImmutable(fileSnapshot.getPath())) {
-            return globalCache.hashFile(fileSnapshot, hasher, configurationHash);
+    public HashCode hashFile(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash) {
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            return globalCache.hashFile(absolutePath, relativePath, content, hasher, configurationHash);
         } else {
-            return localCache.hashFile(fileSnapshot, hasher, configurationHash);
+            return localCache.hashFile(absolutePath, relativePath, content, hasher, configurationHash);
         }
     }
 }
