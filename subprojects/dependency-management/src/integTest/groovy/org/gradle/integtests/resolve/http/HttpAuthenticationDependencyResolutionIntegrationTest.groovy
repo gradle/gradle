@@ -174,7 +174,7 @@ task listJars {
 repositories {
     maven {
         url "${mavenHttpRepo.uri}"
-        credentials(HttpHeaderCredentials) {
+        credentials(org.gradle.api.credentials.HttpHeaderCredentials) {
             name = "TestHttpHeaderName"
             value = "TestHttpHeaderValue"
         }
