@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.internal.credentials;
 
-import org.gradle.api.artifacts.repositories.HttpHeaderCredentials;
+import org.gradle.api.credentials.HttpHeaderCredentials;
 
 public class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
 

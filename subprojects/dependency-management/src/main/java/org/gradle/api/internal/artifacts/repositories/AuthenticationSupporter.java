@@ -18,16 +18,18 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.artifacts.repositories.HttpHeaderCredentials;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
+import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
+import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;

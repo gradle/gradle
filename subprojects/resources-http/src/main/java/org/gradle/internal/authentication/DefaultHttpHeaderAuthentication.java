@@ -16,7 +16,7 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.api.artifacts.repositories.HttpHeaderCredentials;
+import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
 
 public class DefaultHttpHeaderAuthentication extends AbstractAuthentication implements HttpHeaderAuthentication {
