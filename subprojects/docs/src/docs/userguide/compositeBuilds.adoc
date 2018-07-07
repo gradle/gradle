@@ -97,12 +97,10 @@ More details tasks that depend on included build tasks below.
 [[included_builds]]
 ==== Restrictions on included builds
 
-Most builds can be included into a composite, however there are some limitations.
+Most builds can be included into a composite, including other composite builds. However there are some limitations.
 
 Every included build:
 
-* must have a `settings.gradle` file.
-* must not itself be a composite build.
 * must not have a `rootProject.name` the same as another included build.
 * must not have a `rootProject.name` the same as a top-level project of the composite build.
 * must not have a `rootProject.name` the same as the composite build `rootProject.name`.
@@ -219,5 +217,5 @@ Improvements we have planned for upcoming releases include:
 
 * Better detection of dependency substitution, for build that publish with custom coordinates, builds that produce multiple components, etc. This will reduce the cases where dependency substitution needs to be explicitly declared for an included build.
 * The ability to target a task or tasks in an included build directly from the command line. We are currently exploring syntax options for allowing this functionality, which will remove many cases where a delegating task is required in the composite.
+* Make the `plugins {}` block consider included builds when locating plugins and their dependencies.
 * Making the implicit `buildSrc` project an included build.
-* Supporting composite-of-composite builds.
