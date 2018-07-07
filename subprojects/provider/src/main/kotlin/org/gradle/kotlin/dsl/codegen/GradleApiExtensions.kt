@@ -26,7 +26,7 @@ import java.util.jar.JarFile
 internal
 fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>) =
     (gradleApiJarsFrom(gradleJars) to gradleApiMetadataFrom(gradleJars)).let { (gradleApiJars, gradleApiMetadata) ->
-        doGenerateKotlinDslApiExtensionsSourceTo(
+        generateKotlinDslApiExtensionsSourceTo(
             outputDirectory,
             "org.gradle.kotlin.dsl",
             "GradleApiKotlinDslExtensions",

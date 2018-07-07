@@ -42,7 +42,7 @@ import java.io.File
  * @return the list of generated source files
  */
 internal
-fun doGenerateKotlinDslApiExtensionsSourceTo(
+fun generateKotlinDslApiExtensionsSourceTo(
     outputDirectory: File,
     packageName: String,
     sourceFilesBaseName: String,
