@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="5d59fee9-be42-4f6d-9e0b-fe103e0d2765" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2017.2/project-config.xsd">
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="5d59fee9-be42-4f6d-9e0b-fe103e0d2765" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
   <name>AdHoc Functional Test - Linux</name>
   <description />
   <settings>
@@ -24,8 +24,8 @@
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts -Djava7Home=%linux.jdk.for.gradle.compile%" />
+          <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean %subproject%:%buildType%" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
@@ -52,8 +52,8 @@ fi]]></param>
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts -Djava7Home=%linux.jdk.for.gradle.compile%" />
+          <param name="ui.gradleRunner.gradle.build.file" value="" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="verifyTestFilesCleanup" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
