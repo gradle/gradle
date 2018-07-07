@@ -19,7 +19,6 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.featurelifecycle.buildscan.DeprecationWarningBuildOperation;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.GradleVersion;

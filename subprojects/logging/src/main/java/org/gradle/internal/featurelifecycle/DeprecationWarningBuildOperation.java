@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle.buildscan;
+package org.gradle.internal.featurelifecycle;
 
-import org.gradle.internal.featurelifecycle.FeatureUsage;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.List;
 
-import static org.gradle.internal.featurelifecycle.buildscan.DeprecationWarningBuildOperationType.*;
+import static org.gradle.internal.featurelifecycle.DeprecationWarningBuildOperationType.*;
 
 public class DeprecationWarningBuildOperation implements RunnableBuildOperation {
     private static final Object RESULT = new Result() {};

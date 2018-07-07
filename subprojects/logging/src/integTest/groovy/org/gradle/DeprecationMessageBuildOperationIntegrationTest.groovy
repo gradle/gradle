@@ -18,7 +18,7 @@ package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.featurelifecycle.buildscan.DeprecationWarningBuildOperationType
+import org.gradle.internal.featurelifecycle.DeprecationWarningBuildOperationType
 
 class DeprecationMessageBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 

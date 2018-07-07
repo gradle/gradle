@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle.buildscan;
+package org.gradle.internal.featurelifecycle;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
