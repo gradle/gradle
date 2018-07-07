@@ -98,25 +98,7 @@ Sometimes a repository will have the POMs published to one location, and the JAR
 
 Gradle will look at the first URL for the POM and the JAR. If the JAR can't be found there, the artifact URLs are used to look for JARs.
 
-
-[[sec:accessing_password_protected_maven_repositories]]
-==== Accessing password-protected Maven repositories
-
-You can specify credentials for Maven repositories secured by basic authentication.
-
-++++
-<sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password-protected Maven repository">
-    <sourcefile file="build.gradle" snippet="authenticated-maven-repo"/>
-</sample>
-++++
-
-You can specify any HTTP header for secured Maven repositories requiring token, OAuth2 or other HTTP header based authentication.
-
-++++
-<sample id="mavenHeaderProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing header-protected Maven repository">
-    <sourcefile file="build.gradle" snippet="header-authenticated-maven-repo"/>
-</sample>
-++++
+See <<sub:authentication_schemes>> for authentication options.
 
 [[sec:ivy_repositories]]
 === Custom Ivy repositories
@@ -419,7 +401,17 @@ e.g. `gcs://myBucket/maven/release`
 [[sub:authentication_schemes]]
 ==== Configuring HTTP authentication schemes
 
-When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that are supported by the Apache HttpClient library, http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625[documented here]. In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly declared, only those schemes are used when authenticating to a remote repository. The following example show how to configure a repository to use only digest authentication:
+When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that are supported by the Apache HttpClient library, http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625[documented here]. In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly declared, only those schemes are used when authenticating to a remote repository.
+
+You can specify credentials for Maven repositories secured by basic authentication using api:org.gradle.api.credentials.PasswordCredentials[].
+
+++++
+<sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password-protected Maven repository">
+    <sourcefile file="build.gradle" snippet="authenticated-maven-repo"/>
+</sample>
+++++
+
+The following example show how to configure a repository to use only api:org.gradle.authentication.http.DigestAuthentication[]:
 
 ++++
 <sample id="digestAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use only digest authentication">
@@ -440,6 +432,9 @@ Currently supported authentication schemes are:
 
 | api:org.gradle.authentication.http.DigestAuthentication[]
 | Digest access authentication over HTTP.
+
+| api:org.gradle.authentication.http.HttpHeaderAuthentication[]
+| Authentication based on any custom HTTP header, e.g. private tokens, OAuth tokens, etc.
 |===
 
 [[sub:preemptive_authentication]]
@@ -450,5 +445,15 @@ Gradle's default behavior is to only submit credentials when a server responds w
 ++++
 <sample id="preemptiveAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use preemptive authentication">
     <sourcefile file="build.gradle" snippet="preemptive-authentication"/>
+</sample>
+++++
+
+==== Using HTTP header authentication
+
+You can specify any HTTP header for secured Maven repositories requiring token, OAuth2 or other HTTP header based authentication using api:org.gradle.api.credentials.HttpHeaderCredentials[] with api:org.gradle.authentication.http.HttpHeaderAuthentication[].
+
+++++
+<sample id="mavenHeaderProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing header-protected Maven repository">
+    <sourcefile file="build.gradle" snippet="header-authenticated-maven-repo"/>
 </sample>
 ++++
