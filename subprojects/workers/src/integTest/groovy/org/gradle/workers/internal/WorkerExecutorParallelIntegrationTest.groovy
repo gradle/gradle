@@ -17,13 +17,13 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@IntegrationTestTimeout(60)
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule

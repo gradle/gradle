@@ -34,6 +34,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptor;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
@@ -81,6 +82,7 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
+import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.*;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
@@ -803,8 +805,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
-        stopRunningBuilds();
-        cleanupIsolatedDaemons();
+        new IntegrationTestTimeoutInterceptor(DEFAULT_TIMEOUT_SECONDS).intercept(new Action<Void>() {
+            @Override
+            public void execute(Void ignored) {
+                stopRunningBuilds();
+                cleanupIsolatedDaemons();
+            }
+        });
     }
 
     private void stopRunningBuilds() {
