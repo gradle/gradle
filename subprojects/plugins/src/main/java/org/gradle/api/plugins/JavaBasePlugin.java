@@ -86,15 +86,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
-        JavaPluginConvention javaConvention = DeprecationLogger.whileDisabled(new Factory<JavaPluginConvention>() {
-            @Override
-            public JavaPluginConvention create() {
-                return new JavaPluginConvention(project, instantiator);
-            }
-        });
-        project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
+        JavaPluginConvention javaConvention = addExtensions(project);
 
         configureSourceSetDefaults(javaConvention);
         configureCompileDefaults(project, javaConvention);
@@ -105,6 +97,19 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureBuildDependents(project);
         configureSchema(project);
         bridgeToSoftwareModelIfNecessary(project);
+    }
+
+    private JavaPluginConvention addExtensions(final ProjectInternal project) {
+        JavaPluginConvention javaConvention = DeprecationLogger.whileDisabled(new Factory<JavaPluginConvention>() {
+            @Override
+            public JavaPluginConvention create() {
+                return new JavaPluginConvention(project, instantiator);
+            }
+        });
+        project.getConvention().getPlugins().put("java", javaConvention);
+        project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
+        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
+        return javaConvention;
     }
 
     private void bridgeToSoftwareModelIfNecessary(ProjectInternal project) {
