@@ -64,7 +64,7 @@ include::{samples-path}/userguide/java/basic/build.gradle[tag=java-basic-test-co
 
 The `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` task has many generic configuration options as well as several framework-specific ones that you can find described in `link:{javadoc-path}/org/gradle/api/tasks/testing/junit/JUnitOptions.html[JUnitOptions]`, `link:{javadoc-path}/org/gradle/api/tasks/testing/junitplatform/JUnitPlatformOptions.html[JUnitPlatformOptions]` and `link:{javadoc-path}/org/gradle/api/tasks/testing/testng/TestNGOptions.html[TestNGOptions]`. We cover a significant number of them in the rest of the chapter.
 
-If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in _<<#sec:configuring_java_integration_tests,Configuring integration tests>>_.
+If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in <<#sec:configuring_java_integration_tests,Configuring integration tests>>.
 
 [[sec:test_execution]]
 == Test execution
@@ -484,7 +484,7 @@ Users commonly want to run integration tests after the unit tests, because they 
 [[sec:skipping_java_tests]]
 == Skipping the tests
 
-If you want to skip the tests when running a build, you have a few options. You can either do it via <<command_line_interface#sec:excluding_tasks_from_the_command_line,command line arguments>> or <<sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
+If you want to skip the tests when running a build, you have a few options. You can either do it via <<command_line_interface#sec:excluding_tasks_from_the_command_line,command line arguments>> or <<more_about_tasks#sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
 
     gradle build -x test
 
@@ -511,7 +511,7 @@ You can force tests to run in this situation by cleaning the output of the relev
 
     gradle cleanTest test
 
-`cleanTest` is based on a _<<more_about_tasks#sec:task_rules,task rule>>_ provided by the <<base_plugin#sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
+`cleanTest` is based on a <<more_about_tasks#sec:task_rules,task rule>> provided by the <<base_plugin#sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
 
 [[sec:debugging_java_tests]]
 == Debugging when running tests

@@ -98,9 +98,9 @@ A Play application component describes the application to be built and consists 
 | \**/*.js
 |===
 
-These source sets can be configured or additional source sets can be added to the Play component. See <<configuring_play,Configuring Play>> for further information.
+These source sets can be configured or additional source sets can be added to the Play component. See <<#configuring_play,Configuring Play>> for further information.
 
-Another element of configuring a Play application is the _platform_. To build a Play application, Gradle needs to understand which versions of Play, Scala and Java to use. The Play component specifies this requirement as a `link:{javadoc-path}/org/gradle/play/platform/PlayPlatform.html[PlayPlatform]`. If these values are not configured, a default version of Play, Scala and Java will be used. See <<configuring_play_platform,Targeting a certain version of Play>> for information on configuring the Play platform.
+Another element of configuring a Play application is the _platform_. To build a Play application, Gradle needs to understand which versions of Play, Scala and Java to use. The Play component specifies this requirement as a `link:{javadoc-path}/org/gradle/play/platform/PlayPlatform.html[PlayPlatform]`. If these values are not configured, a default version of Play, Scala and Java will be used. See <<#configuring_play_platform,Targeting a certain version of Play>> for information on configuring the Play platform.
 
 Note that only a single platform can be specified for a given Play component. This means that only a single version of Play, Scala and Java can be used to build a Play component. In other words, a Play component can only produce one set of outputs, and those outputs will be built using the versions specified by the platform configured on the component.
 
@@ -109,12 +109,12 @@ Note that only a single platform can be specified for a given Play component. Th
 
 A Play application component is compiled and packaged to produce a set of outputs which are represented by a `link:{javadoc-path}/org/gradle/play/PlayApplicationBinarySpec.html[PlayApplicationBinarySpec]`. The Play binary specifies the jar files produced by building the component as well as providing elements by which additional content can be added to those jar files. It also exposes the tasks involved in building the component and creating the binary.
 
-See <<configuring_play,Configuring Play>> for examples of configuring the Play binary.
+See <<#configuring_play,Configuring Play>> for examples of configuring the Play binary.
 
 [[sec:play_project_layout]]
 == Project Layout
 
-The Play plugin follows the typical Play application layout. You can <<configuring_play_sourcesets,configure source sets>> to include additional directories or change the defaults.
+The Play plugin follows the typical Play application layout. You can <<#configuring_play_sourcesets,configure source sets>> to include additional directories or change the defaults.
 
 ----
 ├── app                 → Application source code.
@@ -177,7 +177,7 @@ The plugin also provides tasks for running, testing and packaging your Play appl
 | `runPlayBinary`
 | `playBinary` to build Play application.
 | `link:{groovy-dsl-path}/org.gradle.play.tasks.PlayRun.html[PlayRun]`
-| Runs the Play application for local development. See <<play_continuous_build,how this works with continuous build.>>
+| Runs the Play application for local development. See <<#play_continuous_build,how this works with continuous build.>>
 
 | `testPlayBinary`
 | `playBinary` to build Play application and `compilePlayBinaryTests`.
@@ -235,7 +235,7 @@ include::{samples-path}/play/basic/playComponentReport.out[]
 [[play_continuous_build]]
 == Running a Play application
 
-The `runPlayBinary` task starts the Play application under development. During development it is beneficial to execute this task as a <<sec:continuous_build,continuous build>>. Continuous build is a generic feature that supports automatically re-running a build when inputs change. The `runPlayBinary` task is “continuous build aware” in that it behaves differently when run as part of a continuous build.
+The `runPlayBinary` task starts the Play application under development. During development it is beneficial to execute this task as a <<command_line_interface#sec:continuous_build,continuous build>>. Continuous build is a generic feature that supports automatically re-running a build when inputs change. The `runPlayBinary` task is “continuous build aware” in that it behaves differently when run as part of a continuous build.
 
 When not run as part of a continuous build, the `runPlayBinary` task will _block_ the build. That is, the task will not complete as long as the application is running. When running as part of a continuous build, the task will start the application if not running and otherwise propagate any changes to the code of the application to the running instance. This is useful for quickly iterating on your Play application with an edit-&gt;rebuild-&gt;refresh cycle. Changes to your application will not take affect until the end of the overall build.
 
@@ -505,7 +505,7 @@ To generate IDEA's metadata, apply the `idea` plugin along with the `play` plugi
 include::{samples-path}/play/configure-compiler/build.gradle[tag=play-idea]
 ----
 
-Source code generated by routes and Twirl templates cannot be generated by IDEA directly, so changes made to those files will not affect compilation until the next Gradle build. You can run the Play application with Gradle in <<sec:continuous_build,continuous build>> to automatically rebuild and reload the application whenever something changes.
+Source code generated by routes and Twirl templates cannot be generated by IDEA directly, so changes made to those files will not affect compilation until the next Gradle build. You can run the Play application with Gradle in <<command_line_interface#sec:continuous_build,continuous build>> to automatically rebuild and reload the application whenever something changes.
 
 [[sec:play_resources]]
 == Resources

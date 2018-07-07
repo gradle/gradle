@@ -20,18 +20,18 @@ Managing dependencies in a project can be challenging. This chapter describes te
 [[sub:version_conflicts]]
 == Resolving version conflicts
 
-Gradle resolves version conflicts by picking the highest version of a module. link:https://scans.gradle.com/get-started[Build scans] and the <<sec:identifying_reason_dependency_selection,dependency insight report>> are immensely helpful in identifying why a specific version was selected. If the resolution result is not satisfying (e.g. the selected version of a module is too high) or it fails (because you configured `link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:failOnVersionConflict()[ResolutionStrategy.failOnVersionConflict()]`) you have the following possibilities to fix it.
+Gradle resolves version conflicts by picking the highest version of a module. link:https://scans.gradle.com/get-started[Build scans] and the <<inspecting_dependencies#sec:identifying_reason_dependency_selection,dependency insight report>> are immensely helpful in identifying why a specific version was selected. If the resolution result is not satisfying (e.g. the selected version of a module is too high) or it fails (because you configured `link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:failOnVersionConflict()[ResolutionStrategy.failOnVersionConflict()]`) you have the following possibilities to fix it.
 
-* Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. See <<sec:enforcing_dependency_version>> for examples.
+* Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. See <<managing_dependency_versions#sec:enforcing_dependency_version,Enforcing a particular dependency version>> for examples.
 * Configuring dependency resolution to _prefer modules that are part of your build_ (transitive or not). This approach is useful if your build contains custom forks of modules (as part of <<multi_project_builds#,multi-project builds>> or as include in <<composite_builds#,composite builds>>). See `link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:preferProjectModules()[ResolutionStrategy.preferProjectModules()]` for more information.
-* Using <<sec:dependency_resolve_rules,dependency resolve rules>> for fine-grained control over the version selected for a particular dependency.
+* Using <<customizing_dependency_resolution_behavior#sec:dependency_resolve_rules,dependency resolve rules>> for fine-grained control over the version selected for a particular dependency.
 
 [[sub:dynamic_versions_and_changing_modules]]
 == Using dynamic versions and changing modules
 
-There are many situations when you want to use the latest version of a particular module dependency, or the latest in a range of versions. This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions. You can easily depend on these constantly changing dependencies by using a _dynamic version_. A <<sub:declaring_dependency_with_dynamic_version,dynamic version>> can be either a version range (e.g. `2.+`) or it can be a placeholder for the latest version available e.g. `latest.integration`.
+There are many situations when you want to use the latest version of a particular module dependency, or the latest in a range of versions. This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions. You can easily depend on these constantly changing dependencies by using a _dynamic version_. A <<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic version>> can be either a version range (e.g. `2.+`) or it can be a placeholder for the latest version available e.g. `latest.integration`.
 
-Alternatively, the module you request can change over time even for the same version, a so-called <<sub:declaring_dependency_with_changing_version,changing version>>. An example of this type of _changing module_ is a Maven `SNAPSHOT` module, which always points at the latest artifact published. In other words, a standard Maven snapshot is a module that is continually evolving, it is a "changing module".
+Alternatively, the module you request can change over time even for the same version, a so-called <<declaring_dependencies#sub:declaring_dependency_with_changing_version,changing version>>. An example of this type of _changing module_ is a Maven `SNAPSHOT` module, which always points at the latest artifact published. In other words, a standard Maven snapshot is a module that is continually evolving, it is a "changing module".
 
 [NOTE]
 ====
@@ -45,7 +45,7 @@ By default, Gradle caches dynamic versions and changing modules for 24 hours. Du
 Using a short TTL threshold for dynamic or changing versions may result in longer build times due to the increased number of HTTP(s) calls.
 ====
 
-You can override the default cache modes using <<sec:controlling_dependency_caching_command_line,command line options>>. You can also <<sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
+You can override the default cache modes using <<#sec:controlling_dependency_caching_command_line,command line options>>. You can also <<#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
 
 [[sec:controlling_dependency_caching_programmatically]]
 == Controlling dependency caching programmatically
@@ -90,7 +90,7 @@ The `--refresh-dependencies` option tells Gradle to ignore all cached entries fo
 [[sub:locking_dependency_versions]]
 == Locking dependency versions
 
-The use of <<sub:declaring_dependency_with_dynamic_version,dynamic dependencies>> in a build is convenient.
+The use of <<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic dependencies>> in a build is convenient.
 The user does not need to know the latest version of a dependency and Gradle automatically uses new versions once they are published.
 However, dynamic dependencies make builds non-reproducible, as they can resolve to a different version at a later point in time.
 This makes it hard to reproduce old builds when debugging a problem.
@@ -105,6 +105,6 @@ This file is then checked in and the versions in it are used on all subsequent r
 [[sub:versioning_file_dependencies]]
 == Versioning of file dependencies
 
-Legacy projects sometimes prefer to consume <<sec:declaring_file_dependency,file dependencies>> instead of <<sec:declaring_dependency_to_module,module dependencies>>. File dependencies can point to any file in the filesystem and do not need to adhere a specific naming convention. It is recommended to clearly express the intention and a concrete version for file dependencies. File dependencies are not considered by Gradle's <<sec:dependency_resolution,version conflict resolution>>. Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it. For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
+Legacy projects sometimes prefer to consume <<declaring_dependencies#sec:declaring_file_dependency,file dependencies>> instead of <<declaring_dependencies#sec:declaring_dependency_to_module,module dependencies>>. File dependencies can point to any file in the filesystem and do not need to adhere a specific naming convention. It is recommended to clearly express the intention and a concrete version for file dependencies. File dependencies are not considered by Gradle's <<introduction_dependency_management#sec:dependency_resolution,version conflict resolution>>. Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it. For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
 
 As a result, the dependencies of the project are easier to maintain and organize. It's much easier to uncover potential API incompatibilities by the assigned version.

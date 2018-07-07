@@ -60,16 +60,16 @@ Copies all defined publications to the local Maven cache, including their metada
 [[publishing_maven:publications]]
 == Publications
 
-This plugin provides <<glossary:publication,publications>> of type `link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]`. To learn how to define and use publications, see the section on <<sec:basic_publishing,basic publishing>>.
+This plugin provides <<publishing_overview#glossary:publication,publications>> of type `link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]`. To learn how to define and use publications, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in a Maven publication:
 
- * A <<glossary:component,component>> — via `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)]`.
- * <<sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)]` method. See `link:{javadoc-path}/org/gradle/api/publish/maven/MavenArtifact.html[MavenArtifact]` for the available configuration options for custom Maven artifacts.
+ * A <<publishing_overview#glossary:component,component>> — via `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)]`.
+ * <<publishing_overview#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)]` method. See `link:{javadoc-path}/org/gradle/api/publish/maven/MavenArtifact.html[MavenArtifact]` for the available configuration options for custom Maven artifacts.
  * Standard metadata like `artifactId`, `groupId` and `version`.
  * Other contents of the POM file — via `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)]`.
 
-You can see all of these in action in the <<publishing_maven:complete_example,complete publishing example>>. The API documentation for `MavenPublication` has additional code samples.
+You can see all of these in action in the <<#publishing_maven:complete_example,complete publishing example>>. The API documentation for `MavenPublication` has additional code samples.
 
 [[sec:identity_values_in_the_generated_pom]]
 === Identity values in the generated POM
@@ -115,7 +115,7 @@ include::{samples-path}/signing/maven-publish/build.gradle[tag=pom-customization
 [[publishing_maven:repositories]]
 == Repositories
 
-This plugin provides <<sub:terminology_repository,repositories>> of type `link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]`. To learn how to define and use repositories for publishing, see the section on <<sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology#sub:terminology_repository,repositories>> of type `link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]`. To learn how to define and use repositories for publishing, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 

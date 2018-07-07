@@ -59,15 +59,15 @@ When Gradle executes a task, it can label the task with different outcomes in th
 | Task did not execute its actions.
 |
 
-* Used when a task has been explicitly excluded from the command-line. See <<sec:excluding_tasks_from_the_command_line>>.
-* Used when a task has an `onlyIf` predicate return false. See <<sec:using_a_predicate>>.
+* Used when a task has been explicitly excluded from the command-line. See <<command_line_interface#sec:excluding_tasks_from_the_command_line,Excluding tasks from execution>>.
+* Used when a task has an `onlyIf` predicate return false. See <<#sec:using_a_predicate,Using a predicate>>.
 
 
 | `NO-SOURCE`
 | Task did not need to execute its actions.
 |
 
-* Used when a task has inputs and outputs, but <<skip-when-empty,no sources>>. For example, source files are `.java` files for `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`.
+* Used when a task has inputs and outputs, but <<#skip-when-empty,no sources>>. For example, source files are `.java` files for `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`.
 
 |===
 
@@ -253,7 +253,7 @@ If you attempt to pass a `null` value, Gradle will throw a `NullPointerException
 [[sec:adding_dependencies_to_tasks]]
 == Adding dependencies to a task
 
-There are several ways you can define the dependencies of a task. In <<sec:task_dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `projectA:taskX` to `projectB:taskY`:
+There are several ways you can define the dependencies of a task. In <<tutorial_using_tasks#sec:task_dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `projectA:taskX` to `projectB:taskY`:
 
 === Example: Adding dependency on task from another project
 
@@ -469,7 +469,7 @@ include::{samples-path}/userguide/tutorial/stopExecutionException/build.gradle[]
 include::{samples-path}/userguide/tutorial/stopExecutionException/stopExecutionException.out[]
 ----
 
-This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<script-default-imports>>).]
+This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<writing_build_scripts#script-default-imports,Default imports>>).]
 
 [[sec:enabling_and_disabling_tasks]]
 === Enabling and disabling tasks
@@ -495,7 +495,7 @@ include::{samples-path}/userguide/tutorial/disableTask/disableTask.out[]
 
 An important part of any build tool is the ability to avoid doing work that has already been done. Consider the process of compilation. Once your source files have been compiled, there should be no need to recompile them unless something has changed that affects the output, such as the modification of a source file or the removal of an output file. And compilation can take a significant amount of time, so skipping the step when it’s not needed saves a lot of time.
 
-Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<sec:task_outcomes>>.
+Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<#sec:task_outcomes,Task outcomes>>.
 
 How does incremental build work? And what does it take to make use of it in your own tasks? Let’s take a look.
 
@@ -582,9 +582,9 @@ For this example, we’re using a custom class to represent the model data. Howe
 +
 The directory where the generated files go. As with input files, there are several annotations for output files and directories. A property representing a single directory requires `@OutputDirectory`. You’ll learn about the others soon.
 
-These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<sec:how_does_it_work,changes later>>.
+These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<#sec:how_does_it_work,changes later>>.
 
-This example is particularly interesting because it works with collections of source files. What happens if only one source file changes? Does the task process all the source files again or just the modified one? That depends on the task implementation. If the latter, then the task itself is incremental, but that’s a different feature to the one we’re discussing here. Gradle does help task implementers with this via its <<incremental_tasks,incremental task inputs>> feature.
+This example is particularly interesting because it works with collections of source files. What happens if only one source file changes? Does the task process all the source files again or just the modified one? That depends on the task implementation. If the latter, then the task itself is incremental, but that’s a different feature to the one we’re discussing here. Gradle does help task implementers with this via its <<custom_tasks#incremental_tasks,incremental task inputs>> feature.
 
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
@@ -613,7 +613,7 @@ Now that you have seen some of the input and output annotations in practice, let
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]``
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<sec:task_input_using_classpath_annotations>>.
+| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 
 [NOTE]
 ====
@@ -622,7 +622,7 @@ The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible wit
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]``
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<sec:task_input_using_classpath_annotations>>.
+| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 
 The following kinds of changes to the classpath will be ignored:
 
@@ -649,11 +649,11 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/OutputFiles.html[OutputFiles]``
 | `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
-| An iterable of output files (no directories). The task outputs can only be <<sec:task_output_caching, cached>> if a `Map` is provided.
+| An iterable of output files (no directories). The task outputs can only be <<build_cache#sec:task_output_caching, cached>> if a `Map` is provided.
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/OutputDirectories.html[OutputDirectories]``
 | `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
-| An iterable of output directories (no files). The task outputs can only be <<sec:task_output_caching, cached>> if a `Map` is provided.
+| An iterable of output directories (no files). The task outputs can only be <<build_cache#sec:task_output_caching, cached>> if a `Map` is provided.
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/Destroys.html[Destroys]``
 | `File` or `Iterable&lt;File&gt;`*
@@ -661,7 +661,7 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/LocalState.html[LocalState]``
 | `File` or `Iterable&lt;File&gt;`*
-| Specifies one or more files that represent the <<sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
+| Specifies one or more files that represent the <<custom_tasks#sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/Nested.html[Nested]``
 | Any custom type
@@ -694,7 +694,7 @@ Similar to the above, `File` can be any type accepted by `link:{groovy-dsl-path}
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/Optional.html[Optional]``
-| Used with any of the property type annotations listed in the `link:{javadoc-path}/org/gradle/api/tasks/Optional.html[Optional]` API documentation. This annotation disables validation checks on the corresponding property. See <<sec:task_input_output_validation,the section on validation>> for more details.
+| Used with any of the property type annotations listed in the `link:{javadoc-path}/org/gradle/api/tasks/Optional.html[Optional]` API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
 
 | `@`link:{javadoc-path}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]``
 | [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
@@ -715,10 +715,10 @@ As opposed to input properties annotated with `@`link:{javadoc-path}/org/gradle/
 On the other hand, the names and paths of the directories and jar files on the classpath itself are ignored.
 Timestamps and the order of class files and resources inside jar files on a classpath are ignored, too, thus recreating a jar file with different file dates will not make the task out of date.
 
-Runtime classpaths are marked with `@`link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]``, and they offer further customization via <<sec:configure_input_normalization,classpath normalization>>.
+Runtime classpaths are marked with `@`link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]``, and they offer further customization via <<#sec:configure_input_normalization,classpath normalization>>.
 
 Input properties annotated with `@`link:{javadoc-path}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]`` are considered Java compile classpaths.
-Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<sec:java_compile_avoidance>> to further filter changes that don't affect the class' ABIs.
+Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<java_plugin#sec:java_compile_avoidance,Java compile avoidance>> to further filter changes that don't affect the class' ABIs.
 This means that changes which only touch the implementation of classes do not make the task out of date.
 
 [[sec:task_input_nested_inputs]]
@@ -872,7 +872,7 @@ include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.g
 include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiConfiguration.out[]
 ----
 
-The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<skip-when-empty,`@SkipWhenEmpty`>>.
+The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<#skip-when-empty,`@SkipWhenEmpty`>>.
 
 Prior to Gradle 3.0, you had to use the `TaskInputs.source()` and `TaskInputs.sourceDir()` methods to get the same behavior as with `skipWhenEmpty()`. These methods are now deprecated and should not be used with Gradle 3.0 and above.
 
@@ -943,7 +943,7 @@ You will occasionally want to disable some of this validation, specifically when
 
 Another benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle - through the `--continuous` or `-t` options - you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
 
-You can find out more about this feature in <<sec:continuous_build>>.
+You can find out more about this feature in <<command_line_interface#sec:continuous_build,Continuous build>>.
 
 
 [[sec:task_input_output_parallelism]]
@@ -964,7 +964,7 @@ Gradle understands if a file property (e.g. one holding a Java classpath) is ord
 
 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[]
 
-The inputs for the task are also used to calculate the <<build_cache#,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching>>.
+The inputs for the task are also used to calculate the <<build_cache#,build cache>> key used to load task outputs when enabled. For more details see <<build_cache#sec:task_output_caching,Task output caching>>.
 
 [[sec:advanced_inc_build]]
 === Advanced techniques
@@ -1107,7 +1107,7 @@ One common mistake is to use `upToDateWhen()` instead of `Task.onlyIf()`. If you
 
 For up to date checks and the <<build_cache#,build cache>> Gradle needs to determine if two task input properties have the same value.
 In order to do so, Gradle first normalizes both inputs and then compares the result.
-For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<sec:java_compile_avoidance>>.
+For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<java_plugin#sec:java_compile_avoidance,Java compile avoidance>>.
 
 It is possible to customize Gradle's built-in strategy for runtime classpath normalization.
 All inputs annotated with `@`link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]`` are considered to be runtime classpaths.
@@ -1184,7 +1184,7 @@ If you run “`gradle -q tasks`” you won't find a task named “`pingServer1`�
 
 [NOTE]
 ====
-Finalizers tasks are an _incubating_ feature (see <<sec:incubating_state>>).
+Finalizers tasks are an _incubating_ feature (see <<feature_lifecycle#sec:incubating_state,more about the Gradle feature lifecycle>>).
 ====
 
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
@@ -1234,7 +1234,7 @@ Lifecycle tasks are tasks that do not do work themselves. They typically do not 
 * a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
 * a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
 
-Many Gradle plug-ins define their own lifecycle tasks to make it convenient to do specific things. When developing your own plugins, you should consider using your own lifecycle tasks or hooking into some of the tasks already provided by Gradle. See the Java plugin <<sec:java_tasks>> for an example.
+Many Gradle plug-ins define their own lifecycle tasks to make it convenient to do specific things. When developing your own plugins, you should consider using your own lifecycle tasks or hooking into some of the tasks already provided by Gradle. See the Java plugin <<java_plugin#sec:java_tasks,tasks>> for an example.
 
 Unless a lifecycle task has actions, its outcome is determined by its dependencies. If any of the task's dependencies are executed, the lifecycle task will be considered executed. If all of the task's dependencies are up-to-date, skipped or from cache, the lifecycle task will be considered up-to-date.
 

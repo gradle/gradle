@@ -15,7 +15,7 @@
 [[osgi_plugin]]
 = The OSGi Plugin
 
-The OSGi plugin provides a factory method to create an `link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]` object. `OsgiManifest` extends `link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]`. To learn more about generic manifest handling, see <<sub:manifest>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
+The OSGi plugin provides a factory method to create an `link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]` object. `OsgiManifest` extends `link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]`. To learn more about generic manifest handling, see <<java_plugin#sub:manifest,more about Java manifests>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
 
 [NOTE]
 ====

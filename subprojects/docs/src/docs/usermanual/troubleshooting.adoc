@@ -97,7 +97,7 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 
 === Attaching a debugger to your build
 
-You can set breakpoints and debug <<sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+You can set breakpoints and debug <<custom_plugins#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
 
 ----
 ❯ gradle help -Dorg.gradle.debug=true --no-daemon
@@ -115,9 +115,9 @@ You must either stop running Gradle Daemons or run with `--no-daemon` when using
 
 === Adding and changing logging
 
-In addition to <<sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. “UP-TO-DATE”) in lifecycle logging using the <<sec:command_line_customizing_log_format,`--console=verbose` flag>>.
+In addition to <<command_line_interface#sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. “UP-TO-DATE”) in lifecycle logging using the <<command_line_interface#sec:command_line_customizing_log_format,`--console=verbose` flag>>.
 
-You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
+You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<logging#sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<logging#sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
 
 [NOTE]
 Additional logs from the <<gradle_daemon#,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
@@ -129,7 +129,7 @@ Additional logs from the <<gradle_daemon#,Gradle Daemon>> can be found under `GR
 .Debugging incremental build with a build scan
 image::troubleshooting-task-execution-build-scan.png[]
 
-You can learn what the task outcomes mean from <<sec:task_outcomes,this listing>>.
+You can learn what the task outcomes mean from <<more_about_tasks#sec:task_outcomes,this listing>>.
 
 
 [[sec:troubleshooting_ide_integration]]

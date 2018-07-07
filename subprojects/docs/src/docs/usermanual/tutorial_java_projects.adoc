@@ -240,7 +240,6 @@ You can add dependencies between projects in the same build, so that, for exampl
 ----
 include::{samples-path}/java/multiproject/api/build.gradle[tag=dependencies]
 ----
-See <<disable_dependency_projects>> for how to disable this functionality.
 
 [[sec:creating_a_distribution]]
 === Creating a distribution

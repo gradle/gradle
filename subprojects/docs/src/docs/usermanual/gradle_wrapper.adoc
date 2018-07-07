@@ -134,7 +134,7 @@ A properties file responsible for configuring the Wrapper runtime behavior e.g. 
 `gradlew`, `gradlew.bat`::
 A shell script and a Windows batch script for executing the build with the Wrapper.
 
-You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to <<sec:adding_wrapper,generate them>>.
+You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to <<#sec:adding_wrapper,generate them>>.
 
 [[sec:using_wrapper]]
 == Using the Gradle Wrapper

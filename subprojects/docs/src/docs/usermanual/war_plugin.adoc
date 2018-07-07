@@ -33,7 +33,7 @@ include::{samples-path}/webApplication/quickstart/build.gradle[tag=use-war-plugi
 [[sec:war_project_layout]]
 == Project layout
 
-In addition to the <<sec:java_project_layout,standard Java project layout>>, the War Plugin adds:
+In addition to the <<java_plugin#sec:java_project_layout,standard Java project layout>>, the War Plugin adds:
 
 `src/main/webapp`::
 Web application sources

@@ -93,8 +93,8 @@ You can see an example of this approach in the Java testing chapter, which shows
 
 You'll learn more about source sets and the features they provide in:
 
- * _<<#sec:custom_java_source_set_paths,Customizing file and directory locations>>_
- * _<<java_testing#sec:configuring_java_integration_tests,Configuring Java integration tests>>_
+ * <<#sec:custom_java_source_set_paths,Customizing file and directory locations>>
+ * <<java_testing#sec:configuring_java_integration_tests,Configuring Java integration tests>>
 
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies
@@ -141,14 +141,14 @@ Be aware that the <<java_library_plugin#,Java Library Plugin>> creates an additi
 [NOTE]
 .Why no `compile` configuration?
 ====
-The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated — although it won't be going away any time soon — because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in _<<#sec:building_java_libraries,Building Java libraries>>_.
+The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated — although it won't be going away any time soon — because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in <<#sec:building_java_libraries,Building Java libraries>>.
 ====
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
 
  * Defining a custom <<repository_types#sub:maven_repo,Maven\->> or <<repository_types#sec:ivy_repositories,Ivy-compatible>> repository
  * Using dependencies from a <<repository_types#sec:flat_dir_resolver,local filesystem directory>>
- * Declaring dependencies with _<<declaring_dependencies#sub:declaring_dependency_with_changing_version,changing>>_ (e.g. SNAPSHOT) and _<<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic>>_ (range) versions
+ * Declaring dependencies with <<declaring_dependencies#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies#sec:declaring_project_dependency,project as a dependency>>
  * <<managing_transitive_dependencies#,Controlling transitive dependencies and their versions>>
  * Testing your fixes to a 3rd-party dependency via <<composite_builds#,composite builds>> (a better alternative to publishing to and consuming from <<repository_types#sub:maven_local,Maven Local>>)
@@ -285,7 +285,7 @@ Many Java projects make use of resources beyond source files, such as images, co
 
 The task's name follows the convention of `process__SourceSet__Resources` — or `processResources` for the `main` source set — and it will automatically copy any files in _src/[sourceSet]/resources_ to a directory that will be included in the production JAR. This target directory will also be included in the runtime classpath of the tests.
 
-Since `processResources` is an instance of the `Copy` task, you can perform any of the processing described in the _<<working_with_files#sec:copying_files,Working With Files>>_ chapter.
+Since `processResources` is an instance of the `Copy` task, you can perform any of the processing described in the <<working_with_files#sec:copying_files,Working With Files>> chapter.
 
 [[sec:properties_files]]
 === Java properties files and reproducible builds

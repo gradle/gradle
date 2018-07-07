@@ -54,7 +54,7 @@ The rich components of the console (build status and work in progress area) are 
 [[sec:choosing_a_log_level]]
 == Choosing a log level
 
-You can use the command line switches shown in <<#logLevelCommandLineOptions, Log level command-line options>> to choose different log levels. You can also configure the log level using gradle.properties, see <<sec:gradle_configuration_properties>>. In <<#stacktraces,Stacktrace command-line options>> you find the command line switches which affect stacktrace logging.
+You can use the command line switches shown in <<#logLevelCommandLineOptions, Log level command-line options>> to choose different log levels. You can also configure the log level using gradle.properties, see <<build_environment#sec:gradle_configuration_properties,Gradle properties>>. In <<#stacktraces,Stacktrace command-line options>> you find the command line switches which affect stacktrace logging.
 
 [[logLevelCommandLineOptions]]
 .Log level command-line options

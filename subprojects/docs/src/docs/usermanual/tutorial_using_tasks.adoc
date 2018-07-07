@@ -158,9 +158,9 @@ include::{samples-path}/userguide/tutorial/lazyDependsOn/build.gradle[]
 include::{samples-path}/userguide/tutorial/lazyDependsOn/lazyDependsOn.out[]
 ----
 
-The dependency of `taskX` to `taskY` is declared before `taskY` is defined. This is very important for multi-project builds. Task dependencies are discussed in more detail in <<sec:adding_dependencies_to_tasks>>.
+The dependency of `taskX` to `taskY` is declared before `taskY` is defined. This is very important for multi-project builds. Task dependencies are discussed in more detail in <<more_about_tasks#sec:adding_dependencies_to_tasks,Adding dependencies to a task>>.
 
-Please notice that you can't use shortcut notation (see <<sec:shortcut_notations>>) when referring to a task that is not yet defined.
+Please notice that you can't use <<#sec:shortcut_notations, shortcut notation>> when referring to a task that is not yet defined.
 
 [[sec:dynamic_tasks]]
 == Dynamic tasks
@@ -259,7 +259,7 @@ include::{samples-path}/userguide/tutorial/extraProperties/build.gradle[tag=task
 include::{samples-path}/userguide/tutorial/extraProperties/extraTaskProperties.out[]
 ----
 
-Extra properties aren't limited to tasks. You can read more about them in <<sec:extra_properties>>.
+Extra properties aren't limited to tasks. You can read more about them in <<writing_build_scripts#sec:extra_properties,Extra properties>>.
 
 [[sec:using_ant_tasks_tutorial]]
 == Using Ant Tasks

@@ -59,7 +59,7 @@ The following source languages are currently supported:
 [[native-binaries:tool-chain-support]]
 == Tool chain support
 
-Gradle offers the ability to execute the same build using different tool chains. When you build a native binary, Gradle will attempt to locate a tool chain installed on your machine that can build the binary. You can fine tune exactly how this works, see <<native_binaries:tool_chain>> for details.
+Gradle offers the ability to execute the same build using different tool chains. When you build a native binary, Gradle will attempt to locate a tool chain installed on your machine that can build the binary. You can fine tune exactly how this works, see <<#native_binaries:tool_chain,Tool chain support>> for details.
 
 The following tool chains are supported:
 
@@ -177,7 +177,7 @@ Gradle uses the single build worker pool to concurrently compile and link native
 
 By default, the worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
 
-The build worker pool is shared across all build tasks. This means that when using <<sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
+The build worker pool is shared across all build tasks. This means that when using <<multi_project_builds#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
 
 [[sec:building_a_library]]
 == Building a library
@@ -228,7 +228,7 @@ By following the dependencies backwards, you can see `LinuxApp` and `WindowsApp`
 
 When you _assemble_ dependents of a component, the component and all of its dependents are compiled and linked, including any test suite binaries. Gradle's up-to-date checks are used to only compile or link if something has changed. For instance, if you have changed source files in a way that do not affect the headers of your project, Gradle will be able to skip compilation for dependent components and only need to re-link with the new library. Tests are not run when assembling a component.
 
-When you _build_ dependents of a component, the component and all of its dependent binaries are compiled, linked _and checked_. Checking components means running any <<sec:check_tasks,check task>> including executing any test suites, so tests _are_ run when building a component.
+When you _build_ dependents of a component, the component and all of its dependent binaries are compiled, linked _and checked_. Checking components means running any <<#sec:check_tasks,check task>> including executing any test suites, so tests _are_ run when building a component.
 
 In the following sections, we will demonstrate the usage of the `assembleDependents\*`, `buildDependents*` and `dependentComponents` tasks with a sample build that contains a CUnit test suite. The build script for the sample is the following:
 
@@ -383,9 +383,9 @@ For each `link:{javadoc-path}/org/gradle/nativeplatform/NativeBinarySpec.html[Na
 | `check__${component.name}__StaticLibrary`
 |===
 
-The built-in `check` task depends on all the _check tasks_ for binaries in the project. Without either <<native_binaries:cunit,CUnit>> or <<native_binaries:google_test,GoogleTest>> plugins, the binary check task only depends on the _lifecycle task_ that assembles the binary, see <<sec:native_tasks>>.
+The built-in `check` task depends on all the _check tasks_ for binaries in the project. Without either <<#native_binaries:cunit,CUnit>> or <<#native_binaries:google_test,GoogleTest>> plugins, the binary check task only depends on the _lifecycle task_ that assembles the binary, see <<#sec:native_tasks,Native tasks>>.
 
-When the <<native_binaries:cunit,CUnit>> or <<native_binaries:google_test,GoogleTest>> plugins are applied, the task that executes the test suites for a component are automatically wired to the appropriate _check task_.
+When the <<#native_binaries:cunit,CUnit>> or <<#native_binaries:google_test,GoogleTest>> plugins are applied, the task that executes the test suites for a component are automatically wired to the appropriate _check task_.
 
 You can also add custom check tasks as follows:
 
@@ -708,7 +708,7 @@ A precompiled header must be included in the same way for all files that use it.
 
 For each executable or library defined, Gradle is able to build a number of different native binary variants. Examples of different variants include debug vs release binaries, 32-bit vs 64-bit binaries, and binaries produced with different custom preprocessor flags.
 
-Binaries produced by Gradle can be differentiated on <<native_binaries:build_type,build type>>, <<native_binaries:platform,platform>>, and <<native_binaries:flavor,flavor>>. For each of these 'variant dimensions', it is possible to specify a set of available values as well as target each component at one, some or all of these. For example, a plugin may define a range of support platforms, but you may choose to only target Windows-x86 for a particular component.
+Binaries produced by Gradle can be differentiated on <<#native_binaries:build_type,build type>>, <<#native_binaries:platform,platform>>, and <<#native_binaries:flavor,flavor>>. For each of these 'variant dimensions', it is possible to specify a set of available values as well as target each component at one, some or all of these. For example, a plugin may define a range of support platforms, but you may choose to only target Windows-x86 for a particular component.
 
 
 [[native_binaries:build_type]]
@@ -760,7 +760,7 @@ Presently, a `Platform` consists of a defined operating system and architecture.
 include::{samples-path}/native-binaries/variants/build.gradle[tag=platforms]
 ----
 
-For a given variant, Gradle will attempt to find a `link:{javadoc-path}/org/gradle/nativeplatform/toolchain/NativeToolChain.html[NativeToolChain]` that is able to build for the target platform. Available tool chains are searched in the order defined. See the <<native_binaries:tool_chain,tool chains>> section below for more details.
+For a given variant, Gradle will attempt to find a `link:{javadoc-path}/org/gradle/nativeplatform/toolchain/NativeToolChain.html[NativeToolChain]` that is able to build for the target platform. Available tool chains are searched in the order defined. See the <<#native_binaries:tool_chain,tool chains>> section below for more details.
 
 [[native_binaries:flavor]]
 === Flavor
@@ -784,7 +784,7 @@ If no flavor is defined for a component, then a single default flavor named 'def
 [[sec:selecting_the_build_types_platforms_and_flavors_for_a_component]]
 === Selecting the build types, platforms and flavors for a component
 
-For a default component, Gradle will attempt to create a native binary variant for each and every combination of `buildType` and `flavor` defined for the project. It is possible to override this on a per-component basis, by specifying the set of `targetBuildTypes` and/or `targetFlavors`. By default, Gradle will build for the default platform, see <<native_binaries:platform,above>>, unless specified explicitly on a per-component basis by specifying a set of `targetPlatforms`.
+For a default component, Gradle will attempt to create a native binary variant for each and every combination of `buildType` and `flavor` defined for the project. It is possible to override this on a per-component basis, by specifying the set of `targetBuildTypes` and/or `targetFlavors`. By default, Gradle will build for the default platform, see <<#native_binaries:platform,above>>, unless specified explicitly on a per-component basis by specifying a set of `targetPlatforms`.
 
 === Example: Targeting a component at particular platforms
 
