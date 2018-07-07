@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -36,6 +37,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
+import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.WrapUtil.toLinkedSet
 
@@ -53,6 +55,14 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.java instanceof JavaPluginConvention
         project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension
+    }
+
+    void "sourceSets extension is exposed as SourceSetContainer"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        project.extensions.extensionsSchema.find { it.name == "sourceSets" }.publicType == typeOf(SourceSetContainer)
     }
 
     void "properties on convention and extension are synchronized"() {
