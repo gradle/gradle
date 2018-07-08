@@ -110,7 +110,7 @@ open class CapabilityRule @Inject constructor(
 
 class CapabilitySpec {
     lateinit var name: String
-    lateinit var providedBy: List<String>
+    lateinit var providedBy: Set<String>
     lateinit var selected: String
     var upgrade: String? = null
 
@@ -153,10 +153,10 @@ class CapabilitySpec {
     private
     fun ConfigurationContainer.forceUpgrade(to: String, version: String) = all {
         resolutionStrategy.dependencySubstitution {
-            providedBy.forEach { source ->
-                substitute(module(source))
-                    .because("Forceful upgrade of capability $name")
-                    .with(module("$to:$version"))
+            all {
+                if (providedBy.contains(requested.toString())) {
+                    useTarget("$to:$version", "Forceful upgrade of capability $name")
+                }
             }
         }
     }
