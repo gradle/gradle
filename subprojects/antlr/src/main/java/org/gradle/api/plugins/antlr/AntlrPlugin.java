@@ -26,9 +26,9 @@ import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -77,7 +77,7 @@ public class AntlrPlugin implements Plugin<Project> {
             }
         });
 
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(
+        project.getExtensions().getByType(SourceSetContainer.class).all(
                 new Action<SourceSet>() {
                     public void execute(final SourceSet sourceSet) {
                         // for each source set we will:
