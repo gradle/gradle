@@ -22,14 +22,10 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
 
-public interface GeneralCompileCaches {
+public interface TaskScopedCompileCaches {
     ClassAnalysisCache getClassAnalysisCache();
-
     JarSnapshotCache getJarSnapshotCache();
-
-    LocalJarClasspathSnapshotStore createLocalJarClasspathSnapshotStore(String taskPath);
-
-    LocalClassSetAnalysisStore createLocalClassSetAnalysisStore(String taskPath);
-
-    AnnotationProcessorPathStore createAnnotationProcessorPathStore(String taskPath);
+    LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore();
+    LocalClassSetAnalysisStore getLocalClassSetAnalysisStore();
+    AnnotationProcessorPathStore getAnnotationProcessorPathStore();
 }

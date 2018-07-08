@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotDataSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
+import org.gradle.api.internal.tasks.compile.incremental.jar.SplitJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -37,6 +39,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -48,7 +51,7 @@ import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closeable {
+public class DefaultBuildScopedCompileCaches implements BuildScopedCompileCaches, Closeable {
     private final ClassAnalysisCache classAnalysisCache;
     private final JarSnapshotCache jarSnapshotCache;
     private final PersistentCache cache;
@@ -56,7 +59,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     private final PersistentIndexedCache<String, ClassSetAnalysisData> taskCompileCache;
     private final PersistentIndexedCache<String, List<File>> taskProcessorPathCache;
 
-    public DefaultGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultBuildScopedCompileCaches(FileHasher fileHasher, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations) {
         cache = cacheRepository
             .cache(gradle, "javaCompile")
             .withDisplayName("Java compile cache")
@@ -68,7 +71,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
 
         PersistentIndexedCacheParameters<HashCode, JarSnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, JarSnapshotData>("jarAnalysis", new HashCodeSerializer(), new JarSnapshotDataSerializer())
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.jarSnapshotCache = new DefaultJarSnapshotCache(cache.createCache(jarCacheParameters));
+        this.jarSnapshotCache = new SplitJarSnapshotCache(fileLocations, userHomeScopedCompileCaches.getJarSnapshotCache(), new DefaultJarSnapshotCache(fileHasher, cache.createCache(jarCacheParameters)));
 
         PersistentIndexedCacheParameters<String, JarClasspathSnapshotData> taskJarCacheParameters = new PersistentIndexedCacheParameters<String, JarClasspathSnapshotData>("taskJars", String.class, new JarClasspathSnapshotDataSerializer())
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

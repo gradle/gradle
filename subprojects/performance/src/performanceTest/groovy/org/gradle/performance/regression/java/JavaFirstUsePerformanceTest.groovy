@@ -46,6 +46,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
                     GFileUtils.deleteDirectory(new File(it, '.gradle'))
+                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
                     GFileUtils.deleteDirectory(new File(it, 'gradle-user-home'))
                 }
             }
@@ -77,6 +78,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
                     GFileUtils.deleteDirectory(new File(it, '.gradle'))
+                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
                 }
             }
         })

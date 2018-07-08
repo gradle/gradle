@@ -87,6 +87,7 @@ class TestProjectGenerator {
      */
     private addDummyBuildSrcProject(File projectDir) {
         file projectDir, "buildSrc/src/main/java/Thing.java", "public class Thing {}"
+        file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
     }
 
     void file(File dir, String name, String content) {
