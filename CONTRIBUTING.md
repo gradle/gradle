@@ -85,9 +85,8 @@ After making changes, you can test them in 2 ways:
 
 To run tests, execute `./gradlew :<subproject>:check` where `<subproject>` is the name of the sub-project that has changed. For example: `./gradlew :launcher:check`.
 
-To try out a change in behavior manually, install Gradle locally and use it
-    ./gradlew install -Pgradle_installPath=/any/path
-    /any/path/bin/gradle taskName
+To try out a change in behavior manually, install Gradle locally and use it.
+Install: `./gradlew install -Pgradle_installPath=/any/path`. Use: `/any/path/bin/gradle taskName`.
 
 You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
@@ -103,6 +102,8 @@ The commit messages that accompany your code changes are an important piece of d
 ### Submitting Your Change
 
 After you submit your pull request, a Gradle core developer will review it. It is normal that this takes several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
+
+If you need to check on CI status as an external contributor, login as a guest.
 
 ### Signing Off Commits After Submitting a Pull Request
 
