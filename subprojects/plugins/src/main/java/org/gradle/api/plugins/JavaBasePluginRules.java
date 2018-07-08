@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
@@ -71,8 +72,8 @@ class JavaBasePluginRules implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);
-        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        BridgedBinaries binaries = collectBinariesForSourceSets(project.getTasks(), javaConvention);
+        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+        BridgedBinaries binaries = collectBinariesForSourceSets(project, project.getTasks(), sourceSets);
 
         modelRegistry.register(ModelRegistrations.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
             .descriptor("JavaBasePlugin.apply()")
@@ -81,10 +82,9 @@ class JavaBasePluginRules implements Plugin<Project> {
 
     }
 
-    private BridgedBinaries collectBinariesForSourceSets(final TaskContainer tasks, final JavaPluginConvention pluginConvention) {
-        final Project project = pluginConvention.getProject();
+    private BridgedBinaries collectBinariesForSourceSets(final Project project, final TaskContainer tasks, final SourceSetContainer sourceSets) {
         final List<ClassDirectoryBinarySpecInternal> binaries = Lists.newArrayList();
-        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
+        sourceSets.all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
 
                 Provider<ProcessResources> resourcesTask = tasks.withType(ProcessResources.class).named(sourceSet.getProcessResourcesTaskName());

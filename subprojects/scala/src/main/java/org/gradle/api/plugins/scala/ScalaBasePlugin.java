@@ -36,6 +36,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceSet;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
@@ -81,7 +82,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureSourceSetDefaults(final Project project, final SourceDirectorySetFactory sourceDirectorySetFactory) {
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
+        project.getExtensions().getByType(SourceSetContainer.class).all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
                 String displayName = (String) InvokerHelper.invokeMethod(sourceSet, "getDisplayName", null);
