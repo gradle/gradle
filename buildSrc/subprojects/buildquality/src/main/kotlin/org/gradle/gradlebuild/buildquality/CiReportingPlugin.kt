@@ -52,10 +52,10 @@ open class CiReportingPlugin : Plugin<Project> {
     }
 
     private
-    fun failedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.failure != null } }
+    fun failedTasks(projects: Set<Project>) = projects.flatMap { it.gradle.taskGraph.allTasks.filter { it.state.failure != null } }
 
     private
-    fun executedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.executed } }
+    fun executedTasks(projects: Set<Project>) = projects.flatMap { it.gradle.taskGraph.allTasks.filter { it.state.executed } }
 
     private
     fun Task.failedTaskGenericHtmlReports() = when (this) {
