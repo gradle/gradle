@@ -19,11 +19,14 @@ package org.gradle.language.nativeplatform.internal.registry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.language.cpp.internal.NativeDependencyCache;
+import org.gradle.language.cpp.internal.tooling.CppModelBuilder;
 import org.gradle.language.internal.DefaultNativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultCompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultIncrementalCompilerBuilder;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CachingCSourceParser;
 import org.gradle.language.nativeplatform.internal.toolchains.DefaultToolChainSelector;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 
 public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     @Override
@@ -35,6 +38,7 @@ public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(NativeDependencyCache.class);
+        registration.add(ToolingModelRegistration.class);
     }
 
     @Override
@@ -42,5 +46,12 @@ public class NativeLanguageServices extends AbstractPluginServiceRegistry {
         registration.add(DefaultIncrementalCompilerBuilder.class);
         registration.add(DefaultToolChainSelector.class);
         registration.add(DefaultNativeComponentFactory.class);
+    }
+
+    public static class ToolingModelRegistration implements BuildScopeToolingModelBuilderRegistryAction {
+        @Override
+        public void execute(ToolingModelBuilderRegistry registry) {
+            registry.register(new CppModelBuilder());
+        }
     }
 }

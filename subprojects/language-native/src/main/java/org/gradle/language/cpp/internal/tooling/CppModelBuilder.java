@@ -17,7 +17,12 @@
 package org.gradle.language.cpp.internal.tooling;
 
 import org.gradle.api.Project;
+import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppLibrary;
+import org.gradle.tooling.model.cpp.CppComponentType;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+
+import java.io.Serializable;
 
 public class CppModelBuilder implements ToolingModelBuilder {
     @Override
@@ -27,6 +32,26 @@ public class CppModelBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
+        CppApplication application = project.getComponents().withType(CppApplication.class).findByName("main");
+        if (application != null) {
+            return new DefaultCppComponent(CppComponentType.APPLICATION);
+        }
+        CppLibrary library = project.getComponents().withType(CppLibrary.class).findByName("main");
+        if (library != null) {
+            return new DefaultCppComponent(CppComponentType.LIBRARY);
+        }
         return null;
+    }
+
+    public static class DefaultCppComponent implements Serializable {
+        private final CppComponentType type;
+
+        public DefaultCppComponent(CppComponentType type) {
+            this.type = type;
+        }
+
+        public CppComponentType getComponentType() {
+            return type;
+        }
     }
 }
