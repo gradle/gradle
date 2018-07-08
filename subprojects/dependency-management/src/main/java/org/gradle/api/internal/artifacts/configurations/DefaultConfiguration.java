@@ -181,7 +181,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
-    private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
+    private final Set<Object> excludeRules = new LinkedHashSet<Object>();
+    private Set<ExcludeRule> parsedExcludeRules;
 
     private final Object observationLock = new Object();
     private InternalState observedState = UNRESOLVED;
@@ -675,17 +676,27 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<ExcludeRule> getExcludeRules() {
-        return Collections.unmodifiableSet(excludeRules);
+        if (parsedExcludeRules == null) {
+            NotationParser<Object, ExcludeRule> parser = ExcludeRuleNotationConverter.parser();
+            parsedExcludeRules = Sets.newLinkedHashSet();
+            for (Object excludeRule : excludeRules) {
+                parsedExcludeRules.add(parser.parseNotation(excludeRule));
+            }
+        }
+        return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
         validateMutation(MutationType.DEPENDENCIES);
-        this.excludeRules = excludeRules;
+        parsedExcludeRules = null;
+        this.excludeRules.clear();
+        this.excludeRules.addAll(excludeRules);
     }
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         validateMutation(MutationType.DEPENDENCIES);
-        excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs));
+        parsedExcludeRules = null;
+        excludeRules.add(excludeRuleArgs);
         return this;
     }
 
