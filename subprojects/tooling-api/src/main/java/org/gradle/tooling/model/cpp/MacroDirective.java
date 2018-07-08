@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Represent a macro directive.
  *
- * @since 4.9
+ * @since 4.10
  */
 @Incubating
 public interface MacroDirective {
