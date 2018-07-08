@@ -40,8 +40,10 @@ import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
+import org.gradle.internal.Factory;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -69,10 +71,15 @@ public class BasePlugin implements Plugin<Project> {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginConvention convention = new BasePluginConvention(project);
+        BasePluginConvention convention = DeprecationLogger.whileDisabled(new Factory<BasePluginConvention>() {
+            @Override
+            public BasePluginConvention create() {
+                return new BasePluginConvention(project);
+            }
+        });
         project.getConvention().getPlugins().put("base", convention);
 
         configureBuildConfigurationRule(project);
