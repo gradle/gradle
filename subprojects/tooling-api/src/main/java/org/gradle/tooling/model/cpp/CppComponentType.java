@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Represents a C++ component type.
  *
- * @since 4.9
+ * @since 4.10
  */
 @Incubating
 public enum CppComponentType {

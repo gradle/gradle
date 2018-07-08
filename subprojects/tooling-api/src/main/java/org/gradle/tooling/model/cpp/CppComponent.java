@@ -23,7 +23,7 @@ import org.gradle.tooling.model.ProjectModel;
 /**
  * Represents a C++ component.
  *
- * @since 4.9
+ * @since 4.10
  */
 @Incubating
 public interface CppComponent extends ProjectModel {

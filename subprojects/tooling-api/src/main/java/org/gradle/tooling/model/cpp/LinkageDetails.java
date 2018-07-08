@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents the linkage details for a binary.
  *
- * @since 4.9
+ * @since 4.10
  */
 @Incubating
 public interface LinkageDetails {

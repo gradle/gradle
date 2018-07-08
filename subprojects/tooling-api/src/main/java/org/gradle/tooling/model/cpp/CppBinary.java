@@ -22,7 +22,7 @@ import org.gradle.tooling.model.BuildableElement;
 /**
  * Represents a C++ binary.
  *
- * @since 4.9
+ * @since 4.10
  */
 @Incubating
 public interface CppBinary extends BuildableElement {
