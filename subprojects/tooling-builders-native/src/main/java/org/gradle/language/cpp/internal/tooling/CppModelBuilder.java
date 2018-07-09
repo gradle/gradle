@@ -25,6 +25,7 @@ import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.nativeplatform.ComponentWithExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
@@ -79,21 +80,26 @@ public class CppModelBuilder implements ToolingModelBuilder {
             List<File> systemIncludes = new ArrayList<File>(compileTask.getSystemIncludes().getFiles());
             List<File> userIncludes = new ArrayList<File>(compileTask.getIncludes().getFiles());
             List<DefaultMacroDirective> macroDefines = macroDefines(compileTask);
-            List<String> additionalArgs = compilerArgs(compileTask);
+            List<String> additionalArgs = args(compileTask.getCompilerArgs().get());
             DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(sourceFiles, systemIncludes, userIncludes, macroDefines, additionalArgs);
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
-                binaries.add(new DefaultCppExecutable(binary.getName(), binary.getBaseName().get(), compilationDetails));
+                ComponentWithExecutable componentWithExecutable = (ComponentWithExecutable) binary;
+                DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(componentWithExecutable.getExecutableFile().get().getAsFile(), args(componentWithExecutable.getLinkTask().get().getLinkerArgs().get()));
+                binaries.add(new DefaultCppExecutable(binary.getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppSharedLibrary) {
-                binaries.add(new DefaultCppSharedLibrary(binary.getName(), binary.getBaseName().get(), compilationDetails));
+                CppSharedLibrary sharedLibrary = (CppSharedLibrary) binary;
+                DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(sharedLibrary.getLinkFile().get().getAsFile(), args(sharedLibrary.getLinkTask().get().getLinkerArgs().get()));
+                binaries.add(new DefaultCppSharedLibrary(binary.getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppStaticLibrary) {
-                binaries.add(new DefaultCppStaticLibrary(binary.getName(), binary.getBaseName().get(), compilationDetails));
+                CppStaticLibrary staticLibrary = (CppStaticLibrary) binary;
+                DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(staticLibrary.getLinkFile().get().getAsFile(), Collections.<String>emptyList());
+                binaries.add(new DefaultCppStaticLibrary(binary.getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             }
         }
         return binaries;
     }
 
-    private List<String> compilerArgs(CppCompile compileTask) {
-        List<String> compilerArgs = compileTask.getCompilerArgs().get();
+    private List<String> args(List<String> compilerArgs) {
         if (compilerArgs.isEmpty()) {
             return Collections.emptyList();
         }
@@ -202,15 +208,35 @@ public class CppModelBuilder implements ToolingModelBuilder {
         }
     }
 
+    public static class DefaultLinkageDetails implements Serializable {
+        private final File outputLocation;
+        private final List<String> additionalArgs;
+
+        public DefaultLinkageDetails(File outputLocation, List<String> additionalArgs) {
+            this.outputLocation = outputLocation;
+            this.additionalArgs = additionalArgs;
+        }
+
+        public File getOutputLocation() {
+            return outputLocation;
+        }
+
+        public List<String> getAdditionalArgs() {
+            return additionalArgs;
+        }
+    }
+
     public static class DefaultCppBinary implements Serializable {
         private final String name;
         private final String baseName;
         private final DefaultCompilationDetails compilationDetails;
+        private final DefaultLinkageDetails linkageDetails;
 
-        public DefaultCppBinary(String name, String baseName, DefaultCompilationDetails compilationDetails) {
+        public DefaultCppBinary(String name, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
             this.name = name;
             this.baseName = baseName;
             this.compilationDetails = compilationDetails;
+            this.linkageDetails = linkageDetails;
         }
 
         public String getName() {
@@ -224,23 +250,27 @@ public class CppModelBuilder implements ToolingModelBuilder {
         public DefaultCompilationDetails getCompilationDetails() {
             return compilationDetails;
         }
+
+        public DefaultLinkageDetails getLinkageDetails() {
+            return linkageDetails;
+        }
     }
 
     public static class DefaultCppExecutable extends DefaultCppBinary implements InternalCppExecutable {
-        public DefaultCppExecutable(String name, String baseName, DefaultCompilationDetails compilationDetails) {
-            super(name, baseName, compilationDetails);
+        public DefaultCppExecutable(String name, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+            super(name, baseName, compilationDetails, linkageDetails);
         }
     }
 
     public static class DefaultCppSharedLibrary extends DefaultCppBinary implements InternalCppSharedLibrary {
-        public DefaultCppSharedLibrary(String name, String baseName, DefaultCompilationDetails compilationDetails) {
-            super(name, baseName, compilationDetails);
+        public DefaultCppSharedLibrary(String name, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+            super(name, baseName, compilationDetails, linkageDetails);
         }
     }
 
     public static class DefaultCppStaticLibrary extends DefaultCppBinary implements InternalCppStaticLibrary {
-        public DefaultCppStaticLibrary(String name, String baseName, DefaultCompilationDetails compilationDetails) {
-            super(name, baseName, compilationDetails);
+        public DefaultCppStaticLibrary(String name, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+            super(name, baseName, compilationDetails, linkageDetails);
         }
     }
 

@@ -78,6 +78,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].compilationDetails.macroDefines.empty
         project.mainComponent.binaries[0].compilationDetails.macroUndefines.empty
         project.mainComponent.binaries[0].compilationDetails.additionalArgs.empty
+        project.mainComponent.binaries[0].linkageDetails.outputLocation == file("build/exe/main/debug/app")
+        project.mainComponent.binaries[0].linkageDetails.additionalArgs.empty
 
         project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
@@ -89,6 +91,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[1].compilationDetails.macroDefines.empty
         project.mainComponent.binaries[1].compilationDetails.macroUndefines.empty
         project.mainComponent.binaries[1].compilationDetails.additionalArgs.empty
+        project.mainComponent.binaries[1].linkageDetails.outputLocation == file("build/exe/main/release/stripped/app")
+        project.mainComponent.binaries[1].linkageDetails.additionalArgs.empty
 
         project.testComponent == null
     }
@@ -123,6 +127,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].compilationDetails.macroDefines.empty
         project.mainComponent.binaries[0].compilationDetails.macroUndefines.empty
         project.mainComponent.binaries[0].compilationDetails.additionalArgs.empty
+        project.mainComponent.binaries[0].linkageDetails.outputLocation == file("build/lib/main/debug/liblib.dylib")
+        project.mainComponent.binaries[0].linkageDetails.additionalArgs.empty
 
         project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainRelease'
@@ -134,6 +140,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[1].compilationDetails.macroDefines.empty
         project.mainComponent.binaries[1].compilationDetails.macroUndefines.empty
         project.mainComponent.binaries[1].compilationDetails.additionalArgs.empty
+        project.mainComponent.binaries[1].linkageDetails.outputLocation == file("build/lib/main/release/stripped/liblib.dylib")
+        project.mainComponent.binaries[1].linkageDetails.additionalArgs.empty
 
         project.testComponent == null
     }
@@ -216,8 +224,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
                 source.from 'src'
                 privateHeaders.from = ['include']
                 binaries.configureEach {
-                    compileTask.get().compilerArgs.add("--variant=\$name")
+                    compileTask.get().compilerArgs.add("--compile=\$name")
                     compileTask.get().macros = [VARIANT: name]
+                    linkTask.get().linkerArgs.add("--link=\$name")
                 } 
             }
         """
@@ -241,7 +250,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].compilationDetails.macroDefines.name == ['VARIANT']
         project.mainComponent.binaries[0].compilationDetails.macroDefines.value == ['mainDebug']
         project.mainComponent.binaries[0].compilationDetails.macroUndefines.empty
-        project.mainComponent.binaries[0].compilationDetails.additionalArgs == ['--variant=mainDebug']
+        project.mainComponent.binaries[0].compilationDetails.additionalArgs == ['--compile=mainDebug']
+        project.mainComponent.binaries[0].linkageDetails.outputLocation == file("build/exe/main/debug/some-app")
+        project.mainComponent.binaries[0].linkageDetails.additionalArgs == ['--link=mainDebug']
 
         project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
@@ -251,7 +262,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[1].compilationDetails.macroDefines.name == ['VARIANT']
         project.mainComponent.binaries[1].compilationDetails.macroDefines.value == ['mainRelease']
         project.mainComponent.binaries[1].compilationDetails.macroUndefines.empty
-        project.mainComponent.binaries[1].compilationDetails.additionalArgs == ['--variant=mainRelease']
+        project.mainComponent.binaries[1].compilationDetails.additionalArgs == ['--compile=mainRelease']
+        project.mainComponent.binaries[1].linkageDetails.outputLocation == file("build/exe/main/release/stripped/some-app")
+        project.mainComponent.binaries[1].linkageDetails.additionalArgs == ['--link=mainRelease']
     }
 
     def "can query model for customized C++ library"() {
@@ -265,6 +278,12 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
                 linkage = [Linkage.STATIC, Linkage.SHARED]
                 privateHeaders.from = []
                 publicHeaders.from = ['include']
+                binaries.configureEach(CppSharedLibrary) {
+                    linkTask.get().linkerArgs.add("--link=\$name")
+                }
+                binaries.configureEach(CppStaticLibrary) {
+                    createTask.get().staticLibArgs.add("--link=\$name")
+                }
             }
         """
         def publicHeaders = file('include')
@@ -282,18 +301,26 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].name == 'mainDebugStatic'
         project.mainComponent.binaries[0].baseName == 'some-lib'
         project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [publicHeaders]
+        project.mainComponent.binaries[0].linkageDetails.outputLocation == file("build/lib/main/debug/static/libsome-lib.a")
+        project.mainComponent.binaries[0].linkageDetails.additionalArgs.empty
         project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainDebugShared'
         project.mainComponent.binaries[1].baseName == 'some-lib'
         project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [publicHeaders]
+        project.mainComponent.binaries[1].linkageDetails.outputLocation == file("build/lib/main/debug/shared/libsome-lib.dylib")
+        project.mainComponent.binaries[1].linkageDetails.additionalArgs == ["--link=mainDebugShared"]
         project.mainComponent.binaries[2] instanceof CppStaticLibrary
         project.mainComponent.binaries[2].name == 'mainReleaseStatic'
         project.mainComponent.binaries[2].baseName == 'some-lib'
         project.mainComponent.binaries[2].compilationDetails.userHeaderSearchPaths == [publicHeaders]
+        project.mainComponent.binaries[2].linkageDetails.outputLocation == file("build/lib/main/release/static/libsome-lib.a")
+        project.mainComponent.binaries[2].linkageDetails.additionalArgs.empty
         project.mainComponent.binaries[3] instanceof CppSharedLibrary
         project.mainComponent.binaries[3].name == 'mainReleaseShared'
         project.mainComponent.binaries[3].baseName == 'some-lib'
         project.mainComponent.binaries[3].compilationDetails.userHeaderSearchPaths == [publicHeaders]
+        project.mainComponent.binaries[3].linkageDetails.outputLocation == file("build/lib/main/release/shared/stripped/libsome-lib.dylib")
+        project.mainComponent.binaries[3].linkageDetails.additionalArgs == ["--link=mainReleaseShared"]
     }
 
     def "can query the models for each project in a build"() {
