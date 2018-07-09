@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.cpp;
-
-import org.gradle.api.Incubating;
+package org.gradle.tooling.internal.protocol.cpp;
 
 /**
- * Represents a C++ component type.
- *
- * @since 4.10
+ * Marker interface for {@link org.gradle.tooling.model.cpp.CppApplication}.
  */
-@Incubating
-public enum CppComponentType {
-    /**
-     * C++ application component.
-     */
-    APPLICATION,
-
-    /**
-     * C++ library component.
-     */
-    LIBRARY
+public interface InternalCppApplication {
 }

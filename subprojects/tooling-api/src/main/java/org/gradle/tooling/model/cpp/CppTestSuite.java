@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,12 @@
 package org.gradle.tooling.model.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.DomainObjectSet;
 
 /**
- * Represents a C++ component.
+ * A C++ test suite.
  *
  * @since 4.10
  */
 @Incubating
-public interface CppComponent {
-    /**
-     * All binaries buildable for this component.
-     */
-    DomainObjectSet<? extends CppBinary> getBinaries();
-
-    /**
-     * Returns the base name of this component.
-     */
-    String getBaseName();
+public interface CppTestSuite extends CppComponent {
 }

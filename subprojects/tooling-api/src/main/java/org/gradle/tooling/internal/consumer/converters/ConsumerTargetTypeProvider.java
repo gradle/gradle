@@ -17,6 +17,12 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.adapter.TargetTypeProvider;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppApplication;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppLibrary;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppTestSuite;
+import org.gradle.tooling.model.cpp.CppApplication;
+import org.gradle.tooling.model.cpp.CppLibrary;
+import org.gradle.tooling.model.cpp.CppTestSuite;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
@@ -27,11 +33,16 @@ import java.util.Map;
 public class ConsumerTargetTypeProvider implements TargetTypeProvider {
 
     Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
+    Map<Class<?>, Class<?>> protocolTypes = new HashMap<Class<?>, Class<?>>();
 
     public ConsumerTargetTypeProvider() {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
         configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
         configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
+
+        protocolTypes.put(InternalCppApplication.class, CppApplication.class);
+        protocolTypes.put(InternalCppLibrary.class, CppLibrary.class);
+        protocolTypes.put(InternalCppTestSuite.class, CppTestSuite.class);
     }
 
     public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
@@ -39,6 +50,11 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
         for (Class<?> i : interfaces) {
             if (configuredTargetTypes.containsKey(i.getName())) {
                 return configuredTargetTypes.get(i.getName()).asSubclass(initialTargetType);
+            }
+        }
+        for (Map.Entry<Class<?>, Class<?>> entry : protocolTypes.entrySet()) {
+            if (entry.getKey().isInstance(protocolObject) && initialTargetType.isAssignableFrom(entry.getValue())) {
+                return entry.getValue().asSubclass(initialTargetType);
             }
         }
 
