@@ -18,10 +18,10 @@ package org.gradle.util
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
+import org.gradle.internal.featurelifecycle.DeprecationWarningBuildOperationProgressBroadaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.junit.Rule
 import spock.lang.Subject
@@ -33,7 +33,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationExecutor))
+        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecationWarningBuildOperationProgressBroadaster))
     }
 
     def cleanup() {

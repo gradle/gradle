@@ -16,18 +16,24 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.util.List;
 
-public class DeprecationWarningBuildOperationType implements BuildOperationType<DeprecationWarningBuildOperationType.Details, DeprecationWarningBuildOperationType.Result> {
-    @UsedByScanPlugin
-    public interface Details {
-        String getMessage();
-        List<StackTraceElement> getStackTrace();
+public class DefaultDeprecationWarningProgressDetails implements DeprecationWarningProgressDetails {
+    private final String message;
+    private final List<StackTraceElement> stackTrace;
+
+    public DefaultDeprecationWarningProgressDetails(String message, List<StackTraceElement> stackTrace) {
+        this.message = message;
+        this.stackTrace = stackTrace;
     }
 
-    public interface Result {
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public List<StackTraceElement> getStackTrace() {
+        return stackTrace;
     }
 }

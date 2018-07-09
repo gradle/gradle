@@ -20,12 +20,12 @@ import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
+import org.gradle.internal.featurelifecycle.DeprecationWarningBuildOperationProgressBroadaster;
 import org.gradle.internal.featurelifecycle.FeatureHandler;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
-import org.gradle.internal.operations.BuildOperationExecutor;
 
 import javax.annotation.Nullable;
 
@@ -50,8 +50,8 @@ public class SingleMessageLogger {
         incubatingFeatureHandler.reset();
     }
 
-    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationExecutor buildOperationExecutor) {
-        deprecatedFeatureHandler.init(reporter, warningMode, buildOperationExecutor);
+    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
+        deprecatedFeatureHandler.init(reporter, warningMode, buildOperationProgressBroadaster);
     }
 
     public synchronized static void reportSuppressedDeprecations() {

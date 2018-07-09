@@ -94,8 +94,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             }
         });
 
-
-
         if (parent == null) {
             services.get(BuildScanConfigInit.class).init();
         }

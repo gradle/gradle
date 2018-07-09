@@ -20,7 +20,10 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.time.Clock
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
@@ -38,9 +41,12 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler()
     final TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    final Clock clock = Mock(Clock);
+    final BuildOperationListener buildOperationListener = Mock();
+    final DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster = new DeprecationWarningBuildOperationProgressBroadaster(clock, buildOperationListener, buildOperationExecutor);
 
     def setup() {
-        handler.init(locationReporter, WarningMode.All, buildOperationExecutor)
+        handler.init(locationReporter, WarningMode.All, buildOperationProgressBroadaster)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -73,7 +79,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def "no warnings should be displayed in #mode"() {
         when:
-        handler.init(locationReporter, type, buildOperationExecutor)
+        handler.init(locationReporter, type, buildOperationProgressBroadaster)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
@@ -355,25 +361,30 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    @Unroll
-    def 'deprecation warnings are exposed as build operation'() {
+    def 'deprecation warnings are exposed as build operation progress'() {
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
-        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+
+        then:
+        1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature1') }
+
+        when:
         handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
         then:
-        def operations = buildOperationExecutor.log.records
-        operations.size() == 3
+        1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
 
-        and:
-        operations[0].descriptor.details.message == 'feature1'
-        operations[0].descriptor.details.stackTrace.size() > 0
-        operations[1].descriptor.details.message == 'feature2'
-        operations[1].descriptor.details.stackTrace.size() > 0
-        operations[2].descriptor.details.message == 'feature2'
-        operations[2].descriptor.details.stackTrace.size() > 0
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
+        then:
+        1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
+    }
+
+    private void progressFired(OperationProgressEvent progressEvent, String message) {
+        assert progressEvent.details instanceof DeprecationWarningProgressDetails
+        progressEvent.details.message == message
+        progressEvent.details.stackTrace.size() > 0
     }
 
     private static FeatureUsage deprecatedFeatureUsage(String message) {
@@ -391,4 +402,5 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             return handler.featureUsed(new FeatureUsage(message, FeatureUsageSource))
         }
     }
+
 }

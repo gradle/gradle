@@ -21,6 +21,8 @@ import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.gradle.internal.operations.BuildOperationExecutor.NOOP;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -48,17 +48,20 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private UsageLocationReporter locationReporter;
 
     private BuildOperationExecutor buildOperationExecutor;
+    private Clock clock;
+    private BuildOperationListener buildOperationListener;
     private WarningMode warningMode;
+    private DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
-        this.buildOperationExecutor = NOOP;
+//        this.buildOperationListener = NOOP;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationExecutor buildOperationExecutor) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationProgressBroadaster = buildOperationProgressBroadaster;
     }
 
     @Override
@@ -76,11 +79,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
                 LOGGER.warn(message.toString());
             }
         }
-        fireDeprecationWarningBuildOperation(usage);
+        fireDeprecationWarningBuildOperationProgress(usage);
     }
 
-    private void fireDeprecationWarningBuildOperation(FeatureUsage usage) {
-        buildOperationExecutor.run(new DeprecationWarningBuildOperation(usage));
+    private void fireDeprecationWarningBuildOperationProgress(FeatureUsage usage) {
+        buildOperationProgressBroadaster.progress(usage.getMessage(), usage.withStackTrace().getStack());
     }
 
     public void reset() {
