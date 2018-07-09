@@ -139,19 +139,11 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                 if (subProject.containsSlowTests) {
                     FunctionalTestProject.missingTestCoverage.forEach { testConfig ->
                         if (subProject.unitTests && testConfig.testType.unitTests) {
-<<<<<<< Updated upstream
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model))) { snapshot {} }
-                        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model))) { snapshot {} }
-                        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model))) { snapshot {} }
-=======
                             dependency(AbsoluteId(testConfig.asConfigurationId(model, subProject.name))) { snapshot {} }
                         } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
                             dependency(AbsoluteId(testConfig.asConfigurationId(model, subProject.name))) { snapshot {} }
                         } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
                             dependency(AbsoluteId(testConfig.asConfigurationId(model, subProject.name))) { snapshot {} }
->>>>>>> Stashed changes
                         }
                     }
                 }
