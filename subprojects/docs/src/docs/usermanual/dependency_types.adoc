@@ -79,7 +79,7 @@ Multi-project builds are discussed in <<multi_project_builds#,this chapter>>.
 [[sub:api_dependencies]]
 === Gradle API dependency
 
-You can declare a dependency on the API of the current version of Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#gradleApi[] method. This is useful when you are developing custom Gradle tasks or plugins.
+You can declare a dependency on the API of the current version of Gradle by using the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleApi()[DependencyHandler.gradleApi()] method. This is useful when you are developing custom Gradle tasks or plugins.
 
 === Example: Gradle API dependencies
 
@@ -92,7 +92,7 @@ include::{samples-path}/customPlugin/plugin/build.gradle[tag=gradle-api-dependen
 [[sub:testkit_dependencies]]
 === Gradle TestKit dependency
 
-You can declare a dependency on the TestKit API of the current version of Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#gradleTestKit[] method. This is useful for writing and executing functional tests for Gradle plugins and build scripts.
+You can declare a dependency on the TestKit API of the current version of Gradle by using the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleTestKit()[DependencyHandler.gradleTestKit()] method. This is useful for writing and executing functional tests for Gradle plugins and build scripts.
 
 === Example: Gradle TestKit dependencies
 
@@ -107,7 +107,7 @@ include::{samples-path}/testKit/gradleRunner/junitQuickstart/build.gradle[tag=de
 [[sub:groovy_dependencies]]
 === Local Groovy dependency
 
-You can declare a dependency on the Groovy that is distributed with Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#localGroovy[] method. This is useful when you are developing custom Gradle tasks or plugins in Groovy.
+You can declare a dependency on the Groovy that is distributed with Gradle by using the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:localGroovy()[DependencyHandler.localGroovy()] method. This is useful when you are developing custom Gradle tasks or plugins in Groovy.
 
 === Example: Gradle's Groovy dependencies
 

@@ -15,7 +15,7 @@
 [[dependency_management_for_java_projects]]
 = Dependency Management for Java Projects
 
-This chapter explains how to apply basic dependency management concepts to Java-based projects. For a detailed introduction to dependency management, see <<introduction_dependency_management#,this chapter>>.
+This chapter explains how to apply basic dependency management concepts to Java-based projects. For a detailed introduction to dependency management, see <<introduction_dependency_management#,Introduction to Dependency Management>>.
 
 [[sec:setting_up_a_standard_build_script_java_tutorial]]
 == Dissecting a typical build script
@@ -30,7 +30,7 @@ Let's have a look at a very simple build script for a Java-based project. It app
 include::{samples-path}/userguide/artifacts/dependencyBasics/build.gradle[]
 ----
 
-The api:org.gradle.api.Project#dependencies[] code block declares that Hibernate core 3.6.7.Final is required to compile the project's production source code. It also states that junit &gt;= 4.0 is required to compile the project's tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by api:org.gradle.api.Project#repositories[]. The following sections explain each aspect in more detail.
+The link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)[Project.dependencies{}] code block declares that Hibernate core 3.6.7.Final is required to compile the project's production source code. It also states that junit &gt;= 4.0 is required to compile the project's tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}]. The following sections explain each aspect in more detail.
 
 [[sec:module_dependencies_java_tutorial]]
 == Declaring module dependencies
@@ -70,14 +70,14 @@ The dependencies required to compile the production source of the project which 
 testImplementation::
 The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
 
-Various plugins add further standard configurations. You can also define your own custom configurations in your build via api:org.gradle.api.Project#configurations[]. See <<managing_dependency_configurations#,"Managing Dependency Configurations">> for the details of defining and customizing dependency configurations.
+Various plugins add further standard configurations. You can also define your own custom configurations in your build via link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[Project.configurations{}]. See <<managing_dependency_configurations#,"Managing Dependency Configurations">> for the details of defining and customizing dependency configurations.
 
 [[sec:repositories_java_tutorial]]
 == Declaring common Java repositories
 
 How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_. A repository is a collection of modules, organized by `group`, `name` and `version`. Gradle understands different <<repository_types#,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
 
-By default, Gradle does not define any repositories. You need to define at least one with the help of api:org.gradle.api.Project#repositories[] before you can use module dependencies. One option is use the Maven Central repository:
+By default, Gradle does not define any repositories. You need to define at least one with the help of link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}] before you can use module dependencies. One option is use the Maven Central repository:
 
 === Example: Usage of Maven central repository
 
