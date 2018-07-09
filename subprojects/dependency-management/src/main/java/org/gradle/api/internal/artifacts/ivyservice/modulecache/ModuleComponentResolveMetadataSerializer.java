@@ -33,6 +33,12 @@ import org.gradle.internal.serialize.Encoder;
 
 import java.io.EOFException;
 
+/**
+ * Serializer for {@link ModuleComponentResolveMetadata}.
+ *
+ * This serializer will first transform any {@link  AbstractLazyModuleComponentResolveMetadata lazy} metadata
+ * in the {@link AbstractRealisedModuleComponentResolveMetadata realised} version so that the complete state can be serialized.
+ */
 public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer<ModuleComponentResolveMetadata> {
 
     private final RealisedIvyModuleResolveMetadataSerializationHelper ivySerializationHelper;

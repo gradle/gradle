@@ -38,6 +38,11 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link AbstractLazyModuleComponentResolveMetadata Lazy version} of a {@link IvyModuleResolveMetadata}.
+ *
+ * @see RealisedIvyModuleResolveMetadata
+ */
 public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<IvyDependencyDescriptor> dependencies;

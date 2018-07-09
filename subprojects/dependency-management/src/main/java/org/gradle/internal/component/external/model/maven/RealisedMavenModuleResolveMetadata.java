@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
@@ -54,11 +55,22 @@ import static org.gradle.internal.component.external.model.maven.DefaultMavenMod
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.USAGE_ATTRIBUTE;
 
+/**
+ * {@link AbstractRealisedModuleComponentResolveMetadata Realised version} of a {@link MavenModuleResolveMetadata}.
+ *
+ * @see DefaultMavenModuleResolveMetadata
+ */
 public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
+    /**
+     * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, in a realised version.
+     *
+     * @param metadata the lazy metadata to transform
+     * @return the realised version of the metadata
+     */
     public static RealisedMavenModuleResolveMetadata transform(DefaultMavenModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
-        ImmutableList<? extends ComponentVariant> variants = realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
+        ImmutableList<? extends ComponentVariant> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
 
 
         boolean computeDerivedVariants = metadata.getVariants().size() == 0;
@@ -74,7 +86,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
 
             RealisedConfigurationMetadata realisedConfiguration = createConfiguration(variantMetadataRules, metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                constructHierarchy(configuration, configurationDefinitions), metadata.getDependencies(), metadata.isImprovedPomSupportEnabled(),
+                LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions), metadata.getDependencies(), metadata.isImprovedPomSupportEnabled(),
                 variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()));
             configurations.put(configurationName, realisedConfiguration);
 

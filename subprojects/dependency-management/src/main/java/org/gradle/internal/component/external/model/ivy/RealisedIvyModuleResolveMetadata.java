@@ -31,6 +31,7 @@ import org.gradle.internal.component.external.model.AbstractRealisedModuleCompon
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
@@ -46,13 +47,24 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link AbstractRealisedModuleComponentResolveMetadata Realised version} of a {@link IvyModuleResolveMetadata}.
+ *
+ * @see DefaultIvyModuleResolveMetadata
+ */
 public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
 
     public static RealisedIvyModuleResolveMetadata transform(DefaultIvyModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
 
-        ImmutableList<ImmutableRealisedVariantImpl> variants = realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
+        ImmutableList<ImmutableRealisedVariantImpl> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
 
+        Map<String, ConfigurationMetadata> configurations = realiseConfigurations(metadata, variantMetadataRules);
+
+        return new RealisedIvyModuleResolveMetadata(metadata, variants, configurations);
+    }
+
+    private static Map<String, ConfigurationMetadata> realiseConfigurations(DefaultIvyModuleResolveMetadata metadata, VariantMetadataRules variantMetadataRules) {
         Map<Artifact, ModuleComponentArtifactMetadata> artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), artifacts, metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
 
@@ -60,7 +72,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
         for (String configurationName: metadata.getConfigurationNames()) {
             Configuration configuration = configurationDefinitions.get(configurationName);
-            ImmutableList<String> hierarchy = constructHierarchy(configuration, configurationDefinitions);
+            ImmutableList<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
 
             NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
             ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, metadata.getAttributes());
@@ -71,8 +83,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
             configurations.put(configurationName, createConfiguration(configurationHelper, variantMetadataRules, metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(), hierarchy,
                 configurationHelper.filterArtifacts(configurationName, hierarchy), configurationHelper.filterExcludes(hierarchy), variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities())));
         }
-
-        return new RealisedIvyModuleResolveMetadata(metadata, variants, configurations);
+        return configurations;
     }
 
     private final ImmutableMap<String, Configuration> configurationDefinitions;

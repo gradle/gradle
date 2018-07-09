@@ -44,6 +44,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * {@link AbstractLazyModuleComponentResolveMetadata Lazy version} of a {@link MavenModuleResolveMetadata}.
+ *
+ * @see RealisedMavenModuleResolveMetadata
+ */
 public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";

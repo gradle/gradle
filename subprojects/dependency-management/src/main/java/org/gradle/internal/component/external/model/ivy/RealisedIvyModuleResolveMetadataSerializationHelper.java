@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.ConfigurationBoundExternalDe
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -104,7 +105,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             String configurationName = decoder.readString();
             Configuration configuration = configurationDefinitions.get(configurationName);
             assert configuration != null;
-            ImmutableList<String> hierarchy = AbstractRealisedModuleComponentResolveMetadata.constructHierarchy(configuration, configurationDefinitions);
+            ImmutableList<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
 

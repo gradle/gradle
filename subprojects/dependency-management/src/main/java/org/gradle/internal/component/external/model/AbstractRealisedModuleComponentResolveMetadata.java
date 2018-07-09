@@ -20,79 +20,33 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Common base class for the realised versions of {@link ModuleComponentResolveMetadata} implementations.
+ *
+ * The realised part is about the application of {@link VariantMetadataRules} which are applied eagerly
+ * to configuration or variant data.
+ *
+ * This type hierarchy is used whenever the {@code ModuleComponentResolveMetadata} needs to outlive
+ * the build execution.
+ */
 public abstract class AbstractRealisedModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
-
-    protected static ImmutableList<ImmutableRealisedVariantImpl> realiseVariants(ModuleComponentResolveMetadata mutableMetadata, VariantMetadataRules variantMetadataRules, ImmutableList<? extends ComponentVariant> variants) {
-        List<ImmutableRealisedVariantImpl> realisedVariants = Lists.newArrayListWithExpectedSize(variants.size());
-        for (ComponentVariant variant : variants) {
-            ImmutableAttributes attributes = variantMetadataRules.applyVariantAttributeRules(variant, variant.getAttributes());
-            CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, variant.getCapabilities());
-            List<GradleDependencyMetadata> dependencies = variantMetadataRules.applyDependencyMetadataRules(variant, convertDependencies(variant.getDependencies(), variant.getDependencyConstraints()));
-            realisedVariants.add(new ImmutableRealisedVariantImpl(mutableMetadata.getId(), variant.getName(), attributes,
-                variant.getDependencies(), variant.getDependencyConstraints(), variant.getFiles(),
-                ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), dependencies));
-        }
-        return ImmutableList.copyOf(realisedVariants);
-    }
-
-    static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints) {
-        List<GradleDependencyMetadata> result = new ArrayList<GradleDependencyMetadata>(dependencies.size());
-        for (ComponentVariant.Dependency dependency : dependencies) {
-            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes());
-            List<ExcludeMetadata> excludes = dependency.getExcludes();
-            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason()));
-        }
-        for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
-            result.add(new GradleDependencyMetadata(
-                DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes()),
-                Collections.<ExcludeMetadata>emptyList(),
-                true,
-                dependencyConstraint.getReason()
-            ));
-        }
-        return result;
-    }
-
-    public static ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration, ImmutableMap<String, Configuration> configurationDefinitions) {
-        if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
-            return ImmutableList.of(descriptorConfiguration.getName());
-        }
-        Set<String> accumulator = new LinkedHashSet<String>();
-        populateHierarchy(descriptorConfiguration, configurationDefinitions, accumulator);
-        return ImmutableList.copyOf(accumulator);
-    }
-
-    static void populateHierarchy(Configuration metadata, ImmutableMap<String, Configuration> configurationDefinitions, Set<String> accumulator) {
-        accumulator.add(metadata.getName());
-        for (String parentName : metadata.getExtendsFrom()) {
-            Configuration parent = configurationDefinitions.get(parentName);
-            populateHierarchy(parent, configurationDefinitions, accumulator);
-        }
-    }
 
     private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
     private final ImmutableMap<String, ConfigurationMetadata> configurations;

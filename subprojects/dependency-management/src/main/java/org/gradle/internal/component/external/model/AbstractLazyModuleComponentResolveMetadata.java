@@ -32,6 +32,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Common base class for the lazy versions of {@link ModuleComponentResolveMetadata} implementations.
+ *
+ * The lazy part is about the application of {@link VariantMetadataRules} which are applied lazily
+ * when configuration or variant data is required by consumers.
+ *
+ * This type hierarchy is used whenever the {@code ModuleComponentResolveMetadata} does not need to outlive
+ * the build execution.
+ */
 public abstract class AbstractLazyModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
     private final VariantMetadataRules variantMetadataRules;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
