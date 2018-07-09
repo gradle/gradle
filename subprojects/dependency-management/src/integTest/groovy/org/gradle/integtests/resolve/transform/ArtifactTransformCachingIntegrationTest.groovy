@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -74,6 +75,24 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         taskPosition >= 0
         transformationPosition1 < taskPosition
         transformationPosition2 < taskPosition
+    }
+
+    def "transform works with build scan"() {
+        given:
+        def fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+        settingsFile.text = fixture.pluginManagement() + settingsFile.text
+        fixture.logConfig = true
+        fixture.publishDummyBuildScanPluginNow()
+
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+
+        when:
+        run ":util:resolve", "--scan"
+
+        then:
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        isTransformed("lib2.jar", "lib2.jar.txt")
+        output.contains "PUBLISHING BUILD SCAN"
     }
 
     def "each file is transformed once per set of configuration parameters"() {
