@@ -43,7 +43,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -256,28 +255,30 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, sourceSets));
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(project, sourceSets, buildOutputCleanupRegistry);
+        configureSourceSets(javaConvention, buildOutputCleanupRegistry);
         configureConfigurations(project);
 
-        configureJavaDoc(project, sourceSets);
-        configureTest(project, sourceSets);
-        configureArchivesAndComponent(project, sourceSets);
+        configureJavaDoc(javaConvention);
+        configureTest(project, javaConvention);
+        configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
     }
 
-    private void configureSourceSets(Project project, SourceSetContainer sourceSets, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
+    private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        Project project = pluginConvention.getProject();
 
-        SourceSet test = sourceSets.create(SourceSet.TEST_SOURCE_SET_NAME);
+        SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
+
+        SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.getLayout().configurableFiles(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.getLayout().configurableFiles(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         // Register the project's source set output directories
-        sourceSets.all(new Action<SourceSet>() {
+        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(SourceSet sourceSet) {
                 buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
@@ -285,11 +286,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(Project project, final SourceSetContainer sourceSets) {
+    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
+        Project project = pluginConvention.getProject();
         project.getTasks().register(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
             @Override
             public void execute(Javadoc javadoc) {
-                final SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                 javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
@@ -298,13 +300,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureArchivesAndComponent(Project project, final SourceSetContainer sourceSets) {
+    private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
         TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
             @Override
             public void execute(Jar jar) {
                 jar.setDescription("Assembles a jar archive containing the main classes.");
                 jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
             }
         });
         // TODO: Allow this to be added lazily
@@ -378,17 +380,17 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureTest(final Project project, final SourceSetContainer sourceSets) {
+    private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
+                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
                     }
                 });
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
+                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
             }
@@ -467,12 +469,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * This is only used by buildSrc to add to the buildscript classpath.
      */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
-        private final Project project;
-        private final SourceSetContainer sourceSets;
+        private final JavaPluginConvention convention;
 
-        public BuildableJavaComponentImpl(Project project, SourceSetContainer sourceSets) {
-            this.project = project;
-            this.sourceSets = sourceSets;
+        public BuildableJavaComponentImpl(JavaPluginConvention convention) {
+            this.convention = convention;
         }
 
         public Collection<String> getBuildTasks() {
@@ -480,7 +480,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public FileCollection getRuntimeClasspath() {
-            SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            ProjectInternal project = convention.getProject();
+            SourceSet mainSourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
             Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
@@ -489,7 +490,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public Configuration getCompileDependencies() {
-            return project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
     }
 

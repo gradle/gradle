@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
 /**
@@ -45,8 +44,8 @@ public class GroovyPlugin implements Plugin<Project> {
                 groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
                 groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 
-                SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-                SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                JavaPluginConvention convention = project.getConvention().getPlugin(JavaPluginConvention.class);
+                SourceSet sourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                 groovyDoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
 
                 GroovySourceSet groovySourceSet = new DslObject(sourceSet).getConvention().getPlugin(GroovySourceSet.class);

@@ -24,8 +24,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.scala.ScalaDoc;
 
 import java.util.concurrent.Callable;
@@ -50,7 +50,7 @@ public class ScalaPlugin implements Plugin<Project> {
         project.getTasks().withType(ScalaDoc.class).configureEach(new Action<ScalaDoc>() {
             @Override
             public void execute(ScalaDoc scalaDoc) {
-                final SourceSet main = project.getExtensions().getByType(SourceSetContainer.class).getByName("main");
+                final SourceSet main = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main");
                 scalaDoc.getConventionMapping().map("classpath", new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() throws Exception {

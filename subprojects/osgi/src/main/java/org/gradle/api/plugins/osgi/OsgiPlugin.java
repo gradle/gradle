@@ -22,7 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.Factory;
@@ -51,7 +51,7 @@ public class OsgiPlugin implements Plugin<Project> {
 
                 // When creating the OSGi manifest, we must have a single view of all of the classes included in the jar.
                 Sync prepareOsgiClasses = project.getTasks().create("osgiClasses", Sync.class);
-                FileCollection classes = project.getExtensions().getByType(SourceSetContainer.class).getByName("main").getOutput().getClassesDirs();
+                FileCollection classes = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getOutput().getClassesDirs();
                 File singleClassesDirectory = new File(project.getBuildDir(), "osgi-classes");
                 prepareOsgiClasses.setDescription("Prepares a single classes directory required for OSGi analysis.");
                 prepareOsgiClasses.from(classes);

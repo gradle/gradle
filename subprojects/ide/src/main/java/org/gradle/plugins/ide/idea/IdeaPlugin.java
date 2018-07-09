@@ -36,7 +36,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -86,14 +86,14 @@ public class IdeaPlugin extends IdePlugin {
     };
     public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
-        public JavaVersion apply(Project project) {
-            return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
+        public JavaVersion apply(Project p) {
+            return p.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
         }
     };
     public static final Function<Project, JavaVersion> TARGET_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
-        public JavaVersion apply(Project project) {
-            return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
+        public JavaVersion apply(Project p) {
+            return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
         }
     };
     private static final String IDEA_MODULE_TASK_NAME = "ideaModule";
@@ -357,7 +357,7 @@ public class IdeaPlugin extends IdePlugin {
                 ideaModule.dependsOn(new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                         return sourceSets.getByName("main").getOutput().getDirs().plus(sourceSets.getByName("test").getOutput().getDirs());
                     }
 
@@ -374,35 +374,35 @@ public class IdeaPlugin extends IdePlugin {
         convention.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                 return sourceSets.getByName("main").getAllSource().getSrcDirs();
             }
         });
         convention.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                 return sourceSets.getByName("test").getAllSource().getSrcDirs();
             }
         });
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                 return sourceSets.getByName("main").getResources().getSrcDirs();
             }
         });
         convention.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                 return sourceSets.getByName("test").getResources().getSrcDirs();
             }
         });
         convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
             @Override
             public Map<String, FileCollection> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                 LinkedHashMap<String, FileCollection> map = new LinkedHashMap<String, FileCollection>(2);
                 map.put("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
                 map.put("TEST", sourceSets.getByName("test").getOutput().getDirs());
@@ -413,7 +413,7 @@ public class IdeaPlugin extends IdePlugin {
         convention.map("targetBytecodeVersion", new Callable<JavaVersion>() {
             @Override
             public JavaVersion call() {
-                JavaVersion moduleTargetBytecodeLevel = project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
+                JavaVersion moduleTargetBytecodeLevel = project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
                 return includeModuleBytecodeLevelOverride(project.getRootProject(), moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
             }
 
@@ -421,7 +421,7 @@ public class IdeaPlugin extends IdePlugin {
         convention.map("languageLevel", new Callable<IdeaLanguageLevel>() {
             @Override
             public IdeaLanguageLevel call() {
-                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility());
+                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility());
                 return includeModuleLanguageLevelOverride(project.getRootProject(), moduleLanguageLevel) ? moduleLanguageLevel : null;
             }
 

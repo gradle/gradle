@@ -27,6 +27,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
@@ -131,7 +132,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
                 extensionMapping.map("sourceSets", new Callable<SourceSetContainer>() {
                     @Override
                     public SourceSetContainer call() {
-                        return getSourceSets();
+                        return getJavaPluginConvention().getSourceSets();
                     }
                 });
             }
@@ -159,7 +160,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         withBasePlugin(new Action<Plugin>() {
             @Override
             public void execute(Plugin plugin) {
-                configureForSourceSets(getSourceSets());
+                configureForSourceSets(getJavaPluginConvention().getSourceSets());
             }
         });
     }
@@ -214,7 +215,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         project.getPlugins().withType(getBasePlugin(), action);
     }
 
-    protected SourceSetContainer getSourceSets() {
-        return project.getExtensions().getByType(SourceSetContainer.class);
+    protected JavaPluginConvention getJavaPluginConvention() {
+        return project.getConvention().getPlugin(JavaPluginConvention.class);
     }
 }

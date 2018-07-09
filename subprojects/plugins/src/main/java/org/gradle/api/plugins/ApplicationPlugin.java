@@ -30,7 +30,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.internal.Factory;
@@ -123,8 +122,8 @@ public class ApplicationPlugin implements Plugin<Project> {
         run.setDescription("Runs this project as a JVM application");
         run.setGroup(APPLICATION_GROUP);
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        run.setClasspath(sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
+        JavaPluginConvention javaPluginConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        run.setClasspath(javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
         run.getConventionMapping().map("main", new Callable<Object>() {
             @Override
             public Object call() throws Exception {

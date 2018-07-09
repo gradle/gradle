@@ -29,7 +29,6 @@ import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.Factory;
@@ -74,13 +73,14 @@ public class WarPlugin implements Plugin<Project> {
                 });
                 task.dependsOn(new Callable() {
                     public Object call() throws Exception {
-                        return project.getExtensions().getByType(SourceSetContainer.class).getByName(
+                        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                                 SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
                 task.classpath(new Object[] {new Callable() {
                     public Object call() throws Exception {
-                        FileCollection runtimeClasspath = project.getExtensions().getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+                        FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
+                                .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                         Configuration providedRuntime = project.getConfigurations().getByName(
                                 PROVIDED_RUNTIME_CONFIGURATION_NAME);
                         return runtimeClasspath.minus(providedRuntime);

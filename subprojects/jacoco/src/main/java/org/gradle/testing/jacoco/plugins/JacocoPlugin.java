@@ -24,11 +24,11 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
@@ -234,7 +234,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
-        reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
+        reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
         reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
             public void execute(final ConfigurableReport report) {
@@ -262,6 +262,6 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
         coverageVerificationTask.executionData(task);
-        coverageVerificationTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
+        coverageVerificationTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
     }
 }

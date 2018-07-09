@@ -36,7 +36,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -223,7 +223,7 @@ public class EclipsePlugin extends IdePlugin {
                 XmlTransformer xmlTransformer = new XmlTransformer();
                 xmlTransformer.setIndentation("\t");
                 model.getClasspath().setFile(new XmlFileContentMerger(xmlTransformer));
-                model.getClasspath().setSourceSets(project.getExtensions().getByType(SourceSetContainer.class));
+                model.getClasspath().setSourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets());
 
                 AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
                     @Override
@@ -251,7 +251,7 @@ public class EclipsePlugin extends IdePlugin {
                 ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
                     @Override
                     public List<File> call() {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                         return Lists.newArrayList(Iterables.concat(sourceSets.getByName("main").getOutput().getDirs(), sourceSets.getByName("test").getOutput().getDirs()));
                     }
                 });
@@ -259,7 +259,7 @@ public class EclipsePlugin extends IdePlugin {
                 task.configure(new Action<GenerateEclipseClasspath>() {
                     @Override
                     public void execute(GenerateEclipseClasspath task) {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                         task.dependsOn(sourceSets.getByName("main").getOutput().getDirs());
                         task.dependsOn(sourceSets.getByName("test").getOutput().getDirs());
                     }
@@ -325,21 +325,21 @@ public class EclipsePlugin extends IdePlugin {
                 conventionMapping.map("sourceCompatibility", new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
-                        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
+                        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility();
                     }
 
                 });
                 conventionMapping.map("targetCompatibility", new Callable<JavaVersion>() {
                     @Override
                     public JavaVersion call() {
-                        return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
+                        return project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
                     }
 
                 });
                 conventionMapping.map("javaRuntimeName", new Callable<String>() {
                     @Override
                     public String call() {
-                        return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
+                        return eclipseJavaRuntimeNameFor(project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility());
                     }
 
                 });
