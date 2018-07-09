@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.timeout
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.apache.commons.io.IOUtils
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
@@ -158,15 +159,13 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
     }
 
     private static StdoutAndPatterns ps() {
-        String command = OperatingSystem.current().isWindows() ? "wmic process get processid,commandline" : "ps x"
-        Process process = command.execute()
+        List<String> command = OperatingSystem.current().isWindows() ? ["wmic", "process", "get", "processid,commandline"] : ["ps", "x"]
+        Process process = new ProcessBuilder(command).start()
+        int code = process.waitFor()
+        String stdout = IOUtils.toString(process.getInputStream())
+        String stderr = IOUtils.toString(process.getErrorStream())
 
-        def stdout = new StringBuffer()
-        def stderr = new StringBuffer()
-
-        process.consumeProcessOutput(stdout, stderr)
-
-        if (process.waitFor() == 0) {
+        if (code == 0) {
             println("Command $command stdout: ${stdout}")
             println("Command $command stderr: ${stderr}")
             return new StdoutAndPatterns(stdout.toString())
