@@ -15,14 +15,17 @@
  */
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.provider.AbstractProvider;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,7 +42,7 @@ public class DefaultArtifactPublicationSet {
     public void addCandidate(PublishArtifact artifact) {
         if (defaultArtifactProvider == null) {
             defaultArtifactProvider = new DefaultArtifactProvider(artifact);
-            artifactStore.addLater(defaultArtifactProvider);
+            artifactStore.addAllLater(defaultArtifactProvider);
         }
 
         defaultArtifactProvider.addCandidate(artifact);
@@ -49,62 +52,98 @@ public class DefaultArtifactPublicationSet {
         return defaultArtifactProvider;
     }
 
-    private class DefaultArtifactProvider extends AbstractProvider<PublishArtifact> implements Provider<PublishArtifact> {
+    private class DefaultArtifactProvider implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>> {
         private final Set<PublishArtifact> artifacts;
-        private PublishArtifact currentDefault;
+        private Set<PublishArtifact> currentArtifactSet;
 
-        DefaultArtifactProvider(PublishArtifact... candidates) {
+        DefaultArtifactProvider(PublishArtifact... candidates) { ;
             artifacts = Sets.newLinkedHashSet(Arrays.asList(candidates));
+        }
+
+        @Nullable
+        @Override
+        public Class<? extends PublishArtifact> getElementType() {
+            return PublishArtifact.class;
+        }
+
+        @Override
+        public int size() {
+            return getArtifactSet().size();
+        }
+
+        @Override
+        public <S> ProviderInternal<S> map(Transformer<? extends S, ? super Set<PublishArtifact>> transformer) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<PublishArtifact> get() {
+            return getArtifactSet();
+        }
+
+        @Override
+        public Set<PublishArtifact> getOrElse(Set<PublishArtifact> defaultValue) {
+            return getArtifactSet();
+        }
+
+        @Override
+        public boolean isPresent() {
+            return false;
         }
 
         void addCandidate(PublishArtifact artifact) {
             if (artifact != null) {
                 // invalidate the current cached result any time a new artifact is added
                 if (artifacts.add(artifact)) {
-                    currentDefault = null;
+                    currentArtifactSet = null;
                 }
             }
         }
 
         @Nullable
         @Override
-        public Class<PublishArtifact> getType() {
-            return PublishArtifact.class;
+        public Class<Set<PublishArtifact>> getType() {
+            return null;
         }
 
         @Nullable
         @Override
-        public PublishArtifact getOrNull() {
-            return getDefaultArtifact();
+        public Set<PublishArtifact> getOrNull() {
+            return getArtifactSet();
         }
 
-        private PublishArtifact getDefaultArtifact() {
-            if (currentDefault == null) {
+        private Set<PublishArtifact> getArtifactSet() {
+            if (currentArtifactSet == null) {
+                List<PublishArtifact> artifactList = Lists.newArrayList();
+                String defaultType = null;
                 for (PublishArtifact artifact : artifacts) {
-                    if (currentDefault == null) {
-                        currentDefault = artifact;
+                    String newType = artifact.getType();
+                    if (artifactList.isEmpty()) {
+                        artifactList.add(artifact);
+                        defaultType = newType;
                         continue;
                     }
-                    String newType = artifact.getType();
-                    String currentType = currentDefault.getType();
                     if (newType.equals("ear")) {
-                        replaceCurrent(artifact);
+                        replaceCurrentDefault(artifact, artifactList);
                     } else if (newType.equals("war")) {
-                        if (currentType.equals("jar")) {
-                            replaceCurrent(artifact);
+                        if (defaultType.equals("jar")) {
+                            replaceCurrentDefault(artifact, artifactList);
                         }
                     } else if (!newType.equals("jar")) {
-                        artifactStore.add(artifact);
+                        artifactList.add(artifact);
                     }
                 }
+                currentArtifactSet = Sets.newLinkedHashSet(artifactList);
             }
 
-            return currentDefault;
+            return currentArtifactSet;
         }
 
-        private void replaceCurrent(PublishArtifact artifact) {
-            artifactStore.remove(currentDefault);
-            currentDefault = artifact;
+        private void replaceCurrentDefault(PublishArtifact artifact, List<PublishArtifact> artifactList) {
+            if (!artifactList.isEmpty()) {
+                artifactList.remove(0);
+            }
+            artifactList.add(0, artifact);
         }
     }
 }

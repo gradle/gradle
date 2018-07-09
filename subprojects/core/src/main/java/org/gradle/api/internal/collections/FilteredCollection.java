@@ -16,15 +16,11 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
-import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;

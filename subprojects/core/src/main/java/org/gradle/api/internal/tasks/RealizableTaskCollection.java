@@ -135,6 +135,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
+    public void addAllLater(Provider<Set<T>> provider) {
+        delegate.addAllLater(provider);
+    }
+
+    @Override
     public boolean addAll(Collection<? extends T> c) {
         return delegate.addAll(c);
     }

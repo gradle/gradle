@@ -20,6 +20,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * <p>A {@code DomainObjectCollection} is a specialised {@link Collection} that adds the ability to receive modification notifications and use live filtered sub collections.</p>
@@ -43,6 +44,17 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     @Incubating
     void addLater(Provider<? extends T> provider);
+
+    /**
+     * Adds a set of elements to this collection, given a {@link Provider} that will provide the set when required.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param provider A {@link Provider} that can provide the set when required.
+     * @since 4.10
+     */
+    @Incubating
+    void addAllLater(Provider<Set<T>> provider);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is

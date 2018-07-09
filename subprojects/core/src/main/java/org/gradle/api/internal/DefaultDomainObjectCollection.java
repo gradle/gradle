@@ -251,6 +251,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         store.addPending(providerInternal);
     }
 
+    @Override
+    public void addAllLater(Provider<Set<T>> provider) {
+        assertMutable();
+        CollectionProviderInternal<T, Set<T>> collectionProviderInternal = Cast.uncheckedCast(provider);
+        if (eventRegister.isSubscribed(collectionProviderInternal.getElementType())) {
+            for (T element : provider.get()) {
+                doAdd(element, eventRegister.getAddActions());
+            }
+            return;
+        }
+        store.addPendingCollection(collectionProviderInternal);
+    }
+
     protected void didAdd(T toAdd) {
     }
 

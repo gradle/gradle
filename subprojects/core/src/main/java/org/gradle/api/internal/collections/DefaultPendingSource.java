@@ -16,18 +16,13 @@
 
 package org.gradle.api.internal.collections;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.AbstractCollectionProperty;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
