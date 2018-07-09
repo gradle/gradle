@@ -19,10 +19,10 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionsSchema
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
@@ -92,7 +92,7 @@ fun accessibleConventionsSchema(plugins: Map<String, Any>) =
 
 private
 fun sourceSetsOf(project: Project) =
-    project.convention.findPlugin(JavaPluginConvention::class.java)?.sourceSets
+    project.extensions.findByType(typeOf<SourceSetContainer>())
 
 
 private
