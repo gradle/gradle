@@ -18,6 +18,8 @@ package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.AbstractProvider
+import org.gradle.api.internal.provider.CollectionProviderInternal
+import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
 
@@ -25,10 +27,10 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
     IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
 
     def setup() {
-        source.onRealize(new Action<ProviderInternal<? extends String>>() {
+        source.onRealize(new Action<CollectionProviderInternal<CharSequence, Set<CharSequence>>>() {
             @Override
-            void execute(ProviderInternal<? extends String> providerInternal) {
-                providerInternal.get()
+            void execute(CollectionProviderInternal<CharSequence, Set<CharSequence>> provider) {
+                provider.get().each { source.add(it) }
             }
         })
     }
@@ -49,6 +51,15 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         then:
         source.size() == 1
         source.contains("foo")
+    }
+
+    def "can add a provider of a set"() {
+        when:
+        source.addPendingCollection(providerOfSet("foo", "bar", "baz"))
+
+        then:
+        source.size() == 3
+        source.iterator().collect() == ["foo", "bar", "baz"]
     }
 
     def "iterates elements in the order they were added"() {
@@ -86,8 +97,7 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         when:
         source.addPending(provider("foo"))
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
-        source.addPending(provider("fizz"))
+        source.addPendingCollection(providerOfSet("baz", "fizz"))
 
         then:
         source.iteratorNoFlush().collect() == []
@@ -113,13 +123,14 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
     def "can add the same element multiple times"() {
         when:
         3.times { source.add("foo") }
-        3.times { source.addPending(provider("bar"))}
+        3.times { source.addPending(provider("bar")) }
+        3.times { source.addPendingCollection(providerOfSet("baz", "fizz")) }
 
         then:
         source.iteratorNoFlush().collect() == ["foo"]
 
         and:
-        source.iterator().collect() == ["foo", "bar"]
+        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
     }
 
     def "can remove a realized element"() {
@@ -154,11 +165,61 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         source.iterator().collect() == ["foo", "baz"]
     }
 
-    def "can realize a filtered set of providers and order is retained"() {
+    def "can remove a provider of set"() {
+        given:
+        def barBaz = providerOfSet("bar", "baz")
+        source.add("foo")
+        source.addPendingCollection(barBaz)
+        source.add("fizz")
+
+        expect:
+        source.removePendingCollection(barBaz)
+
+        and:
+        source.size() == 2
+        source.iterator().collect() == ["foo", "fizz"]
+    }
+
+    def "can remove a realized provider"() {
+        given:
+        source.add("foo")
+        source.addPending(provider("bar"))
+        source.add("baz")
+
+        expect:
+        source.iterator()
+        source.remove("bar")
+
+        and:
+        source.size() == 2
+        source.iteratorNoFlush().collect() == ["foo", "baz"]
+        source.iterator().collect() == ["foo", "baz"]
+    }
+
+    def "can realize filtered providers and order is retained"() {
         when:
         source.addPending(provider("foo"))
         source.addPending(provider(new StringBuffer("bar")))
         source.addPending(provider(new StringBuffer("baz")))
+        source.addPending(provider("fizz"))
+
+        then:
+        source.iteratorNoFlush().collect() == []
+
+        when:
+        source.realizePending(StringBuffer.class)
+
+        then:
+        source.iteratorNoFlush().collect { it.toString() } == ["bar", "baz"]
+
+        and:
+        source.iterator().collect { it.toString() } == ["foo", "bar", "baz", "fizz"]
+    }
+
+    def "can realize filtered providers of sets and order is retained"() {
+        when:
+        source.addPending(provider("foo"))
+        source.addPendingCollection(providerOfSet(new StringBuffer("bar"), new StringBuffer("baz")))
         source.addPending(provider("fizz"))
 
         then:
@@ -200,5 +261,17 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         T getOrNull() {
             return value
         }
+    }
+
+    CollectionProviderInternal<? extends String, Set<? extends String>> providerOfSet(String... values) {
+        CollectionProviderInternal<? extends String, Set<? extends String>> setProvider = new DefaultSetProperty<String>(String.class)
+        values.each { setProvider.add(it) }
+        return setProvider
+    }
+
+    CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> providerOfSet(StringBuffer... values) {
+        CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> setProvider = new DefaultSetProperty<StringBuffer>(StringBuffer.class)
+        values.each { setProvider.add(it) }
+        return setProvider
     }
 }

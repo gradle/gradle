@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
@@ -282,7 +283,17 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void onRealize(Action<CollectionProviderInternal<T, Set<T>>> action) {
 
         }
     }

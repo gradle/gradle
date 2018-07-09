@@ -31,7 +31,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
-    private final Class elementType;
+    private final Class<? extends T> elementType;
     private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
@@ -65,6 +65,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public Class<C> getType() {
         return null;
+    }
+
+    @Override
+    public Class<? extends T> getElementType() {
+        return elementType;
     }
 
     @Override
@@ -134,6 +139,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
         collectors.clear();
         value = new ElementsFromProvider<T>(provider);
+    }
+
+    @Override
+    public int size() {
+        return collectors.size();
     }
 
     @Override

@@ -25,6 +25,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -38,6 +39,7 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
@@ -54,10 +56,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onRealize(new Action<ProviderInternal<? extends T>>() {
+        this.store.onRealize(new Action<CollectionProviderInternal<T, Set<T>>>() {
             @Override
-            public void execute(ProviderInternal<? extends T> provider) {
-                doAdd(provider.get(), eventRegister.getAddActions());
+            public void execute(CollectionProviderInternal<T, Set<T>> provider) {
+                for (T value : provider.get()) {
+                    doAdd(value, eventRegister.getAddActions());
+                }
             }
         });
     }
