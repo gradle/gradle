@@ -52,8 +52,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'cpp-application'
         """
-        def src1 = file("src/main/cpp/app.cpp").createFile()
-        def src2 = file("src/main/cpp/app-impl.cpp").createFile()
+        def headerDir = file('src/main/headers')
+        def src1 = file('src/main/cpp/app.cpp').createFile()
+        def src2 = file('src/main/cpp/app-impl.cpp').createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -71,11 +72,17 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].name == 'mainDebug'
         project.mainComponent.binaries[0].baseName == 'app'
         project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+        project.mainComponent.binaries[0].compilationDetails.frameworkSearchPaths.empty
+        !project.mainComponent.binaries[0].compilationDetails.systemHeaderSearchPaths.empty
+        project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [headerDir]
 
         project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'app'
         project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
+        project.mainComponent.binaries[1].compilationDetails.frameworkSearchPaths.empty
+        !project.mainComponent.binaries[1].compilationDetails.systemHeaderSearchPaths.empty
+        project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [headerDir]
 
         project.testComponent == null
     }
@@ -87,8 +94,10 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'cpp-library'
         """
-        def src1 = file("src/main/cpp/lib.cpp").createFile()
-        def src2 = file("src/main/cpp/lib-impl.cpp").createFile()
+        def headerDir = file('src/main/headers')
+        def apiHeaderDir = file('src/main/public')
+        def src1 = file('src/main/cpp/lib.cpp').createFile()
+        def src2 = file('src/main/cpp/lib-impl.cpp').createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -102,11 +111,17 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].name == 'mainDebug'
         project.mainComponent.binaries[0].baseName == 'lib'
         project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+        project.mainComponent.binaries[0].compilationDetails.frameworkSearchPaths.empty
+        !project.mainComponent.binaries[0].compilationDetails.systemHeaderSearchPaths.empty
+        project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [apiHeaderDir, headerDir]
 
         project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'lib'
         project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
+        project.mainComponent.binaries[1].compilationDetails.frameworkSearchPaths.empty
+        !project.mainComponent.binaries[1].compilationDetails.systemHeaderSearchPaths.empty
+        project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [apiHeaderDir, headerDir]
 
         project.testComponent == null
     }
@@ -118,8 +133,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'cpp-unit-test'
         """
-        def src1 = file("src/test/cpp/test-main.cpp").createFile()
-        def src2 = file("src/test/cpp/test2.cpp").createFile()
+        def headerDir = file('src/test/headers')
+        def src1 = file('src/test/cpp/test-main.cpp').createFile()
+        def src2 = file('src/test/cpp/test2.cpp').createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -134,6 +150,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.testComponent.binaries[0].name == 'testExecutable'
         project.testComponent.binaries[0].baseName == 'testsTest'
         project.testComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+        project.testComponent.binaries[0].compilationDetails.frameworkSearchPaths.empty
+        !project.testComponent.binaries[0].compilationDetails.systemHeaderSearchPaths.empty
+        project.testComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [headerDir]
     }
 
     def "can query model when root project applies C++ application and unit test plugins"() {
@@ -153,6 +172,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.baseName == 'app'
         project.testComponent instanceof CppTestSuite
         project.testComponent.baseName == 'appTest'
+        project.testComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file('src/test/headers'), file('src/main/headers')]
     }
 
     def "can query model when root project applies C++ library and unit test plugins"() {
@@ -167,6 +187,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         project.mainComponent instanceof CppLibrary
         project.testComponent instanceof CppTestSuite
+        project.testComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file('src/test/headers'), file('src/main/public'), file('src/main/headers')]
     }
 
     def "can query model for customized C++ application"() {
@@ -178,10 +199,12 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             application {
                 baseName = 'some-app'
                 source.from 'src'
+                privateHeaders.from = ['include']
             }
         """
-        def src1 = file("src/main/cpp/app.cpp").createFile()
-        def src2 = file("src/app-impl.cpp").createFile()
+        def headerDir = file('include')
+        def src1 = file('src/main/cpp/app.cpp').createFile()
+        def src2 = file('src/app-impl.cpp').createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -195,11 +218,13 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].name == 'mainDebug'
         project.mainComponent.binaries[0].baseName == 'some-app'
         project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+        project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [headerDir]
 
         project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'some-app'
         project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
+        project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [headerDir]
     }
 
     def "can query model for customized C++ library"() {
@@ -211,8 +236,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             library {
                 baseName = 'some-lib'
                 linkage = [Linkage.STATIC, Linkage.SHARED]
+                privateHeaders.from = []
+                publicHeaders.from = ['include']
             }
         """
+        def publicHeaders = file('include')
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -226,15 +254,19 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0] instanceof CppStaticLibrary
         project.mainComponent.binaries[0].name == 'mainDebugStatic'
         project.mainComponent.binaries[0].baseName == 'some-lib'
+        project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [publicHeaders]
         project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainDebugShared'
         project.mainComponent.binaries[1].baseName == 'some-lib'
+        project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [publicHeaders]
         project.mainComponent.binaries[2] instanceof CppStaticLibrary
         project.mainComponent.binaries[2].name == 'mainReleaseStatic'
         project.mainComponent.binaries[2].baseName == 'some-lib'
+        project.mainComponent.binaries[2].compilationDetails.userHeaderSearchPaths == [publicHeaders]
         project.mainComponent.binaries[3] instanceof CppSharedLibrary
         project.mainComponent.binaries[3].name == 'mainReleaseShared'
         project.mainComponent.binaries[3].baseName == 'some-lib'
+        project.mainComponent.binaries[3].compilationDetails.userHeaderSearchPaths == [publicHeaders]
     }
 
     def "can query the models for each project in a build"() {
@@ -245,7 +277,10 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         """
         buildFile << """
             project(':app') { 
-                apply plugin: 'cpp-application' 
+                apply plugin: 'cpp-application'
+                application {
+                    dependencies { implementation project(':lib') }
+                }
             }
             project(':lib') { 
                 apply plugin: 'cpp-library' 
@@ -263,9 +298,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         models[0].testComponent == null
         models[1].projectIdentifier.projectPath == ':app'
         models[1].mainComponent instanceof CppApplication
+        models[1].mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file("app/src/main/headers"), file("lib/src/main/public")]
         models[1].testComponent == null
         models[2].projectIdentifier.projectPath == ':lib'
         models[2].mainComponent instanceof CppLibrary
+        models[2].mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file("lib/src/main/public"), file("lib/src/main/headers")]
         models[2].testComponent != null
         models[3].projectIdentifier.projectPath == ':other'
         models[3].mainComponent == null

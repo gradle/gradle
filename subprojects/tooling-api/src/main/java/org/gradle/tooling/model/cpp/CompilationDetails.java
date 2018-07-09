@@ -17,7 +17,6 @@
 package org.gradle.tooling.model.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.SourceDirectory;
 
 import java.io.File;
 import java.util.List;
@@ -32,7 +31,7 @@ public interface CompilationDetails {
     /**
      * All framework search paths.
      */
-    List<? extends SourceDirectory> getFrameworkSearchPaths();
+    List<File> getFrameworkSearchPaths();
 
     /**
      * All compilation unit used for this binary.
@@ -47,12 +46,12 @@ public interface CompilationDetails {
     /**
      * All system search paths.
      */
-    List<? extends SourceDirectory> getSystemHeaderSearchPaths();
+    List<File> getSystemHeaderSearchPaths();
 
     /**
      * All user search paths.
      */
-    List<? extends SourceDirectory> getUserHeaderSearchPaths();
+    List<File> getUserHeaderSearchPaths();
 
     /**
      * Returns additional tool arguments.

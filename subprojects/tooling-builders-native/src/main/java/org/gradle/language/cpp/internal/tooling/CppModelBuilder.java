@@ -24,6 +24,7 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
@@ -39,6 +40,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CppModelBuilder implements ToolingModelBuilder {
@@ -71,7 +73,11 @@ public class CppModelBuilder implements ToolingModelBuilder {
     private List<DefaultCppBinary> binariesFor(CppComponent component) {
         ArrayList<DefaultCppBinary> binaries = new ArrayList<DefaultCppBinary>();
         for (CppBinary binary : component.getBinaries().get()) {
-            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(new ArrayList<File>(binary.getCppSource().getFiles()));
+            List<File> sourceFiles = new ArrayList<File>(binary.getCppSource().getFiles());
+            CppCompile compileTask = binary.getCompileTask().get();
+            List<File> systemIncludes = new ArrayList<File>(compileTask.getSystemIncludes().getFiles());
+            List<File> userIncludes = new ArrayList<File>(compileTask.getIncludes().getFiles());
+            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(sourceFiles, systemIncludes, userIncludes);
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                 binaries.add(new DefaultCppExecutable(binary.getName(), binary.getBaseName().get(), compilationDetails));
             } else if (binary instanceof CppSharedLibrary) {
@@ -109,13 +115,29 @@ public class CppModelBuilder implements ToolingModelBuilder {
 
     public static class DefaultCompilationDetails implements Serializable {
         private final List<File> sources;
+        private final List<File> systemHeaderDirs;
+        private final List<File> userHeaderDirs;
 
-        public DefaultCompilationDetails(List<File> sources) {
+        public DefaultCompilationDetails(List<File> sources, List<File> systemHeaderDirs, List<File> userHeaderDirs) {
             this.sources = sources;
+            this.systemHeaderDirs = systemHeaderDirs;
+            this.userHeaderDirs = userHeaderDirs;
         }
 
         public List<File> getSources() {
             return sources;
+        }
+
+        public List<File> getFrameworkSearchPaths() {
+            return Collections.emptyList();
+        }
+
+        public List<File> getSystemHeaderSearchPaths() {
+            return systemHeaderDirs;
+        }
+
+        public List<File> getUserHeaderSearchPaths() {
+            return userHeaderDirs;
         }
     }
 
