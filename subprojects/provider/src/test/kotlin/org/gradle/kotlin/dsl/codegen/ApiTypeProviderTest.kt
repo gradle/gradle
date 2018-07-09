@@ -16,11 +16,14 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Plugin
 import org.gradle.api.file.ContentFilterable
 import org.gradle.api.internal.file.copy.CopySpecSource
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginCollection
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.AbstractCopyTask
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
@@ -29,6 +32,7 @@ import org.gradle.kotlin.dsl.support.canonicalNameOf
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -143,6 +147,34 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
                     "lowerBound" -> function.parameters.single().assertSingleTypeArgumentWithBound(Bound.LOWER)
                 }
             }
+        }
+    }
+
+    @Test
+    fun `provides if a type is a SAM`() {
+
+        val jars = listOf(withClassJar("some.jar",
+            Action::class.java,
+            NamedDomainObjectFactory::class.java,
+            ObjectFactory::class.java,
+            PluginCollection::class.java,
+            Spec::class.java))
+
+        apiTypeProviderFor(jars).use { api ->
+
+            assertTrue(api.type<Action<*>>()!!.isSAM)
+            assertTrue(api.type<NamedDomainObjectFactory<*>>()!!.isSAM)
+
+            assertFalse(api.type<ObjectFactory>()!!.isSAM)
+            assertFalse(api.type<PluginCollection<*>>()!!.isSAM)
+
+            assertTrue(
+                api.type<PluginCollection<*>>()!!.functions
+                    .filter { it.name == "matching" }
+                    .single { it.parameters.single().type.sourceName == Spec::class.qualifiedName }
+                    .parameters.single().type.type!!.isSAM)
+
+            assertTrue(api.type<Spec<*>>()!!.isSAM)
         }
     }
 

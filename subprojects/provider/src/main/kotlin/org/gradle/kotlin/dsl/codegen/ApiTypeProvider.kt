@@ -29,6 +29,7 @@ import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_CODE
 import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_DEBUG
 import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.jetbrains.org.objectweb.asm.FieldVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
@@ -156,13 +157,19 @@ class ApiType(
 ) {
 
     val isPublic: Boolean
-        get() = (ACC_PUBLIC and delegate.access) > 0
+        get() = delegate.access.isPublic
 
     val isDeprecated: Boolean
         get() = delegate.visibleAnnotations.has<java.lang.Deprecated>()
 
     val isIncubating: Boolean
         get() = delegate.visibleAnnotations.has<Incubating>()
+
+    val isSAM: Boolean by lazy(NONE) {
+        delegate.access.isAbstract && delegate.methods.filter { !it.access.isStatic && it.access.isAbstract }.let { methods ->
+            methods.size == 1 && methods[0].access.isPublic
+        }
+    }
 
     val typeParameters: List<ApiTypeUsage> by lazy(NONE) {
         context.apiTypeParametersFor(visitedSignature)
@@ -181,7 +188,7 @@ class ApiType(
     private
     fun isSignificantDeclaration(methodNode: MethodNode): Boolean {
 
-        if ((ACC_SYNTHETIC and methodNode.access) > 0) return false
+        if (methodNode.access.isSynthetic) return false
         if (delegate.interfaces.isEmpty() && delegate.superName == null) return true
 
         fun ArrayDeque<String>.addSuperTypesOf(classNode: ClassNode) {
@@ -239,7 +246,7 @@ class ApiFunction(
         delegate.name
 
     val isPublic: Boolean =
-        (ACC_PUBLIC and delegate.access) > 0
+        delegate.access.isPublic
 
     val isDeprecated: Boolean
         get() = owner.isDeprecated || delegate.visibleAnnotations.has<java.lang.Deprecated>()
@@ -248,7 +255,7 @@ class ApiFunction(
         get() = owner.isIncubating || delegate.visibleAnnotations.has<Incubating>()
 
     val isStatic: Boolean =
-        (ACC_STATIC and delegate.access) > 0
+        delegate.access.isStatic
 
     val typeParameters: List<ApiTypeUsage> by lazy(NONE) {
         context.apiTypeParametersFor(visitedSignature)
@@ -351,7 +358,6 @@ fun ApiTypeProvider.Context.apiTypeParametersFor(visitedSignature: BaseSignature
 private
 fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
     delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
-        val functionHasVarargModifier = (ACC_VARARGS and delegate.access) > 0
         val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
             ?: Type.getArgumentTypes(delegate.desc).map { it.className }
         val names by lazy(NONE) {
@@ -368,7 +374,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             val bound = signatureParameter?.bound ?: Bound.NONE
             ApiFunctionParameter(
                 index = idx,
-                isVarargs = idx == parameterTypesBinaryNames.size - 1 && functionHasVarargModifier,
+                isVarargs = idx == parameterTypesBinaryNames.size - 1 && delegate.access.isVarargs,
                 nameSupplier = { names?.get(idx) },
                 type = apiTypeUsageFor(parameterTypeName, isNullable, typeArguments, bound = bound)
             )
@@ -559,3 +565,28 @@ val mappedTypeStrings =
         "java.util.Map.Entry" to "kotlin.collections.Map.Entry",
         "java.util.HashMap" to "kotlin.collections.HashMap",
         "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap")
+
+
+private
+inline val Int.isStatic: Boolean
+    get() = (ACC_STATIC and this) > 0
+
+
+private
+inline val Int.isPublic: Boolean
+    get() = (ACC_PUBLIC and this) > 0
+
+
+private
+inline val Int.isAbstract: Boolean
+    get() = (ACC_ABSTRACT and this) > 0
+
+
+private
+inline val Int.isVarargs: Boolean
+    get() = (ACC_VARARGS and this) > 0
+
+
+private
+inline val Int.isSynthetic: Boolean
+    get() = (ACC_SYNTHETIC and this) > 0

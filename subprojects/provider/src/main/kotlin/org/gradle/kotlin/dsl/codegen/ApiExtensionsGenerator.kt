@@ -213,7 +213,7 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                             ApiTypeUsage("String"), starProjectionTypeUsage)))),
             isVarargs = true,
             invocation = "mapOf(*${first.invocation})")
-        if (last().type.isGradleAction) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
+        if (last().type.isSAM) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
         else drop(1) + mappedMapParameter
     } ?: this
 
@@ -273,7 +273,7 @@ data class KotlinExtensionFunction(
         takeIf { it.isNotEmpty() }?.let { list ->
             list.mapIndexed { index, p ->
                 if (index == list.size - 1 && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (index == list.size - 2 && list[index + 1].type.isGradleAction && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
+                else if (index == list.size - 2 && list[index + 1].type.isSAM && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
                 else "`${p.name}`: ${p.type.toTypeArgumentString()}"
             }.joinToString(separator = ", ")
         } ?: ""
@@ -380,6 +380,11 @@ object SourceNames {
     const val kotlinArray = "kotlin.Array"
     const val kotlinCollection = "kotlin.collections.Collection"
 }
+
+
+private
+val ApiTypeUsage.isSAM
+    get() = type?.isSAM ?: isGradleAction
 
 
 private
