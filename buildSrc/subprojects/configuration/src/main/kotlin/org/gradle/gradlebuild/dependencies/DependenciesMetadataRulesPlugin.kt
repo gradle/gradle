@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.extra
 import java.io.File
 import javax.inject.Inject
 import kotlin.reflect.KClass
@@ -68,11 +69,21 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
 
     private
     fun Project.readCapabilitiesFromJson() {
-        val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
-        if (capabilitiesFile.exists()) {
-            readCapabilities(capabilitiesFile).forEach {
-                it.configure(dependencies.components, configurations)
+        val extra = gradle.rootProject.extra
+        val capabilities: List<CapabilitySpec>
+        if (extra.has("capabilities")) {
+            capabilities = extra.get("capabilities") as List<CapabilitySpec>
+        } else {
+            val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
+            if (capabilitiesFile.exists()) {
+                capabilities = readCapabilities(capabilitiesFile)
+            } else {
+                capabilities = emptyList()
             }
+            extra.set("capabilities", capabilities)
+        }
+        capabilities.forEach {
+            it.configure(dependencies.components, configurations)
         }
     }
 
