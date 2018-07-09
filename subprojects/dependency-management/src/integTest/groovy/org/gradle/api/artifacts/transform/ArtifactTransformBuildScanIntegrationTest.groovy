@@ -34,6 +34,7 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
     def "transform works with build scan"() {
         given:
         buildFile << """
+            def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
                 
             allprojects {
