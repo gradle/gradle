@@ -157,7 +157,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds "help"
 
         then:
-        assertNestedTaskOutputTracked()
+        assertNestedTaskOutputTracked(':buildSrc')
     }
 
     def "captures output from composite builds"() {
@@ -344,8 +344,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
-    private void assertNestedTaskOutputTracked() {
-        def nestedTaskProgress = operations.only("Execute doLast {} action for :foo").progress
+    private void assertNestedTaskOutputTracked(String projectPath = ':nested') {
+        def nestedTaskProgress = operations.only("Execute doLast {} action for ${projectPath}:foo").progress
         assert nestedTaskProgress.size() == 2
 
         assert nestedTaskProgress[0].details.logLevel == 'QUIET'
