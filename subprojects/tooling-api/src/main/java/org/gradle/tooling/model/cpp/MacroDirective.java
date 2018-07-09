@@ -28,17 +28,12 @@ import javax.annotation.Nullable;
 @Incubating
 public interface MacroDirective {
     /**
-     * Return macro directive type.
-     */
-    MacroDirectiveType getDirectiveType();
-
-    /**
      * Returns the name of the macro.
      */
     String getName();
 
     /**
-     * Returns the value of the macro. Only value when defining a macro.
+     * Returns the value of the macro, if any.
      */
     @Nullable
     String getValue();

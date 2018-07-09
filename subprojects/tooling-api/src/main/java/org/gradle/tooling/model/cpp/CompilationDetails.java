@@ -17,9 +17,11 @@
 package org.gradle.tooling.model.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.model.DomainObjectSet;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the compilation details for a binary.
@@ -39,9 +41,14 @@ public interface CompilationDetails {
     List<File> getSources();
 
     /**
-     * All macro directives.
+     * All macro define directives.
      */
-    List<MacroDirective> getMacros();
+    DomainObjectSet<? extends MacroDirective> getMacroDefines();
+
+    /**
+     * All macro undefine directives.
+     */
+    Set<String> getMacroUndefines();
 
     /**
      * All system search paths.

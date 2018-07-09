@@ -75,6 +75,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].compilationDetails.frameworkSearchPaths.empty
         !project.mainComponent.binaries[0].compilationDetails.systemHeaderSearchPaths.empty
         project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [headerDir]
+        project.mainComponent.binaries[0].compilationDetails.macroDefines.empty
+        project.mainComponent.binaries[0].compilationDetails.macroUndefines.empty
+        project.mainComponent.binaries[0].compilationDetails.additionalArgs.empty
 
         project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
@@ -83,6 +86,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[1].compilationDetails.frameworkSearchPaths.empty
         !project.mainComponent.binaries[1].compilationDetails.systemHeaderSearchPaths.empty
         project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [headerDir]
+        project.mainComponent.binaries[1].compilationDetails.macroDefines.empty
+        project.mainComponent.binaries[1].compilationDetails.macroUndefines.empty
+        project.mainComponent.binaries[1].compilationDetails.additionalArgs.empty
 
         project.testComponent == null
     }
@@ -114,6 +120,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].compilationDetails.frameworkSearchPaths.empty
         !project.mainComponent.binaries[0].compilationDetails.systemHeaderSearchPaths.empty
         project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [apiHeaderDir, headerDir]
+        project.mainComponent.binaries[0].compilationDetails.macroDefines.empty
+        project.mainComponent.binaries[0].compilationDetails.macroUndefines.empty
+        project.mainComponent.binaries[0].compilationDetails.additionalArgs.empty
 
         project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainRelease'
@@ -122,6 +131,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[1].compilationDetails.frameworkSearchPaths.empty
         !project.mainComponent.binaries[1].compilationDetails.systemHeaderSearchPaths.empty
         project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [apiHeaderDir, headerDir]
+        project.mainComponent.binaries[1].compilationDetails.macroDefines.empty
+        project.mainComponent.binaries[1].compilationDetails.macroUndefines.empty
+        project.mainComponent.binaries[1].compilationDetails.additionalArgs.empty
 
         project.testComponent == null
     }
@@ -153,6 +165,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.testComponent.binaries[0].compilationDetails.frameworkSearchPaths.empty
         !project.testComponent.binaries[0].compilationDetails.systemHeaderSearchPaths.empty
         project.testComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [headerDir]
+        project.testComponent.binaries[0].compilationDetails.macroDefines.empty
+        project.testComponent.binaries[0].compilationDetails.macroUndefines.empty
+        project.testComponent.binaries[0].compilationDetails.additionalArgs.empty
     }
 
     def "can query model when root project applies C++ application and unit test plugins"() {
@@ -200,6 +215,10 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
                 baseName = 'some-app'
                 source.from 'src'
                 privateHeaders.from = ['include']
+                binaries.configureEach {
+                    compileTask.get().compilerArgs.add("--variant=\$name")
+                    compileTask.get().macros = [VARIANT: name]
+                } 
             }
         """
         def headerDir = file('include')
@@ -219,12 +238,20 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.binaries[0].baseName == 'some-app'
         project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
         project.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [headerDir]
+        project.mainComponent.binaries[0].compilationDetails.macroDefines.name == ['VARIANT']
+        project.mainComponent.binaries[0].compilationDetails.macroDefines.value == ['mainDebug']
+        project.mainComponent.binaries[0].compilationDetails.macroUndefines.empty
+        project.mainComponent.binaries[0].compilationDetails.additionalArgs == ['--variant=mainDebug']
 
         project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'some-app'
         project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
         project.mainComponent.binaries[1].compilationDetails.userHeaderSearchPaths == [headerDir]
+        project.mainComponent.binaries[1].compilationDetails.macroDefines.name == ['VARIANT']
+        project.mainComponent.binaries[1].compilationDetails.macroDefines.value == ['mainRelease']
+        project.mainComponent.binaries[1].compilationDetails.macroUndefines.empty
+        project.mainComponent.binaries[1].compilationDetails.additionalArgs == ['--variant=mainRelease']
     }
 
     def "can query model for customized C++ library"() {

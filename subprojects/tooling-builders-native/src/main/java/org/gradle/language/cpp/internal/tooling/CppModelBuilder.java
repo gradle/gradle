@@ -42,6 +42,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class CppModelBuilder implements ToolingModelBuilder {
     @Override
@@ -77,7 +78,9 @@ public class CppModelBuilder implements ToolingModelBuilder {
             CppCompile compileTask = binary.getCompileTask().get();
             List<File> systemIncludes = new ArrayList<File>(compileTask.getSystemIncludes().getFiles());
             List<File> userIncludes = new ArrayList<File>(compileTask.getIncludes().getFiles());
-            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(sourceFiles, systemIncludes, userIncludes);
+            List<DefaultMacroDirective> macroDefines = macroDefines(compileTask);
+            List<String> additionalArgs = compilerArgs(compileTask);
+            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(sourceFiles, systemIncludes, userIncludes, macroDefines, additionalArgs);
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                 binaries.add(new DefaultCppExecutable(binary.getName(), binary.getBaseName().get(), compilationDetails));
             } else if (binary instanceof CppSharedLibrary) {
@@ -87,6 +90,30 @@ public class CppModelBuilder implements ToolingModelBuilder {
             }
         }
         return binaries;
+    }
+
+    private List<String> compilerArgs(CppCompile compileTask) {
+        List<String> compilerArgs = compileTask.getCompilerArgs().get();
+        if (compilerArgs.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> result = new ArrayList<String>(compilerArgs.size());
+        // TODO - This is to deal with Groovy strings in the args collection. This conversion should instead live in the property implementation
+        for (Object compilerArg : compilerArgs) {
+            result.add(compilerArg.toString());
+        }
+        return result;
+    }
+
+    private List<DefaultMacroDirective> macroDefines(CppCompile compileTask) {
+        if (compileTask.getMacros().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<DefaultMacroDirective> macros = new ArrayList<DefaultMacroDirective>(compileTask.getMacros().size());
+        for (Map.Entry<String, String> entry : compileTask.getMacros().entrySet()) {
+            macros.add(new DefaultMacroDirective(entry.getKey(), entry.getValue()));
+        }
+        return macros;
     }
 
     public static class DefaultCppProject implements Serializable {
@@ -113,15 +140,37 @@ public class CppModelBuilder implements ToolingModelBuilder {
         }
     }
 
+    public static class DefaultMacroDirective implements Serializable {
+        private final String name;
+        private final String value;
+
+        public DefaultMacroDirective(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
     public static class DefaultCompilationDetails implements Serializable {
         private final List<File> sources;
         private final List<File> systemHeaderDirs;
         private final List<File> userHeaderDirs;
+        private final List<DefaultMacroDirective> macroDefines;
+        private final List<String> additionalArgs;
 
-        public DefaultCompilationDetails(List<File> sources, List<File> systemHeaderDirs, List<File> userHeaderDirs) {
+        public DefaultCompilationDetails(List<File> sources, List<File> systemHeaderDirs, List<File> userHeaderDirs, List<DefaultMacroDirective> macroDefines, List<String> additionalArgs) {
             this.sources = sources;
             this.systemHeaderDirs = systemHeaderDirs;
             this.userHeaderDirs = userHeaderDirs;
+            this.macroDefines = macroDefines;
+            this.additionalArgs = additionalArgs;
         }
 
         public List<File> getSources() {
@@ -138,6 +187,18 @@ public class CppModelBuilder implements ToolingModelBuilder {
 
         public List<File> getUserHeaderSearchPaths() {
             return userHeaderDirs;
+        }
+
+        public List<DefaultMacroDirective> getMacroDefines() {
+            return macroDefines;
+        }
+
+        public List<String> getMacroUndefines() {
+            return Collections.emptyList();
+        }
+
+        public List<String> getAdditionalArgs() {
+            return additionalArgs;
         }
     }
 
