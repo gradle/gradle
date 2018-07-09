@@ -19,65 +19,21 @@ package org.gradle.cache.internal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import java.util.concurrent.TimeUnit
+import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
 
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.MARKER_FILE_PATH
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.WRAPPER_DISTRIBUTION_FILE_PATH
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.MISSING_MARKER_FILE
+trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements VersionSpecificCacheCleanupFixture {
 
-trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
-
-    TestFile createVersionSpecificCacheDir(GradleVersion version, MarkerFileType type = MISSING_MARKER_FILE) {
-        return createCacheSubDir(version.version, type)
-    }
-
-    TestFile createCacheSubDir(String name, MarkerFileType type = MISSING_MARKER_FILE) {
-        def cachesDir = getGradleUserHomeDir().file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME).createDir()
-        def versionDir = cachesDir.file(name).createDir()
-        def markerFile = versionDir.file(MARKER_FILE_PATH)
-        type.process(markerFile)
-        return versionDir
+    @Override
+    TestFile getCachesDir() {
+        gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
     TestFile createDistributionDir(GradleVersion version, String distributionType) {
-        def cachesDir = getGradleUserHomeDir().file(WRAPPER_DISTRIBUTION_FILE_PATH).createDir()
-        def versionDir = cachesDir.file("gradle-${version.version}-$distributionType").createDir()
+        def distsDir = gradleUserHomeDir.createDir(WRAPPER_DISTRIBUTION_FILE_PATH)
+        def versionDir = distsDir.file("gradle-${version.version}-$distributionType").createDir()
         return versionDir
-    }
-
-    TestFile getGcFile(TestFile currentCacheDir) {
-        currentCacheDir.file("gc.properties")
     }
 
     abstract TestFile getGradleUserHomeDir()
 
-    static enum MarkerFileType {
-
-        USED_TODAY {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-            }
-        },
-
-        NOT_USED_WITHIN_30_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(31)
-            }
-        },
-
-        NOT_USED_WITHIN_7_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8)
-            }
-        },
-
-        MISSING_MARKER_FILE
-
-        void process(TestFile markerFile) {}
-    }
 }

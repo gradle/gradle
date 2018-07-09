@@ -25,14 +25,12 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @CleanupTestDirectory
-class VersionSpecificCacheDirectoryServiceTest extends Specification {
+class VersionSpecificCacheDirectoryScannerTest extends Specification {
 
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    TestFile userHomeDir = temporaryFolder.file("user-home").createDir()
-    TestFile cacheBaseDir = userHomeDir.createDir(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestFile cacheBaseDir = temporaryFolder.createDir(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
 
-    @Subject def versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryService(userHomeDir)
+    @Subject def versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryScanner(cacheBaseDir)
 
     def "lists version-specific cache directories"() {
         given:
@@ -57,25 +55,5 @@ class VersionSpecificCacheDirectoryServiceTest extends Specification {
     def "returns version-specific cache directory"() {
         expect:
         versionSpecificCacheDirectoryService.getDirectory(GradleVersion.version("1.2.3")) == cacheBaseDir.file("1.2.3")
-    }
-
-    def "returns Gradle versions from version-specific cache directories"() {
-        given:
-        cacheBaseDir.createDir("_foo")
-        cacheBaseDir.createDir("1.2.3-rc-1")
-        cacheBaseDir.createDir("0.9-20101220110000+1100")
-        cacheBaseDir.createDir("2.3.4")
-        cacheBaseDir.createDir("99_BAR")
-        cacheBaseDir.createDir("ZZZZ")
-
-        when:
-        def versions = versionSpecificCacheDirectoryService.getUsedGradleVersions()
-
-        then:
-        versions as List == [
-            GradleVersion.version("0.9-20101220110000+1100"),
-            GradleVersion.version("1.2.3-rc-1"),
-            GradleVersion.version("2.3.4")
-        ]
     }
 }

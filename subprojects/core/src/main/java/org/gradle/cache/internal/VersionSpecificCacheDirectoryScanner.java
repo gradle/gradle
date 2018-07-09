@@ -30,25 +30,16 @@ import java.util.SortedSet;
 
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 
-public class VersionSpecificCacheDirectoryService implements UsedGradleVersions {
+public class VersionSpecificCacheDirectoryScanner {
 
-    private final File cacheBaseDir;
+    private final File baseDir;
 
-    public VersionSpecificCacheDirectoryService(File gradleUserHomeDirectory) {
-        this.cacheBaseDir = new File(gradleUserHomeDirectory, DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME);
-    }
-
-    @Override
-    public SortedSet<GradleVersion> getUsedGradleVersions() {
-        SortedSet<GradleVersion> result = Sets.newTreeSet();
-        for (VersionSpecificCacheDirectory cacheDir : getExistingDirectories()) {
-            result.add(cacheDir.getVersion());
-        }
-        return result;
+    public VersionSpecificCacheDirectoryScanner(File baseDir) {
+        this.baseDir = baseDir;
     }
 
     public File getDirectory(GradleVersion gradleVersion) {
-        return new File(cacheBaseDir, gradleVersion.getVersion());
+        return new File(baseDir, gradleVersion.getVersion());
     }
 
     public SortedSet<VersionSpecificCacheDirectory> getExistingDirectories() {
@@ -64,7 +55,7 @@ public class VersionSpecificCacheDirectoryService implements UsedGradleVersions 
 
     private Collection<File> listVersionSpecificCacheDirs() {
         FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter("^\\d.*"));
-        File[] result = cacheBaseDir.listFiles(combinedFilter);
+        File[] result = baseDir.listFiles(combinedFilter);
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }
 

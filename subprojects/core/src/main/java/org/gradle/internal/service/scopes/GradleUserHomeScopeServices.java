@@ -55,8 +55,8 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.internal.UsedGradleVersionsFromGradleUserHomeCaches;
 import org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService;
-import org.gradle.cache.internal.VersionSpecificCacheDirectoryService;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
@@ -114,10 +114,9 @@ public class GradleUserHomeScopeServices {
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
-        VersionSpecificCacheDirectoryService versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryService(userHomeDir);
-        registration.add(UsedGradleVersions.class, versionSpecificCacheDirectoryService);
+        // register eagerly so stop() is triggered when services are being stopped
         registration.add(VersionSpecificCacheAndWrapperDistributionCleanupService.class,
-            new VersionSpecificCacheAndWrapperDistributionCleanupService(GradleVersion.current(), versionSpecificCacheDirectoryService, userHomeDir));
+            new VersionSpecificCacheAndWrapperDistributionCleanupService(userHomeDir));
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
@@ -239,5 +238,9 @@ public class GradleUserHomeScopeServices {
 
     FileAccessTimeJournal createFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         return new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory);
+    }
+
+    UsedGradleVersions createUsedGradleVersions(CacheScopeMapping cacheScopeMapping) {
+        return new UsedGradleVersionsFromGradleUserHomeCaches(cacheScopeMapping);
     }
 }

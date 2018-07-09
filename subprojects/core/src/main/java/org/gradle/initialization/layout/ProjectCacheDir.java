@@ -16,17 +16,43 @@
 
 package org.gradle.initialization.layout;
 
+import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+
 import java.io.File;
 
-public class ProjectCacheDir {
+public class ProjectCacheDir implements Stoppable {
+
+    private static final long MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS = 7;
 
     private final File dir;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProjectCacheDir(File dir) {
+    public ProjectCacheDir(File dir, BuildOperationExecutor buildOperationExecutor) {
         this.dir = dir;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public File getDir() {
         return dir;
+    }
+
+    @Override
+    public void stop() {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                new VersionSpecificCacheCleanupAction(dir, MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS).execute();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Delete unused version-specific caches in " + dir);
+            }
+        });
     }
 }
