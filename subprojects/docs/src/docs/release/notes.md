@@ -1,12 +1,11 @@
 The Gradle team is pleased to announce Gradle 4.9.
 
 First and foremost, this version of Gradle features experimental new _lazy task API_.
-In a nutshell, the new API allows builds to avoid the cost of creating and [configuring tasks](userguide/build_lifecycle.html) when those tasks will never be executed.
-This has the added usability benefit that task configuration with side-effects will no longer run unintentionally.
+In a nutshell, the new tasks API allows builds to avoid the cost of creating and [configuring](userguide/build_lifecycle.html) tasks when those tasks will never be executed.
 
 Some Gradle tasks have converted to use this API, so you should see slightly faster configuration times just by upgrading.
 The benefits will improve as more plugins adopt this API.
-But _hold on_, it must be stressed that this is [incubating](userguide/feature_lifecycle.html#sec:incubating_state) and may change in breaking ways before Gradle 5.0.
+But _hold on_, it must be stressed that this API is [incubating](userguide/feature_lifecycle.html#sec:incubating_state) and may change in breaking ways before Gradle 5.0.
 However, your feedback is very welcome.
 Please read [this document](userguide/task_configuration_avoidance.html), try it out in non-production environments, and [file issues](https://github.com/gradle/gradle/issues) or [discuss with us](https://discuss.gradle.org).
 [Stay tuned](https://newsletter.gradle.com) for updates on this exciting new feature.
@@ -14,11 +13,12 @@ Please read [this document](userguide/task_configuration_avoidance.html), try it
 Next, publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be [depended upon by other projects](https://github.com/gradle/gradle/issues/1061) in the same build.
 There is also a [new Publishing Overview chapter](userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.
 
-In addition to lazy tasks use, Kotlin DSL build scripts are evaluated faster with version 0.18.4, included in this version of Gradle.
-IntelliJ IDEA and Android Studio user experience is also improved.
-See details in the [Kotlin DSL v0.18.x release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.18.4).
+On to the Kotlin DSL, which reaches version 0.18.4 included in this distribution of Gradle.
+In addition to quicker `.gradle.kts` [evaluation and other UX improvements](https://github.com/gradle/kotlin-dsl/releases/tag/v0.18.4), we're delighted to introduce a new guide: [Migrating build logic from Groovy to Kotlin](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/).
+This covers considerations and build script snippets that are essential to a successful migration. 
+You will start seeing more and more Groovy and Kotlin side-by-side in the documentation — stay tuned!  
 
-You can now pass arguments to `JavaExec` tasks [directly from the command-line](#command-line-args-supported-by-javaexec) using `--args`:
+Next up, you can now pass arguments to `JavaExec` tasks [directly from the command-line](#command-line-args-supported-by-javaexec) using `--args`:
 
     ❯ gradle run --args 'foo --bar'
     
@@ -31,9 +31,9 @@ We hope you will build happiness with Gradle 4.9, and we look forward to your fe
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 4.9 RC1 quickly by updating your wrapper properties:
+Switch your build to use Gradle 4.9 RC2 quickly by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=4.9-rc-1`
+`./gradlew wrapper --gradle-version=4.9-rc-2`
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
