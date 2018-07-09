@@ -19,7 +19,9 @@ package org.gradle.language.cpp.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.tooling.model.cpp.CppComponentType;
+import org.gradle.tooling.model.cpp.CppProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.Serializable;
@@ -27,20 +29,45 @@ import java.io.Serializable;
 public class CppModelBuilder implements ToolingModelBuilder {
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.cpp.CppComponent");
+        return modelName.equals(CppProject.class.getName());
     }
 
     @Override
     public Object buildAll(String modelName, Project project) {
+        DefaultCppComponent mainComponent = null;
         CppApplication application = project.getComponents().withType(CppApplication.class).findByName("main");
         if (application != null) {
-            return new DefaultCppComponent(CppComponentType.APPLICATION);
+            mainComponent = new DefaultCppComponent(CppComponentType.APPLICATION);
+        } else {
+            CppLibrary library = project.getComponents().withType(CppLibrary.class).findByName("main");
+            if (library != null) {
+                mainComponent = new DefaultCppComponent(CppComponentType.LIBRARY);
+            }
         }
-        CppLibrary library = project.getComponents().withType(CppLibrary.class).findByName("main");
-        if (library != null) {
-            return new DefaultCppComponent(CppComponentType.LIBRARY);
+        DefaultCppComponent testComponent = null;
+        CppTestSuite testSuite = project.getComponents().withType(CppTestSuite.class).findByName("test");
+        if (testSuite != null) {
+            testComponent = new DefaultCppComponent(CppComponentType.APPLICATION);
         }
-        return null;
+        return new DefaultCppProject(mainComponent, testComponent);
+    }
+
+    public static class DefaultCppProject implements Serializable {
+        private final DefaultCppComponent mainComponent;
+        private final DefaultCppComponent testComponent;
+
+        public DefaultCppProject(DefaultCppComponent mainComponent, DefaultCppComponent testComponent) {
+            this.mainComponent = mainComponent;
+            this.testComponent = testComponent;
+        }
+
+        public DefaultCppComponent getMainComponent() {
+            return mainComponent;
+        }
+
+        public DefaultCppComponent getTestComponent() {
+            return testComponent;
+        }
     }
 
     public static class DefaultCppComponent implements Serializable {
