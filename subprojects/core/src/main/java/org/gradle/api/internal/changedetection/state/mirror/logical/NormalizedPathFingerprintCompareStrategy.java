@@ -22,8 +22,10 @@ import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,64 +34,64 @@ import java.util.List;
 import java.util.Map;
 
 public class NormalizedPathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
-    private static final Comparator<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
+    private static final Comparator<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>>() {
         @Override
-        public int compare(Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o1, Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o2) {
+        public int compare(Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot> o1, Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }
     };
 
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentFingerprints, Map<String, NormalizedFileSnapshot> previousFingerprints, String propertyTitle, boolean includeAdded) {
-        ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
-        ListMultimap<String, IncrementalFileSnapshotWithAbsolutePath> addedFiles = MultimapBuilder.linkedHashKeys().linkedListValues().build();
+        ListMultimap<NormalizedFileSnapshot, NonNormalizedFileSnapshot> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
+        ListMultimap<String, NonNormalizedFileSnapshot> addedFiles = MultimapBuilder.linkedHashKeys().linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previousFingerprints.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot, new IncrementalFileSnapshotWithAbsolutePath(absolutePath, previousSnapshot.getSnapshot()));
+            unaccountedForPreviousSnapshots.put(previousSnapshot, new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getSnapshot()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : currentFingerprints.entrySet()) {
             String currentAbsolutePath = entry.getKey();
             NormalizedFileSnapshot currentNormalizedSnapshot = entry.getValue();
             FileContentSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
-            List<IncrementalFileSnapshotWithAbsolutePath> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentNormalizedSnapshot);
+            List<NonNormalizedFileSnapshot> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentNormalizedSnapshot);
             if (previousSnapshotsForNormalizedPath.isEmpty()) {
-                IncrementalFileSnapshotWithAbsolutePath currentSnapshotWithAbsolutePath = new IncrementalFileSnapshotWithAbsolutePath(currentAbsolutePath, currentSnapshot);
+                NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot);
                 addedFiles.put(currentNormalizedSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
             } else {
-                IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
-                FileContentSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
-                if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
-                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousSnapshot.getType(), currentSnapshot.getType()))) {
+                NonNormalizedFileSnapshot previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
+                HashCode previousSnapshot = previousSnapshotWithAbsolutePath.getContentHash();
+                if (!currentSnapshot.getContentHash().equals(previousSnapshot)) {
+                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousSnapshotWithAbsolutePath.getType(), currentSnapshot.getType()))) {
                         return false;
                     }
                 }
             }
         }
-        List<Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
+        List<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (Map.Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
+        for (Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
             NormalizedFileSnapshot previousSnapshot = unaccountedForPreviousSnapshotEntry.getKey();
             String normalizedPath = previousSnapshot.getNormalizedPath();
-            List<IncrementalFileSnapshotWithAbsolutePath> addedFilesForNormalizedPath = addedFiles.get(normalizedPath);
+            List<NonNormalizedFileSnapshot> addedFilesForNormalizedPath = addedFiles.get(normalizedPath);
             if (!addedFilesForNormalizedPath.isEmpty()) {
                 // There might be multiple files with the same normalized path, here we choose one of them
-                IncrementalFileSnapshotWithAbsolutePath modifiedSnapshot = addedFilesForNormalizedPath.remove(0);
-                if (!visitor.visitChange(FileChange.modified(modifiedSnapshot.getAbsolutePath(), propertyTitle, previousSnapshot.getSnapshot().getType(), modifiedSnapshot.getSnapshot().getType()))) {
+                NonNormalizedFileSnapshot modifiedSnapshot = addedFilesForNormalizedPath.remove(0);
+                if (!visitor.visitChange(FileChange.modified(modifiedSnapshot.getNormalizedPath(), propertyTitle, previousSnapshot.getType(), modifiedSnapshot.getType()))) {
                     return false;
                 }
             } else {
-                IncrementalFileSnapshotWithAbsolutePath removedSnapshot = unaccountedForPreviousSnapshotEntry.getValue();
-                if (!visitor.visitChange(FileChange.removed(removedSnapshot.getAbsolutePath(), propertyTitle, removedSnapshot.getSnapshot().getType()))) {
+                NonNormalizedFileSnapshot removedSnapshot = unaccountedForPreviousSnapshotEntry.getValue();
+                if (!visitor.visitChange(FileChange.removed(removedSnapshot.getNormalizedPath(), propertyTitle, removedSnapshot.getType()))) {
                     return false;
                 }
             }
         }
 
         if (includeAdded) {
-            for (IncrementalFileSnapshotWithAbsolutePath addedFile : addedFiles.values()) {
-                if (!visitor.visitChange(FileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getSnapshot().getType()))) {
+            for (NonNormalizedFileSnapshot addedFile : addedFiles.values()) {
+                if (!visitor.visitChange(FileChange.added(addedFile.getNormalizedPath(), propertyTitle, addedFile.getType()))) {
                     return false;
                 }
             }
@@ -107,29 +109,6 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
         Collections.sort(normalizedSnapshots);
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
             normalizedSnapshot.appendToHasher(hasher);
-        }
-    }
-
-    private static class IncrementalFileSnapshotWithAbsolutePath {
-        private final String absolutePath;
-        private final FileContentSnapshot snapshot;
-
-        public IncrementalFileSnapshotWithAbsolutePath(String absolutePath, FileContentSnapshot snapshot) {
-            this.absolutePath = absolutePath;
-            this.snapshot = snapshot;
-        }
-
-        public String getAbsolutePath() {
-            return absolutePath;
-        }
-
-        public FileContentSnapshot getSnapshot() {
-            return snapshot;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s (%s)", getSnapshot(), absolutePath);
         }
     }
 }

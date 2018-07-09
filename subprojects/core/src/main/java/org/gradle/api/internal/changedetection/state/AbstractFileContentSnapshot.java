@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 public abstract class AbstractFileContentSnapshot implements FileContentSnapshot {
     @Override
@@ -40,5 +41,10 @@ public abstract class AbstractFileContentSnapshot implements FileContentSnapshot
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putHash(getContentMd5());
+    }
+
+    @Override
+    public HashCode getContentHash() {
+        return getContentMd5();
     }
 }

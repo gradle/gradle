@@ -21,9 +21,9 @@ import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -88,7 +88,7 @@ public enum FingerprintCompareStrategy {
                         return emptyIterator();
                     case 1:
                         Map.Entry<String, NormalizedFileSnapshot> entry = previous.entrySet().iterator().next();
-                        TaskStateChange change = FileChange.removed(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
+                        TaskStateChange change = FileChange.removed(entry.getKey(), fileType, entry.getValue().getType());
                         return singletonIterator(change);
                     default:
                         return null;
@@ -99,7 +99,7 @@ public enum FingerprintCompareStrategy {
                     case 0:
                         if (includeAdded) {
                             Map.Entry<String, NormalizedFileSnapshot> entry = current.entrySet().iterator().next();
-                            TaskStateChange change = FileChange.added(entry.getKey(), fileType, entry.getValue().getSnapshot().getType());
+                            TaskStateChange change = FileChange.added(entry.getKey(), fileType, entry.getValue().getType());
                             return singletonIterator(change);
                         } else {
                             return emptyIterator();
@@ -121,11 +121,11 @@ public enum FingerprintCompareStrategy {
         NormalizedFileSnapshot normalizedPrevious = previousEntry.getValue();
         NormalizedFileSnapshot normalizedCurrent = currentEntry.getValue();
         if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {
-            FileContentSnapshot previousSnapshot = normalizedPrevious.getSnapshot();
-            FileContentSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
-            if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
+            HashCode previousContent = normalizedPrevious.getContentHash();
+            HashCode currentContent = normalizedCurrent.getContentHash();
+            if (!currentContent.equals(previousContent)) {
                 String path = currentEntry.getKey();
-                TaskStateChange change = FileChange.modified(path, fileType, previousSnapshot.getType(), currentSnapshot.getType());
+                TaskStateChange change = FileChange.modified(path, fileType, normalizedPrevious.getType(), normalizedCurrent.getType());
                 return singletonIterator(change);
             } else {
                 return emptyIterator();
@@ -134,12 +134,12 @@ public enum FingerprintCompareStrategy {
             if (includeAdded) {
                 String previousPath = previousEntry.getKey();
                 String currentPath = currentEntry.getKey();
-                TaskStateChange remove = FileChange.removed(previousPath, fileType, normalizedPrevious.getSnapshot().getType());
-                TaskStateChange add = FileChange.added(currentPath, fileType, normalizedCurrent.getSnapshot().getType());
+                TaskStateChange remove = FileChange.removed(previousPath, fileType, normalizedPrevious.getType());
+                TaskStateChange add = FileChange.added(currentPath, fileType, normalizedCurrent.getType());
                 return Iterators.forArray(remove, add);
             } else {
                 String path = previousEntry.getKey();
-                TaskStateChange change = FileChange.removed(path, fileType, previousEntry.getValue().getSnapshot().getType());
+                TaskStateChange change = FileChange.removed(path, fileType, previousEntry.getValue().getType());
                 return singletonIterator(change);
             }
         }

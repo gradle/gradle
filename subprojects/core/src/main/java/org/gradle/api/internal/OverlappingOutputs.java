@@ -17,9 +17,9 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -38,13 +38,14 @@ public class OverlappingOutputs {
         Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
         Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
 
-        for (Map.Entry<String, NormalizedFileSnapshot> beforeSnapshot : beforeSnapshots.entrySet()) {
-            String path = beforeSnapshot.getKey();
-            FileContentSnapshot fileSnapshot = beforeSnapshot.getValue().getSnapshot();
+        for (Map.Entry<String, NormalizedFileSnapshot> beforeEntry : beforeSnapshots.entrySet()) {
+            String path = beforeEntry.getKey();
+            NormalizedFileSnapshot beforeSnapshot = beforeEntry.getValue();
+            HashCode fileSnapshot = beforeSnapshot.getContentHash();
             NormalizedFileSnapshot normalizedFileSnapshot = previousSnapshots.get(path);
-            FileContentSnapshot previousSnapshot = normalizedFileSnapshot == null ? null : normalizedFileSnapshot.getSnapshot();
+            HashCode previousSnapshot = normalizedFileSnapshot == null ? null : normalizedFileSnapshot.getContentHash();
             // Missing files can be ignored
-            if (fileSnapshot.getType() != FileType.Missing) {
+            if (beforeSnapshot.getType() != FileType.Missing) {
                 if (createdSincePreviousExecution(previousSnapshot) || changedSincePreviousExecution(fileSnapshot, previousSnapshot)) {
                     return new OverlappingOutputs(propertyName, path);
                 }
@@ -53,12 +54,12 @@ public class OverlappingOutputs {
         return null;
     }
 
-    private static boolean changedSincePreviousExecution(FileContentSnapshot fileSnapshot, FileContentSnapshot previousSnapshot) {
+    private static boolean changedSincePreviousExecution(HashCode fileSnapshot, HashCode previousSnapshot) {
         // _changed_ since last execution, possibly by another task
-        return !previousSnapshot.isContentUpToDate(fileSnapshot);
+        return !previousSnapshot.equals(fileSnapshot);
     }
 
-    private static boolean createdSincePreviousExecution(@Nullable FileContentSnapshot previousSnapshot) {
+    private static boolean createdSincePreviousExecution(@Nullable HashCode previousSnapshot) {
         // created since last execution, possibly by another task
         return previousSnapshot == null;
     }

@@ -42,29 +42,29 @@ public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl
                     String currentNormalizedPath = currentNormalizedSnapshot.getNormalizedPath();
                     String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
                     if (currentNormalizedPath.equals(previousNormalizedPath)) {
-                        if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousNormalizedSnapshot.getSnapshot())) {
+                        if (!currentNormalizedSnapshot.getContentHash().equals(previousNormalizedSnapshot.getContentHash())) {
                             if (!visitor.visitChange(
                                 FileChange.modified(currentAbsolutePath, propertyTitle,
-                                    previousNormalizedSnapshot.getSnapshot().getType(),
-                                    currentNormalizedSnapshot.getSnapshot().getType()
+                                    previousNormalizedSnapshot.getType(),
+                                    currentNormalizedSnapshot.getType()
                                 ))) {
                                 return false;
                             }
                         }
                     } else {
                         String previousAbsolutePath = previous.getKey();
-                        if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previousNormalizedSnapshot.getSnapshot().getType()))) {
+                        if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previousNormalizedSnapshot.getType()))) {
                             return false;
                         }
                         if (includeAdded) {
-                            if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentNormalizedSnapshot.getSnapshot().getType()))) {
+                            if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentNormalizedSnapshot.getType()))) {
                                 return false;
                             }
                         }
                     }
                 } else {
                     if (includeAdded) {
-                        if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, current.getValue().getSnapshot().getType()))) {
+                        if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, current.getValue().getType()))) {
                             return false;
                         }
                     }
@@ -72,7 +72,7 @@ public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl
             } else {
                 if (previousEntries.hasNext()) {
                     Map.Entry<String, NormalizedFileSnapshot> previousEntry = previousEntries.next();
-                    if (!visitor.visitChange(FileChange.removed(previousEntry.getKey(), propertyTitle, previousEntry.getValue().getSnapshot().getType()))) {
+                    if (!visitor.visitChange(FileChange.removed(previousEntry.getKey(), propertyTitle, previousEntry.getValue().getType()))) {
                         return false;
                     }
                 } else {

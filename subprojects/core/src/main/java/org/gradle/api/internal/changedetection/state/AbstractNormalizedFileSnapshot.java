@@ -17,6 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
     private final FileContentSnapshot snapshot;
@@ -33,14 +35,14 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     @Override
     public final void appendToHasher(BuildCacheHasher hasher) {
         hasher.putString(getNormalizedPath());
-        hasher.putHash(getSnapshot().getContentMd5());
+        hasher.putHash(getContentHash());
     }
 
     @Override
     public final int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = getSnapshot().getContentMd5().compareTo(o.getSnapshot().getContentMd5());
+            result = getContentHash().compareTo(getContentHash());
         }
         return result;
     }
@@ -68,5 +70,15 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     @Override
     public final String toString() {
         return String.format("'%s' / %s", getNormalizedPath(), snapshot);
+    }
+
+    @Override
+    public HashCode getContentHash() {
+        return getSnapshot().getContentMd5();
+    }
+
+    @Override
+    public FileType getType() {
+        return getSnapshot().getType();
     }
 }

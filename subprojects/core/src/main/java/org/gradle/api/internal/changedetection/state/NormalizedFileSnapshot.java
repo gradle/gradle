@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
+
 /**
  * An immutable snapshot of some aspects of a file's metadata and content.
  *
@@ -26,5 +29,7 @@ package org.gradle.api.internal.changedetection.state;
  */
 public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
     String getNormalizedPath();
+    HashCode getContentHash();
+    FileType getType();
     FileContentSnapshot getSnapshot();
 }

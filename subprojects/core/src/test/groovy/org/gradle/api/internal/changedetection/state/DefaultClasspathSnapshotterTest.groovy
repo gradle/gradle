@@ -208,7 +208,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         fileSystemMirror.beforeTaskOutputChanged()
         def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, InputNormalizationStrategy.NOT_CONFIGURED)
         return fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
-            [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.snapshot.toString()]
+            [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.contentHash.toString()]
         }
     }
 
