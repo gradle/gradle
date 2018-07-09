@@ -31,18 +31,18 @@ class TransformFileOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
     private final File file;
     private final ArtifactTransformer transform;
-    private final boolean eager;
+    private final BuildOperationCategory category;
     private Throwable failure;
     private List<File> result;
 
-    TransformFileOperation(File file, ArtifactTransformer transform, boolean eager) {
+    TransformFileOperation(File file, ArtifactTransformer transform, BuildOperationCategory category) {
         this.file = file;
         this.transform = transform;
-        this.eager = eager;
+        this.category = category;
     }
 
     @Override
-    public void run(BuildOperationContext context) {
+    public void run(@Nullable BuildOperationContext context) {
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
@@ -55,13 +55,9 @@ class TransformFileOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        BuildOperationDescriptor.Builder operation = BuildOperationDescriptor
-            .displayName("Transform " + file + " with " + transform.getDisplayName())
-            .progressDisplayName("Transform " + transform.getDisplayName());
-        if (eager) {
-            operation.operationType(BuildOperationCategory.TASK);
-        }
-        return operation;
+        return BuildOperationDescriptor.displayName("Transform " + file + " with " + transform.getDisplayName())
+            .progressDisplayName("Transform " + transform.getDisplayName())
+            .operationType(category);
     }
 
     @Nullable

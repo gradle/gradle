@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.execution.taskgraph.TaskDependencyResolver;
 import org.gradle.execution.taskgraph.WorkInfo;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -155,7 +156,7 @@ public abstract class TransformInfo extends WorkInfo {
             }
             ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
 
-            TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer, true);
+            TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer, BuildOperationCategory.TASK);
             buildOperationExecutor.run(operation);
             this.result = operation.getResult();
             this.failure = operation.getFailure();
@@ -193,7 +194,7 @@ public abstract class TransformInfo extends WorkInfo {
             }
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File inputFile : previousTransform.getResult()) {
-                TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer, true);
+                TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer, BuildOperationCategory.TASK);
                 buildOperationExecutor.run(operation);
                 if (operation.getFailure() != null) {
                     this.failure = operation.getFailure();
