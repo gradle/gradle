@@ -722,6 +722,73 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         }
     }
 
+    def "should not align on rejected version"() {
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'xml:1.1 -> core:1.1'
+            path 'json:1.1 -> core:1.1'
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org:json:1.1'
+            }
+            
+            configurations.conf.resolutionStrategy {
+                componentSelection {
+                    withModule('org:xml') {
+                        if (it.candidate.version == '1.1') {
+                            reject("version 1.1 is buggy")
+                        }
+                    }
+                }
+            }
+        """
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        repositoryInteractions {
+            'org:core:1.0' {
+                expectGetMetadata()
+            }
+            'org:xml:1.0' {
+                expectResolve()
+            }
+            'org:xml:1.1' {
+                expectGetMetadata()
+            }
+            'org:core:1.1' {
+                expectResolve()
+            }
+            'org:json:1.1' {
+                expectResolve()
+            }
+            'org:platform:1.0'(virtualPlatform)
+            'org:platform:1.1'(virtualPlatform)
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xml:1.0", "org:xml:1.0") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    // byReason("version 1.1 is buggy") // TODO CC: uncomment when we collect rejection from component selection rule
+                    edge('org:core:1.0', 'org:core:1.1') {
+                        byConflictResolution("between versions 1.0 and 1.1")
+                    }
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
+            }
+        }
+    }
+
     private void "a rule which infers module set from group and version"() {
         buildFile << """
             dependencies {
