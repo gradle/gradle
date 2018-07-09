@@ -218,6 +218,98 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         gradle.waitForFinish()
     }
 
+    def "shows progress bar and percent phase completion with artifact transforms"() {
+        given:
+        settingsFile << """
+            include 'lib'
+            include 'util'
+        """
+        buildFile << """
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+                
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    ${server.callFromBuild('transform')}
+                    File output = new File(outputDirectory, input.name + ".txt")
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+            
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(usage)
+                    }
+                }
+                configurations {
+                    compile {
+                        attributes.attribute usage, 'api'
+                    }
+                }
+            }
+
+            project(':lib') {
+                task jar(type: Jar) {
+                    archiveName = 'lib.jar'
+                    doLast {
+                        ${server.callFromBuild('jar')}
+                    }
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+    
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def size = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+
+                    inputs.files size.artifactFiles
+
+                    doLast {
+                        ${server.callFromBuild('resolve-task')}
+                    }
+                }
+            }
+        """
+        def jar = server.expectAndBlock('jar')
+        def transform = server.expectAndBlock('transform')
+        def resolveTask = server.expectAndBlock('resolve-task')
+
+        when:
+        gradle = executer.withTasks(":util:resolve").start()
+
+        then:
+        jar.waitForAllPendingCalls()
+        assertHasBuildPhase("0% EXECUTING")
+        jar.releaseAll()
+
+        and:
+        transform.waitForAllPendingCalls()
+        assertHasBuildPhase("33% EXECUTING")
+        transform.releaseAll()
+
+        and:
+        resolveTask.waitForAllPendingCalls()
+        assertHasBuildPhase("66% EXECUTING")
+        resolveTask.releaseAll()
+
+        and:
+        gradle.waitForFinish()
+    }
+
     void assertHasBuildPhase(String message) {
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput =~ regexFor(message)
