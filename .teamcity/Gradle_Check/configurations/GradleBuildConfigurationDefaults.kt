@@ -1,15 +1,16 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2017_2.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2017_2.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_1.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_1.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
 import model.OS
@@ -20,6 +21,13 @@ private val java7Homes = mapOf(
         OS.linux to "-Djava7Home=%linux.jdk.for.gradle.compile%",
         OS.macos to "-Djava7Home=%macos.java7.oracle.64bit%"
 )
+
+private val java9Homes = mapOf(
+    OS.windows to """"-Djava9Home=%windows.java9.oracle.64bit%"""",
+    OS.linux to "-Djava9Home=%linux.java9.oracle.64bit%",
+    OS.macos to "-Djava9Home=%macos.java9.oracle.64bit%"
+)
+
 
 fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
     // TODO: Hacky. We should really be running all the subprojects on macOS
@@ -34,7 +42,9 @@ val gradleParameters = listOf(
         "--daemon",
         "--continue",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-        java7Homes[OS.linux]!!
+        java7Homes[OS.linux]!!,
+        java9Homes[OS.linux]!!,
+        "-Dorg.gradle.internal.tasks.createops"
 )
 
 val m2CleanScriptUnixLike = """
@@ -66,7 +76,7 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
     """.trimIndent()
 
     buildType.vcs {
-        root(vcsRoot)
+        root(AbsoluteId(vcsRoot))
         checkoutMode = CheckoutMode.ON_AGENT
         buildDefaultBranch = !vcsRoot.contains("Branches")
     }
@@ -111,8 +121,12 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultSettings(buildType, os, timeout)
 
     val java7HomeParameter = java7Homes[os]!!
-    val gradleParameterString = gradleParameters.joinToString(separator = " ")
+    val java9HomeParameter = java9Homes[os]!!
+
+    var gradleParameterString = gradleParameters.joinToString(separator = " ")
             .replace(java7Homes[OS.linux]!!, java7HomeParameter)
+            .replace(java9Homes[OS.linux]!!, java9HomeParameter)
+
     val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
     buildType.steps {
@@ -181,7 +195,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
         buildType.dependencies {
-            dependency("${model.projectPrefix}Stage_QuickFeedback_Trigger") {
+            dependency(AbsoluteId("${model.projectPrefix}Stage_QuickFeedback_Trigger")) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
@@ -195,14 +209,14 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         buildType.dependencies {
             val sanityCheckId = SanityCheck.buildTypeId(model)
             // Sanity Check has to succeed before anything else is started
-            dependency(sanityCheckId) {
+            dependency(AbsoluteId(sanityCheckId)) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
             // Get the build receipt from sanity check to reuse the timestamp
-            artifacts(sanityCheckId) {
+            artifacts(AbsoluteId(sanityCheckId)) {
                 id = "ARTIFACT_DEPENDENCY_$sanityCheckId"
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-distributions"

@@ -1,13 +1,14 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.Stage
 
 class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = "${model.projectPrefix}Gradleception"
-    id = uuid
+    id = AbsoluteId(uuid)
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 

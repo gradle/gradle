@@ -5,7 +5,7 @@ import configurations.DependenciesCheck
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
-import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
 
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
@@ -43,7 +43,8 @@ data class CIBuildModel (
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java8, JvmVendor.ibm))
+            ),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
                     functionalTests = listOf(
@@ -64,11 +65,21 @@ data class CIBuildModel (
             Stage("Experimental", "On demand: Run experimental tests",
                     trigger = Trigger.never,
                     runsIndependent = true,
-                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11)))),
-        val subProjects: List<GradleSubproject> = listOf(
+                    functionalTests = listOf(
+                        TestCoverage(TestType.soak, OS.linux, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.soak, OS.windows, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7, JvmVersion.java9),
+                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.macos, JvmVersion.java8, JvmVersion.java9),
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java9, JvmVersion.java9)
+                        ))),
+        val subProjects : List<GradleSubproject> = listOf(
             GradleSubproject("announce"),
             GradleSubproject("antlr"),
             GradleSubproject("baseServices"),
+            GradleSubproject("baseServicesJava9"),
             GradleSubproject("baseServicesGroovy", functionalTests = false),
             GradleSubproject("buildCache"),
             GradleSubproject("buildCacheHttp"),
@@ -146,9 +157,8 @@ data class CIBuildModel (
             GradleSubproject("internalAndroidPerformanceTesting", unitTests = false, functionalTests = false),
             GradleSubproject("performance", unitTests = false, functionalTests = false),
             GradleSubproject("runtimeApiInfo", unitTests = false, functionalTests = false),
-            GradleSubproject("smokeTest", unitTests = false, functionalTests = false)
+            GradleSubproject("smokeTest", unitTests = false, functionalTests = false))
         )
-    )
 
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) {
     fun asDirectoryName(): String {
@@ -183,18 +193,32 @@ data class Stage(val name: String, val description: String, val specificBuilds: 
     val id = name.replace(" ", "").replace("-", "")
 }
 
-data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
+data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java8, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
-        return "${model.projectPrefix}${testType.name.capitalize()}_${version.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+        if(buildJvmVersion != JvmVersion.java8 && testType == TestType.quickFeedbackCrossVersion) {
+            // This is a hack for the limitation on long configuration name
+            // "Gradle_Check_QuickFeedbackCrossVersion_Java7_Oracle_Linux_Java9_dependencyManagement" is invalid: it is too long. ID should start with a latin letter and contain only latin letters, digits and underscores (at most 80 characters).
+            return "${model.projectPrefix}QkFdbkCrsVsn_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}" + suffix()
+        }
+        if(buildJvmVersion != JvmVersion.java8 && testType == TestType.allVersionsCrossVersion) {
+            // This is a hack for the limitation on long configuration name
+            // "Gradle_Check_AllVersionsCrossVersion_Java7_Oracle_Windows_Java9_dependencyManagement" is invalid: it is too long. ID should start with a latin letter and contain only latin letters, digits and underscores (at most 80 characters).
+            return "${model.projectPrefix}AllVsnCrsVsn_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}" + suffix()
+        }
+        return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}" + suffix()
     }
 
     fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
         val shortenedSubprojectName = subproject.replace("internal", "i").replace("Testing", "T")
-        return asId(model) + "_" + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
+        return asId(model) + "_" + if (!subproject.isEmpty()) shortenedSubprojectName else "0" + suffix()
     }
 
     fun asName(): String {
-        return "Test Coverage - ${testType.name.capitalize()} ${version.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
+        return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}" + suffix()
+    }
+
+    fun suffix(): String {
+        return if(buildJvmVersion != JvmVersion.java8) "_${buildJvmVersion.name.capitalize()}" else ""
     }
 }
 

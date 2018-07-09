@@ -3,16 +3,17 @@ package projects
 import configurations.FunctionalTest
 import configurations.PerformanceTest
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2017_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_1.Project
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
 import model.*
 
-class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean) : Project({
+class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean, rootProjectUuid: String) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.id}"
-    this.id = uuid
+    this.id = AbsoluteId(uuid)
     this.name = stage.name
     this.description = stage.description
 
@@ -62,8 +63,8 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
 
     if (containsDeferredTests) {
         val deferredTestsProject = Project {
-            uuid = "deferred_tests"
-            id = uuid
+            uuid = "${rootProjectUuid}_deferred_tests"
+            id = AbsoluteId(uuid)
             name = "Test coverage deferred from Quick Feedback and Build Branch accept"
             model.subProjects.forEach { subProject ->
                 if (subProject.containsSlowTests) {

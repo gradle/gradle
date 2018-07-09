@@ -1,7 +1,7 @@
 package Gradle_Check
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.project
-import jetbrains.buildServer.configs.kotlin.v2017_2.version
+import jetbrains.buildServer.configs.kotlin.v2018_1.project
+import jetbrains.buildServer.configs.kotlin.v2018_1.version
 import model.CIBuildModel
 import projects.RootProject
 
@@ -25,5 +25,5 @@ Subprojects can be defined either in their own settings.kts or by
 calling the subProjects() method in this project.
 */
 
-version = "2017.2"
+version = "2018.1"
 project(RootProject(CIBuildModel(buildScanTags = listOf("Check"))))
