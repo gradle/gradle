@@ -15,8 +15,8 @@
  */
 
 import accessors.base
-import accessors.java
 import accessors.publishing
+import accessors.sourceSets
 
 import codegen.GenerateClasspathManifest
 
@@ -65,7 +65,7 @@ val generatedResourcesDir = file("$buildDir/generate-resources/main")
 val generateClasspathManifest by tasks.creating(GenerateClasspathManifest::class) {
     outputDirectory = generatedResourcesDir
 }
-val main by java.sourceSets
+val main by sourceSets
 main.output.dir(
     mapOf("builtBy" to generateClasspathManifest),
     generatedResourcesDir)
