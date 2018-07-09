@@ -331,13 +331,25 @@ As we later describe in full detail (see <<build_lifecycle#,"Build Lifecycle">>)
 
 In the following example, execution of the `distribution` and `release` tasks results in different value of the `version` variable.
 
-++++
-<sample id="configByDagNoRelease" dir="userguide/tutorial/configByDag" title="Different outcomes of build depending on chosen tasks">
-            <sourcefile file="build.gradle"/>
-            <output args="-q distribution"/>
-            <output args="-q release" outputFile="configByDag.out"/>
-        </sample>
-++++
+=== Example: Different outcomes of build depending on chosen tasks
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tutorial/configByDag/build.gradle[]
+----
+
+.Output of `gradle -q distribution`
+----
+> gradle -q distribution
+include::{samples-path}/userguide/tutorial/configByDag/configByDagNoRelease.out[]
+----
+
+.Output of `gradle -q release`
+----
+> gradle -q release
+include::{samples-path}/userguide/tutorial/configByDag/configByDag.out[]
+----
 
 The important thing is that `whenReady` affects the release task _before_ the release task is executed. This works even when the release task is not the _primary_ task (i.e., the task passed to the `gradle` command).
 

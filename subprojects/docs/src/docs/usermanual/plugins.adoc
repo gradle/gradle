@@ -169,12 +169,19 @@ If the restrictions of the new syntax are prohibitive, the recommended approach 
 
 If you have a <<multi_project_builds#,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block:
 
-++++
-<sample id="pluginsOnSubprojects" dir="plugins/multiproject" title="Applying plugins only on certain subprojects.">
-    <sourcefile file="settings.gradle" snippet="include-subprojects"/>
-    <sourcefile file="build.gradle" snippet="plugins-on-subprojects"/>
-</sample>
-++++
+=== Example: Applying plugins only on certain subprojects.
+
+[source.multi-language-sample,groovy]
+.settings.gradle
+----
+include::{samples-path}/plugins/multiproject/settings.gradle[tag=include-subprojects]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/plugins/multiproject/build.gradle[tag=plugins-on-subprojects]
+----
 
 If you then run `gradle hello` you'll see that only the helloA and helloB subprojects had the hello plugin applied.
 
@@ -201,12 +208,20 @@ The `pluginManagement {}` DSL is currently <<feature_lifecycle#,incubating>>. Pl
 
 The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts#,Initialization Script>>.
 
-++++
-<sample id="pluginManagementConfiguration" dir="plugins/pluginManagement" title="Configuring pluginManagement per-project and globally">
-    <sourcefile file="settings.gradle"/>
-    <sourcefile file="init.gradle"/>
-</sample>
-++++
+===== Example: Configuring pluginManagement per-project and globally
+
+[source.multi-language-sample,groovy]
+.settings.gradle
+----
+include::{samples-path}/plugins/pluginManagement/settings.gradle[]
+----
+
+[source.multi-language-sample,groovy]
+.init.gradle
+----
+include::{samples-path}/plugins/pluginManagement/init.gradle[]
+----
+
 
 [[sec:custom_plugin_repositories]]
 ===== Custom Plugin Repositories

@@ -22,14 +22,8 @@ Gradle can resolve dependencies from one or many repositories based on Maven, Iv
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Declaring a repository with the help of shortcut methods</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="120mm" />
-    </imageobject>
-</figure>
-+++++
+.Declaring a repository with the help of shortcut methods
+image::dependency-management-shortcut-repositories.png[]
 
 To declare JCenter as repository, add this code to your build script:
 

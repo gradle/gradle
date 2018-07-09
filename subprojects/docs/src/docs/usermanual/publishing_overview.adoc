@@ -182,11 +182,14 @@ include::{samples-path}/signing/maven-publish/build.gradle[tag=sign-publication]
 
 This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
 
-++++
-<sample dir="signing/maven-publish" id="publishingMavenSignAndPublish" title="Sign and publish a project">
-    <output args="publish"/>
-</sample>
-++++
+=== Example: Sign and publish a project
+
+[source]
+.Output of `gradle publish`
+----
+> gradle publish
+include::{samples-path}/signing/maven-publish/publishingMavenSignAndPublish.out[]
+----
 
 
 [[publishing_maven:conditional_publishing]]
@@ -206,12 +209,21 @@ The publishing plugins will create tasks that allow you to publish either of the
 
 Gradle allows you to skip any task you want based on a condition via the `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)]` method. The following sample demonstrates how to implement the constraints we just mentioned:
 
-++++
-<sample dir="maven-publish/conditional-publishing" id="publishingMavenConditionally" title="Configuring which artifacts should be published to which repositories">
-    <sourcefile file="build.gradle" snippet="task-config"/>
-    <output args="publish"/>
-</sample>
-++++
+=== Example: Configuring which artifacts should be published to which repositories
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/maven-publish/conditional-publishing/build.gradle[tag=task-config]
+----
+
+[source]
+.Output of `gradle publish`
+----
+> gradle publish
+include::{samples-path}/maven-publish/conditional-publishing/publishingMavenConditionally.out[]
+----
+
 
 You may also want to define your own aggregate tasks to help with your workflow. For example, imagine that you have several publications that should be published to the external repository. It could be very useful to publish all of them in one go without publishing the internal ones.
 

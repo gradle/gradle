@@ -59,13 +59,26 @@ Each init script also implements the `link:{groovy-dsl-path}/org.gradle.api.Scri
 
 You can use an init script to configure the projects in the build. This works in a similar way to configuring projects in a multi-project build. The following sample shows how to perform extra configuration from an init script _before_ the projects are evaluated. This sample uses this feature to configure an extra repository to be used only for certain environments.
 
-++++
-<sample id="initScriptConfiguration" dir="userguide/initScripts/configurationInjection" title="Using init script to perform extra configuration before projects are evaluated">
-                <sourcefile file="build.gradle"/>
-                <sourcefile file="init.gradle"/>
-                <output args="--init-script init.gradle -q showRepos"/>
-            </sample>
-++++
+=== Example: Using init script to perform extra configuration before projects are evaluated
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/initScripts/configurationInjection/build.gradle[]
+----
+
+[source.multi-language-sample,groovy]
+.init.gradle
+----
+include::{samples-path}/userguide/initScripts/configurationInjection/init.gradle[]
+----
+
+[source]
+.Output of `gradle --init-script init.gradle -q showRepos`
+----
+> gradle --init-script init.gradle -q showRepos
+include::{samples-path}/userguide/initScripts/configurationInjection/initScriptConfiguration.out[]
+----
 
 
 [[sec:custom_classpath]]
@@ -105,13 +118,26 @@ include::{samples-path}/userguide/initScripts/externalDependency/externalInitDep
 
 Similar to a Gradle build script or a Gradle settings file, plugins can be applied on init scripts.
 
-++++
-<sample id="usePluginsInInitScripts" dir="userguide/initScripts/plugins" title="Using plugins in init scripts">
-                    <sourcefile file="init.gradle" snippet="init-script-plugin"/>
-                    <sourcefile file="build.gradle" snippet="show-repos-task"/>
-                    <output args="-q -I init.gradle showRepositories"/>
-            </sample>
-++++
+=== Example: Using plugins in init scripts
+
+[source.multi-language-sample,groovy]
+.init.gradle
+----
+include::{samples-path}/userguide/initScripts/plugins/init.gradle[tag=init-script-plugin]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/initScripts/plugins/build.gradle[tag=show-repos-task]
+----
+
+[source]
+.Output of `gradle --init-script init.gradle -q showRepositories`
+----
+> gradle --init-script init.gradle -q showRepositories
+include::{samples-path}/userguide/initScripts/plugins/usePluginsInInitScripts.out[]
+----
 
 The plugin in the init script ensures that only a specified repository is used when running the build.
 

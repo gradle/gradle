@@ -36,14 +36,8 @@ include::{samples-path}/userguide/dependencyManagement/inspectingDependencies/de
 
 A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependency tree in a build scan</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dependencies-report-build-scan.png" width="180mm" />
-    </imageobject>
-</figure>
-+++++
+.Dependency tree in a build scan
+image::dependency-management-dependencies-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencies` to render the so-called _dependency report_ from the command line. By default the dependency report renders dependencies for all configurations. To pair down on the information provide the optional parameter `--configuration`.
 
@@ -74,14 +68,8 @@ include::{samples-path}/userguide/dependencyManagement/inspectingDependencies/de
 
 The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependency insight capabilities in a build scan</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dependency-insight-report-build-scan.png" />
-    </imageobject>
-</figure>
-+++++
+.Dependency insight capabilities in a build scan
+image::dependency-management-dependency-insight-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameters `--configuration` and `--singlepath` are optional but help with filtering the output.
 

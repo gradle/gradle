@@ -268,9 +268,16 @@ The Groovy plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.Gr
 
 The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<building_java_projects#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
-                <sourcefile file="gradle.properties"/>
-                <sourcefile file="build.gradle" snippet="groovy-cross-compilation"/>
-            </sample>
-++++
+=== Example: Configure Java 6 build for Groovy
+
+[source]
+.gradle.properties
+----
+include::{samples-path}/groovy/crossCompilation/gradle.properties[]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/groovy/crossCompilation/build.gradle[tag=groovy-cross-compilation]
+----

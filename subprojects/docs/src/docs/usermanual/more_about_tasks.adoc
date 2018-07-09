@@ -555,14 +555,31 @@ This task will have three inputs and one output:
 
 When you’re writing a custom task class, it’s easy to register properties as inputs or outputs via annotations. To demonstrate, here is a skeleton task implementation with some suitable inputs and outputs, along with their annotations:
 
-++++
-<sample id="customTaskClassWithInputOutputAnnotations" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Custom task class">
-                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="custom-task-class"/>
-                    <sourcefile file="buildSrc/src/main/java/org/example/TemplateData.java"/>
-                    <output args="processTemplates" />
-                    <output args="processTemplates" outputFile="customTaskClassWithInputOutputAnnotationsUpToDate.out"/>
-                </sample>
-++++
+=== Example: Custom task class
+
+[source.multi-language-sample,java]
+.buildSrc/src/main/java/org/example/ProcessTemplates.java
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+----
+
+[source.multi-language-sample,java]
+.buildSrc/src/main/java/org/example/TemplateData.java
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/TemplateData.java[]
+----
+
+.Output of `gradle processTemplates`
+----
+> gradle processTemplates
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/customTaskClassWithInputOutputAnnotations.out[]
+----
+
+.Output of `gradle processTemplates` (run again)
+----
+> gradle processTemplates
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+----
 
 There’s plenty to talk about in this example, so let’s work through each of the input and output properties in turn:
 
@@ -839,13 +856,27 @@ One notable difference between the runtime API and the annotations is the lack o
 
 Another type of example involves adding input and output definitions to instances of a custom task class that lacks the requisite annotations. For example, imagine that the `ProcessTemplates` task is provided by a plugin and that it’s missing the incremental build annotations. In order to make up for that deficiency, you can use the runtime API:
 
-++++
-<sample id="runtimeIncrementalApi" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Using runtime API with custom task type">
-                        <sourcefile file="build.gradle" snippet="custom-class-runtime-api"/>
-                        <output args="processTemplatesRuntime" />
-                        <output args="processTemplatesRuntime" outputFile="runtimeIncrementalApiUpToDate.out"/>
-                    </sample>
-++++
+=== Example: Using runtime API with custom task type
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=custom-class-runtime-api]
+----
+
+[source]
+.Output of `gradle processTemplatesRuntime`
+----
+> gradle processTemplatesRuntime
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApi.out[]
+----
+
+[source]
+.Output of `gradle processTemplatesRuntime` (run again)
+----
+> gradle processTemplatesRuntime
+include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiUpToDate.out[]
+----
 
 As you can see, we can both configure the tasks properties and use those properties as arguments to the incremental build runtime API. Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs. Note that if the task type is already using the incremental build annotations, the runtime API will add inputs and outputs rather than replace them.
 
@@ -979,25 +1010,51 @@ Have you ever wondered how the `from()` method of the `Copy` task works? It’s 
 
 The implementation is quite simple and you can use the same technique for your own tasks to improve their APIs. Write your methods so that they add files directly to the appropriate annotated property. As an example, here’s how to add a `sources()` method to the custom `ProcessTemplates` class we introduced earlier:
 
-++++
-<sample id="incrementalBuildCustomMethods" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add task inputs">
-                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="custom-task-class"/>
-                    <sourcefile file="build.gradle" snippet="custom-task-class"/>
-                    <output args="processTemplates" />
-                </sample>
-++++
+=== Example: Declaring a method to add task inputs
+
+[source.multi-language-sample,java]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=custom-task-class]
+----
+
+[source]
+.Output of `gradle processTemplates`
+----
+> gradle processTemplates
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethods.out[]
+----
 
 In other words, as long as you add values and files to formal task inputs and outputs during the configuration phase, they will be treated as such regardless from where in the build you add them.
 
 If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `project.layout.files()` method like so:
 
-++++
-<sample id="incrementalBuildCustomMethodsWithTaskArg" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add a task as an input">
-                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="task-arg-method"/>
-                    <sourcefile file="build.gradle" snippet="task-arg-method"/>
-                    <output args="processTemplates2" />
-                </sample>
-++++
+=== Example: Declaring a method to add a task as an input
+
+[source.multi-language-sample,java]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=task-arg-method]
+----
+
+[source]
+.Output of `gradle processTemplates2`
+----
+> gradle processTemplates2
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethodsWithTaskArg.out[]
+----
 
 This technique can make your custom task easier to use and result in cleaner build files.
 As an added benefit, our use of `getProject().getLayout().files()` means that our custom method can set up an inferred task dependency.
@@ -1088,13 +1145,25 @@ Gradle automatically handles up-to-date checks for output files and directories,
 
 That’s where the `upToDateWhen()` method on `TaskOutputs` comes in. This takes a predicate function that is used to determine whether a task is up to date or not. One use case is to disable up-to-date checks completely for a task, like so:
 
-++++
-<sample id="incrementalBuildUpToDateWhen" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Ignoring up-to-date checks">
-                    <sourcefile file="build.gradle" snippet="up-to-date-when"/>
-                    <output args="clean alwaysInstrumentClasses" />
-                    <output args="alwaysInstrumentClasses" outputFile="incrementalBuildUpToDateWhenAgain.out"/>
-                </sample>
-++++
+=== Example: Ignoring up-to-date checks
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=up-to-date-when]
+----
+
+.Output of `gradle clean alwaysInstrumentClasses`
+----
+> gradle clean alwaysInstrumentClasses
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhen.out[]
+----
+
+.Output of `gradle alwaysInstrumentClasses`
+----
+> gradle alwaysInstrumentClasses
+include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhenAgain.out[]
+----
 
 The `{ false }` closure ensures that `copyResources` will always perform the copy, irrespective of whether there is no change in the inputs or outputs.
 

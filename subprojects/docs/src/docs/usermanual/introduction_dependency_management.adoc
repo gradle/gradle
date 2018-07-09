@@ -28,14 +28,8 @@ For a general overview on the terms used throughout the user guide, refer to <<d
 
 Gradle has built-in support for dependency management and lives up the task of fulfilling typical scenarios encountered in modern software projects. We’ll explore the main concepts with the help of an example project. The illustration below should give you an rough overview on all the moving parts.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependency management big picture</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-resolution.png" width="130mm" />
-    </imageobject>
-</figure>
-+++++
+.Dependency management big picture
+image::dependency-management-resolution.png[]
 
 The example project builds Java source code. Some of the Java source files import classes from link:https://github.com/google/guava[Google Guava], a open-source library providing a wealth of utility functionality. In addition to Guava, the project needs the link:http://junit.org/junit5/[JUnit] libraries for compiling and executing test code.
 
@@ -51,14 +45,8 @@ Modules can provide additional metadata. Metadata is the data that describes the
 
 Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell. Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks. Learn more in <<inspecting_dependencies#,"Inspecting Dependencies">>.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Build scan dependencies report</title>
-    <imageobject>
-        <imagedata fileref="img/gradle-core-test-build-scan-dependencies.png" />
-    </imageobject>
-</figure>
-+++++
+.Build scan dependencies report
+image::gradle-core-test-build-scan-dependencies.png[]
 
 [[sec:dependency_resolution]]
 == How dependency resolution works

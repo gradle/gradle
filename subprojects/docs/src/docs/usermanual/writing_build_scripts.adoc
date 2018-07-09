@@ -180,13 +180,27 @@ include::{samples-path}/userguide/tutorial/configureObject/configureObject.out[]
 
 You can also configure arbitrary objects using an external script.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureObjectUsingScript" dir="userguide/tutorial/configureObjectUsingScript" title="Configuring arbitrary objects using a script">
-    <sourcefile file="build.gradle"/>
-    <sourcefile file="other.gradle"/>
-    <output args="-q configure"/>
-</sample>
-++++
+=== Example: Configuring arbitrary objects using a script
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tutorial/configureObjectUsingScript/build.gradle[]
+----
+
+[source.multi-language-sample,groovy]
+.other.gradle
+----
+include::{samples-path}/userguide/tutorial/configureObjectUsingScript/other.gradle[]
+----
+
+[source]
+.Output of `gradle -q configure`
+----
+> gradle -q configure
+include::{samples-path}/userguide/tutorial/configureObjectUsingScript/configureObjectUsingScript.out[]
+----
+
 
 [[groovy-dsl-basics]]
 == Some Groovy basics

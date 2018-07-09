@@ -17,14 +17,8 @@
 
 The recommended way to execute any Gradle build is with the help of the Gradle Wrapper (in short just “Wrapper”). The Wrapper is a script that invokes a declared version of Gradle, downloading it beforehand if necessary. As a result, developers can get up and running with a Gradle project quickly without having to follow manual installation processes saving your company time and money.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Wrapper workflow</title>
-    <imageobject>
-        <imagedata fileref="img/wrapper-workflow.png" width="200mm" />
-    </imageobject>
-</figure>
-+++++
+.The Wrapper workflow
+image::wrapper-workflow.png[]
 
 **In a nutshell you gain the following benefits:**
 
@@ -141,11 +135,14 @@ You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> w
 
 It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operating system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperBatchFileExecution" title="Executing the build with the Wrapper batch file">
-    <output executable="gradlew.bat" args="build" />
-</sample>
-++++
+=== Example: Executing the build with the Wrapper batch file
+
+[source]
+.Output of `gradlew.bat build`
+----
+> gradlew.bat build
+include::{samples-path}/userguide/wrapper/wrapperBatchFileExecution.out[]
+----
 
 In case the Gradle distribution is not available on the machine, the Wrapper will download it and store in the local file system. Any subsequent build invocation is going to reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
 
@@ -161,17 +158,23 @@ Projects will typically want to keep up with the times and upgrade their Gradle 
 
 Use the Gradle `wrapper` task to generate the wrapper, specifying a version. The default is the current version, which you can check by executing `./gradlew --version`.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperGradleVersionUpgrade" title="Upgrading the Wrapper version">
-    <output executable="./gradlew" args="wrapper --gradle-version 4.2.1" />
-</sample>
-++++
+=== Example: Upgrading the Wrapper version
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperGradleVersionAfterUpgrade" title="Checking the Wrapper version after upgrading">
-    <output executable="./gradlew" args="-v" />
-</sample>
-++++
+[source]
+.Output of `./gradlew wrapper --gradle-version 4.2.1`
+----
+> ./gradlew wrapper --gradle-version 4.2.1
+include::{samples-path}/userguide/wrapper/wrapperGradleVersionUpgrade.out[]
+----
+
+=== Example: Checking the Wrapper version after upgrading
+
+[source]
+.Output of `./gradlew -v`
+----
+> ./gradlew -v
+include::{samples-path}/userguide/wrapper/wrapperGradleVersionAfterUpgrade.out[]
+----
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper

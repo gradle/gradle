@@ -153,7 +153,7 @@ include::{samples-path}/userguide/bestPractices/taskDefinition/build.gradle[]
 == Improving task discoverability
 
 Even new users to a build should to be able to find crucial information quickly and effortlessly.
-In Gradle you can declare a link:{groovy-dsl-path}/api:org.gradle.api.Task.html#api:org.gradle.api.Task:setGroup(java.lang.String)[group] and a link:{groovy-dsl-path}/api:org.gradle.api.Task.html#api:org.gradle.api.Task:setDescription(java.lang.String)[description] for any task of the build.
+In Gradle you can declare a link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:setGroup(java.lang.String)[group] and a link:{groovy-dsl-path}/org.gradle.api.Task.html#api:org.gradle.api.Task:setDescription(java.lang.String)[description] for any task of the build.
 The <<command_line_interface#sec:listing_tasks,tasks report>> uses the assigned values to organize and render the task for easy discoverability.
 Assigning a group and description is most helpful for any task that you expect build users to invoke.
 

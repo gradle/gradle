@@ -24,14 +24,8 @@ Every dependency needs to be assigned to a configuration when declared in a buil
 
 Modern software projects rarely build code in isolation. Projects reference modules for the purpose of reusing existing and proven functionality. Upon resolution, selected versions of modules are downloaded from dedicated repositories and stored in the <<dependency_cache#,dependency cache>> to avoid unnecessary network traffic.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Resolving dependencies from remote repositories</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dependencies-to-modules.png" width="150mm" />
-    </imageobject>
-</figure>
-+++++
+.Resolving dependencies from remote repositories
+image::dependency-management-dependencies-to-modules.png[]
 
 [[sub:declaring_dependency_with_version]]
 === Declaring a concrete version of a dependency
@@ -80,14 +74,8 @@ include::{samples-path}/userguide/dependencyManagement/declaringDependencies/dyn
 
 A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dynamic dependencies in build scan</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dynamic-dependency-build-scan.png" width="135mm" />
-    </imageobject>
-</figure>
-+++++
+.Dynamic dependencies in build scan
+image::dependency-management-dynamic-dependency-build-scan.png[]
 
 By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
@@ -115,14 +103,8 @@ Gradle is flexible enough to treat any version as changing version e.g. if you w
 
 Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<dependency_management_terminology#sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Resolving file dependencies from the local file system and a shared drive</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-file-dependencies.png" width="140mm" />
-    </imageobject>
-</figure>
-+++++
+.Resolving file dependencies from the local file system and a shared drive
+image::dependency-management-file-dependencies.png[]
 
 The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
 
@@ -145,14 +127,8 @@ Software projects often break up software components into modules to improve mai
 
 Gradle can model dependencies between modules. Those dependencies are called _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. The chapter <<multi_project_builds#,Authoring Multi-Project Builds>> discusses how to set up and configure multi-project builds in more detail.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependencies between projects</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-project-dependencies.png" width="100mm" />
-    </imageobject>
-</figure>
-+++++
+.Dependencies between projects
+image::dependency-management-project-dependencies.png[]
 
 The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[Project.project(java.lang.String)]` creates a reference to a specific subproject by path.
 

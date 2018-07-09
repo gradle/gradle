@@ -22,12 +22,20 @@
 
 For Gradle users it is important to understand how Groovy deals with script variables. Groovy has two types of script variables. One with a local scope and one with a script-wide scope.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="scope" dir="userguide/tutorial/groovyScope" title="Variables scope: local and script wide">
-            <sourcefile file="scope.groovy"/>
-            <output executable="groovy" args="scope.groovy" />
-        </sample>
-++++
+=== Example: Variables scope: local and script wide
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/userguide/tutorial/groovyScope/build.gradle[]
+----
+
+[source]
+.Output of `groovy scope.groovy`
+----
+> groovy scope.groovy
+include::{samples-path}/userguide/tutorial/groovyScope/scope.out[]
+----
 
 Variables which are declared with a type modifier are visible within closures but not visible within methods.
 

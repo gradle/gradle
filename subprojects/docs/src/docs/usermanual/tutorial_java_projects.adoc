@@ -182,16 +182,15 @@ include::{samples-path}/java/quickstart/build.gradle[]
 
 Now let's look at a typical multi-project build. Below is the layout for the project:
 
-++++
-<sample id="javaMultiProject" dir="java/multiproject" includeLocation="true" title="Multi-project build - hierarchical layout">
-            <layout>
-                api/
-                services/webservice/
-                shared/
-                services/shared/
-            </layout>
-        </sample>
-++++
+.Multi-project build - hierarchical layout
+----
+.
+├── api
+├── services
+│   ├── shared
+│   └── webservice
+└── shared
+----
 
 Here we have four projects. Project `api` produces a JAR file which is shipped to the client to provide them a Java client for your XML webservice. Project `webservice` is a webapp which returns XML. Project `shared` contains code used both by `api` and `webservice`. Project `services/shared` has code that depends on the `shared` project.
 

@@ -253,11 +253,19 @@ include::{samples-path}/customModel/internalViews/build.gradle[tag=internal-view
 
 Our `internalData` property should not be exposed to build logic. Let's check this using the `model` task on the following build file:
 
-++++
-<sample id="softwareModelExtend-iv-model" title="example build script and model report output" dir="customModel/internalViews">
-            <sourcefile file="build.gradle" snippet="build-script"/>
-            <output args="-q model"/>
-        </sample>
-++++
+=== Example: Build script and model report output
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samples-path}/customModel/internalViews/build.gradle[tag=build-script]
+----
+
+[source]
+.Output of `gradle -q model`
+----
+> gradle -q model
+include::{samples-path}/customModel/internalViews/softwareModelExtend-iv-model.out[]
+----
 
 We can see in this report that `publicData` is present and that `internalData` is not.
