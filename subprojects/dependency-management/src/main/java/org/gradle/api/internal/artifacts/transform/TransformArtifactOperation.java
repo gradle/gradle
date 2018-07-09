@@ -33,13 +33,15 @@ class TransformArtifactOperation implements RunnableBuildOperation {
     private final ComponentArtifactIdentifier artifactId;
     private final File file;
     private final ArtifactTransformer transform;
+    private final boolean eager;
     private Throwable failure;
     private List<File> result;
 
-    TransformArtifactOperation(ComponentArtifactIdentifier artifactId,  File file, ArtifactTransformer transform) {
+    TransformArtifactOperation(ComponentArtifactIdentifier artifactId,  File file, ArtifactTransformer transform, boolean eager) {
         this.artifactId = artifactId;
         this.file = file;
         this.transform = transform;
+        this.eager = eager;
     }
 
     @Override
@@ -56,9 +58,13 @@ class TransformArtifactOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName("Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName())
-            .progressDisplayName("Transform " + transform.getDisplayName())
-            .operationType(BuildOperationCategory.TASK);
+        BuildOperationDescriptor.Builder operation = BuildOperationDescriptor
+            .displayName("Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName())
+            .progressDisplayName("Transform " + transform.getDisplayName());
+        if (eager) {
+            operation.operationType(BuildOperationCategory.TASK);
+        }
+        return operation;
     }
 
     @Nullable

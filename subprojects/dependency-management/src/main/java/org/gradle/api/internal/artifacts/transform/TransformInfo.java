@@ -155,7 +155,7 @@ public abstract class TransformInfo extends WorkInfo {
             }
             ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
 
-            TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer);
+            TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer, true);
             buildOperationExecutor.run(operation);
             this.result = operation.getResult();
             this.failure = operation.getFailure();
@@ -193,7 +193,7 @@ public abstract class TransformInfo extends WorkInfo {
             }
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File inputFile : previousTransform.getResult()) {
-                TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer);
+                TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer, true);
                 buildOperationExecutor.run(operation);
                 if (operation.getFailure() != null) {
                     this.failure = operation.getFailure();
