@@ -19,9 +19,12 @@ import org.gradle.api.Namer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.reflect.Instantiator;
+
+import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
@@ -47,5 +50,10 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
         sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, taskResolver));
 
         return sourceSet;
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return typeOf(SourceSetContainer.class);
     }
 }
