@@ -127,6 +127,25 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `provides generic bounds`() {
+
+        fun ApiFunctionParameter.assertSingleTypeArgumentWithBound(bound: Bound) =
+            assertThat(type.typeArguments.single().bound, equalTo(bound))
+
+        val jars = listOf(withClassJar("some.jar", GenericsVariance::class.java))
+
+        apiTypeProviderFor(jars).use { api ->
+            api.type<GenericsVariance>()!!.functions.forEach { function ->
+                when (function.name) {
+                    "noBound" -> function.parameters.single().assertSingleTypeArgumentWithBound(Bound.NONE)
+                    "upperBound" -> function.parameters.single().assertSingleTypeArgumentWithBound(Bound.UPPER)
+                    "lowerBound" -> function.parameters.single().assertSingleTypeArgumentWithBound(Bound.LOWER)
+                }
+            }
+        }
+    }
+
     private
     inline fun <reified T> ApiTypeProvider.type() =
         type(canonicalNameOf<T>())

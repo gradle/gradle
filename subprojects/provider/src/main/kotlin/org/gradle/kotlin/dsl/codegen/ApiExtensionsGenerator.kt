@@ -192,6 +192,7 @@ data class MappedApiFunctionParameter(
     val original: ApiFunctionParameter,
     val index: Int = original.index,
     val type: ApiTypeUsage = original.type,
+    val isVarargs: Boolean = original.isVarargs,
     val invocation: String = "${if (original.isVarargs) "*" else ""}`${original.name ?: "p$index"}`"
 ) {
     val name: String
@@ -210,6 +211,7 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                         "Pair",
                         typeArguments = listOf(
                             ApiTypeUsage("String"), starProjectionTypeUsage)))),
+            isVarargs = true,
             invocation = "mapOf(*${first.invocation})")
         if (last().type.isGradleAction) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
         else drop(1) + mappedMapParameter
@@ -270,9 +272,9 @@ data class KotlinExtensionFunction(
     fun List<MappedApiFunctionParameter>.toDeclarationString(): String =
         takeIf { it.isNotEmpty() }?.let { list ->
             list.mapIndexed { index, p ->
-                if (index == list.size - 1 && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (index == list.size - 2 && list[index + 1].type.isGradleAction && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (p.type.isGradleAction) "noinline `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}.() -> Unit"
+                if (index == list.size - 1 && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
+                else if (index == list.size - 2 && list[index + 1].type.isGradleAction && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
+                else if (p.type.isGradleAction) "noinline `${p.name}`: ${p.type.typeArguments.single().copy(bound = Bound.NONE).toTypeArgumentString()}.() -> Unit"
                 else "`${p.name}`: ${p.type.toTypeArgumentString()}"
             }.joinToString(separator = ", ")
         } ?: ""
@@ -289,17 +291,23 @@ data class KotlinExtensionFunction(
 
 private
 fun ApiTypeUsage.toKotlinClass() =
-    ApiTypeUsage(SourceNames.kotlinClass, isNullable, typeArguments = typeArguments)
+    ApiTypeUsage(SourceNames.kotlinClass, isNullable, typeArguments = singleTypeArgumentRawToStarProjection())
 
 
 private
 fun ApiTypeUsage.toArrayOfKotlinClasses() =
-    ApiTypeUsage(SourceNames.kotlinArray, isNullable, typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().typeArguments)))
+    ApiTypeUsage(SourceNames.kotlinArray, isNullable, typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().singleTypeArgumentRawToStarProjection())))
 
 
 private
 fun ApiTypeUsage.toCollectionOfKotlinClasses() =
-    ApiTypeUsage(SourceNames.kotlinCollection, isNullable, typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().typeArguments)))
+    ApiTypeUsage(SourceNames.kotlinCollection, isNullable, typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().singleTypeArgumentRawToStarProjection())))
+
+
+private
+fun ApiTypeUsage.singleTypeArgumentRawToStarProjection() =
+    if (isRaw) singletonListOfStarProjectionTypeUsage
+    else typeArguments.also { it.single() }
 
 
 private
@@ -321,7 +329,16 @@ fun List<ApiTypeUsage>.toTypeParametersString(type: ApiType? = null): String =
 
 private
 fun ApiTypeUsage.toTypeArgumentString(): String =
-    "$sourceName${typeArguments.toTypeArgumentsString(type)}${isNullable.toKotlinNullabilityString()}"
+    "${bound.toKotlinString()}$sourceName${typeArguments.toTypeArgumentsString(type)}${isNullable.toKotlinNullabilityString()}"
+
+
+private
+fun Bound.toKotlinString() =
+    when (this) {
+        Bound.NONE -> ""
+        Bound.UPPER -> "out "
+        Bound.LOWER -> "in "
+    }
 
 
 private

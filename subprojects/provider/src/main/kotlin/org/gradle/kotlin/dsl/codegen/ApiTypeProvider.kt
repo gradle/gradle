@@ -79,7 +79,7 @@ typealias ParameterNamesSupplier = (String) -> List<String>?
  * Limitations:
  * - supports Java byte code only, not Kotlin
  * - does not support nested Java arrays as method parameters
- * - does not distinguish co-variance and contra-variance
+ * - does not support generics with multiple bounds
  */
 internal
 class ApiTypeProvider(
@@ -277,11 +277,20 @@ data class ApiTypeUsage(
     val isNullable: Boolean = false,
     val type: ApiType? = null,
     val typeArguments: List<ApiTypeUsage> = emptyList(),
-    val bounds: List<ApiTypeUsage> = emptyList()
+    val bounds: List<ApiTypeUsage> = emptyList(),
+    val bound: Bound = Bound.NONE
 ) {
     val isRaw: Boolean
         get() = typeArguments.isEmpty()
             && type?.typeParameters?.isEmpty() != false
+}
+
+
+internal
+enum class Bound {
+    NONE,
+    UPPER,
+    LOWER
 }
 
 
@@ -304,7 +313,8 @@ fun ApiTypeProvider.Context.apiTypeUsageFor(
     binaryName: String,
     isNullable: Boolean = false,
     typeArguments: List<TypeSignatureVisitor> = emptyList(),
-    bounds: List<TypeSignatureVisitor> = emptyList()
+    bounds: List<TypeSignatureVisitor> = emptyList(),
+    bound: Bound = Bound.NONE
 ): ApiTypeUsage =
 
     if (binaryName == "?") starProjectionTypeUsage
@@ -313,8 +323,9 @@ fun ApiTypeProvider.Context.apiTypeUsageFor(
             sourceName,
             isNullable,
             type(sourceName),
-            typeArguments.map { apiTypeUsageFor(it.binaryName, typeArguments = it.typeArguments) },
-            bounds.map { apiTypeUsageFor(it.binaryName, typeArguments = it.typeArguments) })
+            typeArguments.map { apiTypeUsageFor(it.binaryName, typeArguments = it.typeArguments, bound = it.bound) },
+            bounds.map { apiTypeUsageFor(it.binaryName, typeArguments = it.typeArguments, bound = it.bound) },
+            bound)
     }
 
 
@@ -325,6 +336,10 @@ val ApiTypeUsage.isStarProjectionTypeUsage
 
 internal
 val starProjectionTypeUsage = ApiTypeUsage("*")
+
+
+internal
+val singletonListOfStarProjectionTypeUsage = listOf(starProjectionTypeUsage)
 
 
 private
@@ -350,11 +365,12 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             val signatureParameter = visitedSignature?.parameters?.get(idx)
             val parameterTypeName = signatureParameter?.binaryName ?: parameterTypeBinaryName
             val typeArguments = signatureParameter?.typeArguments ?: emptyList<TypeSignatureVisitor>()
+            val bound = signatureParameter?.bound ?: Bound.NONE
             ApiFunctionParameter(
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.size - 1 && functionHasVarargModifier,
                 nameSupplier = { names?.get(idx) },
-                type = apiTypeUsageFor(parameterTypeName, isNullable, typeArguments)
+                type = apiTypeUsageFor(parameterTypeName, isNullable, typeArguments, bound = bound)
             )
         }
     }
@@ -365,7 +381,8 @@ fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, retu
     apiTypeUsageFor(
         returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
         delegate.visibleAnnotations.has<Nullable>(),
-        returnType?.typeArguments ?: emptyList())
+        returnType?.typeArguments ?: emptyList(),
+        bound = returnType?.bound ?: Bound.NONE)
 
 
 private
@@ -427,7 +444,7 @@ class MethodSignatureVisitor : BaseSignatureVisitor() {
 
 
 private
-class TypeSignatureVisitor : SignatureVisitor(ASM6) {
+class TypeSignatureVisitor(val bound: Bound = Bound.NONE) : SignatureVisitor(ASM6) {
 
     var isArray = false
 
@@ -460,7 +477,7 @@ class TypeSignatureVisitor : SignatureVisitor(ASM6) {
     }
 
     override fun visitTypeArgument(wildcard: Char): SignatureVisitor =
-        TypeSignatureVisitor().also {
+        TypeSignatureVisitor(boundOf(wildcard)).also {
             expectTypeArgument = true
             typeArguments.add(it)
         }
@@ -481,6 +498,14 @@ class TypeSignatureVisitor : SignatureVisitor(ASM6) {
             this.binaryName = binaryName
         }
     }
+
+    private
+    fun boundOf(wildcard: Char) =
+        when (wildcard) {
+            '+' -> Bound.UPPER
+            '-' -> Bound.LOWER
+            else -> Bound.NONE
+        }
 }
 
 
