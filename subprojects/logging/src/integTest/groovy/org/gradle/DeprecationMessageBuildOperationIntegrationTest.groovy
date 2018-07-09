@@ -119,7 +119,7 @@ class DeprecationMessageBuildOperationIntegrationTest extends AbstractIntegratio
         def buildSrcDeprecations = operations.only("Apply script build.gradle to project ':buildSrc'").progress.find {it.hasDetailsOfType(DeprecationWarningProgressDetails)}
         buildSrcDeprecations.details.message.contains('buildSrc script deprecation')
         buildSrcDeprecations.details.stackTrace.size > 0
-        buildSrcDeprecations.details.stackTrace[0].fileName.endsWith('buildSrc/build.gradle')
+        buildSrcDeprecations.details.stackTrace[0].fileName.endsWith("buildSrc${File.separator}build.gradle")
         buildSrcDeprecations.details.stackTrace[0].lineNumber == 2
     }
 
@@ -152,13 +152,13 @@ class DeprecationMessageBuildOperationIntegrationTest extends AbstractIntegratio
         def includedBuildScriptDeprecations = operations.only("Apply script build.gradle to project ':included'").progress.find {it.hasDetailsOfType(DeprecationWarningProgressDetails)}
         includedBuildScriptDeprecations.details.message.contains('included build script deprecation')
         includedBuildScriptDeprecations.details.stackTrace.size > 0
-        includedBuildScriptDeprecations.details.stackTrace[0].fileName.endsWith('included/build.gradle')
+        includedBuildScriptDeprecations.details.stackTrace[0].fileName.endsWith("included${File.separator}build.gradle")
         includedBuildScriptDeprecations.details.stackTrace[0].lineNumber == 2
 
         def includedBuildTaskDeprecations = operations.only("Execute doLast {} action for :included:t").progress.find {it.hasDetailsOfType(DeprecationWarningProgressDetails)}
         includedBuildTaskDeprecations.details.message.contains('included build task deprecation')
         includedBuildTaskDeprecations.details.stackTrace.size > 0
-        includedBuildTaskDeprecations.details.stackTrace[0].fileName.endsWith('included/build.gradle')
+        includedBuildTaskDeprecations.details.stackTrace[0].fileName.endsWith("included${File.separator}build.gradle")
         includedBuildTaskDeprecations.details.stackTrace[0].lineNumber == 6
     }
 }
