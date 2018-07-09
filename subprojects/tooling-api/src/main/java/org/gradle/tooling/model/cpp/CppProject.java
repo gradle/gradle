@@ -14,9 +14,29 @@
  * limitations under the License.
  */
 
-/**
- * Types that represent the tooling model for C++ projects.
- *
- * <p>To fetch the C++ model for a build, use the {@link org.gradle.tooling.model.cpp.CppProject} type for each Gradle project.</p>
- */
 package org.gradle.tooling.model.cpp;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.model.ProjectModel;
+
+import javax.annotation.Nullable;
+
+/**
+ * Details about the C++ components of a Gradle project.
+ *
+ * @since 4.10
+ */
+@Incubating
+public interface CppProject extends ProjectModel {
+    /**
+     * Returns the main C++ component of this project, if any.
+     */
+    @Nullable
+    CppComponent getMainComponent();
+
+    /**
+     * Returns the C++ unit test suite of this project, if any.
+     */
+    @Nullable
+    CppComponent getTestComponent();
+}
