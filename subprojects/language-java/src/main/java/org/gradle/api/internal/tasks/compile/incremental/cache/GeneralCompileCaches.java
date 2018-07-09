@@ -22,7 +22,13 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
 
-public interface BuildScopedCompileCaches {
+/**
+ * The build scoped compile caches.
+ *
+ * NOTE: This class cannot be renamed because it used to leak onto the public API
+ * and some community plugins still depend on it in their byte code.
+ */
+public interface GeneralCompileCaches {
     ClassAnalysisCache getClassAnalysisCache();
 
     JarSnapshotCache getJarSnapshotCache();

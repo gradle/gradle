@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.jvm.JvmBinaryRenderer;
-import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultBuildScopedCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeScopedCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
 import org.gradle.api.invocation.Gradle;
@@ -49,8 +49,8 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        DefaultBuildScopedCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, UserHomeScopedCompileCaches userHomeScopedCompileCaches, WellKnownFileLocations wellKnownFileLocations, FileHasher fileHasher) {
-            return new DefaultBuildScopedCompileCaches(fileHasher, userHomeScopedCompileCaches, cacheRepository, gradle, inMemoryCacheDecoratorFactory, wellKnownFileLocations);
+        DefaultGeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, UserHomeScopedCompileCaches userHomeScopedCompileCaches, WellKnownFileLocations wellKnownFileLocations, FileHasher fileHasher) {
+            return new DefaultGeneralCompileCaches(fileHasher, userHomeScopedCompileCaches, cacheRepository, gradle, inMemoryCacheDecoratorFactory, wellKnownFileLocations);
         }
     }
 

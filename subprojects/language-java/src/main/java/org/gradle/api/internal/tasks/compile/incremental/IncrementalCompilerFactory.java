@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisC
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.cache.BuildScopedCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.CachingJarSnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
@@ -48,14 +48,14 @@ public class IncrementalCompilerFactory {
     private final FileOperations fileOperations;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
-    private final BuildScopedCompileCaches buildScopedCompileCaches;
+    private final GeneralCompileCaches generalCompileCaches;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, BuildScopedCompileCaches buildScopedCompileCaches, BuildOperationExecutor buildOperationExecutor) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor) {
         this.fileOperations = fileOperations;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.buildScopedCompileCaches = buildScopedCompileCaches;
+        this.generalCompileCaches = generalCompileCaches;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -75,18 +75,18 @@ public class IncrementalCompilerFactory {
     }
 
     private TaskScopedCompileCaches createCompileCaches(String path) {
-        final LocalClassSetAnalysisStore localClassSetAnalysisStore = buildScopedCompileCaches.createLocalClassSetAnalysisStore(path);
-        final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore = buildScopedCompileCaches.createLocalJarClasspathSnapshotStore(path);
-        final AnnotationProcessorPathStore annotationProcessorPathStore = buildScopedCompileCaches.createAnnotationProcessorPathStore(path);
+        final LocalClassSetAnalysisStore localClassSetAnalysisStore = generalCompileCaches.createLocalClassSetAnalysisStore(path);
+        final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore = generalCompileCaches.createLocalJarClasspathSnapshotStore(path);
+        final AnnotationProcessorPathStore annotationProcessorPathStore = generalCompileCaches.createAnnotationProcessorPathStore(path);
         return new TaskScopedCompileCaches() {
             @Override
             public ClassAnalysisCache getClassAnalysisCache() {
-                return buildScopedCompileCaches.getClassAnalysisCache();
+                return generalCompileCaches.getClassAnalysisCache();
             }
 
             @Override
             public JarSnapshotCache getJarSnapshotCache() {
-                return buildScopedCompileCaches.getJarSnapshotCache();
+                return generalCompileCaches.getJarSnapshotCache();
             }
 
             @Override

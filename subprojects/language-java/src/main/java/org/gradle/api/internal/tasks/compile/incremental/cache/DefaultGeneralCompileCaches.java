@@ -51,7 +51,7 @@ import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultBuildScopedCompileCaches implements BuildScopedCompileCaches, Closeable {
+public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closeable {
     private final ClassAnalysisCache classAnalysisCache;
     private final JarSnapshotCache jarSnapshotCache;
     private final PersistentCache cache;
@@ -59,7 +59,7 @@ public class DefaultBuildScopedCompileCaches implements BuildScopedCompileCaches
     private final PersistentIndexedCache<String, ClassSetAnalysisData> taskCompileCache;
     private final PersistentIndexedCache<String, List<File>> taskProcessorPathCache;
 
-    public DefaultBuildScopedCompileCaches(FileHasher fileHasher, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations) {
+    public DefaultGeneralCompileCaches(FileHasher fileHasher, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations) {
         cache = cacheRepository
             .cache(gradle, "javaCompile")
             .withDisplayName("Java compile cache")
