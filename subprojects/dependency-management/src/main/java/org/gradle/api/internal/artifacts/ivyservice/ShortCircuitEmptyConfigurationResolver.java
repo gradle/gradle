@@ -68,7 +68,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         if (configuration.getAllDependencies().isEmpty()) {
-            emptyGraph(configuration, result);
+            emptyGraph(configuration, result, false);
         } else {
             delegate.resolveBuildDependencies(configuration, result);
         }
@@ -77,19 +77,19 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     @Override
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
-            emptyGraph(configuration, results);
+            emptyGraph(configuration, results, true);
         } else {
             delegate.resolveGraph(configuration, results);
         }
     }
 
-    private void emptyGraph(ConfigurationInternal configuration, ResolverResults results) {
+    private void emptyGraph(ConfigurationInternal configuration, ResolverResults results, boolean verifyLocking) {
         Module module = configuration.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        if (configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
+        if (verifyLocking && configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingProvider dependencyLockingProvider = configuration.getResolutionStrategy().getDependencyLockingProvider();
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(configuration.getName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
