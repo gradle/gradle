@@ -111,12 +111,8 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         }
 
         String jstack() {
-            def process = "${jstackCommand} ${pid}".execute()
-            def stdout = new StringBuffer()
-            def stderr = new StringBuffer()
-            process.consumeProcessOutput(stdout, stderr)
-            process.waitFor()
-            return "Run ${jstackCommand} ${pid}:\n${stdout}\n---------\n${stderr}\n"
+            Map result = runProcess([jstackCommand, pid])
+            return "Run ${jstackCommand} ${pid} return ${result.code}:\n${result.stdout}\n---------\n${result.stderr}\n"
         }
     }
 
@@ -160,24 +156,34 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
 
     private static StdoutAndPatterns ps() {
         List<String> command = OperatingSystem.current().isWindows() ? ["wmic", "process", "get", "processid,commandline"] : ["ps", "x"]
-        Process process = new ProcessBuilder(command).start()
-        int code = process.waitFor()
-        String stdout = IOUtils.toString(process.getInputStream())
-        String stderr = IOUtils.toString(process.getErrorStream())
+        Map result = runProcess(command)
 
-        if (code == 0) {
-            println("Command $command stdout: ${stdout}")
-            println("Command $command stderr: ${stderr}")
-            return new StdoutAndPatterns(stdout.toString())
+        if (result.code == 0) {
+            println("Command $command stdout: ${result.stdout}")
+            println("Command $command stderr: ${result.stderr}")
+            return new StdoutAndPatterns(result.stdout)
         } else {
             def logFile = IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.file("error-${System.currentTimeMillis()}.log")
+            logFile << "code:\n"
+            logFile << result.code
             logFile << "stdout:\n"
-            logFile << stdout
+            logFile << result.stdout
             logFile << "stderr:\n"
-            logFile << stderr
+            logFile << result.stderr
 
             throw new RuntimeException("Error when fetching processes, see log file ${logFile.absolutePath}")
         }
+    }
+
+    private static Map runProcess(List<String> command) {
+        // Don't use Groovy's Process.consumeProcessOutput
+        // https://issues.apache.org/jira/browse/GROOVY-7414
+        Process process = new ProcessBuilder(command).start()
+
+        String stdout = IOUtils.toString(process.getInputStream())
+        String stderr = IOUtils.toString(process.getErrorStream())
+        int code = process.waitFor()
+        return [code: code, stdout: stdout, stderr: stderr]
     }
 
     static String getAllStackTracesByJstack() {
