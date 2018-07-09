@@ -16,27 +16,14 @@
 
 package org.gradle.kotlin.dsl.codegen;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 
 public interface ClassToKClass {
 
     void rawClass(Class type);
 
-    void arrayOfRawClasses(Class[] types);
-
-    void varargOfRawClasses(Class... types);
-
-    void listOfRawClasses(List<Class> types);
-
-    void setOfRawClasses(Set<Class> types);
-
     void unboundedClass(Class<?> type);
-
-    void arrayOfUnboundedClasses(Class<?>[] types);
-
-    void varargOfUnboundedClasses(Class<?>... types);
 
     void noBoundClass(Class<Number> type);
 
@@ -44,7 +31,21 @@ public interface ClassToKClass {
 
     void lowerBoundClass(Class<? super Integer> type);
 
+    void varargOfClasses(Class<?>... types);
+
+    void arrayOfClasses(Class<?>[] types);
+
+    void collectionOfClasses(Collection<Class<? extends Number>> types);
+
     <T> void methodParameterizedClass(Class<T> type);
 
-    <T> void boundedMethodParameterizedClass(Class<? super T> type);
+    <T extends Number> void upperBoundMethodParameterizedClass(Class<T> type);
+
+    <T> void methodParameterizedUpperBoundClass(Class<? extends T> type);
+
+    <T> void methodParameterizedLowerBoundClass(Class<? super T> type);
+
+    <T extends Number> void upperBoundMethodParameterizedUpperBoundClass(Class<? extends T> type);
+
+    <T extends Number> void upperBoundMethodParameterizedLowerBoundClass(Class<? super T> type);
 }
