@@ -51,7 +51,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableList<? extends ComponentVariant> variants;
-    private final HashValue contentHash;
+    private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -62,7 +62,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         attributesFactory = metadata.getAttributesFactory();
-        contentHash = metadata.getContentHash();
+        originalContentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
     }
@@ -75,7 +75,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         attributesFactory = metadata.getAttributesFactory();
-        contentHash = metadata.getContentHash();
+        originalContentHash = metadata.getOriginalContentHash();
         attributes = metadata.getAttributes();
         this.variants = variants;
     }
@@ -88,7 +88,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.statusScheme;
         moduleSource = metadata.moduleSource;
         attributesFactory = metadata.attributesFactory;
-        contentHash = metadata.contentHash;
+        originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
     }
@@ -100,7 +100,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         missing = metadata.missing;
         statusScheme = metadata.statusScheme;
         attributesFactory = metadata.attributesFactory;
-        contentHash = metadata.contentHash;
+        originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
 
@@ -159,8 +159,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public HashValue getContentHash() {
-        return contentHash;
+    public HashValue getOriginalContentHash() {
+        return originalContentHash;
     }
 
     @Override
@@ -205,7 +205,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(moduleSource, that.moduleSource)
             && Objects.equal(attributes, that.attributes)
             && Objects.equal(variants, that.variants)
-            && Objects.equal(contentHash, that.contentHash);
+            && Objects.equal(originalContentHash, that.originalContentHash);
     }
 
     @Override
@@ -219,6 +219,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             moduleSource,
             attributes,
             variants,
-            contentHash);
+            originalContentHash);
     }
 }

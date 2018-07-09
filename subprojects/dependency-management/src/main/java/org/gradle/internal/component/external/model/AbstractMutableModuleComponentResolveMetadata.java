@@ -83,7 +83,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.missing = metadata.isMissing();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.contentHash = metadata.getContentHash();
+        this.contentHash = metadata.getOriginalContentHash();
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());

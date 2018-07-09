@@ -35,7 +35,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
     private final static Transformer<Serializable, ModuleComponentResolveMetadata> KEY_TO_SNAPSHOTTABLE = new Transformer<Serializable, ModuleComponentResolveMetadata>() {
         @Override
         public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
-            return moduleMetadata.getContentHash().asBigInteger();
+            return moduleMetadata.getOriginalContentHash().asBigInteger();
         }
     };
     private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;

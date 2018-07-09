@@ -125,7 +125,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         execute(key)
 
         then:
-        1 * key.contentHash >> hashValue
+        1 * key.originalContentHash >> hashValue
         1 * hashValue.asBigInteger() >> new BigInteger("42")
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
         1 * store.get(keyHash) >> cachedEntry

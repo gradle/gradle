@@ -220,7 +220,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            metadata = metadata.withSource(new CachingModuleSource(metadata.getContentHash().asBigInteger(), metadata.isChanging(), metadata.getSource()));
+            metadata = metadata.withSource(new CachingModuleSource(metadata.getOriginalContentHash().asBigInteger(), metadata.isChanging(), metadata.getSource()));
             result.resolved(metadata);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
@@ -386,7 +386,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
                     ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
                     cachedMetadata.setProcessedMetadata(processedMetadata);
-                    moduleSource = new CachingModuleSource(processedMetadata.getContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);
+                    moduleSource = new CachingModuleSource(processedMetadata.getOriginalContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);
                     result.resolved(processedMetadata.withSource(moduleSource));
                     break;
                 case Failed:

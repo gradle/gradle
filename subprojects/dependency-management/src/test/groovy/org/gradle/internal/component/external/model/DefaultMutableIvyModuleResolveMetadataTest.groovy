@@ -148,7 +148,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.changing
         immutable.missing
         immutable.statusScheme == ["1", "2", "3"]
-        immutable.contentHash == contentHash
+        immutable.originalContentHash == contentHash
         immutable.excludes == excludes
 
         def copy = immutable.asMutable()

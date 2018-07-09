@@ -195,7 +195,7 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
-            encoder.writeBinary(metadata.getContentHash().asByteArray());
+            encoder.writeBinary(metadata.getOriginalContentHash().asByteArray());
             encoder.writeBoolean(metadata.isMissing());
             encoder.writeBoolean(metadata.isChanging());
             encoder.writeString(metadata.getStatus());

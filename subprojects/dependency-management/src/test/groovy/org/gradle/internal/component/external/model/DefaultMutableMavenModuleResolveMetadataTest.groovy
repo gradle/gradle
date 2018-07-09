@@ -166,7 +166,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.snapshotTimestamp == "123"
         immutable.packaging == "pom"
         immutable.relocated
-        immutable.contentHash == contentHash
+        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy != metadata
