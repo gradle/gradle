@@ -14,29 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.cpp;
-
-import org.gradle.api.Incubating;
+package org.gradle.tooling.internal.protocol.cpp;
 
 /**
- * Represents a C++ binary type.
- *
- * @since 4.10
+ * Marker interface for {@link org.gradle.tooling.model.cpp.CppExecutable}.
  */
-@Incubating
-public enum CppBinaryType {
-    /**
-     * C++ executable binary.
-     */
-    EXECUTABLE,
-
-    /**
-     * C++ shared library binary.
-     */
-    SHARED_LIBRARY,
-
-    /**
-     * C++ static library binary.
-     */
-    STATIC_LIBRARY
+public interface InternalCppExecutable {
 }

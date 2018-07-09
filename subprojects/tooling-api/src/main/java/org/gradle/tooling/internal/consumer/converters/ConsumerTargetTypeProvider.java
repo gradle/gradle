@@ -18,10 +18,16 @@ package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.adapter.TargetTypeProvider;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppApplication;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppExecutable;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppLibrary;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppSharedLibrary;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppStaticLibrary;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppTestSuite;
 import org.gradle.tooling.model.cpp.CppApplication;
+import org.gradle.tooling.model.cpp.CppExecutable;
 import org.gradle.tooling.model.cpp.CppLibrary;
+import org.gradle.tooling.model.cpp.CppSharedLibrary;
+import org.gradle.tooling.model.cpp.CppStaticLibrary;
 import org.gradle.tooling.model.cpp.CppTestSuite;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
@@ -43,6 +49,9 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
         protocolTypes.put(InternalCppApplication.class, CppApplication.class);
         protocolTypes.put(InternalCppLibrary.class, CppLibrary.class);
         protocolTypes.put(InternalCppTestSuite.class, CppTestSuite.class);
+        protocolTypes.put(InternalCppExecutable.class, CppExecutable.class);
+        protocolTypes.put(InternalCppSharedLibrary.class, CppSharedLibrary.class);
+        protocolTypes.put(InternalCppStaticLibrary.class, CppStaticLibrary.class);
     }
 
     public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
