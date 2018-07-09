@@ -21,7 +21,9 @@ import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.model.cpp.CppComponentType;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppApplication;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppLibrary;
+import org.gradle.tooling.internal.protocol.cpp.InternalCppTestSuite;
 import org.gradle.tooling.model.cpp.CppProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -38,17 +40,17 @@ public class CppModelBuilder implements ToolingModelBuilder {
         DefaultCppComponent mainComponent = null;
         CppApplication application = project.getComponents().withType(CppApplication.class).findByName("main");
         if (application != null) {
-            mainComponent = new DefaultCppComponent(CppComponentType.APPLICATION);
+            mainComponent = new DefaultCppApplication();
         } else {
             CppLibrary library = project.getComponents().withType(CppLibrary.class).findByName("main");
             if (library != null) {
-                mainComponent = new DefaultCppComponent(CppComponentType.LIBRARY);
+                mainComponent = new DefaultCppLibrary();
             }
         }
         DefaultCppComponent testComponent = null;
         CppTestSuite testSuite = project.getComponents().withType(CppTestSuite.class).findByName("test");
         if (testSuite != null) {
-            testComponent = new DefaultCppComponent(CppComponentType.APPLICATION);
+            testComponent = new DefaultCppTestSuite();
         }
         DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
         return new DefaultCppProject(projectIdentifier, mainComponent, testComponent);
@@ -79,14 +81,14 @@ public class CppModelBuilder implements ToolingModelBuilder {
     }
 
     public static class DefaultCppComponent implements Serializable {
-        private final CppComponentType type;
+    }
 
-        public DefaultCppComponent(CppComponentType type) {
-            this.type = type;
-        }
+    public static class DefaultCppApplication extends DefaultCppComponent implements InternalCppApplication {
+    }
 
-        public CppComponentType getComponentType() {
-            return type;
-        }
+    public static class DefaultCppLibrary extends DefaultCppComponent implements InternalCppLibrary {
+    }
+
+    public static class DefaultCppTestSuite extends DefaultCppComponent implements InternalCppTestSuite {
     }
 }

@@ -30,13 +30,17 @@ import javax.annotation.Nullable;
 public interface CppProject extends ProjectModel {
     /**
      * Returns the main C++ component of this project, if any.
+     *
+     * @return the main component or {@code null} when the project does not have a main component. The component will implement either {@link CppApplication} or {@link CppLibrary}.
      */
     @Nullable
     CppComponent getMainComponent();
 
     /**
      * Returns the C++ unit test suite of this project, if any.
+     *
+     * @return the test suite or {@code null} when the project does not have a unit test suite.
      */
     @Nullable
-    CppComponent getTestComponent();
+    CppTestSuite getTestComponent();
 }

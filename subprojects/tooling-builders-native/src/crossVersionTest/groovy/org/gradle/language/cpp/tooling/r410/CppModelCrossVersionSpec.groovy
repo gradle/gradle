@@ -19,8 +19,10 @@ package org.gradle.language.cpp.tooling.r410
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.cpp.CppComponentType
+import org.gradle.tooling.model.cpp.CppApplication
+import org.gradle.tooling.model.cpp.CppLibrary
 import org.gradle.tooling.model.cpp.CppProject
+import org.gradle.tooling.model.cpp.CppTestSuite
 
 @ToolingApiVersion(">=4.10")
 @TargetGradleVersion(">=4.10")
@@ -51,8 +53,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         project.projectIdentifier.projectPath == ':'
         project.projectIdentifier.buildIdentifier.rootDir == projectDir
-        project.mainComponent != null
-        project.mainComponent.componentType == CppComponentType.APPLICATION
+        project.mainComponent instanceof CppApplication
         project.testComponent == null
     }
 
@@ -65,8 +66,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
-        project.mainComponent != null
-        project.mainComponent.componentType == CppComponentType.LIBRARY
+        project.mainComponent instanceof CppLibrary
         project.testComponent == null
     }
 
@@ -80,7 +80,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.mainComponent == null
-        project.testComponent != null
+        project.testComponent instanceof CppTestSuite
     }
 
     def "can query model when root project applies C++ application and unit test plugins"() {
@@ -93,8 +93,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
-        project.mainComponent != null
-        project.testComponent != null
+        project.mainComponent instanceof CppApplication
+        project.testComponent instanceof CppTestSuite
     }
 
     def "can query model when root project applies C++ library and unit test plugins"() {
@@ -107,8 +107,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
-        project.mainComponent != null
-        project.testComponent != null
+        project.mainComponent instanceof CppLibrary
+        project.testComponent instanceof CppTestSuite
     }
 
     def "can query the models for each project in a build"() {
@@ -136,10 +136,10 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         models[0].mainComponent == null
         models[0].testComponent == null
         models[1].projectIdentifier.projectPath == ':app'
-        models[1].mainComponent != null
+        models[1].mainComponent instanceof CppApplication
         models[1].testComponent == null
         models[2].projectIdentifier.projectPath == ':lib'
-        models[2].mainComponent != null
+        models[2].mainComponent instanceof CppLibrary
         models[2].testComponent != null
         models[3].projectIdentifier.projectPath == ':other'
         models[3].mainComponent == null
@@ -172,11 +172,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         models[0].testComponent == null
         models[1].projectIdentifier.projectPath == ':app'
         models[1].projectIdentifier.buildIdentifier.rootDir == projectDir
-        models[1].mainComponent != null
+        models[1].mainComponent instanceof CppApplication
         models[1].testComponent == null
         models[2].projectIdentifier.projectPath == ':'
         models[2].projectIdentifier.buildIdentifier.rootDir == file("lib")
-        models[2].mainComponent != null
+        models[2].mainComponent instanceof CppLibrary
         models[2].testComponent != null
     }
 }
