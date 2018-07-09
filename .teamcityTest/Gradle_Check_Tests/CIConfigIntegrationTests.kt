@@ -40,13 +40,13 @@ class CIConfigIntegrationTests {
         val stagePassConfigs = p.buildTypes
         stagePassConfigs.forEach {
             val stageNumber = stagePassConfigs.indexOf(it) + 1
-            val hasPrevStage = if (stageNumber > 1) 1 else 0
             println(it.id)
             it.dependencies.items.forEach {
                 println("--> " + it.buildTypeId)
             }
             if (stageNumber <= m.stages.size) {
                 val stage = m.stages[stageNumber - 1]
+                val prevStage = if (stageNumber > 1) m.stages[stageNumber - 2] else null
                 var functionalTestCount = 0
 
                 if (stage.runsIndependent) {
@@ -73,9 +73,12 @@ class CIConfigIntegrationTests {
                         functionalTestCount++
                     }
                 }
+
                 assertEquals(
-                        stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + hasPrevStage,
-                        it.dependencies.items.size)
+                        stage.specificBuilds.size + functionalTestCount
+                                + stage.performanceTests.size + (if (prevStage != null) 1 else 0)
+                                + (if (!stage.omitsSlowProjects && prevStage != null && prevStage.omitsSlowProjects) 4 else 0), // deferred tests
+                        it.dependencies.items.size, "Unexpected number of dependencies in stage ${stage.name} ${stage.omitsSlowProjects} " )
             } else {
                 assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
             }

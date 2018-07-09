@@ -12,6 +12,7 @@ import model.CIBuildModel
 import model.Stage
 import model.TestType
 import model.Trigger
+import projects.FunctionalTestProject
 
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean, rootProjectUuid: String) : BaseGradleBuildType(model, init = {
     uuid = "${model.projectPrefix}Stage_${stage.id}_Trigger"
@@ -134,7 +135,19 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         }
 
         if (containsDeferredTests) {
-            dependency(AbsoluteId("${rootProjectUuid}_deferred_tests")) { snapshot {} }
+            model.subProjects.forEach { subProject ->
+                if (subProject.containsSlowTests) {
+                    FunctionalTestProject.missingTestCoverage.forEach { testConfig ->
+                        if (subProject.unitTests && testConfig.testType.unitTests) {
+                            dependency(AbsoluteId(testConfig.asConfigurationId(model))) { snapshot {} }
+                        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
+                            dependency(AbsoluteId(testConfig.asConfigurationId(model))) { snapshot {} }
+                        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
+                            dependency(AbsoluteId(testConfig.asConfigurationId(model))) { snapshot {} }
+                        }
+                    }
+                }
+            }
         }
     }
 })
