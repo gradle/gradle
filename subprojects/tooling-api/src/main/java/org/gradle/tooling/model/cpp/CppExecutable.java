@@ -19,29 +19,10 @@ package org.gradle.tooling.model.cpp;
 import org.gradle.api.Incubating;
 
 /**
- * Represents a C++ binary.
+ * A C++ executable binary.
  *
  * @since 4.10
  */
 @Incubating
-public interface CppBinary {
-    /**
-     * Returns the name of this binary. This is used to disambiguate the binaries of a project. Each binary has a unique name within its project. However, these names are not unique across multiple projects.
-     */
-    String getName();
-
-    /**
-     * Returns the base name of this binary. This is used to calculate output file names.
-     */
-    String getBaseName();
-
-    /**
-     * Returns the compilation details.
-     */
-    CompilationDetails getCompilationDetails();
-
-    /**
-     * Returns the linkage details.
-     */
-    LinkageDetails getLinkageDetails();
+public interface CppExecutable extends CppBinary {
 }

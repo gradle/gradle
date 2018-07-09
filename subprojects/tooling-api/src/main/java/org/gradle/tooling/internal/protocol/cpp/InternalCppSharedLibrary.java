@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.cpp;
-
-import org.gradle.api.Incubating;
-import org.gradle.tooling.model.DomainObjectSet;
+package org.gradle.tooling.internal.protocol.cpp;
 
 /**
- * Represents a C++ component.
- *
- * @since 4.10
+ * Marker interface for {@link org.gradle.tooling.model.cpp.CppSharedLibrary}.
  */
-@Incubating
-public interface CppComponent {
-    /**
-     * All binaries buildable for this component. These will implement {@link CppExecutable}, {@link CppSharedLibrary} or {@link CppStaticLibrary}.
-     */
-    DomainObjectSet<? extends CppBinary> getBinaries();
-
-    /**
-     * Returns the base name of this component.
-     */
-    String getBaseName();
+public interface InternalCppSharedLibrary {
 }

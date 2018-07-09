@@ -20,8 +20,11 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.cpp.CppApplication
+import org.gradle.tooling.model.cpp.CppExecutable
 import org.gradle.tooling.model.cpp.CppLibrary
 import org.gradle.tooling.model.cpp.CppProject
+import org.gradle.tooling.model.cpp.CppSharedLibrary
+import org.gradle.tooling.model.cpp.CppStaticLibrary
 import org.gradle.tooling.model.cpp.CppTestSuite
 
 @ToolingApiVersion(">=4.10")
@@ -49,6 +52,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'cpp-application'
         """
+        def src1 = file("src/main/cpp/app.cpp").createFile()
+        def src2 = file("src/main/cpp/app-impl.cpp").createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -61,10 +66,16 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.baseName == 'app'
 
         project.mainComponent.binaries.size() == 2
+
+        project.mainComponent.binaries[0] instanceof CppExecutable
         project.mainComponent.binaries[0].name == 'mainDebug'
         project.mainComponent.binaries[0].baseName == 'app'
+        project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+
+        project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'app'
+        project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
 
         project.testComponent == null
     }
@@ -76,6 +87,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'cpp-library'
         """
+        def src1 = file("src/main/cpp/lib.cpp").createFile()
+        def src2 = file("src/main/cpp/lib-impl.cpp").createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -85,10 +98,15 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.baseName == 'lib'
 
         project.mainComponent.binaries.size() == 2
+        project.mainComponent.binaries[0] instanceof CppSharedLibrary
         project.mainComponent.binaries[0].name == 'mainDebug'
         project.mainComponent.binaries[0].baseName == 'lib'
+        project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+
+        project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'lib'
+        project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
 
         project.testComponent == null
     }
@@ -100,6 +118,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'cpp-unit-test'
         """
+        def src1 = file("src/test/cpp/test-main.cpp").createFile()
+        def src2 = file("src/test/cpp/test2.cpp").createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -110,8 +130,10 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.testComponent.baseName == 'testsTest'
 
         project.testComponent.binaries.size() == 1
+        project.testComponent.binaries[0] instanceof CppExecutable
         project.testComponent.binaries[0].name == 'testExecutable'
         project.testComponent.binaries[0].baseName == 'testsTest'
+        project.testComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
     }
 
     def "can query model when root project applies C++ application and unit test plugins"() {
@@ -155,8 +177,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             apply plugin: 'cpp-application'
             application {
                 baseName = 'some-app'
+                source.from 'src'
             }
         """
+        def src1 = file("src/main/cpp/app.cpp").createFile()
+        def src2 = file("src/app-impl.cpp").createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
@@ -166,10 +191,15 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.mainComponent.baseName == 'some-app'
         project.mainComponent.binaries.size() == 2
 
+        project.mainComponent.binaries[0] instanceof CppExecutable
         project.mainComponent.binaries[0].name == 'mainDebug'
         project.mainComponent.binaries[0].baseName == 'some-app'
+        project.mainComponent.binaries[0].compilationDetails.sources as Set == [src1, src2] as Set
+
+        project.mainComponent.binaries[1] instanceof CppExecutable
         project.mainComponent.binaries[1].name == 'mainRelease'
         project.mainComponent.binaries[1].baseName == 'some-app'
+        project.mainComponent.binaries[1].compilationDetails.sources as Set == [src1, src2] as Set
     }
 
     def "can query model for customized C++ library"() {
@@ -193,12 +223,16 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         project.mainComponent.binaries.size() == 4
 
+        project.mainComponent.binaries[0] instanceof CppStaticLibrary
         project.mainComponent.binaries[0].name == 'mainDebugStatic'
         project.mainComponent.binaries[0].baseName == 'some-lib'
+        project.mainComponent.binaries[1] instanceof CppSharedLibrary
         project.mainComponent.binaries[1].name == 'mainDebugShared'
         project.mainComponent.binaries[1].baseName == 'some-lib'
+        project.mainComponent.binaries[2] instanceof CppStaticLibrary
         project.mainComponent.binaries[2].name == 'mainReleaseStatic'
         project.mainComponent.binaries[2].baseName == 'some-lib'
+        project.mainComponent.binaries[3] instanceof CppSharedLibrary
         project.mainComponent.binaries[3].name == 'mainReleaseShared'
         project.mainComponent.binaries[3].baseName == 'some-lib'
     }
