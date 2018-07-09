@@ -17,7 +17,6 @@
 package org.gradle.tooling.model.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.BuildableElement;
 
 /**
  * Represents a C++ binary.
@@ -25,7 +24,12 @@ import org.gradle.tooling.model.BuildableElement;
  * @since 4.10
  */
 @Incubating
-public interface CppBinary extends BuildableElement {
+public interface CppBinary {
+    /**
+     * Returns the name of this binary, used to disambiguate the binaries of a project.
+     */
+    String getName();
+
     /**
      * Returns the type of this binary.
      */
@@ -42,7 +46,7 @@ public interface CppBinary extends BuildableElement {
     LinkageDetails getLinkageDetails();
 
     /**
-     * Returns the name of this binary.
+     * Returns the base name of this binary.
      */
-    String getName();
+    String getBaseName();
 }
