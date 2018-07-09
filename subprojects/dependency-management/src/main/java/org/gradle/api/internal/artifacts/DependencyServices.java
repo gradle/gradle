@@ -69,8 +69,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return transformedFileCache;
         }
 
-        TransformInfoFactory createTransformInfoFactory(BuildOperationExecutor buildOperationExecutor) {
-            return new DefaultTransformInfoFactory(buildOperationExecutor);
+        TransformInfoFactory createTransformInfoFactory() {
+            return new DefaultTransformInfoFactory();
         }
 
         TransformInfoDependencyResolver createTransformInfoResolver(TransformInfoFactory transformInfoFactory) {

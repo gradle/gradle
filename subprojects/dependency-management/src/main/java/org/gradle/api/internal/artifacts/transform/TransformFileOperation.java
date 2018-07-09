@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -52,7 +53,9 @@ class TransformFileOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + file);
+        return BuildOperationDescriptor.displayName("Transform " + file + " with " + transform.getDisplayName())
+            .progressDisplayName("Transform " + transform.getDisplayName())
+            .operationType(BuildOperationCategory.TASK);
     }
 
     @Nullable

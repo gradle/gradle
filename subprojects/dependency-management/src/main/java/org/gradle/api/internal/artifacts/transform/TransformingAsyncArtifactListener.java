@@ -42,9 +42,11 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
-        TransformArtifactOperation operation = new TransformArtifactOperation(artifact, transform);
-        artifactResults.put(artifact.getId(), operation);
-        if (transform.hasCachedResult(artifact.getFile())) {
+        ComponentArtifactIdentifier artifactId = artifact.getId();
+        File file = artifact.getFile();
+        TransformArtifactOperation operation = new TransformArtifactOperation(artifactId, file, transform);
+        artifactResults.put(artifactId, operation);
+        if (transform.hasCachedResult(file)) {
             operation.run(null);
         } else {
             actions.add(operation);
