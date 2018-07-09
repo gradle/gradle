@@ -25,15 +25,32 @@ import org.gradle.tooling.model.cpp.CppProject
 @ToolingApiVersion(">=4.10")
 @TargetGradleVersion(">=4.10")
 class CppModelCrossVersionSpec extends ToolingApiSpecification {
+    def "has empty model when root project does not apply any C++ plugins"() {
+        buildFile << """
+            apply plugin: 'java-library'
+        """
+
+        when:
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
+
+        then:
+        project.projectIdentifier.projectPath == ':'
+        project.projectIdentifier.buildIdentifier.rootDir == projectDir
+        project.mainComponent == null
+        project.testComponent == null
+    }
+
     def "can query model when root project applies C++ application plugin"() {
         buildFile << """
             apply plugin: 'cpp-application'
         """
 
         when:
-        CppProject project = withConnection { connection -> connection.getModel(CppProject.class) }
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
+        project.projectIdentifier.projectPath == ':'
+        project.projectIdentifier.buildIdentifier.rootDir == projectDir
         project.mainComponent != null
         project.mainComponent.componentType == CppComponentType.APPLICATION
         project.testComponent == null
@@ -45,7 +62,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        CppProject project = withConnection { connection -> connection.getModel(CppProject.class) }
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
         project.mainComponent != null
@@ -59,7 +76,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        CppProject project = withConnection { connection -> connection.getModel(CppProject.class) }
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
         project.mainComponent == null
@@ -73,7 +90,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        CppProject project = withConnection { connection -> connection.getModel(CppProject.class) }
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
         project.mainComponent != null
@@ -87,23 +104,79 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        CppProject project = withConnection { connection -> connection.getModel(CppProject.class) }
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
         project.mainComponent != null
         project.testComponent != null
     }
 
-    def "has empty model when root project does not apply any C++ plugins"() {
+    def "can query the models for each project in a build"() {
+        settingsFile << """
+            include 'app'
+            include 'lib'
+            include 'other'
+        """
         buildFile << """
-            apply plugin: 'java-library'
+            project(':app') { 
+                apply plugin: 'cpp-application' 
+            }
+            project(':lib') { 
+                apply plugin: 'cpp-library' 
+                apply plugin: 'cpp-unit-test' 
+            }
         """
 
         when:
-        CppProject project = withConnection { connection -> connection.getModel(CppProject.class) }
+        def models = withConnection { connection -> connection.action(new FetchAllCppProjects()).run() }
 
         then:
-        project.mainComponent == null
-        project.testComponent == null
+        models.size() == 4
+        models[0].projectIdentifier.projectPath == ':'
+        models[0].mainComponent == null
+        models[0].testComponent == null
+        models[1].projectIdentifier.projectPath == ':app'
+        models[1].mainComponent != null
+        models[1].testComponent == null
+        models[2].projectIdentifier.projectPath == ':lib'
+        models[2].mainComponent != null
+        models[2].testComponent != null
+        models[3].projectIdentifier.projectPath == ':other'
+        models[3].mainComponent == null
+        models[3].testComponent == null
+    }
+
+    def "can query the models for each project in a composite build"() {
+        settingsFile << """
+            include 'app'
+            includeBuild 'lib'
+        """
+        buildFile << """
+            project(':app') { 
+                apply plugin: 'cpp-application' 
+            }
+        """
+        file("lib/build.gradle") << """
+                apply plugin: 'cpp-library' 
+                apply plugin: 'cpp-unit-test' 
+        """
+
+        when:
+        def models = withConnection { connection -> connection.action(new FetchAllCppProjects()).run() }
+
+        then:
+        models.size() == 3
+        models[0].projectIdentifier.projectPath == ':'
+        models[0].projectIdentifier.buildIdentifier.rootDir == projectDir
+        models[0].mainComponent == null
+        models[0].testComponent == null
+        models[1].projectIdentifier.projectPath == ':app'
+        models[1].projectIdentifier.buildIdentifier.rootDir == projectDir
+        models[1].mainComponent != null
+        models[1].testComponent == null
+        models[2].projectIdentifier.projectPath == ':'
+        models[2].projectIdentifier.buildIdentifier.rootDir == file("lib")
+        models[2].mainComponent != null
+        models[2].testComponent != null
     }
 }

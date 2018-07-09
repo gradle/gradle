@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.cpp.CppComponentType;
 import org.gradle.tooling.model.cpp.CppProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -49,16 +50,23 @@ public class CppModelBuilder implements ToolingModelBuilder {
         if (testSuite != null) {
             testComponent = new DefaultCppComponent(CppComponentType.APPLICATION);
         }
-        return new DefaultCppProject(mainComponent, testComponent);
+        DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
+        return new DefaultCppProject(projectIdentifier, mainComponent, testComponent);
     }
 
     public static class DefaultCppProject implements Serializable {
+        private final DefaultProjectIdentifier projectIdentifier;
         private final DefaultCppComponent mainComponent;
         private final DefaultCppComponent testComponent;
 
-        public DefaultCppProject(DefaultCppComponent mainComponent, DefaultCppComponent testComponent) {
+        public DefaultCppProject(DefaultProjectIdentifier projectIdentifier, DefaultCppComponent mainComponent, DefaultCppComponent testComponent) {
+            this.projectIdentifier = projectIdentifier;
             this.mainComponent = mainComponent;
             this.testComponent = testComponent;
+        }
+
+        public DefaultProjectIdentifier getProjectIdentifier() {
+            return projectIdentifier;
         }
 
         public DefaultCppComponent getMainComponent() {
