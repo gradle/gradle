@@ -20,9 +20,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +44,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 
-    private BuildOperationExecutor buildOperationExecutor;
-    private Clock clock;
-    private BuildOperationListener buildOperationListener;
     private WarningMode warningMode;
     private DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
-//        this.buildOperationListener = NOOP;
     }
 
     public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
@@ -83,7 +76,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     private void fireDeprecationWarningBuildOperationProgress(FeatureUsage usage) {
-        buildOperationProgressBroadaster.progress(usage.getMessage(), usage.withStackTrace().getStack());
+        if (buildOperationProgressBroadaster != null) {
+            buildOperationProgressBroadaster.progress(usage.getMessage(), usage.withStackTrace().getStack());
+        }
     }
 
     public void reset() {
