@@ -435,7 +435,7 @@ class FileSizer extends ArtifactTransform {
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
-        outputContains("ids: [lib1.jar.jar (project :lib), lib2.zip.jar (project :lib)]")
+        outputContains("ids: [lib1.jar (project :lib), lib2.zip.jar (project :lib)]")
         outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
 
