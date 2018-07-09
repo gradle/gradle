@@ -274,7 +274,6 @@ data class KotlinExtensionFunction(
             list.mapIndexed { index, p ->
                 if (index == list.size - 1 && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
                 else if (index == list.size - 2 && list[index + 1].type.isGradleAction && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (p.type.isGradleAction) "noinline `${p.name}`: ${p.type.typeArguments.single().copy(bound = Bound.NONE).toTypeArgumentString()}.() -> Unit"
                 else "`${p.name}`: ${p.type.toTypeArgumentString()}"
             }.joinToString(separator = ", ")
         } ?: ""

@@ -144,7 +144,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             .let { it[".kt"]!! to it[".class"]!! }
 
         assertTrue(generatedSources.isNotEmpty())
-        assertTrue(generatedClasses.size > generatedSources.size)
+        assertTrue(generatedClasses.size >= generatedSources.size)
 
         val generatedSourceCode = JarFile(generatedJar).use { jar ->
             generatedSources.joinToString("\n") { name ->
@@ -164,7 +164,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             """,
             """
             @org.gradle.api.Incubating
-            inline fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, noinline `configurationAction`: T.() -> Unit): org.gradle.api.tasks.TaskProvider<T> =
+            inline fun <T : org.gradle.api.Task> org.gradle.api.tasks.TaskContainer.`register`(`name`: String, `type`: kotlin.reflect.KClass<T>, `configurationAction`: org.gradle.api.Action<in T>): org.gradle.api.tasks.TaskProvider<T> =
                 `register`(`name`, `type`.java, `configurationAction`)
             """,
             """
