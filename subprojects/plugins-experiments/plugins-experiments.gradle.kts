@@ -50,7 +50,7 @@ processResources.dependsOn(writeDefaultVersionsProperties)
 
 // ktlint custom ruleset ----------------------------------------------
 
-val ruleset by java.sourceSets.creating
+val ruleset by sourceSets.creating
 val rulesetShaded by configurations.creating
 val rulesetCompileOnly by configurations.getting {
     extendsFrom(rulesetShaded)
@@ -75,7 +75,7 @@ val rulesetChecksum by tasks.creating {
         rulesetChecksumFile.writeText(Hashing.md5().hashBytes(rulesetJar.archivePath.readBytes()).toString())
     }
 }
-java.sourceSets["main"].output.dir(
+sourceSets["main"].output.dir(
     mapOf("builtBy" to listOf(rulesetJar, rulesetChecksum)),
     generatedResourcesRulesetJarDir)
 
