@@ -39,7 +39,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
     @Issue("GRADLE-3206")
     def "can create new caches and access them in parallel"() {
-        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(None), lockManager, executorFactory)
+        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(None), null, lockManager, executorFactory)
         store.open()
 
         when:

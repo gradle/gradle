@@ -18,18 +18,14 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheValidator
-import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
-
-import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
@@ -45,7 +41,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         isValid() >> true
     }
     def initializationAction = Mock(Action)
-    def cleanupAction = Mock(CleanupAction)
+    def cleanupAction = Stub(CleanupAction)
 
     def properties = ['prop': 'value', 'prop2': 'other-value']
 
@@ -196,95 +192,6 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         0 * _  // Does not call initialization action.
         dir.file("cache.properties").isFile()
         dir.file("some-file").isFile()
-    }
-
-    def "runs cleanup action when it is due"() {
-        given:
-        def dir = createCacheDir()
-        def gcFile = dir.file("gc.properties")
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), initializationAction, cleanupAction, lockManager, Mock(ExecutorFactory))
-
-        when:
-        try {
-            cache.open()
-        } finally {
-            cache.close()
-        }
-
-        then:
-        0 * _  // Does not call initialization or cleanup action.
-        gcFile.assertIsFile()
-
-        when:
-        markCacheForCleanup(gcFile)
-        def modificationTimeBefore = gcFile.lastModified()
-        try {
-            cache.open()
-        } finally {
-            cache.close()
-        }
-
-        then:
-        gcFile.lastModified() > modificationTimeBefore
-        1 * cleanupAction.clean(cache, _)
-        0 * _
-    }
-
-    def "fails gracefully if cleanup action fails"() {
-        given:
-        def dir = createCacheDir()
-        def gcFile = dir.file("gc.properties")
-        def failingCleanupAction = new CleanupAction() {
-            @Override
-            void clean(CleanableStore cleanableStore, CountdownTimer timer) {
-                throw new Exception("Boom")
-            }
-        }
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), initializationAction, failingCleanupAction, lockManager, Mock(ExecutorFactory))
-
-        when:
-        try {
-            cache.open()
-        } finally {
-            cache.close()
-        }
-
-        then:
-        0 * _  // Does not call initialization or cleanup action.
-        gcFile.assertIsFile()
-
-        when:
-        markCacheForCleanup(gcFile)
-        try {
-            cache.open()
-        } finally {
-            cache.close()
-        }
-        then:
-        noExceptionThrown()
-        0 * _
-    }
-
-    private void markCacheForCleanup(TestFile gcFile) {
-        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(2))
-    }
-
-    def "does not use gc.properties when no cleanup action is defined"() {
-        given:
-        def dir = createCacheDir()
-        def gcFile = dir.file("gc.properties")
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), initializationAction, null, lockManager, Mock(ExecutorFactory))
-
-        when:
-        try {
-            cache.open()
-        } finally {
-            cache.close()
-        }
-
-        then:
-        0 * _
-        gcFile.assertDoesNotExist()
     }
 
     def "will rebuild cache if not unlocked cleanly"() {
