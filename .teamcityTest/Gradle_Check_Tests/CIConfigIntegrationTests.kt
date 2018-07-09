@@ -5,6 +5,7 @@ import model.*
 import org.junit.Test
 import projects.RootProject
 import java.io.File
+import java.util.regex.Pattern
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -54,6 +55,9 @@ class CIConfigIntegrationTests {
 
                 stage.functionalTests.forEach { testCoverage ->
                     m.subProjects.forEach { subProject ->
+                        if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+                            return@forEach
+                        }
                         if (shouldBeSkipped(subProject, testCoverage)) {
                             return@forEach
                         }
@@ -91,12 +95,74 @@ class CIConfigIntegrationTests {
                                     SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
                                     TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
-                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                            omitsSlowProjects = true)
                 )
         )
         val p = RootProject(m)
         printTree(p)
         assertTrue(p.subProjects.size == 1)
+    }
+
+    @Test
+    fun canDeferSlowTestsToLaterStage() {
+        val ft = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8), TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))
+        val m = CIBuildModel(
+            projectPrefix = "",
+            parentBuildCache = NoBuildCache,
+            childBuildCache = NoBuildCache,
+            stages = listOf(
+                Stage("Stage1", "Stage1 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java7),
+                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = true),
+                Stage("Stage2", "Stage2 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java7),
+                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = true),
+                Stage("Stage3", "Stage3 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
+                       TestCoverage(TestType.platform, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = false),
+                Stage("Stage4", "Stage4 description",
+                    functionalTests = listOf(
+                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7),
+                        TestCoverage(TestType.parallel, OS.windows, JvmVersion.java7)),
+                    omitsSlowProjects = false)
+            ),
+            subProjects = listOf(
+                GradleSubproject("fastBuild"),
+                GradleSubproject("slowBuild", containsSlowTests = true)
+            )
+        )
+        val p = RootProject(m)
+        assertTrue(!p.hasSubProject("Stage1", "deferred"))
+        assertTrue(!p.hasSubProject("Stage2", "deferred"))
+        assertTrue( p.hasSubProject("Stage3", "deferred"))
+        assertTrue(!p.hasSubProject("Stage4", "deferred"))
+        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("Quick", "slowBuild"))
+        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("NoDaemon", "slowBuild"))
+    }
+
+    private fun Project.hasSubProject(vararg patterns: String): Boolean {
+        return findSubProject(*patterns) != null
+    }
+
+    private fun Project.findSubProject(vararg patterns: String): Project? {
+        val tail = patterns.drop(1).toTypedArray()
+        val sub =  this.subProjects.find { it.name.contains(patterns[0]) }
+        return if (sub == null || tail.isEmpty()) sub else sub.findSubProject(*tail)
+    }
+
+    private fun Project.hasBuildType(vararg patterns: String): Boolean {
+        return this.buildTypes.find { buildType ->
+            patterns.all { pattern ->
+                buildType.name.contains(pattern)
+            }
+        } != null
     }
 
     @Test
