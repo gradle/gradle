@@ -569,7 +569,7 @@ compileTestJava.options.incremental = true
         then:
         outputs.recompiledClasses("A", "B", "C")
         output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
-        output.contains(":compileJava - is not incremental. Unable to infer the source directories.")
+        output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
     def "handles duplicate class across source directories"() {
