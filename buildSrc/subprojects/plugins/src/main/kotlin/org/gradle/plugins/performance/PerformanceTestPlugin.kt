@@ -321,6 +321,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val result = tasks.register(name, DistributedPerformanceTest::class.java) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
+            configureForAnyDistributedPerformanceTestTask(this)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
@@ -435,6 +436,19 @@ class PerformanceTestPlugin : Plugin<Project> {
                     performanceReportTask.get().systemProperty(PropertyNames.channel, channel)
                 }
             }
+        }
+    }
+
+    private
+    fun Project.configureForAnyDistributedPerformanceTestTask(task: DistributedPerformanceTest) {
+        task.apply {
+            val registerInputs: (Task) -> Unit = { prepareSampleTask ->
+                val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
+                task.inputs.properties(prepareSampleTaskInputs)
+            }
+            tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
+            tasks.withType<RemoteProject>().forEach(registerInputs)
+            tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
         }
     }
 
