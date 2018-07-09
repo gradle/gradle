@@ -92,7 +92,7 @@ fun accessibleConventionsSchema(plugins: Map<String, Any>) =
 
 private
 fun sourceSetsOf(project: Project) =
-    project.extensions.findByType(typeOf<SourceSetContainer>())
+    project.extensions.findByName("sourceSets") as? SourceSetContainer
 
 
 private
