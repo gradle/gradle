@@ -29,19 +29,20 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 
 /**
- * A lossy attribute container serializer. It's lossy because it doesn't preserve the attribute
- * types: it will serialize the contents as strings, and read them as strings, only for reporting
- * purposes.
+ * An attribute container serializer that will desugar typed attributes.
+ *
+ * Attributes that are of types different than {@code String} or {@code boolean} will be desugared
+ * before serialization. The process requires the attribute type to implement {@link Named}.
  */
-public class FullAttributeContainerSerializer implements AttributeContainerSerializer {
+public class DesugaringAttributeContainerSerializer implements AttributeContainerSerializer {
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator namedObjectInstantiator;
 
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
-    private static final byte SERIALIZED_ATTRIBUTE = 3;
+    private static final byte DESUGARED_ATTRIBUTE = 3;
 
-    public FullAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
+    public DesugaringAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
         this.attributesFactory = attributesFactory;
         this.namedObjectInstantiator = namedObjectInstantiator;
     }
@@ -58,7 +59,7 @@ public class FullAttributeContainerSerializer implements AttributeContainerSeria
             } else if (type == STRING_ATTRIBUTE){
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), value);
-            } else if (type == SERIALIZED_ATTRIBUTE) {
+            } else if (type == DESUGARED_ATTRIBUTE) {
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, namedObjectInstantiator));
             }
@@ -80,7 +81,7 @@ public class FullAttributeContainerSerializer implements AttributeContainerSeria
             } else {
                 assert Named.class.isAssignableFrom(attribute.getType());
                 Named attributeValue = (Named) container.getAttribute(attribute);
-                encoder.writeByte(SERIALIZED_ATTRIBUTE);
+                encoder.writeByte(DESUGARED_ATTRIBUTE);
                 encoder.writeString(attributeValue.getName());
             }
         }

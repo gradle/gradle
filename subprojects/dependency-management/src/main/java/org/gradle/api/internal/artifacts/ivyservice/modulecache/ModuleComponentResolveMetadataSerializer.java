@@ -26,7 +26,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadataSerializationHelper;
-import org.gradle.internal.resolve.caching.FullAttributeContainerSerializer;
+import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -40,7 +40,7 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
     private final ModuleMetadataSerializer delegate;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ModuleComponentResolveMetadataSerializer(ModuleMetadataSerializer delegate, FullAttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ModuleComponentResolveMetadataSerializer(ModuleMetadataSerializer delegate, DesugaringAttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         ivySerializationHelper = new RealisedIvyModuleResolveMetadataSerializationHelper(attributeContainerSerializer, moduleIdentifierFactory);

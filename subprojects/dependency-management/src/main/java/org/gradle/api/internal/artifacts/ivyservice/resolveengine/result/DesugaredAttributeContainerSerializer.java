@@ -32,13 +32,13 @@ import java.io.IOException;
  * types: it will serialize the contents as strings, and read them as strings, only for reporting
  * purposes.
  */
-public class LossyAttributeContainerSerializer extends AbstractSerializer<AttributeContainer> implements AttributeContainerSerializer {
+public class DesugaredAttributeContainerSerializer extends AbstractSerializer<AttributeContainer> implements AttributeContainerSerializer {
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
 
-    public LossyAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public DesugaredAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
     }
