@@ -43,6 +43,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "can query model when root project applies C++ application plugin"() {
+        settingsFile << """
+            rootProject.name = 'app'
+        """
         buildFile << """
             apply plugin: 'cpp-application'
         """
@@ -53,11 +56,23 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         project.projectIdentifier.projectPath == ':'
         project.projectIdentifier.buildIdentifier.rootDir == projectDir
+
         project.mainComponent instanceof CppApplication
+        project.mainComponent.baseName == 'app'
+
+        project.mainComponent.binaries.size() == 2
+        project.mainComponent.binaries[0].name == 'mainDebug'
+        project.mainComponent.binaries[0].baseName == 'app'
+        project.mainComponent.binaries[1].name == 'mainRelease'
+        project.mainComponent.binaries[1].baseName == 'app'
+
         project.testComponent == null
     }
 
     def "can query model when root project applies C++ library plugin"() {
+        settingsFile << """
+            rootProject.name = 'lib'
+        """
         buildFile << """
             apply plugin: 'cpp-library'
         """
@@ -67,10 +82,21 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.mainComponent instanceof CppLibrary
+        project.mainComponent.baseName == 'lib'
+
+        project.mainComponent.binaries.size() == 2
+        project.mainComponent.binaries[0].name == 'mainDebug'
+        project.mainComponent.binaries[0].baseName == 'lib'
+        project.mainComponent.binaries[1].name == 'mainRelease'
+        project.mainComponent.binaries[1].baseName == 'lib'
+
         project.testComponent == null
     }
 
     def "can query model when root project applies C++ unit test plugin"() {
+        settingsFile << """
+            rootProject.name = 'tests'
+        """
         buildFile << """
             apply plugin: 'cpp-unit-test'
         """
@@ -81,9 +107,17 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         project.mainComponent == null
         project.testComponent instanceof CppTestSuite
+        project.testComponent.baseName == 'testsTest'
+
+        project.testComponent.binaries.size() == 1
+        project.testComponent.binaries[0].name == 'testExecutable'
+        project.testComponent.binaries[0].baseName == 'testsTest'
     }
 
     def "can query model when root project applies C++ application and unit test plugins"() {
+        settingsFile << """
+            rootProject.name = 'app'
+        """
         buildFile << """
             apply plugin: 'cpp-application'
             apply plugin: 'cpp-unit-test'
@@ -94,7 +128,9 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.mainComponent instanceof CppApplication
+        project.mainComponent.baseName == 'app'
         project.testComponent instanceof CppTestSuite
+        project.testComponent.baseName == 'appTest'
     }
 
     def "can query model when root project applies C++ library and unit test plugins"() {
@@ -109,6 +145,62 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         project.mainComponent instanceof CppLibrary
         project.testComponent instanceof CppTestSuite
+    }
+
+    def "can query model for customized C++ application"() {
+        settingsFile << """
+            rootProject.name = 'app'
+        """
+        buildFile << """
+            apply plugin: 'cpp-application'
+            application {
+                baseName = 'some-app'
+            }
+        """
+
+        when:
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
+
+        then:
+        project.mainComponent instanceof CppApplication
+        project.mainComponent.baseName == 'some-app'
+        project.mainComponent.binaries.size() == 2
+
+        project.mainComponent.binaries[0].name == 'mainDebug'
+        project.mainComponent.binaries[0].baseName == 'some-app'
+        project.mainComponent.binaries[1].name == 'mainRelease'
+        project.mainComponent.binaries[1].baseName == 'some-app'
+    }
+
+    def "can query model for customized C++ library"() {
+        settingsFile << """
+            rootProject.name = 'lib'
+        """
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library {
+                baseName = 'some-lib'
+                linkage = [Linkage.STATIC, Linkage.SHARED]
+            }
+        """
+
+        when:
+        def project = withConnection { connection -> connection.getModel(CppProject.class) }
+
+        then:
+        project.mainComponent instanceof CppLibrary
+        project.mainComponent.baseName == 'some-lib'
+
+        project.mainComponent.binaries.size() == 4
+
+        project.mainComponent.binaries[0].name == 'mainDebugStatic'
+        project.mainComponent.binaries[0].baseName == 'some-lib'
+        project.mainComponent.binaries[1].name == 'mainDebugShared'
+        project.mainComponent.binaries[1].baseName == 'some-lib'
+        project.mainComponent.binaries[2].name == 'mainReleaseStatic'
+        project.mainComponent.binaries[2].baseName == 'some-lib'
+        project.mainComponent.binaries[3].name == 'mainReleaseShared'
+        project.mainComponent.binaries[3].baseName == 'some-lib'
     }
 
     def "can query the models for each project in a build"() {
@@ -175,7 +267,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         models[1].mainComponent instanceof CppApplication
         models[1].testComponent == null
         models[2].projectIdentifier.projectPath == ':'
-        models[2].projectIdentifier.buildIdentifier.rootDir == file("lib")
+        models[2].projectIdentifier.buildIdentifier.rootDir == file('lib')
         models[2].mainComponent instanceof CppLibrary
         models[2].testComponent != null
     }

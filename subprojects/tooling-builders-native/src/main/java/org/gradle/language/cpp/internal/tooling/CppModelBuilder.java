@@ -18,6 +18,8 @@ package org.gradle.language.cpp.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
@@ -28,6 +30,8 @@ import org.gradle.tooling.model.cpp.CppProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CppModelBuilder implements ToolingModelBuilder {
     @Override
@@ -40,20 +44,28 @@ public class CppModelBuilder implements ToolingModelBuilder {
         DefaultCppComponent mainComponent = null;
         CppApplication application = project.getComponents().withType(CppApplication.class).findByName("main");
         if (application != null) {
-            mainComponent = new DefaultCppApplication();
+            mainComponent = new DefaultCppApplication(application.getBaseName().get(), binariesFor(application));
         } else {
             CppLibrary library = project.getComponents().withType(CppLibrary.class).findByName("main");
             if (library != null) {
-                mainComponent = new DefaultCppLibrary();
+                mainComponent = new DefaultCppLibrary(library.getBaseName().get(), binariesFor(library));
             }
         }
         DefaultCppComponent testComponent = null;
         CppTestSuite testSuite = project.getComponents().withType(CppTestSuite.class).findByName("test");
         if (testSuite != null) {
-            testComponent = new DefaultCppTestSuite();
+            testComponent = new DefaultCppTestSuite(testSuite.getBaseName().get(), binariesFor(testSuite));
         }
         DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
         return new DefaultCppProject(projectIdentifier, mainComponent, testComponent);
+    }
+
+    private List<DefaultCppBinary> binariesFor(CppComponent component) {
+        ArrayList<DefaultCppBinary> binaries = new ArrayList<DefaultCppBinary>();
+        for (CppBinary binary : component.getBinaries().get()) {
+            binaries.add(new DefaultCppBinary(binary.getName(), binary.getBaseName().get()));
+        }
+        return binaries;
     }
 
     public static class DefaultCppProject implements Serializable {
@@ -80,15 +92,57 @@ public class CppModelBuilder implements ToolingModelBuilder {
         }
     }
 
+    public static class DefaultCppBinary implements Serializable {
+        private final String name;
+        private final String baseName;
+
+        public DefaultCppBinary(String name, String baseName) {
+            this.name = name;
+            this.baseName = baseName;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getBaseName() {
+            return baseName;
+        }
+    }
+
     public static class DefaultCppComponent implements Serializable {
+        private final String baseName;
+        private final List<DefaultCppBinary> binaries;
+
+        public DefaultCppComponent(String baseName, List<DefaultCppBinary> binaries) {
+            this.baseName = baseName;
+            this.binaries = binaries;
+        }
+
+        public String getBaseName() {
+            return baseName;
+        }
+
+        public List<DefaultCppBinary> getBinaries() {
+            return binaries;
+        }
     }
 
     public static class DefaultCppApplication extends DefaultCppComponent implements InternalCppApplication {
+        public DefaultCppApplication(String baseName, List<DefaultCppBinary> binaries) {
+            super(baseName, binaries);
+        }
     }
 
     public static class DefaultCppLibrary extends DefaultCppComponent implements InternalCppLibrary {
+        public DefaultCppLibrary(String baseName, List<DefaultCppBinary> binaries) {
+            super(baseName, binaries);
+        }
     }
 
     public static class DefaultCppTestSuite extends DefaultCppComponent implements InternalCppTestSuite {
+        public DefaultCppTestSuite(String baseName, List<DefaultCppBinary> binaries) {
+            super(baseName, binaries);
+        }
     }
 }
