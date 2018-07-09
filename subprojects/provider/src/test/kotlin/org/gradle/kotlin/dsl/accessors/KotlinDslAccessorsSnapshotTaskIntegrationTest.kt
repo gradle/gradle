@@ -92,9 +92,9 @@ fun javaExtensionsWith(otherExtensions: List<ProjectSchemaEntry<String>>) =
             ProjectSchemaEntry(
                 "org.gradle.api.Project",
                 "sourceSets",
-                "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.tasks.SourceSet>"),
+                "org.gradle.api.tasks.SourceSetContainer"),
             ProjectSchemaEntry(
-                "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.tasks.SourceSet>",
+                "org.gradle.api.tasks.SourceSetContainer",
                 "ext",
                 "org.gradle.api.plugins.ExtraPropertiesExtension"),
             ProjectSchemaEntry(
