@@ -338,9 +338,9 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         then:
-        def progressEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
-        assert progressEvents
-            .findAll { it.details.category != LoggingIncubatingFeatureHandler.name && it.details.category != LoggingDeprecatedFeatureHandler.name }
+        def progressOutputEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
+        assert progressOutputEvents
+            .findAll { it.details.containsKey('category') && (it.details.category != LoggingIncubatingFeatureHandler.name && it.details.category != LoggingDeprecatedFeatureHandler.name) }
             .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
