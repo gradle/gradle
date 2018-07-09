@@ -31,6 +31,7 @@ import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationL
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
+import org.gradle.util.DeprecationLogger;
 
 public class ConnectorServices {
     private static DefaultServiceRegistry singletonRegistry;
@@ -58,6 +59,7 @@ public class ConnectorServices {
     public static void reset() {
         singletonRegistry.close();
         singletonRegistry = new ConnectorServiceRegistry();
+        DeprecationLogger.reset();
     }
 
     private static void checkJavaVersion() {
