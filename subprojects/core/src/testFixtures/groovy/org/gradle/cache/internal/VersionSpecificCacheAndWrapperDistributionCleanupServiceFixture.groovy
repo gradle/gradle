@@ -16,22 +16,38 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.internal.BiAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.util.JarUtils
 
 import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
 
 trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements VersionSpecificCacheCleanupFixture {
+
+    private static final BiAction<GradleVersion, File> DEFAULT_JAR_WRITER = { version, jarFile ->
+        jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME): "${GradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
+    }
 
     @Override
     TestFile getCachesDir() {
         gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
-    TestFile createDistributionDir(GradleVersion version, String distributionType) {
-        def distsDir = gradleUserHomeDir.createDir(WRAPPER_DISTRIBUTION_FILE_PATH)
-        def versionDir = distsDir.file("gradle-${version.version}-$distributionType").createDir()
-        return versionDir
+    TestFile createDistributionChecksumDir(GradleVersion version, String distributionType) {
+        distsDir.file("gradle-${version.version}-$distributionType").createDir(UUID.randomUUID())
+    }
+
+    TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {
+        def checksumDir = distsDir.file(parentDirName).createDir(UUID.randomUUID())
+        def libDir = checksumDir.file("gradle-${version.baseVersion.version}", "lib").createDir()
+        def jarFile = libDir.file("gradle-base-services-${version.baseVersion.version}.jar")
+        jarWriter.execute(version, jarFile)
+        return checksumDir
+    }
+
+    TestFile getDistsDir() {
+        gradleUserHomeDir.file(WRAPPER_DISTRIBUTION_FILE_PATH)
     }
 
     abstract TestFile getGradleUserHomeDir()

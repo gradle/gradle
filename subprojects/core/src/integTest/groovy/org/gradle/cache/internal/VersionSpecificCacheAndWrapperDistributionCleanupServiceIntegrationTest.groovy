@@ -30,22 +30,34 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceIntegrationTest ex
         requireOwnGradleUserHomeDir() // because we delete caches and distributions
 
         and:
-        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.4.5"), USED_TODAY)
+        def oldButRecentlyUsedVersion = GradleVersion.version("1.4.5")
+        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(oldButRecentlyUsedVersion, USED_TODAY)
+        def oldButRecentlyUsedDist = createDistributionChecksumDir(oldButRecentlyUsedVersion, "bin").parentFile
+        def oldButRecentlyUsedCustomDist = createCustomDistributionChecksumDir("my-dist-1", oldButRecentlyUsedVersion).parentFile
+
         def oldNotRecentlyUsedVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldNotRecentlyUsedVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldDist = createDistributionDir(oldNotRecentlyUsedVersion, "bin")
+        def oldNotRecentlyUsedCacheDir = createVersionSpecificCacheDir(oldNotRecentlyUsedVersion, NOT_USED_WITHIN_30_DAYS)
+        def oldNotRecentlyUsedDist = createDistributionChecksumDir(oldNotRecentlyUsedVersion, "bin").parentFile
+        def oldNotRecentlyUsedCustomDist = createCustomDistributionChecksumDir("my-dist-2", oldNotRecentlyUsedVersion).parentFile
+
         def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_30_DAYS)
-        def currentDist = createDistributionDir(GradleVersion.current(), "all")
+        def currentDist = createDistributionChecksumDir(GradleVersion.current(), "all").parentFile
 
         when:
         succeeds("tasks")
 
         then:
         oldButRecentlyUsedCacheDir.assertExists()
-        oldCacheDir.assertDoesNotExist()
-        oldDist.assertDoesNotExist()
+        oldButRecentlyUsedDist.assertExists()
+        oldButRecentlyUsedCustomDist.assertExists()
+
+        oldNotRecentlyUsedCacheDir.assertDoesNotExist()
+        oldNotRecentlyUsedDist.assertDoesNotExist()
+        oldNotRecentlyUsedCustomDist.assertDoesNotExist()
+
         currentCacheDir.assertExists()
         currentDist.assertExists()
+
         getGcFile(currentCacheDir).assertExists()
     }
 
