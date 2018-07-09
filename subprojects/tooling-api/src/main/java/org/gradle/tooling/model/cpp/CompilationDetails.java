@@ -61,7 +61,7 @@ public interface CompilationDetails {
     List<File> getUserHeaderSearchPaths();
 
     /**
-     * Returns additional tool arguments.
+     * Returns any additional compiler arguments.
      */
     List<String> getAdditionalArgs();
 }

@@ -29,12 +29,12 @@ import java.util.List;
 @Incubating
 public interface LinkageDetails {
     /**
-     * Returns the location of this built binary.
+     * Returns the output location of this binary.
      */
-    File getLocation();
+    File getOutputLocation();
 
     /**
-     * Returns additional tool arguments.
+     * Returns any additional linker arguments.
      */
     List<String> getAdditionalArgs();
 }
