@@ -58,8 +58,9 @@ class TransformArtifactOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName("Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName())
-            .progressDisplayName("Transform " + transform.getDisplayName())
+        String displayName = "Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName();
+        return BuildOperationDescriptor.displayName(displayName)
+            .progressDisplayName(displayName)
             .operationType(category);
     }
 
