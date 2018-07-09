@@ -74,11 +74,19 @@ class CIConfigIntegrationTests {
                     }
                 }
 
+<<<<<<< Updated upstream
                 assertEquals(
                         stage.specificBuilds.size + functionalTestCount
                                 + stage.performanceTests.size + (if (prevStage != null) 1 else 0)
                                 + (if (!stage.omitsSlowProjects && prevStage != null && prevStage.omitsSlowProjects) 4 else 0), // deferred tests
                         it.dependencies.items.size, "Unexpected number of dependencies in stage ${stage.name} ${stage.omitsSlowProjects} " )
+=======
+                // hacky way to consider deferred tests
+                var deferredTestCount = if (stage.name.contains("Master Accept")) 10 else 0
+                assertEquals(
+               stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
+                       it.dependencies.items.size, "${stage.name}")
+>>>>>>> Stashed changes
             } else {
                 assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
             }
