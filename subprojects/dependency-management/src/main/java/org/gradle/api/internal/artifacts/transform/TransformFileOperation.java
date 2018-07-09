@@ -55,7 +55,7 @@ class TransformFileOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        String displayName = "Transform " + file + " with " + transform.getDisplayName();
+        String displayName = "Transform " + file.getName() + " with " + transform.getDisplayName();
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
             .operationType(category);
