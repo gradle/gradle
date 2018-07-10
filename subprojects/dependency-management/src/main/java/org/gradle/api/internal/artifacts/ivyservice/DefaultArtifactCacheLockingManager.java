@@ -24,7 +24,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -45,13 +44,13 @@ public class DefaultArtifactCacheLockingManager implements ArtifactCacheLockingM
     private final PersistentCache cache;
 
     public DefaultArtifactCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal,
-                                              CleanupActionFactory cleanupActionFactory, UsedGradleVersions usedGradleVersions) {
+                                              UsedGradleVersions usedGradleVersions) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
-                .withCleanup(cleanupActionFactory.create(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions)))
+                .withCleanup(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions))
                 .open();
     }
 

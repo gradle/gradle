@@ -23,11 +23,9 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.CleanupAction
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.CacheScopeMapping
-import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.hash.HashCode
@@ -58,9 +56,6 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
     def snapshotter = Mock(FileSystemSnapshotter)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def cleanupActionFactory = Stub(CleanupActionFactory) {
-        create(_) >> { CleanupAction action -> action }
-    }
     DefaultTransformedFileCache cache
 
     def setup() {
@@ -71,7 +66,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     private DefaultTransformedFileCache createCache() {
-        new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal, cleanupActionFactory)
+        new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
     }
 
     def "reuses result for given inputs and transform"() {
