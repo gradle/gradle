@@ -93,11 +93,11 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         cachePolicy = Mock()
         detailsToResult = Mock()
         onCacheMiss = Mock()
-        executor = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
+        executor = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer, false)
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Cache expiry check age=#age, refresh = #mustRefresh - #scenario - #ruleClass")
+    @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def hashValue = Mock(HashValue)
@@ -126,7 +126,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
 
         then:
         1 * key.originalContentHash >> hashValue
-        1 * hashValue.asBigInteger() >> new BigInteger("42")
+        1 * hashValue.asHexString() >> "42"
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
         1 * store.get(keyHash) >> cachedEntry
         if (expired) {
