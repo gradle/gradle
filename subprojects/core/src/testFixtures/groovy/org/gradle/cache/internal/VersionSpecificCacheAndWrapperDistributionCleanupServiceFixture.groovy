@@ -34,8 +34,8 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements
         gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
-    TestFile createDistributionChecksumDir(GradleVersion version, String distributionType) {
-        distsDir.file("gradle-${version.version}-$distributionType").createDir(UUID.randomUUID())
+    TestFile createDistributionChecksumDir(GradleVersion version) {
+        createCustomDistributionChecksumDir("gradle-${version.version}-all", version)
     }
 
     TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {

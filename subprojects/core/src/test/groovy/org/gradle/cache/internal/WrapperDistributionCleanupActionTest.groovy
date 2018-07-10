@@ -35,19 +35,15 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "deletes distributions for unused versions"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def oldAllDist = createDistributionChecksumDir(versionToCleanUp, "all")
-        def oldBinDist = createDistributionChecksumDir(versionToCleanUp, "bin")
-        def currentAllDist = createDistributionChecksumDir(currentVersion, "all")
-        def currentBinDist = createDistributionChecksumDir(currentVersion, "bin")
+        def oldDist = createDistributionChecksumDir(versionToCleanUp)
+        def currentDist = createDistributionChecksumDir(currentVersion)
 
         when:
         cleanupAction.execute(versionToCleanUp)
 
         then:
-        oldAllDist.parentFile.assertDoesNotExist()
-        oldBinDist.parentFile.assertDoesNotExist()
-        currentAllDist.assertExists()
-        currentBinDist.assertExists()
+        oldDist.parentFile.assertDoesNotExist()
+        currentDist.assertExists()
     }
 
     def "deletes custom distributions for unused versions"() {

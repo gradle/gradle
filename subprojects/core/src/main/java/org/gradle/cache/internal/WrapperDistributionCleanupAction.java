@@ -35,8 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -46,7 +44,6 @@ import static org.gradle.util.CollectionUtils.single;
 public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
-    private static final Pattern DISTRIBUTION_PATTERN = Pattern.compile("^gradle-(\\d.+)-(?:(all)|(bin))$");
 
     private final File distsDir;
     private Multimap<GradleVersion, File> checksumDirsByVersion;
@@ -84,14 +81,6 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
     private Multimap<GradleVersion, File> determineChecksumDirsByVersion() {
         Multimap<GradleVersion, File> result = ArrayListMultimap.create();
         for (File dir : listDirs(distsDir)) {
-            Matcher matcher = DISTRIBUTION_PATTERN.matcher(dir.getName());
-            if (matcher.matches()) {
-                GradleVersion gradleVersion = tryParseGradleVersion(matcher.group(1));
-                if (gradleVersion != null) {
-                    result.putAll(gradleVersion, listDirs(dir));
-                    continue;
-                }
-            }
             for (File checksumDir : listDirs(dir)) {
                 GradleVersion gradleVersion = determineGradleVersionFromBuildReceipt(checksumDir);
                 if (gradleVersion != null) {
