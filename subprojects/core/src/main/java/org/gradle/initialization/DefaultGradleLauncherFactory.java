@@ -105,7 +105,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 @Override
                 public void stop() {
                     rootBuild = null;
-                    DeprecationLogger.reset();
                 }
             }));
         rootBuild = launcher;
@@ -170,9 +169,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
 
-        BuildOperationListener buildOperationBroadcaster= serviceRegistry.get(BuildOperationListenerManager.class).getBroadcaster();
-        DeprecationWarningBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = new DeprecationWarningBuildOperationProgressBroadaster(clock, buildOperationBroadcaster, buildOperationExecutor);
-
+        BuildOperationListenerManager buildOperationListenerManager = serviceRegistry.get(BuildOperationListenerManager.class);
+        BuildOperationListener buildOperationBroadcaster= buildOperationListenerManager.getBroadcaster();
+        DeprecationWarningBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = new DeprecationWarningBuildOperationProgressBroadaster(clock, buildOperationBroadcaster);
         DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), deprecationWarningBuildOperationProgressBroadaster);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);

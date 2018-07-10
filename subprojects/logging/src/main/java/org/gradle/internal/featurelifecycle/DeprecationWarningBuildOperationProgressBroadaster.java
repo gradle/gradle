@@ -16,8 +16,9 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.time.Clock;
 
@@ -25,19 +26,40 @@ import java.util.List;
 
 public class DeprecationWarningBuildOperationProgressBroadaster {
 
+    private final static OperationIdentifierProvider DEFAULT_CURRENT_OPERATION_IDENTIFIER = new OperationIdentifierProvider() {
+        @Override
+        public OperationIdentifier getCurrentOperationIdentifier() {
+            return CurrentBuildOperationRef.instance().getId();
+        }
+    };
+
     private final Clock clock;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationListener listener;
 
-    public DeprecationWarningBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener, BuildOperationExecutor buildOperationExecutor) {
-        this.listener = listener;
+    private final OperationIdentifierProvider buildOperationIdentifierProvider;
+
+    public DeprecationWarningBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener) {
+        this(clock, listener, DEFAULT_CURRENT_OPERATION_IDENTIFIER);
+    }
+
+    public DeprecationWarningBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener, OperationIdentifierProvider currentOperationIdentifier) {
         this.clock = clock;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.listener = listener;
+        this.buildOperationIdentifierProvider = currentOperationIdentifier;
     }
 
     void progress(String message, List<StackTraceElement> stackTrace) {
-        listener.progress(buildOperationExecutor.getCurrentOperation().getId(),
-            new OperationProgressEvent(clock.getCurrentTime(),
-                new DefaultDeprecationWarningProgressDetails(message, stackTrace)));
+        OperationIdentifier id = buildOperationIdentifierProvider.getCurrentOperationIdentifier();
+        if (id != null) {
+            listener.progress(id,
+                new OperationProgressEvent(clock.getCurrentTime(),
+                    new DefaultDeprecationWarningProgressDetails(message, stackTrace)));
+        }
+
     }
+
+    interface OperationIdentifierProvider {
+        OperationIdentifier getCurrentOperationIdentifier();
+    }
+
 }

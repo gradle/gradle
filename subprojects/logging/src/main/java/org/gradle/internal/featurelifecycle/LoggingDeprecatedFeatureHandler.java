@@ -82,6 +82,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     public void reset() {
+        buildOperationProgressBroadaster = null;
         messages.clear();
     }
 

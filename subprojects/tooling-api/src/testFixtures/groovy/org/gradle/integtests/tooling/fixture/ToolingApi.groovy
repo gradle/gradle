@@ -232,7 +232,6 @@ class ToolingApi implements TestRule {
     }
 
     def cleanUpIsolatedDaemonsAndServices() {
-        DeprecationLogger.reset()
         if (isolatedToolingClient != null) {
             isolatedToolingClient.close()
         }
