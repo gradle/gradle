@@ -38,8 +38,60 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`rawClass`(`type`: kotlin.reflect.KClass<*>): Unit =
+                    `rawClass`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`unknownClass`(`type`: kotlin.reflect.KClass<*>): Unit =
+                    `unknownClass`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`invariantClass`(`type`: kotlin.reflect.KClass<kotlin.Number>): Unit =
+                    `invariantClass`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantClass`(`type`: kotlin.reflect.KClass<out kotlin.Number>): Unit =
+                    `covariantClass`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`contravariantClass`(`type`: kotlin.reflect.KClass<in Int>): Unit =
+                    `contravariantClass`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`varargOfClasses`(vararg `types`: kotlin.reflect.KClass<*>): Unit =
+                    `varargOfClasses`(*`types`.map { it.java }.toTypedArray())
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`arrayOfClasses`(`types`: kotlin.Array<kotlin.reflect.KClass<*>>): Unit =
+                    `arrayOfClasses`(`types`.map { it.java }.toTypedArray())
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`collectionOfClasses`(`types`: kotlin.collections.Collection<kotlin.reflect.KClass<out kotlin.Number>>): Unit =
+                    `collectionOfClasses`(`types`.map { it.java })
+                """,
+                """
                 inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassToKClass.`methodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
                     `methodParameterizedClass`(`type`.java)
+                """,
+                """
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantMethodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
+                    `covariantMethodParameterizedClass`(`type`.java)
+                """,
+                """
+                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassToKClass.`methodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
+                    `methodParameterizedCovariantClass`(`type`.java)
+                """,
+                """
+                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassToKClass.`methodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
+                    `methodParameterizedContravariantClass`(`type`.java)
+                """,
+                """
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
+                    `covariantMethodParameterizedCovariantClass`(`type`.java)
+                """,
+                """
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
+                    `covariantMethodParameterizedContravariantClass`(`type`.java)
                 """
             )
 
