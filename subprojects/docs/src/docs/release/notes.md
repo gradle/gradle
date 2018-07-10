@@ -1,16 +1,6 @@
 The Gradle team is pleased to announce Gradle 4.9.
 
-First and foremost, this version of Gradle features experimental new _lazy task API_.
-In a nutshell, the new tasks API allows builds to avoid the cost of creating and [configuring](userguide/build_lifecycle.html) tasks when those tasks will never be executed.
-
-Some Gradle tasks have converted to use this API, so you should see slightly faster configuration times just by upgrading.
-The benefits will improve as more plugins adopt this API.
-But _hold on_, it must be stressed that this API is [incubating](userguide/feature_lifecycle.html#sec:incubating_state) and may change in breaking ways before Gradle 5.0.
-However, your feedback is very welcome.
-Please read [this document](userguide/task_configuration_avoidance.html), try it out in non-production environments, and [file issues](https://github.com/gradle/gradle/issues) or [discuss with us](https://discuss.gradle.org).
-[Stay tuned](https://newsletter.gradle.com) for updates on this exciting new feature.
-
-Next, publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be [depended upon by other projects](https://github.com/gradle/gradle/issues/1061) in the same build.
+Publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be [depended upon by other projects](https://github.com/gradle/gradle/issues/1061) in the same build.
 There is also a [new Publishing Overview chapter](userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.
 
 On to the Kotlin DSL, which reaches version 0.18.4 included in this distribution of Gradle.
@@ -40,11 +30,6 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
-
-### Lazy task APIs
-
-To learn more about the lazy task API, please refer to the [Task Configuration Avoidance chapter](userguide/task_configuration_avoidance.html) covering migration, and other useful information.
-For more insight regarding the performance goals refer to the [blog post](https://blog.gradle.org/preview-avoiding-task-configuration-time) introducing how those new lazy task APIs can improve your configuration time.
 
 ### Command line args supported by JavaExec
 
@@ -78,6 +63,17 @@ Gradle now stores more state in the Gradle user home instead of the project dire
 The Java and Groovy compilers both used to leak file descriptors when run in-process (which is the default).
 This could lead to "cannot delete file" exceptions on Windows and "too many open file descriptors" on Unix.
 These leaks have been fixed.  If you had switched to forking mode because of this problem, it is now safe to switch back to in-process compilation.
+
+### Experimental new task API
+
+In a nutshell, the new task API allows builds to avoid the cost of creating and [configuring](userguide/build_lifecycle.html) tasks when those tasks will never be executed.
+
+Some Gradle tasks have converted to use this API, so you may see slightly faster configuration times just by upgrading.
+The benefits will improve as more plugins adopt this API.
+
+To learn more about the lazy task API, please refer to the [Task Configuration Avoidance chapter](userguide/task_configuration_avoidance.html) covering migration, try it out in non-production environments, and [file issues](https://github.com/gradle/gradle/issues) or [discuss with us](https://discuss.gradle.org). Your feedback is very welcome. This API is [incubating](userguide/feature_lifecycle.html#sec:incubating_state) and may change in breaking ways before Gradle 5.0.
+
+For more insight regarding the performance goals refer to the [blog post](https://blog.gradle.org/preview-avoiding-task-configuration-time) introducing how those new lazy task APIs can improve your configuration time.
 
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
