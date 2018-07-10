@@ -28,6 +28,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -53,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -197,23 +200,21 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         FileCollectionSnapshot afterExecution
     ) {
         FileCollectionSnapshot filesSnapshot;
-        Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
-        if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
-            Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+        Map<String, PhysicalSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
+        Map<String, PhysicalSnapshot> afterExecutionSnapshots = getAllSnapshots(afterExecution);
+        if (!beforeExecutionSnapshots.isEmpty() && !afterExecutionSnapshots.isEmpty()) {
             Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : ImmutableMap.<String, NormalizedFileSnapshot>of();
             int newEntryCount = 0;
             ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
 
-            for (Map.Entry<String, NormalizedFileSnapshot> entry : afterSnapshots.entrySet()) {
-                final String path = entry.getKey();
-                NormalizedFileSnapshot fileSnapshot = entry.getValue();
-                if (isOutputEntry(path, fileSnapshot.getSnapshot(), beforeSnapshots, afterPreviousSnapshots)) {
-                    outputEntries.put(entry.getKey(), fileSnapshot);
+            for (PhysicalSnapshot snapshot : afterExecutionSnapshots.values()) {
+                if (isOutputEntry(snapshot, beforeExecutionSnapshots, afterPreviousSnapshots)) {
+                    outputEntries.put(snapshot.getAbsolutePath(), afterExecution.getSnapshots().get(snapshot.getAbsolutePath()));
                     newEntryCount++;
                 }
             }
             // Are all files snapshot after execution accounted for as new entries?
-            if (newEntryCount == afterSnapshots.size()) {
+            if (newEntryCount == afterExecution.getSnapshots().size()) {
                 filesSnapshot = afterExecution;
             } else if (newEntryCount == 0) {
                 filesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
@@ -226,6 +227,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return filesSnapshot;
     }
 
+    private static Map<String, PhysicalSnapshot> getAllSnapshots(FileCollectionSnapshot fingerprint) {
+        GetAllSnapshotsVisitor afterExecutionVisitor = new GetAllSnapshotsVisitor();
+        fingerprint.visitRoots(afterExecutionVisitor);
+        return afterExecutionVisitor.getSnapshots();
+    }
+
     /**
      * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
      * <ul>
@@ -234,21 +241,21 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
      * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
-    private static boolean isOutputEntry(String path, FileContentSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+    private static boolean isOutputEntry(PhysicalSnapshot fileSnapshot, Map<String, PhysicalSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
         if (fileSnapshot.getType() == FileType.Missing) {
             return false;
         }
-        NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
+        PhysicalSnapshot beforeSnapshot = beforeSnapshots.get(fileSnapshot.getAbsolutePath());
         // Was it created during execution?
         if (beforeSnapshot == null) {
             return true;
         }
         // Was it updated during execution?
-        if (!fileSnapshot.isContentAndMetadataUpToDate(beforeSnapshot.getSnapshot())) {
+        if (!fileSnapshot.getContent().isContentAndMetadataUpToDate(beforeSnapshot.getContent())) {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousSnapshots.containsKey(path);
+        return afterPreviousSnapshots.containsKey(fileSnapshot.getAbsolutePath());
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
@@ -380,4 +387,26 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         builder.add(stringInterner.intern(file.getAbsolutePath()));
     }
 
+    private static class GetAllSnapshotsVisitor implements PhysicalSnapshotVisitor {
+        private final Map<String, PhysicalSnapshot> snapshots = new HashMap<String, PhysicalSnapshot>();
+
+        @Override
+        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+            snapshots.put(directorySnapshot.getAbsolutePath(), directorySnapshot);
+            return true;
+        }
+
+        @Override
+        public void visit(PhysicalSnapshot fileSnapshot) {
+            snapshots.put(fileSnapshot.getAbsolutePath(), fileSnapshot);
+        }
+
+        @Override
+        public void postVisitDirectory() {
+        }
+
+        public Map<String, PhysicalSnapshot> getSnapshots() {
+            return snapshots;
+        }
+    }
 }
