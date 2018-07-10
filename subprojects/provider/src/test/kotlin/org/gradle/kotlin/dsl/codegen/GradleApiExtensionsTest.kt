@@ -169,6 +169,43 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         }
     }
 
+    @Test
+    fun `maps mixed java-lang-Class and Groovy named arguments`() {
+
+        apiKotlinExtensionsGenerationFor(ClassAndGroovyNamedArguments::class, Consumer::class) {
+
+            assertGeneratedExtensions(
+                """
+                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, *>): Unit =
+                    `mapAndClass`(mapOf(*`args`), `type`.java)
+                """,
+                """
+                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, *>): Unit =
+                    `mapAndClassAndVarargs`(mapOf(*`args`), `type`.java, *`options`)
+                """,
+                """
+                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, *>, `action`: java.util.function.Consumer<in T>): Unit =
+                    `mapAndClassAndSAM`(mapOf(*`args`), `type`.java, `action`)
+                """
+            )
+
+            assertUsageCompilation(
+                """
+                import java.util.function.Consumer
+
+                fun usage(subject: ClassAndGroovyNamedArguments) {
+
+                    subject.mapAndClass<Number>(Int::class)
+                    subject.mapAndClass<Number>(Int::class, "foo" to 42, "bar" to "bazar")
+
+                    subject.mapAndClassAndVarargs<Number>(Int::class, arrayOf("foo", "bar"))
+                    subject.mapAndClassAndVarargs<Number>(Int::class, arrayOf("foo", "bar"), "bazar" to "cathedral")
+                }
+                """
+            )
+        }
+    }
+
     private
     fun apiKotlinExtensionsGenerationFor(vararg classes: KClass<*>, action: ApiKotlinExtensionsGeneration.() -> Unit) =
         ApiKotlinExtensionsGeneration(jarClassPathWith(*classes).asFiles).apply(action)
@@ -238,6 +275,12 @@ val fixtureParameterNamesSupplier = { key: String ->
         key.startsWith("${GroovyNamedArguments::class.qualifiedName}.") -> when {
             key.contains("Map(") -> listOf("args")
             key.contains("Parameters(") -> listOf("args", "foo", "bar")
+            else -> null
+        }
+        key.startsWith("${ClassAndGroovyNamedArguments::class.qualifiedName}.") -> when {
+            key.contains("mapAndClass(") -> listOf("args", "type")
+            key.contains("mapAndClassAndVarargs(") -> listOf("args", "type", "options")
+            key.contains("mapAndClassAndSAM(") -> listOf("args", "type", "action")
             else -> null
         }
         else -> null
