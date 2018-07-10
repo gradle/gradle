@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.util.GUtil;
+
+import java.util.Set;
 
 import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 
 public abstract class AbstractProvider<T> implements ProviderInternal<T> {
+    Set<Action<T>> onValueChangeActions = Sets.newLinkedHashSet();
 
     @Override
     public T get() {

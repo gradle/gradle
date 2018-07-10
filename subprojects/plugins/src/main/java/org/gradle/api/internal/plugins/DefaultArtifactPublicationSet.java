@@ -17,11 +17,15 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.DefaultChangingValueHandler;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -52,12 +56,18 @@ public class DefaultArtifactPublicationSet {
         return defaultArtifactProvider;
     }
 
-    private class DefaultArtifactProvider implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>> {
+    private class DefaultArtifactProvider implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
+        private final DefaultChangingValueHandler<Set<PublishArtifact>> valueChangeHandler = new DefaultChangingValueHandler<Set<PublishArtifact>>();
         private final Set<PublishArtifact> artifacts;
         private Set<PublishArtifact> currentArtifactSet;
 
-        DefaultArtifactProvider(PublishArtifact... candidates) { ;
+        DefaultArtifactProvider(PublishArtifact... candidates) {
             artifacts = Sets.newLinkedHashSet(Arrays.asList(candidates));
+        }
+
+        @Override
+        public void onValueChange(Action<Provider<Set<PublishArtifact>>> action) {
+            valueChangeHandler.onValueChange(action);
         }
 
         @Nullable
@@ -96,6 +106,7 @@ public class DefaultArtifactPublicationSet {
                 // invalidate the current cached result any time a new artifact is added
                 if (artifacts.add(artifact)) {
                     currentArtifactSet = null;
+                    valueChangeHandler.valueChanged(this);
                 }
             }
         }

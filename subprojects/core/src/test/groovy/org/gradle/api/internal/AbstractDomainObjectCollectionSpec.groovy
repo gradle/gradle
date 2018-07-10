@@ -124,8 +124,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !result
 
         and:
-        // TODO this should only be called once - this will be fixed when we add support for providers that change values
-        (1.._) * provider.get() >> a
+        1 * provider.get() >> a
     }
 
     def "can get all domain objects ordered by order added"() {
@@ -170,9 +169,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == (insertionOrderExpected ? iterationOrder(b, a, d, c) : iterationOrder(b, c, a, d))
 
         and:
-        // TODO this should only be called once - this will be fixed when we add support for providers that change values
-        (1.._) * provider1.get() >> a
-        (1.._) * provider2.get() >> d
+        1 * provider1.get() >> a
+        1 * provider2.get() >> d
         0 * _
     }
 
@@ -211,8 +209,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         1 * action.execute(c)
         _ * provider1.type >> type
-        // TODO this should only be called once - this will be fixed when we add support for providers that change values
-        _ * provider1.get() >> c
+        1 * provider1.get() >> c
         0 * _
 
         when:
@@ -221,8 +218,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         1 * action.execute(a)
         _ * provider2.type >> type
-        // TODO this should only be called once - this will be fixed when we add support for providers that change values
-        _ * provider2.get() >> a
+        1 * provider2.get() >> a
         0 * _
     }
 
@@ -255,8 +251,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result == iterationOrder(c, a)
         _ * provider.type >> type
-        // TODO this should only be called once - this will be fixed when we add support for providers that change values
-        (1.._) * provider.get() >> a
+        1 * provider.get() >> a
         0 * provider._
 
         when:
@@ -269,6 +264,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     def "provider for element is not queried when filtered collection with non matching type created"() {
         def provider = Mock(ProviderInternal)
+        _ * provider.type >> type
 
         container.add(c)
         container.addLater(provider)
@@ -285,7 +281,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         result == iterationOrder(d)
-        _ * provider.type >> type
         0 * provider._
 
         when:
@@ -293,8 +288,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         result2 == (insertionOrderExpected ? iterationOrder(c, a, d) : iterationOrder(c, d, a))
-        // TODO this should only be called once - this will be fixed when we add support for providers that change values
-        (1.._) * provider.get() >> a
+        1 * provider.get() >> a
         0 * provider._
     }
 
@@ -387,6 +381,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
+        _ * provider1.type >> type
 
         container.addLater(provider1)
         container.add(d)
@@ -395,7 +390,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.withType(otherType, action)
 
         then:
-        _ * provider1.type >> type
         1 * action.execute(d)
         0 * _
 
@@ -433,7 +427,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.addLater(provider2)
 
         then:
-        1 * provider2.type >> type
+        _ * provider2.type >> type
         0 * _
 
         when:

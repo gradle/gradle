@@ -218,7 +218,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     public void sign(Configuration... configurations) {
         for (Configuration configuration : configurations) {
-            configuration.getAllArtifacts().configureEach(
+            configuration.getAllArtifacts().all(
                 new Action<PublishArtifact>() {
                     @Override
                     public void execute(PublishArtifact artifact) {

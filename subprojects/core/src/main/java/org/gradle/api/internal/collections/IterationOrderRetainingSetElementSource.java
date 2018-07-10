@@ -18,10 +18,12 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
@@ -39,7 +41,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
-    private final Set<SetElement<T>> inserted = new LinkedHashSet<SetElement<T>>();
+    private final Set<SetElement> inserted = new LinkedHashSet<SetElement>();
 
     // Represents the pending elements that have not yet been realized.
     private final PendingSource<T> pending = new DefaultPendingSource<T>();
@@ -57,7 +59,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     @Override
     public int size() {
         int count = 0;
-        for (SetElement<T> element : inserted) {
+        for (SetElement element : inserted) {
             count += element.provider.size();
         }
         return count;
@@ -72,7 +74,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     public Iterator<T> iterator() {
         pending.realizePending();
         Set<T> allValues = new LinkedHashSet<T>();
-        for (SetElement<T> element : inserted) {
+        for (SetElement element : inserted) {
             allValues.addAll(element.getValues());
         }
         return allValues.iterator();
@@ -85,7 +87,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     private Set<T> allRealizedValues() {
         Set<T> realizedValues = new LinkedHashSet<T>();
-        for (SetElement<T> element: inserted) {
+        for (SetElement element: inserted) {
             if (element.realized) {
                 realizedValues.addAll(element.getValues());
             }
@@ -113,15 +115,15 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             return added.add(element);
         } else {
             // A realized element that has not been inserted before.
-            return added.add(element) && inserted.add(new SetElement<T>(element));
+            return added.add(element) && inserted.add(new SetElement(element));
         }
     }
 
     @Override
     public boolean remove(Object o) {
-        Iterator<SetElement<T>> iterator = inserted.iterator();
+        Iterator<SetElement> iterator = inserted.iterator();
         while (iterator.hasNext()) {
-            SetElement<T> element = iterator.next();
+            SetElement element = iterator.next();
             if (element.realized) {
                 Set<T> values = element.getValues();
                 if (values.size() == 1 && values.iterator().next().equals(o)) {
@@ -153,15 +155,15 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     @Override
     public void addPending(ProviderInternal<? extends T> provider) {
         pending.addPending(provider);
-        inserted.add(new SetElement<T>(provider));
+        inserted.add(new SetElement(provider));
     }
 
     @Override
     public void removePending(ProviderInternal<? extends T> provider) {
-        Iterator<SetElement<T>> iterator = inserted.iterator();
+        Iterator<SetElement> iterator = inserted.iterator();
         while(iterator.hasNext()) {
-            SetElement<T> element = iterator.next();
-            if (element.equals(new SetElement<T>(provider))) {
+            SetElement element = iterator.next();
+            if (element.equals(new SetElement(provider))) {
                 iterator.remove();
             }
         }
@@ -171,14 +173,14 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     @Override
     public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
         pending.addPendingCollection(provider);
-        inserted.add(new SetElement<T>(provider));
+        inserted.add(new SetElement(provider));
     }
 
     @Override
     public void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
-        Iterator<SetElement<T>> iterator = inserted.iterator();
+        Iterator<SetElement> iterator = inserted.iterator();
         while(iterator.hasNext()) {
-            SetElement<T> element = iterator.next();
+            SetElement element = iterator.next();
             if (element.provider.equals(provider)) {
                 iterator.remove();
             }
@@ -191,27 +193,36 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         pending.onRealize(new Action<CollectionProviderInternal<T, Set<T>>>() {
             @Override
             public void execute(CollectionProviderInternal<T, Set<T>> provider) {
-                for (SetElement element : inserted) {
+                for (final SetElement element : inserted) {
                     if (element.provider.equals(provider)) {
-                        element.realized = true;
+                        // Use the set element here so that we call provider.get() once and cache the value
+                        DefaultSetProperty<T> setProperty = new DefaultSetProperty<T>(null);
+                        setProperty.set(element.getValues());
+                        action.execute(setProperty);
                     }
                 }
-                action.execute(provider);
             }
         });
     }
 
-    private static class SetElement<T> {
+    private class SetElement {
         private CollectionProviderInternal<T, Set<T>> provider;
+        private Set<T> value;
         private boolean realized;
 
         SetElement(CollectionProviderInternal<T, Set<T>> provider) {
             this.provider = provider;
+            if (provider instanceof ChangingValue) {
+                ((ChangingValue<Set<T>>)provider).onValueChange(getValueChangeAction());
+            }
         }
 
         SetElement(ProviderInternal<? extends T> provider) {
             ProviderInternal<T> providerInternal = Cast.uncheckedCast(provider);
             this.provider = DefaultSetProperty.from(providerInternal);
+            if (provider instanceof ChangingValue) {
+                ((ChangingValue<Set<T>>)provider).onValueChange(getValueChangeAction());
+            }
         }
 
         SetElement(final T value) {
@@ -225,8 +236,25 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         }
 
         public Set<T> getValues() {
-            realized = true;
-            return provider.get();
+            if (value == null) {
+                value = provider.get();
+                realized = true;
+            }
+            return value;
+        }
+
+        private Action<Provider<Set<T>>> getValueChangeAction() {
+            return new Action<Provider<Set<T>>>() {
+                @Override
+                public void execute(Provider<Set<T>> setProvider) {
+                    if (realized) {
+                        CollectionProviderInternal<T, Set<T>> collectionProviderInternal = Cast.uncheckedCast(setProvider);
+                        pending.addPendingCollection(collectionProviderInternal);
+                        value = null;
+                        realized = false;
+                    }
+                }
+            };
         }
 
         @Override
@@ -237,7 +265,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            SetElement<?> that = (SetElement<?>) o;
+            SetElement that = (SetElement) o;
             return Objects.equal(provider, that.provider);
         }
 

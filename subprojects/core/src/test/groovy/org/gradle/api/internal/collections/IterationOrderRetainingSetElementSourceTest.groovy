@@ -18,10 +18,14 @@ package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.AbstractProvider
+import org.gradle.api.internal.provider.ChangingValue
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.provider.Provider
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class IterationOrderRetainingSetElementSourceTest extends Specification {
     IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
@@ -235,6 +239,23 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         source.iterator().collect { it.toString() } == ["foo", "bar", "baz", "fizz"]
     }
 
+    def "correctly handles providers of changing values"() {
+        given:
+        def provider = providerOfSet("foo", "bar")
+
+        when:
+        source.addPendingCollection(provider)
+
+        then:
+        source.iterator().collect() == ["foo", "bar"]
+
+        when:
+        provider.set(["baz"])
+
+        then:
+        source.iterator().collect() == ["baz"]
+    }
+
     ProviderInternal<? extends String> provider(String value) {
         return new TypedProvider<String>(String, value)
     }
@@ -264,14 +285,34 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
     }
 
     CollectionProviderInternal<? extends String, Set<? extends String>> providerOfSet(String... values) {
-        CollectionProviderInternal<? extends String, Set<? extends String>> setProvider = new DefaultSetProperty<String>(String.class)
+        CollectionProviderInternal<? extends String, Set<? extends String>> setProvider = new ChangingSetProvider<String>(String.class)
         values.each { setProvider.add(it) }
         return setProvider
     }
 
     CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> providerOfSet(StringBuffer... values) {
-        CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> setProvider = new DefaultSetProperty<StringBuffer>(StringBuffer.class)
+        CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> setProvider = new ChangingSetProvider<StringBuffer>(StringBuffer.class)
         values.each { setProvider.add(it) }
         return setProvider
+    }
+
+    private static class ChangingSetProvider<T> extends DefaultSetProperty<T> implements ChangingValue<Set<T>> {
+        Action<Provider<Set<T>>> action
+
+        ChangingSetProvider(Class<T> elementType) {
+            super(elementType)
+        }
+
+        @Override
+        void onValueChange(Action<Provider<Set<T>>> action) {
+            this.action = action
+        }
+
+        @Override
+        void set(@Nullable Iterable<? extends T> value) {
+            super.set(value)
+            assert action != null
+            action.execute(this)
+        }
     }
 }
