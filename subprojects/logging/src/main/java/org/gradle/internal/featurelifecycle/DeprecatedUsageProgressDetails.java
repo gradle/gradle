@@ -16,24 +16,13 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import java.util.List;
 
-public class DefaultDeprecationWarningProgressDetails implements DeprecationWarningProgressDetails {
-    private final String message;
-    private final List<StackTraceElement> stackTrace;
 
-    public DefaultDeprecationWarningProgressDetails(String message, List<StackTraceElement> stackTrace) {
-        this.message = message;
-        this.stackTrace = stackTrace;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public List<StackTraceElement> getStackTrace() {
-        return stackTrace;
-    }
+@UsedByScanPlugin
+public interface DeprecatedUsageProgressDetails {
+    String getMessage();
+    List<StackTraceElement> getStackTrace();
 }

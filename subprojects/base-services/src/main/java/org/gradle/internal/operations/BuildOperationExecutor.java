@@ -35,7 +35,6 @@ import org.gradle.api.Action;
  */
 @ThreadSafe
 public interface BuildOperationExecutor {
-
     /**
      * Runs the given build operation synchronously. Invokes the given operation from the current thread.
      *

@@ -44,7 +44,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     final Clock clock = Mock(Clock);
     final BuildOperationListener buildOperationListener = Mock()
-    final DeprecationWarningBuildOperationProgressBroadaster progressBroadcaster = new DeprecationWarningBuildOperationProgressBroadaster(clock, buildOperationListener, testIdProvider());
+    final DeprecatedUsageBuildOperationProgressBroadaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationListener, testIdProvider());
 
     def setup() {
         handler.init(locationReporter, WarningMode.All, progressBroadcaster)
@@ -362,7 +362,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'deprecation warnings are exposed as build operation progress'() {
+    def 'deprecated usages are exposed as build operation progress'() {
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
@@ -382,8 +382,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
     }
 
-    private DeprecationWarningBuildOperationProgressBroadaster.OperationIdentifierProvider testIdProvider() {
-        new DeprecationWarningBuildOperationProgressBroadaster.OperationIdentifierProvider() {
+    private DeprecatedUsageBuildOperationProgressBroadaster.OperationIdentifierProvider testIdProvider() {
+        new DeprecatedUsageBuildOperationProgressBroadaster.OperationIdentifierProvider() {
             @Override
             OperationIdentifier getCurrentOperationIdentifier() {
                 return buildOperationExecutor.currentOperation.id
@@ -392,7 +392,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     private void progressFired(OperationProgressEvent progressEvent, String message) {
-        assert progressEvent.details instanceof DeprecationWarningProgressDetails
+        assert progressEvent.details instanceof DeprecatedUsageProgressDetails
         progressEvent.details.message == message
         progressEvent.details.stackTrace.size() > 0
     }

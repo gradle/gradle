@@ -45,13 +45,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode;
-    private DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster;
+    private DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecationWarningBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
         this.buildOperationProgressBroadaster = buildOperationProgressBroadaster;
@@ -72,10 +72,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
                 LOGGER.warn(message.toString());
             }
         }
-        fireDeprecationWarningBuildOperationProgress(usage);
+        fireDeprecatedUsageBuildOperationProgress(usage);
     }
 
-    private void fireDeprecationWarningBuildOperationProgress(FeatureUsage usage) {
+    private void fireDeprecatedUsageBuildOperationProgress(FeatureUsage usage) {
         if (buildOperationProgressBroadaster != null) {
             buildOperationProgressBroadaster.progress(usage.getMessage(), usage.withStackTrace().getStack());
         }

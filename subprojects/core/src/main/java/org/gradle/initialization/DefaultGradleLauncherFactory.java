@@ -40,7 +40,7 @@ import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.featurelifecycle.DeprecationWarningBuildOperationProgressBroadaster;
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -171,7 +171,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         BuildOperationListenerManager buildOperationListenerManager = serviceRegistry.get(BuildOperationListenerManager.class);
         BuildOperationListener buildOperationBroadcaster= buildOperationListenerManager.getBroadcaster();
-        DeprecationWarningBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = new DeprecationWarningBuildOperationProgressBroadaster(clock, buildOperationBroadcaster);
+        DeprecatedUsageBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationBroadcaster);
         DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), deprecationWarningBuildOperationProgressBroadaster);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);

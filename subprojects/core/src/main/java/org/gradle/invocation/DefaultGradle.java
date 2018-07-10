@@ -99,8 +99,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         }
     }
 
-
-
     @Override
     public String toString() {
         return rootProject == null ? "build" : ("build '" + rootProject.getName() + "'");

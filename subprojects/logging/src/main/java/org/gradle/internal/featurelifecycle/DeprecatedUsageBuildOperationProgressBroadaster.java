@@ -24,7 +24,7 @@ import org.gradle.internal.time.Clock;
 
 import java.util.List;
 
-public class DeprecationWarningBuildOperationProgressBroadaster {
+public class DeprecatedUsageBuildOperationProgressBroadaster {
 
     private final static OperationIdentifierProvider DEFAULT_CURRENT_OPERATION_IDENTIFIER = new OperationIdentifierProvider() {
         @Override
@@ -38,11 +38,11 @@ public class DeprecationWarningBuildOperationProgressBroadaster {
 
     private final OperationIdentifierProvider buildOperationIdentifierProvider;
 
-    public DeprecationWarningBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener) {
+    public DeprecatedUsageBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener) {
         this(clock, listener, DEFAULT_CURRENT_OPERATION_IDENTIFIER);
     }
 
-    public DeprecationWarningBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener, OperationIdentifierProvider currentOperationIdentifier) {
+    DeprecatedUsageBuildOperationProgressBroadaster(Clock clock, BuildOperationListener listener, OperationIdentifierProvider currentOperationIdentifier) {
         this.clock = clock;
         this.listener = listener;
         this.buildOperationIdentifierProvider = currentOperationIdentifier;
@@ -53,7 +53,7 @@ public class DeprecationWarningBuildOperationProgressBroadaster {
         if (id != null) {
             listener.progress(id,
                 new OperationProgressEvent(clock.getCurrentTime(),
-                    new DefaultDeprecationWarningProgressDetails(message, stackTrace)));
+                    new DefaultDeprecatedUsageProgressDetails(message, stackTrace)));
         }
 
     }
@@ -61,5 +61,4 @@ public class DeprecationWarningBuildOperationProgressBroadaster {
     interface OperationIdentifierProvider {
         OperationIdentifier getCurrentOperationIdentifier();
     }
-
 }
