@@ -148,6 +148,7 @@ We would like to thank the following community members for making contributions 
 - [Aaron Hill](https://github.com/Aaron1011) Continue executing tests if irreplaceable security manager is installed (gradle/gradle#5324)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) Throw `UnknownDomainObjectException` instead of `NullPointerException` when extension isn't found (gradle/gradle#5547)
 - [thc202](https://github.com/thc202) Fix typo in TestKit chapter (gradle/gradle#5691)
+- [stefanleh](https://github.com/stefanleh) Let ProjectConnection extend Closeable interface (gradle/gradle#5687) 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
