@@ -63,7 +63,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     Set<Task> getFilteredTasks();
 
     /**
-     * Returns the number of task in the graph.
+     * Returns the number of work items in the graph.
      */
     int size();
 

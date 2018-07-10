@@ -264,4 +264,43 @@ dependencies {
         'latest.integration' | '1.2-SNAPSHOT'
     }
 
+    def 'locking works with default dependency action'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+configurations {
+    lockedConf {
+        defaultDependencies { deps ->
+            deps.add(project.dependencies.create('org:foo:1.0'))
+        }
+    }
+}
+
+task copyFiles(type: Copy) {
+    from configurations.lockedConf
+    into 'build/copied'
+}
+"""
+        when:
+        succeeds 'copyFiles', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0'])
+
+        and:
+        succeeds 'copyFiles'
+
+    }
+
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -30,16 +31,18 @@ class TransformFileOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
     private final File file;
     private final ArtifactTransformer transform;
+    private final BuildOperationCategory category;
     private Throwable failure;
     private List<File> result;
 
-    TransformFileOperation(File file, ArtifactTransformer transform) {
+    TransformFileOperation(File file, ArtifactTransformer transform, BuildOperationCategory category) {
         this.file = file;
         this.transform = transform;
+        this.category = category;
     }
 
     @Override
-    public void run(BuildOperationContext context) {
+    public void run(@Nullable BuildOperationContext context) {
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
@@ -52,7 +55,10 @@ class TransformFileOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + file);
+        String displayName = "Transform " + file.getName() + " with " + transform.getDisplayName();
+        return BuildOperationDescriptor.displayName(displayName)
+            .progressDisplayName(displayName)
+            .operationType(category);
     }
 
     @Nullable

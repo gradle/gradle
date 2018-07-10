@@ -69,4 +69,8 @@ public interface TaskExecutionPlan extends Describable {
 
     boolean hasWorkRemaining();
 
+    /**
+     * Returns the number of work items in the plan.
+     */
+    int size();
 }
