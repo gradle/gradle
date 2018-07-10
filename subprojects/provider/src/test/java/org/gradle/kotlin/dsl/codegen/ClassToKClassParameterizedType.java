@@ -16,6 +16,21 @@
 
 package org.gradle.kotlin.dsl.codegen;
 
+import java.io.Serializable;
+import java.util.List;
 
-public interface ClassToKClassParameterizedType<T> {
+
+public interface ClassToKClassParameterizedType<T extends Serializable> {
+
+    T invariantClass(Class<T> type, List<T> list);
+
+    T covariantClass(Class<? extends T> type, List<T> list);
+
+    T contravariantClass(Class<? super T> type, List<T> list);
+
+    <V extends T> V covariantMethodParameterizedInvariantClass(Class<V> type, List<V> list);
+
+    <V extends T> V covariantMethodParameterizedCovariantClass(Class<? extends V> type, List<? extends V> list);
+
+    <V extends T> V covariantMethodParameterizedContravariantClass(Class<? super V> type, List<? extends V> list);
 }

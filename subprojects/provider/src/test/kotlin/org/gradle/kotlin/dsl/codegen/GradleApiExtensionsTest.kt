@@ -206,6 +206,57 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         }
     }
 
+    @Test
+    fun `maps target type, mapped function and parameters generics`() {
+
+        apiKotlinExtensionsGenerationFor(ClassToKClassParameterizedType::class) {
+
+            assertGeneratedExtensions(
+                """
+                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`invariantClass`(`type`: kotlin.reflect.KClass<T>, `list`: kotlin.collections.List<T>): T =
+                    `invariantClass`(`type`.java, `list`)
+                """,
+                """
+                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantClass`(`type`: kotlin.reflect.KClass<out T>, `list`: kotlin.collections.List<T>): T =
+                    `covariantClass`(`type`.java, `list`)
+                """,
+                """
+                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`contravariantClass`(`type`: kotlin.reflect.KClass<in T>, `list`: kotlin.collections.List<T>): T =
+                    `contravariantClass`(`type`.java, `list`)
+                """,
+                """
+                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedInvariantClass`(`type`: kotlin.reflect.KClass<V>, `list`: kotlin.collections.List<V>): V =
+                    `covariantMethodParameterizedInvariantClass`(`type`.java, `list`)
+                """,
+                """
+                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out V>, `list`: kotlin.collections.List<out V>): V =
+                    `covariantMethodParameterizedCovariantClass`(`type`.java, `list`)
+                """,
+                """
+                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in V>, `list`: kotlin.collections.List<out V>): V =
+                    `covariantMethodParameterizedContravariantClass`(`type`.java, `list`)
+                """
+            )
+
+            assertUsageCompilation(
+                """
+                import java.io.Serializable
+
+                fun usage(subject: ClassToKClassParameterizedType<Number>) {
+
+                    subject.invariantClass(Number::class, emptyList())
+                    subject.covariantClass(Int::class, emptyList())
+                    subject.contravariantClass(Serializable::class, emptyList())
+
+                    subject.covariantMethodParameterizedInvariantClass(Number::class, emptyList())
+                    subject.covariantMethodParameterizedCovariantClass(Int::class, emptyList())
+                    subject.covariantMethodParameterizedContravariantClass(Serializable::class, emptyList())
+                }
+                """
+            )
+        }
+    }
+
     private
     fun apiKotlinExtensionsGenerationFor(vararg classes: KClass<*>, action: ApiKotlinExtensionsGeneration.() -> Unit) =
         ApiKotlinExtensionsGeneration(jarClassPathWith(*classes).asFiles).apply(action)
@@ -281,6 +332,10 @@ val fixtureParameterNamesSupplier = { key: String ->
             key.contains("mapAndClass(") -> listOf("args", "type")
             key.contains("mapAndClassAndVarargs(") -> listOf("args", "type", "options")
             key.contains("mapAndClassAndSAM(") -> listOf("args", "type", "action")
+            else -> null
+        }
+        key.startsWith("${ClassToKClassParameterizedType::class.qualifiedName}.") -> when {
+            key.contains("Class(") -> listOf("type", "list")
             else -> null
         }
         else -> null
