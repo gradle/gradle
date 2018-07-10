@@ -29,23 +29,5 @@ changeProject(uuid("Gradle_Check_Platform_Java10_Oracle_Linux")) {
                 param("seriesTitle", "Serie")
             }
         }
-        add {
-            feature {
-                type = "buildtype-graphs"
-                id = "PROJECT_EXT_25"
-                param("series", """
-                    [
-                      {
-                        "type": "valueType",
-                        "title": "Build Checkout Time",
-                        "key": "buildStageDuration:sourcesUpdate"
-                      }
-                    ]
-                """.trimIndent())
-                param("format", "text")
-                param("title", "Build Checkout Time")
-                param("seriesTitle", "Serie")
-            }
-        }
     }
 }
