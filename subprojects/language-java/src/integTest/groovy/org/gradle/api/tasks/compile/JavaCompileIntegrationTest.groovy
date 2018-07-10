@@ -897,4 +897,28 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "compileJava"
         output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
     }
+
+    def "deletes empty packages dirs"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        def a = file('src/main/java/com/foo/internal/A.java') << """
+            package com.foo.internal;
+            public class A {}
+        """
+        file('src/main/java/com/bar/B.java') << """
+            package com.bar;
+            public class B {}
+        """
+
+        succeeds "compileJava"
+        a.delete()
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        ! file("build/classes/java/main/com/foo").exists()
+    }
 }

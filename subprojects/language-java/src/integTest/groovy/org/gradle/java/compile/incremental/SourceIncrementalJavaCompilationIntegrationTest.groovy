@@ -842,4 +842,25 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         then:
         failure.assertHasErrorOutput 'Runnable r = b;'
     }
+
+    def "deletes empty packages dirs"() {
+        given:
+        def a = file('src/main/java/com/foo/internal/A.java') << """
+            package com.foo.internal;
+            public class A {}
+        """
+        file('src/main/java/com/bar/B.java') << """
+            package com.bar;
+            public class B {}
+        """
+
+        succeeds "compileJava"
+        a.delete()
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        ! file("build/classes/java/main/com/foo").exists()
+    }
 }
