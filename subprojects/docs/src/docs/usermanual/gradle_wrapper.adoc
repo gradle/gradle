@@ -59,14 +59,13 @@ The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties
 * The type of Gradle distribution. By default that’s the `-bin` distribution containing only the runtime but no sample code and documentation.
 * The Gradle version used for executing the build. By default the `wrapper` task picks the exact same Gradle version that was used to generate the Wrapper files.
 
-.The generated distribution URL
-====
+
+.Example: The generated distribution URL
 [source,properties]
 .`gradle/wrapper/gradle-wrapper.properties`
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-4.3.1-bin.zip
 ----
-====
 
 All of those aspects are configurable at the time of generating the Wrapper files with the help of the following command line options.
 
@@ -94,17 +93,16 @@ include::{samples-path}/userguide/wrapper/simple/wrapperCommandLine.out[]
 
 As a result you can find the desired information in the Wrapper properties file.
 
-.The generated distribution URL
-====
+.Example: The generated distribution URL
 [source,properties]
 .`gradle/wrapper/gradle-wrapper.properties`
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-4.0-all.zip
 ----
-====
 
 Let’s have a look at the following project layout to illustrate the expected Wrapper files:
 
+[listing]
 ----
 .
 ├── build.gradle
@@ -137,7 +135,7 @@ It is recommended to always execute a build with the Wrapper to ensure a reliabl
 
 === Example: Executing the build with the Wrapper batch file
 
-[source]
+[listing]
 .Output of `gradlew.bat build`
 ----
 > gradlew.bat build
@@ -160,7 +158,7 @@ Use the Gradle `wrapper` task to generate the wrapper, specifying a version. The
 
 === Example: Upgrading the Wrapper version
 
-[source]
+[listing]
 .Output of `./gradlew wrapper --gradle-version 4.2.1`
 ----
 > ./gradlew wrapper --gradle-version 4.2.1
@@ -169,7 +167,7 @@ include::{samples-path}/userguide/wrapper/wrapperGradleVersionUpgrade.out[]
 
 === Example: Checking the Wrapper version after upgrading
 
-[source]
+[listing]
 .Output of `./gradlew -v`
 ----
 > ./gradlew -v
@@ -194,13 +192,11 @@ include::{samples-path}/userguide/wrapper/customized-task/build.gradle[tag=custo
 With the configuration in place running `./gradlew wrapper --gradle-version 4.1` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.
 
 .The generated distribution URL
-====
-[source,properties]
+[listing]
 .`gradle/wrapper/gradle-wrapper.properties`
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-4.1-all.zip
 ----
-====
 
 Check out the API documentation for more detail descriptions of the available configuration options. You can also find various samples for configuring the Wrapper in the Gradle distribution.
 
@@ -218,27 +214,21 @@ HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `H
 Using system properties can be done in the `.gradle/gradle.properties` file in the user's home directory, or by other means, see <<build_environment#sec:gradle_configuration_properties,Gradle Configuration Properties>>.
 
 .Specifying the HTTP Basic Authentication credentials using system properties
-====
-
 [source,properties]
 .`gradle.properties`
 ----
 systemProp.gradle.wrapperUser=username
 systemProp.gradle.wrapperPassword=password
 ----
-====
 
 Embedding credentials in the `distributionUrl` in the `gradle/wrapper/gradle-wrapper.properties` file also works. Please note that this file is to be committed into your source control system. Shared credentials embedded in `distributionUrl` should only be used in a controlled environment.
 
 .Specifying the HTTP Basic Authentication credentials in `distributionUrl`
-====
-
-[source,properties]
+[listing]
 .`gradle/wrapper/gradle-wrapper.properties`
 ----
 distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
 ----
-====
 
 This can be used in conjunction with a proxy, authenticated or not. See <<build_environment#sec:accessing_the_web_via_a_proxy>> for more information on how to configure the `Wrapper` to use a proxy.
 
@@ -258,12 +248,10 @@ You can download the `.sha256` file from the link:https://services.gradle.org/di
 Add the downloaded hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line.
 
 .Configuring SHA-256 checksum verification
-====
 [source,properties]
 .`gradle/wrapper/gradle-wrapper.properties`
 ----
 distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10
 ----
-====
 
 Gradle will report a build failure in case the configured checksum does not match the checksum found on the server for hosting the distribution. Checksum Verification is only performed if the configured Wrapper distribution hasn't been downloaded yet.

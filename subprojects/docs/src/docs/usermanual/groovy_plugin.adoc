@@ -59,19 +59,12 @@ Generates API documentation for the production Groovy source files.
 The Groovy plugin adds the following dependencies to tasks added by the Java plugin.
 
 .Groovy plugin - additional task dependencies
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Task name
-| Depends on
-
-| `classes`
-| `compileGroovy`
-
-| `testClasses`
-| `compileTestGroovy`
-
-| `__sourceSet__Classes`
-| `compile__SourceSet__Groovy`
+| Task name | Depends on
+| `classes` | `compileGroovy`
+| `testClasses` | `compileTestGroovy`
+| `__sourceSet__Classes` | `compile__SourceSet__Groovy`
 |===
 
 .Groovy plugin - tasks
@@ -81,7 +74,7 @@ image::groovyPluginTasks.png[]
 [[sec:groovy_project_layout]]
 == Project layout
 
-The Groovy plugin assumes the project layout shown in <<#groovylayout,Groovy Layout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[We are using the same conventions as introduced by Russel Winder's Gant tool (https://gant.github.io/[]).] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
+The Groovy plugin assumes the project layout shown in <<#groovylayout,Groovy Layout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[Gradle uses the same conventions as introduced by Russel Winder's link:https://gant.github.io/[Gant tool].] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
 
 [[groovylayout]]
 include::javaProjectMainLayout.adoc[]
@@ -182,45 +175,34 @@ The Groovy plugin does not add any convention properties to the project.
 
 The Groovy plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
-.Groovy plugin - source set properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+=== Groovy Plugin — source set properties
 
-|  `groovy`
-|  `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]` (read-only)
-| Not null
-| The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
+`groovy` — type: `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]` (read-only)::
+_Default value_: Not null
++
+The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
 
-|  `groovy.srcDirs`
-|  `Set&lt;File&gt;`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Specifying Multiple Files>>.
-|  `[__projectDir__/src/__name__/groovy]`
-| The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation.
+`groovy.srcDirs` — type: `Set&lt;File&gt;`::
+_Default value_: `[__projectDir__/src/__name__/groovy]`
++
+The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Specifying Multiple Files>>.
 
-|  `allGroovy`
-|  `link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]` (read-only)
-| Not null
-| All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
-|===
+`allGroovy` — type: `link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]` (read-only)::
+_Default value_: Not null
++
+All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
 
 These properties are provided by a convention object of type `link:{groovy-dsl-path}/org.gradle.api.tasks.GroovySourceSet.html[GroovySourceSet]`.
 
 The Groovy plugin also modifies some source set properties:
 
-.Groovy plugin - source set properties
-[cols="a,a", options="header"]
+=== Groovy Plugin - modified source set properties
+
+[%header%autowidth,compact]
 |===
-| Property name
-| Change
-
-|  `allJava`
-| Adds all `.java` files found in the Groovy source directories.
-
-|  `allSource`
-| Adds all source files found in the Groovy source directories.
+| Property name | Change
+| `allJava` | Adds all `.java` files found in the Groovy source directories.
+| `allSource` | Adds all source files found in the Groovy source directories.
 |===
 
 
@@ -230,11 +212,9 @@ The Groovy plugin also modifies some source set properties:
 The Groovy plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]` task for each source set in the project. The task type extends the `JavaCompile` task (see <<java_plugin#sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
 
 .Groovy plugin - GroovyCompile properties
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Task Property
-| Type
-| Default Value
+| Task Property | Type | Default Value
 
 |  `classpath`
 | `link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]`
