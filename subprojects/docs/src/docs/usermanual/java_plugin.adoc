@@ -70,15 +70,15 @@ Contains your test source code, which is compiled and executed using JUnit or Te
 [[sec:source_set_properties]]
 === Source set properties
 
-The following table lists some of the important properties of a source set. You can find more details in the API documentation for `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet]`.
+The following table lists some of the important properties of a source set. You can find more details in the API documentation for link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet].
 
 `name` — (read-only) `String`::
 The name of the source set, used to identify it.
 
-`output` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]`::
+`output` — (read-only) link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]::
 The output files of the source set, containing its compiled classes and resources.
 
-`output.classesDirs` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.FileCollection.html[FileCollection]`::
+`output.classesDirs` — (read-only) link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]::
 _Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
 +
 The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
@@ -88,22 +88,22 @@ _Default value_: `$buildDir/resources/$name`, e.g. _build/resources/main_
 +
 The directory to generate the resources of this source set into.
 
-`compileClasspath` — `link:{groovy-dsl-path}/org.gradle.api.file.FileCollection.html[FileCollection]`::
+`compileClasspath` — link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]::
 _Default value_: `${name}CompileClasspath` configuration
 +
 The classpath to use when compiling the source files of this source set.
 
-`annotationProcessorPath` — `link:{groovy-dsl-path}/org.gradle.api.file.FileCollection.html[FileCollection]`::
+`annotationProcessorPath` — link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]::
 _Default value_: `${name}AnnotationProcessor` configuration
 +
 The processor path to use when compiling the source files of this source set.
 
-`runtimeClasspath` — `link:{groovy-dsl-path}/org.gradle.api.file.FileCollection.html[FileCollection]`::
+`runtimeClasspath` — link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]::
 _Default value_: `$output`, `${name}RuntimeClasspath` configuration
 +
 The classpath to use when executing the classes of this source set.
 
-`java` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`::
+`java` — (read-only) link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files.
 
 `java.srcDirs` — `Set&lt;File&gt;`::
@@ -116,7 +116,7 @@ _Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
 +
 The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files#sec:single_file_paths,this section>>.
 
-`resources` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`::
+`resources` — (read-only) link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource directories. Other plugins, such as the <<groovy_plugin#,Groovy Plugin>>, exclude additional types of files from this collection.
 
 `resources.srcDirs` — `Set&lt;File&gt;`::
@@ -124,12 +124,12 @@ _Default value_: `[src/$name/resources]`
 +
 The directories containing the resources of this source set. You can set this to any type of value that is described in <<working_with_files#sec:specifying_multiple_files,this section>>.
 
-`allJava` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`::
+`allJava` — (read-only) link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 _Default value_: Same as `java` property
 +
 All Java files of this source set. Some plugins, such as the Groovy Plugin, add additional Java source files to this collection.
 
-`allSource` — (read-only) `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`::
+`allSource` — (read-only) link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 _Default value_: Sum of everything in the `resources` and `java` properties
 +
 All source files of this source set of any language. This includes all resource files and all Java source files. Some plugins, such as the Groovy Plugin, add additional source files to this collection.
@@ -137,7 +137,7 @@ All source files of this source set of any language. This includes all resource 
 [[sec:defining_new_source_sets]]
 === Defining new source sets
 
-See the <<#sec:configuring_java_integration_tests,integration test example>> in the _Testing in Java & JVM projects_ chapter.
+See the <<java_testing#sec:configuring_java_integration_tests,integration test example>> in the _Testing in Java & JVM projects_ chapter.
 
 [[sec:some_source_set_examples]]
 === Some other simple source set examples
@@ -177,12 +177,12 @@ include::{samples-path}/userguide/java/sourceSets/build.gradle[tag=test]
 
 The Java plugin adds a number of tasks to your project, as shown below.
 
-`compileJava` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`::
+`compileJava` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: All tasks which contribute to the compilation classpath, including `jar` tasks from projects that are on the classpath via project dependencies
 +
 Compiles production Java source files using the JDK compiler.
 
-`processResources` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`::
+`processResources` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]::
 Copies production resources into the production resources directory.
 
 `classes`::
@@ -190,12 +190,12 @@ _Depends on_: `compileJava`, `processResources`
 +
 This is an aggregate task that just depends on other tasks. Other plugins may attach additional compilation tasks to it.
 
-`compileTestJava` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`::
+`compileTestJava` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: `classes`, and all tasks that contribute to the test compilation classpath
 +
 Compiles test Java source files using the JDK compiler.
 
-`processTestResources` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`::
+`processTestResources` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]::
 Copies test resources into the test resources directory.
 
 `testClasses`::
@@ -203,30 +203,30 @@ _Depends on_: `compileTestJava`, `processTestResources`
 +
 This is an aggregate task that just depends on other tasks. Other plugins may attach additional test compilation tasks to it.
 
-`jar` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`::
+`jar` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
 _Depends on_: `classes`
 +
 Assembles the production JAR file, based on the classes and resources attached to the `main` source set.
 
-`javadoc` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]`::
+`javadoc` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]::
 _Depends on_: `classes`
 +
 Generates API documentation for the production Java source using Javadoc.
 
-`test` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`::
+`test` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]::
 _Depends on_: `testClasses`, and all tasks which produce the test runtime classpath
 +
 Runs the unit tests using JUnit or TestNG.
 
-`uploadArchives` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]`::
+`uploadArchives` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]::
 _Depends on_: `jar`, and any other task that produces an artifact attached to the `archives` configuration
 +
 Uploads artifacts in the `archives` configuration — including the production JAR file — to the configured repositories.
 
-`clean` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+`clean` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]::
 Deletes the project build directory.
 
-`clean__TaskName__` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+`clean__TaskName__` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]::
 Deletes files created by the specified task. For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
 
 [[java_source_set_tasks]]
@@ -235,15 +235,15 @@ Deletes files created by the specified task. For example, `cleanJar` will delete
 For each source set you add to the project, the Java plugin adds the following tasks:
 
 
-`compile__SourceSet__Java` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`::
+`compile__SourceSet__Java` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: All tasks which contribute to the source set's compilation classpath
 +
 Compiles the given source set's Java source files using the JDK compiler.
 
-`process__SourceSet__Resources` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`::
+`process__SourceSet__Resources` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]::
 Copies the given source set's resources into the resources directory.
 
-`__sourceSet__Classes` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+`__sourceSet__Classes` — type: link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]::
 _Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
 +
 Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
@@ -282,7 +282,7 @@ _Depends on_: all tasks that generate the artifacts attached to the named — _
 +
 Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
 
-`upload__ConfigName__` — _task rule_, type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]`::
+`upload__ConfigName__` — _task rule_, type: link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]::
 _Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
 +
 Assembles and uploads the artifacts in the specified configuration. This rule is added by the Base Plugin.
@@ -396,7 +396,7 @@ Runtime classpath contains elements of the implementation, as well as runtime on
 == Publishing
 
 `components.java`::
-A `link:{groovy-dsl-path}/org.gradle.api.component.SoftwareComponent.html[SoftwareComponent]` for <<publishing_overview#,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
+A link:{javadoc-path}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_overview#,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
 
 [[sec:java_convention_properties]]
 == Convention properties
@@ -446,37 +446,34 @@ The name of the directory to use to cache source dependency information, relativ
 
 === Other convention properties
 
-`(read-only) `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSetContainer.html[SourceSetContainer]` sourceSets`::
-Contains the project's source sets. Default value: Not null `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSetContainer.html[SourceSetContainer]`
+`(read-only) link:{javadoc-path}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
+Contains the project's source sets. Default value: Not null link:{javadoc-path}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
 
-``link:{javadoc-path}/org/gradle/api/JavaVersion.html[JavaVersion]` sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use `link:{javadoc-path}/org/gradle/api/JavaVersion.html[JavaVersion]`. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
+`link:{javadoc-path}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
+Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadoc-path}/org/gradle/api/JavaVersion.html[JavaVersion]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
 
-``link:{javadoc-path}/org/gradle/api/JavaVersion.html[JavaVersion]` targetCompatibility`::
+`link:{javadoc-path}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
 Java version to generate classes for. Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
 
 `String archivesBaseName`::
 The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
 
-``link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]` manifest`::
+`link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 
-These properties are provided by convention objects of type `link:{javadoc-path}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention]`, and `link:{javadoc-path}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention]`.
-
-
-
+These properties are provided by convention objects of type link:{javadoc-path}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], and link:{javadoc-path}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention].
 
 [[sec:javadoc]]
 == Javadoc
 
-The `javadoc` task is an instance of `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]`. It supports the core Javadoc options and the options of the standard doclet described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: `link:{javadoc-path}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions]` and `link:{javadoc-path}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions]`.
+The `javadoc` task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]. It supports the core Javadoc options and the options of the standard doclet described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: link:{javadoc-path}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadoc-path}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions].
 
 === Javadoc properties
 
-``link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]` classpath`::
+`link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection] classpath`::
 Default value: `sourceSets.main.output` + `sourceSets.main.compileClasspath`
 
-``link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]` source`::
+`link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree] source`::
 Default value: `sourceSets.main.allJava`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 
 `File destinationDir`::
@@ -488,7 +485,7 @@ Default value: The name and version of the project
 [[sec:clean]]
 == Clean
 
-The `clean` task is an instance of `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`. It simply removes the directory denoted by its `dir` property.
+The `clean` task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]. It simply removes the directory denoted by its `dir` property.
 
 === Clean properties
 
@@ -499,7 +496,7 @@ Default value: `__buildDir__`
 [[sec:java_resources]]
 == Resources
 
-The Java plugin uses the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files#sec:copying_files>>.
+The Java plugin uses the link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files#sec:copying_files>>.
 
 === ProcessResources properties
 
@@ -507,20 +504,20 @@ The Java plugin uses the `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[
 Default value: `__sourceSet__.resources`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 
 `File destinationDir`::
-Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<#sec:locating_files,file paths in depth>>.
+Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<working_with_files#sec:locating_files,file paths in depth>>.
 
 
 [[sec:compile]]
 == CompileJava
 
-The Java plugin adds a `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]` instance for each source set in the project. Some of the most common configuration options are shown below.
+The Java plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] instance for each source set in the project. Some of the most common configuration options are shown below.
 
 === Compile properties
 
-``link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection]` classpath`::
+`link:{javadoc-path}/org/gradle/api/file/FileCollection.html[FileCollection] classpath`::
 Default value: `__sourceSet__.compileClasspath`
 
-``link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]` source`::
+`link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree] source`::
 Default value: `__sourceSet__.java`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 
 `File destinationDir`::
@@ -531,7 +528,7 @@ By default, the Java compiler runs in the Gradle process. Setting `options.fork`
 [[sec:incremental_compile]]
 === Incremental Java compilation
 
-Starting with Gradle 2.1, it is possible to compile Java incrementally. See the `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]` task for information on how to enable it.
+Starting with Gradle 2.1, it is possible to compile Java incrementally. See the link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task for information on how to enable it.
 
 The main goals for incremental compilation are:
 
@@ -604,8 +601,8 @@ Both categories have the following limitations:
     Gradle wraps the processing APIs, so attempts to cast to compiler-specific types will fail.
     If your processor does this, it cannot be incremental, unless you have some fallback mechanism.
 * If they use https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#getResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence)[Filer#getResource], Gradle will recompile all source files.
-    See https://github.com/gradle/gradle/issues/4701[gradle/issues/4701]
-* If they use https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element...)[Filer#createResource], Gradle will recompile all source files.
+    See link:https://github.com/gradle/gradle/issues/4701[gradle/issues/4701]
+* If they use link:https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource], Gradle will recompile all source files.
     See https://github.com/gradle/gradle/issues/4702[gradle/issues/4702]
 
 ==== "Isolating" annotation processors
@@ -615,7 +612,7 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 
 === Example: An isolated annotation processor
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java,indent=0]
 .processor/src/main/java/EntityProcessor.java
 ----
 include::{samples-path}/java/incrementalAnnotationProcessing/processor/src/main/java/EntityProcessor.java[tag=isolating-annotation-processor]
@@ -642,7 +639,7 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 
 === Example: An aggregating annotation processor
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java,indent=0]
 .processor/src/main/java/ServiceRegistryProcessor.java
 ----
 include::{samples-path}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
@@ -685,7 +682,7 @@ include::{samples-path}/java/apt/build.gradle[tag=annotation-processing]
 [[sec:java_test]]
 == Test
 
-The `test` task is an instance of `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` for the complete API.
+The `test` task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test] for the complete API.
 
 See the <<java_testing#,Testing in Java & JVM projects>> chapter for more details.
 
@@ -699,7 +696,7 @@ The `jar` task creates a JAR file containing the class files and resources of th
 [[sub:manifest]]
 === Manifest
 
-Each jar or war object has a `manifest` property with a separate instance of `link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]`. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
+Each jar or war object has a `manifest` property with a separate instance of link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
 
 === Example: Customization of MANIFEST.MF
 
@@ -729,7 +726,7 @@ You can merge other manifests into any `Manifest` object. The other manifests mi
 include::{samples-path}/userguide/tutorial/manifest/build.gradle[tag=merge]
 ----
 
-Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a `link:{javadoc-path}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails]` instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
+Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadoc-path}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
 
 You can easily write a manifest to disk.
 

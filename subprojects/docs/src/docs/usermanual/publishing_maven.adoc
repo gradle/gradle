@@ -31,19 +31,19 @@ To use the Maven Publish Plugin, include the following in your build script:
 include::{samples-path}/maven-publish/quickstart/build.gradle[tag=use-plugin]
 ----
 
-The Maven Publish Plugin uses an extension on the project named `publishing` of type `link:{groovy-dsl-path}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]`. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]` publications and `link:{groovy-dsl-path}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository]` repositories.
+The Maven Publish Plugin uses an extension on the project named `publishing` of type link:{groovy-dsl-path}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] publications and link:{groovy-dsl-path}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] repositories.
 
 [[publishing_maven:tasks]]
 == Tasks
 
 [[publishing_maven:generate-pom]]
-`generatePomFileFor__PubName__Publication` — type: `link:{groovy-dsl-path}/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html[GenerateMavenPom]`::
+`generatePomFileFor__PubName__Publication` — type: link:{groovy-dsl-path}/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html[GenerateMavenPom]::
 Creates a POM file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the POM file is _build/publications/$pubName/pom-default.xml_.
 
-`publish__PubName__PublicationTo__RepoName__Repository` — type: `link:{groovy-dsl-path}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]`::
+`publish__PubName__PublicationTo__RepoName__Repository` — type: link:{groovy-dsl-path}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]::
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
 
-`publish__PubName__PublicationToMavenLocal` — type: `link:{javadoc-path}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]`::
+`publish__PubName__PublicationToMavenLocal` — type: link:{javadoc-path}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
 Copies the _PubName_ publication to the local Maven cache — typically _$USER_HOME/.m2/repository_ — along with the publication's POM file and other metadata.
 
 `publish`::
@@ -60,14 +60,14 @@ Copies all defined publications to the local Maven cache, including their metada
 [[publishing_maven:publications]]
 == Publications
 
-This plugin provides <<publishing_overview#glossary:publication,publications>> of type `link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]`. To learn how to define and use publications, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
+This plugin provides <<publishing_overview#glossary:publication,publications>> of type link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]. To learn how to define and use publications, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in a Maven publication:
 
- * A <<publishing_overview#glossary:component,component>> — via `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)]`.
- * <<publishing_overview#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)]` method. See `link:{javadoc-path}/org/gradle/api/publish/maven/MavenArtifact.html[MavenArtifact]` for the available configuration options for custom Maven artifacts.
+ * A <<publishing_overview#glossary:component,component>> — via link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * <<publishing_overview#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)] method. See link:{javadoc-path}/org/gradle/api/publish/maven/MavenArtifact.html[MavenArtifact] for the available configuration options for custom Maven artifacts.
  * Standard metadata like `artifactId`, `groupId` and `version`.
- * Other contents of the POM file — via `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)]`.
+ * Other contents of the POM file — via link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)].
 
 You can see all of these in action in the <<#publishing_maven:complete_example,complete publishing example>>. The API documentation for `MavenPublication` has additional code samples.
 
@@ -76,11 +76,11 @@ You can see all of these in action in the <<#publishing_maven:complete_example,c
 
 The attributes of the generated POM file will contain identity values derived from the following project properties:
 
-* `groupId` - `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getGroup()[Project.getGroup()]`
-* `artifactId` - `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getName()[Project.getName()]`
-* `version` - `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getVersion()[Project.getVersion()]`
+* `groupId` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getGroup()[Project.getGroup()]
+* `artifactId` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getName()[Project.getName()]
+* `version` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getVersion()[Project.getVersion()]
 
-Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the `link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]`.
+Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication].
 
 === Example: customizing the publication identity
 
@@ -102,7 +102,7 @@ The only Unicode values that are explicitly prohibited are `\`, `/` and any ISO 
 [[sec:modifying_the_generated_pom]]
 === Customizing the generated POM
 
-The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPom.html[MavenPom]` in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
+The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPom.html[MavenPom] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
 === Example: Customizing the POM file
 
@@ -115,7 +115,7 @@ include::{samples-path}/signing/maven-publish/build.gradle[tag=pom-customization
 [[publishing_maven:repositories]]
 == Repositories
 
-This plugin provides <<dependency_management_terminology#sub:terminology_repository,repositories>> of type `link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]`. To learn how to define and use repositories for publishing, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology#sub:terminology_repository,repositories>> of type link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 
@@ -134,7 +134,7 @@ The two main things you will want to configure are the repository's:
 
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
 
-You can also configure any authentication details that are required to connect to the repository. See `link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]` for more details.
+You can also configure any authentication details that are required to connect to the repository. See link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository] for more details.
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
@@ -164,7 +164,7 @@ include::{samples-path}/maven-publish/javaProject/build.gradle[tag=repo-url-from
 
 For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _$USER_HOME/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
 
-The Maven Publish Plugin makes this easy to do by automatically creating a `link:{javadoc-path}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]` task for each `link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]` in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
+The Maven Publish Plugin makes this easy to do by automatically creating a link:{javadoc-path}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal] task for each link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
 
 [[publishing_maven:complete_example]]
 == Complete example

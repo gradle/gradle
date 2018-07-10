@@ -616,7 +616,7 @@ What if one project needs the jar produced by another project in its compile pat
 
 
 We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
-“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of `link:{groovy-dsl-path}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])]` for more information about defining project paths.
+“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of link:{groovy-dsl-path}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
 [[javadependencies_2]]
 === Example: Project lib dependencies
@@ -654,7 +654,7 @@ The Java plugin adds per default a jar to your project libraries which contains 
 
 Sometimes you may want to depend on an output produced by another task. In turn you'll want to make sure that the task is executed beforehand to produce that very output. Declaring a task dependency from one project to another is a poor way to model this kind of relationship and introduces unnecessary coupling. The recommended way to model such a dependency is to produce the output, mark it as an "outgoing" artifact or add it to the output of the `main` source set which you can depend on in the consuming project.
 
-Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`. The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version. The attribute `builtBy` takes care of establishing an inferred task dependency. For more information on `builtBy`, see `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]`.
+Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`. The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version. The attribute `builtBy` takes care of establishing an inferred task dependency. For more information on `builtBy`, see link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput].
 
 === Example: Task generating a property file containing build information
 

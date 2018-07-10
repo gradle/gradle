@@ -131,7 +131,7 @@ Specifies the JDK installation directory to use.
 [[sec:project_properties]]
 == Project properties
 
-You can add properties directly to your `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]` object via the `-P` command line option.
+You can add properties directly to your link:{groovy-dsl-path}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
 
 Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
@@ -161,7 +161,7 @@ You can access a project property in your build script simply by using its name 
 ====
 If a project property is referenced but does not exist, an exception will be thrown and the build will fail.
 
-You should check for existence of optional project properties before you access them using the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:hasProperty(java.lang.String)[Project.hasProperty(java.lang.String)]` method.
+You should check for existence of optional project properties before you access them using the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:hasProperty(java.lang.String)[Project.hasProperty(java.lang.String)] method.
 ====
 
 [[sec:configuring_jvm_memory]]
@@ -194,9 +194,9 @@ Many settings (like the Java version and maximum heap size) can only be specifie
 When running with the <<gradle_daemon#, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
 ====
 
-Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using `link:{javadoc-path}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)]` for JUnit or TestNG tests. You must configure these through the tasks themselves.
+Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using link:{javadoc-path}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)] for JUnit or TestNG tests. You must configure these through the tasks themselves.
 
-=== Example: Set Java compile options for `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]` tasks
+=== Example: Set Java compile options for link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
 
 [source,groovy]
 .build.gradle
@@ -208,7 +208,7 @@ tasks.withType(JavaCompile) {
 }
 ----
 
-See other examples in the `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` API documentation and <<java_testing#sec:test_execution, test execution in the Java plugin reference>>.
+See other examples in the link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing#sec:test_execution, test execution in the Java plugin reference>>.
 
 link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option.
 

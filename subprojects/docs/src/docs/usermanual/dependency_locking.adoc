@@ -44,7 +44,7 @@ Gradle will even emit a warning when persisting lock state and changing dependen
 
 == Enabling locking on configurations
 
-Locking of a configuration happens through the `link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]`:
+Locking of a configuration happens through the link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]:
 
 === Example: Locking a specific configuration
 

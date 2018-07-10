@@ -15,7 +15,7 @@
 [[osgi_plugin]]
 = The OSGi Plugin
 
-The OSGi plugin provides a factory method to create an `link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]` object. `OsgiManifest` extends `link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]`. To learn more about generic manifest handling, see <<java_plugin#sub:manifest,more about Java manifests>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
+The OSGi plugin provides a factory method to create an link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest] object. `OsgiManifest` extends link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]. To learn more about generic manifest handling, see <<java_plugin#sub:manifest,more about Java manifests>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
 
 [NOTE]
 ====
@@ -47,7 +47,7 @@ Applies the Java base plugin.
 
 The OSGi plugin adds the following tasks to the project:
 
-`osgiClasses` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Sync.html[Sync]`::
+`osgiClasses` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Sync.html[Sync]::
 _Depends on_: `classes`
 +
 Copies all classes from the main source set to a single directory that is processed by BND.
@@ -56,7 +56,7 @@ Copies all classes from the main source set to a single directory that is proces
 [[sec:osgi_convention_object]]
 == Convention object
 
-The OSGi plugin adds the following convention object: `link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiPluginConvention.html[OsgiPluginConvention]`
+The OSGi plugin adds the following convention object: link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiPluginConvention.html[OsgiPluginConvention]
 
 
 [[sec:osgi_convention_properties]]
@@ -77,11 +77,11 @@ The OSGi plugin adds the following methods. For more details, see the API docume
 | Description
 
 | osgiManifest()
-| `link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]`
+| link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]
 | Returns an OsgiManifest object.
 
 | osgiManifest(Closure cl)
-| `link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]`
+| link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]
 | Returns an OsgiManifest object configured by the closure.
 |===
 

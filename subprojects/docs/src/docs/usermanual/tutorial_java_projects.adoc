@@ -122,7 +122,7 @@ include::{samples-path}/java/quickstart/build.gradle[tag=customization]
 You can use `gradle properties` to list the properties of a project. This will allow you to see the properties added by the Java plugin, and their default values.
 ====
 
-The tasks which the Java plugin adds are regular tasks, exactly the same as if they were declared in the build file. This means you can use any of the mechanisms shown in earlier chapters to customize these tasks. For example, you can set the properties of a task, add behaviour to a task, change the dependencies of a task, or replace a task entirely. In our sample, we will configure the `test` task, which is of type `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`, to add a system property when the tests are executed:
+The tasks which the Java plugin adds are regular tasks, exactly the same as if they were declared in the build file. This means you can use any of the mechanisms shown in earlier chapters to customize these tasks. For example, you can set the properties of a task, add behaviour to a task, change the dependencies of a task, or replace a task entirely. In our sample, we will configure the `test` task, which is of type link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test], to add a system property when the tests are executed:
 
 === Example: Adding a test system property
 

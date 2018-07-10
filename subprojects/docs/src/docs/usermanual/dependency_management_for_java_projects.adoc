@@ -52,7 +52,7 @@ To find out more about defining dependencies, have a look at <<declaring_depende
 [[sec:configurations_java_tutorial]]
 == Using dependency configurations
 
-A `link:{groovy-dsl-path}/org.gradle.api.artifacts.Configuration.html[Configuration]` is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
+A link:{groovy-dsl-path}/org.gradle.api.artifacts.Configuration.html[Configuration] is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
 
 Declaring dependencies::
 A plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin. For example a plugin may need the Spring web framework dependency to compile the source code.

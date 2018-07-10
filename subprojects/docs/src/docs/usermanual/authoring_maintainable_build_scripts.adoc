@@ -29,7 +29,7 @@ For that very reason, it's easy to end up with a build script that mixes declara
 Let's talk about some concrete examples.
 
 
-* _Declarative code:_ Built-in, language-agnostic DSL elements (e.g. `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)[Project.dependencies{}]` or `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}]`) or DSLs exposed by plugins
+* _Declarative code:_ Built-in, language-agnostic DSL elements (e.g. link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)[Project.dependencies{}] or link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}]) or DSLs exposed by plugins
 * _Imperative code:_ Conditional logic or very complex task action implementations
 
 The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain.
@@ -116,11 +116,11 @@ org/gradle/workers/**
 
 === Alternatives for oft-used internal APIs
 
-To provide a nested DSL for your custom task, don't use `org.gradle.internal.reflect.Instantiator`; use `link:{javadoc-path}/org/gradle/api/model/ObjectFactory.html[ObjectFactory]` instead.
+To provide a nested DSL for your custom task, don't use `org.gradle.internal.reflect.Instantiator`; use link:{javadoc-path}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] instead.
 It may also be helpful to read <<lazy_configuration#,the chapter on lazy configuration>>.
 
 Don't use `org.gradle.api.internal.ConventionMapping`.
-Use `link:{javadoc-path}/org/gradle/api/provider/Provider.html[Provider]` and/or `link:{javadoc-path}/org/gradle/api/provider/Property.html[Property]`.
+Use link:{javadoc-path}/org/gradle/api/provider/Provider.html[Provider] and/or link:{javadoc-path}/org/gradle/api/provider/Property.html[Property].
 You can find an example for capturing user input to configure runtime behavior in the link:{guides-url}/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
 
 Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
@@ -136,9 +136,9 @@ The task API gives a build author a lot of flexibility to declare tasks in a bui
 For optimal readability and maintainability follow these rules:
 
 * The task type should be the only key-value pair that belongs within the parentheses after the task name.
-* Any other configuration logic for a task should be defined as part of `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)]` if possible.
-* <<tutorial_using_tasks#sec:hello_world,Task actions>> should only be declared with the methods `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}]` or `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}]`.
-* `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}]` should be used if the task only defines a single action.
+* Any other configuration logic for a task should be defined as part of link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)] if possible.
+* <<tutorial_using_tasks#sec:hello_world,Task actions>> should only be declared with the methods link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
+* link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] should be used if the task only defines a single action.
 * A task should <<#sec:improving_task_discoverability,define a group and description>>.
 
 === Example: Definition of tasks following best practices
@@ -214,7 +214,7 @@ include::{samples-path}/userguide/bestPractices/logicDuringConfiguration/do/buil
 [[sec:avoiding_use_of_gradlebuild]]
 == Avoiding the use of `GradleBuild`
 
-The `link:{groovy-dsl-path}/org.gradle.api.tasks.tasks.GradleBuild.html[GradleBuild]` task type allows a build script to define a task that invokes another Gradle build.
+The link:{groovy-dsl-path}/org.gradle.api.tasks.tasks.GradleBuild.html[GradleBuild] task type allows a build script to define a task that invokes another Gradle build.
 The use of this type is generally discouraged.
 There are some corner cases where the invoked build doesn't expose the same runtime behavior as from the command line or through the Tooling API leading to unexpected results.
 
@@ -232,7 +232,7 @@ Strongly-coupled projects hurts <<multi_project_builds#sec:parallel_execution,bu
 
 The following practices should be avoided:
 
-* Explicitly depending on a task from another project via `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object[])[Task.dependsOn(java.lang.Object...)]`.
+* Explicitly depending on a task from another project via link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object[])[Task.dependsOn(java.lang.Object...)].
 * Setting property values or calling methods on domain objects from another project.
 * Executing another portion of the build with <<#sec:avoiding_use_of_gradlebuild,GradleBuild>>.
 * Declaring unnecessary <<declaring_dependencies#sec:declaring_project_dependency,project dependencies>>.

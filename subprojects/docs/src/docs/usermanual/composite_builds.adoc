@@ -75,7 +75,7 @@ include::{samples-path}/compositeBuilds/basic/my-app/compositeBuilds_basic_cli.o
 [[settings_defined_composite]]
 === Defining a composite build via `settings.gradle`
 
-It's possible to make the above arrangement persistent, by using `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeBuild(java.lang.Object)[Settings.includeBuild(java.lang.Object)]` to declare the included build in the `settings.gradle` file. The `settings.gradle` file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
+It's possible to make the above arrangement persistent, by using link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeBuild(java.lang.Object)[Settings.includeBuild(java.lang.Object)] to declare the included build in the `settings.gradle` file. The `settings.gradle` file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
 
 [[separate_composite]]
 === Defining a separate composite build
@@ -199,7 +199,7 @@ Builds using these features function incorrectly when included in a composite bu
 [[included_build_task_dependencies]]
 == Depending on tasks in an included build
 
-While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on its included builds. The included builds are accessed using `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuilds[Gradle.getIncludedBuilds()]` or `link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuild(java.lang.String)[Gradle.includedBuild(java.lang.String)]`, and a task reference is obtained via the `link:{groovy-dsl-path}/org.gradle.api.initialization.IncludedBuild.html#org.gradle.api.initialization.IncludedBuild:task(java.lang.String)[IncludedBuild.task(java.lang.String)]` method.
+While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on its included builds. The included builds are accessed using link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuilds[Gradle.getIncludedBuilds()] or link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuild(java.lang.String)[Gradle.includedBuild(java.lang.String)], and a task reference is obtained via the link:{groovy-dsl-path}/org.gradle.api.initialization.IncludedBuild.html#org.gradle.api.initialization.IncludedBuild:task(java.lang.String)[IncludedBuild.task(java.lang.String)] method.
 
 Using these APIs, it is possible to declare a dependency on a task in a particular included build, or tasks with a certain path in all or some of the included builds.
 

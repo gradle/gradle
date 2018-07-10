@@ -71,7 +71,7 @@ If you think this looks similar to Ant's targets, you would be right. Gradle tas
 [NOTE]
 ====
 
-This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst(org.gradle.api.Action)]` and `link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast(org.gradle.api.Action)]` to define an action instead, as demonstrated by the rest of the examples in this chapter.
+This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst(org.gradle.api.Action)] and link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast(org.gradle.api.Action)] to define an action instead, as demonstrated by the rest of the examples in this chapter.
 
 ====
 
@@ -366,7 +366,7 @@ If your build script needs to use external libraries, you can add them to the sc
 include::{samples-path}/userguide/tutorial/externalDependency/build.gradle[tag=declare-classpath]
 ----
 
-The closure passed to the `buildscript()` method configures a `link:{groovy-dsl-path}/org.gradle.api.initialization.dsl.ScriptHandler.html[ScriptHandler]` instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types#,dependency types>> except project dependencies.
+The closure passed to the `buildscript()` method configures a link:{groovy-dsl-path}/org.gradle.api.initialization.dsl.ScriptHandler.html[ScriptHandler] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types#,dependency types>> except project dependencies.
 
 Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
 
@@ -388,7 +388,7 @@ For multi-project builds, the dependencies declared with a project's `buildscrip
 
 Build script dependencies may be Gradle plugins. Please consult <<plugins#,"Plugins">> for more information on Gradle plugins.
 
-Every project automatically has a `buildEnvironment` task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask]` that can be invoked to report on the resolution of the build script dependencies.
+Every project automatically has a `buildEnvironment` task of type link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.
 
 [[sec:tasks_tutorial_where_to_next]]
 == Where to next?

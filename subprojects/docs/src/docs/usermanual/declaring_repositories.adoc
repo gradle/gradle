@@ -35,7 +35,7 @@ To declare JCenter as repository, add this code to your build script:
 include::{samples-path}/userguide/dependencyManagement/declaringRepositories/publicRepository/build.gradle[tag=public-repository]
 ----
 
-Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the `link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler]` API. Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
 [[sec:declaring_custom_repository]]
 == Declaring a custom repository by URL
@@ -52,7 +52,7 @@ Add the following code to declare an in-house repository for your build reachabl
 include::{samples-path}/userguide/dependencyManagement/declaringRepositories/customRepository/build.gradle[tag=custom-repository]
 ----
 
-Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the `link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler]` API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<repository_types#sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<repository_types#sub:supported_transport_protocols,reference manual on supported transport protocols>>.
 
 You can also <<repository_types#sec:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
 

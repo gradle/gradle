@@ -44,7 +44,7 @@ include::{samples-path}/testKit/gradleRunner/junitQuickstart/build.gradle[tag=de
 [[sec:functional_testing_with_the_gradle_runner]]
 == Functional testing with the Gradle runner
 
-The `link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner]` facilitates programmatically executing Gradle builds, and inspecting the result.
+The link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] facilitates programmatically executing Gradle builds, and inspecting the result.
 
 A contrived build can be created (e.g. programmatically, or from a template) that exercises the “logic under test”. The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
 
@@ -141,7 +141,7 @@ The plugin uses the following conventions for applying the TestKit dependency an
 * Source set containing code under test: `sourceSets.main`
 * Source set used for injecting the plugin classpath: `sourceSets.test`
 
-Any of these conventions can be reconfigured with the help of the class`link:{javadoc-path}/org/gradle/plugin/devel/GradlePluginDevelopmentExtension.html[GradlePluginDevelopmentExtension]`.
+Any of these conventions can be reconfigured with the help of the classlink:{javadoc-path}/org/gradle/plugin/devel/GradlePluginDevelopmentExtension.html[GradlePluginDevelopmentExtension].
 
 The following Groovy-based sample demonstrates how to automatically inject the plugin classpath by using the standard conventions applied by the Java Gradle Plugin Development plugin.
 
@@ -254,7 +254,7 @@ The system property approach can be used when it is desirable to enable debuggin
 [[sub:test-kit-build-cache]]
 == Testing with the Build Cache
 
-To enable the <<build_cache#,Build Cache>> in your tests, you can pass the `--build-cache` argument to `link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner]` or use one of the other methods described in <<build_cache#sec:build_cache_enable,Enable the build cache>>. You can then check for the task outcome api:org.gradle.testkit.runner.TaskOutcome#FROM_CACHE[] when your plugin's custom task is cached. This outcome is only valid for Gradle 3.5 and newer.
+To enable the <<build_cache#,Build Cache>> in your tests, you can pass the `--build-cache` argument to link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<build_cache#sec:build_cache_enable,Enable the build cache>>. You can then check for the task outcome api:org.gradle.testkit.runner.TaskOutcome#FROM_CACHE[] when your plugin's custom task is cached. This outcome is only valid for Gradle 3.5 and newer.
 
 === Example: Testing cacheable tasks
 

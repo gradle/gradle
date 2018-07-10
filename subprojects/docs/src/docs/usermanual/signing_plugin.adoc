@@ -101,7 +101,7 @@ By default the Signing Plugin uses a Java-based implementation of PGP for signin
 include::{samples-path}/signing/gnupg-signatory/build.gradle[tag=configure-signatory]
 ----
 
-This tells the Signing Plugin to use the `GnupgSignatory` instead of the default `link:{javadoc-path}/org/gradle/plugins/signing/signatory/pgp/PgpSignatory.html[PgpSignatory]`. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
+This tells the Signing Plugin to use the `GnupgSignatory` instead of the default link:{javadoc-path}/org/gradle/plugins/signing/signatory/pgp/PgpSignatory.html[PgpSignatory]. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
 
 Without any further configuration the `gpg2` (on Windows: `gpg2.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
 
@@ -152,7 +152,7 @@ When publishing artifacts, you often want to sign them so the consumer of your a
 include::{samples-path}/signing/maven-publish/build.gradle[tag=sign-publication]
 ----
 
-This will create a task (of type `link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]`) in your project named `signMavenJavaPublication` that will build all artifacts that are part of the publication (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
+This will create a task (of type link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signMavenJavaPublication` that will build all artifacts that are part of the publication (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
 === Example: Signing a publication output
 
@@ -177,7 +177,7 @@ It is common to want to sign the artifacts of a configuration. For example, the 
 include::{samples-path}/signing/maven/build.gradle[tag=sign-archives]
 ----
 
-This will create a task (of type `link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]`) in your project named `signArchives`, that will build any `archives` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
+This will create a task (of type link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signArchives`, that will build any `archives` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
 === Example: Signing a configuration output
 
@@ -200,7 +200,7 @@ In some cases the artifact that you need to sign may not be part of a configurat
 include::{samples-path}/signing/tasks/build.gradle[tag=sign-task]
 ----
 
-This will create a task (of type `link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]`) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it. The signature file will be placed alongside the artifact being signed.
+This will create a task (of type link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it. The signature file will be placed alongside the artifact being signed.
 
 === Example: Signing a task output
 
@@ -210,7 +210,7 @@ This will create a task (of type `link:{groovy-dsl-path}/org.gradle.plugins.sign
 include::{samples-path}/signing/tasks/signingTaskOutput.out[]
 ----
 
-For a task to be _signable_, it must produce an archive of some type, i.e. it must extend `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]`. Tasks that do this are the `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War]` and `link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]` tasks.
+For a task to be _signable_, it must produce an archive of some type, i.e. it must extend link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]. Tasks that do this are the link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War] and link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear] tasks.
 
 [[sec:conditional_signing]]
 === Conditional Signing
@@ -225,9 +225,9 @@ A common usage pattern is to require the signing of build artifacts only under c
 include::{samples-path}/signing/conditional/build.gradle[tag=conditional-signing]
 ----
 
-In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation. See `link:{groovy-dsl-path}/org.gradle.plugins.signing.SigningExtension.html#org.gradle.plugins.signing.SigningExtension:setRequired(java.lang.Object)[SigningExtension.setRequired(java.lang.Object)]` for more information.
+In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation. See link:{groovy-dsl-path}/org.gradle.plugins.signing.SigningExtension.html#org.gradle.plugins.signing.SigningExtension:setRequired(java.lang.Object)[SigningExtension.setRequired(java.lang.Object)] for more information.
 
-If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured. Alternatively, you may want to skip signing entirely whether or not signatory credentials are available. If so, you can configure the `link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign]` tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
+If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured. Alternatively, you may want to skip signing entirely whether or not signatory credentials are available. If so, you can configure the link:{groovy-dsl-path}/org.gradle.plugins.signing.Sign.html[Sign] tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
 
 === Example: Specifying when signing is skipped
 

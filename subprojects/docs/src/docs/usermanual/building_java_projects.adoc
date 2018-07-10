@@ -196,11 +196,11 @@ include::{samples-path}/userguide/java/customDirs/build.gradle[tag=custom-extra-
 
 Crucially, we're using the _method_ `srcDir()` here to append a directory path, whereas setting the `srcDirs` property replaces any existing values. This is a common convention in Gradle: setting a property replaces values, while the corresponding method appends values.
 
-You can see all the properties and methods available on source sets in the DSL reference for `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet]` and `link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]`. Note that `srcDirs` and `srcDir()` are both on `SourceDirectorySet`.
+You can see all the properties and methods available on source sets in the DSL reference for link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet] and link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]. Note that `srcDirs` and `srcDir()` are both on `SourceDirectorySet`.
 
 === Changing compiler options
 
-Most of the compiler options are accessible through the corresponding task, such as `compileJava` and `compileTestJava`. These tasks are of type `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`, so read the task reference for an up-to-date and comprehensive list of the options.
+Most of the compiler options are accessible through the corresponding task, such as `compileJava` and `compileTestJava`. These tasks are of type link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile], so read the task reference for an up-to-date and comprehensive list of the options.
 
 For example, if you want to use <<java_plugin#sec:incremental_compile,incremental compilation>>, use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
@@ -222,7 +222,7 @@ Defines which language version of Java your source files should be treated as.
 `targetCompatibility`::
 Defines the minimum JVM version your code should run on, i.e. it determines the version of byte code the compiler generates.
 
-If you need or want more than one compilation task for any reason, you can either <<#sec:custom_java_source_sets,create a new source set>> or simply define a new task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`. We look at setting up a new source set next.
+If you need or want more than one compilation task for any reason, you can either <<#sec:custom_java_source_sets,create a new source set>> or simply define a new task of type link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]. We look at setting up a new source set next.
 
 [[sec:java_cross_compilation]]
 === Compiling and testing Java 6/7
@@ -281,7 +281,7 @@ If you're unsure whether to create a custom source set or not, then go ahead and
 [[sec:java_resources]]
 == Managing resources
 
-Many Java projects make use of resources beyond source files, such as images, configuration files and localization data. Sometimes these files simply need to be packaged unchanged and sometimes they need to be processed as template files or in some other way. Either way, the Java Plugin adds a specific `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task for each source set that handles the processing of its associated resources.
+Many Java projects make use of resources beyond source files, such as images, configuration files and localization data. Sometimes these files simply need to be packaged unchanged and sometimes they need to be processed as template files or in some other way. Either way, the Java Plugin adds a specific link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task for each source set that handles the processing of its associated resources.
 
 The task's name follows the convention of `process__SourceSet__Resources` — or `processResources` for the `main` source set — and it will automatically copy any files in _src/[sourceSet]/resources_ to a directory that will be included in the production JAR. This target directory will also be included in the runtime classpath of the tests.
 
@@ -290,7 +290,7 @@ Since `processResources` is an instance of the `Copy` task, you can perform any 
 [[sec:properties_files]]
 === Java properties files and reproducible builds
 
-You can easily create Java properties files via the `link:{groovy-dsl-path}/org.gradle.api.tasks.WriteProperties.html[WriteProperties]` task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<more_about_tasks#sec:up_to_date_checks,incremental builds>>.
+You can easily create Java properties files via the link:{groovy-dsl-path}/org.gradle.api.tasks.WriteProperties.html[WriteProperties] task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<more_about_tasks#sec:up_to_date_checks,incremental builds>>.
 
 The standard Java API for writing properties files produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments. Gradle's `WriteProperties` task generates exactly the same output byte-for-byte if none of the properties have changed. This is achieved by a few tweaks to how a properties file is generated:
 
@@ -307,7 +307,7 @@ These tweaks not only lead to better incremental build integration, but they als
 
 Alongside providing automatic compilation of unit tests in _src/test/java_, the Java Plugin has native support for running tests that use JUnit 3, 4 & 5 (JUnit 5 support https://docs.gradle.org/4.6/release-notes.html#junit-5-support[came in Gradle 4.6]) and TestNG. You get:
 
- * An automatic `test` task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`, using the `test` source set
+ * An automatic `test` task of type link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test], using the `test` source set
  * An HTML test report that includes the results from _all_ `Test` tasks that run
  * Easy filtering of which tests to run
  * Fine-grained control over how the tests are run
@@ -323,7 +323,7 @@ As there is a lot to cover when it comes to testing, the topic has its <<java_te
  * How to configure test reporting and add your own reporting tasks
  * How to make use of specific JUnit and TestNG features
 
-You can also learn more about configuring tests in the DSL reference for `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`.
+You can also learn more about configuring tests in the DSL reference for link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test].
 
 
 [[sec:java_packaging]]
@@ -343,7 +343,7 @@ If you want any other JAR or alternative archive built, you either have to apply
 include::{samples-path}/userguide/java/basic/build.gradle[tag=defining-sources-jar-task]
 ----
 
-See `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]` for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
+See link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
 
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
@@ -377,7 +377,7 @@ Each instance of the `Jar`, `War` and `Ear` tasks has a `manifest` property that
 include::{samples-path}/userguide/tutorial/manifest/build.gradle[tag=add-to-manifest]
 ----
 
-See `link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest]` for the configuration options it provides.
+See link:{javadoc-path}/org/gradle/api/java/archives/Manifest.html[Manifest] for the configuration options it provides.
 
 You can also create standalone instances of `Manifest`. One reason for doing so is to share manifest information between JARs. The following example demonstrates how to share common attributes between JARs:
 
@@ -399,7 +399,7 @@ Another option available to you is to merge manifests into a single `Manifest` o
 include::{samples-path}/userguide/tutorial/manifest/build.gradle[tag=merge]
 ----
 
-Manifests are merged in the order they are declared in the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a `link:{javadoc-path}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails]` instance for each entry of the resulting manifest. Note that the merge is done lazily, either when generating the JAR or when `Manifest.writeTo()` or `Manifest.getEffectiveManifest()` are called.
+Manifests are merged in the order they are declared in the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadoc-path}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. Note that the merge is done lazily, either when generating the JAR or when `Manifest.writeTo()` or `Manifest.getEffectiveManifest()` are called.
 
 Speaking of `writeTo()`, you can use that to easily write a manifest to disk at any time, like so:
 
@@ -414,7 +414,7 @@ include::{samples-path}/userguide/tutorial/manifest/build.gradle[tag=write]
 [[sec:generating_javadocs]]
 == Generating API documentation
 
-The Java Plugin provides a `javadoc` task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]`, that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html#options[Javadoc reference documentation]. See `link:{javadoc-path}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions]` and `link:{javadoc-path}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions]` for a complete list of those options.
+The Java Plugin provides a `javadoc` task of type link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html#options[Javadoc reference documentation]. See link:{javadoc-path}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadoc-path}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions] for a complete list of those options.
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 
@@ -443,7 +443,7 @@ These are just two non-trivial but common customizations that you might come acr
 [[sec:cleaning_java_build]]
 == Cleaning the build
 
-The Java Plugin adds a `clean` task to your project by virtue of applying the <<base_plugin#,Base Plugin>>. This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there. The task is an instance of `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]` and you can change what directory it deletes by setting its `dir` property.
+The Java Plugin adds a `clean` task to your project by virtue of applying the <<base_plugin#,Base Plugin>>. This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there. The task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete] and you can change what directory it deletes by setting its `dir` property.
 
 [[sec:building_java_libraries]]
 == Building Java libraries

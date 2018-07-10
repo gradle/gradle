@@ -14,9 +14,9 @@ Module dependencies are the most common dependencies. They refer to a module in 
 include::{samples-path}/userguide/artifacts/externalDependencies/build.gradle[tag=module-dependencies]
 ----
 
-See the `link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler]` class in the API documentation for more examples and a complete reference.
+See the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler] class in the API documentation for more examples and a complete reference.
 
-Gradle provides different notations for module dependencies. There is a string notation and a map notation. A module dependency has an API which allows further configuration. Have a look at `link:{javadoc-path}/org/gradle/api/artifacts/ExternalModuleDependency.html[ExternalModuleDependency]` to learn all about the API. This API provides properties and configuration methods. Via the string notation you can define a subset of the properties. With the map notation you can define all properties. To have access to the complete API, either with the map or with the string notation, you can assign a single dependency to a configuration together with a closure.
+Gradle provides different notations for module dependencies. There is a string notation and a map notation. A module dependency has an API which allows further configuration. Have a look at link:{javadoc-path}/org/gradle/api/artifacts/ExternalModuleDependency.html[ExternalModuleDependency] to learn all about the API. This API provides properties and configuration methods. Via the string notation you can define a subset of the properties. With the map notation you can define all properties. To have access to the complete API, either with the map or with the string notation, you can assign a single dependency to a configuration together with a closure.
 
 [NOTE]
 ====
@@ -69,7 +69,7 @@ Gradle distinguishes between external dependencies and dependencies on projects 
 include::{samples-path}/java/multiproject/api/build.gradle[tag=project-dependencies]
 ----
 
-For more information see the API documentation for `link:{javadoc-path}/org/gradle/api/artifacts/ProjectDependency.html[ProjectDependency]`.
+For more information see the API documentation for link:{javadoc-path}/org/gradle/api/artifacts/ProjectDependency.html[ProjectDependency].
 
 Multi-project builds are discussed in <<multi_project_builds#,this chapter>>.
 

@@ -68,27 +68,27 @@ _Depends on_: `idea`
 +
 Generates all IDEA configuration files and opens the project in IDEA
 
-`cleanIdea` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+`cleanIdea` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]::
 _Depends on_: `cleanIdeaProject`, `cleanIdeaModule`
 +
 Removes all IDEA configuration files
 
-`cleanIdeaProject` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+`cleanIdeaProject` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA project file
 
-`cleanIdeaModule` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+`cleanIdeaModule` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA module file
 
-`cleanIdeaWorkspace` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+`cleanIdeaWorkspace` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA workspace file
 
-`ideaProject` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]`::
+`ideaProject` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]::
 Generates the `.ipr` file. This task is only added to the root project.
 
-`ideaModule` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]`::
+`ideaModule` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]::
 Generates the `.iml` file
 
-`ideaWorkspace` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]`::
+`ideaWorkspace` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]::
 Generates the `.iws` file. This task is only added to the root project.
 
 
@@ -101,16 +101,16 @@ Here are the configuration properties you can use:
 
 [[idea-configuration]]
 
-`idea` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]`::
+`idea` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]::
 Top level element that enables configuration of the idea plugin in a DSL-friendly fashion
 
-`idea.project` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]`::
+`idea.project` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
 Allows configuring project information
 
-`idea.module` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]`::
+`idea.module` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]::
 Allows configuring module information
 
-`idea.workspace` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]`::
+`idea.workspace` — type: link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]::
 Allows configuring the workspace XML
 
 Follow the links to the types for examples of using these configuration properties.
@@ -154,18 +154,18 @@ The plugin provides objects modeling the sections of the metadata files that are
 The following are the domain objects used for each of the model types:
 
 [[idea-hooks]]
-`link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]`::
+link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
 +
  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Project.html[Project] arg \-> ... }`
  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Project.html[Project] arg \-> ... }`
  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
-`link:{javadoc-path}/org/gradle/plugins/ide/idea/model/IdeaModule.html[IdeaModule]`::
+link:{javadoc-path}/org/gradle/plugins/ide/idea/model/IdeaModule.html[IdeaModule]::
  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Module.html[Module] arg \-> ... }`
  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Module.html[Module] arg \-> ... }`
  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
-`link:{javadoc-path}/org/gradle/plugins/ide/idea/model/IdeaWorkspace.html[IdeaWorkspace]`::
+link:{javadoc-path}/org/gradle/plugins/ide/idea/model/IdeaWorkspace.html[IdeaWorkspace]::
  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace] arg \-> ... }`
  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace] arg \-> ... }`
  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`

@@ -43,7 +43,7 @@ Web application sources
 
 The War plugin adds and modifies the following tasks:
 
-`war` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War]`::
+`war` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War]::
 _Depends on_: `compile`
 +
 Assembles the application WAR file.
@@ -72,7 +72,7 @@ It is important to note that these `provided` configurations work transitively. 
 == Publishing
 
 `components.web`::
-A `link:{groovy-dsl-path}/org.gradle.api.component.SoftwareComponent.html[SoftwareComponent]` for <<publishing_overview#,publishing>> the production WAR created by the `war` task.
+A link:{groovy-dsl-path}/org.gradle.api.component.SoftwareComponent.html[SoftwareComponent] for <<publishing_overview#,publishing>> the production WAR created by the `war` task.
 
 [[sec:war_convention_properties]]
 == Convention properties
@@ -87,14 +87,14 @@ _Default value_: `$webAppDirName`, e.g. _src/main/webapp_
 +
 The path to the web application source directory.
 
-These properties are provided by a `link:{groovy-dsl-path}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention]` object.
+These properties are provided by a link:{groovy-dsl-path}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention] object.
 
 [[sec:war_default_settings]]
 == War
 
 The default behavior of the `War` task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are compiled to `WEB-INF/classes`. All the dependencies of the `runtime` footnote:[The `runtime` configuration extends the `compile` configuration.] configuration are copied to `WEB-INF/lib`.
 
-The `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War]` class in the API documentation has additional useful information.
+The link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War] class in the API documentation has additional useful information.
 
 [[sec:war_customizing]]
 == Customizing

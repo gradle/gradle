@@ -15,7 +15,7 @@
 [[artifact_management]]
 = Legacy publishing
 
-NOTE: This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview#,an alternative model>>. The approach detailed in this chapter — based on `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]` tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
+NOTE: This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview#,an alternative model>>. The approach detailed in this chapter — based on link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload] tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
 
 [[sec:introduction]]
 == Introduction

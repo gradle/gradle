@@ -41,27 +41,27 @@ The project report plugin defines the following tasks:
 
 |  `dependencyReport`
 | -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]`
+| link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]
 | Generates the project dependency report.
 
 |  `htmlDependencyReport`
 | -
-| `link:{groovy-dsl-path}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]`
+| link:{groovy-dsl-path}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]
 | Generates an HTML dependency and dependency insight report for the project or a set of projects.
 
 |  `propertyReport`
 | -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.PropertyReportTask.html[PropertyReportTask]`
+| link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.PropertyReportTask.html[PropertyReportTask]
 | Generates the project property report.
 
 |  `taskReport`
 | -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.TaskReportTask.html[TaskReportTask]`
+| link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.TaskReportTask.html[TaskReportTask]
 | Generates the project task report.
 
 |  `projectReport`
 |  `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
+| link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]
 | Generates all project reports.
 
 
@@ -105,4 +105,4 @@ include::reporting_base_plugin_properties.adoc[]
 | The directory to generate the project report into.
 |===
 
-These convention properties are provided by a convention object of type `link:{groovy-dsl-path}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention]`.
+These convention properties are provided by a convention object of type link:{groovy-dsl-path}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].

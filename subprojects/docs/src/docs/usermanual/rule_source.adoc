@@ -15,12 +15,12 @@
 [[rule_source]]
 = Implementing model rules in a plugin
 
-A plugin can define rules by extending `link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource]` and adding methods that define the rules. The plugin class can either extend `link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource]` directly or can implement `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` and include a nested `link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource]` subclass.
+A plugin can define rules by extending link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource] and adding methods that define the rules. The plugin class can either extend link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource] directly or can implement link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin] and include a nested link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource] subclass.
 
-Refer to the API docs for `link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource]` for more details.
+Refer to the API docs for link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource] for more details.
 
 
 [[sec:applying_additional_rules]]
 == Applying additional rules
 
-A rule method annotated with `link:{javadoc-path}/org/gradle/model/Rules.html[Rules]` can apply a `link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource]` to a target model element.
+A rule method annotated with link:{javadoc-path}/org/gradle/model/Rules.html[Rules] can apply a link:{javadoc-path}/org/gradle/model/RuleSource.html[RuleSource] to a target model element.

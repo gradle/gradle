@@ -29,7 +29,7 @@ You can use Gradle's Ant integration as a path for migrating your build from Ant
 [[sec:using_ant_tasks]]
 == Using Ant tasks and types in your build
 
-In your build script, a property called `ant` is provided by Gradle. This is a reference to an `link:{groovy-dsl-path}/org.gradle.api.AntBuilder.html[AntBuilder]` instance. This `AntBuilder` is used to access Ant tasks, types and properties from your build script. There is a very simple mapping from Ant's `build.xml` format to Groovy, which is explained below.
+In your build script, a property called `ant` is provided by Gradle. This is a reference to an link:{groovy-dsl-path}/org.gradle.api.AntBuilder.html[AntBuilder] instance. This `AntBuilder` is used to access Ant tasks, types and properties from your build script. There is a very simple mapping from Ant's `build.xml` format to Groovy, which is explained below.
 
 You execute an Ant task by calling a method on the `AntBuilder` instance. You use the task name as the method name. For example, you execute the Ant `echo` task by calling the `ant.echo()` method. The attributes of the Ant task are passed as Map parameters to the method. Below is an example of the `echo` task. Notice that we can also mix Groovy code and the Ant task markup. This can be extremely powerful.
 
@@ -198,7 +198,7 @@ include::{samples-path}/userguide/ant/dependsOnTask/build.xml[]
 include::{samples-path}/userguide/ant/dependsOnTask/dependsOnTask.out[]
 ----
 
-Sometimes it may be necessary to “rename” the task generated for an Ant target to avoid a naming collision with existing Gradle tasks. To do this, use the `link:{javadoc-path}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object,%20org.gradle.api.Transformer-[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)]` method.
+Sometimes it may be necessary to “rename” the task generated for an Ant target to avoid a naming collision with existing Gradle tasks. To do this, use the link:{javadoc-path}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object,%20org.gradle.api.Transformer-[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)] method.
 
 === Example: Renaming imported Ant targets
 
@@ -220,7 +220,7 @@ include::{samples-path}/userguide/ant/renameTask/build.xml[]
 include::{samples-path}/userguide/ant/renameTask/renameAntDelegate.out[]
 ----
 
-Note that while the second argument to this method should be a `link:{groovy-dsl-path}/org.gradle.api.Transformer.html[Transformer]`, when programming in Groovy we can simply use a closure instead of an anonymous inner class (or similar) due to http://mrhaki.blogspot.ie/2013/11/groovy-goodness-implicit-closure.html[Groovy's support for automatically coercing closures to single-abstract-method types].
+Note that while the second argument to this method should be a link:{groovy-dsl-path}/org.gradle.api.Transformer.html[Transformer], when programming in Groovy we can simply use a closure instead of an anonymous inner class (or similar) due to http://mrhaki.blogspot.ie/2013/11/groovy-goodness-implicit-closure.html[Groovy's support for automatically coercing closures to single-abstract-method types].
 
 [[sec:ant_properties]]
 == Ant properties and references
@@ -325,7 +325,7 @@ The default mapping of Ant message priority to Gradle log level can sometimes be
 
 Conversely, if an Ant task logs messages at too high of a level, to suppress those messages would require the build to be run at a higher log level, such as `QUIET`. However, this could result in other, desirable output being suppressed.
 
-To help with this, Gradle allows the user to fine tune the Ant logging and control the mapping of message priority to Gradle log level. This is done by setting the priority that should map to the default Gradle `LIFECYCLE` log level using the `link:{javadoc-path}/org/gradle/api/AntBuilder.html#setLifecycleLogLevel-java.lang.String-[AntBuilder.setLifecycleLogLevel(java.lang.String)]` method. When this value is set, any Ant message logged at the configured priority or above will be logged at least at `LIFECYCLE`. Any Ant message logged below this priority will be logged at most at `INFO`.
+To help with this, Gradle allows the user to fine tune the Ant logging and control the mapping of message priority to Gradle log level. This is done by setting the priority that should map to the default Gradle `LIFECYCLE` log level using the link:{javadoc-path}/org/gradle/api/AntBuilder.html#setLifecycleLogLevel-java.lang.String-[AntBuilder.setLifecycleLogLevel(java.lang.String)] method. When this value is set, any Ant message logged at the configured priority or above will be logged at least at `LIFECYCLE`. Any Ant message logged below this priority will be logged at most at `INFO`.
 
 For example, the following changes the mapping such that Ant _INFO_ priority messages are exposed at the `LIFECYCLE` log level.
 
@@ -348,4 +348,4 @@ On the other hand, if the `lifecycleLogLevel` was set to _ERROR_, Ant messages l
 [[sec:ant_api]]
 == API
 
-The Ant integration is provided by `link:{groovy-dsl-path}/org.gradle.api.AntBuilder.html[AntBuilder]`.
+The Ant integration is provided by link:{groovy-dsl-path}/org.gradle.api.AntBuilder.html[AntBuilder].

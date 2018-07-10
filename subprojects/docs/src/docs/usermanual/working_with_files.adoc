@@ -37,7 +37,7 @@ The <<#sec:locating_files,File paths in depth>> section covers the first of thes
 [[sec:copying_single_file_example]]
 == Copying a single file
 
-You copy a file by creating an instance of Gradle's builtin `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` task and configuring it with the location of the file and where you want to put it. This example mimics copying a generated report into a directory that will be packed into an archive, such as a ZIP or TAR:
+You copy a file by creating an instance of Gradle's builtin link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task and configuring it with the location of the file and where you want to put it. This example mimics copying a generated report into a directory that will be packed into an archive, such as a ZIP or TAR:
 
 === Example: How to copy a single file
 
@@ -47,7 +47,7 @@ You copy a file by creating an instance of Gradle's builtin `link:{groovy-dsl-pa
 include::{samples-path}/userguide/files/copy/build.gradle[tag=copy-single-file-example]
 ----
 
-The api:org.gradle.api.Project#file(java.lang.Object)[file()] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:from(java.lang.Object...)[Copy.from(java.lang.Object...)]` and which directory to copy it to using `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:into(java.lang.Object)[Copy.into(java.lang.Object)]`.
+The api:org.gradle.api.Project#file(java.lang.Object)[file()] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:from(java.lang.Object...)[Copy.from(java.lang.Object...)] and which directory to copy it to using link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:into(java.lang.Object)[Copy.into(java.lang.Object)].
 
 You can even use the path directly without the `file()` method, as explained early in the section <<#sec:copying_files,File copying in depth>>:
 
@@ -166,7 +166,7 @@ include::{samples-path}/userguide/files/copy/build.gradle[tag=create-archive-exa
 
 Notice how we specify the destination and name of the archive instead of an `into()`: both are required. You often won't see them explicitly set, because most projects apply the <<base_plugin#sec:base_plugins,Base Plugin>>. It provides some conventional values for those properties. The next example demonstrates this and you can learn more about the conventions in the <<#sec:archive_naming,archive naming>> section.
 
-Each type of archive has its own task type, the most common ones being `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]` and `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`. They all share most of the configuration options of `Copy`, including filtering and renaming.
+Each type of archive has its own task type, the most common ones being link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar] and link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]. They all share most of the configuration options of `Copy`, including filtering and renaming.
 
 One of the most common scenarios involves copying files into specified subdirectories of the archive. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
 
@@ -185,7 +185,7 @@ As you can see, you can have multiple `from()` declarations in a copy specificat
 
 Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<File trees,file trees>>).
 
-The two functions of interest are api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree[], which produce a `link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]` from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
+The two functions of interest are api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree[], which produce a link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
 === Example: Unpacking a ZIP file
 
@@ -204,7 +204,7 @@ If you're a Java developer and are wondering why there is no `jarTree()` method,
 
 In the Java space, applications and their dependencies typically used to be packaged as separate JARs within a single distribution archive. That still happens, but there is another approach that is now common: placing the classes and resources of the dependencies directly into the application JAR, creating what is known as an uber or fat JAR.
 
-Gradle makes this approach easy to accomplish. Consider the aim: to copy the contents of other JAR files into the application JAR. All you need for this is the api:org.gradle.api.Project#zipTree[] method and the `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]` task, as demonstrated by the `uberJar` task in the following example:
+Gradle makes this approach easy to accomplish. Consider the aim: to copy the contents of other JAR files into the application JAR. All you need for this is the api:org.gradle.api.Project#zipTree[] method and the link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar] task, as demonstrated by the `uberJar` task in the following example:
 
 === Example: Creating a Java uber or fat JAR
 
@@ -278,8 +278,8 @@ As with filtering, you can also apply renaming to a subset of files by configuri
 [[sec:deleting_files_example]]
 == Deleting files and directories
 
-You can easily delete files and directories using either the `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]` task or the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:delete(org.gradle.api.Action)[Project.delete(org.gradle.api.Action)]` method.
-In both cases, you specify which files and directories to delete in a way supported by the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)]`, api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[] methods.
+You can easily delete files and directories using either the link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete] task or the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:delete(org.gradle.api.Action)[Project.delete(org.gradle.api.Action)] method.
+In both cases, you specify which files and directories to delete in a way supported by the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[] methods.
 
 For example, the following task deletes the entire contents of a build's output directory:
 
@@ -341,7 +341,7 @@ One of the great quandaries when developing a build is how to specify file locat
  * `new File(relative path)` generates a path relative to the current working directory, which could be anywhere
  * `new File(absolute path)` will fail if the file system doesn't have the requisite path.
 
-Gradle solves this problem by providing the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]` method, which generates a path relative to the _project_ directory (unless the given path is absolute, in which case it is used as is). Here are some examples of using the `file()` method with different types of argument:
+Gradle solves this problem by providing the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method, which generates a path relative to the _project_ directory (unless the given path is absolute, in which case it is used as is). Here are some examples of using the `file()` method with different types of argument:
 
 === Example: Locating files
 
@@ -353,7 +353,7 @@ include::{samples-path}/userguide/files/file/build.gradle[tag=simple-params]
 
 As you can see, you can pass strings, `File` instances and `{javaApi}/java/nio/file/Path.html[Path]` instances to the `file()` method, all of which result in an absolute `File` object. You can find other options for argument types in the reference guide, linked in the previous paragraph.
 
-What happens in the case of multi-project builds? The `file()` method will always turn relative paths into paths that are relative to the current project directory, which may be a child project. If you want to use a path that's relative to the _root project_ directory, then you need to use the special `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getRootDir()[Project.getRootDir()]` property to construct an absolute path, like so:
+What happens in the case of multi-project builds? The `file()` method will always turn relative paths into paths that are relative to the current project directory, which may be a child project. If you want to use a path that's relative to the _root project_ directory, then you need to use the special link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getRootDir()[Project.getRootDir()] property to construct an absolute path, like so:
 
 === Example: Creating a path relative to a parent project
 
@@ -370,14 +370,14 @@ The `file()` method can be used to configure any task that has a property of typ
 [[sec:file_collections]]
 === File collections
 
-A _file collection_ is simply a set of file paths that's represented by the `link:{groovy-dsl-path}/org.gradle.api.file.FileCollection.html[FileCollection]` interface. _Any_ file paths. It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory. You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<managing_dependency_configurations#,dependency configurations>>.
+A _file collection_ is simply a set of file paths that's represented by the link:{groovy-dsl-path}/org.gradle.api.file.FileCollection.html[FileCollection] interface. _Any_ file paths. It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory. You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<managing_dependency_configurations#,dependency configurations>>.
 
 The recommended way to specify a collection of files is to use the api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[] method, which returns a `FileCollection` instance.
 This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of ``File``s, and more.
 You can even pass in tasks as arguments if they have <<more_about_tasks#sec:task_inputs_outputs,defined outputs>>.
 Learn about all the supported argument types in the reference guide.
 
-As with the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]` method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
+As with the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
 
 === Example: Creating a file collection
 
@@ -449,7 +449,7 @@ If `collection` changes at any time, either by adding or removing files from its
 [[sec:file_trees]]
 === File trees
 
-A _file tree_ is a file collection that retains the directory structure of the files it contains and has the type `link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]`. This means that all the paths in a file tree must have a shared parent directory. The following diagram highlights the distinction between file trees and file collections in the common case of copying files:
+A _file tree_ is a file collection that retains the directory structure of the files it contains and has the type link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]. This means that all the paths in a file tree must have a shared parent directory. The following diagram highlights the distinction between file trees and file collections in the common case of copying files:
 
 .The differences in how file trees and file collections behave when copying files
 image::file-collection-vs-file-tree.png[]
@@ -466,7 +466,7 @@ The simplest way to create a file tree is to pass a file or directory path to th
 include::{samples-path}/userguide/files/fileTrees/build.gradle[tag=define]
 ----
 
-You can see more examples of supported patterns in the API docs for `link:{javadoc-path}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]`. Also, see the API documentation for `fileTree()` to see what types you can pass as the base directory.
+You can see more examples of supported patterns in the API docs for link:{javadoc-path}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. Also, see the API documentation for `fileTree()` to see what types you can pass as the base directory.
 
 [NOTE]
 ====
@@ -508,7 +508,7 @@ Another specific type of file tree that users commonly need is the archive, i.e.
 [[sec:archive_contents]]
 === Using archives as file trees
 
-An archive is a directory and file hierarchy packed into a single file. In other words, it's a special case of a file tree, and that's exactly how Gradle treats archives. Instead of using the `fileTree()` method, which only works on normal file systems, you use the api:org.gradle.api.Project#zipTree[] and `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:tarTree(java.lang.Object)[Project.tarTree(java.lang.Object)]` methods to wrap archive files of the corresponding type (note that JAR, WAR and EAR files are ZIPs). Both methods return `FileTree` instances that you can then use in the same way as normal file trees. For example, you can extract some or all of the files of an archive by copying its contents to some directory on the file system. Or you can merge one archive into another.
+An archive is a directory and file hierarchy packed into a single file. In other words, it's a special case of a file tree, and that's exactly how Gradle treats archives. Instead of using the `fileTree()` method, which only works on normal file systems, you use the api:org.gradle.api.Project#zipTree[] and link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:tarTree(java.lang.Object)[Project.tarTree(java.lang.Object)] methods to wrap archive files of the corresponding type (note that JAR, WAR and EAR files are ZIPs). Both methods return `FileTree` instances that you can then use in the same way as normal file trees. For example, you can extract some or all of the files of an archive by copying its contents to some directory on the file system. Or you can merge one archive into another.
 
 Here are some simple examples of creating archive-based file trees:
 
@@ -526,7 +526,7 @@ You can see a practical example of extracting an archive file <<#sec:unpacking_a
 === Understanding implicit conversion to file collections
 
 Many objects in Gradle have properties which accept a set of input files.
-For example, the `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]` task has a `source` property that defines the source files to compile.
+For example, the link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task has a `source` property that defines the source files to compile.
 You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the api docs.
 This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure.
 
@@ -562,18 +562,18 @@ As this is a common convention, we recommend that you follow it in your own cust
 
 The basic process of copying files in Gradle is a simple one:
 
- * Define a task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`
+ * Define a task of type link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]
  * Specify which files (and potentially directories) to copy
  * Specify a destination for the copied files
 
 But this apparent simplicity hides a rich API that allows fine-grained control of which files are copied, where they go, and what happens to them as they are copied — renaming of the files and token substitution of file content are both possibilities, for example.
 
-Let's start with the last two items on the list, which form what is known as a _copy specification_. This is formally based on the `link:{javadoc-path}/org/gradle/api/file/CopySpec.html[CopySpec]` interface, which the `Copy` task implements, and offers:
+Let's start with the last two items on the list, which form what is known as a _copy specification_. This is formally based on the link:{javadoc-path}/org/gradle/api/file/CopySpec.html[CopySpec] interface, which the `Copy` task implements, and offers:
 
  * A api:org.gradle.api.file.CopySpec#from(java.lang.Object...)[] method to define what to copy
  * An api:org.gradle.api.file.CopySpec#into(java.lang.Object)[] method to define the destination
 
-`CopySpec` has several additional methods that allow you to control the copying process, but these two are the only required ones. `into()` is straightforward, requiring a directory path as its argument in any form supported by the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]` method. The `from()` configuration is far more flexible.
+`CopySpec` has several additional methods that allow you to control the copying process, but these two are the only required ones. `into()` is straightforward, requiring a directory path as its argument in any form supported by the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method. The `from()` configuration is far more flexible.
 
 Not only does `from()` accept multiple arguments, it also allows several different types of argument. For example, some of the most common types are:
 
@@ -582,7 +582,7 @@ Not only does `from()` accept multiple arguments, it also allows several differe
  * A `FileCollection` or `FileTree` — all files in the collection are included in the copy
  * A task — the files or directories that form a task's <<more_about_tasks#sec:task_inputs_outputs,defined outputs>> are included
 
-In fact, `from()` accepts all the same arguments as `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)]`, api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[], so see those methods for a more detailed list of acceptable types.
+In fact, `from()` accepts all the same arguments as link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object...)[Project.files(java.lang.Object...)], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[], so see those methods for a more detailed list of acceptable types.
 
 Something else to consider is what type of thing a file path refers to:
 
@@ -606,7 +606,7 @@ Note that the lazy configuration of `into()` is different from a <<#sub:using_ch
 
 You've already seen that you can filter file collections and file trees directly in a `Copy` task, but you can also apply filtering in any copy specification through the api:org.gradle.api.file.CopySpec#include(java.lang.String...)[] and api:org.gradle.api.file.CopySpec#exclude(java.lang.String...)[] methods.
 
-Both of these methods are normally used with Ant-style include or exclude patterns, as described in `link:{javadoc-path}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]`. You can also perform more complex logic by using a closure that takes a `link:{javadoc-path}/org/gradle/api/file/FileTreeElement.html[FileTreeElement]` and returns `true` if the file should be included or `false` otherwise. The following example demonstrates both forms, ensuring that only .html and .jsp files are copied, except for those .html files with the word "DRAFT" in their content:
+Both of these methods are normally used with Ant-style include or exclude patterns, as described in link:{javadoc-path}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. You can also perform more complex logic by using a closure that takes a link:{javadoc-path}/org/gradle/api/file/FileTreeElement.html[FileTreeElement] and returns `true` if the file should be included or `false` otherwise. The following example demonstrates both forms, ensuring that only .html and .jsp files are copied, except for those .html files with the word "DRAFT" in their content:
 
 === Example: Selecting the files to copy
 
@@ -677,7 +677,7 @@ include::{samples-path}/userguide/files/copy/build.gradle[tag=filter-files]
 The `filter()` method has two variants, which behave differently:
 
  * one takes a `{javaApi}/java/io/FilterReader.html[FilterReader]` and is designed to work with Ant filters, such as `ReplaceTokens`
- * one takes a closure or `link:{javadoc-path}/org/gradle/api/Transformer.html[Transformer]` that defines the transformation for each line of the source file
+ * one takes a closure or link:{javadoc-path}/org/gradle/api/Transformer.html[Transformer] that defines the transformation for each line of the source file
 
 Note that both variants assume the source files are text based. When you use the `ReplaceTokens` class with `filter()`, the result is a template engine that replaces tokens of the form `@tokenName@` (the Ant-style token) with values that you define.
 
@@ -700,7 +700,7 @@ The first of these attributes allows you to _share copy specs within a build_. T
 
 Consider a build that has several tasks that copy a project's static website resources or add them to an archive. One task might copy the resources to a folder for a local HTTP server and another might package them into a distribution. You could manually specify the file locations and appropriate inclusions each time they are needed, but human error is more likely to creep in, resulting in inconsistencies between tasks.
 
-One solution Gradle provides is the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)]` method. This allows you to create a copy spec outside of a task, which can then be attached to an appropriate task using the api:org.gradle.api.file.CopySpec#with(org.gradle.api.file.CopySpec...)[] method. The following example demonstrates how this is done:
+One solution Gradle provides is the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)] method. This allows you to create a copy spec outside of a task, which can then be attached to an appropriate task using the api:org.gradle.api.file.CopySpec#with(org.gradle.api.file.CopySpec...)[] method. The following example demonstrates how this is done:
 
 === Example: Sharing copy specifications
 
@@ -765,7 +765,7 @@ One final thing to be aware of is that a child copy spec inherits its destinatio
 
 There might be occasions when you want to copy files or directories as _part_ of a task. For example, a custom archiving task based on an unsupported archive format might want to copy files to a temporary directory before they are then archived. You still want to take advantage of Gradle's copy API, but without introducing an extra `Copy` task.
 
-The solution is to use the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)]` method. It works the same way as the `Copy` task by configuring it with a copy spec. Here's a trivial example:
+The solution is to use the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method. It works the same way as the `Copy` task by configuring it with a copy spec. Here's a trivial example:
 
 === Example: Copying files using the copy() method without up-to-date check
 
@@ -796,7 +796,7 @@ These limitations make it preferable to use the `Copy` task wherever possible, b
 [[sec:sync_task]]
 === Mirroring directories and file collections with the `Sync` task
 
-The `link:{groovy-dsl-path}/org.gradle.api.tasks.Sync.html[Sync]` task, which extends the `Copy` task, copies the source files into the destination directory and then removes any files from the destination directory which it did not copy. In other words, it synchronizes the contents of a directory with its source. This can be useful for doing things such as installing your application, creating an exploded copy of your archives, or maintaining a copy of the project's dependencies.
+The link:{groovy-dsl-path}/org.gradle.api.tasks.Sync.html[Sync] task, which extends the `Copy` task, copies the source files into the destination directory and then removes any files from the destination directory which it did not copy. In other words, it synchronizes the contents of a directory with its source. This can be useful for doing things such as installing your application, creating an exploded copy of your archives, or maintaining a copy of the project's dependencies.
 
 Here is an example which maintains a copy of the project's runtime dependencies in the `build/libs` directory.
 
@@ -808,14 +808,14 @@ Here is an example which maintains a copy of the project's runtime dependencies 
 include::{samples-path}/userguide/files/sync/build.gradle[tag=copy-dependencies]
 ----
 
-You can also perform the same function in your own tasks with the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)]` method.
+You can also perform the same function in your own tasks with the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)] method.
 
 [[sec:archives]]
 == Archive creation in depth
 
 Archives are essentially self-contained file systems and Gradle treats them as such. This is why working with archives is very similar to working with files and directories, including such things as file permissions.
 
-Out of the box, Gradle supports creation of both ZIP and TAR archives, and by extension Java's JAR, WAR and EAR formats — Java's archive formats are all ZIPs. Each of these formats has a corresponding task type to create them: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War]`, and `link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]`. These all work the same way and are based on copy specifications, just like the `Copy` task.
+Out of the box, Gradle supports creation of both ZIP and TAR archives, and by extension Java's JAR, WAR and EAR formats — Java's archive formats are all ZIPs. Each of these formats has a corresponding task type to create them: link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War], and link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]. These all work the same way and are based on copy specifications, just like the `Copy` task.
 
 Creating an archive file is essentially a file copy in which the destination is implicit, i.e. the archive file itself. Here's a basic example that specifies the path and name of the target archive file:
 
@@ -892,7 +892,7 @@ include::{samples-path}/userguide/files/archivesChangedBaseName/build.gradle[]
 include::{samples-path}/userguide/files/archivesChangedBaseName/zipWithArchivesBaseName.out[]
 ----
 
-You can find all the possible archive task properties in the API documentation for `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]`, but we have also summarized the main ones here:
+You can find all the possible archive task properties in the API documentation for link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask], but we have also summarized the main ones here:
 
 `archiveName` — `String`, default: `__baseName__-__appendix__-__version__-__classifier__.__extension__`::
 The complete file name of the generated archive. If any of the properties in the default value are empty, their '-' separator is dropped.
@@ -921,14 +921,14 @@ The filename extension for the archive. By default, this is set based on the arc
 [[sec:sharing_content_between_multiple_archives]]
 === Sharing content between multiple archives
 
-<<#sub:sharing_copy_specs,As described earlier>>, you can use the `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)]` method to share content between archives.
+<<#sub:sharing_copy_specs,As described earlier>>, you can use the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)] method to share content between archives.
 
 [[sec:reproducible_archives]]
 === Reproducible archives
 
 Sometimes it's desirable to recreate archives exactly the same, byte for byte, on different machines. You want to be sure that building an artifact from source code produces the same result no matter when and where it is built. This is necessary for projects like https://reproducible-builds.org/[reproducible-builds.org].
 
-Reproducing the same byte-for-byte archive poses some challenges since the order of the files in an archive is influenced by the underlying file system. Each time a ZIP, TAR, JAR, WAR or EAR is built from source, the order of the files inside the archive may change. Files that only have a different timestamp also causes differences in archives from build to build. All `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]` (e.g. Jar, Zip) tasks shipped with Gradle include <<feature_lifecycle#,incubating>> support producing reproducible archives.
+Reproducing the same byte-for-byte archive poses some challenges since the order of the files in an archive is influenced by the underlying file system. Each time a ZIP, TAR, JAR, WAR or EAR is built from source, the order of the files inside the archive may change. Files that only have a different timestamp also causes differences in archives from build to build. All link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask] (e.g. Jar, Zip) tasks shipped with Gradle include <<feature_lifecycle#,incubating>> support producing reproducible archives.
 
 For example, to make a `Zip` task reproducible you need to set api:org.gradle.api.tasks.bundling.Zip#isReproducibleFileOrder()[] to `true` and api:org.gradle.api.tasks.bundling.Zip#isPreserveFileTimestamps()[] to `false`. In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
 

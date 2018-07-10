@@ -134,7 +134,7 @@ Gradle can model dependencies between modules. Those dependencies are called _pr
 .Dependencies between projects
 image::dependency-management-project-dependencies.png[]
 
-The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method `link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[Project.project(java.lang.String)]` creates a reference to a specific subproject by path.
+The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[Project.project(java.lang.String)] creates a reference to a specific subproject by path.
 
 === Example: Declaring project dependencies
 

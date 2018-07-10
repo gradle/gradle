@@ -79,7 +79,7 @@ Future versions will provide support for comparing outcomes such as test executi
 [[sec:comparing_gradle_builds]]
 == Comparing Gradle Builds
 
-The `compare-gradle-builds` plugin can be used to facilitate a comparison between two Gradle builds. The plugin adds a `link:{groovy-dsl-path}/org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds.html[CompareGradleBuilds]` task named “`compareGradleBuilds`” to the project. The configuration of this task specifies what is to be compared. By default, it is configured to compare the current build with itself using the current Gradle version by executing the tasks: “`clean assemble`”.
+The `compare-gradle-builds` plugin can be used to facilitate a comparison between two Gradle builds. The plugin adds a link:{groovy-dsl-path}/org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds.html[CompareGradleBuilds] task named “`compareGradleBuilds`” to the project. The configuration of this task specifies what is to be compared. By default, it is configured to compare the current build with itself using the current Gradle version by executing the tasks: “`clean assemble`”.
 
 [source,groovy]
 ----
@@ -146,4 +146,4 @@ compareGradleBuilds {
 
 For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management#,"Artifact Management">> for more information on how to configure and add artifacts.
 
-The archive must also have been produced by a `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`, `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War]`, `link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear]` task. Future versions of Gradle will support increased flexibility in this area.
+The archive must also have been produced by a link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War], link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear] task. Future versions of Gradle will support increased flexibility in this area.

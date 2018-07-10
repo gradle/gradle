@@ -86,7 +86,7 @@ include::{samples-path}/userguide/organizingGradleProjects/separatedTestTypes/gr
 ----
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
-For the purpose of test execution, a corresponding task of type `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]` needs to be established.
+For the purpose of test execution, a corresponding task of type link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test] needs to be established.
 
 === Example: Integration test task
 

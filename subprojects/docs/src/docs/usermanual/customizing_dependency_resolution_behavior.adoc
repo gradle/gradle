@@ -23,7 +23,7 @@ There are a number of ways that you can influence how Gradle resolves dependenci
 
 A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved. The feature currently offers the ability to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely different module during resolution.
 
-Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management. Some of these patterns are outlined below. For more information and code samples see the `link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]` class in the API documentation.
+Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management. Some of these patterns are outlined below. For more information and code samples see the link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] class in the API documentation.
 
 [[sec:releasable_unit]]
 === Modelling releasable units
@@ -202,7 +202,7 @@ include::{samples-path}/userguide/dependencyManagement/customizingResolution/met
 ----
 
 Gradle can also provide to component metadata rules the Ivy-specific metadata for modules resolved from an Ivy repository.
-Values from the Ivy descriptor are made available via the `link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor]` interface.
+Values from the Ivy descriptor are made available via the link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor] interface.
 
 === Example: Ivy component metadata rule
 
@@ -212,11 +212,11 @@ Values from the Ivy descriptor are made available via the `link:{javadoc-path}/o
 include::{samples-path}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=ivy-component-metadata-rule]
 ----
 
-Note that while any rule can request the `link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor]`, only components sourced from an Ivy repository will have a non-null value for it.
+Note that while any rule can request the link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor], only components sourced from an Ivy repository will have a non-null value for it.
 
-As can be seen in the examples above, component metadata rules are defined by implementing `link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadataRule.html[ComponentMetadataRule]` which has a single `execute` method receiving an instance of `link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext]` as parameter.
+As can be seen in the examples above, component metadata rules are defined by implementing link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadataRule.html[ComponentMetadataRule] which has a single `execute` method receiving an instance of link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext] as parameter.
 
-The next example shows how you can configure the `ComponentMetadataRule` through an `link:{javadoc-path}/org/gradle/api/ActionConfiguration.html[ActionConfiguration]`.
+The next example shows how you can configure the `ComponentMetadataRule` through an link:{javadoc-path}/org/gradle/api/ActionConfiguration.html[ActionConfiguration].
 
 === Example: Configuration of ComponentMetadataRule
 
@@ -232,7 +232,7 @@ Gradle enforces isolation of instances of `ComponentMetadataRule`.
 This means that all passed in parameters must be `Serializable` or known Gradle types that can be isolated.
 
 In addition, Gradle services can be injected into your `ComponentMetadataRule`.
-This is for the moment limited to the `link:{javadoc-path}/org/gradle/api/artifacts/repositories/RepositoryResourceAccessor.html[RepositoryResourceAccessor]`.
+This is for the moment limited to the link:{javadoc-path}/org/gradle/api/artifacts/repositories/RepositoryResourceAccessor.html[RepositoryResourceAccessor].
 Because of this, the moment you have a constructor, it must be annotated with `@javax.inject.Inject`.
 
 [[sec:component_selection_rules]]
@@ -243,7 +243,7 @@ Component selection rules may influence which component instance should be selec
 * For a dynamic version like `1.+` certain versions may be explicitly rejected from selection.
 * For a static version like `1.4` an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.
 
-Rules are configured via the `link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelectionRules.html[ComponentSelectionRules]` object. Each rule configured will be called with a `link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection]` object as an argument which contains information about the candidate version being considered. Calling link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[ComponentSelection.reject(java.lang.String)] causes the given candidate version to be explicitly rejected, in which case the candidate will not be considered for the selector.
+Rules are configured via the link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelectionRules.html[ComponentSelectionRules] object. Each rule configured will be called with a link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] object as an argument which contains information about the candidate version being considered. Calling link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[ComponentSelection.reject(java.lang.String)] causes the given candidate version to be explicitly rejected, in which case the candidate will not be considered for the selector.
 
 The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate.
 
@@ -267,7 +267,7 @@ Similarly, rules can be targeted at specific modules. Modules must be specified 
 include::{samples-path}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=targeted-component-selection]
 ----
 
-Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are `link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata]` and `link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor]`.
+Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
 
 === Example: Component selection rule with metadata
 
@@ -277,15 +277,15 @@ Component selection rules can also consider component metadata when selecting a 
 include::{samples-path}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=component-selection-with-metadata]
 ----
 
-Note that a `link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection]` argument is _always_ required as the first parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any order.
+Note that a link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as the first parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any order.
 
 Lastly, component selection rules can also be defined using a _rule source_ object. A rule source object is any object that contains exactly one method that defines the rule action and is annotated with `@Mutate`.
 
 This method:
 
 * must return void.
-* must have `link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection]` as the first argument.
-* may have additional parameters of type `link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata]` and/or `link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor]`.
+* must have link:{groovy-dsl-path}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] as the first argument.
+* may have additional parameters of type link:{javadoc-path}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and/or link:{javadoc-path}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
 
 === Example: Component selection rule using a rule source object
 
@@ -318,7 +318,7 @@ Traditional approaches work but they are not general enough. For example, an org
 include::{samples-path}/userguide/dependencyManagement/customizingResolution/replacementRule/build.gradle[tag=module_replacement_declaration]
 ----
 
-For more examples and detailed API, refer to the DSL reference for `link:{javadoc-path}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler]`.
+For more examples and detailed API, refer to the DSL reference for link:{javadoc-path}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
 
 What happens when we declare that `google-collections` is replaced by `guava`? Gradle can use this information for conflict resolution. Gradle will consider every version of `guava` newer/better than any version of `google-collections`. Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Note that if only `google-collections` appears in the dependency graph (e.g. no `guava`) Gradle will not eagerly replace it with `guava`. Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only `google-collections` or only `guava` in the graph) the replacement information is not used.
 

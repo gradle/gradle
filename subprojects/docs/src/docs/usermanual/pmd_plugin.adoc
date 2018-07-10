@@ -39,15 +39,15 @@ Note that PMD will run with the same Java version used to run Gradle.
 
 The PMD plugin adds the following tasks to the project:
 
-`pmdMain` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]`::
+`pmdMain` — type: link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]::
 +
 Runs PMD against the production Java source files.
 
-`pmdTest` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]`::
+`pmdTest` — type: link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]::
 +
 Runs PMD against the test Java source files.
 
-`pmd__SourceSet__` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]`::
+`pmd__SourceSet__` — type: link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]::
 +
 Runs PMD against the given source set's Java source files.
 
@@ -80,4 +80,4 @@ The PMD plugin adds the following dependency configurations:
 [[sec:pmd_configuration]]
 == Configuration
 
-See the `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.PmdExtension.html[PmdExtension]` class in the API documentation.
+See the link:{groovy-dsl-path}/org.gradle.api.plugins.quality.PmdExtension.html[PmdExtension] class in the API documentation.

@@ -52,9 +52,9 @@ A custom software model type has a public type, a base interface and internal vi
 
 Extended types declare a _public type_ that extends a _base interface_:
 
-* Components extend the `link:{javadoc-path}/org/gradle/platform/base/ComponentSpec.html[ComponentSpec]` base interface
-* Binaries extend the `link:{javadoc-path}/org/gradle/platform/base/BinarySpec.html[BinarySpec]` base interface
-* Source sets extend the `link:{javadoc-path}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet]` base interface
+* Components extend the link:{javadoc-path}/org/gradle/platform/base/ComponentSpec.html[ComponentSpec] base interface
+* Binaries extend the link:{javadoc-path}/org/gradle/platform/base/BinarySpec.html[BinarySpec] base interface
+* Source sets extend the link:{javadoc-path}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet] base interface
 
 The _public type_ is exposed to build logic.
 
@@ -71,14 +71,14 @@ Components are composed of other components. A source set is just a special kind
 [[sec:components]]
 == Components
 
-To declare a custom component type one must extend `link:{javadoc-path}/org/gradle/platform/base/ComponentSpec.html[ComponentSpec]`, or one of the following, depending on the use case:
+To declare a custom component type one must extend link:{javadoc-path}/org/gradle/platform/base/ComponentSpec.html[ComponentSpec], or one of the following, depending on the use case:
 
-* `link:{javadoc-path}/org/gradle/platform/base/SourceComponentSpec.html[SourceComponentSpec]` represents a component which has sources
-* `link:{javadoc-path}/org/gradle/platform/base/VariantComponentSpec.html[VariantComponentSpec]` represents a component which generates different binaries based on context (target platforms, build flavors, ...). Such a component generally produces multiple binaries.
-* `link:{javadoc-path}/org/gradle/platform/base/GeneralComponentSpec.html[GeneralComponentSpec]` is a convenient base interface for components that are built from sources and variant-aware. This is the typical case for a lot of software components, and therefore it should be in most of the cases the base type to be extended.
+* link:{javadoc-path}/org/gradle/platform/base/SourceComponentSpec.html[SourceComponentSpec] represents a component which has sources
+* link:{javadoc-path}/org/gradle/platform/base/VariantComponentSpec.html[VariantComponentSpec] represents a component which generates different binaries based on context (target platforms, build flavors, ...). Such a component generally produces multiple binaries.
+* link:{javadoc-path}/org/gradle/platform/base/GeneralComponentSpec.html[GeneralComponentSpec] is a convenient base interface for components that are built from sources and variant-aware. This is the typical case for a lot of software components, and therefore it should be in most of the cases the base type to be extended.
 
 
-The core software model includes more types that can be used as base for extension. For example: `link:{javadoc-path}/org/gradle/platform/base/LibrarySpec.html[LibrarySpec]` and `link:{javadoc-path}/org/gradle/platform/base/ApplicationSpec.html[ApplicationSpec]` can also be extended in this manner. Theses are no-op extensions of `GeneralComponentSpec` used to describe a software model better by distinguishing libraries and applications components. `link:{javadoc-path}/org/gradle/testing/base/TestSuiteSpec.html[TestSuiteSpec]` should be used for all components that describe a test suite.
+The core software model includes more types that can be used as base for extension. For example: link:{javadoc-path}/org/gradle/platform/base/LibrarySpec.html[LibrarySpec] and link:{javadoc-path}/org/gradle/platform/base/ApplicationSpec.html[ApplicationSpec] can also be extended in this manner. Theses are no-op extensions of `GeneralComponentSpec` used to describe a software model better by distinguishing libraries and applications components. link:{javadoc-path}/org/gradle/testing/base/TestSuiteSpec.html[TestSuiteSpec] should be used for all components that describe a test suite.
 
 === Example: Declare a custom component
 
@@ -88,7 +88,7 @@ The core software model includes more types that can be used as base for extensi
 include::{samples-path}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationComponent.groovy[tag=component-declaration]
 ----
 
-Types extending `ComponentSpec` are registered via a rule annotated with `link:{javadoc-path}/org/gradle/platform/base/ComponentType.html[ComponentType]`:
+Types extending `ComponentSpec` are registered via a rule annotated with link:{javadoc-path}/org/gradle/platform/base/ComponentType.html[ComponentType]:
 
 === Example: Register a custom component
 
@@ -102,7 +102,7 @@ include::{samples-path}/customModel/languageType/buildSrc/src/main/groovy/sample
 [[sec:binaries]]
 == Binaries
 
-To declare a custom binary type one must extend `link:{javadoc-path}/org/gradle/platform/base/BinarySpec.html[BinarySpec]`.
+To declare a custom binary type one must extend link:{javadoc-path}/org/gradle/platform/base/BinarySpec.html[BinarySpec].
 
 === Example: Declare a custom binary
 
@@ -112,7 +112,7 @@ To declare a custom binary type one must extend `link:{javadoc-path}/org/gradle/
 include::{samples-path}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationBinary.groovy[tag=binary-declaration]
 ----
 
-Types extending `BinarySpec` are registered via a rule annotated with `link:{javadoc-path}/org/gradle/platform/base/ComponentType.html[ComponentType]`:
+Types extending `BinarySpec` are registered via a rule annotated with link:{javadoc-path}/org/gradle/platform/base/ComponentType.html[ComponentType]:
 
 === Example: Register a custom binary
 
@@ -126,7 +126,7 @@ include::{samples-path}/customModel/languageType/buildSrc/src/main/groovy/sample
 [[sec:source_sets]]
 == Source sets
 
-To declare a custom source set type one must extend `link:{javadoc-path}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet]`.
+To declare a custom source set type one must extend link:{javadoc-path}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet].
 
 === Example: Declare a custom source set
 
@@ -136,7 +136,7 @@ To declare a custom source set type one must extend `link:{javadoc-path}/org/gra
 include::{samples-path}/customModel/languageType/buildSrc/src/main/groovy/sample/markdown/MarkdownSourceSet.groovy[tag=markdown-lang-declaration]
 ----
 
-Types extending `LanguageSourceSet` are registered via a rule annotated with `link:{javadoc-path}/org/gradle/platform/base/ComponentType.html[ComponentType]`:
+Types extending `LanguageSourceSet` are registered via a rule annotated with link:{javadoc-path}/org/gradle/platform/base/ComponentType.html[ComponentType]:
 
 === Example: Register a custom source set
 
@@ -155,7 +155,7 @@ Setting the _language name_ is mandatory.
 [[sec:generating_binaries_from_components]]
 === Generating binaries from components
 
-Binaries generation from components is done via rules annotated with `link:{javadoc-path}/org/gradle/platform/base/ComponentBinaries.html[ComponentBinaries]`. This rule generates a `DocumentationBinary` named `exploded` for each `DocumentationComponent` and sets its `outputDir` property:
+Binaries generation from components is done via rules annotated with link:{javadoc-path}/org/gradle/platform/base/ComponentBinaries.html[ComponentBinaries]. This rule generates a `DocumentationBinary` named `exploded` for each `DocumentationComponent` and sets its `outputDir` property:
 
 === Example: Generates documentation binaries
 
@@ -169,7 +169,7 @@ include::{samples-path}/customModel/languageType/buildSrc/src/main/groovy/sample
 [[sec:generating_tasks_from_binaries]]
 === Generating tasks from binaries
 
-Tasks generation from binaries is done via rules annotated with `link:{javadoc-path}/org/gradle/platform/base/BinaryTasks.html[BinaryTasks]`. This rule generates a `Copy` task for each `TextSourceSet` of each `DocumentationBinary`:
+Tasks generation from binaries is done via rules annotated with link:{javadoc-path}/org/gradle/platform/base/BinaryTasks.html[BinaryTasks]. This rule generates a `Copy` task for each `TextSourceSet` of each `DocumentationBinary`:
 
 === Example: Generates tasks for text source sets
 

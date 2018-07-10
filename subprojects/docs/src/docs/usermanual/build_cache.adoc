@@ -115,12 +115,12 @@ The following inputs contribute to the build cache key for a task in the same wa
 * The task type and its classpath
 * The names of the output properties
 * The names and values of properties annotated as described in <<more_about_tasks#sec:task_input_output_annotations,the section called "Custom task types">>
-* The names and values of properties added by the DSL via `link:{javadoc-path}/org/gradle/api/tasks/TaskInputs.html[TaskInputs]`
+* The names and values of properties added by the DSL via link:{javadoc-path}/org/gradle/api/tasks/TaskInputs.html[TaskInputs]
 * The classpath of the Gradle distribution, buildSrc and plugins
 * The content of the build script when it affects execution of the task
 
-Task types need to opt-in to task output caching using the `link:{javadoc-path}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask]` annotation.
-Note that `link:{javadoc-path}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask]` is not inherited by subclasses.
+Task types need to opt-in to task output caching using the link:{javadoc-path}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask] annotation.
+Note that link:{javadoc-path}/org/gradle/api/tasks/CacheableTask.html[@CacheableTask] is not inherited by subclasses.
 Custom task types are _not_ cacheable by default.
 
 [[sec:task_output_caching_cacheable_tasks]]
@@ -129,38 +129,38 @@ Custom task types are _not_ cacheable by default.
 Currently, the following built-in Gradle tasks are cacheable:
 
 * Java toolchain:
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`,
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]`
+    link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile],
+    link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]
 * Groovy toolchain:
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`,
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]`
+    link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile],
+    link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]
 * Scala toolchain:
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`,
-    `link:{javadoc-path}/org/gradle/language/scala/tasks/PlatformScalaCompile.html[PlatformScalaCompile]`,
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]`
+    link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile],
+    link:{javadoc-path}/org/gradle/language/scala/tasks/PlatformScalaCompile.html[PlatformScalaCompile],
+    link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]
 * Native toolchain:
-    `link:{javadoc-path}/org/gradle/language/cpp/tasks/CppCompile.html[CppCompile]`,
-    `link:{javadoc-path}/org/gradle/language/c/tasks/CCompile.html[CCompile]`,
-    `link:{javadoc-path}/org/gradle/language/swift/tasks/SwiftCompile.html[SwiftCompile]`
+    link:{javadoc-path}/org/gradle/language/cpp/tasks/CppCompile.html[CppCompile],
+    link:{javadoc-path}/org/gradle/language/c/tasks/CCompile.html[CCompile],
+    link:{javadoc-path}/org/gradle/language/swift/tasks/SwiftCompile.html[SwiftCompile]
 * Testing:
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`
+    link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]
 * Code quality tasks:
-    `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]`,
-    `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`,
-    `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]`,
-    `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`,
-    `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]`
+    link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle],
+    link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc],
+    link:{groovy-dsl-path}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs],
+    link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend],
+    link:{groovy-dsl-path}/org.gradle.api.plugins.quality.Pmd.html[Pmd]
 * JaCoCo:
-    `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoMerge.html[JacocoMerge]`,
-    `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]`
+    link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoMerge.html[JacocoMerge],
+    link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]
 * Other tasks:
-    `link:{groovy-dsl-path}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]`,
-    `link:{javadoc-path}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[ValidateTaskProperties]`,
-    `link:{groovy-dsl-path}/org.gradle.api.tasks.WriteProperties.html[WriteProperties]`
+    link:{groovy-dsl-path}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask],
+    link:{javadoc-path}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[ValidateTaskProperties],
+    link:{groovy-dsl-path}/org.gradle.api.tasks.WriteProperties.html[WriteProperties]
 
 All other built-in tasks are currently not cacheable.
 
-Some tasks, like `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]` or `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]`, usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
+Some tasks, like link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] or link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
 It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
 
 [[sec:task_output_caching_cacheable_3rd_party]]
@@ -187,34 +187,34 @@ This means that tasks with different task paths can re-use each other's outputs 
 ====
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
-We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see `link:{javadoc-path}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]`).
+We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadoc-path}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]).
 
 In order to handle volatile inputs for your tasks consider <<more_about_tasks#sec:configure_input_normalization,configuring input normalization>>.
 
 [[sec:build_cache_configure]]
 == Configure the Build Cache
 
-You can configure the build cache by using the `link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:buildCache(org.gradle.api.Action)[Settings.buildCache(org.gradle.api.Action)]` block in `settings.gradle`.
+You can configure the build cache by using the link:{groovy-dsl-path}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:buildCache(org.gradle.api.Action)[Settings.buildCache(org.gradle.api.Action)] block in `settings.gradle`.
 
 Gradle supports a `local` and a `remote` build cache that can be configured separately.
 When both build caches are enabled, Gradle tries to load build outputs from the local build cache first, and then tries the remote build cache if no build outputs are found.
 If outputs are found in the remote cache, they are also stored in the local cache, so next time they will be found locally.
-Gradle stores ("pushes") build outputs in any build cache that is enabled and has `link:{javadoc-path}//org/gradle/caching/configuration/BuildCache.html#isPush--[BuildCache.isPush()]` set to `true`.
+Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadoc-path}//org/gradle/caching/configuration/BuildCache.html#isPush--[BuildCache.isPush()] set to `true`.
 
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
-The local build cache is pre-configured to be a `link:{groovy-dsl-path}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache]` and enabled by default.
-The remote build cache can be configured by specifying the type of build cache to connect to (`link:{groovy-dsl-path}/org.gradle.caching.configuration.BuildCacheConfiguration.html#org.gradle.caching.configuration.BuildCacheConfiguration:remote(java.lang.Class)[BuildCacheConfiguration.remote(java.lang.Class)]`).
+The local build cache is pre-configured to be a link:{groovy-dsl-path}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache] and enabled by default.
+The remote build cache can be configured by specifying the type of build cache to connect to (link:{groovy-dsl-path}/org.gradle.caching.configuration.BuildCacheConfiguration.html#org.gradle.caching.configuration.BuildCacheConfiguration:remote(java.lang.Class)[BuildCacheConfiguration.remote(java.lang.Class)]).
 
 [[sec:build_cache_configure_local]]
 === Built-in local build cache
 
-The built-in local build cache, `link:{groovy-dsl-path}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache]`, uses a directory to store build cache artifacts.
+The built-in local build cache, link:{groovy-dsl-path}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle user home directory, but its location is configurable.
 
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 
-For more details on the configuration options refer to the DSL documentation of `link:{groovy-dsl-path}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache]`.
+For more details on the configuration options refer to the DSL documentation of link:{groovy-dsl-path}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
 Here is an example of the configuration.
 
 === Example: Configure the local cache
@@ -230,7 +230,7 @@ include::{samples-path}/buildCache/configure-built-in-caches/settings.gradle[tag
 === Remote HTTP build cache
 
 Gradle has built-in support for connecting to a remote build cache backend via HTTP.
-For more details on what the protocol looks like see `link:{groovy-dsl-path}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache]`.
+For more details on what the protocol looks like see link:{groovy-dsl-path}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache].
 Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
 === Example: Load from HttpBuildCache
@@ -241,7 +241,7 @@ Note that by using the following configuration the local build cache will be use
 include::{samples-path}/buildCache/http-build-cache/settings.gradle[tag=http-build-cache]
 ----
 
-You can configure the credentials the `link:{groovy-dsl-path}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache]` uses to access the build cache server as shown in the following example.
+You can configure the credentials the link:{groovy-dsl-path}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache] uses to access the build cache server as shown in the following example.
 
 === Example: Configure remote HTTP cache
 
@@ -255,7 +255,7 @@ include::{samples-path}/buildCache/configure-built-in-caches/settings.gradle[tag
 ====
 You may encounter problems with an untrusted SSL certificate when you try to use a build cache backend with an HTTPS URL.
 The ideal solution is for someone to add a valid SSL certificate to the build cache backend, but we recognize that you may not be able to do that.
-In that case, set `link:{groovy-dsl-path}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()]` to `true`:
+In that case, set link:{groovy-dsl-path}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()] to `true`:
 
 [source.multi-language-sample,groovy]
 .settings.gradle
@@ -334,6 +334,6 @@ The cache node can also be used without a Gradle Enterprise installation with re
 
 Using a different build cache backend to store build outputs (which is not covered by the built-in support for connecting to an HTTP backend) requires implementing
 your own logic for connecting to your custom build cache backend.
-To this end, custom build cache types can be registered via `link:{javadoc-path}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class,%20java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)]`.
+To this end, custom build cache types can be registered via link:{javadoc-path}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class,%20java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
 link:https://gradle.com/build-cache[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.

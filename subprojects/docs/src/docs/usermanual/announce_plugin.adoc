@@ -35,7 +35,7 @@ include::{samples-path}/announce/build.gradle[tag=use-plugin]
 [[sec:announce_configuration]]
 == Configuration
 
-NOTE: See also the `link:{groovy-dsl-path}/org.gradle.api.plugins.announce.AnnouncePluginExtension.html[AnnouncePluginExtension]` class in the API documentation.
+NOTE: See also the link:{groovy-dsl-path}/org.gradle.api.plugins.announce.AnnouncePluginExtension.html[AnnouncePluginExtension] class in the API documentation.
 
 Configure your notification service(s) of choice (see table below for which configuration properties are available):
 

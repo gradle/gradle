@@ -38,15 +38,15 @@ The plugin adds a number of tasks to the project that perform the quality checks
 
 The CodeNarc plugin adds the following tasks to the project:
 
-`codenarcMain` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`::
+`codenarcMain` — type: link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]::
 +
 Runs CodeNarc against the production Java source files.
 
-`codenarcTest` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`::
+`codenarcTest` — type: link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]::
 +
 Runs CodeNarc against the test Java source files.
 
-`codenarc__SourceSet__` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]`::
+`codenarc__SourceSet__` — type: link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]::
 +
 Runs CodeNarc against the given source set's Java source files.
 
@@ -92,4 +92,4 @@ The CodeNarc plugin adds the following dependency configurations:
 [[sec:codenarc_configuration]]
 == Configuration
 
-See the `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarcExtension.html[CodeNarcExtension]` class in the API documentation.
+See the link:{groovy-dsl-path}/org.gradle.api.plugins.quality.CodeNarcExtension.html[CodeNarcExtension] class in the API documentation.

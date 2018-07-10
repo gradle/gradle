@@ -139,13 +139,9 @@ The _compile_, _testCompile_, _runtime_ and _testRuntime_ configurations inherit
 The role of each configuration is described in the following tables:
 
 .Java Library plugin - configurations used to declare dependencies
-[cols="a,a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Configuration name
-| Role
-| Can be consumed
-| Can be resolved
-| Description
+| Configuration name | Role | Consumable? | Resolvable? | Description
 
 | api
 | Declaring API dependencies
@@ -191,13 +187,9 @@ The role of each configuration is described in the following tables:
 |===
 
 .Java Library plugin - configurations used by consumers
-[cols="a,a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Configuration name
-| Role
-| Can be consumed
-| Can be resolved
-| Description
+| Configuration name | Role | Consumable? | Resolvable? | Description
 
 | apiElements
 | For compiling against this library
@@ -213,13 +205,9 @@ The role of each configuration is described in the following tables:
 |===
 
 .Java Library plugin - configurations used by the library itself
-[cols="a,a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Configuration name
-| Role
-| Can be consumed
-| Can be resolved
-| Description
+| Configuration name | Role | Consumable? | Resolvable? | Description
 
 | compileClasspath
 | For compiling this library

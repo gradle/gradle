@@ -15,7 +15,7 @@
 [[plugins]]
 = Using Gradle Plugins
 
-Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]`), domain objects (e.g. `link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet]`), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
+Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g. link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
 
 In this chapter we discuss how to use plugins and the terminology and concepts surrounding plugins.
 
@@ -39,14 +39,14 @@ By applying plugins, rather than adding logic to the project build script, we ca
 [[sec:types_of_plugins]]
 == Types of plugins
 
-There are two general types of plugins in Gradle, _script_ plugins and _binary_ plugins. Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build. They are typically used within a build although they can be externalized and accessed from a remote location. Binary plugins are classes that implement the `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` interface and adopt a programmatic approach to manipulating the build. Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
+There are two general types of plugins in Gradle, _script_ plugins and _binary_ plugins. Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build. They are typically used within a build although they can be externalized and accessed from a remote location. Binary plugins are classes that implement the link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin] interface and adopt a programmatic approach to manipulating the build. Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
 
 A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it's migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
 
 [[sec:using_plugins]]
 == Using plugins
 
-To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the target, usually a `link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]`.
+To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the target, usually a link:{groovy-dsl-path}/org.gradle.api.Project.html[Project].
 
 _Resolving_ a plugin means finding the correct version of the jar which contains a given plugin and adding it the script classpath. Once a plugin is resolved, its API can be used in a build script. Script plugins are self-resolving in that they are resolved from the specific file path or URL provided when applying them. Core binary plugins provided as part of the Gradle distribution are automatically resolved.
 
@@ -71,13 +71,13 @@ Script plugins are automatically resolved and can be applied from a script on th
 [[sec:binary_plugins]]
 == Binary plugins
 
-You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins. Core Gradle plugins are special in that they provide short names, such as `'java'` for the core `link:{groovy-dsl-path}/org.gradle.api.plugins.JavaPlugin.html[JavaPlugin]`. All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`), although some legacy plugins may still utilize a short, unqualified form. Where you put the plugin id depends on whether you are using the <<#sec:plugins_block,plugins DSL>> or the <<#sec:old_plugin_application,buildscript block.>>
+You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins. Core Gradle plugins are special in that they provide short names, such as `'java'` for the core link:{groovy-dsl-path}/org.gradle.api.plugins.JavaPlugin.html[JavaPlugin]. All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`), although some legacy plugins may still utilize a short, unqualified form. Where you put the plugin id depends on whether you are using the <<#sec:plugins_block,plugins DSL>> or the <<#sec:old_plugin_application,buildscript block.>>
 
 
 [[sec:binary_plugin_locations]]
 === Locations of binary plugins
 
-A plugin is simply any class that implements the `link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin]` interface. Gradle provides the core plugins (e.g. `JavaPlugin`) as part of its distribution which means they are automatically resolved. However, non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
+A plugin is simply any class that implements the link:{javadoc-path}/org/gradle/api/Plugin.html[Plugin] interface. Gradle provides the core plugins (e.g. `JavaPlugin`) as part of its distribution which means they are automatically resolved. However, non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
 
 * Including the plugin from the plugin portal or a <<#sec:custom_plugin_repositories,custom repository>> using the plugins DSL (see <<plugins#sec:plugins_block,Applying plugins using the plugins DSL>>).
 * Including the plugin from an external jar defined as a buildscript dependency (see see <<plugins#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>).
@@ -97,7 +97,7 @@ The plugins DSL is currently <<feature_lifecycle#,incubating>>. Please be aware 
 
 ====
 
-The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of `link:{javadoc-path}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec]`.
+The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of link:{javadoc-path}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec].
 
 To apply a core plugin, the short name can be used:
 
@@ -119,7 +119,7 @@ To apply a community plugin from the portal, the fully qualified plugin id must 
 include::{samples-path}/plugins/dsl/build.gradle[tag=use-community-plugin]
 ----
 
-See `link:{javadoc-path}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec]` for more information on using the Plugin DSL.
+See link:{javadoc-path}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec] for more information on using the Plugin DSL.
 
 
 [[plugins_dsl_limitations]]
@@ -259,7 +259,7 @@ This tells Gradle to use the specified plugin implementation artifact instead of
 
 Custom Maven and Ivy plugin repositories must contain <<#sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin#,"Gradle Plugin Development Plugin">>.
 
-See `link:{javadoc-path}/org/gradle/plugin/management/PluginManagementSpec.html[PluginManagementSpec]` for complete documentation for using the `pluginManagement {}` block.
+See link:{javadoc-path}/org/gradle/plugin/management/PluginManagementSpec.html[PluginManagementSpec] for complete documentation for using the `pluginManagement {}` block.
 
 [[sec:plugin_markers]]
 ==== Plugin Marker Artifacts
@@ -298,7 +298,7 @@ With the introduction of the <<#sec:plugins_block,plugins DSL>>, users should ha
 include::{samples-path}/java/quickstart/build.gradle[tag=use-plugin]
 ----
 
-Plugins can be applied using a _plugin id_. In the above case, we are using the short name ‘`java`’ to apply the `link:{javadoc-path}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]`.
+Plugins can be applied using a _plugin id_. In the above case, we are using the short name ‘`java`’ to apply the link:{javadoc-path}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
 
 Rather than using a plugin id, plugins can also be applied by simply specifying the class of the plugin:
 
@@ -310,7 +310,7 @@ Rather than using a plugin id, plugins can also be applied by simply specifying 
 include::{samples-path}/userguide/tutorial/pluginIntro/build.gradle[tag=apply-by-type]
 ----
 
-The `JavaPlugin` symbol in the above sample refers to the `link:{javadoc-path}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]`. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts#script-default-imports,Default imports>>). Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
+The `JavaPlugin` symbol in the above sample refers to the link:{javadoc-path}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts#script-default-imports,Default imports>>). Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
 
 [[sec:applying_plugins_buildscript]]
 ==== Applying plugins with the buildscript block
