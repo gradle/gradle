@@ -59,7 +59,6 @@ public class ConnectorServices {
     public static void reset() {
         singletonRegistry.close();
         singletonRegistry = new ConnectorServiceRegistry();
-        DeprecationLogger.reset();
     }
 
     private static void checkJavaVersion() {

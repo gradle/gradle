@@ -105,6 +105,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 @Override
                 public void stop() {
                     rootBuild = null;
+                    DeprecationLogger.reset();
                 }
             }));
         rootBuild = launcher;
