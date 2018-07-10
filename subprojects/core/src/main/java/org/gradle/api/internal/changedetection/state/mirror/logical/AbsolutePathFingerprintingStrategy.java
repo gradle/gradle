@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
@@ -44,20 +43,20 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
-                public boolean preVisitDirectory(String absolutePath, String name) {
-                    if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new NonNormalizedFileSnapshot(absolutePath, DirContentSnapshot.INSTANCE));
+                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                    if (processedEntries.add(directorySnapshot.getAbsolutePath())) {
+                        builder.put(directorySnapshot.getAbsolutePath(), new NonNormalizedFileSnapshot(directorySnapshot.getAbsolutePath(), DirContentSnapshot.INSTANCE));
                     }
                     return true;
                 }
 
                 @Override
-                public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                    if (!includeMissing && content.getType() == FileType.Missing) {
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }
-                    if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new NonNormalizedFileSnapshot(absolutePath, content));
+                    if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
+                        builder.put(fileSnapshot.getAbsolutePath(), new NonNormalizedFileSnapshot(fileSnapshot.getAbsolutePath(), fileSnapshot.getContent()));
                     }
                 }
 

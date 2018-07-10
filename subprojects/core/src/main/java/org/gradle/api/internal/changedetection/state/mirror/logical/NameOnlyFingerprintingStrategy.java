@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -38,21 +37,21 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 private boolean root = true;
 
                 @Override
-                public boolean preVisitDirectory(String absolutePath, String name) {
-                    if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(name, DirContentSnapshot.INSTANCE);
-                        builder.put(absolutePath, snapshot);
+                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                    if (processedEntries.add(directorySnapshot.getAbsolutePath())) {
+                        NormalizedFileSnapshot snapshot = isRoot() ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(directorySnapshot.getName(), DirContentSnapshot.INSTANCE);
+                        builder.put(directorySnapshot.getAbsolutePath(), snapshot);
                     }
                     root = false;
                     return true;
                 }
 
                 @Override
-                public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                    if (processedEntries.add(absolutePath)) {
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
                         builder.put(
-                            absolutePath,
-                            new DefaultNormalizedFileSnapshot(name, content));
+                            fileSnapshot.getAbsolutePath(),
+                            new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot.getContent()));
                     }
                 }
 

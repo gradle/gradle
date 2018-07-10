@@ -44,7 +44,7 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
 
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        visitor.visit(getAbsolutePath(), getName(), content);
+        visitor.visit(this);
     }
 
     /**

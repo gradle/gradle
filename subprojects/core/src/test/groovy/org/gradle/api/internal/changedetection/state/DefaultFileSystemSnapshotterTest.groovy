@@ -170,19 +170,19 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
-                    relativePath.addLast(name)
+                    relativePath.addLast(directorySnapshot.name)
                     relativePaths.add(relativePath.join("/"))
                 }
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                relativePath.addLast(name)
+            void visit(PhysicalSnapshot fileSnapshot) {
+                relativePath.addLast(fileSnapshot.name)
                 relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
             }
@@ -223,14 +223,14 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         getTreeInfo(snapshot) == [null, 1]
         snapshot.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                assert absolutePath == d.getAbsolutePath()
-                assert name == d.name
+            void visit(PhysicalSnapshot fileSnapshot) {
+                assert fileSnapshot.absolutePath == d.getAbsolutePath()
+                assert fileSnapshot.name == d.name
             }
 
             @Override
@@ -326,16 +326,16 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 if (rootPath == null) {
-                    rootPath = absolutePath
+                    rootPath = directorySnapshot.absolutePath
                 }
                 count++
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
+            void visit(PhysicalSnapshot fileSnapshot) {
                 count++
             }
 

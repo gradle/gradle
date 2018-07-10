@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.MissingFileContentSnapshot;
 import org.gradle.internal.file.FileType;
 
@@ -34,7 +35,12 @@ public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
     }
 
     @Override
+    public FileContentSnapshot getContent() {
+        return MissingFileContentSnapshot.INSTANCE;
+    }
+
+    @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        visitor.visit(getAbsolutePath(), getName(), MissingFileContentSnapshot.INSTANCE);
+        visitor.visit(this);
     }
 }

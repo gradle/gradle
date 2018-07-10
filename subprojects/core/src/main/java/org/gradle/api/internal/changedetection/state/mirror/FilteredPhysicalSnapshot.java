@@ -48,10 +48,10 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             private final RelativePathTracker relativePath = new RelativePathTracker();
 
             @Override
-            public boolean preVisitDirectory(String absolutePath, String name) {
-                relativePath.enter(name);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(absolutePath, relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
-                    visitor.preVisitDirectory(absolutePath, name);
+            public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                relativePath.enter(directorySnapshot);
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot.getAbsolutePath(), relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
+                    visitor.preVisitDirectory(directorySnapshot);
                     return true;
                 }
                 relativePath.leave();
@@ -59,10 +59,10 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             }
 
             @Override
-            public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                relativePath.enter(name);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(absolutePath, relativePath.getRelativePath(), content, fileSystem))) {
-                    visitor.visit(absolutePath, name, content);
+            public void visit(PhysicalSnapshot fileSnapshot) {
+                relativePath.enter(fileSnapshot);
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot.getAbsolutePath(), relativePath.getRelativePath(), fileSnapshot.getContent(), fileSystem))) {
+                    visitor.visit(fileSnapshot);
                 }
                 relativePath.leave();
             }
@@ -88,6 +88,11 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
     @Override
     public String getAbsolutePath() {
         return delegate.getAbsolutePath();
+    }
+
+    @Override
+    public FileContentSnapshot getContent() {
+        return delegate.getContent();
     }
 
     /**

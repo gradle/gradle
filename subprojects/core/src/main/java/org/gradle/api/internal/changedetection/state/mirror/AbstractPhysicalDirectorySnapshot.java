@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.file.FileType;
 
 /**
@@ -35,8 +37,13 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
     protected abstract Iterable<? extends PhysicalSnapshot> getChildren();
 
     @Override
+    public FileContentSnapshot getContent() {
+        return DirContentSnapshot.INSTANCE;
+    }
+
+    @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        if (!visitor.preVisitDirectory(getAbsolutePath(), getName())) {
+        if (!visitor.preVisitDirectory(this)) {
             return;
         }
         for (PhysicalSnapshot child : getChildren()) {

@@ -24,6 +24,10 @@ public class RelativePathHolder {
     private final Deque<String> relativePathStrings = Lists.newLinkedList();
     private boolean root = true;
 
+    public void enter(PhysicalSnapshot snapshot) {
+        enter(snapshot.getName());
+    }
+
     public void enter(String name) {
         if (!root) {
             String previous = relativePathStrings.peekLast();

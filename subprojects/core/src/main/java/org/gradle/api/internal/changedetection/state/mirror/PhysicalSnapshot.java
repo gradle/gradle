@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.file.FileType;
 
 /**
@@ -47,6 +48,11 @@ public interface PhysicalSnapshot {
         }
 
         @Override
+        public FileContentSnapshot getContent() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void accept(PhysicalSnapshotVisitor visitor) {
         }
     };
@@ -65,6 +71,11 @@ public interface PhysicalSnapshot {
      * The absolute path of the file.
      */
     String getAbsolutePath();
+
+    /**
+     * The content hash of the snapshot.
+     */
+    FileContentSnapshot getContent();
 
     /**
      * Walks the whole hierarchy represented by this snapshot.

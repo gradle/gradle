@@ -20,7 +20,6 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -68,14 +67,14 @@ class FilteredPhysicalSnapshotTest extends AbstractProjectBuilderSpec {
         def result = [] as Set
         new FilteredPhysicalSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
-                result << new File(absolutePath)
+            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                result << new File(directorySnapshot.absolutePath)
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                result << new File(absolutePath)
+            void visit(PhysicalSnapshot fileSnapshot) {
+                result << new File(fileSnapshot.absolutePath)
             }
 
             @Override

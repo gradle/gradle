@@ -38,6 +38,7 @@ import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
@@ -321,27 +322,27 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         @Override
-        public boolean preVisitDirectory(String absolutePath, String name) {
+        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
             boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(name);
-            assertCorrectType(root, absolutePath, DirContentSnapshot.INSTANCE);
+            relativePathHolder.enter(directorySnapshot.getName());
+            assertCorrectType(root, directorySnapshot.getAbsolutePath(), DirContentSnapshot.INSTANCE);
             String targetPath = getTargetPath(root);
-            int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(absolutePath));
+            int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
             storeDirectoryEntry(targetPath, mode, tarOutput);
             entries++;
             return true;
         }
 
         @Override
-        public void visit(String absolutePath, String name, FileContentSnapshot content) {
+        public void visit(PhysicalSnapshot fileSnapshot) {
             boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(name);
+            relativePathHolder.enter(fileSnapshot.getName());
             String targetPath = getTargetPath(root);
-            if (content.getType() == FileType.Missing) {
+            if (fileSnapshot.getType() == FileType.Missing) {
                 storeMissingProperty(targetPath, tarOutput);
             } else {
-                assertCorrectType(root, absolutePath, content);
-                File file = new File(absolutePath);
+                assertCorrectType(root, fileSnapshot.getAbsolutePath(), fileSnapshot.getContent());
+                File file = new File(fileSnapshot.getAbsolutePath());
                 int mode = fileSystem.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
             }

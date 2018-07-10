@@ -45,22 +45,22 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 private final RelativePathHolder relativePathHolder = new RelativePathHolder();
 
                 @Override
-                public boolean preVisitDirectory(String absolutePath, String name) {
+                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                     boolean isRoot = relativePathHolder.isRoot();
-                    relativePathHolder.enter(name);
-                    if (processedEntries.add(absolutePath)) {
+                    relativePathHolder.enter(directorySnapshot);
+                    if (processedEntries.add(directorySnapshot.getAbsolutePath())) {
                         NormalizedFileSnapshot snapshot = isRoot ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), DirContentSnapshot.INSTANCE);
-                        builder.put(absolutePath, snapshot);
+                        builder.put(directorySnapshot.getAbsolutePath(), snapshot);
                     }
                     return true;
                 }
 
                 @Override
-                public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                    if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new DefaultNormalizedFileSnapshot(name, content) : createNormalizedFileSnapshot(name, content);
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
+                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot.getContent()) : createNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot.getContent());
                         builder.put(
-                            absolutePath,
+                            fileSnapshot.getAbsolutePath(),
                             normalizedFileSnapshot
                         );
                     }

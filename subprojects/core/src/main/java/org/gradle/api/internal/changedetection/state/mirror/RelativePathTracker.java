@@ -25,6 +25,10 @@ public class RelativePathTracker {
     private String rootName;
 
 
+    public void enter(PhysicalSnapshot snapshot) {
+        enter(snapshot.getName());
+    }
+
     public void enter(String name) {
         if (rootName == null) {
             rootName = name;
