@@ -181,13 +181,26 @@ Most users of Gradle are happy with the default runtime behavior of the Wrapper.
 
 Let’s assume you grew tired of defining the `-all` distribution type on the command line every time you upgrade the Wrapper. You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
 
-=== Example: Customizing the Wrapper task
-
-[source.multi-language-sample,groovy]
+.Example: Customizing the Wrapper task
+====
+[.multi-language-sample]
+=====
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/wrapper/customized-task/build.gradle[tag=customized-wrapper-task]
 ----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+include::{samplesPath}/userguide/wrapper/customized-task/build.gradle.kts[tag=customized-wrapper-task]
+----
+=====
+====
 
 With the configuration in place running `./gradlew wrapper --gradle-version 4.1` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.
 
