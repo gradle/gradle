@@ -137,3 +137,6 @@ inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getV
         it as? U
             ?: throw illegalElementType(this, property.name, U::class, it::class)
     }
+
+
+operator fun <T : Any> T.provideDelegate(receiver: Any?, property: KProperty<*>): T = this
