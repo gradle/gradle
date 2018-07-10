@@ -31,7 +31,8 @@ tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
-            "-Xskip-runtime-version-check"
+            "-Xskip-runtime-version-check",
+            "-Xskip-metadata-version-check"
         )
     }
 }
