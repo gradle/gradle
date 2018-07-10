@@ -21,11 +21,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
@@ -146,7 +146,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         @Override
         public void visit(PhysicalSnapshot fileSnapshot) {
             if (fileSnapshot.getContent().getType() == FileType.RegularFile) {
-                HashCode normalizedContent = fingerprintFile(fileSnapshot.getAbsolutePath(), fileSnapshot.getName(), fileSnapshot.getContent());
+                HashCode normalizedContent = fingerprintFile((PhysicalFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
@@ -154,14 +154,14 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Nullable
-        private HashCode fingerprintFile(String absolutePath, String name, FileContentSnapshot content) {
-            return relativePathTracker.isRoot() ? fingerprintRootFile(absolutePath, name, content) : fingerprintTreeFile(absolutePath, name, content);
+        private HashCode fingerprintFile(PhysicalFileSnapshot fileSnapshot) {
+            return relativePathTracker.isRoot() ? fingerprintRootFile(fileSnapshot) : fingerprintTreeFile(fileSnapshot);
         }
 
         @Nullable
-        private HashCode fingerprintTreeFile(String absolutePath, String name, FileContentSnapshot content) {
-            relativePathTracker.enter(name);
-            HashCode newHash = classpathResourceHasher.hash(absolutePath, relativePathTracker.getRelativePath(), content);
+        private HashCode fingerprintTreeFile(PhysicalFileSnapshot fileSnapshot) {
+            relativePathTracker.enter(fileSnapshot.getName());
+            HashCode newHash = classpathResourceHasher.hash(fileSnapshot, relativePathTracker.getRelativePath());
             relativePathTracker.leave();
             return newHash;
         }
@@ -174,16 +174,16 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Nullable
-    private HashCode fingerprintRootFile(String absolutePath, String name, FileContentSnapshot content) {
-        if (FileUtils.hasExtensionIgnoresCase(name, ".jar")) {
-            return snapshotJarContents(absolutePath, ImmutableList.of(name), content);
+    private HashCode fingerprintRootFile(PhysicalFileSnapshot fileSnapshot) {
+        if (FileUtils.hasExtensionIgnoresCase(fileSnapshot.getName(), ".jar")) {
+            return snapshotJarContents(fileSnapshot);
         }
-        return nonJarFingerprintingStrategy.determineNonJarFingerprint(content.getContentMd5());
+        return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getContent().getContentMd5());
     }
 
     @Nullable
-    private HashCode snapshotJarContents(String absolutePath, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
-        return cacheService.hashFile(absolutePath, relativePath, contentSnapshot, jarHasher, jarHasherConfigurationHash);
+    private HashCode snapshotJarContents(PhysicalFileSnapshot fileSnapshot) {
+        return cacheService.hashFile(fileSnapshot, ImmutableList.<String>of(), jarHasher, jarHasherConfigurationHash);
     }
 
     @Override

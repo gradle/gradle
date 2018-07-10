@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 /**
@@ -34,11 +35,11 @@ public class SplitResourceSnapshotterCacheService implements ResourceSnapshotter
     }
 
     @Override
-    public HashCode hashFile(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash) {
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            return globalCache.hashFile(absolutePath, relativePath, content, hasher, configurationHash);
+    public HashCode hashFile(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath, RegularFileHasher hasher, HashCode configurationHash) {
+        if (wellKnownFileLocations.isImmutable(fileSnapshot.getAbsolutePath())) {
+            return globalCache.hashFile(fileSnapshot, relativePath, hasher, configurationHash);
         } else {
-            return localCache.hashFile(absolutePath, relativePath, content, hasher, configurationHash);
+            return localCache.hashFile(fileSnapshot, relativePath, hasher, configurationHash);
         }
     }
 }

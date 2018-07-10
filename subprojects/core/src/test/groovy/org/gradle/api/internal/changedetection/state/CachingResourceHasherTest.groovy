@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
@@ -27,15 +28,15 @@ class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
     def relativePath = ["relative", "path"]
-    private FileHashSnapshot content = new FileHashSnapshot(HashCode.fromInt(456))
+    private PhysicalFileSnapshot snapshot = new PhysicalFileSnapshot(path, "path", new FileHashSnapshot(HashCode.fromInt(456)))
     def cachingHasher = new CachingResourceHasher(delegate, new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
 
     def "returns result from delegate"() {
         def expectedHash = HashCode.fromInt(123)
         when:
-        def actualHash = cachingHasher.hash(path, relativePath, content)
+        def actualHash = cachingHasher.hash(snapshot, relativePath)
         then:
-        1 * delegate.hash(path, relativePath, content) >> expectedHash
+        1 * delegate.hash(snapshot, relativePath) >> expectedHash
         actualHash == expectedHash
         0 * _
     }
@@ -43,14 +44,14 @@ class CachingResourceHasherTest extends Specification {
     def "caches the result"() {
         def expectedHash = HashCode.fromInt(123)
         when:
-        def actualHash = cachingHasher.hash(path, relativePath, content)
+        def actualHash = cachingHasher.hash(snapshot, relativePath)
         then:
-        1 * delegate.hash(path, relativePath, content) >> expectedHash
+        1 * delegate.hash(snapshot, relativePath) >> expectedHash
         actualHash == expectedHash
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(path, relativePath, content)
+        actualHash = cachingHasher.hash(snapshot, relativePath)
         then:
         actualHash == expectedHash
         0 * _
@@ -59,14 +60,14 @@ class CachingResourceHasherTest extends Specification {
     def "caches 'no signature' results too"() {
         def noSignature = null
         when:
-        def actualHash = cachingHasher.hash(path, relativePath, content)
+        def actualHash = cachingHasher.hash(snapshot, relativePath)
         then:
-        1 * delegate.hash(path, relativePath, content) >> noSignature
+        1 * delegate.hash(snapshot, relativePath) >> noSignature
         actualHash == noSignature
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(path, relativePath, content)
+        actualHash = cachingHasher.hash(snapshot, relativePath)
         then:
         actualHash == noSignature
         0 * _

@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -48,11 +49,11 @@ public class IgnoringResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath) {
         if (shouldBeIgnored(Iterables.toArray(relativePath, String.class))) {
             return null;
         }
-        return delegate.hash(absolutePath, relativePath, content);
+        return delegate.hash(fileSnapshot, relativePath);
     }
 
     @Override

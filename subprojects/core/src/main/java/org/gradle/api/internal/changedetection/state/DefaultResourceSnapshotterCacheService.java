@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -31,8 +32,8 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     @Override
-    public HashCode hashFile(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash) {
-        HashCode resourceHashCacheKey = resourceHashCacheKey(content, configurationHash);
+    public HashCode hashFile(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath, RegularFileHasher hasher, HashCode configurationHash) {
+        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshot.getContent().getContentMd5(), configurationHash);
 
         HashCode resourceHash = persistentCache.get(resourceHashCacheKey);
         if (resourceHash != null) {
@@ -42,7 +43,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
             return resourceHash;
         }
 
-        resourceHash = hasher.hash(absolutePath, relativePath, content);
+        resourceHash = hasher.hash(fileSnapshot, relativePath);
 
         if (resourceHash != null) {
             persistentCache.put(resourceHashCacheKey, resourceHash);
@@ -52,10 +53,10 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
         return resourceHash;
     }
 
-    private static HashCode resourceHashCacheKey(FileContentSnapshot content, HashCode configurationHash) {
+    private static HashCode resourceHashCacheKey(HashCode contentHash, HashCode configurationHash) {
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putHash(configurationHash);
-        hasher.putHash(content.getContentMd5());
+        hasher.putHash(contentHash);
         return hasher.hash();
     }
 }

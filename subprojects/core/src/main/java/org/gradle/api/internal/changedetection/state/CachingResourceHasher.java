@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -45,8 +46,8 @@ public class CachingResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
-        return resourceSnapshotterCacheService.hashFile(absolutePath, relativePath, content, delegate, delegateConfigurationHash);
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath) {
+        return resourceSnapshotterCacheService.hashFile(fileSnapshot, relativePath, delegate, delegateConfigurationHash);
     }
 
     @Override
