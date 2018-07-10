@@ -11,11 +11,6 @@ version = "1.0"
 
 apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
 
-dependencies {
-    kotlinCompilerPluginClasspath(gradleApi())
-    kotlinCompilerPluginClasspath(gradleKotlinDslJars())
-}
-
 publishing {
     repositories {
         maven(url = "build/repository")
