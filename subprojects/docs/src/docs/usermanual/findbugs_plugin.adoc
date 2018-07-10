@@ -58,12 +58,10 @@ Runs FindBugs against the given source set's Java source files.
 The FindBugs plugin adds the following dependencies to tasks defined by the Java plugin.
 
 .FindBugs plugin - additional task dependencies
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Task name
-| Depends on
-| `check`
-| All FindBugs tasks, including `findbugsMain` and `findbugsTest`.
+| Task name | Depends on
+| `check` | All FindBugs tasks, including `findbugsMain` and `findbugsTest`.
 |===
 
 
@@ -73,13 +71,10 @@ The FindBugs plugin adds the following dependencies to tasks defined by the Java
 The FindBugs plugin adds the following dependency configurations:
 
 .FindBugs plugin - dependency configurations
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Name
-| Meaning
-
-| `findbugs`
-| The FindBugs libraries to use
+| Name | Meaning
+| `findbugs` | The FindBugs libraries to use
 |===
 
 
