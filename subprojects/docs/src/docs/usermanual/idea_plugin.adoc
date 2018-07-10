@@ -156,19 +156,19 @@ The following are the domain objects used for each of the model types:
 [[idea-hooks]]
 `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]`::
 +
- * `beforeMerged { `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Project.html[Project]` arg \-> ... }`
- * `whenMerged { `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Project.html[Project]` arg \-> ... }`
- * `withXml { `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]` arg \-> ... }`
+ * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Project.html[Project] arg \-> ... }`
+ * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Project.html[Project] arg \-> ... }`
+ * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
 `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/IdeaModule.html[IdeaModule]`::
- * `beforeMerged { `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Module.html[Module]` arg \-> ... }`
- * `whenMerged { `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Module.html[Module]` arg \-> ... }`
- * `withXml { `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]` arg \-> ... }`
+ * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Module.html[Module] arg \-> ... }`
+ * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Module.html[Module] arg \-> ... }`
+ * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
 `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/IdeaWorkspace.html[IdeaWorkspace]`::
- * `beforeMerged { `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace]` arg \-> ... }`
- * `whenMerged { `link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace]` arg \-> ... }`
- * `withXml { `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]` arg \-> ... }`
+ * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace] arg \-> ... }`
+ * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace] arg \-> ... }`
+ * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
 
 [[sec:partial-rewrite]]

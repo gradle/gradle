@@ -92,8 +92,8 @@ Unzip the distribution zip file in the directory of your choosing, e.g.:
 [subs="attributes"]
 ----
 ❯ mkdir /opt/gradle
-❯ unzip -d /opt/gradle gradle-{gradleVersion}-bin.zip
-❯ ls /opt/gradle/gradle-{gradleVersion}
+❯ unzip -d /opt/gradle gradle-{gradle-version}-bin.zip
+❯ ls /opt/gradle/gradle-{gradle-version}
 LICENSE  NOTICE  bin  getting-started.html  init.d  lib  media
 ----
 
@@ -101,7 +101,7 @@ LICENSE  NOTICE  bin  getting-started.html  init.d  lib  media
 
 Create a new directory `C:\Gradle` with **File Explorer**.
 
-Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content. Drag the content folder `gradle-{gradleVersion}` to your newly created `C:\Gradle` folder.
+Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content. Drag the content folder `gradle-{gradle-version}` to your newly created `C:\Gradle` folder.
 
 Alternatively you can unpack the Gradle distribution ZIP into `C:\Gradle` using an archiver tool of your choice.
 
@@ -115,14 +115,14 @@ Configure your `PATH` environment variable to include the `bin` directory of the
 
 [subs="attributes"]
 ----
-❯ export PATH=$PATH:/opt/gradle/gradle-{gradleVersion}/bin
+❯ export PATH=$PATH:/opt/gradle/gradle-{gradle-version}/bin
 ----
 
 ==== Microsoft Windows users
 
 In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then click `Properties` -> `Advanced System Settings` -> `Environmental Variables`.
 
-Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`. Click OK to save.
+Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradle-version}\bin`. Click OK to save.
 
 <<#sec:installation_next_steps,↓ Proceed to next steps>>
 
@@ -137,7 +137,7 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 ❯ gradle -v
 
 ------------------------------------------------------------
-Gradle {gradleVersion}
+Gradle {gradle-version}
 ------------------------------------------------------------
 
 Build time:   2018-02-21 15:28:42 UTC

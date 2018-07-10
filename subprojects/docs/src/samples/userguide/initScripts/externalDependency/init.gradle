@@ -1,3 +1,4 @@
+// tag::all[]
 import org.apache.commons.math.fraction.Fraction
 
 // tag::declare-classpath[]
@@ -12,3 +13,4 @@ initscript {
 // end::declare-classpath[]
 
 println Fraction.ONE_FIFTH.multiply(2)
+// end::all[]

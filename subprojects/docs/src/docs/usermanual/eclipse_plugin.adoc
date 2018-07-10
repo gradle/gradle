@@ -210,28 +210,28 @@ The Eclipse plugins provide objects modeling the sections of the Eclipse files t
 The following list covers the domain object used for each of the Eclipse model types:
 
 `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject]`::
-  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project]`
-  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project]`
-  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
+  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project] arg -&gt; ... }`
+  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project] arg -&gt; ... }`
+  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
 `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[EclipseClasspath]`::
-  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath]`
-  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath]`
-  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
+  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath] arg -&gt; ... }`
+  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath] arg -&gt; ... }`
+  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
 `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.html[EclipseWtpComponent]`::
-  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent]`
-  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent]`
-  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
+  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent] arg -&gt; ... }`
+  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent] arg -&gt; ... }`
+  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
 `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]`::
-  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet]`
-  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet]`
-  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
+  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
+  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
+  * `withXml { link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
 `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[EclipseJdt]`::
-  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt]`
-  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt]`
+  * `beforeMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
+  * `whenMerged { link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
   * `withProperties { arg -&gt; }` argument type => http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html[`java.util.Properties`]
 
 

@@ -94,7 +94,7 @@ In <<tutorial_using_tasks#sec:build_script_external_dependencies,External depend
 include::{samples-path}/userguide/initScripts/externalDependency/init.gradle[tag=declare-classpath]
 ----
 
-The closure passed to the `initscript()` method configures a `link:{groovy-dsl-path}/org.gradle.api.initialization.dsl.ScriptHandler.html[ScriptHandler]` instance. You declare the init script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<declaring_dependencies#,"Declaring Dependencies">>, except project dependencies.
+The closure passed to the `initscript()` method configures a `link:{javadoc-path}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler]` instance. You declare the init script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<declaring_dependencies#,"Declaring Dependencies">>, except project dependencies.
 
 Having declared the init script classpath, you can use the classes in your init script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the init script classpath.
 
@@ -103,7 +103,7 @@ Having declared the init script classpath, you can use the classes in your init 
 [source.multi-language-sample,groovy]
 .init.gradle
 ----
-include::{samples-path}/userguide/initScripts/externalDependency/init.gradle[]
+include::{samples-path}/userguide/initScripts/externalDependency/init.gradle[tag=all]
 ----
 
 .Output of **`gradle --init-script init.gradle -q doNothing`**
@@ -141,4 +141,4 @@ include::{samples-path}/userguide/initScripts/plugins/usePluginsInInitScripts.ou
 
 The plugin in the init script ensures that only a specified repository is used when running the build.
 
-When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's api:org.gradle.api.Plugin#apply[] method. The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build. Of course, the applied plugin can be resolved as an external dependency as described in <<#sec:custom_classpath,External dependencies for the init script>>
+When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's link:{javadoc-path}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] method. The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build. Of course, the applied plugin can be resolved as an external dependency as described in <<#sec:custom_classpath,External dependencies for the init script>>
