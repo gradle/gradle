@@ -99,7 +99,21 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                 """
             )
 
-            assertUsageCompilation()
+            assertUsageCompilation(
+                """
+                import java.util.function.Consumer
+
+                fun usage(subject: GroovyNamedArguments) {
+
+                    subject.rawMap("foo" to 42, "bar" to 23L, "bazar" to "cathedral")
+                    subject.stringUnknownMap("foo" to 42, "bar" to 23L, "bazar" to "cathedral")
+                    subject.stringObjectMap("foo" to 42, "bar" to 23L, "bazar" to "cathedral")
+
+                    subject.mapWithOtherParameters(foo = "foo", bar = 42)
+                    subject.mapWithOtherParameters("foo", 42, "bar" to 23L, "bazar" to "cathedral")
+                }
+                """
+            )
         }
     }
 
