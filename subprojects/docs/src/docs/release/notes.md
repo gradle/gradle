@@ -41,6 +41,11 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 
 Here are the new features introduced in this Gradle release.
 
+### Lazy task APIs
+
+To learn more about the lazy task API, please refer to the [Task Configuration Avoidance chapter](userguide/task_configuration_avoidance.html) covering migration, and other useful information.
+For more insight regarding the performance goals refer to the [blog post](https://blog.gradle.org/preview-avoiding-task-configuration-time) introducing how those new lazy task APIs can improve your configuration time.
+
 ### Command line args supported by JavaExec
 
 Command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`,
