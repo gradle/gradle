@@ -17,27 +17,18 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.file.FilePathUtil;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.Factory;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
-import java.util.zip.ZipEntry;
 
-public class IgnoringResourceHasher implements ResourceHasher {
-    private final ResourceHasher delegate;
+public class IgnoringResourceFilter implements ResourceFilter {
     private final Set<String> ignores;
     private final ImmutableSet<PathMatcher> ignoreMatchers;
 
-    public IgnoringResourceHasher(Set<String> ignores, ResourceHasher delegate) {
-        this.delegate = delegate;
+    public IgnoringResourceFilter(Set<String> ignores) {
         this.ignores = ImmutableSet.copyOf(ignores);
         ImmutableSet.Builder<PathMatcher> builder = ImmutableSet.builder();
         for (String ignore : ignores) {
@@ -45,23 +36,6 @@ public class IgnoringResourceHasher implements ResourceHasher {
             builder.add(matcher);
         }
         this.ignoreMatchers = builder.build();
-    }
-
-    @Nullable
-    @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath) {
-        if (shouldBeIgnored(Iterables.toArray(relativePath, String.class))) {
-            return null;
-        }
-        return delegate.hash(fileSnapshot, relativePath);
-    }
-
-    @Override
-    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        if (shouldBeIgnored(FilePathUtil.getPathSegments(zipEntry.getName()))) {
-            return null;
-        }
-        return delegate.hash(zipEntry, zipInput);
     }
 
     private boolean shouldBeIgnored(String[] relativePath) {
@@ -82,6 +56,13 @@ public class IgnoringResourceHasher implements ResourceHasher {
         for (String ignore : ignores) {
             hasher.putString(ignore);
         }
-        delegate.appendConfigurationToHasher(hasher);
+    }
+
+    @Override
+    public boolean shouldBeIgnored(Factory<String[]> relativePathFactory) {
+        if (ignoreMatchers.isEmpty()) {
+            return false;
+        }
+        return shouldBeIgnored(relativePathFactory.create());
     }
 }

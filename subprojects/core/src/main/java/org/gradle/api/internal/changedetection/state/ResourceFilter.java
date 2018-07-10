@@ -16,9 +16,21 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.Factory;
 
-public interface ResourceSnapshotterCacheService {
-    HashCode hashFile(PhysicalFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash);
+public interface ResourceFilter extends ConfigurableNormalizer {
+    ResourceFilter FILTER_NOTHING = new ResourceFilter() {
+        @Override
+        public boolean shouldBeIgnored(Factory<String[]> relativePathFactory) {
+            return false;
+        }
+
+        @Override
+        public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+            hasher.putString(getClass().getName());
+        }
+    };
+
+    boolean shouldBeIgnored(Factory<String[]> relativePathFactory);
 }

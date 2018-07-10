@@ -22,6 +22,8 @@ import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.logical.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
+import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.slf4j.Logger;
@@ -40,21 +42,25 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(JarHasher.class);
 
     private final ResourceHasher classpathResourceHasher;
+    private final ResourceFilter classpathResourceFilter;
 
-    public JarHasher(ResourceHasher classpathResourceHasher) {
+    public JarHasher(ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter) {
         this.classpathResourceHasher = classpathResourceHasher;
+        this.classpathResourceFilter = classpathResourceFilter;
     }
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath) {
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
         return hashJarContents(fileSnapshot);
     }
 
     @Override
     public void appendConfigurationToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
-        classpathResourceHasher.appendConfigurationToHasher(hasher);        }
+        classpathResourceHasher.appendConfigurationToHasher(hasher);
+        classpathResourceFilter.appendConfigurationToHasher(hasher);
+    }
 
     private HashCode hashJarContents(PhysicalFileSnapshot jarFileSnapshot) {
         try {
@@ -78,9 +84,11 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
             fileInputStream = Files.newInputStream(Paths.get(jarFile));
             ZipInputStream zipInput = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
+            RelativePathFactory relativePathFactory = new RelativePathFactory();
 
             while ((zipEntry = zipInput.getNextEntry()) != null) {
-                if (zipEntry.isDirectory()) {
+                relativePathFactory.setZipEntry(zipEntry);
+                if (zipEntry.isDirectory() || classpathResourceFilter.shouldBeIgnored(relativePathFactory)) {
                     continue;
                 }
                 HashCode hash = classpathResourceHasher.hash(zipEntry, zipInput);
@@ -92,6 +100,19 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
             return snapshots;
         } finally {
             IOUtils.closeQuietly(fileInputStream);
+        }
+    }
+
+    private static class RelativePathFactory implements Factory<String[]> {
+        private ZipEntry zipEntry;
+
+        @Override
+        public String[] create() {
+            return FilePathUtil.getPathSegments(zipEntry.getName());
+        }
+
+        public void setZipEntry(ZipEntry zipEntry) {
+            this.zipEntry = zipEntry;
         }
     }
 

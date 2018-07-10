@@ -55,12 +55,11 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath) {
-        String absolutePath = fileSnapshot.getAbsolutePath();
-        Path path = Paths.get(absolutePath);
-        if (!isClassFile(absolutePath)) {
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+        if (!isClassFile(fileSnapshot.getName())) {
             return null;
         }
+        Path path = Paths.get(fileSnapshot.getAbsolutePath());
         InputStream inputStream = null;
         try {
             inputStream = Files.newInputStream(path);

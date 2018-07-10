@@ -34,9 +34,9 @@ class CachingResourceHasherTest extends Specification {
     def "returns result from delegate"() {
         def expectedHash = HashCode.fromInt(123)
         when:
-        def actualHash = cachingHasher.hash(snapshot, relativePath)
+        def actualHash = cachingHasher.hash(snapshot)
         then:
-        1 * delegate.hash(snapshot, relativePath) >> expectedHash
+        1 * delegate.hash(snapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
     }
@@ -44,14 +44,14 @@ class CachingResourceHasherTest extends Specification {
     def "caches the result"() {
         def expectedHash = HashCode.fromInt(123)
         when:
-        def actualHash = cachingHasher.hash(snapshot, relativePath)
+        def actualHash = cachingHasher.hash(snapshot)
         then:
-        1 * delegate.hash(snapshot, relativePath) >> expectedHash
+        1 * delegate.hash(snapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(snapshot, relativePath)
+        actualHash = cachingHasher.hash(snapshot)
         then:
         actualHash == expectedHash
         0 * _
@@ -60,14 +60,14 @@ class CachingResourceHasherTest extends Specification {
     def "caches 'no signature' results too"() {
         def noSignature = null
         when:
-        def actualHash = cachingHasher.hash(snapshot, relativePath)
+        def actualHash = cachingHasher.hash(snapshot)
         then:
-        1 * delegate.hash(snapshot, relativePath) >> noSignature
+        1 * delegate.hash(snapshot) >> noSignature
         actualHash == noSignature
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(snapshot, relativePath)
+        actualHash = cachingHasher.hash(snapshot)
         then:
         actualHash == noSignature
         0 * _

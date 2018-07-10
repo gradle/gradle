@@ -32,7 +32,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     @Override
-    public HashCode hashFile(PhysicalFileSnapshot fileSnapshot, Iterable<String> relativePath, RegularFileHasher hasher, HashCode configurationHash) {
+    public HashCode hashFile(PhysicalFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash) {
         HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshot.getContent().getContentMd5(), configurationHash);
 
         HashCode resourceHash = persistentCache.get(resourceHashCacheKey);
@@ -43,7 +43,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
             return resourceHash;
         }
 
-        resourceHash = hasher.hash(fileSnapshot, relativePath);
+        resourceHash = hasher.hash(fileSnapshot);
 
         if (resourceHash != null) {
             persistentCache.put(resourceHashCacheKey, resourceHash);

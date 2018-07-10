@@ -27,5 +27,5 @@ public interface RegularFileHasher {
      * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(PhysicalFileSnapshot snapshot, Iterable<String> relativePath);
+    HashCode hash(PhysicalFileSnapshot snapshot);
 }
