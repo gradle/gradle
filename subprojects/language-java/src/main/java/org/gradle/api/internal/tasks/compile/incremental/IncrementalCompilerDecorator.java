@@ -37,7 +37,6 @@ public class IncrementalCompilerDecorator {
     private final JarClasspathSnapshotMaker jarClasspathSnapshotMaker;
     private final TaskScopedCompileCaches compileCaches;
     private final CleaningJavaCompiler cleaningCompiler;
-    private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
     private final ClassSetAnalysisUpdater classSetAnalysisUpdater;
     private final CompilationSourceDirs sourceDirs;
@@ -45,14 +44,13 @@ public class IncrementalCompilerDecorator {
     private final IncrementalCompilationInitializer compilationInitializer;
 
     public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, TaskScopedCompileCaches compileCaches,
-                                        IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
+                                        IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler,
                                         RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
                                         CompilationSourceDirs sourceDirs, Compiler<JavaCompileSpec> rebuildAllCompiler) {
         this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
-        this.displayName = displayName;
         this.staleClassDetecter = staleClassDetecter;
         this.classSetAnalysisUpdater = classSetAnalysisUpdater;
         this.sourceDirs = sourceDirs;
@@ -66,16 +64,16 @@ public class IncrementalCompilerDecorator {
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
-            LOG.info("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
+            LOG.info("Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
             return rebuildAllCompiler;
         }
         if (!sourceDirs.canInferSourceRoots()) {
-            LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
+            LOG.info("Full recompilation is required because the source roots could not be inferred.");
             return rebuildAllCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
         if (data == null) {
-            LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
+            LOG.info("Full recompilation is required because no previous class analysis is available.");
             return rebuildAllCompiler;
         }
         PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache(), compileCaches.getAnnotationProcessorPathStore());

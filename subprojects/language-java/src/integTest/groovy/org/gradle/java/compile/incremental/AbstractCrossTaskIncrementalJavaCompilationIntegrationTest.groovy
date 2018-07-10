@@ -732,7 +732,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         run 'impl:compileJava'
 
         then:
-        !output.contains(':api:compileJava - is not incremental (e.g. outputs have changed, no previous execution, etc.).')
+        !output.contains('Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.')
         impl.recompiledClasses("ImplA")
     }
 
