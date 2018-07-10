@@ -16,23 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInfoFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformInfoFactory;
-import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -62,18 +50,6 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     }
 
     private static class DependencyManagementBuildSessionServices {
-        ArtifactCacheLockingManager createArtifactCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal,
-                                                                      CleanupActionFactory cleanupActionFactory, UsedGradleVersions usedGradleVersions) {
-            return new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, cleanupActionFactory, usedGradleVersions);
-        }
-
-        TransformedFileCache createTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                        FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal, CleanupActionFactory cleanupActionFactory) {
-            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal, cleanupActionFactory);
-            listenerManager.addListener(transformedFileCache);
-            return transformedFileCache;
-        }
-
         TransformInfoFactory createTransformInfoFactory() {
             return new DefaultTransformInfoFactory();
         }
