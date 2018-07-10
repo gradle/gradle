@@ -66,7 +66,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             result.append("-");
             result.append(classifier);
         }
-        if (GUtil.isTrue(extension)) {
+        if (GUtil.isTrue(extension) && !Files.getFileExtension(name).equals(extension)) {
             result.append(".");
             result.append(extension);
         }

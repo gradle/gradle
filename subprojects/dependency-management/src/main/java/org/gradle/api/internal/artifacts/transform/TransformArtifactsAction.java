@@ -71,6 +71,6 @@ class TransformArtifactsAction implements BiFunction<List<File>, File, File>, De
 
     @Override
     public String getDisplayName() {
-        return implementationClass.getName();
+        return implementationClass.getSimpleName();
     }
 }

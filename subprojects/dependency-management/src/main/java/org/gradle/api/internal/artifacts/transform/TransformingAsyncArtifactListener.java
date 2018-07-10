@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -42,9 +43,11 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
-        TransformArtifactOperation operation = new TransformArtifactOperation(artifact, transform);
-        artifactResults.put(artifact.getId(), operation);
-        if (transform.hasCachedResult(artifact.getFile())) {
+        ComponentArtifactIdentifier artifactId = artifact.getId();
+        File file = artifact.getFile();
+        TransformArtifactOperation operation = new TransformArtifactOperation(artifactId, file, transform, BuildOperationCategory.UNCATEGORIZED);
+        artifactResults.put(artifactId, operation);
+        if (transform.hasCachedResult(file)) {
             operation.run(null);
         } else {
             actions.add(operation);
@@ -64,7 +67,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void fileAvailable(File file) {
-        TransformFileOperation operation = new TransformFileOperation(file, transform);
+        TransformFileOperation operation = new TransformFileOperation(file, transform, BuildOperationCategory.UNCATEGORIZED);
         fileResults.put(file, operation);
         if (transform.hasCachedResult(file)) {
             operation.run(null);

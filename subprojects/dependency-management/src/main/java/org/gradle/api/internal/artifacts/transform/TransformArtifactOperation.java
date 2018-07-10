@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -29,23 +30,27 @@ import java.util.List;
 
 class TransformArtifactOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformArtifactOperation.class);
-    private final ResolvableArtifact artifact;
+    private final ComponentArtifactIdentifier artifactId;
+    private final File file;
     private final ArtifactTransformer transform;
+    private final BuildOperationCategory category;
     private Throwable failure;
     private List<File> result;
 
-    TransformArtifactOperation(ResolvableArtifact artifact, ArtifactTransformer transform) {
-        this.artifact = artifact;
+    TransformArtifactOperation(ComponentArtifactIdentifier artifactId,  File file, ArtifactTransformer transform, BuildOperationCategory category) {
+        this.artifactId = artifactId;
+        this.file = file;
         this.transform = transform;
+        this.category = category;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
         try {
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifact.getId().getDisplayName());
+                LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifactId.getDisplayName());
             }
-            result = transform.transform(artifact.getFile());
+            result = transform.transform(file);
         } catch (Throwable t) {
             failure = t;
         }
@@ -53,7 +58,10 @@ class TransformArtifactOperation implements RunnableBuildOperation {
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + artifact);
+        String displayName = "Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName();
+        return BuildOperationDescriptor.displayName(displayName)
+            .progressDisplayName(displayName)
+            .operationType(category);
     }
 
     @Nullable

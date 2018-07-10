@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,11 +31,6 @@ import java.util.Map;
 
 public class DefaultTransformInfoFactory implements TransformInfoFactory {
     private final Map<ArtifactTransformKey, TransformInfo> transformations = Maps.newConcurrentMap();
-    private final BuildOperationExecutor buildOperationExecutor;
-
-    public DefaultTransformInfoFactory(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
-    }
 
     @Override
     public Collection<TransformInfo> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer) {
@@ -56,7 +50,7 @@ public class DefaultTransformInfoFactory implements TransformInfoFactory {
                 ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
                 TransformInfo transformInfo = transformations.get(key);
                 if (transformInfo == null) {
-                    transformInfo = TransformInfo.from(transformerChain, singleArtifactSet, buildOperationExecutor);
+                    transformInfo = TransformInfo.from(transformerChain, singleArtifactSet);
                     transformations.put(key, transformInfo);
                 }
                 builder.add(transformInfo);
