@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -24,11 +25,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +46,7 @@ import static org.gradle.util.CollectionUtils.single;
 public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
+    private static final Logger LOGGER = Logging.getLogger(WrapperDistributionCleanupAction.class);
 
     private final File distsDir;
     private Multimap<GradleVersion, File> checksumDirsByVersion;
@@ -73,7 +76,7 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
 
     private Multimap<GradleVersion, File> getChecksumDirsByVersion() {
         if (checksumDirsByVersion == null) {
-            this.checksumDirsByVersion = determineChecksumDirsByVersion();
+            checksumDirsByVersion = determineChecksumDirsByVersion();
         }
         return checksumDirsByVersion;
     }
@@ -82,49 +85,47 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
         Multimap<GradleVersion, File> result = ArrayListMultimap.create();
         for (File dir : listDirs(distsDir)) {
             for (File checksumDir : listDirs(dir)) {
-                GradleVersion gradleVersion = determineGradleVersionFromBuildReceipt(checksumDir);
-                if (gradleVersion != null) {
+                try {
+                    GradleVersion gradleVersion = determineGradleVersionFromBuildReceipt(checksumDir);
                     result.put(gradleVersion, checksumDir);
+                } catch (Exception e) {
+                    LOGGER.debug("Could not determine Gradle version for {}", checksumDir, e);
                 }
             }
         }
         return result;
     }
 
-    private GradleVersion determineGradleVersionFromBuildReceipt(File checksumDir) {
+    private GradleVersion determineGradleVersionFromBuildReceipt(File checksumDir) throws Exception {
         List<File> subDirs = listDirs(checksumDir);
-        if (subDirs.size() != 1) {
-            return null;
-        }
+        Preconditions.checkArgument(subDirs.size() == 1, "A Gradle distribution must contain exactly one subdirectory: %s", subDirs);
         List<File> jarFiles = listFiles(new File(single(subDirs), "lib"), new RegexFileFilter("^gradle-base-services-\\d.+.jar$"));
-        return jarFiles.size() != 1 ? null : readGradleVersionFromJarFile(single(jarFiles));
+        Preconditions.checkArgument(jarFiles.size() == 1, "A Gradle distribution must contain exactly one gradle-base-services-*.jar: %s", jarFiles);
+        return readGradleVersionFromJarFile(single(jarFiles));
     }
 
-    private GradleVersion readGradleVersionFromJarFile(File jarFile) {
+    private GradleVersion readGradleVersionFromJarFile(File jarFile) throws Exception {
         ZipFile zipFile = null;
         try {
             zipFile = new ZipFile(jarFile);
             return readGradleVersionFromBuildReceipt(zipFile);
-        } catch (IOException ignore) {
-            return null;
         } finally {
             IOUtils.closeQuietly(zipFile);
         }
     }
 
-    private GradleVersion readGradleVersionFromBuildReceipt(ZipFile zipFile) throws IOException {
+    private GradleVersion readGradleVersionFromBuildReceipt(ZipFile zipFile) throws Exception {
         ZipEntry zipEntry = zipFile.getEntry(GradleVersion.RESOURCE_NAME);
-        if (zipEntry != null) {
-            InputStream in = zipFile.getInputStream(zipEntry);
-            try {
-                Properties properties = new Properties();
-                properties.load(in);
-                return tryParseGradleVersion(properties.getProperty(GradleVersion.VERSION_NUMBER_PROPERTY));
-            } finally {
-                in.close();
-            }
+        Preconditions.checkArgument(zipEntry != null, "%s must contain " + GradleVersion.RESOURCE_NAME, zipFile.getName());
+        InputStream in = zipFile.getInputStream(zipEntry);
+        try {
+            Properties properties = new Properties();
+            properties.load(in);
+            String versionString = properties.getProperty(GradleVersion.VERSION_NUMBER_PROPERTY);
+            return GradleVersion.version(versionString);
+        } finally {
+            in.close();
         }
-        return null;
     }
 
     private List<File> listDirs(File baseDir) {
@@ -140,11 +141,4 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
         return dirs == null ? Collections.<File>emptyList() : Arrays.asList(dirs);
     }
 
-    private GradleVersion tryParseGradleVersion(String versionString) {
-        try {
-            return GradleVersion.version(versionString);
-        } catch (Exception e) {
-            return null;
-        }
-    }
 }
