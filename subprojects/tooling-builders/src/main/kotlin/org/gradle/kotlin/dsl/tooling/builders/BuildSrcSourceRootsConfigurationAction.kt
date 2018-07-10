@@ -22,12 +22,12 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.api.internal.project.ProjectInternal
@@ -82,11 +82,11 @@ class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationActio
 
     private
     fun Sequence<Project>.allSourceSetsRoots() =
-        flatMap { it.java.sourceSets.flatMap { it.allSource.srcDirs }.asSequence() }
+        flatMap { it.sourceSets.flatMap { it.allSource.srcDirs }.asSequence() }
 
     private
-    val Project.java
-        get() = the<JavaPluginConvention>()
+    val Project.sourceSets
+        get() = the<SourceSetContainer>()
 }
 
 

@@ -88,7 +88,24 @@ fun javaExtensionsWith(otherExtensions: List<ProjectSchemaEntry<String>>) =
             ProjectSchemaEntry(
                 "org.gradle.api.reporting.ReportingExtension",
                 "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension")) +
+                "org.gradle.api.plugins.ExtraPropertiesExtension"),
+            ProjectSchemaEntry(
+                "org.gradle.api.Project",
+                "sourceSets",
+                "org.gradle.api.tasks.SourceSetContainer"),
+            ProjectSchemaEntry(
+                "org.gradle.api.tasks.SourceSetContainer",
+                "ext",
+                "org.gradle.api.plugins.ExtraPropertiesExtension"),
+            ProjectSchemaEntry(
+                "org.gradle.api.Project",
+                "java",
+                "org.gradle.api.plugins.JavaPluginExtension"),
+            ProjectSchemaEntry(
+                "org.gradle.api.plugins.JavaPluginExtension",
+                "ext",
+                "org.gradle.api.plugins.ExtraPropertiesExtension")
+        ) +
         otherExtensions +
         listOf(
             ProjectSchemaEntry(

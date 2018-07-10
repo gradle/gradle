@@ -30,7 +30,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-java.sourceSets["main"].kotlin {
+sourceSets["main"].kotlin {
     srcDir(apiExtensionsOutputDir)
 }
 

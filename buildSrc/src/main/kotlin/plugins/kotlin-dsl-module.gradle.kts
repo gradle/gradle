@@ -22,14 +22,14 @@
  *  - include all sources
  */
 
-import accessors.java
+import accessors.sourceSets
 
 plugins {
     id("kotlin-library")
 }
 
 // including all sources
-val main by java.sourceSets
+val main by sourceSets
 afterEvaluate {
     tasks.getByName<Jar>("jar") {
         from(main.allSource)

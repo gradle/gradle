@@ -26,8 +26,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.groovy.scripts.TextResourceScriptSource
 
@@ -39,8 +39,6 @@ import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 
 import org.gradle.kotlin.dsl.execution.EvalOption
-
-import org.gradle.kotlin.dsl.findPlugin
 
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
@@ -56,6 +54,8 @@ import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+
+import org.gradle.kotlin.dsl.*
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -152,7 +152,7 @@ fun Project.findSourceSetOf(file: File): SourceSet? =
 
 private
 val Project.sourceSets
-    get() = convention.findPlugin<JavaPluginConvention>()?.sourceSets
+    get() = extensions.findByType(typeOf<SourceSetContainer>())
 
 
 private

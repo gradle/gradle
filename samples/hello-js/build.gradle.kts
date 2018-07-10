@@ -12,7 +12,7 @@ repositories {
     jcenter()
 }
 
-val mainSourceSet = the<JavaPluginConvention>().sourceSets["main"]!!
+val mainSourceSet = sourceSets["main"]
 
 tasks {
     "compileKotlin2Js"(Kotlin2JsCompile::class) {
