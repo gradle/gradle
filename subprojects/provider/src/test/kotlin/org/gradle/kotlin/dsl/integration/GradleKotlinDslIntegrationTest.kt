@@ -623,26 +623,32 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             buildFailureOutput().convertLineSeparators(),
-            containsString("""
-                FAILURE: Build failed with an exception.
+            allOf(
+                containsString("""
+                    FAILURE: Build failed with an exception.
 
-                * Where:
-                Build file '${buildFile.canonicalPath}' line: 1
+                    * Where:
+                    Build file '${buildFile.canonicalPath}' line: 1
 
-                * What went wrong:
-                Script compilation errors:
+                    * What went wrong:
+                    Script compilation errors:
 
-                  Line 01: println(foo)
-                                   ^ Unresolved reference: foo
+                """.replaceIndent()),
 
-                  Line 06: println("foo").bar.bazar
-                                          ^ Unresolved reference: bar
+                containsString("""
+                |  Line 01: println(foo)
+                |                   ^ Unresolved reference: foo
+                """.trimMargin()),
 
-                  Line 10: println(cathedral)
-                                   ^ Unresolved reference: cathedral
+                containsString("""
+                |  Line 06: println("foo").bar.bazar
+                |                          ^ Unresolved reference: bar
+                """.trimMargin()),
 
-                3 errors
-            """.replaceIndent()))
+                containsString("""
+                |  Line 10: println(cathedral)
+                |                   ^ Unresolved reference: cathedral
+                """.trimMargin())))
     }
 
     @Test
