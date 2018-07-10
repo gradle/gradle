@@ -339,6 +339,8 @@ open class IdePlugin : Plugin<Project> {
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
         compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
             .option("BUILD_PROCESS_HEAP_SIZE", "2048")
+        compilerConfiguration.removeBySelector("option[name=USE_RELEASE_OPTION]")
+            .option("USE_RELEASE_OPTION", "false")
     }
 
     private

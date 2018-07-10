@@ -15,7 +15,7 @@ plugins {
 
 java {
     gradlebuildJava {
-        moduleType = ModuleType.ENTRY_POINT
+        moduleType = ModuleType.REQUIRES_JAVA_9_COMPILER
     }
 }
 

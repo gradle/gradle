@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
@@ -183,7 +184,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     return -1;
                 }
 
-                buffer.clear();
+                ((Buffer)buffer).clear();
                 int nread;
                 try {
                     nread = socket.read(buffer);
@@ -195,7 +196,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     }
                     throw e;
                 }
-                buffer.flip();
+                ((Buffer)buffer).flip();
 
                 if (nread < 0) {
                     return -1;
@@ -256,7 +257,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         }
 
         private void writeBufferToChannel() throws IOException {
-            buffer.flip();
+            ((Buffer)buffer).flip();
             int count = writeWithNonBlockingRetry();
             if (count == 0) {
                 // buffer was still full after non-blocking retries, now block

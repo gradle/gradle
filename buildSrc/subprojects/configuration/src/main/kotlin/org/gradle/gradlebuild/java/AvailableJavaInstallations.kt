@@ -37,6 +37,10 @@ const val java7HomePropertyName = "java7Home"
 
 
 private
+const val java9HomePropertyName = "java9Home"
+
+
+private
 const val testJavaHomePropertyName = "testJavaHome"
 
 
@@ -63,7 +67,9 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
 
     init {
         val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
-        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home)
+        val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
+        require(resolvedJava9Home != null || JavaVersion.current().isJava9Compatible) { "Building gradle on Java 7/8 requires $java9HomePropertyName system property or project property" }
+        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
         val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
         javaInstallations = findJavaInstallations(javaHomesForCompilation)
         currentJavaInstallation = DefaultJavaInstallation(true, Jvm.current().javaHome).apply {

@@ -21,6 +21,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -191,7 +192,7 @@ public class StreamByteBuffer {
                 // copy one by one until the underflow has been resolved
                 buf = ByteBuffer.allocate(buf.remaining() + 1).put(buf);
                 buf.put(nextBuf.get());
-                buf.flip();
+                ((Buffer)buf).flip();
             } else {
                 if (hasRemaining(nextBuf)) {
                     buf = nextBuf;
@@ -234,7 +235,7 @@ public class StreamByteBuffer {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        charbuffer.flip();
+        ((Buffer) charbuffer).flip();
         return charbuffer;
     }
 

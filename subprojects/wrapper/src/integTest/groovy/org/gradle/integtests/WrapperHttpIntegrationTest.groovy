@@ -17,15 +17,12 @@
 package org.gradle.integtests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
@@ -263,22 +260,5 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         proxyServer.requestCount == 1
-    }
-
-    @Requires(adhoc = { !AvailableJavaHomes.getJdks("1.5").empty })
-    @Unroll
-    def "provides reasonable failure message when attempting to download authenticated distribution under java #jdk.javaVersion()"() {
-        given:
-        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-
-        and:
-        wrapperExecuter.withJavaHome(jdk.javaHome)
-
-        expect:
-        def failure = wrapperExecuter.withTasks('help').withStackTraceChecksDisabled().runWithFailure()
-        failure.error.contains('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
-
-        where:
-        jdk << AvailableJavaHomes.getJdks("1.5")
     }
 }
