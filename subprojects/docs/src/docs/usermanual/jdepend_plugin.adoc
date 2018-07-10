@@ -40,29 +40,20 @@ Note that JDepend will run with the same Java version used to run Gradle.
 
 The JDepend plugin adds the following tasks to the project:
 
-.JDepend plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`jdependMain` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`::
+_Depends on_: `classes`
++
+Runs JDepend against the production Java source files.
 
-| `jdependMain`
-| `classes`
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`
-| Runs JDepend against the production Java source files.
+`jdependTest` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`::
+_Depends on_: `testClasses`
++
+Runs JDepend against the test Java source files.
 
-| `jdependTest`
-| `testClasses`
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`
-| Runs JDepend against the test Java source files.
-
-| `jdepend__SourceSet__`
-| `__sourceSet__Classes`
-| `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`
-| Runs JDepend against the given source set's Java source files.
-|===
+`jdepend__SourceSet__` — type: `link:{groovy-dsl-path}/org.gradle.api.plugins.quality.JDepend.html[JDepend]`::
+_Depends on_: `__sourceSet__Classes`
++
+Runs JDepend against the given source set's Java source files.
 
 The JDepend plugin adds the following dependencies to tasks defined by the Java plugin.
 

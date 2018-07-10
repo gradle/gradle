@@ -37,34 +37,24 @@ include::{samples-path}/scala/quickstart/build.gradle[tag=use-plugin]
 
 The Scala plugin adds the following tasks to the project.
 
-.Scala plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`compileScala` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`::
+_Depends on_: `compileJava`
++
+Compiles production Scala source files.
 
-| `compileScala`
-| `compileJava`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`
-| Compiles production Scala source files.
+`compileTestScala` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`::
+_Depends on_: `compileTestJava`
++
+Compiles test Scala source files.
 
-| `compileTestScala`
-| `compileTestJava`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`
-| Compiles test Scala source files.
+`compile__SourceSet__Scala` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`::
+_Depends on_: `compile__SourceSet__Java`
++
+Compiles the given source set's Scala source files.
 
-| `compile__SourceSet__Scala`
-| `compile__SourceSet__Java`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]`
-| Compiles the given source set's Scala source files.
-
-| `scaladoc`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]`
-| Generates API documentation for the production Scala source files.
-|===
+`scaladoc` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]`::
++
+Generates API documentation for the production Scala source files.
 
 The Scala plugin adds the following dependencies to tasks added by the Java plugin.
 

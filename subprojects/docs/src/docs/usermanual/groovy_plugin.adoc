@@ -37,34 +37,24 @@ include::{samples-path}/groovy/quickstart/build.gradle[tag=use-plugin]
 
 The Groovy plugin adds the following tasks to the project.
 
-.Groovy plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`compileGroovy` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`::
+_Depends on_: `compileJava`
++
+Compiles production Groovy source files.
 
-| `compileGroovy`
-| `compileJava`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`
-| Compiles production Groovy source files.
+`compileTestGroovy` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`::
+_Depends on_: `compileTestJava`
++
+Compiles test Groovy source files.
 
-| `compileTestGroovy`
-| `compileTestJava`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`
-| Compiles test Groovy source files.
+`compile__SourceSet__Groovy` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`::
+_Depends on_: `compile__SourceSet__Java`
++
+Compiles the given source set's Groovy source files.
 
-| `compile__SourceSet__Groovy`
-| `compile__SourceSet__Java`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]`
-| Compiles the given source set's Groovy source files.
-
-| `groovydoc`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]`
-| Generates API documentation for the production Groovy source files.
-|===
+`groovydoc` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]`::
++
+Generates API documentation for the production Groovy source files.
 
 The Groovy plugin adds the following dependencies to tasks added by the Java plugin.
 
@@ -73,6 +63,7 @@ The Groovy plugin adds the following dependencies to tasks added by the Java plu
 |===
 | Task name
 | Depends on
+
 | `classes`
 | `compileGroovy`
 

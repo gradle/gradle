@@ -39,14 +39,6 @@ apply plugin: 'project-report'
 
 The project report plugin defines the following tasks:
 
-.Project report plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
-
 |  `dependencyReport`
 | -
 | `link:{groovy-dsl-path}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]`
@@ -71,7 +63,6 @@ The project report plugin defines the following tasks:
 |  `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
 | `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
 | Generates all project reports.
-|===
 
 
 [[sec:project_reports_project_layout]]

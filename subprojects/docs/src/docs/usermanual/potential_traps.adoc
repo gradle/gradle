@@ -24,13 +24,12 @@ For Gradle users it is important to understand how Groovy deals with script vari
 
 === Example: Variables scope: local and script wide
 
-[source.multi-language-sample,groovy]
-.build.gradle
+[source,groovy]
+.scope.groovy
 ----
-include::{samples-path}/userguide/tutorial/groovyScope/build.gradle[]
+include::{samples-path}/userguide/tutorial/groovyScope/scope.groovy[]
 ----
 
-[source]
 .Output of `groovy scope.groovy`
 ----
 > groovy scope.groovy

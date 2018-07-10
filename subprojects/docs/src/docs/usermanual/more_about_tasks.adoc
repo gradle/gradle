@@ -555,7 +555,7 @@ This task will have three inputs and one output:
 
 When you’re writing a custom task class, it’s easy to register properties as inputs or outputs via annotations. To demonstrate, here is a skeleton task implementation with some suitable inputs and outputs, along with their annotations:
 
-=== Example: Custom task class
+===== Example: Custom task class
 
 [source.multi-language-sample,java]
 .buildSrc/src/main/java/org/example/ProcessTemplates.java
@@ -821,7 +821,7 @@ These objects have methods that allow you to specify files, directories and valu
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 
-=== Example: Ad-hoc task
+===== Example: Ad-hoc task
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -841,7 +841,7 @@ All the input and output definitions are done through the methods on `inputs` an
 
 The files that a task removes can be specified through `destroyables.register()`.
 
-=== Example: Ad-hoc task declaring a destroyable
+===== Example: Ad-hoc task declaring a destroyable
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -856,7 +856,7 @@ One notable difference between the runtime API and the annotations is the lack o
 
 Another type of example involves adding input and output definitions to instances of a custom task class that lacks the requisite annotations. For example, imagine that the `ProcessTemplates` task is provided by a plugin and that it’s missing the incremental build annotations. In order to make up for that deficiency, you can use the runtime API:
 
-=== Example: Using runtime API with custom task type
+===== Example: Using runtime API with custom task type
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -889,7 +889,7 @@ You can learn about all the options provided by the builder in its API documenta
 
 Let’s say we don’t want to run the `processTemplates` task if there are no source files, regardless of whether it’s a clean build or not. After all, if there are no source files, there’s nothing for the task to do. The builder allows us to configure this like so:
 
-=== Example: Using skipWhenEmpty() via the runtime API
+===== Example: Using skipWhenEmpty() via the runtime API
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -922,7 +922,7 @@ We’ll look at this feature next and also some other features that come from Gr
 
 Consider an archive task that packages the output of the `processTemplates` task. A build author will see that the archive task obviously requires `processTemplates` to run first and so may add an explicit `dependsOn`. However, if you define the archive task like so:
 
-=== Example: Inferred task dependency via task outputs
+===== Example: Inferred task dependency via task outputs
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -940,7 +940,7 @@ Gradle will automatically make `packageFiles` depend on `processTemplates`. It c
 
 The above example can also be written as
 
-=== Example: Inferred task dependency via a task argument
+===== Example: Inferred task dependency via a task argument
 
 [source.multi-language-sample,groovy]
 .build.gradle

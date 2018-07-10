@@ -206,24 +206,13 @@ NOTE: The code for this example can be found at **`samples/testing/jacoco/applic
 
 For projects that also apply the Java Plugin, The JaCoCo plugin automatically adds the following tasks:
 
-.JaCoCo plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`jacocoTestReport` — type: `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]`::
++
+Generates code coverage report for the test task.
 
-| `jacocoTestReport`
-| -
-| `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]`
-| Generates code coverage report for the test task.
-
-| `jacocoTestCoverageVerification`
-| -
-| `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]`
-| Verifies code coverage metrics based on specified rules for the test task.
-|===
+`jacocoTestCoverageVerification` — type: `link:{groovy-dsl-path}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]`::
++
+Verifies code coverage metrics based on specified rules for the test task.
 
 
 [[sec:jacoco_dependency_management]]

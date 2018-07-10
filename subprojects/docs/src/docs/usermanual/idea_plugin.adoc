@@ -82,13 +82,13 @@ Removes the IDEA module file
 `cleanIdeaWorkspace` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
 Removes the IDEA workspace file
 
-`ideaProject` — type: `link:{groovy-dsl-path}/org/gradle/plugins/ide/idea/GenerateIdeaProject.html[GenerateIdeaProject]`::
+`ideaProject` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]`::
 Generates the `.ipr` file. This task is only added to the root project.
 
-`ideaModule` — type: `link:{groovy-dsl-path}/org/gradle/plugins/ide/idea/GenerateIdeaModule.html[GenerateIdeaModule]`::
+`ideaModule` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]`::
 Generates the `.iml` file
 
-`ideaWorkspace` — type: `link:{groovy-dsl-path}/org/gradle/plugins/ide/idea/GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]`::
+`ideaWorkspace` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]`::
 Generates the `.iws` file. This task is only added to the root project.
 
 

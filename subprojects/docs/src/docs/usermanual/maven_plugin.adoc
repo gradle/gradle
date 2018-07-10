@@ -47,19 +47,10 @@ include::{samples-path}/maven/quickstart/build.gradle[tag=use-plugin]
 
 The Maven plugin defines the following tasks:
 
-.Maven plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
-
-| `install`
-| All tasks that build the associated archives.
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]`
-| Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see <<#sub:installing_to_the_local_repository,Installing to the local repository>>
-|===
+`install` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]`::
+_Depends on_: All tasks that build the associated archives.
++
+Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see <<#sub:installing_to_the_local_repository,Installing to the local repository>>
 
 
 [[sec:maven_dependency_management]]

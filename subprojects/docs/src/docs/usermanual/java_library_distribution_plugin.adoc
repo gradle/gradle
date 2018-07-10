@@ -56,19 +56,10 @@ The plugin builds a distribution for your library. The distribution will package
 
 The Java library distribution plugin adds the following tasks to the project.
 
-.Java library distribution plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
-
-| `distZip`
-| `jar`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`
-| Creates a full distribution ZIP archive including runtime libraries.
-|===
+`distZip` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`::
+_Depends on_: `jar`
++
+Creates a full distribution ZIP archive including runtime libraries.
 
 
 [[java_library_distribution_resources]]

@@ -140,82 +140,61 @@ The Play plugin follows the typical Play application layout. You can <<#configur
 The Play plugin hooks into the normal Gradle lifecycle tasks such as `assemble`, `check` and `build`, but it also adds several additional tasks which form the lifecycle of a Play project:
 
 [[play_lifecycle_tasks]]
-.Play plugin - lifecycle tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Play Plugin — lifecycle tasks
 
-| `playBinary`
-| All compile tasks for source sets added to the Play application.
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
-| Performs a build of just the Play application.
+`playBinary` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+_Depends on_: All compile tasks for source sets added to the Play application.
++
+Performs a build of just the Play application.
 
-| `dist`
-| `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
-| Assembles the Play distribution.
+`dist` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+_Depends on_: `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
++
+Assembles the Play distribution.
 
-| `stage`
-| `stagePlayBinaryDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
-| Stages the Play distribution.
-|===
+`stage` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+_Depends on_: `stagePlayBinaryDist`
++
+Stages the Play distribution.
 
 The plugin also provides tasks for running, testing and packaging your Play application:
 
-.Play plugin - running and testing tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Play Plugin — running and testing tasks
 
-| `runPlayBinary`
-| `playBinary` to build Play application.
-| `link:{groovy-dsl-path}/org.gradle.play.tasks.PlayRun.html[PlayRun]`
-| Runs the Play application for local development. See <<#play_continuous_build,how this works with continuous build.>>
+`runPlayBinary` — type: `link:{groovy-dsl-path}/org.gradle.play.tasks.PlayRun.html[PlayRun]`::
+_Depends on_: `playBinary` to build Play application.
++
+Runs the Play application for local development. See <<#play_continuous_build,how this works with continuous build.>>
 
-| `testPlayBinary`
-| `playBinary` to build Play application and `compilePlayBinaryTests`.
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`
-| Runs JUnit/TestNG tests for the Play application.
-|===
+`testPlayBinary` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test]`::
+_Depends on_: `playBinary` to build Play application and `compilePlayBinaryTests`.
++
+Runs JUnit/TestNG tests for the Play application.
 
 For the different types of sources in a Play application, the plugin adds the following compilation tasks:
 
 [[play_source_set_tasks]]
-.Play plugin - source set tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Source Type
-| Type
-| Description
+=== Play Plugin — source set tasks
 
-| `compilePlayBinaryScala`
-| Scala and Java
-| `link:{javadoc-path}/org/gradle/language/scala/tasks/PlatformScalaCompile.html[PlatformScalaCompile]`
-| Compiles all Scala and Java sources defined by the Play application.
+`compilePlayBinaryScala` — type: `link:{javadoc-path}/org/gradle/language/scala/tasks/PlatformScalaCompile.html[PlatformScalaCompile]`::
+_Depends on_: Scala and Java
++
+Compiles all Scala and Java sources defined by the Play application.
 
-| `compilePlayBinaryPlayTwirlTemplates`
-| Twirl templates
-| `link:{groovy-dsl-path}/org.gradle.play.tasks.TwirlCompile.html[TwirlCompile]`
-| Compiles Twirl templates with the Twirl compiler. Gradle supports all of the built-in Twirl template formats (HTML, XML, TXT and JavaScript). Twirl templates need to match the pattern `\*.scala.*`.
+`compilePlayBinaryPlayTwirlTemplates` — type: `link:{groovy-dsl-path}/org.gradle.play.tasks.TwirlCompile.html[TwirlCompile]`::
+_Depends on_: Twirl templates
++
+Compiles Twirl templates with the Twirl compiler. Gradle supports all of the built-in Twirl template formats (HTML, XML, TXT and JavaScript). Twirl templates need to match the pattern `\*.scala.*`.
 
-| `compilePlayBinaryPlayRoutes`
-| Play Route files
-| `link:{groovy-dsl-path}/org.gradle.play.tasks.RoutesCompile.html[RoutesCompile]`
-| Compiles routes files into Scala sources.
+`compilePlayBinaryPlayRoutes` — type: `link:{groovy-dsl-path}/org.gradle.play.tasks.RoutesCompile.html[RoutesCompile]`::
+_Depends on_: Play Route files
++
+Compiles routes files into Scala sources.
 
-| `minifyPlayBinaryJavaScript`
-| JavaScript files
-| `link:{groovy-dsl-path}/org.gradle.play.tasks.JavaScriptMinify.html[JavaScriptMinify]`
-| Minifies JavaScript files with the Google Closure compiler.
-|===
+`minifyPlayBinaryJavaScript` — type: `link:{groovy-dsl-path}/org.gradle.play.tasks.JavaScriptMinify.html[JavaScriptMinify]`::
+_Depends on_: JavaScript files
++
+Minifies JavaScript files with the Google Closure compiler.
 
 
 [[sec:play_finding_out_more_about_your_project]]
@@ -436,44 +415,34 @@ Gradle provides the capability to package your Play application so that it can e
 
 The distribution can be created by running the `dist` lifecycle task and places the distribution in the `$buildDir/distributions` directory. Alternatively, one can validate the contents by running the `stage` lifecycle task which copies the files to the `$buildDir/stage` directory using the layout of the distribution package.
 
-.Play distribution tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Play Plugin — distribution tasks
 
-| `createPlayBinaryStartScripts`
-| -
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.application.CreateStartScripts.html[CreateStartScripts]`
-| Generates scripts to run the Play application distribution.
+`createPlayBinaryStartScripts` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.application.CreateStartScripts.html[CreateStartScripts]`::
++
+Generates scripts to run the Play application distribution.
 
-| `stagePlayBinaryDist`
-| `playBinary`, `createPlayBinaryStartScripts`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`
-| Copies all jar files, dependencies and scripts into a staging directory.
+`stagePlayBinaryDist` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy]`::
+_Depends on_: `playBinary`, `createPlayBinaryStartScripts`
++
+Copies all jar files, dependencies and scripts into a staging directory.
 
-| `createPlayBinaryZipDist`
-|
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`
-| Bundles the Play application as a standalone distribution packaged as a zip.
+`createPlayBinaryZipDist` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip]`::
++
+Bundles the Play application as a standalone distribution packaged as a zip.
 
-| `createPlayBinaryTarDist`
-|
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`
-| Bundles the Play application as a standalone distribution packaged as a tar.
+`createPlayBinaryTarDist` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar]`::
++
+Bundles the Play application as a standalone distribution packaged as a tar.
 
-| `stage`
-| `stagePlayBinaryDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
-| Lifecycle task for staging a Play distribution.
+`stage` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+_Depends on_: `stagePlayBinaryDist`
++
+Lifecycle task for staging a Play distribution.
 
-| `dist`
-| `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
-| Lifecycle task for creating a Play distribution.
-|===
+`dist` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+_Depends on_: `createPlayBinaryZipDist`, `createPlayBinaryTarDist`
++
+Lifecycle task for creating a Play distribution.
 
 
 [[adding_files_to_play_distribution]]

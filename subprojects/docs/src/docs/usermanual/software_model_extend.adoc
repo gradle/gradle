@@ -23,6 +23,8 @@ Support for the software model is currently <<feature_lifecycle#,incubating>>. P
 
 ====
 
+== Introduction
+
 One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support domains like the <<play_plugin#,Play Framework>> or <<native_software#,native software development>>. Before reading this you should be familiar with the Gradle software model <<software_model#,rule based configuration>> and <<software_model_concepts#,concepts>>.
 
 The following build script is an example of using a custom software model for building Markdown based documentation:
@@ -32,7 +34,7 @@ The following build script is an example of using a custom software model for bu
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samples-path}/customModel/languageType//build.gradle[tag=build-script]
+include::{samples-path}/customModel/languageType/build.gradle[tag=build-script]
 ----
 NOTE: The code for this example can be found at **`samples/customModel/languageType/`** in the ‘-all’ distribution of Gradle.
 

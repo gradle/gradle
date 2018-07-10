@@ -22,10 +22,9 @@ The `eclipse-wtp` is automatically applied whenever the `eclipse` plugin is appl
 What exactly the `eclipse` plugin generates depends on which other plugins are used:
 
 .Eclipse plugin behavior
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin
-| Description
+| Plugin | Description
 
 | None
 | Generates minimal `.project` file.
@@ -82,84 +81,60 @@ Both Eclipse plugins add a number of tasks to your projects. The main tasks that
 The Eclipse plugins add the tasks shown below to a project.
 
 [[eclipsetasks]]
-.Eclipse plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Eclipse Plugin tasks
 
-| `eclipse`
-| all Eclipse configuration file generation tasks
-| `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`
-| Generates all Eclipse configuration files
+`eclipse` — type: `link:{groovy-dsl-path}/org.gradle.api.Task.html[Task]`::
+_Depends on_: all Eclipse configuration file generation tasks
++
+Generates all Eclipse configuration files
 
-| `cleanEclipse`
-| all Eclipse configuration file clean tasks
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`
-| Removes all Eclipse configuration files
+`cleanEclipse` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
+_Depends on_: all Eclipse configuration file clean tasks
++
+Removes all Eclipse configuration files
 
-| `cleanEclipseProject`
-| `-`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`
-| Removes the `.project` file.
+`cleanEclipseProject` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
++
+Removes the `.project` file.
 
-| `cleanEclipseClasspath`
-| `-`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`
-| Removes the `.classpath` file.
+`cleanEclipseClasspath` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
++
+Removes the `.classpath` file.
 
-| `cleanEclipseJdt`
-| `-`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`
-| Removes the `.settings/org.eclipse.jdt.core.prefs` file.
+`cleanEclipseJdt` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
++
+Removes the `.settings/org.eclipse.jdt.core.prefs` file.
 
-| `eclipseProject`
-| `-`
-| `link:{groovy-dsl-path}/org/gradle/plugins/ide/eclipse/GenerateEclipseProject.html[GenerateEclipseProject]`
-| Generates the `.project` file.
+`eclipseProject` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.GenerateEclipseProject.html[GenerateEclipseProject]`::
++
+Generates the `.project` file.
 
-| `eclipseClasspath`
-| `-`
-| `link:{groovy-dsl-path}/org/gradle/plugins/ide/eclipse/GenerateEclipseClasspath.html[GenerateEclipseClasspath]`
-| Generates the `.classpath` file.
+`eclipseClasspath` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.html[GenerateEclipseClasspath]`::
++
+Generates the `.classpath` file.
 
-| `eclipseJdt`
-| `-`
-| `link:{groovy-dsl-path}/org/gradle/plugins/ide/eclipse/GenerateEclipseJdt.html[GenerateEclipseJdt]`
-| Generates the `.settings/org.eclipse.jdt.core.prefs` file.
-|===
+`eclipseJdt` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.html[GenerateEclipseJdt]`::
++
+Generates the `.settings/org.eclipse.jdt.core.prefs` file.
 
 [[eclipsewtptasks]]
-.Eclipse WTP plugin - additional tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Eclipse WTP Plugin — additional tasks
 
-| `cleanEclipseWtpComponent`
-| `-`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`
-| Removes the `.settings/org.eclipse.wst.common.component` file.
+`cleanEclipseWtpComponent` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
++
+Removes the `.settings/org.eclipse.wst.common.component` file.
 
-| `cleanEclipseWtpFacet`
-| `-`
-| `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`
-| Removes the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
+`cleanEclipseWtpFacet` — type: `link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete]`::
++
+Removes the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 
-| `eclipseWtpComponent`
-| `-`
-| `link:{groovy-dsl-path}/org/gradle/plugins/ide/eclipse/GenerateEclipseWtpComponent.html[GenerateEclipseWtpComponent]`
-| Generates the `.settings/org.eclipse.wst.common.component` file.
+`eclipseWtpComponent` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.html[GenerateEclipseWtpComponent]`::
++
+Generates the `.settings/org.eclipse.wst.common.component` file.
 
-| `eclipseWtpFacet`
-| `-`
-| `link:{groovy-dsl-path}/org/gradle/plugins/ide/eclipse/GenerateEclipseWtpFacet.html[GenerateEclipseWtpFacet]`
-| Generates the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
-|===
+`eclipseWtpFacet` — type: `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.html[GenerateEclipseWtpFacet]`::
++
+Generates the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 
 
 [[sec:eclipse_configuration]]
@@ -168,11 +143,9 @@ The Eclipse plugins add the tasks shown below to a project.
 
 [[eclipse-configuration]]
 .Configuration of the Eclipse plugins
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Model
-| Reference name
-| Description
+| Model | Reference name | Description
 
 | `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseModel.html[EclipseModel]`
 | `eclipse`
@@ -231,48 +204,35 @@ The Eclipse plugins provide objects modeling the sections of the Eclipse files t
 . The `withXml` hook is executed with a raw representation of the XML that will be persisted
 . The final XML is persisted
 
-The following table lists the domain object used for each of the Eclipse model types:
-
 [[eclipse-plugin-hooks]]
-.Advanced configuration hooks
-[cols="a,a,a,a,a", options="header"]
-|===
-| Model
-| `beforeMerged { arg -&gt; }` argument type
-| `whenMerged { arg -&gt; }` argument type
-| `withXml { arg -&gt; }` argument type
-| `withProperties { arg -&gt; }` argument type
+==== Advanced configuration hooks
 
-| `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project]`
-| `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
-| -
+The following list covers the domain object used for each of the Eclipse model types:
 
-| `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[EclipseClasspath]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath]`
-| `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
-| -
+`link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject]`::
+  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project]`
+  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Project.html[Project]`
+  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
 
-| `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[EclipseJdt]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt]`
-| -
-| http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html[`java.util.Properties`]
+`link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[EclipseClasspath]`::
+  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath]`
+  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath]`
+  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
 
-| `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.html[EclipseWtpComponent]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent]`
-| `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
-| -
+`link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.html[EclipseWtpComponent]`::
+  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent]`
+  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent]`
+  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
 
-| `link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet]`
-| `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet]`
-| `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
-| -
-|===
+`link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]`::
+  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet]`
+  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet]`
+  * `withXml { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/api/XmlProvider.html[XmlProvider]`
+
+`link:{groovy-dsl-path}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[EclipseJdt]`::
+  * `beforeMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt]`
+  * `whenMerged { arg -&gt; }` argument type => `link:{javadoc-path}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt]`
+  * `withProperties { arg -&gt; }` argument type => http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html[`java.util.Properties`]
 
 
 [[sec:partial-overwrite]]
