@@ -15,27 +15,65 @@
  */
 package org.gradle.language.base.internal.tasks;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.TaskOutputsInternal;
 
 import java.io.File;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
 
 public class SimpleStaleClassCleaner extends StaleClassCleaner {
-    private final TaskOutputsInternal taskOutputs;
+    private final Set<File> filesToDelete;
+    private final Set<File> toClean = Sets.newHashSet();
+    private final Set<String> prefixes = Sets.newHashSet();
+    private final Queue<File> directoriesToDelete = new PriorityQueue<File>(10, Ordering.natural().reverse());
     private boolean didWork;
 
     public SimpleStaleClassCleaner(TaskOutputsInternal taskOutputs) {
-        this.taskOutputs = taskOutputs;
+        this(taskOutputs.getPreviousOutputFiles());
+    }
+
+    public SimpleStaleClassCleaner(Set<File> filesToDelete) {
+        this.filesToDelete = filesToDelete;
+    }
+
+    @Override
+    public void addDirToClean(File toClean) {
+        this.toClean.add(toClean);
+        prefixes.add(toClean.getAbsolutePath() + File.separator);
     }
 
     @Override
     public void execute() {
-        for (File f : taskOutputs.getPreviousOutputFiles()) {
+        for (File f : filesToDelete) {
             for (String prefix : prefixes) {
                 if (f.getAbsolutePath().startsWith(prefix) && f.isFile()) {
                     didWork |= f.delete();
+                    markParentDir(f);
                 }
             }
         }
+        while (!directoriesToDelete.isEmpty()) {
+            File directory = directoriesToDelete.poll();
+            if (isEmpty(directory)) {
+                didWork |= directory.delete();
+                markParentDir(directory);
+            }
+        }
+    }
+
+    private void markParentDir(File f) {
+        File parentDir = f.getParentFile();
+        if (parentDir != null && !toClean.contains(parentDir)) {
+            directoriesToDelete.add(parentDir);
+        }
+    }
+
+    private boolean isEmpty(File parentDir) {
+        String[] children = parentDir.list();
+        return children != null && children.length == 0;
     }
 
     public boolean getDidWork() {

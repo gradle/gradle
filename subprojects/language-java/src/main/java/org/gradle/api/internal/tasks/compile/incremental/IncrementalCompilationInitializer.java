@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 
 import java.io.File;
 import java.util.Collection;
@@ -78,12 +79,14 @@ class IncrementalCompilationInitializer {
         spec.setClasses(classesToProcess);
     }
 
-    private void deleteStaleFilesIn(PatternSet classesToDelete, File destinationDir) {
+    private void deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {
         if (destinationDir == null) {
             return;
         }
-        FileTree deleteMe = fileOperations.fileTree(destinationDir).matching(classesToDelete);
-        fileOperations.delete(deleteMe);
+        Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(toDelete);
+        cleaner.addDirToClean(destinationDir);
+        cleaner.execute();
     }
 
     @VisibleForTesting

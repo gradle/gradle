@@ -16,7 +16,6 @@
 package org.gradle.language.base.internal.tasks
 
 import com.google.common.collect.Sets
-import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,12 +23,11 @@ import spock.lang.Specification
 class SimpleStaleClassCleanerTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final outputs = Mock(TaskOutputsInternal)
-    private final SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs)
 
-    def deletesAllPreviousOutputFiles() {
+    def "deletes all previous output files"() {
         def file1 = tmpDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
+        def cleaner = new SimpleStaleClassCleaner(files(file1, file2))
         cleaner.addDirToClean(tmpDir.testDirectory)
 
         when:
@@ -38,16 +36,67 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         !file2.exists()
-        1 * outputs.previousOutputFiles >> files(file1, file2)
 
         and:
         cleaner.didWork
     }
 
-    def doesNotDeleteFilesWhichAreNotUnderTheDestinationDir() {
+    def "deletes empty parent directories"() {
+        def file1 = tmpDir.file('foo/bar/file1').createFile()
+        tmpDir.file('foo/baz/file2').createFile()
+        def cleaner = new SimpleStaleClassCleaner(files(file1))
+        cleaner.addDirToClean(tmpDir.testDirectory)
+
+        when:
+        cleaner.execute()
+
+        then:
+        !tmpDir.file('foo/bar').exists()
+        tmpDir.file('foo/baz').exists()
+
+
+        and:
+        cleaner.didWork
+    }
+
+    def "deletes parent directories regardless of order"() {
+        def file1 = tmpDir.file('foo/file1').createFile()
+        def file2 = tmpDir.file('foo/bar/file2').createFile()
+        def cleaner = new SimpleStaleClassCleaner(files(file1, file2))
+        cleaner.addDirToClean(tmpDir.testDirectory)
+
+        when:
+        cleaner.execute()
+
+        then:
+        !tmpDir.file('foo').exists()
+
+
+        and:
+        cleaner.didWork
+    }
+
+    def "does not delete the root directory"() {
+        def file1 = tmpDir.file('foo/bar/file1').createFile()
+        def cleaner = new SimpleStaleClassCleaner(files(file1))
+        cleaner.addDirToClean(tmpDir.testDirectory)
+
+        when:
+        cleaner.execute()
+
+        then:
+        !tmpDir.file('foo').exists()
+        tmpDir.testDirectory.exists()
+
+        and:
+        cleaner.didWork
+    }
+
+    def "does not delete files that are not under one of the given roots"() {
         def destDir = tmpDir.file('dir')
         def file1 = destDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
+        def cleaner = new SimpleStaleClassCleaner(files(file1, file2))
         cleaner.addDirToClean(destDir)
 
         when:
@@ -56,26 +105,23 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         file2.exists()
-        1 * outputs.previousOutputFiles >> files(file1, file2)
 
         and:
         cleaner.didWork
     }
 
-    def reportsWhenNoWorkDone() {
+    def "reports when no work was done"() {
+        def cleaner = new SimpleStaleClassCleaner(files())
         cleaner.addDirToClean(tmpDir.file('dir'))
 
         when:
         cleaner.execute()
 
         then:
-        1 * outputs.previousOutputFiles >> files()
-
-        and:
         !cleaner.didWork
     }
 
     Set<File> files(File... args) {
-        Sets.newHashSet(args)
+        Sets.newLinkedHashSet(args as List)
     }
 }
