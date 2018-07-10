@@ -51,8 +51,8 @@ class DefaultResolutionResultTest extends Specification {
         dep2.selected.addDependency(dep3).addDependency(dep4)
 
         when:
-        def deps = new DefaultResolutionResult({root} as Factory).allDependencies
-        def modules = new DefaultResolutionResult({root} as Factory).allComponents
+        def deps = new DefaultResolutionResult({ root } as Factory).allDependencies
+        def modules = new DefaultResolutionResult({ root } as Factory).allComponents
 
         then:
         deps == [dep1, dep2, dep3, dep4] as Set
@@ -70,7 +70,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2')).addDependency(dep3)
         dep.selected.addDependency(dep3)
 
-        def result = new DefaultResolutionResult({root} as Factory)
+        def result = new DefaultResolutionResult({ root } as Factory)
 
         when:
         def deps = []
@@ -94,8 +94,8 @@ class DefaultResolutionResultTest extends Specification {
         dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), new DefaultMutableVersionConstraint('1')), root, dep1.selected))
 
         when:
-        def deps = new DefaultResolutionResult({root} as Factory).allDependencies
-        def modules = new DefaultResolutionResult({root} as Factory).allComponents
+        def deps = new DefaultResolutionResult({ root } as Factory).allDependencies
+        def modules = new DefaultResolutionResult({ root } as Factory).allComponents
 
         then:
         deps.size() == 2
@@ -110,7 +110,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('root').addDependency(dep1).addDependency(dep2)
 
         when:
-        def result = new DefaultResolutionResult({root} as Factory)
+        def result = new DefaultResolutionResult({ root } as Factory)
 
         then:
         result.allDependencies == [dep1, dep2] as Set
@@ -136,7 +136,7 @@ class DefaultResolutionResultTest extends Specification {
         def dep = new DefaultUnresolvedDependencyResult(
             Stub(ComponentSelector),
             Stub(ComponentSelectionReason),
-            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, Stub(ResolvedVariantResult)),
+            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, Stub(ResolvedVariantResult), null),
             new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), "too bad")
         )
         def edge = new UnresolvedDependencyEdge(dep)

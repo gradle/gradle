@@ -39,7 +39,8 @@ class ComponentResultSerializerTest extends SerializerSpec {
             newId("org", "foo", "2.0"),
             VersionSelectionReasons.requested(),
             componentIdentifier, 'default',
-            attributes)
+            attributes,
+            "repoId")
 
         when:
         def result = serialize(selection, serializer)
@@ -51,5 +52,6 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.componentId == componentIdentifier
         result.variantName.displayName == 'default'
         result.variantAttributes == attributes.asImmutable()
+        result.repositoryId == 'repoId'
     }
 }

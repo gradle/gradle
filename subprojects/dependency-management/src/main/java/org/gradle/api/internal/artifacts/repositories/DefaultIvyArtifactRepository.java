@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -68,12 +69,15 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ExposableRepository, PublicationAwareRepository {
     private Object baseUrl;
     private AbstractRepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
@@ -243,6 +247,23 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return metaDataProvider;
     }
 
+    @Override
+    public Map<String, ?> getProperties() {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        builder.put("url", getUrl().toASCIIString());
+        builder.put("ivyPatterns", additionalPatternsLayout.ivyPatterns);
+        builder.put("artifactPattern", additionalPatternsLayout.artifactPatterns);
+        List<String> metadataSourcesList = metadataSources.asList();
+        if (!metadataSourcesList.isEmpty()) {
+            builder.put("metadataSources", metadataSourcesList);
+        }
+        if (getCredentials().getUsername() != null || getCredentials().getPassword() != null) {
+            builder.put("authenticated", true);
+        }
+        //TODO add help to convert configured authentication into string for their classname
+        return builder.build();
+    }
+
     /**
      * Layout for applying additional patterns added via {@link #artifactPatterns} and {@link #ivyPatterns}.
      */
@@ -309,6 +330,20 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             gradleMetadata = false;
             ivyDescriptor = false;
             artifact = false;
+        }
+
+        List<String> asList() {
+            List<String> list = new ArrayList<String>();
+            if (gradleMetadata) {
+                list.add("gradleMetadata");
+            }
+            if (ivyDescriptor) {
+                list.add("ivyDescriptor");
+            }
+            if (artifact) {
+                list.add("artifact");
+            }
+            return list;
         }
 
         @Override

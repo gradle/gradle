@@ -16,9 +16,11 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -44,6 +46,7 @@ import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -53,9 +56,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ExposableRepository, PublicationAwareRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
@@ -144,6 +148,18 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private ImmutableMetadataSources createMetadataSources() {
         MetadataSource artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
         return new DefaultImmutableMetadataSources(Collections.<MetadataSource<?>>singletonList(artifactMetadataSource));
+    }
+
+    @Override
+    public Map<String, ?> getProperties() {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        builder.put("dirs", CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath();
+            }
+        }));
+        return builder.build();
     }
 
     private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {

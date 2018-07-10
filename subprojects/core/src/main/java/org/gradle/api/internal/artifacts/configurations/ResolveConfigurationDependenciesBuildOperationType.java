@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Resolution of a configuration's dependencies.
@@ -50,7 +50,8 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         boolean isConfigurationTransitive();
 
-        List<ModuleComponentRepositoryIdentifier> getRepositories();
+        @Nullable
+        List<ArtifactRepository> getRepositories();
 
     }
 
@@ -60,4 +61,33 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
         ResolvedComponentResult getRootComponent();
 
     }
+
+    @UsedByScanPlugin
+    public interface ArtifactRepository {
+
+        String getRepositoryId();
+
+        String getType();
+
+        String getName();
+
+        Map<String, ?> getProperties();
+
+    }
+
+    @UsedByScanPlugin
+    public enum RepositoryType {
+
+        MAVEN("maven"),
+        IVY("ivy"),
+        FLAT_DIR("flat_dir");
+
+        public final String displayName;
+
+        RepositoryType(String displayName) {
+            this.displayName = displayName;
+        }
+
+    }
+
 }

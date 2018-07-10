@@ -74,24 +74,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.details.configurationDescription ==~ /Dependencies for source set 'main'.*/
         op.details.configurationVisible == false
         op.details.configurationTransitive == true
-        def repos = op.details.repositories
-        repos[0].name == 'maven'
-        def repoId = repos[0].id
 
         op.result.resolvedDependenciesCount == 4
 
-        when:
-        m1.allowAll()
-        m2.allowAll()
-        m3.pom.expectGetBroken()
-        m4.allowAll()
-
-        fails "resolve"
-
-        op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-
-        then:
-        op.details.repositories[0].id == repoId
     }
 
     def "resolved detached configurations are exposed"() {

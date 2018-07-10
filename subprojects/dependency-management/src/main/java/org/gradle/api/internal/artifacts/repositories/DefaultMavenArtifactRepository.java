@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -60,11 +61,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ExposableRepository, PublicationAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = new DefaultMavenPomMetadataSource.MavenMetadataValidator() {
         @Override
         public boolean isUsableModule(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver) {
@@ -264,6 +266,22 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return instantiatorFactory;
     }
 
+    @Override
+    public Map<String, ?> getProperties() {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        builder.put("url", getUrl().toASCIIString());
+        builder.put("artifactUrls", getArtifactUrls());
+        List<String> metadataSourcesList = metadataSources.asList();
+        if (!metadataSourcesList.isEmpty()) {
+            builder.put("metadataSources", metadataSourcesList);
+        }
+        if (getConfiguredCredentials() != null) {
+            builder.put("authenticated", true);
+        }
+        //TODO add help to convert configured authentication into string for their classname
+        return builder.build();
+    }
+
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {
@@ -293,6 +311,20 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             gradleMetadata = false;
             mavenPom = false;
             artifact = false;
+        }
+
+        List<String> asList() {
+            List<String> list = new ArrayList<String>();
+            if (gradleMetadata) {
+                list.add("gradleMetadata");
+            }
+            if (mavenPom) {
+                list.add("mavenPom");
+            }
+            if (artifact) {
+                list.add("artifact");
+            }
+            return list;
         }
 
         @Override

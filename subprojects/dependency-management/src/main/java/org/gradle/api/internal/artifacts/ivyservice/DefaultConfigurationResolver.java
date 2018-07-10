@@ -17,11 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -32,8 +36,9 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.ArtifactRepository;
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.RepositoryType;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -56,6 +61,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDep
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
+import org.gradle.api.internal.artifacts.repositories.ExposableRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -71,9 +77,8 @@ import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
@@ -197,36 +202,68 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     @Override
-    public List<ModuleComponentRepositoryIdentifier> getRepositories() {
-        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-        ArrayList<ModuleComponentRepositoryIdentifier> result = Lists.newArrayListWithExpectedSize(resolutionAwareRepositories.size());
-        for (ResolutionAwareRepository repository : resolutionAwareRepositories) {
+    public List<ArtifactRepository> getRepositories() {
+        List<ExposableRepository> exposableRepositories = CollectionUtils.collect(repositories, Transformers.cast(ExposableRepository.class));
+        List<ArtifactRepository> result = Lists.newArrayListWithExpectedSize(exposableRepositories.size());
+        for (ExposableRepository repository : exposableRepositories) {
             ConfiguredModuleComponentRepository resolver = repository.createResolver();
-            result.add(new BasicModuleComponentRepositoryIdentifier(resolver.getId(), resolver.getName()));
+            result.add(new ArtifactRepositoryImpl(
+                resolver.getId(),
+                getTypeOf(repository),
+                resolver.getName(),
+                repository.getProperties()
+            ));
         }
         return result;
     }
 
-    private static class BasicModuleComponentRepositoryIdentifier implements ModuleComponentRepositoryIdentifier {
+    private static class ArtifactRepositoryImpl implements ArtifactRepository {
 
-        private final String id;
+        private final String repositoryId;
+        private final String type;
         private final String name;
+        private final Map<String, ?> properties;
 
-        private BasicModuleComponentRepositoryIdentifier(String id, String name) {
-            this.id = id;
+        private ArtifactRepositoryImpl(String repositoryId, RepositoryType type, String name, Map<String, ?> properties) {
+            this.repositoryId = repositoryId;
+            this.type = type.displayName;
             this.name = name;
+            this.properties = ImmutableMap.copyOf(properties);
         }
 
         @Override
-        public String getId() {
-            return id;
+        public String getRepositoryId() {
+            return repositoryId;
+        }
+
+        @Override
+        public String getType() {
+            return type;
         }
 
         @Override
         public String getName() {
             return name;
         }
+
+        @Override
+        public Map<String, ?> getProperties() {
+            return properties;
+        }
     }
+
+    private RepositoryType getTypeOf(ExposableRepository repository) {
+        if (repository instanceof IvyArtifactRepository) {
+            return RepositoryType.IVY;
+        } else if (repository instanceof MavenArtifactRepository) {
+            return RepositoryType.MAVEN;
+        } else if (repository instanceof FlatDirectoryArtifactRepository) {
+            return RepositoryType.FLAT_DIR;
+        } else {
+            throw new IllegalArgumentException("unhandled repository type: " + repository.getClass());
+        }
+    }
+
 
     private static class ArtifactResolveState {
         final ResolvedGraphResults graphResults;
