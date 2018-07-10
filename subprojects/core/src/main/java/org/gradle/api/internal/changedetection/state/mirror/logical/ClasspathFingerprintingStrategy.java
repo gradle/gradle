@@ -76,19 +76,19 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         IGNORE {
             @Nullable
             @Override
-            public FileContentSnapshot determineNonJarFingerprint(FileContentSnapshot original) {
+            public HashCode determineNonJarFingerprint(HashCode original) {
                 return null;
             }
         },
         USE_FILE_HASH {
             @Override
-            public FileContentSnapshot determineNonJarFingerprint(FileContentSnapshot original) {
+            public HashCode determineNonJarFingerprint(HashCode original) {
                 return original;
             }
         };
 
         @Nullable
-        public abstract FileContentSnapshot determineNonJarFingerprint(FileContentSnapshot original);
+        public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
     private class ClasspathSnapshotVisitor {
@@ -107,18 +107,18 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
             return true;
         }
 
-        public void visit(PhysicalSnapshot fileSnapshot, FileContentSnapshot classpathContent) {
+        public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
             if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
-                NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? classpathContent : createNormalizedSnapshot(fileSnapshot.getName(), classpathContent);
+                NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new FileHashSnapshot(normalizedContentHash) : createNormalizedSnapshot(fileSnapshot.getName(), normalizedContentHash);
                 rootBuilder.put(
                     fileSnapshot.getAbsolutePath(),
                     normalizedFileSnapshot);
             }
         }
 
-        private NormalizedFileSnapshot createNormalizedSnapshot(String name, FileContentSnapshot content) {
+        private NormalizedFileSnapshot createNormalizedSnapshot(String name, HashCode content) {
             relativePathHolder.enter(name);
-            NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), content);
+            NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), FileType.RegularFile, content);
             relativePathHolder.leave();
             return normalizedFileSnapshot;
         }
@@ -146,24 +146,24 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         @Override
         public void visit(PhysicalSnapshot fileSnapshot) {
             if (fileSnapshot.getContent().getType() == FileType.RegularFile) {
-                FileContentSnapshot newContent = fingerprintFile(fileSnapshot.getAbsolutePath(), fileSnapshot.getName(), fileSnapshot.getContent());
-                if (newContent != null) {
-                    delegate.visit(fileSnapshot, newContent);
+                HashCode normalizedContent = fingerprintFile(fileSnapshot.getAbsolutePath(), fileSnapshot.getName(), fileSnapshot.getContent());
+                if (normalizedContent != null) {
+                    delegate.visit(fileSnapshot, normalizedContent);
                 }
             }
         }
 
         @Nullable
-        private FileContentSnapshot fingerprintFile(String absolutePath, String name, FileContentSnapshot content) {
+        private HashCode fingerprintFile(String absolutePath, String name, FileContentSnapshot content) {
             return relativePathTracker.isRoot() ? fingerprintRootFile(absolutePath, name, content) : fingerprintTreeFile(absolutePath, name, content);
         }
 
         @Nullable
-        private FileContentSnapshot fingerprintTreeFile(String absolutePath, String name, FileContentSnapshot content) {
+        private HashCode fingerprintTreeFile(String absolutePath, String name, FileContentSnapshot content) {
             relativePathTracker.enter(name);
             HashCode newHash = classpathResourceHasher.hash(absolutePath, relativePathTracker.getRelativePath(), content);
             relativePathTracker.leave();
-            return newHash == null ? null : new FileHashSnapshot(newHash);
+            return newHash;
         }
 
         @Override
@@ -174,17 +174,16 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Nullable
-    private FileContentSnapshot fingerprintRootFile(String absolutePath, String name, FileContentSnapshot content) {
+    private HashCode fingerprintRootFile(String absolutePath, String name, FileContentSnapshot content) {
         if (FileUtils.hasExtensionIgnoresCase(name, ".jar")) {
             return snapshotJarContents(absolutePath, ImmutableList.of(name), content);
         }
-        return nonJarFingerprintingStrategy.determineNonJarFingerprint(content);
+        return nonJarFingerprintingStrategy.determineNonJarFingerprint(content.getContentMd5());
     }
 
     @Nullable
-    private FileContentSnapshot snapshotJarContents(String absolutePath, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
-        HashCode hash = cacheService.hashFile(absolutePath, relativePath, contentSnapshot, jarHasher, jarHasherConfigurationHash);
-        return hash == null ? null : new FileHashSnapshot(hash);
+    private HashCode snapshotJarContents(String absolutePath, Iterable<String> relativePath, FileContentSnapshot contentSnapshot) {
+        return cacheService.hashFile(absolutePath, relativePath, contentSnapshot, jarHasher, jarHasherConfigurationHash);
     }
 
     @Override

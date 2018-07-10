@@ -21,15 +21,12 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
-    private final FileContentSnapshot snapshot;
+    private final FileType type;
+    private final HashCode contentHash;
 
-    public AbstractNormalizedFileSnapshot(FileContentSnapshot snapshot) {
-        this.snapshot = snapshot;
-    }
-
-    @Override
-    public final FileContentSnapshot getSnapshot() {
-        return snapshot;
+    public AbstractNormalizedFileSnapshot(FileType type, HashCode contentHash) {
+        this.type = type;
+        this.contentHash = contentHash;
     }
 
     @Override
@@ -42,7 +39,7 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     public final int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = getContentHash().compareTo(getContentHash());
+            result = getContentHash().compareTo(o.getContentHash());
         }
         return result;
     }
@@ -56,29 +53,29 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
             return false;
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
-        return snapshot.equals(that.snapshot)
+        return contentHash.equals(that.contentHash)
             && getNormalizedPath().equals(that.getNormalizedPath());
     }
 
     @Override
     public final int hashCode() {
-        int result = snapshot.hashCode();
+        int result = contentHash.hashCode();
         result = 31 * result + getNormalizedPath().hashCode();
         return result;
     }
 
     @Override
     public final String toString() {
-        return String.format("'%s' / %s", getNormalizedPath(), snapshot);
+        return String.format("'%s' / %s", getNormalizedPath(), getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : contentHash);
     }
 
     @Override
     public HashCode getContentHash() {
-        return getSnapshot().getContentMd5();
+        return contentHash;
     }
 
     @Override
     public FileType getType() {
-        return getSnapshot().getType();
+        return type;
     }
 }

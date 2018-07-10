@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -48,17 +47,16 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previousFingerprints.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot, new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getSnapshot()));
+            unaccountedForPreviousSnapshots.put(previousSnapshot, new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getContentHash()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : currentFingerprints.entrySet()) {
             String currentAbsolutePath = entry.getKey();
-            NormalizedFileSnapshot currentNormalizedSnapshot = entry.getValue();
-            FileContentSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
-            List<NonNormalizedFileSnapshot> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentNormalizedSnapshot);
+            NormalizedFileSnapshot currentSnapshot = entry.getValue();
+            List<NonNormalizedFileSnapshot> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentSnapshot);
             if (previousSnapshotsForNormalizedPath.isEmpty()) {
-                NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot);
-                addedFiles.put(currentNormalizedSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
+                NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot.getType(), currentSnapshot.getContentHash());
+                addedFiles.put(currentSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
             } else {
                 NonNormalizedFileSnapshot previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
                 HashCode previousSnapshot = previousSnapshotWithAbsolutePath.getContentHash();

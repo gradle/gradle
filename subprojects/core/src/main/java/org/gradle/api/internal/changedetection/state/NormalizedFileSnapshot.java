@@ -31,5 +31,4 @@ public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapsho
     String getNormalizedPath();
     HashCode getContentHash();
     FileType getType();
-    FileContentSnapshot getSnapshot();
 }

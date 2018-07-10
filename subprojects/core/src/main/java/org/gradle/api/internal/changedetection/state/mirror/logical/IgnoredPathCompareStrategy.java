@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -46,8 +45,8 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
         ListMultimap<HashCode, NonNormalizedFileSnapshot> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
-            FileContentSnapshot previousSnapshot = entry.getValue().getSnapshot();
-            unaccountedForPreviousSnapshots.put(previousSnapshot.getContentHash(), new NonNormalizedFileSnapshot(absolutePath, previousSnapshot));
+            NormalizedFileSnapshot previousSnapshot = entry.getValue();
+            unaccountedForPreviousSnapshots.put(previousSnapshot.getContentHash(), new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getContentHash()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {

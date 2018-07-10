@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.changedetection.state.mirror.logical.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +85,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
                 }
                 HashCode hash = classpathResourceHasher.hash(zipEntry, zipInput);
                 if (hash != null) {
-                    snapshots.add(new DefaultNormalizedFileSnapshot(zipEntry.getName(), new FileHashSnapshot(hash)));
+                    snapshots.add(new DefaultNormalizedFileSnapshot(zipEntry.getName(), FileType.RegularFile, hash));
                 }
             }
 

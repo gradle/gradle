@@ -26,11 +26,6 @@ public abstract class AbstractFileContentSnapshot implements FileContentSnapshot
     }
 
     @Override
-    public FileContentSnapshot getSnapshot() {
-        return this;
-    }
-
-    @Override
     public int compareTo(NormalizedFileSnapshot o) {
         if (!(o instanceof FileContentSnapshot)) {
             return -1;

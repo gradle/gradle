@@ -16,12 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
+
 public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String normalizedPath;
 
-    public DefaultNormalizedFileSnapshot(String normalizedPath, FileContentSnapshot snapshot) {
-        super(snapshot);
+    public DefaultNormalizedFileSnapshot(String normalizedPath, FileType type, HashCode contentHash) {
+        super(type, contentHash);
         this.normalizedPath = normalizedPath;
+    }
+
+    public DefaultNormalizedFileSnapshot(String normalizedPath, PhysicalSnapshot snapshot) {
+        this(normalizedPath, snapshot.getType(), snapshot.getContent().getContentMd5());
     }
 
     @Override

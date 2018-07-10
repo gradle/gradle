@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -311,7 +310,7 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def snapshot(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromInt((int) hashCode)))
+        return new DefaultNormalizedFileSnapshot(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def added(String path) {

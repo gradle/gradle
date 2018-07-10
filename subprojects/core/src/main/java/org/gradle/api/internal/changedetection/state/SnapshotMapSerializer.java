@@ -18,7 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.logical.ContentSnapshotSerializer;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -33,8 +34,11 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     private static final byte DEFAULT_NORMALIZATION = 2;
     private static final byte IGNORED_PATH_NORMALIZATION = 3;
 
+    private static final byte DIR_SNAPSHOT = 1;
+    private static final byte MISSING_FILE_SNAPSHOT = 2;
+    private static final byte REGULAR_FILE_SNAPSHOT = 3;
+
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
-    private final ContentSnapshotSerializer contentSnapshotSerializer = new ContentSnapshotSerializer();
     private final StringInterner stringInterner;
 
     public SnapshotMapSerializer(StringInterner stringInterner) {
@@ -54,17 +58,58 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder) throws IOException {
-        FileContentSnapshot snapshot = contentSnapshotSerializer.read(decoder);
+        FileType fileType = readFileType(decoder);
+        HashCode contentHash = readContentHash(fileType, decoder);
 
         int normalizedSnapshotKind = decoder.readByte();
         switch (normalizedSnapshotKind) {
             case NO_NORMALIZATION:
-                return new NonNormalizedFileSnapshot(absolutePath, snapshot);
+                return new NonNormalizedFileSnapshot(absolutePath, fileType, contentHash);
             case DEFAULT_NORMALIZATION:
                 String normalizedPath = decoder.readString();
-                return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), snapshot);
+                return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), fileType, contentHash);
             case IGNORED_PATH_NORMALIZATION:
-                return snapshot;
+                return createIgnoredPathFingerprint(fileType, contentHash);
+            default:
+                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+        }
+    }
+
+    private NormalizedFileSnapshot createIgnoredPathFingerprint(FileType fileType, HashCode contentHash) {
+        switch (fileType) {
+            case Directory:
+                return DirContentSnapshot.INSTANCE;
+            case Missing:
+                return MissingFileContentSnapshot.INSTANCE;
+            case RegularFile:
+                return new FileHashSnapshot(contentHash);
+            default:
+                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+        }
+    }
+
+    private HashCode readContentHash(FileType fileType, Decoder decoder) throws IOException {
+        switch (fileType) {
+            case Directory:
+                return DirContentSnapshot.INSTANCE.getContentMd5();
+            case Missing:
+                return MissingFileContentSnapshot.INSTANCE.getContentMd5();
+            case RegularFile:
+                return hashCodeSerializer.read(decoder);
+            default:
+                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+        }
+    }
+
+    private FileType readFileType(Decoder decoder) throws IOException {
+        byte fileSnapshotKind = decoder.readByte();
+        switch (fileSnapshotKind) {
+            case DIR_SNAPSHOT:
+                return FileType.Directory;
+            case MISSING_FILE_SNAPSHOT:
+                return FileType.Missing;
+            case REGULAR_FILE_SNAPSHOT:
+                return FileType.RegularFile;
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
@@ -96,7 +141,20 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     private void writeSnapshot(Encoder encoder, NormalizedFileSnapshot value) throws IOException {
-        contentSnapshotSerializer.write(encoder, value.getSnapshot());
+        switch (value.getType()) {
+            case Directory:
+                encoder.writeByte(DIR_SNAPSHOT);
+                break;
+            case Missing:
+                encoder.writeByte(MISSING_FILE_SNAPSHOT);
+                break;
+            case RegularFile:
+                encoder.writeByte(REGULAR_FILE_SNAPSHOT);
+                hashCodeSerializer.write(encoder, value.getContentHash());
+                break;
+            default:
+                throw new AssertionError();
+        }
 
         if (value instanceof NonNormalizedFileSnapshot) {
             encoder.writeByte(NO_NORMALIZATION);
