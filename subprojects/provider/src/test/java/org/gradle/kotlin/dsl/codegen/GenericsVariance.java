@@ -18,9 +18,9 @@ package org.gradle.kotlin.dsl.codegen;
 
 public interface GenericsVariance {
 
-    void noBound(Class<Number> type);
+    void invariant(Class<Number> type);
 
-    void upperBound(Class<? extends Number> type);
+    void covariant(Class<? extends Number> type);
 
-    void lowerBound(Class<? super Number> type);
+    void contravariant(Class<? super Number> type);
 }

@@ -24,7 +24,7 @@ public interface GroovyNamedArguments {
 
     void rawMap(Map args);
 
-    void stringQuestionMarkMap(Map<String, ?> args);
+    void stringUnknownMap(Map<String, ?> args);
 
     void stringObjectMap(Map<String, Object> args);
 

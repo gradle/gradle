@@ -50,21 +50,21 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                 fun classToKClass(subject: ClassToKClass) {
 
                     subject.rawClass(type = String::class)
-                    subject.unboundedClass(type = String::class)
-                    subject.noBoundClass(type = Number::class)
-                    subject.upperBoundClass(type = Int::class)
-                    subject.lowerBoundClass(type = Number::class)
+                    subject.unknownClass(type = String::class)
+                    subject.invariantClass(type = Number::class)
+                    subject.covariantClass(type = Int::class)
+                    subject.contravariantClass(type = Number::class)
 
                     subject.varargOfClasses(Number::class, Int::class)
                     subject.arrayOfClasses(types = arrayOf(Number::class, Int::class))
                     subject.collectionOfClasses(listOf(Number::class, Int::class))
 
                     subject.methodParameterizedClass(type = Int::class)
-                    subject.upperBoundMethodParameterizedClass(type = Int::class)
-                    subject.methodParameterizedUpperBoundClass(type = Int::class)
-                    subject.methodParameterizedLowerBoundClass(type = Int::class)
-                    subject.upperBoundMethodParameterizedUpperBoundClass(type = Int::class)
-                    subject.upperBoundMethodParameterizedLowerBoundClass(type = Int::class)
+                    subject.covariantMethodParameterizedClass(type = Int::class)
+                    subject.methodParameterizedCovariantClass(type = Int::class)
+                    subject.methodParameterizedContravariantClass(type = Int::class)
+                    subject.covariantMethodParameterizedCovariantClass(type = Int::class)
+                    subject.covariantMethodParameterizedContravariantClass(type = Int::class)
                 }
                 """
             )
@@ -82,8 +82,8 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     `rawMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`stringQuestionMarkMap`(vararg `args`: Pair<String, *>): Unit =
-                    `stringQuestionMarkMap`(mapOf(*`args`))
+                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, *>): Unit =
+                    `stringUnknownMap`(mapOf(*`args`))
                 """,
                 """
                 inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, *>): Unit =

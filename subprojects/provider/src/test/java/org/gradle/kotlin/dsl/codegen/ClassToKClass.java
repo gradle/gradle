@@ -23,13 +23,13 @@ public interface ClassToKClass {
 
     void rawClass(Class type);
 
-    void unboundedClass(Class<?> type);
+    void unknownClass(Class<?> type);
 
-    void noBoundClass(Class<Number> type);
+    void invariantClass(Class<Number> type);
 
-    void upperBoundClass(Class<? extends Number> type);
+    void covariantClass(Class<? extends Number> type);
 
-    void lowerBoundClass(Class<? super Integer> type);
+    void contravariantClass(Class<? super Integer> type);
 
     void varargOfClasses(Class<?>... types);
 
@@ -39,13 +39,13 @@ public interface ClassToKClass {
 
     <T> void methodParameterizedClass(Class<T> type);
 
-    <T extends Number> void upperBoundMethodParameterizedClass(Class<T> type);
+    <T extends Number> void covariantMethodParameterizedClass(Class<T> type);
 
-    <T> void methodParameterizedUpperBoundClass(Class<? extends T> type);
+    <T> void methodParameterizedCovariantClass(Class<? extends T> type);
 
-    <T> void methodParameterizedLowerBoundClass(Class<? super T> type);
+    <T> void methodParameterizedContravariantClass(Class<? super T> type);
 
-    <T extends Number> void upperBoundMethodParameterizedUpperBoundClass(Class<? extends T> type);
+    <T extends Number> void covariantMethodParameterizedCovariantClass(Class<? extends T> type);
 
-    <T extends Number> void upperBoundMethodParameterizedLowerBoundClass(Class<? super T> type);
+    <T extends Number> void covariantMethodParameterizedContravariantClass(Class<? super T> type);
 }

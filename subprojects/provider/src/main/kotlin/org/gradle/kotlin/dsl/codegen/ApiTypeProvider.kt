@@ -283,9 +283,9 @@ data class ApiTypeUsage(
     val sourceName: String,
     val isNullable: Boolean = false,
     val type: ApiType? = null,
+    val variance: Variance = Variance.INVARIANT,
     val typeArguments: List<ApiTypeUsage> = emptyList(),
-    val bounds: List<ApiTypeUsage> = emptyList(),
-    val bound: Bound = Bound.NONE
+    val bounds: List<ApiTypeUsage> = emptyList()
 ) {
     val isRaw: Boolean
         get() = typeArguments.isEmpty()
@@ -294,10 +294,27 @@ data class ApiTypeUsage(
 
 
 internal
-enum class Bound {
-    NONE,
-    UPPER,
-    LOWER
+enum class Variance {
+
+    /**
+     * Represent an invariant type argument.
+     * e.g. `<T>`
+     */
+    INVARIANT,
+
+    /**
+     * Represent a covariant type argument.
+     * Also known as "extends-bound" or "upper bound".
+     * e.g. `<? extends T>`
+     */
+    COVARIANT,
+
+    /**
+     * Represent a contravariant type argument.
+     * Also known as "super-bound" or "lower bound".
+     * e.g. `<? super T>`
+     */
+    CONTRAVARIANT
 }
 
 
@@ -319,9 +336,9 @@ private
 fun ApiTypeProvider.Context.apiTypeUsageFor(
     binaryName: String,
     isNullable: Boolean = false,
+    variance: Variance = Variance.INVARIANT,
     typeArguments: List<TypeSignatureVisitor> = emptyList(),
-    bounds: List<TypeSignatureVisitor> = emptyList(),
-    bound: Bound = Bound.NONE
+    bounds: List<TypeSignatureVisitor> = emptyList()
 ): ApiTypeUsage =
 
     if (binaryName == "?") starProjectionTypeUsage
@@ -330,9 +347,9 @@ fun ApiTypeProvider.Context.apiTypeUsageFor(
             sourceName,
             isNullable,
             type(sourceName),
-            typeArguments.map { apiTypeUsageFor(it.binaryName, typeArguments = it.typeArguments, bound = it.bound) },
-            bounds.map { apiTypeUsageFor(it.binaryName, typeArguments = it.typeArguments, bound = it.bound) },
-            bound)
+            variance,
+            typeArguments.map { apiTypeUsageFor(it.binaryName, variance = it.variance, typeArguments = it.typeArguments) },
+            bounds.map { apiTypeUsageFor(it.binaryName, variance = it.variance, typeArguments = it.typeArguments) })
     }
 
 
@@ -370,13 +387,13 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             val isNullable = parametersNullability?.get(idx) == true
             val signatureParameter = visitedSignature?.parameters?.get(idx)
             val parameterTypeName = signatureParameter?.binaryName ?: parameterTypeBinaryName
+            val variance = signatureParameter?.variance ?: Variance.INVARIANT
             val typeArguments = signatureParameter?.typeArguments ?: emptyList<TypeSignatureVisitor>()
-            val bound = signatureParameter?.bound ?: Bound.NONE
             ApiFunctionParameter(
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.size - 1 && delegate.access.isVarargs,
                 nameSupplier = { names?.get(idx) },
-                type = apiTypeUsageFor(parameterTypeName, isNullable, typeArguments, bound = bound)
+                type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
             )
         }
     }
@@ -387,8 +404,8 @@ fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, retu
     apiTypeUsageFor(
         returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
         delegate.visibleAnnotations.has<Nullable>(),
-        returnType?.typeArguments ?: emptyList(),
-        bound = returnType?.bound ?: Bound.NONE)
+        returnType?.variance ?: Variance.INVARIANT,
+        returnType?.typeArguments ?: emptyList())
 
 
 private
@@ -450,7 +467,7 @@ class MethodSignatureVisitor : BaseSignatureVisitor() {
 
 
 private
-class TypeSignatureVisitor(val bound: Bound = Bound.NONE) : SignatureVisitor(ASM6) {
+class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : SignatureVisitor(ASM6) {
 
     var isArray = false
 
@@ -508,9 +525,9 @@ class TypeSignatureVisitor(val bound: Bound = Bound.NONE) : SignatureVisitor(ASM
     private
     fun boundOf(wildcard: Char) =
         when (wildcard) {
-            '+' -> Bound.UPPER
-            '-' -> Bound.LOWER
-            else -> Bound.NONE
+            '+' -> Variance.COVARIANT
+            '-' -> Variance.CONTRAVARIANT
+            else -> Variance.INVARIANT
         }
 }
 

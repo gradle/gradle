@@ -134,7 +134,7 @@ fun signatureKey(extension: KotlinExtensionFunction): List<Any> = extension.run 
 
 private
 fun apiTypeKey(usage: ApiTypeUsage): List<Any> = usage.run {
-    (listOf(sourceName, isNullable, isRaw)
+    (listOf(sourceName, isNullable, isRaw, variance)
         + typeArguments.flatMap(::apiTypeKey)
         + bounds.flatMap(::apiTypeKey))
 }
@@ -328,15 +328,15 @@ fun List<ApiTypeUsage>.toTypeParametersString(type: ApiType? = null): String =
 
 private
 fun ApiTypeUsage.toTypeArgumentString(): String =
-    "${bound.toKotlinString()}$sourceName${typeArguments.toTypeArgumentsString(type)}${isNullable.toKotlinNullabilityString()}"
+    "${variance.toKotlinString()}$sourceName${typeArguments.toTypeArgumentsString(type)}${isNullable.toKotlinNullabilityString()}"
 
 
 private
-fun Bound.toKotlinString() =
+fun Variance.toKotlinString() =
     when (this) {
-        Bound.NONE -> ""
-        Bound.UPPER -> "out "
-        Bound.LOWER -> "in "
+        Variance.INVARIANT -> ""
+        Variance.COVARIANT -> "out "
+        Variance.CONTRAVARIANT -> "in "
     }
 
 
