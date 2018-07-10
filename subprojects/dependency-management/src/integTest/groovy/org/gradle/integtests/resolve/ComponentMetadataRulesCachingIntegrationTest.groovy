@@ -360,9 +360,6 @@ dependencies {
         }
 
         buildFile << """
-
-import javax.inject.Inject
-
 @CacheableRule
 class DependencyCachedRule implements ComponentMetadataRule {
 
@@ -421,5 +418,76 @@ dependencies {
             }
         }
         outputContains('Dependency rule executed')
+    }
+
+    def 'changing rule implementation invalidates cache'() {
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        def cachedRule = file('buildSrc/src/main/groovy/rule/CachedRule.groovy')
+        cachedRule.text = """
+package rule 
+
+import org.gradle.api.artifacts.ComponentMetadataRule
+import org.gradle.api.artifacts.CacheableRule
+import org.gradle.api.artifacts.ComponentMetadataContext
+
+@CacheableRule
+class CachedRule implements ComponentMetadataRule {
+
+    void execute(ComponentMetadataContext context) {
+        println 'Cached rule executed'
+    }
+}
+"""
+
+        buildFile << """
+import rule.CachedRule
+
+dependencies {
+    conf 'org.test:projectA:1.0'
+    components {
+        all(CachedRule)
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'checkDeps'
+        outputContains('Cached rule executed')
+
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+        cachedRule.text = """
+package rule 
+
+import org.gradle.api.artifacts.ComponentMetadataRule
+import org.gradle.api.artifacts.CacheableRule
+import org.gradle.api.artifacts.ComponentMetadataContext
+
+@CacheableRule
+class CachedRule implements ComponentMetadataRule {
+
+    void execute(ComponentMetadataContext context) {
+        println 'Modified cached rule executed'
+    }
+}
+"""
+
+        then:
+        succeeds 'checkDeps'
+        outputContains('Modified cached rule executed')
+
     }
 }
