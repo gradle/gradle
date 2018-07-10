@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-public class FileHashSnapshot extends AbstractFileContentSnapshot {
+public class FileHashSnapshot implements FileContentSnapshot {
     private final HashCode hash;
     private final transient long lastModified; // Currently not persisted
 

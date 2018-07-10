@@ -16,9 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -354,7 +352,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
             File candidate = new File(searchDir, includePath);
             PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
-            includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, ((PhysicalFileSnapshot) fileSnapshot).getContent()) : MISSING_INCLUDE_FILE;
+            includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSnapshot.getContent().getContentMd5()) : MISSING_INCLUDE_FILE;
             contents.put(includePath, includeFile);
             return includeFile;
         }
@@ -384,12 +382,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static class SystemIncludeFile extends CachedIncludeFile implements IncludeFile {
         final File file;
         final String includePath;
-        final FileContentSnapshot snapshot;
+        final HashCode contentHash;
 
-        SystemIncludeFile(File file, String includePath, FileContentSnapshot snapshot) {
+        SystemIncludeFile(File file, String includePath, HashCode contentHash) {
             this.file = file;
             this.includePath = includePath;
-            this.snapshot = snapshot;
+            this.contentHash = contentHash;
         }
 
         @Override
@@ -409,12 +407,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         @Override
         FileType getType() {
-            return snapshot.getType();
+            return FileType.RegularFile;
         }
 
         @Override
         public HashCode getContentHash() {
-            return snapshot.getContentMd5();
+            return contentHash;
         }
 
         @Override
@@ -426,24 +424,24 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 return false;
             }
             SystemIncludeFile other = (SystemIncludeFile) obj;
-            return Objects.equal(file, other.file) && snapshot.equals(other.snapshot);
+            return Objects.equal(file, other.file) && contentHash.equals(other.contentHash);
         }
 
         @Override
         public int hashCode() {
-            return snapshot.hashCode();
+            return contentHash.hashCode();
         }
 
         IncludeFile toIncludeFile(boolean quotedPath) {
             if (quotedPath) {
-                return new QuotedIncludeFile(file, includePath, snapshot);
+                return new QuotedIncludeFile(file, includePath, contentHash);
             }
             return this;
         }
 
         private static class QuotedIncludeFile extends SystemIncludeFile {
-            QuotedIncludeFile(File file, String includePath, FileContentSnapshot snapshot) {
-                super(file, includePath, snapshot);
+            QuotedIncludeFile(File file, String includePath, HashCode contentHash) {
+                super(file, includePath, contentHash);
             }
 
             @Override

@@ -20,9 +20,9 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -141,7 +141,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         Map<File, String> snapshots = [:]
         strategy.collectSnapshots(roots).each { path, normalizedSnapshot ->
             String normalizedPath
-            if (normalizedSnapshot instanceof FileContentSnapshot) {
+            if (normalizedSnapshot instanceof IgnoredPathFingerprint) {
                 normalizedPath = IGNORED
             } else {
                 normalizedPath = normalizedSnapshot.normalizedPath

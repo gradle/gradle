@@ -31,9 +31,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
@@ -325,7 +323,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
             boolean root = relativePathHolder.isRoot();
             relativePathHolder.enter(directorySnapshot.getName());
-            assertCorrectType(root, directorySnapshot.getAbsolutePath(), DirContentSnapshot.INSTANCE);
+            assertCorrectType(root, directorySnapshot.getAbsolutePath(), FileType.Directory);
             String targetPath = getTargetPath(root);
             int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
             storeDirectoryEntry(targetPath, mode, tarOutput);
@@ -341,7 +339,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             if (fileSnapshot.getType() == FileType.Missing) {
                 storeMissingProperty(targetPath, tarOutput);
             } else {
-                assertCorrectType(root, fileSnapshot.getAbsolutePath(), fileSnapshot.getContent());
+                assertCorrectType(root, fileSnapshot.getAbsolutePath(), fileSnapshot.getType());
                 File file = new File(fileSnapshot.getAbsolutePath());
                 int mode = fileSystem.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
@@ -363,16 +361,16 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             return entries;
         }
 
-        private void assertCorrectType(boolean root, String absolutePath, FileContentSnapshot content) {
+        private void assertCorrectType(boolean root, String absolutePath, FileType fileType) {
             if (root) {
                 switch (outputType) {
                     case DIRECTORY:
-                        if (content.getType() != FileType.Directory) {
+                        if (fileType != FileType.Directory) {
                             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", absolutePath));
                         }
                         break;
                     case FILE:
-                        if (content.getType() != FileType.RegularFile) {
+                        if (fileType != FileType.RegularFile) {
                             throw new IllegalArgumentException(String.format("Expected '%s' to be a file", absolutePath));
                         }
                         break;

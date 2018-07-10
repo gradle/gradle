@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
@@ -34,6 +33,7 @@ import org.gradle.api.internal.changedetection.state.mirror.RelativePathTracker;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -109,7 +109,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
         public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
             if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
-                NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new FileHashSnapshot(normalizedContentHash) : createNormalizedSnapshot(fileSnapshot.getName(), normalizedContentHash);
+                NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createNormalizedSnapshot(fileSnapshot.getName(), normalizedContentHash);
                 rootBuilder.put(
                     fileSnapshot.getAbsolutePath(),
                     normalizedFileSnapshot);

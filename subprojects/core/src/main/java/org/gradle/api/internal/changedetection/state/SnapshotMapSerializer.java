@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -61,7 +62,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         FileType fileType = readFileType(decoder);
         HashCode contentHash = readContentHash(fileType, decoder);
 
-        int normalizedSnapshotKind = decoder.readByte();
+        byte normalizedSnapshotKind = decoder.readByte();
         switch (normalizedSnapshotKind) {
             case NO_NORMALIZATION:
                 return new NonNormalizedFileSnapshot(absolutePath, fileType, contentHash);
@@ -69,20 +70,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
                 String normalizedPath = decoder.readString();
                 return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), fileType, contentHash);
             case IGNORED_PATH_NORMALIZATION:
-                return createIgnoredPathFingerprint(fileType, contentHash);
-            default:
-                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
-        }
-    }
-
-    private NormalizedFileSnapshot createIgnoredPathFingerprint(FileType fileType, HashCode contentHash) {
-        switch (fileType) {
-            case Directory:
-                return DirContentSnapshot.INSTANCE;
-            case Missing:
-                return MissingFileContentSnapshot.INSTANCE;
-            case RegularFile:
-                return new FileHashSnapshot(contentHash);
+                return IgnoredPathFingerprint.create(fileType, contentHash);
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
@@ -161,7 +149,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         } else if (value instanceof DefaultNormalizedFileSnapshot) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
             encoder.writeString(value.getNormalizedPath());
-        } else if (value instanceof FileContentSnapshot) {
+        } else if (value instanceof IgnoredPathFingerprint) {
             encoder.writeByte(IGNORED_PATH_NORMALIZATION);
         } else {
             throw new AssertionError();

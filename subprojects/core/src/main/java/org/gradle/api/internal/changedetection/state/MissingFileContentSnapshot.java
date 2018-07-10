@@ -20,7 +20,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-public class MissingFileContentSnapshot extends AbstractFileContentSnapshot {
+public class MissingFileContentSnapshot implements FileContentSnapshot {
     public static final MissingFileContentSnapshot INSTANCE = new MissingFileContentSnapshot();
     private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileContentSnapshot.class.getName());
 
