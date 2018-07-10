@@ -184,6 +184,22 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         source.iterator().collect() == ["foo", "fizz"]
     }
 
+    def "can remove an element from a provider of set"() {
+        given:
+        def barBaz = providerOfSet("bar", "baz")
+        source.add("foo")
+        source.addPendingCollection(barBaz)
+        source.add("fizz")
+        source.iterator()
+
+        expect:
+        source.remove("bar")
+
+        and:
+        source.size() == 3
+        source.iterator().collect() == ["foo", "baz", "fizz"]
+    }
+
     def "can remove a realized provider"() {
         given:
         source.add("foo")

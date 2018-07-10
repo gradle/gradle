@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -60,7 +61,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     public int size() {
         int count = 0;
         for (SetElement element : inserted) {
-            count += element.provider.size();
+            count += element.size();
         }
         return count;
     }
@@ -126,8 +127,11 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             SetElement element = iterator.next();
             if (element.realized) {
                 Set<T> values = element.getValues();
-                if (values.size() == 1 && values.iterator().next().equals(o)) {
-                    iterator.remove();
+                if (values.contains(o)) {
+                    element.removed.add((T)o);
+                    if (values.size() == 1) {
+                        iterator.remove();
+                    }
                     return added.remove(o);
                 }
             }
@@ -207,6 +211,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     private class SetElement {
         private CollectionProviderInternal<T, Set<T>> provider;
+        private Set<T> removed = Sets.newHashSet();
         private Set<T> value;
         private boolean realized;
 
@@ -235,10 +240,18 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             this.realized = true;
         }
 
+        public int size() {
+            return provider.size() - removed.size();
+        }
+
         public Set<T> getValues() {
             if (value == null) {
                 value = provider.get();
                 realized = true;
+            }
+            if (!removed.isEmpty()) {
+                value = Sets.newLinkedHashSet(value);
+                value.removeAll(removed);
             }
             return value;
         }
