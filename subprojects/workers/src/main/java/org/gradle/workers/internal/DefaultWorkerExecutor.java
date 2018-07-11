@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.file.PathToFileResolver;
@@ -32,7 +31,6 @@ import org.gradle.internal.work.AbstractConditionalExecution;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueue;
-import org.gradle.internal.work.ConditionalExecutionQueueFactory;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
@@ -49,8 +47,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
-    public static final String QUEUE_DISPLAY_NAME = "WorkerExecutor Queue";
+public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
     private final WorkerFactory daemonWorkerFactory;
     private final WorkerFactory isolatedClassloaderWorkerFactory;
@@ -63,21 +60,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
 
     public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
                                  PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
-                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
+                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
         this.fileResolver = fileResolver;
-        this.executionQueue = conditionalExecutionQueueFactory.create(QUEUE_DISPLAY_NAME, DefaultWorkResult.class);
+        this.executionQueue = workerExecutionQueueFactory.create();
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
-    }
-
-    @Override
-    public void stop() {
-        executionQueue.stop();
     }
 
     @Override

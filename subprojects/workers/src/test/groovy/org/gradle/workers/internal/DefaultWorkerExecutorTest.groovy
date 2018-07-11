@@ -22,7 +22,6 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
 import org.gradle.internal.work.ConditionalExecutionQueue
-import org.gradle.internal.work.ConditionalExecutionQueueFactory
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
@@ -47,7 +46,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
     def runnable = Mock(Runnable)
     def instantiatorFactory = Mock(InstantiatorFactory)
-    def executionQueueFactory = Mock(ConditionalExecutionQueueFactory)
+    def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
     def worker = Mock(Worker)
     ConditionalExecution task
@@ -56,7 +55,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def setup() {
         _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
         _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
-        _ * executionQueueFactory.create(_, _) >> executionQueue
+        _ * executionQueueFactory.create() >> executionQueue
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory)
     }
 
