@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.config.addKotlinSourceRoot
@@ -209,6 +210,10 @@ private
 val languageVersionSettings = LanguageVersionSettingsImpl(
     languageVersion = LanguageVersion.KOTLIN_1_2,
     apiVersion = ApiVersion.KOTLIN_1_2,
+    specificFeatures = mapOf(
+        LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
+        LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
+    ),
     analysisFlags = mapOf(
         AnalysisFlag.skipMetadataVersionCheck to true
     )
