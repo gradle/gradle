@@ -43,8 +43,9 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
 
                 @Override
                 public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-                    if (processedEntries.add(directorySnapshot.getAbsolutePath())) {
-                        builder.put(directorySnapshot.getAbsolutePath(), new NonNormalizedFileSnapshot(directorySnapshot));
+                    String absolutePath = directorySnapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
+                        builder.put(absolutePath, new NonNormalizedFileSnapshot(directorySnapshot));
                     }
                     return true;
                 }
@@ -54,8 +55,9 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
                     if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }
-                    if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
-                        builder.put(fileSnapshot.getAbsolutePath(), new NonNormalizedFileSnapshot(fileSnapshot));
+                    String absolutePath = fileSnapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
+                        builder.put(absolutePath, new NonNormalizedFileSnapshot(fileSnapshot));
                     }
                 }
 

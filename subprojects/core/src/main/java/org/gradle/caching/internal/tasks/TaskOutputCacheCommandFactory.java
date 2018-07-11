@@ -168,10 +168,7 @@ public class TaskOutputCacheCommandFactory {
                     default:
                         throw new AssertionError();
                 }
-                propertySnapshotsBuilder.put(propertyName, new DefaultFileCollectionFingerprint(
-                    fingerprintingStrategy,
-                    roots
-                ));
+                propertySnapshotsBuilder.put(propertyName, new DefaultFileCollectionFingerprint(roots, fingerprintingStrategy));
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
         }

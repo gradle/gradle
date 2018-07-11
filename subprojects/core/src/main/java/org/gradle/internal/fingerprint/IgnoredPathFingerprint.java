@@ -93,4 +93,9 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
     public int hashCode() {
         return normalizedContentHash.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return String.format("IGNORED / %s", getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : normalizedContentHash);
+    }
 }

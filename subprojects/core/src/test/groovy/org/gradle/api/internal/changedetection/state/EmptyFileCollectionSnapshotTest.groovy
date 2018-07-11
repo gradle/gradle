@@ -27,10 +27,10 @@ import spock.lang.Specification
 
 class EmptyFileCollectionSnapshotTest extends Specification {
     def "comparing empty snapshot to regular snapshot shows entries added"() {
-        def snapshot = new DefaultFileCollectionFingerprint(FingerprintCompareStrategy.ABSOLUTE, [
+        def snapshot = new DefaultFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], null)
+        ], FingerprintCompareStrategy.ABSOLUTE, null)
         expect:
         getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, false).empty
         getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, true) == [
@@ -40,10 +40,10 @@ class EmptyFileCollectionSnapshotTest extends Specification {
     }
 
     def "comparing regular snapshot to empty snapshot shows entries removed"() {
-        def snapshot = new DefaultFileCollectionFingerprint(FingerprintCompareStrategy.ABSOLUTE, [
+        def snapshot = new DefaultFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], null)
+        ], FingerprintCompareStrategy.ABSOLUTE, null)
         expect:
         getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),

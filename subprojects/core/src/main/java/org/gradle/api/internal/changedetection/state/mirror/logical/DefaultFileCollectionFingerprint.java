@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
@@ -38,24 +39,24 @@ import java.util.Map;
 
 public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot {
 
-    private final FingerprintCompareStrategy strategy;
     private final Map<String, NormalizedFileSnapshot> snapshots;
+    private final FingerprintCompareStrategy strategy;
     private final Iterable<PhysicalSnapshot> roots;
     private HashCode hash;
 
-    public DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash) {
-        this(strategy, snapshots, hash, null);
+    public DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable HashCode hash) {
+        this(snapshots, strategy, null, hash);
     }
 
-    public DefaultFileCollectionFingerprint(FingerprintingStrategy strategy, Iterable<PhysicalSnapshot> roots) {
-        this(strategy.getCompareStrategy(), strategy.collectSnapshots(roots), null, roots);
+    public DefaultFileCollectionFingerprint(Iterable<PhysicalSnapshot> roots, FingerprintingStrategy strategy) {
+        this(strategy.collectSnapshots(roots), strategy.getCompareStrategy(), roots, null);
     }
 
-    private DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash, @Nullable Iterable<PhysicalSnapshot> roots) {
-        this.strategy = strategy;
+    private DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable Iterable<PhysicalSnapshot> roots, @Nullable HashCode hash) {
         this.snapshots = snapshots;
-        this.hash = hash;
+        this.strategy = strategy;
         this.roots = roots;
+        this.hash = hash;
     }
 
     @Override
@@ -93,6 +94,11 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
         hasher.putHash(getHash());
     }
 
+    @VisibleForTesting
+    FingerprintCompareStrategy getStrategy() {
+        return strategy;
+    }
+
     public static class SerializerImpl implements Serializer<DefaultFileCollectionFingerprint> {
 
         private final HashCodeSerializer hashCodeSerializer;
@@ -110,7 +116,7 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
             boolean hasHash = decoder.readBoolean();
             HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new DefaultFileCollectionFingerprint(compareStrategy, snapshots, hash);
+            return new DefaultFileCollectionFingerprint(snapshots, compareStrategy, hash);
         }
 
         @Override

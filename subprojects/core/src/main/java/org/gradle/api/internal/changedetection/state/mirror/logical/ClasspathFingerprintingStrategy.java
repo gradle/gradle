@@ -112,10 +112,11 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
-            if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
+            String absolutePath = fileSnapshot.getAbsolutePath();
+            if (processedEntries.add(absolutePath)) {
                 NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createNormalizedSnapshot(fileSnapshot.getName(), normalizedContentHash);
                 rootBuilder.put(
-                    fileSnapshot.getAbsolutePath(),
+                    absolutePath,
                     normalizedFileSnapshot);
             }
         }
