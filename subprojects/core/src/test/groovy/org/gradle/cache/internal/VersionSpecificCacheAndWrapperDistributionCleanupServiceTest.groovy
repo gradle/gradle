@@ -38,21 +38,17 @@ class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Speci
         given:
         def oldVersion = GradleVersion.version("2.3.4")
         def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldAllDist = createDistributionDir(oldVersion, "all")
-        def oldBinDist = createDistributionDir(oldVersion, "bin")
-        def currentAllDist = createDistributionDir(currentVersion, "all")
-        def currentBinDist = createDistributionDir(currentVersion, "bin")
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
 
         when:
         cleanupService.stop()
 
         then:
         oldCacheDir.assertDoesNotExist()
-        oldAllDist.assertDoesNotExist()
-        oldBinDist.assertDoesNotExist()
+        oldDist.assertDoesNotExist()
         currentCacheDir.assertExists()
-        currentAllDist.assertExists()
-        currentBinDist.assertExists()
+        currentDist.assertExists()
     }
 
     @Override
