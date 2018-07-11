@@ -95,6 +95,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
 - [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
 - [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
+- [Mike Kobit](https://github.com/mkobit) - Add ability to use `RegularFile` and `Directory` as publishable artifacts (gradle/gradle#5109)
 
 ## Known issues
 
