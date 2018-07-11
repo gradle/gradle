@@ -27,7 +27,6 @@
     <!-- NOTE: Asciidoctor file names must match their declared URL paths, camel-cased -->
     <part>
         <title>About Gradle</title>
-        <xi:include href='../../../build/asciidoc/userguide/introduction.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/overview.xml'/>
     </part>
     <part>
@@ -102,7 +101,6 @@
         <xi:include href='../../../build/asciidoc/userguide/basePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaLibraryPlugin.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/webProjectTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/warPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/earPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/jettyPlugin.xml'/>

@@ -122,7 +122,7 @@ These plugins provide some integration with various runtime technologies.
 | <<war_plugin#, `war`>>
 | `java`
 | -
-| Adds support for assembling web application WAR files. See also <<web_project_tutorial#,this tutorial for web projects>>.
+| Adds support for assembling web application WAR files.
 |===
 
 
