@@ -29,6 +29,7 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         """
             repositories {
                 $testRepositories
+                kotlinDev()
             }
             $repositoriesBlock
         """

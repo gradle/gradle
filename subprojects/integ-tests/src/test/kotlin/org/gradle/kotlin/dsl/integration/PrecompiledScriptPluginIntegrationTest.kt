@@ -2,14 +2,11 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
-import org.junit.Ignore
 import org.junit.Test
 
 
 class PrecompiledScriptPluginIntegrationTest : AbstractPluginTest() {
 
-    //TODO:kotlin-eap
-    @Ignore("wip: Kotlin 1.2.60-eap-7")
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {
 
