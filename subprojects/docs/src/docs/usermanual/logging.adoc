@@ -18,30 +18,15 @@
 The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need relevant information for figuring out if things have gone wrong. Gradle defines 6 log levels, as shown in <<#logLevels,Log levels>>. There are two Gradle-specific log levels, in addition to the ones you might normally see. Those levels are _QUIET_ and _LIFECYCLE_. The latter is the default, and is used to report build progress.
 
 [[logLevels]]
-.Log levels
-[cols="a,a", options="header"]
-|===
-| Level
-| Used for
+== Log levels
 
-| ERROR
-| Error messages
-
-| QUIET
-| Important information messages
-
-| WARNING
-| Warning messages
-
-| LIFECYCLE
-| Progress information messages
-
-| INFO
-| Information messages
-
-| DEBUG
-| Debug messages
-|===
+[horizontal]
+ERROR:: Error messages
+QUIET:: Important information messages
+WARNING:: Warning messages
+LIFECYCLE:: Progress information messages
+INFO:: Information messages
+DEBUG:: Debug messages
 
 [NOTE]
 ====
@@ -58,43 +43,28 @@ You can use the command line switches shown in <<#logLevelCommandLineOptions, Lo
 
 [[logLevelCommandLineOptions]]
 .Log level command-line options
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Option
-| Outputs Log Levels
-
-| no logging options
-| LIFECYCLE and higher
-
-| `-q` or `--quiet`
-| QUIET and higher
-
-| `-w` or `--warn`
-| WARN and higher
-
-| `-i` or `--info`
-| INFO and higher
-
-| `-d` or `--debug`
-| DEBUG and higher (that is, all log messages)
+| Option | Outputs Log Levels
+| no logging options | LIFECYCLE and higher
+| `-q` or `--quiet` | QUIET and higher
+| `-w` or `--warn` | WARN and higher
+| `-i` or `--info` | INFO and higher
+| `-d` or `--debug` | DEBUG and higher (that is, all log messages)
 |===
 
 [[stacktraces]]
-.Stacktrace command-line options
-[cols="a,a", options="header"]
-|===
-| Option
-| Meaning
 
-| No stacktrace options
-| No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the `DEBUG` log level is chosen, truncated stacktraces are always printed.
+=== Stacktrace command-line options
 
-| `-s` or `--stacktrace`
-| Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in _your_ code.) This option renders stacktraces for deprecation warnings.
+`-s` or `--stacktrace`::
+Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information for what has gone wrong in _your_ code.) This option renders stacktraces for deprecation warnings.
 
-| `-S` or `--full-stacktrace`
-| The full stacktraces are printed out. This option renders stacktraces for deprecation warnings.
-|===
+`-S` or `--full-stacktrace`::
+The full stacktraces are printed out. This option renders stacktraces for deprecation warnings.
+
+&lt;No stacktrace options&gt;::
+No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the `DEBUG` log level is chosen, truncated stacktraces are always printed.
 
 
 [[sec:sending_your_own_log_messages]]
@@ -171,7 +141,7 @@ Gradle also provides integration with the Java Util Logging, Jakarta Commons Log
 [[sec:changing_what_gradle_logs]]
 == Changing what Gradle logs
 
-You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to customize the UI in some way - to log more or less information, or to change the formatting. You replace the logging using the api:org.gradle.api.invocation.Gradle#useLogger[] method. This is accessible from a build script, or an init script, or via the embedding API. Note that this completely disables Gradle's default output. Below is an example init script which changes how task execution and build completion is logged.
+You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to customize the UI in some way - to log more or less information, or to change the formatting. You replace the logging using the link:{groovy-dsl-path}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)[Gradle.useLogger(java.lang.Object)] method. This is accessible from a build script, or an init script, or via the embedding API. Note that this completely disables Gradle's default output. Below is an example init script which changes how task execution and build completion is logged.
 
 === Example: Customizing what Gradle logs
 
