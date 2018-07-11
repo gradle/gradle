@@ -43,10 +43,9 @@ import org.gradle.api.provider.PropertyState
 
 import org.gradle.api.tasks.TaskContainer
 
-import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.support.configureWith
-import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.io.File
 
@@ -236,11 +235,19 @@ fun Project.gradleKotlinDsl(): Dependency =
 
 fun Project.gradleKotlinDslJars(): FileCollection =
     fileCollectionOf(
-        project.serviceOf<KotlinScriptClassPathProvider>().gradleKotlinDslJars.asFiles.filter {
-            !it.name.startsWith("kotlin")
-        },
+        kotlinScriptClassPathProviderOf(project).gradleKotlinDslJars.asFiles.filter(::isGradleKotlinDslJar),
         "gradleKotlinDsl"
     )
+
+
+internal
+fun isGradleKotlinDslJar(file: File) =
+    isGradleKotlinDslJarName(file.name)
+
+
+internal
+fun isGradleKotlinDslJarName(jarName: String) =
+    jarName.startsWith("gradle-kotlin-dsl-")
 
 
 @Deprecated("Will be removed in 1.0", ReplaceWith("gradleKotlinDsl()"))

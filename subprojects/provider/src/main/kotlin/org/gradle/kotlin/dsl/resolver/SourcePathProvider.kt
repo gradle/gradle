@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.internal.classpath.ClassPath
 
+import org.gradle.kotlin.dsl.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.filter
 
 import java.io.File
@@ -35,7 +36,7 @@ object SourcePathProvider {
         sourceDistributionResolver: SourceDistributionProvider
     ): ClassPath {
 
-        val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
+        val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
         val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it, sourceDistributionResolver) } ?: emptyList()
 
