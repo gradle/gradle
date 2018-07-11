@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.alignment
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -43,24 +44,10 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:core:1.0' {
-                expectGetMetadata()
-            }
-            'org:xml:1.0' {
-                expectGetMetadata()
-            }
-            'org:core:1.1' {
-                expectResolve()
-            }
-            'org:json:1.1' {
-                expectResolve()
-            }
-            'org:xml:1.1' {
-                expectResolve()
-            }
-            'org:platform:1.0'(virtualPlatform)
-            'org:platform:1.1'(virtualPlatform)
+        expectAlignment {
+            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('json') alignsTo('1.1') byVirtualPlatform()
         }
         run ':checkDeps'
 
@@ -100,31 +87,14 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:core:1.0' {
-                expectGetMetadata()
-            }
-            'org:xml:1.0' {
-                expectGetMetadata()
-            }
-            'org:core:1.1' {
-                expectResolve()
-            }
-            'org:json:1.1' {
-                expectResolve()
-            }
-            'org:xml:1.1' {
-                expectResolve()
-            }
-            'org:platform:1.0'(virtualPlatform)
-            'org:platform:1.1'(virtualPlatform)
+        expectAlignment {
+            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('json') alignsTo('1.1') byVirtualPlatform()
 
-            'outside:module:1.0' {
-                // this will NOT upgrade to 1.1, despite core being 1.1, because this module
-                // does not belong to the same platform
-                expectResolve()
-            }
-            'outside:platform:1.0'(virtualPlatform)
+            // the following will NOT upgrade to 1.1, despite core being 1.1, because this module
+            // does not belong to the same platform
+            module('module') group('outside') alignsTo('1.0') byVirtualPlatform('outside', 'platform')
         }
         run ':checkDeps'
 
@@ -165,24 +135,10 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:xml:1.0' {
-                expectGetMetadata()
-            }
-            'org:json:1.0' {
-                expectGetMetadata()
-            }
-            'org:core:1.1' {
-                expectResolve()
-            }
-            'org:json:1.1' {
-                expectResolve()
-            }
-            'org:xml:1.1' {
-                expectResolve()
-            }
-            'org:platform:1.0'(virtualPlatform)
-            'org:platform:1.1'(virtualPlatform)
+        expectAlignment {
+            module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('json') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('core') alignsTo('1.1') byVirtualPlatform()
         }
         run ':checkDeps'
 
@@ -220,22 +176,10 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:core:1.0' {
-                expectGetMetadata()
-            }
-            'org:xml:1.0' {
-                expectResolve()
-            }
-            'org:core:1.1' {
-                expectResolve()
-            }
-            'org:json:1.1' {
-                expectResolve()
-            }
-            'org:xml:1.1'(virtualPlatform)
-            'org:platform:1.0'(virtualPlatform)
-            'org:platform:1.1'(virtualPlatform)
+        expectAlignment {
+            module('xml') misses('1.1') alignsTo('1.0') byVirtualPlatform()
+            module('core') tries('1.0') alignsTo('1.1')
+            module('json') alignsTo('1.1') byVirtualPlatform()
         }
         run ':checkDeps'
 
@@ -273,22 +217,10 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:xml:1.0' {
-                expectGetMetadata()
-            }
-            'org:core:1.0' {
-                expectResolve()
-            }
-            'org:core:1.1'(virtualPlatform)
-            'org:json:1.1' {
-                expectResolve()
-            }
-            'org:xml:1.1' {
-                expectResolve()
-            }
-            'org:platform:1.0'(virtualPlatform)
-            'org:platform:1.1'(virtualPlatform)
+        expectAlignment {
+            module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('core') misses('1.1') alignsTo('1.0')
+            module('json') alignsTo('1.1') byVirtualPlatform()
         }
         run ':checkDeps'
 
@@ -335,35 +267,11 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:core:2.9.4' {
-                expectResolve()
-            }
-            'org:databind:2.7.9' {
-                expectGetMetadata()
-            }
-            'org:kt:2.9.4.1' {
-                expectResolve()
-            }
-            'org:core:2.9.4.1'(virtualPlatform)
-            'org:databind:2.9.4.1'(virtualPlatform)
-            'org:annotations:2.9.4.1'(virtualPlatform)
-            'org:databind:2.9.4' {
-                expectResolve()
-            }
-            'org:annotations:2.9.4' {
-                expectResolve()
-            }
-            'org:platform:2.9.4.1'(virtualPlatform)
-            'org:platform:2.9.4'(virtualPlatform)
-            'org:platform:2.9.0'(virtualPlatform)
-            'org:platform:2.7.9'(virtualPlatform)
-            'org:annotations:2.7.9' {
-                expectGetMetadata()
-            }
-            'org:annotations:2.9.0' {
-                expectGetMetadata()
-            }
+        expectAlignment {
+            module('core') misses('2.9.4.1') alignsTo('2.9.4') byVirtualPlatform()
+            module('databind') tries('2.7.9') misses('2.9.4.1') alignsTo('2.9.4') byVirtualPlatform()
+            module('annotations') tries('2.7.9', '2.9.0') misses('2.9.4.1') alignsTo('2.9.4') byVirtualPlatform()
+            module('kt') alignsTo('2.9.4.1') byVirtualPlatform()
         }
         run ':checkDeps'
 
@@ -409,32 +317,11 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            'org:core:2.9.4' {
-                expectResolve()
-            }
-            'org:databind:2.7.9' {
-                expectGetMetadata()
-            }
-            'org:kt:2.9.4.1' {
-                expectResolve()
-            }
-            'org:core:2.9.4.1'(virtualPlatform)
-            'org:databind:2.9.4.1'(virtualPlatform)
-            'org:annotations:2.9.4.1'(virtualPlatform)
-            'org:databind:2.9.4' {
-                expectResolve()
-            }
-            'org:annotations:2.9.4' {
-                expectResolve()
-            }
-            'org:platform:2.9.4.1'(virtualPlatform)
-            'org:platform:2.9.4'(virtualPlatform)
-            'org:platform:2.9.0'(virtualPlatform)
-            'org:platform:2.7.9'(virtualPlatform)
-            'org:annotations:2.9.0' {
-                expectGetMetadata()
-            }
+        expectAlignment {
+            module('core') misses('2.9.4.1') alignsTo('2.9.4') byVirtualPlatform()
+            module('databind') tries('2.7.9') misses('2.9.4.1') alignsTo('2.9.4') byVirtualPlatform()
+            module('annotations') tries('2.9.0') misses('2.9.4.1') alignsTo('2.9.4') byVirtualPlatform()
+            module('kt') alignsTo('2.9.4.1') byVirtualPlatform()
         }
         run ':checkDeps'
 
@@ -516,37 +403,13 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
 
 
         when:
-        repositoryInteractions {
-            'org:core:2.9.4' {
-                expectResolve()
-            }
-            'org:databind:2.7.9' {
-                expectGetMetadata()
-            }
-            'org:kt:2.9.4.1' {
-                expectResolve()
-            }
-            'org:databind:2.9.4' {
-                expectResolve()
-            }
-            'org:annotations:2.9.4' {
-                expectResolve()
-            }
-            'org:platform:2.7.9' {
-                expectGetMetadata()
-            }
-            'org:platform:2.9.4.1' {
-                expectGetMetadata()
-            }
-            'org:platform:2.9.4' {
-                expectGetMetadata()
-            }
-            'org:annotations:2.7.9' {
-                expectGetMetadata()
-            }
-            'org:annotations:2.9.0' {
-                expectGetMetadata()
-            }
+        expectAlignment {
+            module('core') alignsTo('2.9.4') byPublishedPlatform()
+            module('databind') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
+            module('annotations') tries('2.7.9', '2.9.0') alignsTo('2.9.4') byPublishedPlatform()
+            module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
+
+            doesNotGetPlatform("org", "platform", "2.9.0") // because of conflict resolution
         }
         run ':checkDeps'
 
@@ -593,35 +456,11 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
+        expectAlignment {
             ['org', 'org2'].each { group ->
-                "$group:core:1.0" {
-                    expectGetMetadata()
-                }
-                "$group:xml:1.0" {
-                    expectGetMetadata()
-                }
-                "$group:core:1.1" {
-                    expectResolve()
-                }
-                "$group:json:1.1" {
-                    expectResolve()
-                }
-                "$group:xml:1.1" {
-                    expectResolve()
-                }
-                "$group:platform:1.0" {
-                    expectGetMetadataMissing()
-                    if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                        expectHeadArtifactMissing()
-                    }
-                }
-                "$group:platform:1.1" {
-                    expectGetMetadataMissing()
-                    if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                        expectHeadArtifactMissing()
-                    }
-                }
+                module('core') group(group) tries('1.0') alignsTo('1.1') byVirtualPlatform(group)
+                module('xml') group(group) tries('1.0') alignsTo('1.1') byVirtualPlatform(group)
+                module('json') group(group) alignsTo('1.1') byVirtualPlatform(group)
             }
         }
         run ':checkDeps'
@@ -672,33 +511,14 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         "align the 'org' group only"()
 
         when:
-        repositoryInteractions {
-            'org:xml:1.0' {
-                expectResolve()
-            }
-            'org:core:1.0' {
-                expectResolve()
-            }
-            'org2:foo:1.0' {
-                expectResolve()
-            }
-            'org3:bar:1.0' {
-                expectResolve()
-            }
-            'org4:a:1.0' {
-                expectGetMetadata()
-            }
-            'org4:a:1.1' {
-                expectResolve()
-            }
-            'org4:b:1.1' {
-                expectResolve()
-            }
-            'org:json:1.1' {
-                expectGetMetadata()
-            }
-            'org:platform:1.0'(virtualPlatform)
-
+        expectAlignment {
+            module('xml') alignsTo('1.0') byVirtualPlatform()
+            module('core') alignsTo('1.0')
+            module('json') tries('1.1')
+            module('foo') group('org2') alignsTo('1.0')
+            module('bar') group('org3') alignsTo('1.0')
+            module('a') group('org4') tries('1.0') alignsTo('1.1')
+            module('b') group('org4') alignsTo('1.1')
         }
         run ':checkDeps'
 
@@ -767,8 +587,8 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             'org:json:1.1' {
                 expectResolve()
             }
-            'org:platform:1.0'(virtualPlatform)
-            'org:platform:1.1'(virtualPlatform)
+            'org:platform:1.0'(VIRTUAL_PLATFORM)
+            'org:platform:1.1'(VIRTUAL_PLATFORM)
         }
         run ':checkDeps'
 
@@ -823,10 +643,148 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         """
     }
 
-    final Closure<Void> virtualPlatform = {
+    final static Closure<Void> VIRTUAL_PLATFORM = {
         expectGetMetadataMissing()
         if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
             expectHeadArtifactMissing()
+        }
+    }
+
+    void expectAlignment(@DelegatesTo(value = AlignmentSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def align = new AlignmentSpec()
+        spec.delegate = align
+        spec.resolveStrategy = Closure.DELEGATE_FIRST
+        spec()
+        repositoryInteractions {
+            align.applyTo(repoSpec)
+        }
+    }
+
+    static class AlignmentSpec {
+        final List<ModuleAlignmentSpec> specs = []
+        final Set<String> skipsPlatformMetadata = []
+
+        ModuleAlignmentSpec module(String name) {
+            def spec = new ModuleAlignmentSpec(name: name)
+            specs << spec
+            spec
+        }
+
+        void doesNotGetPlatform(String group='org', String name='platform', String version='1.0') {
+            skipsPlatformMetadata << "$group:$name:$version"
+        }
+
+        void applyTo(RemoteRepositorySpec spec) {
+            Set<String> virtualPlatforms = [] as Set
+            Set<String> publishedPlatforms = [] as Set
+            Set<String> resolvesToVirtual = [] as Set
+
+            specs.each {
+                it.applyTo(spec)
+                if (it.virtualPlatform) {
+                    it.seenVersions.each { v ->
+                        virtualPlatforms << "${it.virtualPlatform}:$v"
+                    }
+                    resolvesToVirtual << "${it.virtualPlatform}:$it.alignsTo"
+                } else if (it.publishedPlatform) {
+                    // for published platforms, we know there's no artifacts, so it's actually easier
+                    it.seenVersions.each { v ->
+                        publishedPlatforms << "${it.publishedPlatform}:$v"
+                    }
+                    publishedPlatforms << "${it.publishedPlatform}:$it.alignsTo"
+                }
+            }
+            virtualPlatforms.remove(resolvesToVirtual)
+            virtualPlatforms.removeAll(skipsPlatformMetadata)
+            resolvesToVirtual.removeAll(skipsPlatformMetadata)
+            publishedPlatforms.removeAll(skipsPlatformMetadata)
+            virtualPlatforms.each { p ->
+                spec."$p"(VIRTUAL_PLATFORM)
+            }
+            publishedPlatforms.each { p ->
+                spec."$p" {
+                    expectGetMetadata()
+                }
+            }
+            resolvesToVirtual.each {
+                spec."$it"(VIRTUAL_PLATFORM)
+            }
+        }
+
+    }
+
+    static class ModuleAlignmentSpec {
+        String group = 'org'
+        String name
+        List<String> seenVersions = []
+        List<String> misses = []
+        String alignsTo
+        String virtualPlatform
+        String publishedPlatform
+
+        ModuleAlignmentSpec group(String group) {
+            this.group = group
+            this
+        }
+
+        ModuleAlignmentSpec name(String name) {
+            this.name = name
+            this
+        }
+
+        ModuleAlignmentSpec tries(String... versions) {
+            Collections.addAll(seenVersions, versions)
+            this
+        }
+
+        ModuleAlignmentSpec misses(String... versions) {
+            Collections.addAll(misses, versions)
+            this
+        }
+
+        ModuleAlignmentSpec alignsTo(String version) {
+            this.alignsTo = version
+            this
+        }
+
+        ModuleAlignmentSpec byVirtualPlatform(String group='org', String name='platform') {
+            virtualPlatform = "${group}:${name}"
+            this
+        }
+
+        ModuleAlignmentSpec byPublishedPlatform(String group='org', String name='platform') {
+            publishedPlatform = "${group}:${name}"
+            this
+        }
+
+        void applyTo(RemoteRepositorySpec spec) {
+            def moduleName = name
+            def alignedTo = alignsTo
+            def otherVersions = seenVersions
+            otherVersions.remove(alignedTo)
+            def missedVersions = misses
+            spec.group(group) {
+                module(moduleName) {
+                    if (alignedTo) {
+                        version(alignedTo) {
+                            expectResolve()
+                        }
+                    }
+                    otherVersions.each {
+                        version(it) {
+                            expectGetMetadata()
+                        }
+                    }
+                    missedVersions.each {
+                        version(it) {
+                            expectGetMetadataMissing()
+                            if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                                expectHeadArtifactMissing()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
