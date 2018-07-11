@@ -64,11 +64,9 @@ Both `println` statements print out the same property. The first uses auto-deleg
 The `Project` object provides some standard properties, which are available in your build script. The following table lists a few of the commonly used ones.
 
 .Project Properties
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Name
-| Type
-| Default Value
+| Name | Type | Default Value
 
 | `project`
 | link:{groovy-dsl-path}/org.gradle.api.Project.html[Project]
