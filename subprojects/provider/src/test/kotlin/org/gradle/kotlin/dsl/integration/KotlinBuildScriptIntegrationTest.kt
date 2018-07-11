@@ -20,40 +20,39 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             plugins {
-                `embedded-kotlin`
+                `kotlin-dsl`
             }
 
             tasks.withType<KotlinCompile> {
                 kotlinOptions {
                     freeCompilerArgs += listOf(
-                        "-Xjsr305=strict",
                         "-XXLanguage:+NewInference",
                         "-XXLanguage:+SamConversionForKotlinFunctions"
                     )
                 }
             }
 
-            dependencies {
-                compileOnly(gradleApi())
-                compileOnly(kotlin("reflect"))
-            }
-
-            $repositoriesBlock
-
         """)
 
         withFile("buildSrc/src/main/kotlin/extensions.kt", """
             package extensions
 
-            fun useAction(name: String, factory: org.gradle.api.Action<String>) = factory.execute(name)
+            fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
 
             fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
 
             fun <T : Any> createK(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
 
             fun test() {
+
+                // Implicit SAM conversion in regular source
                 println(createK(String::class) { it.toUpperCase() })
-                println(create("BAR") { it.toLowerCase() })
+                println(create("FOO") { it.toLowerCase() })
+
+                // Implicit SAM with receiver conversion in regular source
+                applyActionTo("BAR") {
+                    println(toLowerCase())
+                }
             }
         """)
 
@@ -62,13 +61,21 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
             import extensions.*
 
             task("test") {
-                doLast { println(create("foo", NamedDomainObjectFactory<String> { it.toUpperCase() })) }
-                doLast { println(create<String>("foo", NamedDomainObjectFactory { it.toUpperCase() })) }
-                doLast { println(create<String>("foo") { it.toUpperCase() }) }
-                doLast { println(createK(String::class) { it.toUpperCase() }) }
-                doLast { println(createK(String::class, { name: String -> name.toUpperCase() })) }
-                doLast { test() }
-                doLast { useAction("action") { println(toUpperCase()) } }
+                doLast {
+                    // Explicit SAM conversion
+                    println(create("foo", NamedDomainObjectFactory<String> { it.toUpperCase() }))
+                    // Explicit SAM conversion with generic type argument inference
+                    println(create<String>("foo", NamedDomainObjectFactory { it.toUpperCase() }))
+                    // Implicit SAM conversion
+                    println(create<String>("foo") { it.toUpperCase() })
+                    println(createK(String::class) { it.toUpperCase() })
+                    println(createK(String::class, { name: String -> name.toUpperCase() }))
+                    // Implicit SAM with receiver conversion
+                    applyActionTo("action") {
+                        println(toUpperCase())
+                    }
+                    test()
+                }
             }
          """.replaceIndent())
 
@@ -80,8 +87,7 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `use of the plugins block on nested project block fails with reasonable error message`() {
 
-        withBuildScript(
-            """
+        withBuildScript("""
             plugins {
                 id("base")
             }
@@ -101,8 +107,7 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `non top-level use of the plugins block fails with reasonable error message`() {
 
-        withBuildScript(
-            """
+        withBuildScript("""
             plugins {
                 id("java-base")
             }
