@@ -35,8 +35,6 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
                 `kotlin-dsl`
             }
 
-            $repositoriesBlock
-
             gradlePlugin {
                 (plugins) {
                     "test" {
@@ -50,6 +48,8 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
                 compile(kotlin("stdlib-jdk8"))
                 testImplementation("junit:junit:4.12")
             }
+
+            $repositoriesBlock
 
         """)
 
