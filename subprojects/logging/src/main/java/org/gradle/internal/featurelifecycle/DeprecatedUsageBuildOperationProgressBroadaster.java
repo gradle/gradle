@@ -53,7 +53,7 @@ public class DeprecatedUsageBuildOperationProgressBroadaster {
         if (id != null) {
             listener.progress(id,
                 new OperationProgressEvent(clock.getCurrentTime(),
-                    new DefaultDeprecatedUsageProgressDetails(feature.getMessage(), feature.getWarningMessage(), feature.getAdvice(), stackTrace)));
+                    new DefaultDeprecatedUsageProgressDetails(feature.getMessage(), feature.getDetails(), feature.getAdvice(), stackTrace)));
         }
 
     }

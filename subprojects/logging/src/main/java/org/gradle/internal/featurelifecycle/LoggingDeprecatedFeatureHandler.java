@@ -169,7 +169,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         return String.format("%s %s.", messageBase, when);
     }
 
-    public static String getRemovalWarningMessage() {
+    public static String getRemovalDetails() {
         if (deprecationMessage == null) {
             deprecationMessage = initDeprecationMessage();
         }

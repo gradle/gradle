@@ -27,14 +27,14 @@ import java.util.List;
  */
 public class FeatureUsage {
     private final String message;
-    private final String warningMessage;
+    private final String details;
     private final String advice;
     private final List<StackTraceElement> stack;
     private final Class<?> calledFrom;
 
-    public FeatureUsage(String message, String warningMessage, String advice, Class<?> calledFrom) {
+    public FeatureUsage(String message, String details, String advice, Class<?> calledFrom) {
         this.message = message;
-        this.warningMessage = warningMessage;
+        this.details = details;
         this.advice = advice;
         this.calledFrom = calledFrom;
         this.stack = Collections.emptyList();
@@ -45,7 +45,7 @@ public class FeatureUsage {
             throw new NullPointerException("stack");
         }
         this.message = usage.message;
-        this.warningMessage = usage.warningMessage;
+        this.details = usage.details;
         this.advice = usage.advice;
         this.calledFrom = usage.calledFrom;
         this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
@@ -55,8 +55,8 @@ public class FeatureUsage {
         return message;
     }
 
-    public String getWarningMessage() {
-        return warningMessage;
+    public String getDetails() {
+        return details;
     }
 
     public String getAdvice() {
@@ -119,8 +119,8 @@ public class FeatureUsage {
 
     public String formattedMessage() {
         StringBuilder outputBuilder = new StringBuilder(message);
-        if (!StringUtils.isEmpty(warningMessage)) {
-            outputBuilder.append(" ").append(warningMessage);
+        if (!StringUtils.isEmpty(details)) {
+            outputBuilder.append(" ").append(details);
         }
         if (!StringUtils.isEmpty(advice)) {
             outputBuilder.append(" ").append(advice);
