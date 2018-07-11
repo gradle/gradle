@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
+    public static final String QUEUE_DISPLAY_NAME = "WorkerExecutor Queue";
     private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
     private final WorkerFactory daemonWorkerFactory;
     private final WorkerFactory isolatedClassloaderWorkerFactory;
@@ -67,7 +68,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
         this.fileResolver = fileResolver;
-        this.executionQueue = conditionalExecutionQueueFactory.create("WorkerExecutor Queue", DefaultWorkResult.class);
+        this.executionQueue = conditionalExecutionQueueFactory.create(QUEUE_DISPLAY_NAME, DefaultWorkResult.class);
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -141,7 +142,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor, Stoppable {
     public void await() throws WorkerExecutionException {
         BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
-            executionQueue.expand();
+            if (asyncWorkTracker.hasUncompletedWork(currentOperation)) {
+                executionQueue.expand();
+            }
             asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());

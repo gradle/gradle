@@ -49,7 +49,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private QueueState queueState = QueueState.Working;
-    private int workerCount;
+    private volatile int workerCount;
 
     public DefaultConditionalExecutionQueue(String displayName, int maxWorkers, ExecutorFactory executorFactory, ResourceLockCoordinationService coordinationService) {
         this.maxWorkers = maxWorkers;

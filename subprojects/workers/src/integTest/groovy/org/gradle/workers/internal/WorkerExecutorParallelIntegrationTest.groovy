@@ -383,6 +383,52 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         gradle.waitForFinish()
     }
 
+    def "does not start more than max-workers threads when work items do not submit more work"() {
+        def maxWorkers = 3
+        def workItems = 200
+
+        given:
+        buildFile << """
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast {
+                    ${workItems}.times { i ->
+                        submitWorkItem("workItem\${i}")
+                    }
+                }
+                doLast {
+                    def threadGroup = Thread.currentThread().threadGroup
+                    println "threads: \${threadGroup.activeCount()} groups: \${threadGroup.activeGroupCount()}"
+                    def threads = new Thread[threadGroup.activeCount()]
+                    threadGroup.enumerate(threads) 
+                    def executorThreads = threads.findAll { it.name.startsWith("${DefaultWorkerExecutor.QUEUE_DISPLAY_NAME}") } 
+                    threads.each { println it }
+                    assert executorThreads.size() <= ${maxWorkers}
+                }
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        def calls = []
+        workItems.times { i -> calls << "workItem${i}" }
+        def handler = blockingHttpServer.expectConcurrentAndBlock(maxWorkers, calls as String[])
+
+        when:
+        args("--max-workers=${maxWorkers}")
+        executer.withTasks("parallelWorkTask")
+        def gradle = executer.start()
+
+        then:
+        workItems.times {
+            handler.waitForAllPendingCalls()
+            handler.release(1)
+        }
+
+        then:
+        gradle.waitForFinish()
+    }
+
     def "does not start more daemons than max-workers"() {
         def maxWorkers = 3
 
