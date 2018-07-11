@@ -76,15 +76,15 @@ You can see all of these in action in the <<#publishing_maven:complete_example,c
 
 The attributes of the generated POM file will contain identity values derived from the following project properties:
 
-* `groupId` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getGroup()[Project.getGroup()]
-* `artifactId` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getName()[Project.getName()]
-* `version` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getVersion()[Project.getVersion()]
+* `groupId` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:group[Project.getGroup()]
+* `artifactId` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.getName()]
+* `version` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:version[Project.getVersion()]
 
 Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication].
 
 === Example: customizing the publication identity
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/maven-publish/multiple-publications/build.gradle[tag=customize-identity]
@@ -176,7 +176,7 @@ The following example demonstrates how to sign and publish a Java library includ
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samples-path}/signing/maven-publish/build.gradle[]
+include::{samples-path}/signing/maven-publish/build.gradle[tag=all]
 ----
 
 The result is that the following artifacts will be published:

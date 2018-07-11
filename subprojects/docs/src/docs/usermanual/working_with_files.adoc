@@ -185,7 +185,7 @@ As you can see, you can have multiple `from()` declarations in a copy specificat
 
 Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<File trees,file trees>>).
 
-The two functions of interest are api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree[], which produce a link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
+The two functions of interest are api:org.gradle.api.Project#zipTree[] and api:org.gradle.api.Project#tarTree[], which produce a link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
 === Example: Unpacking a ZIP file
 
@@ -449,7 +449,7 @@ If `collection` changes at any time, either by adding or removing files from its
 [[sec:file_trees]]
 === File trees
 
-A _file tree_ is a file collection that retains the directory structure of the files it contains and has the type link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree]. This means that all the paths in a file tree must have a shared parent directory. The following diagram highlights the distinction between file trees and file collections in the common case of copying files:
+A _file tree_ is a file collection that retains the directory structure of the files it contains and has the type link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]. This means that all the paths in a file tree must have a shared parent directory. The following diagram highlights the distinction between file trees and file collections in the common case of copying files:
 
 .The differences in how file trees and file collections behave when copying files
 image::file-collection-vs-file-tree.png[]

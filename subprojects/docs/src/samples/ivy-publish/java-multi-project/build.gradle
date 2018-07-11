@@ -1,3 +1,4 @@
+// tag::all[]
 subprojects {
     apply plugin: 'java'
     apply plugin: 'ivy-publish'
@@ -60,3 +61,4 @@ subprojects {
     }
 // end::publish-custom-artifact[]
 }
+// end::all[]

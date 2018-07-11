@@ -202,7 +202,7 @@ The following guidelines should be followed when using the new APIs:
 .2+| See `getByPath(String)` above.
 | Use: No direct equivalent.
 
-| Instead of: api:org.gradle.api.tasks.TaskCollection#withType(java.lang.Class)[]
+| Instead of: link:{javadoc-path}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)]
 .2+| This is OK to use because it does not require tasks to be created immediately.
 | Use: _OK_
 

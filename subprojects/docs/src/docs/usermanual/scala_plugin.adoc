@@ -163,9 +163,6 @@ The Scala plugin uses a configuration named `zinc` to resolve the https://github
 include::{samples-path}/userguide/scala/zincDependency/build.gradle[tag=zinc-dependency]
 ----
 
-[NOTE]
-====
-
 It is important to take care when declaring your `scala-library` dependency. The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application. Gradle takes care of adding a compatible version of `scala-library` for you, but over-broad dependency resolution rules could force an incompatible version to be used instead.
 
 For example, using `configurations.all` to force a particular version of `scala-library` would also override the version used by the Zinc compiler:
@@ -190,8 +187,6 @@ include::{samples-path}/userguide/scala/zincOverride/build.gradle[tag=zinc-depen
 
 You can diagnose problems with the version of the Zinc compiler selected by running <<inspecting_dependencies#,dependencyInsight>> for the `zinc` configuration.
 
-====
-
 
 [[sec:scala_convention_properties]]
 == Convention properties
@@ -203,45 +198,27 @@ The Scala plugin does not add any convention properties to the project.
 
 The Scala plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
-.Scala plugin - source set properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`scala` — type: link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files. _Default value:_ non-null.
 
-|  `scala`
-|  link:{groovy-dsl-path}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)
-| Not null
-| The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files.
+`scala.srcDirs` — type: `Set&lt;File&gt;`::
+The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
+Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
+_Default value:_ `[__projectDir__/src/__name__/scala]`.
 
-|  `scala.srcDirs`
-|  `Set&lt;File&gt;`. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-|  `[__projectDir__/src/__name__/scala]`
-| The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
-
-|  `allScala`
-|  link:{groovy-dsl-path}/org.gradle.api.file.FileTree.html[FileTree] (read-only)
-| Not null
-| All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories.
-|===
+`allScala` — type: link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
+All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories. _Default value:_ non-null.
 
 These convention properties are provided by a convention object of type link:{groovy-dsl-path}/org.gradle.api.tasks.ScalaSourceSet.html[ScalaSourceSet].
 
 The Scala plugin also modifies some source set properties:
 
 .Scala plugin - source set properties
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Property name
-| Change
-
-|  `allJava`
-| Adds all `.java` files found in the Scala source directories.
-
-|  `allSource`
-| Adds all source files found in the Scala source directories.
+| Property name | Change
+| `allJava` | Adds all `.java` files found in the Scala source directories.
+| `allSource` | Adds all source files found in the Scala source directories.
 |===
 
 
@@ -312,6 +289,7 @@ When the Eclipse plugin encounters a Scala project, it adds additional configura
 == IntelliJ IDEA Integration
 
 When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically, the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path. The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK by configuring `targetVersion` on link:{groovy-dsl-path}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel].
+
 === Example: Explicitly specify a target IntelliJ IDEA version
 
 [source.multi-language-sample,groovy]

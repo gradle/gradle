@@ -52,7 +52,7 @@ An aggregate task that publishes all defined publications to all defined reposit
 [[publishing_ivy:publications]]
 == Publications
 
-This plugin provides <<#glossary:publication,publications>> of type link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
+This plugin provides <<publishing_overview#glossary:publication,publications>> of type link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in an Ivy publication:
 
@@ -68,10 +68,10 @@ You can see all of these in action in the <<#publishing_ivy:example,complete pub
 
 The generated Ivy module descriptor file contains an `&lt;info&gt;` element that identifies the module. The default identity values are derived from the following:
 
-* `organisation` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getGroup()[Project.getGroup()]
-* `module` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getName()[Project.getName()]
-* `revision` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getVersion()[Project.getVersion()]
-* `status` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:getStatus()[Project.getStatus()]
+* `organisation` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:group[Project.getGroup()]
+* `module` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.getName()]
+* `revision` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:version[Project.getVersion()]
+* `status` - link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:status[Project.getStatus()]
 * `branch` - (not set)
 
 Overriding the default identity values is easy: simply specify the `organisation`, `module` or `revision` properties when configuring the link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. `status` and `branch` can be set via the `descriptor` property — see link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html[IvyModuleDescriptorSpec].
@@ -80,7 +80,7 @@ The `descriptor` property can also be used to add additional custom elements as 
 
 === Example: customizing the publication identity
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/ivy-publish/multiple-publications/build.gradle[tag=customize-identity]
@@ -102,7 +102,7 @@ The following sample shows how to use the most common aspects of the DSL:
 
 === Example: Customizing the module descriptor file
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/ivy-publish/descriptor-customization/build.gradle[tag=customize-descriptor]
@@ -149,7 +149,7 @@ The following example demonstrates publishing with a multi-project build. Each p
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samples-path}/ivy-publish/java-multi-project/build.gradle[]
+include::{samples-path}/ivy-publish/java-multi-project/build.gradle[tag=all]
 ----
 
 The result is that the following artifacts will be published for each project:
@@ -162,7 +162,7 @@ When `project1` is published, the module descriptor (i.e. the `ivy.xml` file) th
 
 === Example: Example generated ivy.xml
 
-[source.multi-language-sample,groovy]
+[source,xml]
 .output-ivy.xml
 ----
 include::{samples-path}/ivy-publish/java-multi-project/output-ivy.xml[tag=content]
