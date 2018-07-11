@@ -251,6 +251,7 @@ class StandardKotlinScriptEvaluator(
 }
 
 
+//TODO:kotlin-eap - make it conditional to a `-dev` or `-eap` Kotlin version
 private
 fun Settings.addKotlinDevRepository() {
 
