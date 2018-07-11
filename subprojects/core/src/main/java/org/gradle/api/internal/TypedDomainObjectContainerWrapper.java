@@ -82,12 +82,27 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return ConfigureUtil.configureSelf(configureClosure, this, delegate);
     }
 
+    @Override
+    public Provider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
+        return parent.register(name, type, configurationAction);
+    }
+
+    @Override
+    public Provider<U> register(String name) throws InvalidUserDataException {
+        return parent.register(name, type);
+    }
+
     public Set<U> findAll(Closure spec) {
         return delegate.findAll(spec);
     }
 
     public NamedDomainObjectSet<U> matching(Closure spec) {
         return delegate.matching(spec);
+    }
+
+    @Override
+    public Provider<U> named(String name) throws UnknownDomainObjectException {
+        return delegate.named(name);
     }
 
     public NamedDomainObjectSet<U> matching(Spec<? super U> spec) {

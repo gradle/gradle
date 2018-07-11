@@ -16,17 +16,18 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.provider.Provider;
 import org.gradle.util.Configurable;
 
 /**
  * <p>A named domain object container is a specialisation of {@link NamedDomainObjectSet} that adds the ability to create
  * instances of the element type.</p>
- * 
+ *
  * <p>Implementations may use different strategies for creating new object instances.</p>
- * 
+ *
  * <p>Note that a container is an implementation of {@link java.util.SortedSet}, which means that the container is guaranteed
  * to only contain elements with unique names within this container. Furthermore, items are ordered by their name.</p>
- * 
+ *
  * @param <T> The type of domain objects in this container.
  * @see NamedDomainObjectSet
  */
@@ -71,12 +72,39 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * <p>Allows the container to be configured, creating missing objects as they are referenced.</p>
-     * 
+     *
      * <p>TODO: example usage</p>
-     * 
+     *
      * @param configureClosure The closure to configure this container with
      * @return This.
      */
     NamedDomainObjectContainer<T> configure(Closure configureClosure);
-    
+
+    /**
+     * Defines a new object, which will be created and configured when it is required. An object is 'required' when the object is located using query methods such as {@link #getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Action)} or {@link #create(String)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     *
+     * @param name The name of the object.
+     * @param configurationAction The action to run to configure the object. This action runs when the object is required.
+     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @throws InvalidUserDataException If a object with the given name already exists in this project.
+     * @since 4.10
+     */
+    @Incubating
+    Provider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException;
+
+    /**
+     * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link #getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String)}, as that methods will eagerly create he object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     *
+     * @param name The name of the object.
+     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @throws InvalidUserDataException If a object with the given name already exists in this project.
+     * @since 4.10
+     */
+    @Incubating
+    Provider<T> register(String name) throws InvalidUserDataException;
+
 }
