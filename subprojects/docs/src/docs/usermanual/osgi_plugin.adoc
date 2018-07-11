@@ -70,11 +70,9 @@ The OSGi plugin does not add any convention properties to the project.
 The OSGi plugin adds the following methods. For more details, see the API documentation of the convention object.
 
 .OSGi methods
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Method
-| Return Type
-| Description
+| Method | Return Type | Description
 
 | osgiManifest()
 | link:{javadoc-path}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]
