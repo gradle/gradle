@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -119,7 +120,7 @@ class BaseDirFileResolverSpec extends Specification {
     def "does not normalize windows 8.3 names"() {
         createFile(new File(tmpDir.testDirectory, 'dir/file-with-long-name.txt'))
         def path = new File(tmpDir.testDirectory, 'dir/FILE-W~1.TXT')
-        assert path.exists() && path.file
+        Assume.assumeTrue(path.exists() && path.file)
 
         expect:
         normalize(path) == path
