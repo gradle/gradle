@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -43,6 +44,7 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 
 import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.kotlinDev
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -165,11 +167,16 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
+
             pluginRequestApplicator.applyPlugins(
                 DefaultPluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
                 null,
                 scriptHost.targetScope)
+
+            (scriptHost.target as? Settings)?.run {
+                addKotlinDevRepository()
+            }
         }
 
         override fun cachedClassFor(
@@ -239,6 +246,27 @@ class StandardKotlinScriptEvaluator(
 
         override val implicitImports: List<String>
             get() = this@StandardKotlinScriptEvaluator.implicitImports.list
+    }
+}
+
+
+private
+fun Settings.addKotlinDevRepository() {
+
+    gradle.settingsEvaluated {
+        if (pluginManagement.repositories.isEmpty()) {
+            pluginManagement.run {
+                repositories.run {
+                    kotlinDev()
+                    gradlePluginPortal()
+                }
+            }
+        }
+    }
+
+    gradle.beforeProject { project ->
+        project.buildscript.repositories.kotlinDev()
+        project.repositories.kotlinDev()
     }
 }
 

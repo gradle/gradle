@@ -309,9 +309,6 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         val subProjectName = "sub"
         withSettings("""
-            pluginManagement {
-                $repositoriesBlock
-            }
             include("$subProjectName")
         """)
 

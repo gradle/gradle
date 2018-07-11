@@ -18,6 +18,5 @@ publishing {
 }
 
 repositories {
-    kotlinDev()
     gradlePluginPortal()
 }

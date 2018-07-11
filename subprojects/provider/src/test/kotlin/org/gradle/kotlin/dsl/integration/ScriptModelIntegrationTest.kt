@@ -85,7 +85,6 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
 
             kotlinDslProjects.forEach {
                 it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-                it.repositories.kotlinDev()
             }
 
             dependencies {

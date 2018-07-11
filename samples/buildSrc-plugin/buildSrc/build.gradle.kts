@@ -11,7 +11,3 @@ gradlePlugin {
         }
     }
 }
-
-repositories {
-    kotlinDev()
-}

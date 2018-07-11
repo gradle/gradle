@@ -41,14 +41,12 @@ open class AbstractIntegrationTest {
     protected
     val pluginManagementBlockWithKotlinDevRepository get() = """
         pluginManagement {
-            $repositoriesBlock
         }
     """
 
     protected
     val repositoriesBlock get() = """
         repositories {
-            kotlinDev()
             gradlePluginPortal()
         }
     """
