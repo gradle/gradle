@@ -23,8 +23,7 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
-
-
+    
     def "should align leaves to the same version"() {
         repository {
             path 'xml -> core'
@@ -609,6 +608,219 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         }
     }
 
+    // This documents the current behavior. It doesn't really make sense to "belong to"
+    // 2 different virtual platforms, as they would resolve exactly the same
+    def "can belong to multiple virtual platforms"() {
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'xml:1.1 -> core:1.1'
+            path 'json:1.1 -> core:1.1'
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org:json:1.1'
+            }
+        """
+        and:
+        "align the 'org' group to 2 different virtual platforms"()
+
+        when:
+        expectAlignment {
+            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
+            module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
+            module('json') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    byConstraint("belongs to platform org:platform2:1.1")
+                    module('org:core:1.1')
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
+            }
+        }
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    ])
+    def "can belong to 2 different published platforms"() {
+        given:
+        repository {
+            ['2.4', '2.5'].each { groovyVersion ->
+                // first, we define a "Groovy" library
+                path "org.apache.groovy:json:$groovyVersion -> org.apache.groovy:core:$groovyVersion"
+                path "org.apache.groovy:xml:$groovyVersion -> org.apache.groovy:core:$groovyVersion"
+
+                // Groovy "belongs to" the Groovy platform
+                "org.apache.groovy:platform:$groovyVersion" {
+                    constraint("org.apache.groovy:core:$groovyVersion")
+                    constraint("org.apache.groovy:json:$groovyVersion")
+                    constraint("org.apache.groovy:xml:$groovyVersion")
+                }
+            }
+
+            // a library belonging to Spring platform. This test intentionally doesn't say that this
+            // library also belongs to the Spring platform, because we want to check that _because_ groovy
+            // belongs to it too, we will automatically upgrade spring core to 1.1
+            group('org.springframework') {
+                module('core') {
+                    version('1.0')
+                    version('1.1')
+                }
+            }
+
+            // Groovy also belongs to the "Spring" platform, which uses a different versioning scheme
+            'org.springframework:spring-platform:1.0' {
+                constraint('org.apache.groovy:core:2.4')
+                constraint('org.springframework:core:1.1')
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf 'org.apache.groovy:xml:2.4'
+                conf 'org.apache.groovy:json:2.5'
+                conf 'org.springframework:core:1.0'
+            }
+        """
+
+        and:
+        'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'()
+
+        when:
+        expectAlignment {
+            module('core') {
+                group('org.apache.groovy') tries('2.4') alignsTo('2.5')
+                byPublishedPlatform('org.apache.groovy', 'platform')
+                byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
+            }
+            module('xml') {
+                group('org.apache.groovy') tries('2.4') alignsTo('2.5')
+                byPublishedPlatform('org.apache.groovy', 'platform')
+                byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
+            }
+            module('json') {
+                group('org.apache.groovy') alignsTo('2.5')
+                byPublishedPlatform('org.apache.groovy', 'platform')
+                byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
+            }
+
+            // Spring core intentionnaly doesn't belong to the Spring platform.
+            module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.apache.groovy:xml:2.4", "org.apache.groovy:xml:2.5") {
+                    // TODO CC: determine why the constraints are not found.
+//                    byConstraint("belongs to platform org.apache.groovy:platform:2.4")
+//                    byConstraint("belongs to platform org.springframwork:spring-platform2:1.0")
+                    module("org.apache.groovy:core:2.5")
+                }
+                module("org.apache.groovy:json:2.5") {
+                    module("org.apache.groovy:core:2.5")
+                }
+                edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
+                    byConflictResolution("between versions 1.0 and 1.1")
+                }
+            }
+        }
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    ])
+    def "belonging to both a virtual and a published platforms resolves with alignment"() {
+        given:
+        repository {
+            // In this setup, the "Groovy" platform is going to be virtual
+            ['2.4', '2.5'].each { groovyVersion ->
+                // first, we define a "Groovy" library
+                path "org.apache.groovy:json:$groovyVersion -> org.apache.groovy:core:$groovyVersion"
+                path "org.apache.groovy:xml:$groovyVersion -> org.apache.groovy:core:$groovyVersion"
+            }
+
+            // a library belonging to Spring platform. This test intentionally doesn't say that this
+            // library also belongs to the Spring platform, because we want to check that _because_ groovy
+            // belongs to it too, we will automatically upgrade spring core to 1.1
+            group('org.springframework') {
+                module('core') {
+                    version('1.0')
+                    version('1.1')
+                }
+            }
+
+            // Groovy also belongs to the "Spring" platform, which uses a different versioning scheme
+            'org.springframework:spring-platform:1.0' {
+                constraint('org.apache.groovy:core:2.4')
+                constraint('org.springframework:core:1.1')
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf 'org.apache.groovy:xml:2.4'
+                conf 'org.apache.groovy:json:2.5'
+                conf 'org.springframework:core:1.0'
+            }
+        """
+
+        and:
+        'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'()
+
+        when:
+        expectAlignment {
+            module('core') {
+                group('org.apache.groovy') tries('2.4') alignsTo('2.5')
+                byVirtualPlatform('org.apache.groovy', 'platform')
+                byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
+            }
+            module('xml') {
+                group('org.apache.groovy') tries('2.4') alignsTo('2.5')
+                byVirtualPlatform('org.apache.groovy', 'platform')
+                byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
+            }
+            module('json') {
+                group('org.apache.groovy') alignsTo('2.5')
+                byVirtualPlatform('org.apache.groovy', 'platform')
+                byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
+            }
+
+            // Spring core intentionnaly doesn't belong to the Spring platform.
+            module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.apache.groovy:xml:2.4", "org.apache.groovy:xml:2.5") {
+                    // TODO CC: determine why the constraints are not found.
+//                    byConstraint("belongs to platform org.apache.groovy:platform:2.4")
+//                    byConstraint("belongs to platform org.springframwork:spring-platform2:1.0")
+                    module("org.apache.groovy:core:2.5")
+                }
+                module("org.apache.groovy:json:2.5") {
+                    module("org.apache.groovy:core:2.5")
+                }
+                edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
+                    byConflictResolution("between versions 1.0 and 1.1")
+                }
+            }
+        }
+    }
+
     private void "a rule which infers module set from group and version"() {
         buildFile << """
             dependencies {
@@ -643,6 +855,44 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         """
     }
 
+    private void "align the 'org' group to 2 different virtual platforms"() {
+        buildFile << """
+            dependencies {
+                components.all(AlignOrgGroupTo2Platforms)
+            }
+            
+            class AlignOrgGroupTo2Platforms implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        if ('org' == id.group) {
+                           belongsTo("\${id.group}:platform:\${id.version}")
+                           belongsTo("\${id.group}:platform2:\${id.version}")
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    private 'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'() {
+        buildFile << """
+            dependencies {
+                components.all(GroovyRule)
+            }
+            
+            class GroovyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        if ('org.apache.groovy' == id.group) {
+                           belongsTo("org.apache.groovy:platform:\${id.version}")
+                           belongsTo("org.springframework:spring-platform:1.0")
+                        }
+                    }
+                }
+            }
+        """
+    }
+
     final static Closure<Void> VIRTUAL_PLATFORM = {
         expectGetMetadataMissing()
         if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
@@ -664,13 +914,18 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         final List<ModuleAlignmentSpec> specs = []
         final Set<String> skipsPlatformMetadata = []
 
-        ModuleAlignmentSpec module(String name) {
+        ModuleAlignmentSpec module(String name, @DelegatesTo(value=ModuleAlignmentSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config = null) {
             def spec = new ModuleAlignmentSpec(name: name)
+            if (config) {
+                config.delegate = spec
+                config.resolveStrategy = Closure.DELEGATE_FIRST
+                config()
+            }
             specs << spec
             spec
         }
 
-        void doesNotGetPlatform(String group='org', String name='platform', String version='1.0') {
+        void doesNotGetPlatform(String group = 'org', String name = 'platform', String version = '1.0') {
             skipsPlatformMetadata << "$group:$name:$version"
         }
 
@@ -681,17 +936,31 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
 
             specs.each {
                 it.applyTo(spec)
-                if (it.virtualPlatform) {
+                if (it.virtualPlatforms) {
                     it.seenVersions.each { v ->
-                        virtualPlatforms << "${it.virtualPlatform}:$v"
+                        it.virtualPlatforms.each { vp ->
+                            virtualPlatforms << "${vp}:$v"
+                        }
                     }
-                    resolvesToVirtual << "${it.virtualPlatform}:$it.alignsTo"
-                } else if (it.publishedPlatform) {
+                    it.virtualPlatforms.each { vp ->
+                        resolvesToVirtual << "${vp}:$it.alignsTo"
+                    }
+                }
+                if (it.publishedPlatforms) {
+                    def exactPlatforms = it.publishedPlatforms.findAll { it.count(':') == 2 }
+                    def inferredPlatforms = it.publishedPlatforms - exactPlatforms
                     // for published platforms, we know there's no artifacts, so it's actually easier
                     it.seenVersions.each { v ->
-                        publishedPlatforms << "${it.publishedPlatform}:$v"
+                        inferredPlatforms.each { pp ->
+                            publishedPlatforms << "${pp}:$v"
+                        }
                     }
-                    publishedPlatforms << "${it.publishedPlatform}:$it.alignsTo"
+                    inferredPlatforms.each { pp ->
+                        publishedPlatforms << "${pp}:$it.alignsTo"
+                    }
+                    exactPlatforms.each { pp ->
+                        publishedPlatforms << pp
+                    }
                 }
             }
             virtualPlatforms.remove(resolvesToVirtual)
@@ -719,8 +988,8 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
         List<String> seenVersions = []
         List<String> misses = []
         String alignsTo
-        String virtualPlatform
-        String publishedPlatform
+        List<String> virtualPlatforms = []
+        List<String> publishedPlatforms = []
 
         ModuleAlignmentSpec group(String group) {
             this.group = group
@@ -747,15 +1016,20 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             this
         }
 
-        ModuleAlignmentSpec byVirtualPlatform(String group='org', String name='platform') {
-            virtualPlatform = "${group}:${name}"
+        ModuleAlignmentSpec byVirtualPlatform(String group = 'org', String name = 'platform') {
+            virtualPlatforms << "${group}:${name}"
             this
         }
 
-        ModuleAlignmentSpec byPublishedPlatform(String group='org', String name='platform') {
-            publishedPlatform = "${group}:${name}"
+        ModuleAlignmentSpec byPublishedPlatform(String group = 'org', String name = 'platform', String version = null) {
+            if (version) {
+                publishedPlatforms << "${group}:${name}:${version}"
+            } else {
+                publishedPlatforms << "${group}:${name}"
+            }
             this
         }
+
 
         void applyTo(RemoteRepositorySpec spec) {
             def moduleName = name
