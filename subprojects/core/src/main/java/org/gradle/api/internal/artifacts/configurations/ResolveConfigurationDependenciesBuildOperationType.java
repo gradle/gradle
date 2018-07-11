@@ -75,19 +75,4 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
     }
 
-    @UsedByScanPlugin
-    public enum RepositoryType {
-
-        MAVEN("maven"),
-        IVY("ivy"),
-        FLAT_DIR("flat_dir");
-
-        public final String displayName;
-
-        RepositoryType(String displayName) {
-            this.displayName = displayName;
-        }
-
-    }
-
 }

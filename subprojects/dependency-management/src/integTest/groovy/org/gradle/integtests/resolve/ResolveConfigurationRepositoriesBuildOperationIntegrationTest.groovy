@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Unroll
 
 class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -31,13 +32,13 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     @Unroll
-    def "repositories used when resolving configurations are exposed via build operation, and are stable (repo: #repo)"() {
+    def "repositories used when resolving project configurations are exposed via build operation, and are stable (repo: #repo)"() {
         setup:
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
-        buildFile << """                
+        buildFile << """
             apply plugin: 'java'
-            ${repoBlock.replaceAll('<<URL>>', getMavenHttpRepo().uri.toString())}
+            ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
             task resolve { doLast { configurations.compile.resolve() } }
         """
 
@@ -52,8 +53,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repos = op.details.repositories
         repos.size() == 1
         stripRepoId(repos[0]) == augmentMapWithProperties(expectedRepo, [
-            'url': expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toASCIIString() : getMavenHttpRepo().uri.toASCIIString(),
-            'dirs': [buildFile.parentFile.file('fooDir').absolutePath]
+            'URL': expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
+            'Dirs': [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 
         when:
@@ -74,6 +75,267 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo()
     }
 
+    def "repositories used in buildscript blocks are exposed via build operation, and are stable"() {
+        setup:
+        def module = mavenHttpRepo.module('org', 'foo')
+        module.pom.expectGetBroken()
+        buildFile << """     
+            buildscript {
+                repositories { maven { url '${mavenHttpRepo.uri}' } }
+                dependencies { classpath 'org:foo:1.0' }
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == 'classpath'
+        op.details.projectPath == null
+        op.details.buildPath == ':'
+        def repos = op.details.repositories
+        repos.size() == 1
+        with(repos[0]) {
+            name == 'maven'
+            type == 'maven'
+            repositoryId
+            properties == [
+                URL: getMavenHttpRepo().uri.toString(),
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
+            ]
+        }
+
+        when:
+        module.pom.expectGetBroken()
+        fails 'help'
+
+        then: // stable
+        repos == operations.first(ResolveConfigurationDependenciesBuildOperationType).details.repositories
+    }
+
+    def "repositories used in plugins blocks are exposed via build operation, and are stable"() {
+        setup:
+        def module = mavenHttpRepo.module('my-plugin', 'my-plugin.gradle.plugin')
+        module.pom.expectGetBroken()
+        settingsFile << """
+        pluginManagement {
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+        }
+        """
+        buildFile << """
+            plugins { id 'my-plugin' version '1.0' }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == 'detachedConfiguration1'
+        op.details.projectPath == null
+        op.details.buildPath == ':'
+        def repos = op.details.repositories
+        repos.size() == 1
+        with(repos[0]) {
+            name == 'maven'
+            type == 'maven'
+            repositoryId
+            properties == [
+                URL: getMavenHttpRepo().uri.toString(),
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
+            ]
+        }
+
+        when:
+        module.pom.expectGetBroken()
+        fails 'help'
+
+        then: // stable
+        repos == operations.first(ResolveConfigurationDependenciesBuildOperationType).details.repositories
+    }
+
+    def "repositories shared across repository container types are stable"() {
+        setup:
+        String localPluginRepoPath = "local-plugin-repository"
+        withBinaryPluginPublishedLocally(localPluginRepoPath)
+        settingsFile << """
+        pluginManagement {
+            repositories { maven { url = uri("../$localPluginRepoPath") } }
+        }
+        """
+        buildFile << """
+            buildscript {
+                repositories { maven { url = uri("../$localPluginRepoPath") } }
+                dependencies { classpath 'my-plugin:my-plugin.gradle.plugin:1.0' }
+            }
+            plugins { id 'my-plugin' version '1.0' }
+            repositories { maven { url = uri("../$localPluginRepoPath") } }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 1
+    }
+
+    def "repositories shared across projects are stable"() {
+        setup:
+        settingsFile << """
+            include 'child'
+        """
+        buildFile << """
+            allprojects { 
+                apply plugin: 'java'
+                repositories { jcenter() }
+                task resolve { doLast { configurations.compile.resolve() } }
+            }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 2
+        ops.details.repositories.unique(false).size() == 1
+    }
+
+    def "maven repository attributes are stored"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                maven {
+                    name = 'custom repo'
+                    url = 'http://foo.com'
+                    artifactUrls 'http://foo.com/artifacts1'
+                    metadataSources { gradleMetadata(); artifact() }
+                    credentials {
+                        username 'user'
+                        password 'pass'
+                    }
+                    authentication {
+                        digest(DigestAuthentication)
+                    }
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 1
+        def repo = ops.details.repositories[0]
+        with(repo) {
+            name == 'custom repo'
+            type == 'maven'
+            repositoryId
+            properties.size() == 5
+            properties.URL == 'http://foo.com'
+            properties.'Artifact URLs'.size() == 1
+            properties.'Artifact URLs'[0].path == '/artifacts1'
+            properties.'Metadata sources' == ['gradleMetadata', 'artifact']
+            properties.Authenticated == true
+            properties.'Authentication schemes' == ['DigestAuthentication']
+        }
+    }
+
+    def "ivy repository attributes are stored"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                ivy {
+                    name = 'custom repo'
+                    url 'http://myCompanyBucket/ivyrepo'
+                    artifactPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
+                    ivyPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
+                    layout 'pattern', {
+                        artifact '[module]/[organisation]/[revision]/[artifact]'
+                        artifact '3rd-party/[module]/[organisation]/[revision]/[artifact]'
+                        ivy '[module]/[organisation]/[revision]/ivy.xml'
+                        m2compatible = true
+                    }
+                    metadataSources { gradleMetadata(); ivyDescriptor(); artifact() }
+                    credentials {
+                        username 'user'
+                        password 'pass'
+                    }
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 1
+        def repo = ops.details.repositories[0]
+        with(repo) {
+            name == 'custom repo'
+            type == 'ivy'
+            repositoryId
+            properties.size() == 8
+            properties.URL == 'http://myCompanyBucket/ivyrepo'
+            properties.Layout == 'Pattern'
+            properties.'M2 compatible' == true
+            properties.'Ivy patterns' == [
+                '[module]/[organisation]/[revision]/ivy.xml',
+                'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
+            ]
+            properties.'Artifact patterns' == [
+                '[module]/[organisation]/[revision]/[artifact]',
+                '3rd-party/[module]/[organisation]/[revision]/[artifact]',
+                'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
+            ]
+            properties.'Metadata sources' == ['gradleMetadata', 'ivyDescriptor', 'artifact']
+            properties.Authenticated == true
+            properties.'Authentication schemes' == ['BasicAuthentication']
+        }
+    }
+
+    def "flat-dir repository attributes are stored"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                flatDir {
+                    name = 'custom repo'
+                    dirs 'lib1', 'lib2'
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 1
+        def repo = ops.details.repositories[0]
+        with(repo) {
+            name == 'custom repo'
+            type == 'flat_dir'
+            repositoryId
+            properties.size() == 1
+            properties.Dirs.sort() == ["${getBuildFile().parentFile.absolutePath}/lib1", "${getBuildFile().parentFile.absolutePath}/lib2"].sort()
+        }
+    }
+
     private static String mavenRepoBlock() {
         "repositories { maven { url '<<URL>>' } }"
     }
@@ -83,9 +345,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'maven',
             type: 'maven',
             properties: [
-                url: null,
-                artifactUrls: [],
-                metadataSources: ['mavenPom', 'artifact']
+                URL: null,
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -99,10 +361,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'ivy',
             type: 'ivy',
             properties: [
-                url: null,
-                ivyPatterns: [],
-                artifactPattern: [],
-                metadataSources: ['ivyDescriptor', 'artifact']
+                URL: null,
+                Layout: 'Gradle',
+                'M2 compatible': false,
+                'Ivy patterns': ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
+                'Artifact patterns': ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'],
+                'Metadata sources': ['ivyDescriptor', 'artifact']
             ]
         ]
     }
@@ -116,7 +380,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'flatDir',
             type: 'flat_dir',
             properties: [
-                dirs: null
+                Dirs: null
             ]
         ]
     }
@@ -130,9 +394,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'MavenLocal',
             type: 'maven',
             properties: [
-                url: null,
-                artifactUrls: [],
-                metadataSources: ['mavenPom', 'artifact']
+                URL: null,
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -147,9 +411,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'MavenRepo',
             type: 'maven',
             properties: [
-                url: 'https://repo.maven.apache.org/maven2/',
-                artifactUrls: [],
-                metadataSources: ['mavenPom', 'artifact']
+                URL: 'https://repo.maven.apache.org/maven2/',
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -163,9 +427,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'BintrayJCenter',
             type: 'maven',
             properties: [
-                url: 'https://jcenter.bintray.com/',
-                artifactUrls: [],
-                metadataSources: ['mavenPom', 'artifact']
+                URL: 'https://jcenter.bintray.com/',
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -179,9 +443,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'Google',
             type: 'maven',
             properties: [
-                url: 'https://dl.google.com/dl/android/maven2/',
-                artifactUrls: [],
-                metadataSources: ['mavenPom', 'artifact']
+                URL: 'https://dl.google.com/dl/android/maven2/',
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -195,9 +459,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'Gradle Central Plugin Repository',
             type: 'maven',
             properties: [
-                url: 'https://plugins.gradle.org/m2',
-                artifactUrls: [],
-                metadataSources: ['mavenPom', 'artifact']
+                URL: 'https://plugins.gradle.org/m2',
+                'Artifact URLs': [],
+                'Metadata sources': ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -217,6 +481,66 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             }
         }
         map
+    }
+
+    private void withBinaryPluginPublishedLocally(String repoPath) {
+        def pluginBundleName = 'my-local-plugins'
+        withBinaryPluginBuild(pluginBundleName)
+        file("$pluginBundleName/settings.gradle").createFile()
+        file("$pluginBundleName/build.gradle") << """
+            apply plugin: 'maven-publish'
+            publishing { repositories { maven { url = uri("../$repoPath") } } }
+        """.stripIndent()
+
+        executer.expectDeprecationWarning()
+        succeeds '-b', "$pluginBundleName/build.gradle", 'publish'
+
+        file("$repoPath/com/acme/$pluginBundleName/1.0/$pluginBundleName-1.0.jar").assertExists()
+        file("$repoPath/my-plugin/my-plugin.gradle.plugin/1.0/my-plugin.gradle.plugin-1.0.pom").assertExists()
+    }
+
+    private void withBinaryPluginBuild(String projectPath) {
+        FeaturePreviewsFixture.enableStablePublishing(file("$projectPath/settings.gradle"))
+        file("$projectPath/src/main/groovy/my/MyPlugin.groovy") << """
+
+            package my
+            
+            import org.gradle.api.*
+            
+            class MyPlugin implements Plugin<Project> {
+                @Override
+                void apply(Project project) {
+                    println("Plugin my-plugin applied! (to ${'$'}{project.path})")
+                }
+            }
+
+        """.stripIndent()
+        file("$projectPath/build.gradle") << """
+
+            plugins {
+                id("groovy")
+                id("java-gradle-plugin")
+            }
+
+            group = "com.acme"
+            version = "1.0"
+            
+            gradlePlugin {
+                plugins {
+                    myPlugin {
+                        id = "my-plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+
+            dependencies {
+                compileOnly(gradleApi())
+            }
+
+            ${jcenterRepository()}
+
+        """.stripIndent()
     }
 
 }

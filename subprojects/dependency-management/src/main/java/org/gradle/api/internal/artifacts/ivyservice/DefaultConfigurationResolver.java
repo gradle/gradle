@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.ArtifactRepository;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.RepositoryType;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
@@ -62,6 +61,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Streami
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
 import org.gradle.api.internal.artifacts.repositories.ExposableRepository;
+import org.gradle.api.internal.artifacts.repositories.ExposableRepository.RepositoryPropertyType;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -77,6 +77,7 @@ import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -207,7 +208,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         List<ArtifactRepository> result = Lists.newArrayListWithExpectedSize(exposableRepositories.size());
         for (ExposableRepository repository : exposableRepositories) {
             ConfiguredModuleComponentRepository resolver = repository.createResolver();
-            result.add(new ArtifactRepositoryImpl(
+            result.add(ArtifactRepositoryImpl.from(
                 resolver.getId(),
                 getTypeOf(repository),
                 resolver.getName(),
@@ -229,6 +230,19 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             this.type = type.displayName;
             this.name = name;
             this.properties = ImmutableMap.copyOf(properties);
+        }
+
+        private static ArtifactRepositoryImpl from(String repositoryId, RepositoryType type, String name, Map<RepositoryPropertyType, ?> properties) {
+            Map<String, Object> props = new HashMap<String, Object>(properties.size());
+            for (Map.Entry<RepositoryPropertyType, ?> entry : properties.entrySet()) {
+                props.put(entry.getKey().displayName, entry.getValue());
+            }
+            return new ArtifactRepositoryImpl(
+                repositoryId,
+                type,
+                name,
+                props
+            );
         }
 
         @Override
@@ -264,7 +278,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
     }
 
-
     private static class ArtifactResolveState {
         final ResolvedGraphResults graphResults;
         final VisitedArtifactsResults artifactsResults;
@@ -280,4 +293,19 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
         }
     }
+
+    private enum RepositoryType {
+
+        MAVEN("maven"),
+        IVY("ivy"),
+        FLAT_DIR("flat_dir");
+
+        public final String displayName;
+
+        RepositoryType(String displayName) {
+            this.displayName = displayName;
+        }
+
+    }
+
 }

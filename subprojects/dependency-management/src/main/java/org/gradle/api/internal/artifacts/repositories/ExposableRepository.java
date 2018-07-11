@@ -20,6 +20,27 @@ import java.util.Map;
 
 public interface ExposableRepository extends ResolutionAwareRepository {
 
-    Map<String, ?> getProperties();
+    Map<RepositoryPropertyType, ?> getProperties();
+
+    enum RepositoryPropertyType {
+
+        URL("URL"),
+        DIRS("Dirs"),
+        ARTIFACT_URLS("Artifact URLs"),
+        IVY_PATTERNS("Ivy patterns"),
+        ARTIFACT_PATTERNS("Artifact patterns"),
+        METADATA_SOURCES("Metadata sources"),
+        AUTHENTICATED("Authenticated"),
+        AUTHENTICATION_SCHEMES("Authentication schemes"),
+        LAYOUT_TYPE("Layout"),
+        M2_COMPATIBLE("M2 compatible");
+
+        public final String displayName;
+
+        RepositoryPropertyType(String displayName) {
+            this.displayName = displayName;
+        }
+
+    }
 
 }

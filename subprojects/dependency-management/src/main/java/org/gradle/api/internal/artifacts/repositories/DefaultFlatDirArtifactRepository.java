@@ -151,15 +151,13 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     @Override
-    public Map<String, ?> getProperties() {
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-        builder.put("dirs", CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
+    public Map<RepositoryPropertyType, ?> getProperties() {
+        return ImmutableMap.of(RepositoryPropertyType.DIRS, CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
             @Override
             public String transform(File file) {
                 return file.getAbsolutePath();
             }
         }));
-        return builder.build();
     }
 
     private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {

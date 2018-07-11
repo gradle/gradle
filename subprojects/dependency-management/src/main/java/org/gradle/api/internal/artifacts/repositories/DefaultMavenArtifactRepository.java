@@ -48,7 +48,10 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.authentication.Authentication;
+import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
@@ -56,6 +59,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.util.CollectionUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -267,18 +271,26 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public Map<String, ?> getProperties() {
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-        builder.put("url", getUrl().toASCIIString());
-        builder.put("artifactUrls", getArtifactUrls());
+    public Map<RepositoryPropertyType, ?> getProperties() {
+        ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
+        builder.put(RepositoryPropertyType.URL, getUrl().toASCIIString());
+        builder.put(RepositoryPropertyType.ARTIFACT_URLS, getArtifactUrls());
         List<String> metadataSourcesList = metadataSources.asList();
         if (!metadataSourcesList.isEmpty()) {
-            builder.put("metadataSources", metadataSourcesList);
+            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
         }
         if (getConfiguredCredentials() != null) {
-            builder.put("authenticated", true);
+            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
         }
-        //TODO add help to convert configured authentication into string for their classname
+        if (!getAuthentication().isEmpty()) {
+            Set<String> authenticationTypes = CollectionUtils.collect(getAuthentication(), new Transformer<String, Authentication>() {
+                @Override
+                public String transform(Authentication authentication) {
+                    return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
+                }
+            });
+            builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
+        }
         return builder.build();
     }
 

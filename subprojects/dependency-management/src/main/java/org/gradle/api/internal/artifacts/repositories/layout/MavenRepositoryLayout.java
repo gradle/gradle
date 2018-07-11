@@ -15,16 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 
 import java.net.URI;
+import java.util.Set;
 
 /**
  * A Repository Layout that applies the following patterns:
  * <ul>
- *     <li>Artifacts: $baseUri/{@value IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</li>
- *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#MAVEN_IVY_PATTERN}</li>
+ * <li>Artifacts: $baseUri/{@value IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</li>
+ * <li>Ivy: $baseUri/{@value IvyArtifactRepository#MAVEN_IVY_PATTERN}</li>
  * </ul>
  *
  * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
@@ -41,5 +43,15 @@ public class MavenRepositoryLayout extends AbstractRepositoryLayout {
 
         resolver.addArtifactLocation(baseUri, IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
         resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.MAVEN_IVY_PATTERN);
+    }
+
+    @Override
+    public Set<String> getIvyPatterns() {
+        return ImmutableSet.of(IvyArtifactRepository.MAVEN_IVY_PATTERN);
+    }
+
+    @Override
+    public Set<String> getArtifactPatterns() {
+        return ImmutableSet.of(IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
     }
 }
