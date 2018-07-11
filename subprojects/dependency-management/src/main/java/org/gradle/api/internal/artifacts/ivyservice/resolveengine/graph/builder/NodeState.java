@@ -678,7 +678,7 @@ class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public HashValue getContentHash() {
+        public HashValue getOriginalContentHash() {
             return null;
         }
 

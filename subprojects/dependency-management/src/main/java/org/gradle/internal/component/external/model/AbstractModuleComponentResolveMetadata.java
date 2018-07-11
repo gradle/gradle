@@ -54,7 +54,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
-    private final ImmutableList<? extends ComponentIdentifier> plaftormOwners;
+    private final ImmutableList<? extends ComponentIdentifier> platformOwners;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -67,7 +67,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
-        plaftormOwners = metadata.getPlatformOwners() == null ? ImmutableList.<ComponentIdentifier>of() : ImmutableList.copyOf(metadata.getPlatformOwners());
+        platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.<ComponentIdentifier>of() : ImmutableList.copyOf(metadata.getPlatformOwners());
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
@@ -81,6 +81,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.getOriginalContentHash();
         attributes = metadata.getAttributes();
         this.variants = variants;
+        this.platformOwners = metadata.getPlatformOwners();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata) {
@@ -94,7 +95,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
-        plaftormOwners = metadata.plaftormOwners;
+        platformOwners = metadata.platformOwners;
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSource source) {
@@ -107,7 +108,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
-
+        platformOwners = metadata.platformOwners;
         moduleSource = source;
     }
 
@@ -193,7 +194,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Override
     public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
-        return plaftormOwners;
+        return platformOwners;
     }
 
     @Override
