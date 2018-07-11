@@ -13,14 +13,11 @@
 // limitations under the License.
 
 [[software_model_extend]]
-= Extending the software model
+= Extending the Software Model
 
-
-[NOTE]
+[CAUTION]
 ====
-
-Support for the software model is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
-
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
 ====
 
 == Introduction
@@ -263,8 +260,7 @@ Our `internalData` property should not be exposed to build logic. Let's check th
 include::{samples-path}/customModel/internalViews/build.gradle[tag=build-script]
 ----
 
-[source]
-.Output of `gradle -q model`
+.Output of`gradle -q model`
 ----
 > gradle -q model
 include::{samples-path}/customModel/internalViews/softwareModelExtend-iv-model.out[]

@@ -819,15 +819,13 @@ Another type of example involves adding input and output definitions to instance
 include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=custom-class-runtime-api]
 ----
 
-[source]
-.Output of `gradle processTemplatesRuntime`
+.Output of`gradle processTemplatesRuntime`
 ----
 > gradle processTemplatesRuntime
 include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApi.out[]
 ----
 
-[source]
-.Output of `gradle processTemplatesRuntime` (run again)
+.Output of`gradle processTemplatesRuntime` (run again)
 ----
 > gradle processTemplatesRuntime
 include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiUpToDate.out[]
@@ -979,8 +977,7 @@ include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvance
 include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=custom-task-class]
 ----
 
-[source]
-.Output of `gradle processTemplates`
+.Output of`gradle processTemplates`
 ----
 > gradle processTemplates
 include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethods.out[]
@@ -1004,8 +1001,7 @@ include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvance
 include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=task-arg-method]
 ----
 
-[source]
-.Output of `gradle processTemplates2`
+.Output of`gradle processTemplates2`
 ----
 > gradle processTemplates2
 include::{samples-path}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethodsWithTaskArg.out[]

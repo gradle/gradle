@@ -103,8 +103,7 @@ By specifying that the distribution should include the task's output files (see 
 
 === Example: Automatically creating files for distribution
 
-[source]
-.Output of `gradle distZip`
+.Output of`gradle distZip`
 ----
 > gradle distZip
 include::{samples-path}/application/dependentTaskForApplicationDistributionOutput.out[]

@@ -13,19 +13,14 @@
 // limitations under the License.
 
 [[software_model_concepts]]
-= Software model concepts
+= Software Model Concepts
 
-
-[NOTE]
+[CAUTION]
 ====
-
-Support for the software model is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
-
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
 ====
 
 The software model describes how a piece of software is built and how the components of the software relate to each other. The software model is organized around some key concepts:
-
-
 
 * A _component_ is a general concept that represents some logical piece of software. Examples of components are a command-line application, a web application or a library. A component is often composed of other components. Most Gradle builds will produce at least one component.
 * A _library_ is a reusable component that is linked into or combined into some other component. In the Java ecosystem, a library is often built as a Jar file, and then later bundled into an application of some kind. In the native ecosystem, a library may be built as a shared library or static library, or both.

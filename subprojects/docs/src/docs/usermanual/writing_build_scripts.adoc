@@ -194,8 +194,7 @@ include::{samples-path}/userguide/tutorial/configureObjectUsingScript/build.grad
 include::{samples-path}/userguide/tutorial/configureObjectUsingScript/other.gradle[]
 ----
 
-[source]
-.Output of `gradle -q configure`
+.Output of`gradle -q configure`
 ----
 > gradle -q configure
 include::{samples-path}/userguide/tutorial/configureObjectUsingScript/configureObjectUsingScript.out[]

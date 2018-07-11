@@ -314,8 +314,7 @@ include::{samples-path}/userguide/multiproject/tropicalWithProperties/water/buil
 include::{samples-path}/userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle[]
 ----
 
-[source]
-.Output of `gradle -q hello`
+.Output of`gradle -q hello`
 ----
 > gradle -q hello
 include::{samples-path}/userguide/multiproject/tropicalWithProperties/water/multiprojectTropicalWithProperties.out[]
@@ -444,8 +443,7 @@ include::{samples-path}/userguide/multiproject/dependencies/firstMessages/messag
 include::{samples-path}/userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle[]
 ----
 
-[source]
-.Output of `gradle -q action`
+.Output of`gradle -q action`
 ----
 > gradle -q action
 include::{samples-path}/userguide/multiproject/dependencies/firstMessages/messages/multiprojectFirstMessages.out[]
@@ -490,8 +488,7 @@ include::{samples-path}/userguide/multiproject/dependencies/messagesHack/message
 include::{samples-path}/userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle[]
 ----
 
-[source]
-.Output of `gradle -q action`
+.Output of`gradle -q action`
 ----
 > gradle -q action
 include::{samples-path}/userguide/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHack.out[]
