@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -48,7 +47,7 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
                 def isRoot = relativePathTracker.root
                 relativePathTracker.enter(directorySnapshot.name)
                 if (!isRoot) {
-                    files[directorySnapshot.absolutePath] = DirContentSnapshot.INSTANCE.contentMd5
+                    files[directorySnapshot.absolutePath] = PhysicalDirectorySnapshot.SIGNATURE
                     relativePaths.add(relativePathTracker.relativePath.join("/"))
                 }
                 return true

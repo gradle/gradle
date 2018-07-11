@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource;
+package org.gradle.api.internal.changedetection.state.mirror;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 
-/**
- * An immutable snapshot of the type and content of a resource. Does not include any information about the identity of the resource. The resource may not exist.
- */
-public interface ResourceContentMetadataSnapshot {
-    FileType getType();
+public interface PhysicalDirectorySnapshot extends PhysicalSnapshot {
+    HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
 
-    HashCode getContentMd5();
+    Iterable<? extends PhysicalSnapshot> getChildren();
 }

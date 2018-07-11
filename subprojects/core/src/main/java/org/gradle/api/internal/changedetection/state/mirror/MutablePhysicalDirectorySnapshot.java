@@ -32,7 +32,7 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
     }
 
     @Override
-    protected Iterable<MutablePhysicalSnapshot> getChildren() {
+    public Iterable<MutablePhysicalSnapshot> getChildren() {
         return children.values();
     }
 

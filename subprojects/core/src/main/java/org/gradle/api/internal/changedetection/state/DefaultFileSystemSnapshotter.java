@@ -200,7 +200,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             }
 
             private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
-                FileHashSnapshot snapshot = fileSnapshot(fileDetails);
                 return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), hasher.hash(fileDetails), fileDetails.getLastModified());
             }
         });
@@ -252,14 +251,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
         }
-    }
-
-    private FileHashSnapshot fileSnapshot(FileTreeElement fileDetails) {
-        return new FileHashSnapshot(hasher.hash(fileDetails), fileDetails.getLastModified());
-    }
-
-    private FileHashSnapshot fileSnapshot(File file, FileMetadataSnapshot fileDetails) {
-        return new FileHashSnapshot(hasher.hash(file, fileDetails), fileDetails.getLastModified());
     }
 
     private static class HashBackedSnapshot implements Snapshot {
