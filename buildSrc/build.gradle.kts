@@ -24,6 +24,7 @@ plugins {
     `kotlin-dsl`
 }
 
+//TODO:kotlin-eap
 //apply(plugin = "org.gradle.kotlin.ktlint-convention")
 apply<PrecompiledScriptPlugins>()
 

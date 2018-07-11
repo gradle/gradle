@@ -174,6 +174,7 @@ class StandardKotlinScriptEvaluator(
                 null,
                 scriptHost.targetScope)
 
+            //TODO:kotlin-eap - move to a precompiled InterpreterHost.afterTopLevelSettings callback
             (scriptHost.target as? Settings)?.run {
                 addKotlinDevRepository()
             }

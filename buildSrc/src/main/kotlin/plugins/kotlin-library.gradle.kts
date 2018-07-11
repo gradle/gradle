@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
+    //TODO:kotlin-eap
     //id("org.gradle.kotlin.ktlint-convention")
 }
 

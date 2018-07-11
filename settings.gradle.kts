@@ -1,5 +1,6 @@
 enableFeaturePreview("STABLE_PUBLISHING")
 
+//TODO:kotlin-eap - remove after the next snapshot distro upgrade
 fun RepositoryHandler.kotlinDev() =
     maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")
 

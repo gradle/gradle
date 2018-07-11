@@ -14,6 +14,7 @@ import org.junit.Ignore
 import org.junit.Test
 
 
+//TODO:kotlin-eap
 @Ignore("wip: Kotlin 1.2.60-eap-44")
 class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
 
