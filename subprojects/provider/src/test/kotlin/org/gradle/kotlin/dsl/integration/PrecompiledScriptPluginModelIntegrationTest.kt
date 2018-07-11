@@ -26,8 +26,6 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
                 `kotlin-dsl`
             }
 
-            $repositoriesBlock
-
             buildscript {
                 dependencies {
                     classpath(files("${classpathDependency.name}"))
@@ -96,8 +94,6 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
             plugins {
                 `kotlin-dsl`
             }
-
-            $repositoriesBlock
 
             dependencies {
                 implementation(files("${file.name}"))
