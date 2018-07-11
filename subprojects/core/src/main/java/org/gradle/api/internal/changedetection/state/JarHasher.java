@@ -118,6 +118,6 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
     private HashCode hashMalformedZip(PhysicalFileSnapshot jarFileSnapshot, Exception e) {
         LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarFileSnapshot.getName(), e);
-        return jarFileSnapshot.getContent().getContentMd5();
+        return jarFileSnapshot.getContentHash();
     }
 }

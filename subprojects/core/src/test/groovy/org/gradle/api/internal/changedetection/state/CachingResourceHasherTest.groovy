@@ -28,7 +28,7 @@ class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
     def relativePath = ["relative", "path"]
-    private PhysicalFileSnapshot snapshot = new PhysicalFileSnapshot(path, "path", new FileHashSnapshot(HashCode.fromInt(456)))
+    private PhysicalFileSnapshot snapshot = new PhysicalFileSnapshot(path, "path", HashCode.fromInt(456), 456)
     def cachingHasher = new CachingResourceHasher(delegate, new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
 
     def "returns result from delegate"() {

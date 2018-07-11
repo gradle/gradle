@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * A snapshot of a file/directory tree.
@@ -48,7 +48,12 @@ public interface PhysicalSnapshot {
         }
 
         @Override
-        public FileContentSnapshot getContent() {
+        public HashCode getContentHash() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
             throw new UnsupportedOperationException();
         }
 
@@ -75,7 +80,9 @@ public interface PhysicalSnapshot {
     /**
      * The content hash of the snapshot.
      */
-    FileContentSnapshot getContent();
+    HashCode getContentHash();
+
+    boolean isContentAndMetadataUpToDate(PhysicalSnapshot other);
 
     /**
      * Walks the whole hierarchy represented by this snapshot.

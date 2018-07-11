@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * A file snapshot for a regular file.
  */
 public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnapshot {
-    private final FileHashSnapshot content;
+    private final HashCode contentHash;
+    private final long lastModified;
 
-    public PhysicalFileSnapshot(String absolutePath, String name, FileHashSnapshot content) {
+    public PhysicalFileSnapshot(String absolutePath, String name, HashCode contentHash, long lastModified) {
         super(absolutePath, name);
-        this.content = content;
+        this.contentHash = contentHash;
+        this.lastModified = lastModified;
     }
 
     @Override
@@ -35,11 +37,18 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
         return FileType.RegularFile;
     }
 
-    /**
-     * The content hash and timestamp of the file.
-     */
-    public FileHashSnapshot getContent() {
-        return content;
+    @Override
+    public HashCode getContentHash() {
+        return contentHash;
+    }
+
+    @Override
+    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+        if (!(other instanceof PhysicalFileSnapshot)) {
+            return false;
+        }
+        PhysicalFileSnapshot otherSnapshot = (PhysicalFileSnapshot) other;
+        return lastModified == otherSnapshot.lastModified && contentHash.equals(otherSnapshot.contentHash);
     }
 
     @Override

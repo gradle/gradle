@@ -29,7 +29,7 @@ public class NonNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     }
 
     public NonNormalizedFileSnapshot(PhysicalSnapshot snapshot) {
-        this(snapshot.getAbsolutePath(), snapshot.getType(), snapshot.getContent().getContentMd5());
+        this(snapshot.getAbsolutePath(), snapshot.getType(), snapshot.getContentHash());
     }
 
     @Override

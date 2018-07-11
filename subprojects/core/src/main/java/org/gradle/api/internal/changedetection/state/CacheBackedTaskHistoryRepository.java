@@ -251,7 +251,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             return true;
         }
         // Was it updated during execution?
-        if (!fileSnapshot.getContent().isContentAndMetadataUpToDate(beforeSnapshot.getContent())) {
+        if (!fileSnapshot.isContentAndMetadataUpToDate(beforeSnapshot)) {
             return true;
         }
         // Did we already consider it as an output after the previous execution?

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.MissingFileContentSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * Represents a missing file.
@@ -35,8 +35,13 @@ public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
     }
 
     @Override
-    public FileContentSnapshot getContent() {
-        return MissingFileContentSnapshot.INSTANCE;
+    public HashCode getContentHash() {
+        return MissingFileContentSnapshot.INSTANCE.getContentMd5();
+    }
+
+    @Override
+    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+        return other instanceof MissingFileContentSnapshot;
     }
 
     @Override

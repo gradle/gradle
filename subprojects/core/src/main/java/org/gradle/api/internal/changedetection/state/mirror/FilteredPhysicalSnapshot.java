@@ -19,11 +19,10 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
 
@@ -50,7 +49,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             @Override
             public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 relativePath.enter(directorySnapshot);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot.getAbsolutePath(), relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot.getAbsolutePath(), relativePath.getRelativePath(), FileType.Directory, fileSystem))) {
                     visitor.preVisitDirectory(directorySnapshot);
                     return true;
                 }
@@ -61,7 +60,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             @Override
             public void visit(PhysicalSnapshot fileSnapshot) {
                 relativePath.enter(fileSnapshot);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot.getAbsolutePath(), relativePath.getRelativePath(), fileSnapshot.getContent(), fileSystem))) {
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot.getAbsolutePath(), relativePath.getRelativePath(), fileSnapshot.getType(), fileSystem))) {
                     visitor.visit(fileSnapshot);
                 }
                 relativePath.leave();
@@ -91,8 +90,13 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
     }
 
     @Override
-    public FileContentSnapshot getContent() {
-        return delegate.getContent();
+    public HashCode getContentHash() {
+        return delegate.getContentHash();
+    }
+
+    @Override
+    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+        return delegate.isContentAndMetadataUpToDate(other);
     }
 
     /**
@@ -105,16 +109,16 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
         private final String _absolutePath;
         private final Iterable<String> _relativePathIterable;
-        private final FileContentSnapshot _content;
+        private final FileType _fileType;
         private final FileSystem _fileSystem;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(String absolutePath, Iterable<String> relativePathIterable, FileContentSnapshot content, FileSystem fileSystem) {
+        public LogicalFileTreeElement(String absolutePath, Iterable<String> relativePathIterable, FileType fileType, FileSystem fileSystem) {
             super(fileSystem);
             this._absolutePath = absolutePath;
             this._relativePathIterable = relativePathIterable;
-            this._content = content;
+            this._fileType = fileType;
             this._fileSystem = fileSystem;
         }
 
@@ -133,7 +137,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
 
         @Override
         public boolean isDirectory() {
-            return _content.getType() == FileType.Directory;
+            return _fileType == FileType.Directory;
         }
 
         @Override

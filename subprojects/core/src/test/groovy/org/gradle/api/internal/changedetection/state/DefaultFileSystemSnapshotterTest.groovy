@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
 import org.gradle.api.internal.file.TestFiles
@@ -42,7 +43,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.RegularFile
-        snapshot.content == new FileHashSnapshot(fileHasher.hash(f), f.lastModified())
+        snapshot.isContentAndMetadataUpToDate(new PhysicalFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), f.lastModified()))
 
         def snapshot2 = snapshotter.snapshotSelf(f)
         snapshot2.is(snapshot)

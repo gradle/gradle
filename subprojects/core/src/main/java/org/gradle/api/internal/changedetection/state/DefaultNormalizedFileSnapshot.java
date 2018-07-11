@@ -29,7 +29,7 @@ public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
     }
 
     public DefaultNormalizedFileSnapshot(String normalizedPath, PhysicalSnapshot snapshot) {
-        this(normalizedPath, snapshot.getType(), snapshot.getContent().getContentMd5());
+        this(normalizedPath, snapshot.getType(), snapshot.getContentHash());
     }
 
     @Override

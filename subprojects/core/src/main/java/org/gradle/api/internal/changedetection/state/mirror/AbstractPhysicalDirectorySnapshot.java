@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * A file snapshot which can have children (i.e. a directory).
@@ -37,8 +37,13 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
     protected abstract Iterable<? extends PhysicalSnapshot> getChildren();
 
     @Override
-    public FileContentSnapshot getContent() {
-        return DirContentSnapshot.INSTANCE;
+    public HashCode getContentHash() {
+        return DirContentSnapshot.INSTANCE.getContentMd5();
+    }
+
+    @Override
+    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+        return other instanceof AbstractPhysicalDirectorySnapshot;
     }
 
     @Override

@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableReference;
@@ -156,7 +155,7 @@ public class MirrorUpdatingDirectoryWalker {
                     Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
-                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, new FileHashSnapshot(hash, metadata.getLastModified()));
+                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
                     levelHolder.peekLast().add(fileSnapshot);
                 }
 

@@ -201,7 +201,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
             private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
                 FileHashSnapshot snapshot = fileSnapshot(fileDetails);
-                return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), snapshot);
+                return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), hasher.hash(fileDetails), fileDetails.getLastModified());
             }
         });
         PhysicalSnapshot rootSnapshot = root.get();
@@ -248,7 +248,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case Directory:
                 return new ImmutablePhysicalDirectorySnapshot(path, name, ImmutableList.<PhysicalSnapshot>of());
             case RegularFile:
-                return new PhysicalFileSnapshot(path, name, fileSnapshot(file, stat));
+                return new PhysicalFileSnapshot(path, name, hasher.hash(file, stat), stat.getLastModified());
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
         }

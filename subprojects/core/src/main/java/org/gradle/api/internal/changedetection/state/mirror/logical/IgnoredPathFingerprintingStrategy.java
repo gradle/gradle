@@ -42,7 +42,7 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
                 @Override
                 public void visit(PhysicalSnapshot fileSnapshot) {
                     if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
-                        builder.put(fileSnapshot.getAbsolutePath(), IgnoredPathFingerprint.create(fileSnapshot.getType(), fileSnapshot.getContent().getContentMd5()));
+                        builder.put(fileSnapshot.getAbsolutePath(), IgnoredPathFingerprint.create(fileSnapshot.getType(), fileSnapshot.getContentHash()));
                     }
                 }
 
