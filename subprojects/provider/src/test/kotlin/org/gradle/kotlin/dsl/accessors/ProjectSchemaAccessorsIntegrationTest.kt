@@ -127,16 +127,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         build("tasks")
     }
 
-    private
-    fun FoldersDsl.withPrecompiledPlugins() =
-        withFile("build.gradle.kts", """
-            plugins {
-                `kotlin-dsl`
-                `java-gradle-plugin`
-            }
-            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-        """)
-
     @Test
     fun `conflicting extensions across build runs`() {
 
@@ -144,13 +134,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             "buildSrc" {
 
-                withFile("build.gradle.kts", """
-                    plugins {
-                        `kotlin-dsl`
-                        `java-gradle-plugin`
-                    }
-                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-                """)
+                withPrecompiledPlugins()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -171,11 +155,27 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 my { name = "kotlin-dsl" }
             """)
 
-            withFile("settings.gradle.kts")
+            withDefaultSettings()
         }
 
         build("tasks", "-Pmy=lib")
         build("tasks", "-Pmy=app")
+    }
+
+    private
+    fun FoldersDsl.withPrecompiledPlugins() {
+        withFile("settings.gradle.kts", defaultSettingsScript)
+        withFile("build.gradle.kts", """
+
+            plugins {
+                kotlin("jvm") version embeddedKotlinVersion
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+
+            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+
+        """)
     }
 
     @Test
@@ -445,6 +445,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
+        withDefaultSettingsIn("buildSrc")
+
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
@@ -494,11 +496,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
+
+        withDefaultSettingsIn("buildSrc")
+
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
             gradlePlugin {
                 (plugins) {
                     "my-plugin" {
@@ -582,11 +588,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `convention accessors honor HasPublicType`() {
+
+        withDefaultSettingsIn("buildSrc")
+
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
             gradlePlugin {
                 (plugins) {
                     "my-plugin" {

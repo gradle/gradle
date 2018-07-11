@@ -8,7 +8,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 
-class KotlintBuildScriptIntegrationTest : AbstractIntegrationTest() {
+class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `use of the plugins block on nested project block fails with reasonable error message`() {

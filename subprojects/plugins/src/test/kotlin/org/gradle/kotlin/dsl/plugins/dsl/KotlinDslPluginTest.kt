@@ -45,6 +45,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
     fun `gradle kotlin dsl api is available for test implementation`() {
+
         withBuildScript("""
 
             plugins {
@@ -52,9 +53,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 `kotlin-dsl`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 testCompile("junit:junit:4.12")
@@ -109,9 +108,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 `kotlin-dsl`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 testCompile("junit:junit:4.12")

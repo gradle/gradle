@@ -1,5 +1,17 @@
 enableFeaturePreview("STABLE_PUBLISHING")
 
+//TODO:kotlin-eap - remove after the next snapshot distro upgrade
+pluginManagement {
+    repositories {
+        kotlinDev()
+        gradlePluginPortal()
+    }
+}
+
+gradle.allprojects {
+    repositories { kotlinDev() }
+}
+
 rootProject.name = "gradle-kotlin-dsl"
 
 include(

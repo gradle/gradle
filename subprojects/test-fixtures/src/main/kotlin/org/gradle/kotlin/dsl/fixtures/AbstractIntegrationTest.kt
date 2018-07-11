@@ -39,8 +39,28 @@ open class AbstractIntegrationTest {
         withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
+    val defaultSettingsScript
+        get() = ""
+
+    protected
+    val repositoriesBlock
+        get() = """
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+
+    protected
     val projectRoot: File
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
+
+    protected
+    fun withDefaultSettings() =
+        withDefaultSettingsIn(".")
+
+    protected
+    fun withDefaultSettingsIn(baseDir: String) =
+        withSettingsIn(baseDir, defaultSettingsScript)
 
     protected
     fun withSettings(script: String, produceFile: (String) -> File = ::newFile): File =
@@ -74,12 +94,14 @@ open class AbstractIntegrationTest {
         """)
 
     protected
-    fun withKotlinBuildSrc() =
+    fun withKotlinBuildSrc() {
+        withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
             }
         """)
+    }
 
     protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =

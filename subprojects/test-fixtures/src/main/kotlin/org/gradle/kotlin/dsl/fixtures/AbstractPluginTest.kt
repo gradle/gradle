@@ -18,18 +18,19 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     val pluginManagementBlock by lazy {
         """
             pluginManagement {
-                $repositoriesBlock
+                $pluginRepositoriesBlock
                 $resolutionStrategyBlock
             }
         """
     }
 
-    private
-    val repositoriesBlock by lazy {
+    protected
+    val pluginRepositoriesBlock by lazy {
         """
             repositories {
                 $testRepositories
                 gradlePluginPortal()
+                kotlinDev()
             }
         """
     }

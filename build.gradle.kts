@@ -19,19 +19,19 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.18.5-SNAPSHOT"
+    version = "0.19.0-SNAPSHOT"
     createOpenTestReportTasks()
 }
 
-val publishedPluginsVersion by extra { "0.18.1" }
-val futurePluginsVersion = "0.18.2"
+val publishedPluginsVersion by extra { "0.19.0" }
+val futurePluginsVersion = "0.19.1"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
 }
 
-val publishedPluginsExperimentsVersion by extra { "0.1.8" }
-val futurePluginsExperimentsVersion = "0.1.9"
+val publishedPluginsExperimentsVersion by extra { "0.1.9" }
+val futurePluginsExperimentsVersion = "0.1.10"
 project(":plugins-experiments") {
     group = "org.gradle.kotlin"
     version = futurePluginsExperimentsVersion
