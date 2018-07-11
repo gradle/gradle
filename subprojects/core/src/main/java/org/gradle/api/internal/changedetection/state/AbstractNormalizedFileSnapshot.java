@@ -22,24 +22,24 @@ import org.gradle.internal.hash.HashCode;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
     private final FileType type;
-    private final HashCode contentHash;
+    private final HashCode normalizedContentHash;
 
-    public AbstractNormalizedFileSnapshot(FileType type, HashCode contentHash) {
+    public AbstractNormalizedFileSnapshot(FileType type, HashCode normalizedContentHash) {
         this.type = type;
-        this.contentHash = contentHash;
+        this.normalizedContentHash = normalizedContentHash;
     }
 
     @Override
     public final void appendToHasher(BuildCacheHasher hasher) {
         hasher.putString(getNormalizedPath());
-        hasher.putHash(getContentHash());
+        hasher.putHash(getNormalizedContentHash());
     }
 
     @Override
     public final int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = getContentHash().compareTo(o.getContentHash());
+            result = getNormalizedContentHash().compareTo(o.getNormalizedContentHash());
         }
         return result;
     }
@@ -53,25 +53,25 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
             return false;
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
-        return contentHash.equals(that.contentHash)
+        return normalizedContentHash.equals(that.normalizedContentHash)
             && getNormalizedPath().equals(that.getNormalizedPath());
     }
 
     @Override
     public final int hashCode() {
-        int result = contentHash.hashCode();
+        int result = normalizedContentHash.hashCode();
         result = 31 * result + getNormalizedPath().hashCode();
         return result;
     }
 
     @Override
     public final String toString() {
-        return String.format("'%s' / %s", getNormalizedPath(), getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : contentHash);
+        return String.format("'%s' / %s", getNormalizedPath(), getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : normalizedContentHash);
     }
 
     @Override
-    public HashCode getContentHash() {
-        return contentHash;
+    public HashCode getNormalizedContentHash() {
+        return normalizedContentHash;
     }
 
     @Override

@@ -140,7 +140,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
                 break;
             case RegularFile:
                 encoder.writeByte(REGULAR_FILE_SNAPSHOT);
-                hashCodeSerializer.write(encoder, value.getContentHash());
+                hashCodeSerializer.write(encoder, value.getNormalizedContentHash());
                 break;
             default:
                 throw new AssertionError();

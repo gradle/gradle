@@ -121,8 +121,8 @@ public enum FingerprintCompareStrategy {
         NormalizedFileSnapshot normalizedPrevious = previousEntry.getValue();
         NormalizedFileSnapshot normalizedCurrent = currentEntry.getValue();
         if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {
-            HashCode previousContent = normalizedPrevious.getContentHash();
-            HashCode currentContent = normalizedCurrent.getContentHash();
+            HashCode previousContent = normalizedPrevious.getNormalizedContentHash();
+            HashCode currentContent = normalizedCurrent.getNormalizedContentHash();
             if (!currentContent.equals(previousContent)) {
                 String path = currentEntry.getKey();
                 TaskStateChange change = FileChange.modified(path, fileType, normalizedPrevious.getType(), normalizedCurrent.getType());

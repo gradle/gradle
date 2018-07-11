@@ -42,7 +42,7 @@ public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl
                     String currentNormalizedPath = currentNormalizedSnapshot.getNormalizedPath();
                     String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
                     if (currentNormalizedPath.equals(previousNormalizedPath)) {
-                        if (!currentNormalizedSnapshot.getContentHash().equals(previousNormalizedSnapshot.getContentHash())) {
+                        if (!currentNormalizedSnapshot.getNormalizedContentHash().equals(previousNormalizedSnapshot.getNormalizedContentHash())) {
                             if (!visitor.visitChange(
                                 FileChange.modified(currentAbsolutePath, propertyTitle,
                                     previousNormalizedSnapshot.getType(),

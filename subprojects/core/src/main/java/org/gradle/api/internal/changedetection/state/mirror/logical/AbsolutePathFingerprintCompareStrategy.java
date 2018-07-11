@@ -36,10 +36,10 @@ public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompar
         for (Map.Entry<String, NormalizedFileSnapshot> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();
             NormalizedFileSnapshot currentNormalizedSnapshot = currentEntry.getValue();
-            HashCode currentSnapshot = currentNormalizedSnapshot.getContentHash();
+            HashCode currentSnapshot = currentNormalizedSnapshot.getNormalizedContentHash();
             if (unaccountedForPreviousSnapshots.remove(currentAbsolutePath)) {
                 NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
-                HashCode previousSnapshot = previousNormalizedSnapshot.getContentHash();
+                HashCode previousSnapshot = previousNormalizedSnapshot.getNormalizedContentHash();
                 if (!currentSnapshot.equals(previousSnapshot)) {
                     if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousNormalizedSnapshot.getType(), currentNormalizedSnapshot.getType()))) {
                         return false;

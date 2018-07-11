@@ -36,7 +36,7 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
     private static final Comparator<NonNormalizedFileSnapshot> ENTRY_COMPARATOR = new Comparator<NonNormalizedFileSnapshot>() {
         @Override
         public int compare(NonNormalizedFileSnapshot o1, NonNormalizedFileSnapshot o2) {
-            return o1.getContentHash().compareTo(o2.getContentHash());
+            return o1.getNormalizedContentHash().compareTo(o2.getNormalizedContentHash());
         }
     };
 
@@ -46,12 +46,12 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot.getContentHash(), new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getContentHash()));
+            unaccountedForPreviousSnapshots.put(previousSnapshot.getNormalizedContentHash(), new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getNormalizedContentHash()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
-            HashCode currentSnapshot = entry.getValue().getContentHash();
+            HashCode currentSnapshot = entry.getValue().getNormalizedContentHash();
             List<NonNormalizedFileSnapshot> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(currentSnapshot);
             if (previousSnapshotsForContent.isEmpty()) {
                 if (includeAdded) {

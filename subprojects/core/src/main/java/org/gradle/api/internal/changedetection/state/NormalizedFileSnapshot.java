@@ -29,6 +29,6 @@ import org.gradle.internal.hash.HashCode;
  */
 public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
     String getNormalizedPath();
-    HashCode getContentHash();
+    HashCode getNormalizedContentHash();
     FileType getType();
 }

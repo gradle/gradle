@@ -41,9 +41,9 @@ public class OverlappingOutputs {
         for (Map.Entry<String, NormalizedFileSnapshot> beforeEntry : beforeSnapshots.entrySet()) {
             String path = beforeEntry.getKey();
             NormalizedFileSnapshot beforeSnapshot = beforeEntry.getValue();
-            HashCode fileSnapshot = beforeSnapshot.getContentHash();
+            HashCode fileSnapshot = beforeSnapshot.getNormalizedContentHash();
             NormalizedFileSnapshot normalizedFileSnapshot = previousSnapshots.get(path);
-            HashCode previousSnapshot = normalizedFileSnapshot == null ? null : normalizedFileSnapshot.getContentHash();
+            HashCode previousSnapshot = normalizedFileSnapshot == null ? null : normalizedFileSnapshot.getNormalizedContentHash();
             // Missing files can be ignored
             if (beforeSnapshot.getType() != FileType.Missing) {
                 if (createdSincePreviousExecution(previousSnapshot) || changedSincePreviousExecution(fileSnapshot, previousSnapshot)) {

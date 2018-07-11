@@ -47,7 +47,7 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previousFingerprints.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot, new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getContentHash()));
+            unaccountedForPreviousSnapshots.put(previousSnapshot, new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getNormalizedContentHash()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : currentFingerprints.entrySet()) {
@@ -55,12 +55,12 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
             NormalizedFileSnapshot currentSnapshot = entry.getValue();
             List<NonNormalizedFileSnapshot> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentSnapshot);
             if (previousSnapshotsForNormalizedPath.isEmpty()) {
-                NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot.getType(), currentSnapshot.getContentHash());
+                NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot.getType(), currentSnapshot.getNormalizedContentHash());
                 addedFiles.put(currentSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
             } else {
                 NonNormalizedFileSnapshot previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
-                HashCode previousSnapshot = previousSnapshotWithAbsolutePath.getContentHash();
-                if (!currentSnapshot.getContentHash().equals(previousSnapshot)) {
+                HashCode previousSnapshot = previousSnapshotWithAbsolutePath.getNormalizedContentHash();
+                if (!currentSnapshot.getNormalizedContentHash().equals(previousSnapshot)) {
                     if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousSnapshotWithAbsolutePath.getType(), currentSnapshot.getType()))) {
                         return false;
                     }

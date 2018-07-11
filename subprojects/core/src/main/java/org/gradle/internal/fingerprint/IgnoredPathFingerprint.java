@@ -29,7 +29,7 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
     private static final IgnoredPathFingerprint MISSING_FILE = new IgnoredPathFingerprint(FileType.Missing, PhysicalMissingSnapshot.SIGNATURE);
 
     private final FileType type;
-    private final HashCode contentHash;
+    private final HashCode normalizedContentHash;
 
     public static IgnoredPathFingerprint create(FileType type, HashCode contentHash) {
         switch (type) {
@@ -44,9 +44,9 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
         }
     }
 
-    private IgnoredPathFingerprint(FileType type, HashCode contentHash) {
+    private IgnoredPathFingerprint(FileType type, HashCode normalizedContentHash) {
         this.type = type;
-        this.contentHash = contentHash;
+        this.normalizedContentHash = normalizedContentHash;
     }
 
     @Override
@@ -55,8 +55,8 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
     }
 
     @Override
-    public HashCode getContentHash() {
-        return contentHash;
+    public HashCode getNormalizedContentHash() {
+        return normalizedContentHash;
     }
 
     @Override
@@ -69,12 +69,12 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
         if (!(o instanceof IgnoredPathFingerprint)) {
             return -1;
         }
-        return contentHash.compareTo(o.getContentHash());
+        return normalizedContentHash.compareTo(o.getNormalizedContentHash());
     }
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putHash(contentHash);
+        hasher.putHash(normalizedContentHash);
     }
 
     @Override
@@ -86,11 +86,11 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
             return false;
         }
         IgnoredPathFingerprint that = (IgnoredPathFingerprint) o;
-        return contentHash.equals(that.contentHash);
+        return normalizedContentHash.equals(that.normalizedContentHash);
     }
 
     @Override
     public int hashCode() {
-        return contentHash.hashCode();
+        return normalizedContentHash.hashCode();
     }
 }
