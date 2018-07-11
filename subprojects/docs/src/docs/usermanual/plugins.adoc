@@ -50,7 +50,7 @@ To use the build logic encapsulated in a plugin, Gradle needs to perform two ste
 
 _Resolving_ a plugin means finding the correct version of the jar which contains a given plugin and adding it the script classpath. Once a plugin is resolved, its API can be used in a build script. Script plugins are self-resolving in that they are resolved from the specific file path or URL provided when applying them. Core binary plugins provided as part of the Gradle distribution are automatically resolved.
 
-_Applying_ a plugin means actually executing the plugin's api:org.gradle.api.Plugin#apply(T)[] on the Project you want to enhance with the plugin. Applying plugins is _idempotent_. That is, you can safely apply any plugin multiple times without side effects.
+_Applying_ a plugin means actually executing the plugin's link:{javadoc-path}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] on the Project you want to enhance with the plugin. Applying plugins is _idempotent_. That is, you can safely apply any plugin multiple times without side effects.
 
 The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a common use case, it's recommended that build authors use the <<#sec:plugins_block,plugins DSL>> to both resolve and apply plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
 
@@ -71,7 +71,7 @@ Script plugins are automatically resolved and can be applied from a script on th
 [[sec:binary_plugins]]
 == Binary plugins
 
-You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins. Core Gradle plugins are special in that they provide short names, such as `'java'` for the core link:{groovy-dsl-path}/org.gradle.api.plugins.JavaPlugin.html[JavaPlugin]. All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`), although some legacy plugins may still utilize a short, unqualified form. Where you put the plugin id depends on whether you are using the <<#sec:plugins_block,plugins DSL>> or the <<#sec:old_plugin_application,buildscript block.>>
+You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins. Core Gradle plugins are special in that they provide short names, such as `'java'` for the core link:{javadoc-path}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`), although some legacy plugins may still utilize a short, unqualified form. Where you put the plugin id depends on whether you are using the <<#sec:plugins_block,plugins DSL>> or the <<#sec:old_plugin_application,buildscript block.>>
 
 
 [[sec:binary_plugin_locations]]

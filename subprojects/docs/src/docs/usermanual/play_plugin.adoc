@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[play_plugin]]
-= Building Play applications
+= Building Play Applications
 
 [NOTE]
 ====
@@ -65,12 +65,9 @@ image::playPluginModel.png[]
 A Play application component describes the application to be built and consists of several configuration elements. One type of element that describes the application are the source sets that define where the application controller, route, template and model class source files should be found. These source sets are logical groupings of files of a particular type and a default source set for each type is created when the `play` plugin is applied.
 
 .Default Play source sets
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Source Set
-| Type
-| Directory
-| Filters
+| Source Set | Type | Directory | Filters
 
 | java
 | link:{javadoc-path}/org/gradle/language/java/JavaSourceSet.html[JavaSourceSet]
@@ -229,7 +226,7 @@ Users of Play used to such a workflow with Play's default build system should no
 [[configuring_play_platform]]
 === Targeting a certain version of Play
 
-By default, Gradle uses Play 2.6.15, Scala 2.12 and the version of Java used to start the build. A Play application can select a different version by specifying a target api:org.gradle.play.PlayApplicationSpec#platform[] on the Play application component.
+By default, Gradle uses Play 2.6.15, Scala 2.12 and the version of Java used to start the build. A Play application can select a different version by specifying a target link:{groovy-dsl-path}/org.gradle.play.PlayApplicationSpec.html#org.gradle.play.PlayApplicationSpec:platform(java.lang.Object)[PlayApplicationSpec.platform(java.lang.Object)] on the Play application component.
 
 === Example: Selecting a version of the Play Framework
 
@@ -242,11 +239,9 @@ include::{samples-path}/play/advanced/build.gradle[tag=play-platform]
 The following versions of Play and Scala are supported:
 
 .Play supported versions
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Play
-| Scala
-| Java
+| Play | Scala | Java
 
 | 2.6.x
 | 2.11 and 2.12
@@ -286,8 +281,6 @@ Other dependencies that have short names, such as `jacksons` may actually be mul
 include::{samples-path}/play/advanced/build.gradle[tag=play-dependencies]
 ----
 
-[NOTE]
-====
 Play 2.6 has a more modular architecture and, because of that, you may need to add some dependencies manually. For example, https://playframework.com/documentation/2.6.x/Migration26#Guice-DI-support-moved-to-separate-module[Guice support was moved to a separated module]. Considering the following definition for a Play 2.6 project:
 
 === Example: A Play 2.6 project
@@ -308,8 +301,7 @@ You can add Guice dependency like:
 include::{samples-path}/play/play-2.6/build.gradle[tag=play-dependencies-2.6]
 ----
 
-Of course, pay attention to keep Play version and Scala version for the dependency consistent with the platform versions.
-====
+Of course, pay attention to keep the Play version and Scala version for the dependency consistent with the platform versions.
 
 
 [[configuring_play_sourcesets]]
@@ -417,7 +409,7 @@ The distribution can be created by running the `dist` lifecycle task and places 
 
 === Play Plugin — distribution tasks
 
-`createPlayBinaryStartScripts` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.application.CreateStartScripts.html[CreateStartScripts]::
+`createPlayBinaryStartScripts` — type: link:{javadoc-path}/org/gradle/api/tasks/application/CreateStartScripts.html[CreateStartScripts]::
 +
 Generates scripts to run the Play application distribution.
 
