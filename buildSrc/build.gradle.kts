@@ -14,7 +14,7 @@ buildscript {
     }
 
     configure(listOf(repositories, project.repositories)) {
-        maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")
+        kotlinDev()
         gradlePluginPortal()
     }
 }
