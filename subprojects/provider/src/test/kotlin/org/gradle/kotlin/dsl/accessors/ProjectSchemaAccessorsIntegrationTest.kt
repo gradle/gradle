@@ -164,7 +164,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun FoldersDsl.withPrecompiledPlugins() {
-        withDefaultSettings()
+        withFile("settings.gradle.kts", defaultSettingsScript)
         withFile("build.gradle.kts", """
 
             plugins {

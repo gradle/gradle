@@ -39,10 +39,7 @@ open class AbstractIntegrationTest {
         withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
-    val pluginManagementBlockWithKotlinDevRepository get() = """
-        pluginManagement {
-        }
-    """
+    val defaultSettingsScript get() = ""
 
     protected
     val repositoriesBlock get() = """
@@ -61,7 +58,7 @@ open class AbstractIntegrationTest {
 
     protected
     fun withDefaultSettingsIn(baseDir: String) =
-        withSettingsIn(baseDir, pluginManagementBlockWithKotlinDevRepository)
+        withSettingsIn(baseDir, defaultSettingsScript)
 
     protected
     fun withSettings(script: String, produceFile: (String) -> File = ::newFile): File =
