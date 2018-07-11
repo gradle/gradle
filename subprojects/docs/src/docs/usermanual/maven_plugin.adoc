@@ -63,24 +63,11 @@ The Maven plugin does not define any dependency configurations.
 
 The Maven plugin defines the following convention properties:
 
-.Maven plugin - properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`mavenPomDir` — type: `File`::
+The directory where the generated POMs are written to. _Default value_: `__${project.buildDir}__/poms`
 
-| `mavenPomDir`
-| `File`
-| `__${project.buildDir}__/poms`
-| The directory where the generated POMs are written to.
-
-| `conf2ScopeMappings`
-| `link:{javadoc-path}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer]`
-| `n/a`
-| Instructions for mapping Gradle configurations to Maven scopes. See <<#sub:dependency_mapping,Dependency mapping>>.
-|===
+`conf2ScopeMappings` — type: `link:{javadoc-path}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer]`::
+Instructions for mapping Gradle configurations to Maven scopes. See <<#sub:dependency_mapping,Dependency mapping>>.
 
 These properties are provided by a link:{groovy-dsl-path}/org.gradle.api.plugins.MavenPluginConvention.html[MavenPluginConvention] convention object.
 
@@ -141,10 +128,9 @@ In Maven you can define repositories and optionally snapshot repositories. If no
 
 [[wagonLibs]]
 .Protocol jars for Maven deployment
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Protocol
-| Library
+| Protocol | Library
 
 | http
 | org.apache.maven.wagon:wagon-http:2.2
@@ -167,10 +153,9 @@ In Maven you can define repositories and optionally snapshot repositories. If no
 
 [[deployerConfig]]
 .Configuration elements of the MavenDeployer
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Element
-| Javadoc
+| Element | Javadoc
 
 | root
 | link:{javadoc-path}/org/gradle/api/artifacts/maven/MavenDeployer.html[MavenDeployer]
@@ -206,10 +191,9 @@ The Maven plugin adds an `install` task to your project. This task depends on al
 When deploying an artifact to a Maven repository, Gradle automatically generates a POM for it. The `groupId`, `artifactId`, `version` and `packaging` elements used for the POM default to the values shown in the table below. The `dependency` elements are created from the project's dependency declarations.
 
 .Default Values for Maven POM generation
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Maven Element
-| Default Value
+| Maven Element | Default Value
 
 | groupId
 | project.group
