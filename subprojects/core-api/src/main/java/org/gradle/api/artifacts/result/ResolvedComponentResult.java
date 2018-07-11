@@ -47,9 +47,11 @@ public interface ResolvedComponentResult {
     ComponentIdentifier getId();
 
     /**
-     * Hackathon!!
+     * <p>Returns the identifier of the repository used to source this component.
      *
-     * @return hacked content
+     * @return the identifier of the repository used to source this component
+     *
+     * @since 4.10
      */
     String getRepositoryId();
 
