@@ -1,6 +1,5 @@
 plugins {
     `java-gradle-plugin`
-    kotlin("jvm") version embeddedKotlinVersion
     `kotlin-dsl`
     `maven-publish`
 }
@@ -15,8 +14,4 @@ publishing {
     repositories {
         maven(url = "build/repository")
     }
-}
-
-repositories {
-    gradlePluginPortal()
 }

@@ -275,8 +275,6 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     $applyPrecompiledScriptPlugins
 
-                    $pluginRepositoriesBlock
-
                     publishing {
                         repositories {
                             maven(url = "../repository")
@@ -363,8 +361,6 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             plugins {
                 ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
-
-            $repositoriesBlock
 
             $applyPrecompiledScriptPlugins
         """

@@ -120,7 +120,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
 
             withFile("settings.gradle.kts", """
-                $pluginManagementBlockWithKotlinDevRepository
                 include("app", "lib")
             """)
         }
@@ -156,7 +155,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 my { name = "kotlin-dsl" }
             """)
 
-            withFile("settings.gradle.kts", pluginManagementBlockWithKotlinDevRepository)
+            withDefaultSettings()
         }
 
         build("tasks", "-Pmy=lib")
@@ -165,7 +164,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun FoldersDsl.withPrecompiledPlugins() {
-        withFile("settings.gradle.kts", pluginManagementBlockWithKotlinDevRepository)
+        withDefaultSettings()
         withFile("build.gradle.kts", """
 
             plugins {
@@ -175,13 +174,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
 
             apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-
-            $repositoriesBlock
-
-            dependencies {
-                kotlinCompilerPluginClasspath(gradleKotlinDslJars())
-                kotlinCompilerPluginClasspath(gradleApi())
-            }
 
         """)
     }
@@ -453,15 +445,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
-        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+        withDefaultSettingsIn("buildSrc")
 
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
                 `java-gradle-plugin`
             }
-
-            $repositoriesBlock
 
             gradlePlugin {
                 (plugins) {
@@ -506,14 +496,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
-        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+
+        withDefaultSettingsIn("buildSrc")
+
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
-
-            $repositoriesBlock
 
             gradlePlugin {
                 (plugins) {
@@ -598,14 +588,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `convention accessors honor HasPublicType`() {
-        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+
+        withDefaultSettingsIn("buildSrc")
+
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
-
-            $repositoriesBlock
 
             gradlePlugin {
                 (plugins) {

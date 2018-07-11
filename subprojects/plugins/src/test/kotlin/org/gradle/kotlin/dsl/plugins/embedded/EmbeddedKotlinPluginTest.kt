@@ -106,7 +106,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
-            $pluginRepositoriesBlock
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect"))}
@@ -163,7 +163,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
-            $pluginRepositoriesBlock
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
@@ -221,7 +221,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 customConfiguration("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
             }
 
-            $pluginRepositoriesBlock
+            $repositoriesBlock
 
             configurations["customConfiguration"].files.map { println(it) }
         """)
@@ -237,21 +237,13 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `can be used with GRADLE_METADATA feature preview enabled`() {
 
-        withSettings("""
-
-            enableFeaturePreview("GRADLE_METADATA")
-
-            $pluginManagementBlock
-
-        """.trimIndent())
+        withSettings("""enableFeaturePreview("GRADLE_METADATA")""")
 
         withBuildScript("""
 
             plugins {
                 `embedded-kotlin`
             }
-
-            $pluginRepositoriesBlock
 
         """)
 

@@ -26,9 +26,7 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `withPluginClasspath works`() {
 
-        withSettings(
-            pluginManagementBlockWithKotlinDevRepository
-        )
+        withDefaultSettings()
 
         withBuildScript("""
 

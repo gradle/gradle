@@ -810,15 +810,13 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given generic extension types they can be accessed and configured`() {
 
-        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+        withDefaultSettingsIn("buildSrc")
 
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
                 `java-gradle-plugin`
             }
-
-            $repositoriesBlock
 
             gradlePlugin {
                 (plugins) {

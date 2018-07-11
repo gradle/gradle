@@ -26,8 +26,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 `kotlin-dsl`
             }
 
-            $repositoriesBlock
-
         """)
 
         withFile("src/main/kotlin/code.kt", """
@@ -203,8 +201,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             plugins {
                 `kotlin-dsl`
             }
-
-            $repositoriesBlock
 
         """)
 

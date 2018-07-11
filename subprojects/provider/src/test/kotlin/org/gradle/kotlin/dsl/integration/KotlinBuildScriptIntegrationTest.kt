@@ -13,7 +13,7 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `accepts lambdas as SAM argument to Kotlin function`() {
 
-        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+        withDefaultSettingsIn("buildSrc")
 
         withBuildScriptIn("buildSrc", """
 

@@ -56,6 +56,14 @@ open class AbstractIntegrationTest {
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
 
     protected
+    fun withDefaultSettings() =
+        withDefaultSettingsIn(".")
+
+    protected
+    fun withDefaultSettingsIn(baseDir: String) =
+        withSettingsIn(baseDir, pluginManagementBlockWithKotlinDevRepository)
+
+    protected
     fun withSettings(script: String, produceFile: (String) -> File = ::newFile): File =
         withSettingsIn(".", script, produceFile)
 
@@ -88,13 +96,11 @@ open class AbstractIntegrationTest {
 
     protected
     fun withKotlinBuildSrc() {
-        withSettingsIn("buildSrc", pluginManagementBlockWithKotlinDevRepository)
+        withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
             }
-
-            $repositoriesBlock
         """)
     }
 

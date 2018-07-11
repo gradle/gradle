@@ -72,7 +72,6 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     protected
     fun withMultiProjectKotlinBuildSrc(): Array<ProjectSourceRoots> {
         withSettingsIn("buildSrc", """
-            $pluginManagementBlockWithKotlinDevRepository
             include(":a", ":b", ":c")
         """)
         withFile("buildSrc/build.gradle.kts", """

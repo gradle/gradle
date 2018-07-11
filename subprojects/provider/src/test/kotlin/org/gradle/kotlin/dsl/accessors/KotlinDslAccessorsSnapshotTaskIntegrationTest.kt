@@ -13,9 +13,6 @@ class KotlinDslAccessorsSnapshotTaskIntegrationTest : AbstractIntegrationTest() 
     fun `writes multi-project schema to gradle slash project dash schema dot json`() {
 
         withSettings("""
-
-            $pluginManagementBlockWithKotlinDevRepository
-
             include("sub-java")
             include("sub-groovy")
             include("sub-kotlin-dsl")
