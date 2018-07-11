@@ -443,4 +443,4 @@ val List<ApiFunction>.candidatesForExtension: List<ApiFunction>
 
 
 private
-val functionNameBlackList = listOf("<init>", "apply")
+val functionNameBlackList = listOf("<init>")
