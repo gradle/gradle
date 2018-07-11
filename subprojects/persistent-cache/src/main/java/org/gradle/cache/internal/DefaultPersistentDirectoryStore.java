@@ -208,10 +208,13 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
             if (cleanupAction != null) {
                 CountdownTimer timer = Time.startCountdownTimer(DEFAULT_CLEANUP_TIMEOUT);
                 cleanupAction.clean(DefaultPersistentDirectoryStore.this, timer);
-                if (!timer.hasExpired()) {
+                if (timer.hasExpired()) {
+                    LOGGER.info("{} partially cleaned up in {}. Cleanup was aborted because it took too long to complete but will be resumed next time.",
+                        DefaultPersistentDirectoryStore.this, timer.getElapsed());
+                } else {
                     GFileUtils.touch(gcFile);
+                    LOGGER.info("{} fully cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
                 }
-                LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
             }
         }
     }
