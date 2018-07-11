@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
@@ -44,12 +45,16 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
     private final Iterable<PhysicalSnapshot> roots;
     private HashCode hash;
 
-    public DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable HashCode hash) {
-        this(snapshots, strategy, null, hash);
+    public static FileCollectionSnapshot from(Iterable<PhysicalSnapshot> roots, FingerprintingStrategy strategy) {
+        Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
+        if (snapshots.isEmpty()) {
+            return EmptyFileCollectionSnapshot.INSTANCE;
+        }
+        return new DefaultFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots, null);
     }
 
-    public DefaultFileCollectionFingerprint(Iterable<PhysicalSnapshot> roots, FingerprintingStrategy strategy) {
-        this(strategy.collectSnapshots(roots), strategy.getCompareStrategy(), roots, null);
+    public DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable HashCode hash) {
+        this(snapshots, strategy, null, hash);
     }
 
     private DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable Iterable<PhysicalSnapshot> roots, @Nullable HashCode hash) {

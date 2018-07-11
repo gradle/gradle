@@ -358,14 +358,14 @@ class TarTaskOutputPackerTest extends Specification {
                     if (output == null) {
                         return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    return new DefaultFileCollectionFingerprint([snapshotter.snapshotSelf(output)], new AbsolutePathFingerprintingStrategy(false))
+                    return DefaultFileCollectionFingerprint.from([snapshotter.snapshotSelf(output)], new AbsolutePathFingerprintingStrategy(false))
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
                         return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    return new DefaultFileCollectionFingerprint([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], new AbsolutePathFingerprintingStrategy(false))
+                    return DefaultFileCollectionFingerprint.from([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], new AbsolutePathFingerprintingStrategy(false))
                 })
             default:
                 throw new AssertionError()

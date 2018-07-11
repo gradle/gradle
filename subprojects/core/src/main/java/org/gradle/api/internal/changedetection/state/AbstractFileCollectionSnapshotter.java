@@ -58,7 +58,11 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);
-        return new DefaultFileCollectionFingerprint(visitor.getRoots(), strategy);
+        List<PhysicalSnapshot> roots = visitor.getRoots();
+        if (roots.isEmpty()) {
+            return EmptyFileCollectionSnapshot.INSTANCE;
+        }
+        return DefaultFileCollectionFingerprint.from(roots, strategy);
     }
 
     protected StringInterner getStringInterner() {

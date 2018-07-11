@@ -29,7 +29,7 @@ import static FingerprintCompareStrategy.ABSOLUTE
 import static FingerprintCompareStrategy.CLASSPATH
 import static FingerprintCompareStrategy.IGNORED_PATH
 import static FingerprintCompareStrategy.NORMALIZED
-import static FingerprintCompareStrategy.compareTrivialSnapshots
+import static org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy.isTrivialComparison
 
 class FingerprintCompareStrategyTest extends Specification {
 
@@ -288,13 +288,12 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
-        compareTrivialSnapshots(current, previous, "test", true) == null
-        compareTrivialSnapshots(current, previous, "test", false) == null
+        !isTrivialComparison(current, previous)
 
         where:
         current                                          | previous
-        [:]                                              | ["one": snapshot("one"), "two": snapshot("two")]
-        ["one": snapshot("one"), "two": snapshot("two")] | [:]
+        ["one": snapshot("one")]                         | ["one": snapshot("one"), "two": snapshot("two")]
+        ["one": snapshot("one"), "two": snapshot("two")] | ["one": snapshot("one")]
     }
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
