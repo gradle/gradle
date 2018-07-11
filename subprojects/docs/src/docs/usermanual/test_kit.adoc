@@ -98,7 +98,7 @@ include::{samples-path}/testKit/gradleRunner/manualClasspathInjection/build.grad
 ----
 NOTE: The code for this example can be found at **`samples/testKit/gradleRunner/manualClasspathInjection`** in the ‘-all’ distribution of Gradle.
 
-The tests can then read this value, and inject the classpath into the test build by using the method link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath-java.lang.Iterable-[GradleRunner.withPluginClasspath(java.lang.Iterable)]. This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <<plugins#,"Plugins">>). Applying plugins with the plugins DSL requires the definition of a plugin identifier. The following is an example (in Groovy) of doing this from within a Spock Framework `setup()` method, which is analogous to a JUnit `@Before` method.
+The tests can then read this value, and inject the classpath into the test build by using the method link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath-java.lang.Iterable-[GradleRunner.withPluginClasspath(java.lang.Iterable)]. This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <<plugins#,Plugins>>). Applying plugins with the plugins DSL requires the definition of a plugin identifier. The following is an example (in Groovy) of doing this from within a Spock Framework `setup()` method, which is analogous to a JUnit `@Before` method.
 
 === Example: Injecting the code under test classes into test builds
 

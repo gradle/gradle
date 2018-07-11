@@ -31,7 +31,7 @@ You can include the source for the plugin directly in the build script. This has
 `buildSrc` project::
 You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
 +
-See <<organizing_gradle_projects#,"Organizing Gradle Projects">> for more details about the `buildSrc` project.
+See <<organizing_gradle_projects#,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
 Standalone project::
 You can create a separate project for your plugin. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some plugins, or bundle several related task classes into a single library. Or some combination of the two.
@@ -127,7 +127,7 @@ In this example, we configure the `greet` task `destination` property as a closu
 
 Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice. The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
-The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<build_lifecycle#sec:build_phases,the section on build phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration#,"Lazy Configuration">> for more information.
+The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<build_lifecycle#sec:build_phases,the section on build phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration#,Lazy Configuration>> for more information.
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 

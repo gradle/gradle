@@ -25,7 +25,7 @@ Many Gradle plugins add pre-defined configurations to your project. The Java plu
 .Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
-For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies#,"Working with Dependencies">>.
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies#,Working with Dependencies>>.
 
 == Defining custom configurations
 

@@ -48,7 +48,7 @@ For configuring this directory or different kinds of build caches see <<#sec:bui
 [[sec:task_output_caching]]
 == Task Output Caching
 
-Beyond incremental builds described in <<more_about_tasks#sec:up_to_date_checks,"up-to-date checks">>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
+Beyond incremental builds described in <<more_about_tasks#sec:up_to_date_checks,up-to-date checks>>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
 Task outputs can be reused between builds on one computer or even between builds running on different computers via a build cache.
 
 We have focused on the use case where users have an organization-wide remote build cache that is populated regularly by continuous integration builds.

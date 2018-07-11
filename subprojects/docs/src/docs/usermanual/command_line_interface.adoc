@@ -246,7 +246,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<inspecting_dependencies#,"Inspecting Dependencies">>.
+Learn more in <<inspecting_dependencies#,Inspecting Dependencies>>.
 
 === Listing project dependencies
 
@@ -256,7 +256,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 ❯ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<inspecting_dependencies#,"Inspecting Dependencies">>.
+Concrete examples of build scripts and output available in the <<inspecting_dependencies#,Inspecting Dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 
@@ -497,7 +497,7 @@ Don't search in parent directories for a `settings.gradle` file.
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<build_environment#sec:gradle_system_properties,System Properties>>.
 
 `-I`, `--init-script`::
-Specifies an initialization script. See <<init_scripts#,"Init Scripts">>.
+Specifies an initialization script. See <<init_scripts#,Init Scripts>>.
 
 `-P`, `--project-prop`::
 Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<build_environment#sec:project_properties,System Properties>>.

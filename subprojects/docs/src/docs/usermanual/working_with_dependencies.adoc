@@ -17,7 +17,7 @@
 
 Gradle provides an extensive API for navigating, inspecting and post-processing metadata and artifacts of resolved dependencies.
 
-The main entry point for this functionality is the link:{groovy-dsl-path}/org.gradle.api.artifacts.Configuration.html[Configuration] API. To learn more about the fundamentals of configurations, see <<managing_dependency_configurations#,"Managing Dependency Configurations">>.
+The main entry point for this functionality is the link:{groovy-dsl-path}/org.gradle.api.artifacts.Configuration.html[Configuration] API. To learn more about the fundamentals of configurations, see <<managing_dependency_configurations#,Managing Dependency Configurations>>.
 
 == Iterating over dependencies assigned to a configuration
 

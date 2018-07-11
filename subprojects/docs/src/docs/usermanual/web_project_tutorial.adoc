@@ -67,4 +67,4 @@ This also applies the War plugin to your project. Running `gradle appRun` will r
 [[sec:web_tutorial_summary]]
 == Summary
 
-You can find out more about the War plugin in <<war_plugin#,"War Plugin">>. You can find more sample Java projects in the `samples/webApplication` directory in the Gradle distribution.
+You can find out more about the War plugin in <<war_plugin#,War Plugin>>. You can find more sample Java projects in the `samples/webApplication` directory in the Gradle distribution.

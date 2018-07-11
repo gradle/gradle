@@ -136,7 +136,7 @@ A compatible Daemon is one that can (or can be made to) meet the requirements of
 
 Some aspects of the requested build environment may not be met by an Daemon. If the Daemon is running with a Java 7 runtime, but the requested environment calls for Java 8, then the Daemon is not compatible and another must be started. Moreover, certain properties of a Java runtime cannot be changed once the JVM has started. For example, it is not possible to change the memory allocation (e.g. `-Xmx1024m`), default text encoding, default locale, etc of a running JVM.
 
-The “requested build environment” is typically constructed implicitly from aspects of the build client’s (e.g. Gradle command line client, IDE etc.) environment and explicitly via command line switches and settings. See <<build_environment#,"Build Environment">> for details on how to specify and control the build environment.
+The “requested build environment” is typically constructed implicitly from aspects of the build client’s (e.g. Gradle command line client, IDE etc.) environment and explicitly via command line switches and settings. See <<build_environment#,Build Environment>> for details on how to specify and control the build environment.
 
 The following JVM system properties are effectively immutable. If the requested build environment requires any of these properties, with a different value than a Daemon’s JVM has for this property, the Daemon is not compatible.
 
@@ -167,7 +167,7 @@ The required Gradle version is another aspect of the requested build environment
 
 If the requested build environment does not specify a maximum heap size, the Daemon will use up to 1GB of heap. It will use the JVM's default minimum heap size. 1GB is more than enough for most builds. Larger builds with hundreds of subprojects, lots of configuration, and source code may require, or perform better, with more memory.
 
-To increase the amount of memory the Daemon can use, specify the appropriate flags as part of the requested build environment. Please see <<build_environment#,"Build Environment">> for details.
+To increase the amount of memory the Daemon can use, specify the appropriate flags as part of the requested build environment. Please see <<build_environment#,Build Environment>> for details.
 
 [[sec:how_can_i_stop_a_daemon]]
 === How can I stop a Daemon?

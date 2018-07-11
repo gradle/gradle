@@ -47,7 +47,7 @@ To define an module dependency, you add it to a <<#sec:configurations_java_tutor
 include::{samples-path}/userguide/artifacts/externalDependencies/build.gradle[tag=define-dependency]
 ----
 
-To find out more about defining dependencies, have a look at <<declaring_dependencies#,"Declaring Dependencies">>.
+To find out more about defining dependencies, have a look at <<declaring_dependencies#,Declaring Dependencies>>.
 
 [[sec:configurations_java_tutorial]]
 == Using dependency configurations
@@ -70,7 +70,7 @@ The dependencies required to compile the production source of the project which 
 testImplementation::
 The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
 
-Various plugins add further standard configurations. You can also define your own custom configurations in your build via link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[Project.configurations{}]. See <<managing_dependency_configurations#,"Managing Dependency Configurations">> for the details of defining and customizing dependency configurations.
+Various plugins add further standard configurations. You can also define your own custom configurations in your build via link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[Project.configurations{}]. See <<managing_dependency_configurations#,Managing Dependency Configurations>> for the details of defining and customizing dependency configurations.
 
 [[sec:repositories_java_tutorial]]
 == Declaring common Java repositories
@@ -99,7 +99,7 @@ include::{samples-path}/userguide/artifacts/defineRepository/build.gradle[tag=lo
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining repositories, have a look at <<declaring_repositories#,"Declaring Repositories">>.
+To find out more about defining repositories, have a look at <<declaring_repositories#,Declaring Repositories>>.
 
 [[sec:publishing_artifacts_java_tutorial]]
 == Publishing artifacts
@@ -116,4 +116,4 @@ include::{samples-path}/userguide/artifacts/maven/build.gradle[tag=upload-file]
 
 Now, when you run `gradle uploadArchives`, Gradle will build the JAR file, generate a `.pom` file and upload the artifacts.
 
-To learn more about publishing artifacts, have a look at <<artifact_management#,"Artifact Management">>.
+To learn more about publishing artifacts, have a look at <<artifact_management#,Artifact Management>>.

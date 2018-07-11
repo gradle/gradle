@@ -46,7 +46,7 @@ Some features that the Tooling API provides:
 [[sec:embedding_daemon]]
 == Tooling API and the Gradle Build Daemon
 
-The Tooling API always uses the Gradle daemon. This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process. <<gradle_daemon#,"Gradle Daemon">> contains more details about the daemon, specifically information on situations when new daemons are forked.
+The Tooling API always uses the Gradle daemon. This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process. <<gradle_daemon#,Gradle Daemon>> contains more details about the daemon, specifically information on situations when new daemons are forked.
 
 [[sec:embedding_quickstart]]
 == Quickstart

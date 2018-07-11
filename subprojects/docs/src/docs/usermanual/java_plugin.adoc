@@ -15,7 +15,7 @@
 [[java_plugin]]
 = The Java Plugin
 
-The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis for many of the other JVM language Gradle plugins. You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects#,"Building Java Projects">> chapter.
+The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis for many of the other JVM language Gradle plugins. You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects#,Building Java Projects>> chapter.
 
 [[sec:java_usage]]
 == Usage
@@ -690,7 +690,7 @@ See the <<java_testing#,Testing in Java & JVM projects>> chapter for more detail
 [[sec:jar]]
 == Jar
 
-The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files#sec:archives,file paths in depth>> and artifact configurations in <<artifact_management#,"Artifact Management">>.
+The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files#sec:archives,file paths in depth>> and artifact configurations in <<artifact_management#,Artifact Management>>.
 
 
 [[sub:manifest]]

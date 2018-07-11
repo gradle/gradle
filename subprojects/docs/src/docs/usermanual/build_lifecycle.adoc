@@ -37,7 +37,7 @@ Gradle determines the subset of the tasks, created and configured during the con
 
 Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is `settings.gradle`. Later in this chapter we explain how Gradle looks for a settings file.
 
-The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds#,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects#,"Organizing Gradle Projects">>). Let's first do some introspection with a single project build:
+The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds#,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects#,Organizing Gradle Projects>>). Let's first do some introspection with a single project build:
 
 === Example: Single project build
 
@@ -147,7 +147,7 @@ What is the purpose of this behavior? Gradle needs to determine whether the proj
 * a single project build, if the `settings.gradle` file does not define a multi-project hierarchy
 * a multi-project build, if the `settings.gradle` file does define a multi-project hierarchy.
 
-The automatic search for a `settings.gradle` file only works for multi-project builds with a physical hierarchical or flat layout. For a flat layout you must additionally follow the naming convention described above (“`master`”). Gradle supports arbitrary physical layouts for a multi-project build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located. For information on how to run partial builds from the root, see <<multi_project_builds#sec:running_partial_build_from_the_root, "Running tasks by their absolute path">>.
+The automatic search for a `settings.gradle` file only works for multi-project builds with a physical hierarchical or flat layout. For a flat layout you must additionally follow the naming convention described above (“`master`”). Gradle supports arbitrary physical layouts for a multi-project build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located. For information on how to run partial builds from the root, see <<multi_project_builds#sec:running_partial_build_from_the_root,Running tasks by their absolute path>>.
 
 Gradle creates a Project object for every project taking part in the build. For a multi-project build these are the projects specified in the Settings object (plus the root project). Each project object has by default a name equal to the name of its top level directory, and every project except the root project has a parent project. Any project may have child projects.
 

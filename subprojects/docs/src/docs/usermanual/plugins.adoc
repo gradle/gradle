@@ -84,7 +84,7 @@ A plugin is simply any class that implements the link:{javadoc-path}/org/gradle/
 * Defining the plugin as a source file under the buildSrc directory in the project (see <<organizing_gradle_projects#sec:build_sources,Using buildSrc to extract functional logic>>).
 * Defining the plugin as an inline class declaration inside a build script.
 
-For more on defining your own plugins, see <<custom_plugins#,"Custom Plugins">>.
+For more on defining your own plugins, see <<custom_plugins#,Custom Plugins>>.
 
 [[sec:plugins_block]]
 === Applying plugins with the plugins DSL
@@ -257,7 +257,7 @@ include::{samples-path}/plugins/resolutionRules/settings.gradle[tag=plugin-resol
 
 This tells Gradle to use the specified plugin implementation artifact instead of using its built-in default mapping from plugin ID to Maven/Ivy coordinates.
 
-Custom Maven and Ivy plugin repositories must contain <<#sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin#,"Gradle Plugin Development Plugin">>.
+Custom Maven and Ivy plugin repositories must contain <<#sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin#,Gradle Plugin Development Plugin>>.
 
 See link:{javadoc-path}/org/gradle/plugin/management/PluginManagementSpec.html[PluginManagementSpec] for complete documentation for using the `pluginManagement {}` block.
 
@@ -334,4 +334,4 @@ Gradle has a vibrant community of plugin developers who contribute plugins for a
 [[sec:more_on_plugins]]
 == More on plugins
 
-This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings of plugins, see <<custom_plugins#,"Custom Plugins">>.
+This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings of plugins, see <<custom_plugins#,Custom Plugins>>.

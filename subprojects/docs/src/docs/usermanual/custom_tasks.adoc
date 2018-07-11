@@ -35,7 +35,7 @@ You can include the task class directly in the build script. This has the benefi
 `buildSrc` project::
 You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
 +
-See <<organizing_gradle_projects#,"Organizing Gradle Projects">> for more details about the `buildSrc` project.
+See <<organizing_gradle_projects#,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
 Standalone project::
 You can create a separate project for your task class. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some custom plugins, or bundle several related task classes into a single library. Or some combination of the two.
@@ -153,7 +153,7 @@ Incremental tasks are an <<feature_lifecycle#,incubating>> feature.
 
 Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle), discussions within the Gradle community have produced superior ideas for exposing the information about changes to task implementors to what is described below. As such, the API for this feature will almost certainly change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community.
 
-The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle#,"Feature Lifecycle">>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
+The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle#,Feature Lifecycle>>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
 
 ====
 

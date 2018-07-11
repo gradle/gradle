@@ -40,7 +40,7 @@ Task's outputs did not change.
 `FROM-CACHE`::
 Task's outputs could be found from a previous execution.
 +
-* Task has outputs restored from the build cache. See <<build_cache#,"Build Cache">>.
+* Task has outputs restored from the build cache. See <<build_cache#,Build Cache>>.
 
 `SKIPPED`::
 Task did not execute its actions.
@@ -182,7 +182,7 @@ include::{samples-path}/userguide/tasks/defineAndConfigure/build.gradle[tag=no-d
 [TIP]
 .Don't forget about the build phases
 ====
-A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle#,"Build Lifecycle">> for more details about the build lifecycle.
+A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle#,Build Lifecycle>> for more details about the build lifecycle.
 ====
 
 [[sec:passing_arguments_to_a_task_constructor]]

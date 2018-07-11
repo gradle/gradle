@@ -36,7 +36,7 @@ The following sections explain each of these use cases in more detail.
 [[sec:adding_wrapper]]
 == Adding the Gradle Wrapper
 
-Generating the Wrapper files requires an installed version of the Gradle runtime on your machine as described in <<installation#,"Installation">>. Thankfully, generating the initial Wrapper files is a one-time process.
+Generating the Wrapper files requires an installed version of the Gradle runtime on your machine as described in <<installation#,Installation>>. Thankfully, generating the initial Wrapper files is a one-time process.
 
 Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll be able to find the task listed under the group "Build Setup tasks" when <<command_line_interface#sec:listing_tasks,listing the tasks>>. Executing the `wrapper` task generates the necessary Wrapper files in the project directory.
 

@@ -21,7 +21,7 @@ Software projects rarely work in isolation. In most cases, a project relies on r
 
 [NOTE]
 ====
-For a general overview on the terms used throughout the user guide, refer to <<dependency_management_terminology#,"Dependency Management Terminology">>.
+For a general overview on the terms used throughout the user guide, refer to <<dependency_management_terminology#,Dependency Management Terminology>>.
 ====
 
 == Dependency management in Gradle
@@ -43,7 +43,7 @@ Once resolved, the resolution mechanism <<dependency_cache#,stores the underlyin
 
 Modules can provide additional metadata. Metadata is the data that describes the module in more detail e.g. the coordinates for finding it in a repository, information about the project, or its authors. As part of the metadata, a module can define that other modules are needed for it to work properly. For example, the JUnit 5 platform module also requires the platform commons module. Gradle automatically resolves those additional modules, so called _transitive dependencies_. If needed, you can <<managing_transitive_dependencies#,customize the behavior the handling of transitive dependencies>> to your project's requirements.
 
-Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell. Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks. Learn more in <<inspecting_dependencies#,"Inspecting Dependencies">>.
+Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell. Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks. Learn more in <<inspecting_dependencies#,Inspecting Dependencies>>.
 
 .Build scan dependencies report
 image::gradle-core-test-build-scan-dependencies.png[]

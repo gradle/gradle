@@ -940,4 +940,4 @@ For example, to make a `Zip` task reproducible you need to set api:org.gradle.ap
 include::{samples-path}/userguide/files/archives/build.gradle[tag=reproducible]
 ----
 
-Often you will want to publish an archive, so that it is usable from another project. This process is described in <<artifact_management#,"Artifact Management">>
+Often you will want to publish an archive, so that it is usable from another project. This process is described in <<artifact_management#,Artifact Management>>

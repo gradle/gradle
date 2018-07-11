@@ -51,7 +51,7 @@ Here is our complete build file:
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samples-path}/groovy/quickstart/build.gradle[]
+include::{samples-path}/groovy/quickstart/build.gradle[tags='use-plugin,groovy-dependency']
 ----
 
 Running `gradle build` will compile, test and JAR your project.

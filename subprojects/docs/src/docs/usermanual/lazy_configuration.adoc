@@ -92,7 +92,7 @@ link:{groovy-dsl-path}/org.gradle.api.Project.html[Project] does not provide a s
 [[sec:working_with_files_in_lazy_properties]]
 == Working with files and Providers
 
-In <<working_with_files#,"Working with Files">>, we introduced four collection types for `File`-like objects:
+In <<working_with_files#,Working with Files>>, we introduced four collection types for `File`-like objects:
 
 .Collection of files recap
 [%header%autowidth,compact]

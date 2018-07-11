@@ -111,7 +111,7 @@ include::{samples-path}/userguide/dependencyManagement/managingTransitiveDepende
 As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method link:{javadoc-path}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] to define a global rule.
 ====
 
-You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API. Some of these use cases are covered in <<customizing_dependency_resolution_behavior#,"Customizing Dependency Resolution Behavior">>.
+You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the link:{groovy-dsl-path}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API. Some of these use cases are covered in <<customizing_dependency_resolution_behavior#,Customizing Dependency Resolution Behavior>>.
 
 [[sec:enforcing_dependency_version]]
 == Enforcing a particular dependency version
