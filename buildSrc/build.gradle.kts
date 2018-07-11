@@ -14,7 +14,6 @@ buildscript {
     }
 
     configure(listOf(repositories, project.repositories)) {
-        kotlinDev()
         gradlePluginPortal()
     }
 }
