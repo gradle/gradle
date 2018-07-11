@@ -54,12 +54,10 @@ Runs PMD against the given source set's Java source files.
 The PMD plugin adds the following dependencies to tasks defined by the Java plugin.
 
 .PMD plugin - additional task dependencies
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Task name
-| Depends on
-| `check`
-| All PMD tasks, including `pmdMain` and `pmdTest`.
+| Task name | Depends on
+| `check`   | All PMD tasks, including `pmdMain` and `pmdTest`.
 |===
 
 [[sec:pmd_dependency_management]]
@@ -68,13 +66,10 @@ The PMD plugin adds the following dependencies to tasks defined by the Java plug
 The PMD plugin adds the following dependency configurations:
 
 .PMD plugin - dependency configurations
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Name
-| Meaning
-
-| `pmd`
-| The PMD libraries to use
+| Name | Meaning
+| `pmd` | The PMD libraries to use
 |===
 
 [[sec:pmd_configuration]]
