@@ -43,7 +43,7 @@ public interface TaskProvider<T extends Task> extends Provider<T> {
      * Must be constant for the life of the object.
      *
      * @return The task name. Never null.
-     * @since 4.10
+     * @since 4.9
      */
     String getName();
 }
