@@ -47,26 +47,25 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                     boolean isRoot = relativePathHolder.isRoot();
                     relativePathHolder.enter(directorySnapshot);
-                    if (processedEntries.add(directorySnapshot.getAbsolutePath())) {
+                    String absolutePath = directorySnapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
                         NormalizedFileSnapshot snapshot = isRoot ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), directorySnapshot);
-                        builder.put(directorySnapshot.getAbsolutePath(), snapshot);
+                        builder.put(absolutePath, snapshot);
                     }
                     return true;
                 }
 
                 @Override
                 public void visit(PhysicalSnapshot fileSnapshot) {
-                    if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
+                    String absolutePath = fileSnapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
                         NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot) : createNormalizedFileSnapshot(fileSnapshot);
-                        builder.put(
-                            fileSnapshot.getAbsolutePath(),
-                            normalizedFileSnapshot
-                        );
+                        builder.put(absolutePath, normalizedFileSnapshot);
                     }
                 }
 
                 private NormalizedFileSnapshot createNormalizedFileSnapshot(PhysicalSnapshot fileSnapshot) {
-                    relativePathHolder.enter(fileSnapshot.getName());
+                    relativePathHolder.enter(fileSnapshot);
                     NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), fileSnapshot);
                     relativePathHolder.leave();
                     return normalizedFileSnapshot;

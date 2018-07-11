@@ -40,7 +40,7 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
             case RegularFile:
                 return new IgnoredPathFingerprint(FileType.RegularFile, contentHash);
             default:
-                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+                throw new IllegalStateException();
         }
     }
 

@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.cache.StringInterner;
 import com.google.common.collect.Iterables;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
@@ -66,12 +66,12 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
-        final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
-        final HashSet<String> processedEntries = new HashSet<String>();
+        ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
+        HashSet<String> processedEntries = new HashSet<String>();
         for (PhysicalSnapshot root : roots) {
-            final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder = ImmutableSortedMap.naturalOrder();
-            root.accept(new ClasspathContentSnapshottingVisitor(new ClasspathSnapshotVisitor(processedEntries, rootBuilder)));
-            builder.putAll(rootBuilder.build());
+            ClasspathSnapshotVisitor snapshotVisitor = new ClasspathSnapshotVisitor(processedEntries);
+            root.accept(new ClasspathContentSnapshottingVisitor(snapshotVisitor));
+            builder.putAll(snapshotVisitor.getResult());
         }
         return builder.build();
     }
@@ -95,49 +95,10 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
-    private class ClasspathSnapshotVisitor {
-        private final RelativePathHolder relativePathHolder;
-        private final HashSet<String> processedEntries;
-        private final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder;
-
-        public ClasspathSnapshotVisitor(HashSet<String> processedEntries, ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> rootBuilder) {
-            this.processedEntries = processedEntries;
-            this.rootBuilder = rootBuilder;
-            relativePathHolder = new RelativePathHolder();
-        }
-
-        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-            relativePathHolder.enter(directorySnapshot);
-            return true;
-        }
-
-        public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
-            String absolutePath = fileSnapshot.getAbsolutePath();
-            if (processedEntries.add(absolutePath)) {
-                NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createNormalizedSnapshot(fileSnapshot.getName(), normalizedContentHash);
-                rootBuilder.put(
-                    absolutePath,
-                    normalizedFileSnapshot);
-            }
-        }
-
-        private NormalizedFileSnapshot createNormalizedSnapshot(String name, HashCode content) {
-            relativePathHolder.enter(name);
-            NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), FileType.RegularFile, content);
-            relativePathHolder.leave();
-            return normalizedFileSnapshot;
-        }
-
-        public void postVisitDirectory() {
-            relativePathHolder.leave();
-        }
-    }
-
     private class ClasspathContentSnapshottingVisitor implements PhysicalSnapshotVisitor {
-
         private final ClasspathSnapshotVisitor delegate;
-        private RelativePathTracker relativePathTracker = new RelativePathTracker();
-        private Factory<String[]> relativePathFactory = new Factory<String[]>() {
+        private final RelativePathTracker relativePathTracker = new RelativePathTracker();
+        private final Factory<String[]> relativePathFactory = new Factory<String[]>() {
             @Override
             public String[] create() {
                 return Iterables.toArray(relativePathTracker.getRelativePath(), String.class);
@@ -171,7 +132,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
         @Nullable
         private HashCode fingerprintTreeFile(PhysicalFileSnapshot fileSnapshot) {
-            relativePathTracker.enter(fileSnapshot.getName());
+            relativePathTracker.enter(fileSnapshot);
             boolean shouldBeIgnored = classpathResourceFilter.shouldBeIgnored(relativePathFactory);
             relativePathTracker.leave();
             if (shouldBeIgnored) {
@@ -186,6 +147,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
             delegate.postVisitDirectory();
         }
     }
+
 
     @Nullable
     private HashCode fingerprintRootFile(PhysicalFileSnapshot fileSnapshot) {
@@ -203,5 +165,47 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.CLASSPATH;
+    }
+
+    private class ClasspathSnapshotVisitor {
+        private final RelativePathHolder relativePathHolder;
+        private final HashSet<String> processedEntries;
+        private final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> builder;
+
+        public ClasspathSnapshotVisitor(HashSet<String> processedEntries) {
+            this.processedEntries = processedEntries;
+            this.builder = ImmutableSortedMap.naturalOrder();
+            this.relativePathHolder = new RelativePathHolder();
+        }
+
+        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+            relativePathHolder.enter(directorySnapshot);
+            return true;
+        }
+
+        public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
+            String absolutePath = fileSnapshot.getAbsolutePath();
+            if (processedEntries.add(absolutePath)) {
+                NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createNormalizedSnapshot(fileSnapshot, normalizedContentHash);
+                builder.put(
+                    absolutePath,
+                    normalizedFileSnapshot);
+            }
+        }
+
+        private NormalizedFileSnapshot createNormalizedSnapshot(PhysicalSnapshot snapshot, HashCode content) {
+            relativePathHolder.enter(snapshot);
+            NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), FileType.RegularFile, content);
+            relativePathHolder.leave();
+            return normalizedFileSnapshot;
+        }
+
+        public void postVisitDirectory() {
+            relativePathHolder.leave();
+        }
+
+        public ImmutableSortedMap<String, NormalizedFileSnapshot> getResult() {
+            return builder.build();
+        }
     }
 }

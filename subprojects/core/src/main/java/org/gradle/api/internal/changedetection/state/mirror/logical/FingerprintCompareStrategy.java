@@ -65,9 +65,9 @@ public enum FingerprintCompareStrategy {
     }
 
     /**
-     * Compares snapshot collections if one of current or previous are empty or both states have at most one element.
+     * Compares collection fingerprints if one of current or previous are empty or both have at most one element.
      *
-     * @param visitor the {@link TaskStateChange} receiving the changes.
+     * @param visitor the {@link TaskStateChangeVisitor} receiving the changes.
      * @param current the current state of the snapshot.
      * @param previous the previous state of the snapshot.
      * @param propertyTitle the property title to use when creating the {@link FileChange}.
@@ -136,16 +136,14 @@ public enum FingerprintCompareStrategy {
             }
             return true;
         } else {
+            String previousPath = previousEntry.getKey();
+            TaskStateChange remove = FileChange.removed(previousPath, propertyTitle, normalizedPrevious.getType());
             if (includeAdded) {
-                String previousPath = previousEntry.getKey();
                 String currentPath = currentEntry.getKey();
-                TaskStateChange remove = FileChange.removed(previousPath, propertyTitle, normalizedPrevious.getType());
                 TaskStateChange add = FileChange.added(currentPath, propertyTitle, normalizedCurrent.getType());
                 return visitor.visitChange(remove) && visitor.visitChange(add);
             } else {
-                String path = previousEntry.getKey();
-                TaskStateChange change = FileChange.removed(path, propertyTitle, previousEntry.getValue().getType());
-                return visitor.visitChange(change);
+                return visitor.visitChange(remove);
             }
         }
     }

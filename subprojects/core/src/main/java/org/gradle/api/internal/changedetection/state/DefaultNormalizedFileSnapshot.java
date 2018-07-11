@@ -36,6 +36,4 @@ public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
     public String getNormalizedPath() {
         return normalizedPath;
     }
-
-
 }

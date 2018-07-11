@@ -82,6 +82,9 @@ public interface PhysicalSnapshot {
      */
     HashCode getContentHash();
 
+    /**
+     * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
+     */
     boolean isContentAndMetadataUpToDate(PhysicalSnapshot other);
 
     /**

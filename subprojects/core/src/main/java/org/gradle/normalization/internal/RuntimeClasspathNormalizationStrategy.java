@@ -25,13 +25,13 @@ import java.util.Set;
  * Normalization strategy for the runtime classpath.
  */
 public class RuntimeClasspathNormalizationStrategy {
-    private final ResourceFilter runtimeClasspathResourceHasher;
+    private final ResourceFilter runtimeClasspathResourceFilter;
 
     public RuntimeClasspathNormalizationStrategy(Set<String> ignores) {
-        this.runtimeClasspathResourceHasher = ignores.isEmpty() ? ResourceFilter.FILTER_NOTHING : new IgnoringResourceFilter(ignores);
+        this.runtimeClasspathResourceFilter = ignores.isEmpty() ? ResourceFilter.FILTER_NOTHING : new IgnoringResourceFilter(ignores);
     }
 
     public ResourceFilter getRuntimeClasspathResourceFilter() {
-        return runtimeClasspathResourceHasher;
+        return runtimeClasspathResourceFilter;
     }
 }

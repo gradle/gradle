@@ -36,6 +36,16 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     }
 
     @Override
+    public HashCode getNormalizedContentHash() {
+        return normalizedContentHash;
+    }
+
+    @Override
+    public FileType getType() {
+        return type;
+    }
+
+    @Override
     public final int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
@@ -66,16 +76,6 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
 
     @Override
     public final String toString() {
-        return String.format("'%s' / %s", getNormalizedPath(), getType() == FileType.Directory ? "DIR" : getType() == FileType.Missing ? "MISSING" : normalizedContentHash);
-    }
-
-    @Override
-    public HashCode getNormalizedContentHash() {
-        return normalizedContentHash;
-    }
-
-    @Override
-    public FileType getType() {
-        return type;
+        return String.format("'%s' / %s", getNormalizedPath(), type == FileType.Directory ? "DIR" : type == FileType.Missing ? "MISSING" : normalizedContentHash);
     }
 }

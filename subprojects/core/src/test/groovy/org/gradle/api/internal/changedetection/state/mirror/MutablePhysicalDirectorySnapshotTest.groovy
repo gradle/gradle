@@ -45,7 +45,7 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
             @Override
             boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 def isRoot = relativePathTracker.root
-                relativePathTracker.enter(directorySnapshot.name)
+                relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
                     files[directorySnapshot.absolutePath] = PhysicalDirectorySnapshot.SIGNATURE
                     relativePaths.add(relativePathTracker.relativePath.join("/"))
@@ -56,7 +56,7 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
             @Override
             void visit(PhysicalSnapshot fileSnapshot) {
                 files[fileSnapshot.absolutePath] = fileSnapshot.contentHash
-                relativePathTracker.enter(fileSnapshot.name)
+                relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()
             }

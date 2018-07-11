@@ -49,7 +49,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             @Override
             public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 relativePath.enter(directorySnapshot);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot.getAbsolutePath(), relativePath.getRelativePath(), FileType.Directory, fileSystem))) {
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePath.getRelativePath(), fileSystem))) {
                     visitor.preVisitDirectory(directorySnapshot);
                     return true;
                 }
@@ -60,7 +60,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             @Override
             public void visit(PhysicalSnapshot fileSnapshot) {
                 relativePath.enter(fileSnapshot);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot.getAbsolutePath(), relativePath.getRelativePath(), fileSnapshot.getType(), fileSystem))) {
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePath.getRelativePath(), fileSystem))) {
                     visitor.visit(fileSnapshot);
                 }
                 relativePath.leave();
@@ -107,18 +107,16 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
      * in dynamic Groovy code.
      */
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
-        private final String _absolutePath;
         private final Iterable<String> _relativePathIterable;
-        private final FileType _fileType;
         private final FileSystem _fileSystem;
+        private final PhysicalSnapshot _snapshot;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(String absolutePath, Iterable<String> relativePathIterable, FileType fileType, FileSystem fileSystem) {
+        public LogicalFileTreeElement(PhysicalSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
             super(fileSystem);
-            this._absolutePath = absolutePath;
+            this._snapshot = snapshot;
             this._relativePathIterable = relativePathIterable;
-            this._fileType = fileType;
             this._fileSystem = fileSystem;
         }
 
@@ -130,14 +128,14 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
         @Override
         public File getFile() {
             if (_file == null) {
-                _file = new File(_absolutePath);
+                _file = new File(_snapshot.getAbsolutePath());
             }
             return _file;
         }
 
         @Override
         public boolean isDirectory() {
-            return _fileType == FileType.Directory;
+            return _snapshot.getType() == FileType.Directory;
         }
 
         @Override

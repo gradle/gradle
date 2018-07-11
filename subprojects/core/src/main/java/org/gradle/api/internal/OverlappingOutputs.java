@@ -41,12 +41,12 @@ public class OverlappingOutputs {
         for (Map.Entry<String, NormalizedFileSnapshot> beforeEntry : beforeSnapshots.entrySet()) {
             String path = beforeEntry.getKey();
             NormalizedFileSnapshot beforeSnapshot = beforeEntry.getValue();
-            HashCode fileSnapshot = beforeSnapshot.getNormalizedContentHash();
-            NormalizedFileSnapshot normalizedFileSnapshot = previousSnapshots.get(path);
-            HashCode previousSnapshot = normalizedFileSnapshot == null ? null : normalizedFileSnapshot.getNormalizedContentHash();
+            HashCode contentHash = beforeSnapshot.getNormalizedContentHash();
+            NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
+            HashCode previousContentHash = previousSnapshot == null ? null : previousSnapshot.getNormalizedContentHash();
             // Missing files can be ignored
             if (beforeSnapshot.getType() != FileType.Missing) {
-                if (createdSincePreviousExecution(previousSnapshot) || changedSincePreviousExecution(fileSnapshot, previousSnapshot)) {
+                if (createdSincePreviousExecution(previousContentHash) || changedSincePreviousExecution(contentHash, previousContentHash)) {
                     return new OverlappingOutputs(propertyName, path);
                 }
             }
@@ -54,14 +54,14 @@ public class OverlappingOutputs {
         return null;
     }
 
-    private static boolean changedSincePreviousExecution(HashCode fileSnapshot, HashCode previousSnapshot) {
+    private static boolean changedSincePreviousExecution(HashCode contentHash, HashCode previousContentHash) {
         // _changed_ since last execution, possibly by another task
-        return !previousSnapshot.equals(fileSnapshot);
+        return !contentHash.equals(previousContentHash);
     }
 
-    private static boolean createdSincePreviousExecution(@Nullable HashCode previousSnapshot) {
+    private static boolean createdSincePreviousExecution(@Nullable HashCode previousContentHash) {
         // created since last execution, possibly by another task
-        return previousSnapshot == null;
+        return previousContentHash == null;
     }
 
     public String getPropertyName() {

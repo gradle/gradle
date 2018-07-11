@@ -38,9 +38,10 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
                 @Override
                 public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-                    if (processedEntries.add(directorySnapshot.getAbsolutePath())) {
+                    String absolutePath = directorySnapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
                         NormalizedFileSnapshot snapshot = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(directorySnapshot.getName(), directorySnapshot);
-                        builder.put(directorySnapshot.getAbsolutePath(), snapshot);
+                        builder.put(absolutePath, snapshot);
                     }
                     root = false;
                     return true;
@@ -48,9 +49,10 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
                 @Override
                 public void visit(PhysicalSnapshot fileSnapshot) {
-                    if (processedEntries.add(fileSnapshot.getAbsolutePath())) {
+                    String absolutePath = fileSnapshot.getAbsolutePath();
+                    if (processedEntries.add(absolutePath)) {
                         builder.put(
-                            fileSnapshot.getAbsolutePath(),
+                            absolutePath,
                             new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot));
                     }
                 }

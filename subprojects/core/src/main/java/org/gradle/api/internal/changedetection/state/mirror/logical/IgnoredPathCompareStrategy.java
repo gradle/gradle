@@ -51,11 +51,12 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
-            HashCode currentSnapshot = entry.getValue().getNormalizedContentHash();
-            List<NonNormalizedFileSnapshot> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(currentSnapshot);
+            NormalizedFileSnapshot currentSnapshot = entry.getValue();
+            HashCode normalizedContentHash = currentSnapshot.getNormalizedContentHash();
+            List<NonNormalizedFileSnapshot> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(normalizedContentHash);
             if (previousSnapshotsForContent.isEmpty()) {
                 if (includeAdded) {
-                    if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, entry.getValue().getType()))) {
+                    if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentSnapshot.getType()))) {
                         return false;
                     }
                 }

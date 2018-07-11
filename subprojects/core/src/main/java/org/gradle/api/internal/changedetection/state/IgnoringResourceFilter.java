@@ -39,9 +39,6 @@ public class IgnoringResourceFilter implements ResourceFilter {
     }
 
     private boolean shouldBeIgnored(String[] relativePath) {
-        if (ignoreMatchers.isEmpty()) {
-            return false;
-        }
         for (PathMatcher ignoreSpec : ignoreMatchers) {
             if (ignoreSpec.matches(relativePath, 0)) {
                 return true;

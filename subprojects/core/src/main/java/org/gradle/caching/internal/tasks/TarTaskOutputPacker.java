@@ -321,8 +321,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         @Override
         public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
             boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(directorySnapshot.getName());
-            assertCorrectType(root, directorySnapshot.getAbsolutePath(), FileType.Directory);
+            relativePathHolder.enter(directorySnapshot);
+            assertCorrectType(root, directorySnapshot);
             String targetPath = getTargetPath(root);
             int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
             storeDirectoryEntry(targetPath, mode, tarOutput);
@@ -333,12 +333,12 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         @Override
         public void visit(PhysicalSnapshot fileSnapshot) {
             boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(fileSnapshot.getName());
+            relativePathHolder.enter(fileSnapshot);
             String targetPath = getTargetPath(root);
             if (fileSnapshot.getType() == FileType.Missing) {
                 storeMissingProperty(targetPath, tarOutput);
             } else {
-                assertCorrectType(root, fileSnapshot.getAbsolutePath(), fileSnapshot.getType());
+                assertCorrectType(root, fileSnapshot);
                 File file = new File(fileSnapshot.getAbsolutePath());
                 int mode = fileSystem.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
@@ -360,17 +360,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             return entries;
         }
 
-        private void assertCorrectType(boolean root, String absolutePath, FileType fileType) {
+        private void assertCorrectType(boolean root, PhysicalSnapshot snapshot) {
             if (root) {
                 switch (outputType) {
                     case DIRECTORY:
-                        if (fileType != FileType.Directory) {
-                            throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", absolutePath));
+                        if (snapshot.getType() != FileType.Directory) {
+                            throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", snapshot.getAbsolutePath()));
                         }
                         break;
                     case FILE:
-                        if (fileType != FileType.RegularFile) {
-                            throw new IllegalArgumentException(String.format("Expected '%s' to be a file", absolutePath));
+                        if (snapshot.getType() != FileType.RegularFile) {
+                            throw new IllegalArgumentException(String.format("Expected '%s' to be a file", snapshot.getAbsolutePath()));
                         }
                         break;
                     default:

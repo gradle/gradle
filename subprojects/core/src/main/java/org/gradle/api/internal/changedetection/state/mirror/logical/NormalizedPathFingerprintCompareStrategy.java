@@ -24,7 +24,6 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -58,13 +57,7 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
                 NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot.getType(), currentSnapshot.getNormalizedContentHash());
                 addedFiles.put(currentSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
             } else {
-                NonNormalizedFileSnapshot previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
-                HashCode previousSnapshot = previousSnapshotWithAbsolutePath.getNormalizedContentHash();
-                if (!currentSnapshot.getNormalizedContentHash().equals(previousSnapshot)) {
-                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousSnapshotWithAbsolutePath.getType(), currentSnapshot.getType()))) {
-                        return false;
-                    }
-                }
+                previousSnapshotsForNormalizedPath.remove(0);
             }
         }
         List<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
