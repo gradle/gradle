@@ -574,7 +574,7 @@ The format is one line per processor, with the fully qualified name of the proce
 
 === Example: Registering incremental annotation processors
 
-[source.multi-language-sample,groovy]
+[listing]
 .processor/src/main/resources/META-INF/gradle/incremental.annotation.processors
 ----
 include::{samples-path}/java/incrementalAnnotationProcessing/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
@@ -586,7 +586,7 @@ and return its true type at runtime using the https://docs.oracle.com/javase/10/
 
 === Example: Registering incremental annotation processors dynamically
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java,indent=0]
 .processor/src/main/java/ServiceRegistryProcessor.java
 ----
 include::{samples-path}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
