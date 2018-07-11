@@ -636,10 +636,11 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeImplemented
     @Issue(["https://github.com/gradle/gradle/issues/2463", "https://github.com/gradle/gradle/issues/3444"])
-    def "java compilation ignores empty packages"() {
+    def "non-incremental java compilation ignores empty packages"() {
         given:
         buildFile << """
             plugins { id 'java' }
+            compileJava.options.incremental = false
         """
 
         file('src/main/java/org/gradle/test/MyTest.java').text = """
@@ -652,11 +653,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         run 'compileJava'
         then:
         executedAndNotSkipped(':compileJava')
-
-        when:
-        run 'compileJava'
-        then:
-        skipped(':compileJava')
 
         when:
         file('src/main/java/org/gradle/different').createDir()

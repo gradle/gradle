@@ -31,7 +31,6 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
 
         buildFile << """
             apply plugin: 'java'
-            compileJava.options.incremental = true
         """
     }
 
@@ -465,10 +464,6 @@ sourceSets {
     }
 
     def "recompilation does not process removed classes from dependent sourceSet"() {
-        buildFile << """
-compileTestJava.options.incremental = true
-"""
-
         def unusedClass = java("public class Unused {}")
         // Need another class or :compileJava will always be considered UP-TO-DATE
         java("public class Other {}")
@@ -862,5 +857,52 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 
         then:
         ! file("build/classes/java/main/com/foo").exists()
+    }
+
+    def "recompiles types whose names look like inne classes even if they aren't"() {
+        given:
+        file('src/main/java/Test.java') << 'public class Test{}'
+        file('src/main/java/Test$$InnerClass.java') << 'public class Test$$InnerClass{}'
+        buildFile << '''
+            apply plugin: 'java'
+        '''.stripIndent()
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/Test.class').assertExists()
+        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+
+        when:
+        file('src/main/java/Test.java').text = 'public class Test{ void foo() {} }'
+        succeeds ':compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/Test.class').assertExists()
+        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+    }
+
+    def "incremental java compilation ignores empty packages"() {
+        given:
+        file('src/main/java/org/gradle/test/MyTest.java').text = """
+            package org.gradle.test;
+            
+            class MyTest {}
+        """
+
+        when:
+        run 'compileJava'
+        then:
+        executedAndNotSkipped(':compileJava')
+
+        when:
+        file('src/main/java/org/gradle/different').createDir()
+        run('compileJava')
+
+        then:
+        skipped(':compileJava')
     }
 }

@@ -533,12 +533,14 @@ By default, the Java compiler runs in the Gradle process. Setting `options.fork`
 [[sec:incremental_compile]]
 ==== Incremental Java compilation
 
-Starting with Gradle 2.1, it is possible to compile Java incrementally. See the api:org.gradle.api.tasks.compile.JavaCompile[] task for information on how to enable it.
+Gradle comes with a sophisticated incremental Java compiler that is active by default.
 
-The main goals for incremental compilation are:
+This gives you the following benefits
 
-* Make incremental builds much faster.
-* Change as few output classes as possible. Classes that don't need to be recompiled remain unchanged in the output directory. An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the JVM can use refreshed classes.
+* Incremental builds are much faster.
+* The smallest possible number of class files are changed.
+  Classes that don't need to be recompiled remain unchanged in the output directory.
+  An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the JVM can use refreshed classes.
 
 To help you understand how incremental compilation works, the following provides a high-level overview:
 
