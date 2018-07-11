@@ -39,14 +39,16 @@ open class AbstractIntegrationTest {
         withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
-    val defaultSettingsScript get() = ""
+    val defaultSettingsScript
+        get() = ""
 
     protected
-    val repositoriesBlock get() = """
-        repositories {
-            gradlePluginPortal()
-        }
-    """
+    val repositoriesBlock
+        get() = """
+            repositories {
+                gradlePluginPortal()
+            }
+        """
 
     protected
     val projectRoot: File

@@ -317,5 +317,4 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
     }
-
 }
