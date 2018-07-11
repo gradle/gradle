@@ -198,7 +198,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains(message)
-        output.contains("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
+        output.contains("The Task.leftShift(Closure) method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
     }
 
     def "can construct a custom task without constructor arguments"() {

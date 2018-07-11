@@ -534,7 +534,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private void warnAboutPlaceholderDeprecation(String placeholderName) {
         DeprecationLogger.nagUserOfDeprecated(
             "Creating a custom task named '" + placeholderName + "'",
-            "You can configure the existing task using the '" + placeholderName + " { }' syntax or create your custom task under a different name.'"
+            "You can configure the existing task using the '" + placeholderName + " { }' syntax or create your custom task under a different name."
         );
     }
 

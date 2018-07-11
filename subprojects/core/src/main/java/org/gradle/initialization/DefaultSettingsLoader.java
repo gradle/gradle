@@ -86,7 +86,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 return;
             }
         }
-        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file in " + projectDir.getAbsolutePath());
+        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated.", "You should create a empty settings file in " + projectDir.getAbsolutePath() + ".");
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {

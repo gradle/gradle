@@ -24,8 +24,8 @@ import spock.lang.Unroll
 
 class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String RECOMPILE_SCRIPTS_MESSAGE = '--recompile-scripts has been deprecated and is scheduled to be removed in Gradle'
-    private static final String NO_REBUILD_MESSAGE = '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+    private static final String RECOMPILE_SCRIPTS_MESSAGE = '--recompile-scripts has been deprecated. This is scheduled to be removed in Gradle'
+    private static final String NO_REBUILD_MESSAGE = '--no-rebuild/-a has been deprecated. This is scheduled to be removed in Gradle'
 
     @Unroll
     def "deprecation warning appears when using #deprecatedArgs"() {

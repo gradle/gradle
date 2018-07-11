@@ -117,7 +117,7 @@ public class OptionReader {
             } else {
                 org.gradle.api.internal.tasks.options.Option internalOption = findOption(field, org.gradle.api.internal.tasks.options.Option.class);
                 if (internalOption != null) {
-                    SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.Option", "Use org.gradle.api.tasks.options.Option instead");
+                    SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.Option", "Use org.gradle.api.tasks.options.Option instead.");
                     fieldOptionElements.add(FieldOptionElement.create(internalOption, field, optionValueNotationParserFactory));
                 }
             }
@@ -147,7 +147,7 @@ public class OptionReader {
             }  else {
                 org.gradle.api.internal.tasks.options.Option internalOption = findOption(method, org.gradle.api.internal.tasks.options.Option.class);
                 if (internalOption != null) {
-                    SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.Option", "Use org.gradle.api.tasks.options.Option instead");
+                    SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.Option", "Use org.gradle.api.tasks.options.Option instead.");
                     methodOptionElements.add(MethodOptionElement.create(internalOption, method, optionValueNotationParserFactory));
                 }
             }
@@ -176,7 +176,7 @@ public class OptionReader {
                 } else {
                     optionValuesMethod = getAsOptionValuesMethod(type, method, org.gradle.api.internal.tasks.options.OptionValues.class);
                     if (optionValuesMethod != null) {
-                        SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.OptionValues", "Use org.gradle.api.tasks.options.OptionValues instead");
+                        SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.OptionValues", "Use org.gradle.api.tasks.options.OptionValues instead.");
                         methods.add(optionValuesMethod);
                     }
                 }

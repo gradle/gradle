@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
-    public static final String SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE = "Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set";
+    public static final String SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE = "Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.";
     private final DefaultConfigurableFileCollection outputDirectories;
     private Object resourcesDir;
     private Object classesDir;

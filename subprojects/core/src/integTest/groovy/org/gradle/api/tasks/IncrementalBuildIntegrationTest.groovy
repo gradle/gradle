@@ -1252,7 +1252,11 @@ task generate(type: TransformerTask) {
 
         then:
         skippedTasks.contains(':myTask')
+<<<<<<< HEAD
         output.contains('The ability to add non-directory-based file trees as declared outputs has been deprecated and is scheduled to be removed in Gradle 5.0')
+=======
+        output.contains('Adding file trees which are not directory trees as output files has been deprecated. This is scheduled to be removed in Gradle 5.0')
+>>>>>>> rework deprecation handling/messages to support more a richer model
     }
 
     def "task with no actions is skipped even if it has inputs"() {

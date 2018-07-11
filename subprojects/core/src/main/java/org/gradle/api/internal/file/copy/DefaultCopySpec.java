@@ -133,7 +133,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         //noinspection ConstantConditions
         if (configureAction == null) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.from()");
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.from().");
             from(sourcePath);
             return this;
         } else {
@@ -241,7 +241,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         //noinspection ConstantConditions
         if (copySpec == null) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.into()");
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.into().");
             into(destPath);
             return this;
         } else {

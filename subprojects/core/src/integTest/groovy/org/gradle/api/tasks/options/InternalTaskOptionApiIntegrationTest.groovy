@@ -34,8 +34,8 @@ class InternalTaskOptionApiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains('option=foo')
-        outputContains('org.gradle.api.internal.tasks.options.OptionValues has been deprecated and is scheduled to be removed in Gradle 5.0. Use org.gradle.api.tasks.options.OptionValues instead.')
-        outputContains('org.gradle.api.internal.tasks.options.Option has been deprecated and is scheduled to be removed in Gradle 5.0. Use org.gradle.api.tasks.options.Option instead.')
+        outputContains('org.gradle.api.internal.tasks.options.OptionValues has been deprecated. This is scheduled to be removed in Gradle 5.0. Use org.gradle.api.tasks.options.OptionValues instead.')
+        outputContains('org.gradle.api.internal.tasks.options.Option has been deprecated. This is scheduled to be removed in Gradle 5.0. Use org.gradle.api.tasks.options.Option instead.')
     }
 
     static String taskUsingInternalApi() {

@@ -20,16 +20,29 @@ import java.util.List;
 
 public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails {
     private final String message;
+    private final String warning;
+    private final String advice;
+
     private final List<StackTraceElement> stackTrace;
 
-    public DefaultDeprecatedUsageProgressDetails(String message, List<StackTraceElement> stackTrace) {
+    public DefaultDeprecatedUsageProgressDetails(String message, String warning, String advice, List<StackTraceElement> stackTrace) {
         this.message = message;
+        this.warning = warning;
+        this.advice = advice;
         this.stackTrace = stackTrace;
     }
 
     @Override
     public String getMessage() {
         return message;
+    }
+
+    public String getWarning() {
+        return warning;
+    }
+
+    public String getAdvice() {
+        return advice;
     }
 
     @Override

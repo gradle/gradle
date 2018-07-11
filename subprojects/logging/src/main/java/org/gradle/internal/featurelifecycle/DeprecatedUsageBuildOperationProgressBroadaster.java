@@ -48,12 +48,12 @@ public class DeprecatedUsageBuildOperationProgressBroadaster {
         this.buildOperationIdentifierProvider = currentOperationIdentifier;
     }
 
-    void progress(String message, List<StackTraceElement> stackTrace) {
+    void progress(FeatureUsage feature, List<StackTraceElement> stackTrace) {
         OperationIdentifier id = buildOperationIdentifierProvider.getCurrentOperationIdentifier();
         if (id != null) {
             listener.progress(id,
                 new OperationProgressEvent(clock.getCurrentTime(),
-                    new DefaultDeprecatedUsageProgressDetails(message, stackTrace)));
+                    new DefaultDeprecatedUsageProgressDetails(feature.getMessage(), feature.getWarningMessage(), feature.getAdvice(), stackTrace)));
         }
 
     }

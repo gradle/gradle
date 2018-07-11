@@ -59,14 +59,15 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     @Override
     public void featureUsed(FeatureUsage usage) {
-        if (messages.add(usage.getMessage())) {
+        String featureMessage = usage.formattedMessage();
+        if (messages.add(featureMessage)) {
             usage = usage.withStackTrace();
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
                 message.append(SystemProperties.getInstance().getLineSeparator());
             }
-            message.append(usage.getMessage());
+            message.append(featureMessage);
             appendLogTraceIfNecessary(usage.getStack(), message);
             if (warningMode == WarningMode.All) {
                 LOGGER.warn(message.toString());
@@ -77,7 +78,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     private void fireDeprecatedUsageBuildOperationProgress(FeatureUsage usage) {
         if (buildOperationProgressBroadaster != null) {
-            buildOperationProgressBroadaster.progress(usage.getMessage(), usage.withStackTrace().getStack());
+            buildOperationProgressBroadaster.progress(usage, usage.withStackTrace().getStack());
         }
     }
 
@@ -162,13 +163,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     private static String initDeprecationMessage() {
-        String messageBase = "has been deprecated and is scheduled to be removed in";
+        String messageBase = "is scheduled to be removed in";
         String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
 
-        return String.format("%s %s", messageBase, when);
+        return String.format("%s %s.", messageBase, when);
     }
 
-    public static String getDeprecationMessage() {
+    public static String getRemovalWarningMessage() {
         if (deprecationMessage == null) {
             deprecationMessage = initDeprecationMessage();
         }
