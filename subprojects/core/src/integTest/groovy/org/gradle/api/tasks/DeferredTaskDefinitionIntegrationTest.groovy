@@ -773,4 +773,30 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasDescription("Task 'foo' not found in root project")
     }
+
+    def "realizes only the task of the given type when depending on a filtered task collection"() {
+        buildFile << '''
+            def defaultTaskRealizedCount = 0
+            (1..100).each {
+                tasks.register("aDefaultTask_$it") {
+                    defaultTaskRealizedCount++
+                }
+            }
+            def zipTaskRealizedCount = 0
+            tasks.register("aZipTask", Zip) {
+                zipTaskRealizedCount++
+            }
+
+            task foo {
+                dependsOn tasks.withType(Zip)
+                doLast {
+                    assert defaultTaskRealizedCount == 0, "All DefaultTask shouldn't be realized"
+                    assert zipTaskRealizedCount == 1, "All Zip task should be realized"
+                }
+            }
+        '''
+
+        expect:
+        succeeds "foo"
+    }
 }

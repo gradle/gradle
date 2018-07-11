@@ -156,9 +156,9 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int size() {
         int i = 0;
-        // TODO this will realize all pending elements
-        for (T o : collection) {
-            if (accept(o)) {
+        // TODO this will realize all pending elements that may be filter out by the filter#spec, still better than realizing everything
+        for (Iterator<?> it = iterator(); it.hasNext();) {
+            if (accept(it.next())) {
                 ++i;
             }
         }
