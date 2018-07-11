@@ -543,7 +543,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
-            return pendingMap;
+            return Maps.newLinkedHashMap(pendingMap);
         }
     }
 
