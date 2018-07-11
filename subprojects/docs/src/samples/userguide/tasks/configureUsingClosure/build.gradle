@@ -1,3 +1,4 @@
+// tag::all[]
 // tag::declare-task[]
 task myCopy(type: Copy)
 // end::declare-task[]
@@ -7,3 +8,4 @@ myCopy {
    into 'target'
    include('**/*.txt', '**/*.xml', '**/*.properties')
 }
+// end::all[]

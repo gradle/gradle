@@ -1,3 +1,4 @@
+// tag::all[]
 // tag::no-description[]
 task copy(type: Copy) {
 // end::no-description[]
@@ -8,3 +9,4 @@ task copy(type: Copy) {
    include('**/*.txt', '**/*.xml', '**/*.properties')
 }
 // end::no-description[]
+// end::all[]
