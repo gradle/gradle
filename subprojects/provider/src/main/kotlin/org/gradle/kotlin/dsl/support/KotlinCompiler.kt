@@ -200,15 +200,19 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        put(
-            CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS,
-            LanguageVersionSettingsImpl(
-                LanguageVersion.KOTLIN_1_3, ApiVersion.KOTLIN_1_3,
-                specificFeatures = mapOf(
-                    LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
-                    LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
-                )))
+        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, languageVersionSettings)
     }
+
+
+private
+val languageVersionSettings = LanguageVersionSettingsImpl(
+    languageVersion = LanguageVersion.KOTLIN_1_3,
+    apiVersion = ApiVersion.KOTLIN_1_3,
+    specificFeatures = mapOf(
+        LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
+        LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
+    )
+)
 
 
 private
