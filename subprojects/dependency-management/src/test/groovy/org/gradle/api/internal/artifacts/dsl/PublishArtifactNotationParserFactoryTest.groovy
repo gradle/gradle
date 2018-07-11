@@ -141,18 +141,18 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
     def "create artifact from Directory"() {
         def value = Mock(Directory)
-        def directory = new File("some-directory")
+        def file1 = new File("classes-1.dir")
 
-        _ * value.getAsFile() >> directory
+        _ * value.getAsFile() >> file1
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(value)
 
         then:
         publishArtifact instanceof DecoratingPublishArtifact
-        publishArtifact.file == directory
-        publishArtifact.name == "some-directory"
-        publishArtifact.extension == ''
+        publishArtifact.file == file1
+        publishArtifact.name == "classes-1"
+        publishArtifact.extension == 'dir'
         publishArtifact.classifier == null
         publishArtifact.buildDependencies.getDependencies(null).isEmpty()
     }
