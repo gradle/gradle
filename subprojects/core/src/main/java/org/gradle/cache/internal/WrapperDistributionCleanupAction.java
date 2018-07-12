@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -99,7 +100,12 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
     private GradleVersion determineGradleVersionFromBuildReceipt(File checksumDir) throws Exception {
         List<File> subDirs = listDirs(checksumDir);
         Preconditions.checkArgument(subDirs.size() == 1, "A Gradle distribution must contain exactly one subdirectory: %s", subDirs);
-        List<File> jarFiles = listFiles(new File(single(subDirs), "lib"), new RegexFileFilter("^gradle-base-services-\\d.+.jar$"));
+        return determineGradleVersionFromDistribution(single(subDirs));
+    }
+
+    @VisibleForTesting
+    protected GradleVersion determineGradleVersionFromDistribution(File distributionHomeDir) throws Exception {
+        List<File> jarFiles = listFiles(new File(distributionHomeDir, "lib"), new RegexFileFilter("^gradle-base-services-\\d.+.jar$"));
         Preconditions.checkArgument(jarFiles.size() == 1, "A Gradle distribution must contain exactly one gradle-base-services-*.jar: %s", jarFiles);
         return readGradleVersionFromJarFile(single(jarFiles));
     }
@@ -115,7 +121,7 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
     }
 
     private GradleVersion readGradleVersionFromBuildReceipt(ZipFile zipFile) throws Exception {
-        ZipEntry zipEntry = zipFile.getEntry(GradleVersion.RESOURCE_NAME);
+        ZipEntry zipEntry = zipFile.getEntry(StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/"));
         Preconditions.checkArgument(zipEntry != null, "%s must contain " + GradleVersion.RESOURCE_NAME, zipFile.getName());
         InputStream in = zipFile.getInputStream(zipEntry);
         try {

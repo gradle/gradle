@@ -26,7 +26,7 @@ import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER
 trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements VersionSpecificCacheCleanupFixture {
 
     private static final BiAction<GradleVersion, File> DEFAULT_JAR_WRITER = { version, jarFile ->
-        jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME): "${GradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
+        jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
     }
 
     @Override
