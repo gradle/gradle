@@ -24,5 +24,7 @@ import java.util.List;
 @UsedByScanPlugin
 public interface DeprecatedUsageProgressDetails {
     String getMessage();
+    String getDetails();
+    String getAdvice();
     List<StackTraceElement> getStackTrace();
 }

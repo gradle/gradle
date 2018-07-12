@@ -135,6 +135,7 @@ public class SingleMessageLogger {
     }
 
     /**
+     * This is package protected as its only used for convenience in testing.
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
     static void nagUserWith(String message) {
