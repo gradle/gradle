@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
@@ -25,7 +26,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
@@ -37,7 +37,7 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
     private final JarSnapshotCache jarSnapshotCache;
     private final PersistentCache cache;
 
-    public DefaultUserHomeScopedCompileCaches(FileHasher fileHasher, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultUserHomeScopedCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository
             .cache("javaCompile")
             .withDisplayName("Java compile cache")
@@ -45,7 +45,7 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
             .open();
         PersistentIndexedCacheParameters<HashCode, JarSnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, JarSnapshotData>("jarAnalysis", new HashCodeSerializer(), new JarSnapshotDataSerializer())
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.jarSnapshotCache = new DefaultJarSnapshotCache(fileHasher, cache.createCache(jarCacheParameters));
+        this.jarSnapshotCache = new DefaultJarSnapshotCache(fileSystemSnapshotter, cache.createCache(jarCacheParameters));
     }
 
     @Override

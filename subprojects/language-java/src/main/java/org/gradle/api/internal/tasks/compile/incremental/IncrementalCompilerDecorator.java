@@ -59,7 +59,7 @@ public class IncrementalCompilerDecorator {
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
         Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalResultStoringDecorator(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater, compileCaches.getAnnotationProcessorPathStore());
+        return new IncrementalResultStoringCompiler(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater, compileCaches.getAnnotationProcessorPathStore());
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {

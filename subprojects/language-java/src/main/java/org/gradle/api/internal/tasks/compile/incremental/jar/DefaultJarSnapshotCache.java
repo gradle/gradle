@@ -17,21 +17,23 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Map;
 
 public class DefaultJarSnapshotCache implements JarSnapshotCache {
-    private final FileHasher fileHasher;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final MinimalPersistentCache<HashCode, JarSnapshotData> cache;
 
-    public DefaultJarSnapshotCache(FileHasher fileHasher, PersistentIndexedCache<HashCode, JarSnapshotData> persistentCache) {
-        this.fileHasher = fileHasher;
+    public DefaultJarSnapshotCache(FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, JarSnapshotData> persistentCache) {
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         cache = new MinimalPersistentCache<HashCode, JarSnapshotData>(persistentCache);
     }
 
@@ -51,8 +53,10 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
     @Override
     public JarSnapshot get(File key, final Factory<JarSnapshot> factory) {
-        HashCode hash = fileHasher.hash(key);
-        return new JarSnapshot(cache.get(hash, new Factory<JarSnapshotData>() {
+        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(key);
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        fileSnapshot.appendToHasher(hasher);
+        return new JarSnapshot(cache.get(hasher.hash(), new Factory<JarSnapshotData>() {
             public JarSnapshotData create() {
                 return factory.create().getData();
             }

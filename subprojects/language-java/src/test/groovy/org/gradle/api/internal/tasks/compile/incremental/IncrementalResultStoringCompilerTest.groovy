@@ -24,7 +24,7 @@ import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 import spock.lang.Subject
 
-class IncrementalResultStoringDecoratorTest extends Specification {
+class IncrementalResultStoringCompilerTest extends Specification {
 
     def compiler = Mock(Compiler)
     def writer = Mock(JarClasspathSnapshotWriter)
@@ -32,7 +32,7 @@ class IncrementalResultStoringDecoratorTest extends Specification {
     def compileSpec = Stub(JavaCompileSpec)
     def processorPathStore = Mock(AnnotationProcessorPathStore)
 
-    @Subject finalizer = new IncrementalResultStoringDecorator(compiler, writer, infoUpdater, processorPathStore)
+    @Subject finalizer = new IncrementalResultStoringCompiler(compiler, writer, infoUpdater, processorPathStore)
 
     def "performs finalization"() {
         given:

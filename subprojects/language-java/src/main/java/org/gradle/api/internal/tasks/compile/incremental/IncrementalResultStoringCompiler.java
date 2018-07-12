@@ -25,14 +25,14 @@ import org.gradle.language.base.internal.compile.Compiler;
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
  */
-class IncrementalResultStoringDecorator implements Compiler<JavaCompileSpec> {
+class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
     private final JarClasspathSnapshotWriter writer;
     private final ClassSetAnalysisUpdater updater;
     private final AnnotationProcessorPathStore annotationProcessorPathStore;
 
-    public IncrementalResultStoringDecorator(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
+    public IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
         this.delegate = delegate;
         this.writer = writer;
         this.updater = updater;

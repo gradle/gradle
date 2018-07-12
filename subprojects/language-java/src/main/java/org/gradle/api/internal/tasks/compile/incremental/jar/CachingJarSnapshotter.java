@@ -16,21 +16,23 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 
     private final DefaultJarSnapshotter snapshotter;
-    private final FileHasher fileHasher;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final JarSnapshotCache cache;
 
-    public CachingJarSnapshotter(StreamHasher streamHasher, FileHasher fileHasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
+    public CachingJarSnapshotter(StreamHasher streamHasher, FileSystemSnapshotter fileSystemSnapshotter, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
         this.snapshotter = new DefaultJarSnapshotter(streamHasher, analyzer);
-        this.fileHasher = fileHasher;
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.cache = cache;
     }
 
@@ -45,6 +47,9 @@ public class CachingJarSnapshotter implements JarSnapshotter {
     }
 
     private HashCode getHash(JarArchive jarArchive) {
-        return fileHasher.hash(jarArchive.file);
+        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(jarArchive.file);
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        fileSnapshot.appendToHasher(hasher);
+        return hasher.hash();
     }
 }

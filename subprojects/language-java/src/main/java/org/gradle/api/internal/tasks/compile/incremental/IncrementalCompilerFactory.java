@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -52,21 +53,23 @@ public class IncrementalCompilerFactory {
     private final GeneralCompileCaches generalCompileCaches;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StringInterner interner;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileOperations = fileOperations;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.generalCompileCaches = generalCompileCaches;
         this.buildOperationExecutor = buildOperationExecutor;
         this.interner = interner;
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
     }
 
     public Compiler<JavaCompileSpec> makeIncremental(CleaningJavaCompiler cleaningJavaCompiler, String taskPath, IncrementalTaskInputs inputs, FileTree sources) {
         TaskScopedCompileCaches compileCaches = createCompileCaches(taskPath);
         Compiler<JavaCompileSpec> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), compileCaches.getClassAnalysisCache());
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(streamHasher, fileHasher, analyzer, compileCaches.getJarSnapshotCache());
+        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(streamHasher, fileSystemSnapshotter, analyzer, compileCaches.getJarSnapshotCache());
         JarClasspathSnapshotMaker jarClasspathSnapshotMaker = new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter, buildOperationExecutor), new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs((FileTreeInternal) sources);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs);

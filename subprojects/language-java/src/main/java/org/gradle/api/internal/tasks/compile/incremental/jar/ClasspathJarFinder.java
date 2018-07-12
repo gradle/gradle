@@ -36,6 +36,8 @@ public class ClasspathJarFinder {
         for (File file : classpath) {
             if (hasExtension(file, ".jar")) {
                 out.add(new JarArchive(file, fileOperations.zipTree(file)));
+            } else if (file.isDirectory()) {
+                out.add(new JarArchive(file, fileOperations.fileTree(file)));
             }
         }
         return out;
