@@ -71,9 +71,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @ScriptTemplateAdditionalCompilerArguments([
     "-Xjsr305=strict",
+    "-Xprogressive",
     "-XXLanguage:+NewInference",
-    "-XXLanguage:+SamConversionForKotlinFunctions",
-    "-Xprogressive"
+    "-XXLanguage:+SamConversionForKotlinFunctions"
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
