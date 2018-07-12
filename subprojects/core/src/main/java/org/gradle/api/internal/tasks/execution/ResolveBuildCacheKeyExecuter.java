@@ -28,7 +28,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -38,7 +37,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -177,6 +175,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             String path;
             HashCode hash;
 
+            int depth;
+            int rootNum;
+
             public State(InputFilePropertyVisitor visitor) {
                 this.visitor = visitor;
             }
@@ -217,6 +218,10 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 this.name = name;
                 this.hash = null;
 
+                if (depth++ == 0) {
+                    visitor.preRoot(this);
+                }
+
                 visitor.preDirectory(this);
 
                 return true;
@@ -231,9 +236,26 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
                 this.path = path;
                 this.name = name;
-                this.hash = snapshot.getContentMd5();
 
+                boolean isRoot = depth == 0;
+                if (isRoot) {
+                    visitor.preRoot(this);
+                }
+
+                this.hash = snapshot.getContentMd5();
                 visitor.file(this);
+
+                if (isRoot) {
+                    visitor.postRoot();
+                }
+            }
+
+            @Override
+            public void postVisitDirectory() {
+                visitor.postDirectory();
+                if (--depth == 0) {
+                    visitor.postRoot();
+                }
             }
 
             private FileContentSnapshot snapshot(String path) {
@@ -247,11 +269,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                     throw new IllegalStateException("snapshot is null : " + path);
                 }
                 return snapshot;
-            }
-
-            @Override
-            public void postVisitDirectory() {
-                visitor.postDirectory();
             }
         }
 
@@ -272,19 +289,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 state.normalizedSnapshots = fileCollectionSnapshot.getSnapshots();
 
                 visitor.preProperty(state);
-                for (PhysicalSnapshot tree : fileCollectionSnapshot.getRoots()) {
-                    if (tree.getType() == FileType.Missing) {
-                        continue;
-                    }
-
-                    state.path = tree.getAbsolutePath();
-                    state.name = tree.getName();
-                    state.hash = null;
-
-                    visitor.preRoot(state);
-                    tree.accept(state);
-                    visitor.postRoot();
-                }
+                fileCollectionSnapshot.visitRoots(state);
                 visitor.postProperty();
             }
         }

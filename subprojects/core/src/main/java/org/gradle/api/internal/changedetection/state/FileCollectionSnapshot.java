@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.hash.HashCode;
 
@@ -54,8 +53,6 @@ public interface FileCollectionSnapshot extends Snapshot {
      * @throws UnsupportedOperationException if the roots are not available.
      */
     void visitRoots(PhysicalSnapshotVisitor visitor);
-
-    Iterable<PhysicalSnapshot> getRoots();
 
     String getNormalizationStrategyName();
 }

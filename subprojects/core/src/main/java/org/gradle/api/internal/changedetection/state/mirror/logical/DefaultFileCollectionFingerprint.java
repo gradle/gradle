@@ -82,18 +82,12 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
 
     @Override
     public void visitRoots(PhysicalSnapshotVisitor visitor) {
-        for (PhysicalSnapshot root : getRoots()) {
-            root.accept(visitor);
-        }
-    }
-
-    @Override
-    public Iterable<PhysicalSnapshot> getRoots() {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }
-
-        return roots;
+        for (PhysicalSnapshot root : roots) {
+            root.accept(visitor);
+        }
     }
 
     @Override
