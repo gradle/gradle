@@ -28,20 +28,21 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements
     private static final BiAction<GradleVersion, File> DEFAULT_JAR_WRITER = { version, jarFile ->
         jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
     }
+    static final String DEFAULT_JAR_PREFIX = 'gradle-base-services'
 
     @Override
     TestFile getCachesDir() {
         gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
-    TestFile createDistributionChecksumDir(GradleVersion version) {
-        createCustomDistributionChecksumDir("gradle-${version.version}-all", version)
+    TestFile createDistributionChecksumDir(GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX) {
+        createCustomDistributionChecksumDir("gradle-${version.version}-all", version, jarPrefix)
     }
 
-    TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {
+    TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX, BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {
         def checksumDir = distsDir.file(parentDirName).createDir(UUID.randomUUID())
         def libDir = checksumDir.file("gradle-${version.baseVersion.version}", "lib").createDir()
-        def jarFile = libDir.file("gradle-base-services-${version.baseVersion.version}.jar")
+        def jarFile = libDir.file("$jarPrefix-${version.baseVersion.version}.jar")
         jarWriter.execute(version, jarFile)
         return checksumDir
     }

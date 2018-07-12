@@ -94,7 +94,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "ignores custom distributions without gradle-base-services JAR"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, { version, jarFile -> })
+        def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
 
         when:
         cleanupAction.execute(versionToCleanUp)
@@ -106,7 +106,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "ignores custom distributions without build receipt in gradle-base-services JAR"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithoutBuildReceiptInJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp) { version, jarFile ->
+        def distributionWithoutBuildReceiptInJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX) { version, jarFile ->
             jarFile << JarUtils.jarWithContents(foo: "bar")
         }
 
@@ -120,13 +120,49 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "ignores distributions with invalid gradle version"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, { version, jarFile -> })
+        def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
 
         when:
         cleanupAction.execute(versionToCleanUp)
 
         then:
         distributionWithInvalidVersionInDirName.assertExists()
+    }
+
+    def "checks for gradle-core-*.jar"() {
+        given:
+        def version = GradleVersion.version("1.0")
+        def distribution = createDistributionChecksumDir(version, "gradle-core")
+
+        when:
+        cleanupAction.execute(version)
+
+        then:
+        distribution.assertDoesNotExist()
+    }
+
+    def "checks for gradle-version-info-*.jar"() {
+        given:
+        def version = GradleVersion.version("3.0")
+        def distribution = createDistributionChecksumDir(version, "gradle-version-info")
+
+        when:
+        cleanupAction.execute(version)
+
+        then:
+        distribution.assertDoesNotExist()
+    }
+
+    def "does not clean up if no version is found"() {
+        given:
+        def version = GradleVersion.version("3.0")
+        def distribution = createDistributionChecksumDir(version, "some-other-jar")
+
+        when:
+        cleanupAction.execute(version)
+
+        then:
+        distribution.assertExists()
     }
 
     @Override
