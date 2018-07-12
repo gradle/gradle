@@ -156,7 +156,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
 
         val generatedSourceCode = JarFile(generatedJar).use { jar ->
             generatedSources.joinToString("\n") { name ->
-                jar.getInputStream(jar.getJarEntry(name)).bufferedReader().readText()
+                jar.getInputStream(jar.getJarEntry(name)).bufferedReader().use { it.readText() }
             }
         }
 
