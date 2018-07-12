@@ -49,8 +49,8 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
-import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
+import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
@@ -520,8 +520,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
-            classLoaderFor(outputDir).use { classLoader ->
-                val executableProgram = classLoader.loadClass("Program").newInstance()
+            withClassLoaderFor(outputDir) {
+                val executableProgram = loadClass("Program").newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
