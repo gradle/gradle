@@ -210,7 +210,7 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                     ApiTypeUsage(
                         "Pair",
                         typeArguments = listOf(
-                            ApiTypeUsage("String"), starProjectionTypeUsage)))),
+                            ApiTypeUsage("String"), ApiTypeUsage("Any", isNullable = true))))),
             isVarargs = true,
             invocation = "mapOf(*${first.invocation})")
         if (last().type.isSAM) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }

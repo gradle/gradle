@@ -159,7 +159,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
                 `withType`(`type`.java)
             """,
             """
-            inline fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<out java.io.FilterReader>, vararg `properties`: Pair<String, *>): org.gradle.api.tasks.AbstractCopyTask =
+            inline fun org.gradle.api.tasks.AbstractCopyTask.`filter`(`filterType`: kotlin.reflect.KClass<out java.io.FilterReader>, vararg `properties`: Pair<String, Any?>): org.gradle.api.tasks.AbstractCopyTask =
                 `filter`(mapOf(*`properties`), `filterType`.java)
             """,
             """
