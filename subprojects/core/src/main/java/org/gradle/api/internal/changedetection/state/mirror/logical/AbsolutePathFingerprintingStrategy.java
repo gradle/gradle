@@ -75,4 +75,9 @@ public class AbsolutePathFingerprintingStrategy implements FingerprintingStrateg
         return FingerprintCompareStrategy.ABSOLUTE;
     }
 
+    @Override
+    public Identifier getIdentifier() {
+        return Identifier.ABSOLUTE;
+    }
+
 }

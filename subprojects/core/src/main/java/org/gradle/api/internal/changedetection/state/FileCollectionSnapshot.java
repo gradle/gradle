@@ -53,4 +53,6 @@ public interface FileCollectionSnapshot extends Snapshot {
      * @throws UnsupportedOperationException if the roots are not available.
      */
     void visitRoots(PhysicalSnapshotVisitor visitor);
+
+    String getNormalizationStrategyName();
 }

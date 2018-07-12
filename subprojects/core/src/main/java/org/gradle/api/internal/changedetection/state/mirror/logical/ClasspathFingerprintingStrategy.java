@@ -41,13 +41,15 @@ import java.util.Map;
 
 public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
+    private final Identifier identifier;
     private final NonJarFingerprintingStrategy nonJarFingerprintingStrategy;
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
     private final JarHasher jarHasher;
     private final HashCode jarHasherConfigurationHash;
 
-    public ClasspathFingerprintingStrategy(NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+    public ClasspathFingerprintingStrategy(Identifier identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+        this.identifier = identifier;
         this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.cacheService = cacheService;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -181,4 +183,10 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.CLASSPATH;
     }
+
+    @Override
+    public Identifier getIdentifier() {
+        return identifier;
+    }
+
 }

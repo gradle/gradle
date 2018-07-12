@@ -59,6 +59,11 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
+    public String getNormalizationStrategyName() {
+        return null;
+    }
+
+    @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putHash(SIGNATURE);
     }

@@ -18,12 +18,30 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Map;
 
 public interface FingerprintingStrategy {
 
+    /**
+     * Not referenced directly, but names are used in SnapshotTaskInputsBuildOperationType.Result.VisitState.getPropertyNormalizationStrategyName().
+     * Existing entry names should stay stable.
+     * Order is irrelevant.
+     */
+    @UsedByScanPlugin
+    enum Identifier {
+        ABSOLUTE,
+        RELATIVE_PATH,
+        NAME_ONLY,
+        IGNORED_PATH,
+        COMPILE_CLASSPATH,
+        RUNTIME_CLASSPATH,
+    }
+
     Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots);
 
     FingerprintCompareStrategy getCompareStrategy();
+
+    Identifier getIdentifier();
 }

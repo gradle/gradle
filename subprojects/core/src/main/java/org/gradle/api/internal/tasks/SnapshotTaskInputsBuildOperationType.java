@@ -86,7 +86,25 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         List<String> getActionClassNames();
 
         /**
-         * Hashes of each of the input properties.
+         * Hashes of each of the input properties (values + files).
+         *
+         * key = property name
+         * value = hash
+         *
+         * Ordered by key, lexicographically.
+         * No null keys or values.
+         * Never empty.
+         * Null if the task has no inputs.
+         *
+         * @deprecated replaced by {@link #getInputValueHashes()} and {@link #visitInputFileProperties(InputFilePropertyVisitor)}
+         */
+        @Nullable
+        @Deprecated
+        @UsedByScanPlugin("1.6 - 1.15")
+        Map<String, String> getInputHashes();
+
+        /**
+         * Hashes of each of the non file input properties.
          *
          * key = property name
          * value = hash
@@ -97,8 +115,89 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Null if the task has no inputs.
          */
         @Nullable
-        Map<String, String> getInputHashes();
+        Map<String, String> getInputValueHashes();
 
+        /**
+         * The consuming visitor for file property inputs.
+         *
+         * Properties are visited depth-first lexicographical.
+         * Roots are visited in semantic order (i.e. the order in which they make up the file collection)
+         * Files and directories are depth-first lexicographical.
+         *
+         * For roots that are a file, they are also visited with {@link #file(VisitState)}.
+         */
+        interface InputFilePropertyVisitor {
+
+            /**
+             * Called once per file property.
+             *
+             * Only getProperty*() state methods may be called during.
+             */
+            void preProperty(VisitState state);
+
+            /**
+             * Called for each root of the current property.
+             *
+             * {@link VisitState#getName()} and {@link VisitState#getPath()} may be called during.
+             */
+            void preRoot(VisitState state);
+
+            /**
+             * Called before entering a directory.
+             *
+             * {@link VisitState#getName()} and {@link VisitState#getPath()} may be called during.
+             */
+            void preDirectory(VisitState state);
+
+            /**
+             * Called when visiting a non-directory file.
+             *
+             * {@link VisitState#getName()}, {@link VisitState#getPath()} and {@link VisitState#getHash()} may be called during.
+             */
+            void file(VisitState state);
+
+            /**
+             * Called when exiting a directory.
+             */
+            void postDirectory();
+
+            /**
+             * Called when exiting a root.
+             */
+            void postRoot();
+
+            /**
+             * Called when exiting a property.
+             */
+            void postProperty();
+        }
+
+        /**
+         * Provides information about the current location in the visit.
+         *
+         * Consumers should expect this to be mutable.
+         * Calling any method on this outside of a method that received it has undefined behavior.
+         */
+        interface VisitState {
+            String getPropertyName();
+
+            String getPropertyHash();
+
+            String getPropertyNormalizationStrategyName();
+
+            String getPath();
+
+            String getName();
+
+            String getHash();
+        }
+
+        /**
+         * Traverses the input properties that are file types (e.g. File, FileCollection, FileTree, List of File).
+         *
+         * If there are no input file properties, visitor will not be called at all.
+         */
+        void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
         /**
          * Names of input properties which have been loaded by non Gradle managed classloader.

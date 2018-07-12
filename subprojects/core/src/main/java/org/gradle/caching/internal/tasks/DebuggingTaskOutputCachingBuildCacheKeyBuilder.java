@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -54,9 +55,16 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
     }
 
     @Override
-    public void appendInputPropertyHash(String propertyName, HashCode hashCode) {
-        LOGGER.lifecycle("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
-        delegate.appendInputPropertyHash(propertyName, hashCode);
+    public void appendInputValuePropertyHash(String propertyName, HashCode hashCode) {
+        LOGGER.lifecycle("Appending inputValuePropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
+        delegate.appendInputValuePropertyHash(propertyName, hashCode);
+    }
+
+    @Override
+    public void appendInputFilesProperty(String propertyName, FileCollectionSnapshot fileCollectionSnapshot) {
+        LOGGER.lifecycle("Appending inputFilePropertyHash for '{}' to build cache key: {}", propertyName, fileCollectionSnapshot.getHash());
+        delegate.appendInputFilesProperty(propertyName, fileCollectionSnapshot);
+
     }
 
     @Override
