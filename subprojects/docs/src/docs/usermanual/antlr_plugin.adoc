@@ -108,7 +108,7 @@ The ANTLR grammar files of this source set. Contains all `.g` or `.g4` files fou
 
 `antlr.srcDirs` — type: `Set&lt;File&gt;`::
 The source directories containing the ANTLR grammar files of this source set.
-Can set using anything <<working_with_files#sec:specifying_multiple_files, that implicitly converts to a file collection>>.
+Can set using anything <<working_with_files.adoc#sec:specifying_multiple_files, that implicitly converts to a file collection>>.
 Default value is `[__projectDir__/src/__name__/antlr]`.
 
 [[sec:controlling_the_antlr_generator_process]]

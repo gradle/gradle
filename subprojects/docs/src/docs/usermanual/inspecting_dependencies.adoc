@@ -20,11 +20,11 @@ Gradle provides sufficient tooling to navigate large dependency graphs and mitig
 [[sec:listing_dependencies]]
 == Listing dependencies in a project
 
-A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<managing_dependency_configurations#sub:what_is_a_configuration,configuration>> available in the project.
+A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<managing_dependency_configurations.adoc#sub:what_is_a_configuration,configuration>> available in the project.
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
 
-Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations#,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
+Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations.adoc#managing_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
 
 === Example: Declaring the JGit dependency with a custom configuration
 
@@ -84,7 +84,7 @@ include::{samples-path}/userguide/dependencyManagement/inspectingDependencies/de
 [[sec:dependency_declaration_reasons]]
 == Justifying dependency declarations with custom reasons
 
-When you declare a <<declaring_dependencies#,dependency>> or a <<managing_transitive_dependencies#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
+When you declare a <<declaring_dependencies.adoc#declaring_dependencies,dependency>> or a <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
 === Example: Giving a reason for choosing a certain module version in a dependency declaration
 

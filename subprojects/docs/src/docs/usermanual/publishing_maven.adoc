@@ -15,7 +15,7 @@
 [[publishing_maven]]
 = Maven Publish Plugin
 
-The Maven Publish Plugin provides the ability to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository. A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies#,Declaring Dependencies>>) and other tools that understand the Maven repository format. You can learn about the fundamentals of publishing in <<publishing_overview#,Publishing Overview>>.
+The Maven Publish Plugin provides the ability to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository. A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format. You can learn about the fundamentals of publishing in <<publishing_overview.adoc#publishing_overview,Publishing Overview>>.
 
 
 [[publishing_maven:usage]]
@@ -60,12 +60,12 @@ Copies all defined publications to the local Maven cache, including their metada
 [[publishing_maven:publications]]
 == Publications
 
-This plugin provides <<publishing_overview#glossary:publication,publications>> of type link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]. To learn how to define and use publications, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
+This plugin provides <<publishing_overview.adoc#glossary:publication,publications>> of type link:{javadoc-path}/org/gradle/api/publish/maven/MavenPublication.html[MavenPublication]. To learn how to define and use publications, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in a Maven publication:
 
- * A <<publishing_overview#glossary:component,component>> — via link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)].
- * <<publishing_overview#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)] method. See link:{javadoc-path}/org/gradle/api/publish/maven/MavenArtifact.html[MavenArtifact] for the available configuration options for custom Maven artifacts.
+ * A <<publishing_overview.adoc#glossary:component,component>> — via link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * <<publishing_overview.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)] method. See link:{javadoc-path}/org/gradle/api/publish/maven/MavenArtifact.html[MavenArtifact] for the available configuration options for custom Maven artifacts.
  * Standard metadata like `artifactId`, `groupId` and `version`.
  * Other contents of the POM file — via link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)].
 
@@ -115,7 +115,7 @@ include::{samples-path}/signing/maven-publish/build.gradle[tag=pom-customization
 [[publishing_maven:repositories]]
 == Repositories
 
-This plugin provides <<dependency_management_terminology#sub:terminology_repository,repositories>> of type link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview#sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{javadoc-path}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 
@@ -149,7 +149,7 @@ It is a common practice to publish snapshots and releases to different Maven rep
 include::{samples-path}/maven-publish/javaProject/build.gradle[tag=repo-url-from-variable]
 ----
 
-Similarly, you can use a <<build_environment#, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
+Similarly, you can use a <<build_environment.adoc#build_environment, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
 
 === Example: Configuring repository URL based on project property
 
@@ -186,7 +186,7 @@ The result is that the following artifacts will be published:
 * The sources JAR artifact that has been explicitly configured: `my-library-1.0-sources.jar`
 * The Javadoc JAR artifact that has been explicitly configured: `my-library-1.0-javadoc.jar`
 
-The <<signing_plugin#, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
+The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
 
 [[publishing_maven:deferred_configuration]]
 == Removal of deferred configuration behavior

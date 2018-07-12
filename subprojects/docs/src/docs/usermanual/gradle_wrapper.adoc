@@ -36,9 +36,9 @@ The following sections explain each of these use cases in more detail.
 [[sec:adding_wrapper]]
 == Adding the Gradle Wrapper
 
-Generating the Wrapper files requires an installed version of the Gradle runtime on your machine as described in <<installation#,Installation>>. Thankfully, generating the initial Wrapper files is a one-time process.
+Generating the Wrapper files requires an installed version of the Gradle runtime on your machine as described in <<installation.adoc#installation,Installation>>. Thankfully, generating the initial Wrapper files is a one-time process.
 
-Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll be able to find the task listed under the group "Build Setup tasks" when <<command_line_interface#sec:listing_tasks,listing the tasks>>. Executing the `wrapper` task generates the necessary Wrapper files in the project directory.
+Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll be able to find the task listed under the group "Build Setup tasks" when <<command_line_interface.adoc#sec:listing_tasks,listing the tasks>>. Executing the `wrapper` task generates the necessary Wrapper files in the project directory.
 
 === Example: Running the Wrapper task
 
@@ -211,7 +211,7 @@ The Gradle `Wrapper` can download Gradle distributions from servers using HTTP B
 HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones. With Basic Authentication, the user credentials are sent in clear text.
 ====
 
-Using system properties can be done in the `.gradle/gradle.properties` file in the user's home directory, or by other means, see <<build_environment#sec:gradle_configuration_properties,Gradle Configuration Properties>>.
+Using system properties can be done in the `.gradle/gradle.properties` file in the user's home directory, or by other means, see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Configuration Properties>>.
 
 .Specifying the HTTP Basic Authentication credentials using system properties
 [source,properties]

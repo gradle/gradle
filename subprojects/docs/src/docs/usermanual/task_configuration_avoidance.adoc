@@ -19,7 +19,7 @@ We are asking early adopters to try out a new API for creating and configuring t
 
 [NOTE]
 ====
-The new Task configuration API is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL or API may change in minor Gradle versions.
+The new Task configuration API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL or API may change in minor Gradle versions.
 ====
 
 [[sec:what_is_new_task_configuration]]

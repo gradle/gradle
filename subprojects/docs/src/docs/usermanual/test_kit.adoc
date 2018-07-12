@@ -30,7 +30,7 @@ To use the TestKit, include the following in your plugin's build:
 include::{samples-path}/testKit/gradleRunner/junitQuickstart/build.gradle[tag=declare-gradle-testkit-dependency]
 ----
 
-The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<embedding#,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<embedding.adoc#embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
 === Example: Declaring the JUnit dependency
 
@@ -83,7 +83,7 @@ It is a common practice to implement any custom build logic (like plugins and ta
 [[sub:test-kit-classpath-injection]]
 == Getting the plugin-under-test into the test build
 
-The GradleRunner uses the <<embedding#,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
+The GradleRunner uses the <<embedding.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
 
 Starting with version 2.13, Gradle provides a <<#sub:test-kit-automatic-classpath-injection,conventional mechanism to inject the code under test into the test build>>.
 
@@ -98,7 +98,7 @@ include::{samples-path}/testKit/gradleRunner/manualClasspathInjection/build.grad
 ----
 NOTE: The code for this example can be found at **`samples/testKit/gradleRunner/manualClasspathInjection`** in the ‘-all’ distribution of Gradle.
 
-The tests can then read this value, and inject the classpath into the test build by using the method link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath-java.lang.Iterable-[GradleRunner.withPluginClasspath(java.lang.Iterable)]. This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <<plugins#,Plugins>>). Applying plugins with the plugins DSL requires the definition of a plugin identifier. The following is an example (in Groovy) of doing this from within a Spock Framework `setup()` method, which is analogous to a JUnit `@Before` method.
+The tests can then read this value, and inject the classpath into the test build by using the method link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath-java.lang.Iterable-[GradleRunner.withPluginClasspath(java.lang.Iterable)]. This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <<plugins.adoc#plugins,Plugins>>). Applying plugins with the plugins DSL requires the definition of a plugin identifier. The following is an example (in Groovy) of doing this from within a Spock Framework `setup()` method, which is analogous to a JUnit `@Before` method.
 
 === Example: Injecting the code under test classes into test builds
 
@@ -134,7 +134,7 @@ NOTE: The code for this example can be found at **`samples/testKit/gradleRunner/
 [[sub:test-kit-automatic-classpath-injection]]
 === Automatic injection with the Java Gradle Plugin Development plugin
 
-The <<java_gradle_plugin#,Java Gradle Plugin development plugin>> can be used to assist in the development of Gradle plugins. Starting with Gradle version 2.13, the plugin provides a direct integration with TestKit. When applied to a project, the plugin automatically adds the `gradleTestKit()` dependency to the test compile configuration. Furthermore, it automatically generates the classpath for the code under test and injects it via link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] for any `GradleRunner` instance created by the user. It's important to note that the mechanism currently _only_ works if the plugin under test is applied using the <<plugins#sec:plugins_block,plugins DSL>>. If the <<#sub:gradle-runner-gradle-version,target Gradle version>> is prior to 2.8, automatic plugin classpath injection is not performed.
+The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin development plugin>> can be used to assist in the development of Gradle plugins. Starting with Gradle version 2.13, the plugin provides a direct integration with TestKit. When applied to a project, the plugin automatically adds the `gradleTestKit()` dependency to the test compile configuration. Furthermore, it automatically generates the classpath for the code under test and injects it via link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] for any `GradleRunner` instance created by the user. It's important to note that the mechanism currently _only_ works if the plugin under test is applied using the <<plugins.adoc#sec:plugins_block,plugins DSL>>. If the <<#sub:gradle-runner-gradle-version,target Gradle version>> is prior to 2.8, automatic plugin classpath injection is not performed.
 
 The plugin uses the following conventions for applying the TestKit dependency and injecting the classpath:
 
@@ -240,7 +240,7 @@ The following table lists the features that are sensitive to the Gradle version 
 [[sub:test-kit-debug]]
 == Debugging build logic
 
-The runner uses the <<embedding#,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
+The runner uses the <<embedding.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
 
 The TestKit provides two different ways to enable the debug mode:
 
@@ -252,7 +252,7 @@ The system property approach can be used when it is desirable to enable debuggin
 [[sub:test-kit-build-cache]]
 == Testing with the Build Cache
 
-To enable the <<build_cache#,Build Cache>> in your tests, you can pass the `--build-cache` argument to link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<build_cache#sec:build_cache_enable,Enable the build cache>>. You can then check for the task outcome link:{javadoc-path}/org/gradle/testkit/runner/TaskOutcome.html#FROM_CACHE[TaskOutcome.FROM_CACHE] when your plugin's custom task is cached. This outcome is only valid for Gradle 3.5 and newer.
+To enable the <<build_cache.adoc#build_cache,Build Cache>> in your tests, you can pass the `--build-cache` argument to link:{javadoc-path}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<build_cache.adoc#sec:build_cache_enable,Enable the build cache>>. You can then check for the task outcome link:{javadoc-path}/org/gradle/testkit/runner/TaskOutcome.html#FROM_CACHE[TaskOutcome.FROM_CACHE] when your plugin's custom task is cached. This outcome is only valid for Gradle 3.5 and newer.
 
 === Example: Testing cacheable tasks
 

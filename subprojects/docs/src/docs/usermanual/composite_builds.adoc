@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-Composite build is an <<feature_lifecycle#,incubating>> feature. While useful for many use cases, there are bugs to be discovered, rough edges to smooth, and enhancements we plan to make. Thanks for trying it out!
+Composite build is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. While useful for many use cases, there are bugs to be discovered, rough edges to smooth, and enhancements we plan to make. Thanks for trying it out!
 
 ====
 
@@ -138,7 +138,7 @@ There is not (yet) any means to directly execute a task from an included build v
 [[composite_build_ide_integration]]
 === Importing into the IDE
 
-One of the most useful features of composite builds is IDE integration. By applying the <<idea_plugin#,idea>> or <<eclipse_plugin#,eclipse>> plugin to your build, it is possible to generate a single IDEA or Eclipse project that permits all builds in the composite to be developed together.
+One of the most useful features of composite builds is IDE integration. By applying the <<idea_plugin.adoc#idea_plugin,idea>> or <<eclipse_plugin.adoc#eclipse_plugin,eclipse>> plugin to your build, it is possible to generate a single IDEA or Eclipse project that permits all builds in the composite to be developed together.
 
 In addition to these Gradle plugins, recent versions of https://www.jetbrains.com/idea/[IntelliJ IDEA] and https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship] support direct import of a composite build.
 

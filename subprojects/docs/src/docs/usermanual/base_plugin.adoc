@@ -15,7 +15,7 @@
 [[base_plugin]]
 = The Base Plugin
 
-The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<more_about_tasks#sec:lifecycle_tasks,_lifecycle_ tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
+The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<more_about_tasks.adoc#sec:lifecycle_tasks,_lifecycle_ tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
 
 [[sec:base_plugin_usage]]
 == Usage
@@ -53,16 +53,16 @@ Assembles those artifacts attached to the named configuration. For example, `bui
 Does the same as `build__Configuration__`, but also uploads all the artifacts attached to the given configuration.
 
 `clean__Task__` — task rule::
-Removes the <<more_about_tasks#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+Removes the <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
 
 
 [[sec:base_plugin_configurations]]
 == Dependency management
 
-The Base Plugin adds no <<managing_dependency_configurations#,configurations for dependencies>>, but it does add the following configurations for <<artifact_management#sec:artifacts_and_configurations,artifacts>>:
+The Base Plugin adds no <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations for dependencies>>, but it does add the following configurations for <<artifact_management.adoc#sec:artifacts_and_configurations,artifacts>>:
 
 `default`::
-A fallback configuration used by consumer projects. Let's say you have project B with a <<dependency_types#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
+A fallback configuration used by consumer projects. Let's say you have project B with a <<dependency_types.adoc#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
 +
 *New builds and plugins should not be using the `default` configuration!* It remains for the reason of backwards compatibility.
 

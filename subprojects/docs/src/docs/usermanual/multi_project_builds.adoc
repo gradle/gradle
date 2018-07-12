@@ -31,7 +31,7 @@ Let's start with a very simple multi-project build. Gradle is a general purpose 
 [[sec:configuration_and_execution]]
 === Configuration and execution
 
-<<build_lifecycle#sec:build_phases,Build phases>> describes the phases of every Gradle build. Let's zoom into the configuration and execution phases of a multi-project build. Configuration here means executing the `build.gradle` file of a project, which implies e.g. downloading all plugins that were declared using '```apply plugin```'. By default, the configuration of all projects happens before any task is executed. This means that when a single task, from a single project is requested, _all_ projects of multi-project build are configured first. The reason every project needs to be configured is to support the flexibility of accessing and changing any part of the Gradle project model.
+<<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build. Let's zoom into the configuration and execution phases of a multi-project build. Configuration here means executing the `build.gradle` file of a project, which implies e.g. downloading all plugins that were declared using '```apply plugin```'. By default, the configuration of all projects happens before any task is executed. This means that when a single task, from a single project is requested, _all_ projects of multi-project build are configured first. The reason every project needs to be configured is to support the flexibility of accessing and changing any part of the Gradle project model.
 
 
 [[sec:configuration_on_demand]]
@@ -48,7 +48,7 @@ Configuration on demand mode attempts to configure only projects that are releva
 * A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'projectA:projectB:someTask' causes configuration of projectB.
 
 
-Eager to try out this new feature? To configure on demand with every build run see <<build_environment#sec:gradle_configuration_properties,Gradle properties>>. To configure on demand just for a given build, see <<command_line_interface#sec:command_line_performance,command-line performance-oriented options>>.
+Eager to try out this new feature? To configure on demand with every build run see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>. To configure on demand just for a given build, see <<command_line_interface.adoc#sec:command_line_performance,command-line performance-oriented options>>.
 
 [[sec:defining_common_behavior]]
 === Defining common behavior
@@ -267,7 +267,7 @@ The `configure()` method takes a list as an argument and applies the configurati
 [[ssub:filtering_by_properties]]
 ==== Filtering by properties
 
-Using the project name for filtering is one option. Using <<writing_build_scripts#sec:extra_properties,extra project properties>> is another. for more information on extra properties.)
+Using the project name for filtering is one option. Using <<writing_build_scripts.adoc#sec:extra_properties,extra project properties>> is another. for more information on extra properties.)
 
 === Example: Adding custom behaviour to some projects (filtered by project properties)
 
@@ -560,7 +560,7 @@ Such dependency patterns are daily bread in the problem space of multi-project b
 [[sec:project_jar_dependencies]]
 == Project lib dependencies
 
-What if one project needs the jar produced by another project in its compile path, and not just the jar but also the transitive dependencies of this jar? Obviously this is a very common use case for Java multi-project builds. As mentioned in <<dependency_types#sub:project_dependencies,Project dependencies>>, Gradle offers project lib dependencies for this.
+What if one project needs the jar produced by another project in its compile path, and not just the jar but also the transitive dependencies of this jar? Obviously this is a very common use case for Java multi-project builds. As mentioned in <<dependency_types.adoc#sub:project_dependencies,Project dependencies>>, Gradle offers project lib dependencies for this.
 
 .Project lib dependencies
 ----
@@ -692,14 +692,14 @@ Parallel project execution allows the separate projects in a decoupled multi-pro
 * Using pre-built artifacts in the place of building dependent projects.
 
 
-How does parallel execution work? First, you need to tell Gradle to use parallel mode. You can use the <<command_line_interface#sec:command_line_performance,`--parallel` command line argument>> or configure your build environment (<<build_environment#sec:gradle_configuration_properties,Gradle properties>>). Unless you provide a specific number of parallel threads, Gradle attempts to choose the right number based on available CPU cores. Every parallel worker exclusively owns a given project while executing a task. Task dependencies are fully supported and parallel workers will start executing upstream tasks first. Bear in mind that the alphabetical ordering of decoupled tasks, as can be seen during sequential execution, is not guaranteed in parallel mode. In other words, in parallel mode tasks will run as soon as their dependencies complete _and a task worker is available to run them_, which may be earlier than they would start during a sequential build. You should make sure that task dependencies and task inputs/outputs are declared correctly to avoid ordering issues.
+How does parallel execution work? First, you need to tell Gradle to use parallel mode. You can use the <<command_line_interface.adoc#sec:command_line_performance,`--parallel` command line argument>> or configure your build environment (<<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>). Unless you provide a specific number of parallel threads, Gradle attempts to choose the right number based on available CPU cores. Every parallel worker exclusively owns a given project while executing a task. Task dependencies are fully supported and parallel workers will start executing upstream tasks first. Bear in mind that the alphabetical ordering of decoupled tasks, as can be seen during sequential execution, is not guaranteed in parallel mode. In other words, in parallel mode tasks will run as soon as their dependencies complete _and a task worker is available to run them_, which may be earlier than they would start during a sequential build. You should make sure that task dependencies and task inputs/outputs are declared correctly to avoid ordering issues.
 
 [[sec:decoupled_projects]]
 == Decoupled Projects
 
 Gradle allows any project to access any other project during both the configuration and execution phases. While this provides a great deal of power and flexibility to the build author, it also limits the flexibility that Gradle has when building those projects. For instance, this effectively prevents Gradle from correctly building multiple projects in parallel, configuring only a subset of projects, or from substituting a pre-built artifact in place of a project dependency.
 
-Two projects are said to be _decoupled_ if they do not directly access each other's project model. Decoupled projects may only interact in terms of declared dependencies: <<dependency_types#sub:project_dependencies,project dependencies>> and/or <<tutorial_using_tasks#sec:task_dependencies,task dependencies>>. Any other form of project interaction (i.e. by modifying another project object or by reading a value from another project object) causes the projects to be coupled. The consequence of coupling during the configuration phase is that if gradle is invoked with the 'configuration on demand' option, the result of the build can be flawed in several ways. The consequence of coupling during execution phase is that if gradle is invoked with the parallel option, one project task runs too late to influence a task of a project building in parallel. Gradle does not attempt to detect coupling and warn the user, as there are too many possibilities to introduce coupling.
+Two projects are said to be _decoupled_ if they do not directly access each other's project model. Decoupled projects may only interact in terms of declared dependencies: <<dependency_types.adoc#sub:project_dependencies,project dependencies>> and/or <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependencies>>. Any other form of project interaction (i.e. by modifying another project object or by reading a value from another project object) causes the projects to be coupled. The consequence of coupling during the configuration phase is that if gradle is invoked with the 'configuration on demand' option, the result of the build can be flawed in several ways. The consequence of coupling during execution phase is that if gradle is invoked with the parallel option, one project task runs too late to influence a task of a project building in parallel. Gradle does not attempt to detect coupling and warn the user, as there are too many possibilities to introduce coupling.
 
 A very common way for projects to be coupled is by using <<#sec:cross_project_configuration,configuration injection>>. It may not be immediately apparent, but using key Gradle features like the `allprojects` and `subprojects` keywords automatically cause your projects to be coupled. This is because these keywords are used in a `build.gradle` file, which defines a project. Often this is a “root project” that does nothing more than define common configuration, but as far as Gradle is concerned this root project is still a fully-fledged project, and by using `allprojects` that project is effectively coupled to all other projects. Coupling of the root project to subprojects does not impact 'configuration on demand', but using the `allprojects` and `subprojects` in any subproject's `build.gradle` file will have an impact.
 
@@ -753,4 +753,4 @@ Finally, you may want to build and test everything in all projects. Any task you
 [[sec:multi_project_and_buildsrc]]
 == Multi Project and buildSrc
 
-<<organizing_gradle_projects#sec:build_sources,Using buildSrc to organize build logic>> tells us that we can place build logic to be compiled and tested in the special `buildSrc` directory. In a multi project build, there can only be one `buildSrc` directory which must be located in the root directory.
+<<organizing_gradle_projects.adoc#sec:build_sources,Using buildSrc to organize build logic>> tells us that we can place build logic to be compiled and tested in the special `buildSrc` directory. In a multi project build, there can only be one `buildSrc` directory which must be located in the root directory.

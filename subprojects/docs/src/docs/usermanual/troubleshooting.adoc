@@ -20,9 +20,9 @@ The following is a collection of common issues and suggestions for addressing th
 [[sec:troubleshooting_installation]]
 == Troubleshooting Gradle installation
 
-If you followed the <<installation#,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
+If you followed the <<installation.adoc#installation,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
 
-If you installed Gradle outside of just invoking the <<gradle_wrapper#,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
 
 You should see something like this:
 
@@ -75,7 +75,7 @@ If not, then the problem exists within the execution of one or more of the reque
 [[sec:troubleshooting_dependency_resolution]]
 == Debugging dependency resolution
 
-Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution#,Troubleshooting Dependency Resolution>>.
+Common dependency resolution issues such as resolving version conflicts are covered in <<troubleshooting_dependency_resolution.adoc#troubleshooting_dependency_resolution,Troubleshooting Dependency Resolution>>.
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
@@ -97,7 +97,7 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 
 === Attaching a debugger to your build
 
-You can set breakpoints and debug <<custom_plugins#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
 
 ----
 ❯ gradle help -Dorg.gradle.debug=true --no-daemon
@@ -115,12 +115,12 @@ You must either stop running Gradle Daemons or run with `--no-daemon` when using
 
 === Adding and changing logging
 
-In addition to <<command_line_interface#sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. “UP-TO-DATE”) in lifecycle logging using the <<command_line_interface#sec:command_line_customizing_log_format,`--console=verbose` flag>>.
+In addition to <<command_line_interface.adoc#sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. “UP-TO-DATE”) in lifecycle logging using the <<command_line_interface.adoc#sec:command_line_customizing_log_format,`--console=verbose` flag>>.
 
-You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<logging#sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<logging#sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
+You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<logging.adoc#sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<logging.adoc#sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
 
 [NOTE]
-Additional logs from the <<gradle_daemon#,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
+Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
 
 === Task executed when it should have been UP-TO-DATE
 
@@ -129,7 +129,7 @@ Additional logs from the <<gradle_daemon#,Gradle Daemon>> can be found under `GR
 .Debugging incremental build with a build scan
 image::troubleshooting-task-execution-build-scan.png[]
 
-You can learn what the task outcomes mean from <<more_about_tasks#sec:task_outcomes,this listing>>.
+You can learn what the task outcomes mean from <<more_about_tasks.adoc#sec:task_outcomes,this listing>>.
 
 
 [[sec:troubleshooting_ide_integration]]

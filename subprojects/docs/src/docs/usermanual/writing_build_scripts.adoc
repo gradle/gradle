@@ -27,7 +27,7 @@ A build script can contain any Groovy language element.footnote:[Any language el
 [[sec:project_api]]
 == The Project API
 
-In <<tutorial_java_projects#,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type link:{groovy-dsl-path}/org.gradle.api.Project.html[Project] and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
+In <<tutorial_java_projects.adoc#tutorial_java_projects,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type link:{groovy-dsl-path}/org.gradle.api.Project.html[Project] and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
 
 [TIP]
 .Getting help writing build scripts

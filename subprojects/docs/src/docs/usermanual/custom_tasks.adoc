@@ -15,9 +15,9 @@
 [[custom_tasks]]
 = Writing Custom Task Classes
 
-Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks#,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
+Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<tutorial_using_tasks.adoc#tutorial_using_tasks,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
 
-The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks#,Authoring Tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
+The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks.adoc#more_about_tasks,Authoring Tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
 
 The behaviour and properties of an enhanced task is defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
 
@@ -35,7 +35,7 @@ You can include the task class directly in the build script. This has the benefi
 `buildSrc` project::
 You can put the source for the task class in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the task class and making it available on the classpath of the build script. The task class is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the task class outside the build it is defined in. Using the `buildSrc` project approach separates the task declaration - that is, what the task should do - from the task implementation - that is, how the task does it.
 +
-See <<organizing_gradle_projects#,Organizing Gradle Projects>> for more details about the `buildSrc` project.
+See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
 Standalone project::
 You can create a separate project for your task class. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some custom plugins, or bundle several related task classes into a single library. Or some combination of the two.
@@ -117,7 +117,7 @@ include::{samples-path}/customPlugin/plugin/src/main/groovy/org/gradle/GreetingT
 [[sec:using_your_task_class_in_another_project]]
 === Using your task class in another project
 
-To use a task class in a build script, you need to add the class to the build script's classpath. To do this, you use a `buildscript { }` block, as described in <<tutorial_using_tasks#sec:build_script_external_dependencies,External dependencies for the build script>>. The following example shows how you might do this when the JAR containing the task class has been published to a local repository:
+To use a task class in a build script, you need to add the class to the build script's classpath. To do this, you use a `buildscript { }` block, as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>. The following example shows how you might do this when the JAR containing the task class has been published to a local repository:
 
 === Example: Using a custom task in another project
 
@@ -149,15 +149,15 @@ include::{samples-path}/customPlugin/plugin/src/test/groovy/org/gradle/GreetingT
 [NOTE]
 ====
 
-Incremental tasks are an <<feature_lifecycle#,incubating>> feature.
+Incremental tasks are an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
 
 Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle), discussions within the Gradle community have produced superior ideas for exposing the information about changes to task implementors to what is described below. As such, the API for this feature will almost certainly change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community.
 
-The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle#,Feature Lifecycle>>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
+The feature incubation process, which is part of the Gradle feature lifecycle (see <<feature_lifecycle.adoc#feature_lifecycle,Feature Lifecycle>>), exists for this purpose of ensuring high quality final implementations through incorporation of early user feedback.
 
 ====
 
-With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<more_about_tasks#sec:up_to_date_checks,Incremental Builds>>). However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs. This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
+With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<more_about_tasks.adoc#sec:up_to_date_checks,Incremental Builds>>). However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs. This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
 
 If you'd like to optimise your build so that only out-of-date inputs are processed, you can do so with an _incremental task_.
 
@@ -305,7 +305,7 @@ include::{samples-path}/userguide/tasks/incrementalTask/incrementalTaskChangedPr
 [[sec:storing_incremental_task_state]]
 === Storing incremental state for cached tasks
 
-Using Gradle's `IncrementalTaskInputs` is not the only way to create tasks that only works on changes since the last execution. Tools like the Kotlin compiler provide incrementality as a built-in feature. The way this is typically implemented is that the tool stores some analysis data about the state of the previous execution in some file. If such state files are <<build_cache#sec:task_output_caching_inputs,relocatable>>, then they can be declared as outputs of the task. This way when the task's results are loaded from cache, the next execution can already use the analysis data loaded from cache, too.
+Using Gradle's `IncrementalTaskInputs` is not the only way to create tasks that only works on changes since the last execution. Tools like the Kotlin compiler provide incrementality as a built-in feature. The way this is typically implemented is that the tool stores some analysis data about the state of the previous execution in some file. If such state files are <<build_cache.adoc#sec:task_output_caching_inputs,relocatable>>, then they can be declared as outputs of the task. This way when the task's results are loaded from cache, the next execution can already use the analysis data loaded from cache, too.
 
 However, if the state files are non-relocatable, then they can't be shared via the build cache. Indeed, when the task is loaded from cache, any such state files must be cleaned up to prevent stale state to confuse the tool during the next execution. Gradle can ensure such stale files are removed if they are declared via `task.localState.register()` or a property is marked with the `@LocalState` annotation.
 
@@ -314,7 +314,7 @@ However, if the state files are non-relocatable, then they can't be shared via t
 
 [NOTE]
 ====
-The API for exposing command line options is an <<feature_lifecycle#,incubating>> feature.
+The API for exposing command line options is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
 ====
 
 Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
@@ -426,7 +426,7 @@ Support for declaring command line options currently comes with a few limitation
 [NOTE]
 ====
 
-The Worker API is an <<feature_lifecycle#,incubating>> feature.
+The Worker API is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
 
 ====
 
@@ -541,4 +541,4 @@ There are different ways to re-use logic between task classes.
 The easiest case is when you can extract the logic you want to share in a separate method or class and then use the extracted piece of code in your tasks.
 For example, the link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task re-uses the logic of the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method.
 Another option is to add a task dependency on the task which outputs you want to re-use.
-Other options include using <<more_about_tasks#sec:task_rules,task rules>> or the <<#worker_api,worker API>>.
+Other options include using <<more_about_tasks.adoc#sec:task_rules,task rules>> or the <<#worker_api,worker API>>.

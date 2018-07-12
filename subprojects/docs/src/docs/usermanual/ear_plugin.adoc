@@ -43,7 +43,7 @@ Assembles the application EAR file.
 
 === Dependencies added to other tasks
 
-The Ear plugin adds the following dependencies to tasks added by the <<base_plugin#,Base Plugin>>.
+The Ear plugin adds the following dependencies to tasks added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `assemble`::
 _Depends on_: `ear`.

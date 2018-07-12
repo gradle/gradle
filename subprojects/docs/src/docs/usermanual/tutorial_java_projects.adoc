@@ -100,7 +100,7 @@ Let's add some dependencies. Here, we will declare that our production classes h
 include::{samples-path}/java/quickstart/build.gradle[tag=dependencies]
 ----
 
-You can find out more in <<dependency_management_for_java_projects#,Dependency Management for Java Projects>>.
+You can find out more in <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects,Dependency Management for Java Projects>>.
 
 [[sec:customizing_the_project]]
 === Customizing the project
@@ -161,7 +161,7 @@ To create the Eclipse-specific descriptor files, like `.project`, you need to ad
 include::{samples-path}/java/quickstart/build.gradle[tag=use-eclipse-plugin]
 ----
 
-Now execute `gradle eclipse` command to generate Eclipse project files. More information about the `eclipse` task can be found in the <<eclipse_plugin#,Eclipse Plugin>> chapter.
+Now execute `gradle eclipse` command to generate Eclipse project files. More information about the `eclipse` task can be found in the <<eclipse_plugin.adoc#eclipse_plugin,Eclipse Plugin>> chapter.
 
 [[sec:summary]]
 === Summary
@@ -208,7 +208,7 @@ To define a multi-project build, you need to create a _settings file_. The setti
 include::{samples-path}/java/multiproject/settings.gradle[tag=include-projects]
 ----
 
-You can find out more about the settings file in <<multi_project_builds#,Authoring Multi-Project Builds>>.
+You can find out more about the settings file in <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>.
 
 [[sec:common_configuration]]
 === Common configuration
@@ -257,7 +257,7 @@ include::{samples-path}/java/multiproject/api/build.gradle[tag=dists]
 [[sec:java_tutorial_where_to_next]]
 == Where to next?
 
-In this chapter, you have seen how to do some of the things you commonly need to build a Java based project. This chapter is not exhaustive, and there are many other things you can do with Java projects in Gradle. You can find out more about the <<java_plugin#,Java plugin>>, and you can find more sample Java projects in the `samples/java` directory in the Gradle distribution.
+In this chapter, you have seen how to do some of the things you commonly need to build a Java based project. This chapter is not exhaustive, and there are many other things you can do with Java projects in Gradle. You can find out more about the <<java_plugin.adoc#java_plugin,Java plugin>>, and you can find more sample Java projects in the `samples/java` directory in the Gradle distribution.
 
-Otherwise, continue on to <<dependency_management_for_java_projects#,Dependency Management for Java Projects>>.
+Otherwise, continue on to <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects,Dependency Management for Java Projects>>.
 

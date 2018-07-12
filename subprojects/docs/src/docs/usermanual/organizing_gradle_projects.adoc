@@ -23,7 +23,7 @@ The following sections also touch on common problems and how to avoid them.
 == Separate language-specific source files
 
 Gradle's language plugins establish conventions for discovering and compiling source code.
-For example, a project applying the <<java_plugin#,Java plugin>> will automatically compile the code in the directory `src/main/java`.
+For example, a project applying the <<java_plugin.adoc#java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`.
 Other language plugins follow the same pattern.
 The last portion of the directory path usually indicates the expected language of the source files.
 
@@ -74,7 +74,7 @@ The following source tree demonstrates how to separate unit from integration tes
             └── StringUtilsTest.java
 ----
 
-Gradle models source code directories with the help of the <<building_java_projects#sec:java_source_sets,source set concept>>.
+Gradle models source code directories with the help of the <<building_java_projects.adoc#sec:java_source_sets,source set concept>>.
 By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box.
 
 === Example: Integration test source set
@@ -101,7 +101,7 @@ include::{samples-path}/userguide/organizingGradleProjects/separatedTestTypes/gr
 
 All Gradle core plugins follow the software engineering paradigm link:https://en.wikipedia.org/wiki/Convention_over_configuration[convention over configuration].
 The plugin logic provides users with sensible defaults and standards, the conventions, in a certain context.
-Let’s take the <<java_plugin#,Java plugin>> as an example.
+Let’s take the <<java_plugin.adoc#java_plugin,Java plugin>> as an example.
 
 * It defines the directory `src/main/java` as the default source directory for compilation.
 * The output directory for compiled source code and other artifacts (like the JAR file) is `build`.
@@ -136,11 +136,11 @@ Complex build logic is usually a good candidate for being encapsulated either as
 Custom task and plugin implementations should not live in the build script.
 It is very convenient to use `buildSrc` for that purpose as long as the code does not need to be shared among multiple, independent projects.
 
-The directory `buildSrc` is treated as an <<composite_builds#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
+The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
 For multi-project builds there can be only one `buildSrc` directory, which has to sit in the root project directory.
-`buildSrc` should be preferred over <<plugins#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
+`buildSrc` should be preferred over <<plugins.adoc#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
 
-`buildSrc` uses the same <<java_plugin#javalayout,source code conventions>> applicable to Java and Groovy projects.
+`buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java and Groovy projects.
 It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.
 
 === Example: Custom buildSrc build script
@@ -183,7 +183,7 @@ It's common to declare properties on the command line for ad-hoc scenarios.
 For example you may want to pass in a specific property value to control runtime behavior just for this one invocation of the build.
 Properties in a build script can easily become a maintenance headache and convolute the build script logic.
 The `gradle.properties` helps with keeping properties separate from the build script and should be explored as viable option.
-It's a good location for placing <<build_environment#sec:gradle_configuration_properties,properties that control the build environment>>.
+It's a good location for placing <<build_environment.adoc#sec:gradle_configuration_properties,properties that control the build environment>>.
 
 A typical project setup places the `gradle.properties` file in the root directory of the build.
 Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
@@ -197,18 +197,18 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 
 == Avoid overlapping task outputs
 
-Tasks should define inputs and outputs to get the performance benefits of <<more_about_tasks#sec:up_to_date_checks,incremental build functionality>>.
+Tasks should define inputs and outputs to get the performance benefits of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
 Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.
-In turn, these filesystem changes may prevent Gradle's <<build_cache#,build cache>> from properly identifying and caching what would otherwise be cacheable tasks.
+In turn, these filesystem changes may prevent Gradle's <<build_cache.adoc#build_cache,build cache>> from properly identifying and caching what would otherwise be cacheable tasks.
 
 [[sec:custom_gradle_distribution]]
 == Standardizing builds with a custom Gradle distribution
 
 Often enterprises want to standardize the build platform for all projects in the organization by defining common conventions or rules.
 You can achieve that with the help of initialization scripts.
-<<init_scripts#,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
+<<init_scripts.adoc#init_scripts,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
 For example, to declare a in-house repository and its credentials.
 
 There are some drawbacks to the approach.
@@ -218,7 +218,7 @@ Furthermore, updating the initialization script logic uniformly can prove challe
 Custom Gradle distributions are a practical solution to this very problem.
 A custom Gradle distribution is comprised of the standard Gradle distribution plus one or many custom initialization scripts.
 The initialization scripts come bundled with the distribution and are applied every time the build is run.
-Developers only need to point their checked-in <<gradle_wrapper#,Wrapper>> files to the URL of the custom Gradle distribution.
+Developers only need to point their checked-in <<gradle_wrapper.adoc#gradle_wrapper,Wrapper>> files to the URL of the custom Gradle distribution.
 
 The following steps are typical for creating a custom Gradle distribution:
 

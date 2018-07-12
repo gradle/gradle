@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-Build comparison support is an <<feature_lifecycle#,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
+Build comparison support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
 
 ====
 
@@ -59,7 +59,7 @@ A build outcome that cannot be understood by the host build. This can occur when
 [[sec:current_capabilities]]
 == Current Capabilities
 
-As this is an <<feature_lifecycle#,incubating>> feature, a limited set of the eventual functionality has been implemented at this time.
+As this is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, a limited set of the eventual functionality has been implemented at this time.
 
 
 [[sec:supported_builds]]
@@ -144,6 +144,6 @@ compareGradleBuilds {
 [[sec:which_archives_are_compared]]
 === Which archives are compared?
 
-For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management#,Artifact Management>> for more information on how to configure and add artifacts.
+For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management.adoc#artifact_management,Artifact Management>> for more information on how to configure and add artifacts.
 
 The archive must also have been produced by a link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.War.html[War], link:{groovy-dsl-path}/org.gradle.plugins.ear.Ear.html[Ear] task. Future versions of Gradle will support increased flexibility in this area.

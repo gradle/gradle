@@ -27,7 +27,7 @@ What exactly the IDEA plugin generates depends on which other plugins are used:
 *Always*::
 Generates an IDEA module file. Also generates an IDEA project and workspace file if the project is the root project.
 
-*<<java_plugin#,Java Plugin>>*::
+*<<java_plugin.adoc#java_plugin,Java Plugin>>*::
 Additionally adds Java configuration to the IDEA module and project files.
 
 One focus of the IDEA plugin is to be open to customization. The plugin provides a standardized set of hooks for adding and removing content from the generated files.

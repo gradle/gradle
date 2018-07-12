@@ -17,11 +17,11 @@
 
 Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
-We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin#,Groovy>> and <<scala_plugin#,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the <<tutorial_java_projects#,Java Quickstart>> first as it will give you a good overview of the basics.
+We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the <<tutorial_java_projects.adoc#tutorial_java_projects,Java Quickstart>> first as it will give you a good overview of the basics.
 
 == Introduction
 
-The simplest build script for a Java project applies the <<java_plugin#,Java Plugin>> and optionally sets the project version and Java compatibility versions:
+The simplest build script for a Java project applies the <<java_plugin.adoc#java_plugin,Java Plugin>> and optionally sets the project version and Java compatibility versions:
 
 === Example: Applying the Java Plugin
 
@@ -44,7 +44,7 @@ This isn't sufficient to build any non-trivial Java project — at the very leas
 
 NOTE: Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
 
-The Java Plugin also integrates the above tasks into the standard <<base_plugin#sec:base_tasks,Base Plugin lifecycle tasks>>:
+The Java Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
 
  * `jar` is attached to `assemble` footnote:[In fact, any artifact added to the `archives` configuration will be built by `assemble`]
  * `test` is attached to `check`
@@ -59,7 +59,7 @@ Gradle's Java support was the first to introduce a new concept for building sour
 Source sets are a powerful concept that tie together several aspects of compilation:
 
  * the source files and where they're located
- * the compilation classpath, including any required dependencies (via Gradle <<dependency_management_terminology#sub:terminology_configuration,configurations>>)
+ * the compilation classpath, including any required dependencies (via Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configurations>>)
  * where the compiled class files are placed
 
 You can see how these relate to one another in this diagram:
@@ -67,7 +67,7 @@ You can see how these relate to one another in this diagram:
 .Source sets and Java compilation
 image::java-sourcesets-compilation.png[]
 
-The shaded boxes represent properties of the source set itself. On top of that, the Java Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<java_plugin#java_source_set_configurations,dependency configurations>>.
+The shaded boxes represent properties of the source set itself. On top of that, the Java Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<java_plugin.adoc#java_source_set_configurations,dependency configurations>>.
 
 [NOTE]
 .The `main` source set
@@ -82,24 +82,24 @@ image::java-sourcesets-process-resources.png[]
 
 As before, the shaded boxes represent properties of the source set, which in this case comprises the locations of the resource files and where they are copied to.
 
-In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests. You can learn more about this task and related topics in the <<java_testing#,Java testing>> chapter.
+In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests. You can learn more about this task and related topics in the <<java_testing.adoc#java_testing,Java testing>> chapter.
 
 Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. The alternative approach is to <<#sec:custom_java_source_sets,define a new source set>> for each of your other test types, which is typically done for one or both of the following reasons:
 
  * You want to keep the tests separate from one another for aesthetics and manageability
  * The different test types require different compilation or runtime classpaths or some other difference in setup
 
-You can see an example of this approach in the Java testing chapter, which shows you <<java_testing#sec:configuring_java_integration_tests,how to set up integration tests>> in a project.
+You can see an example of this approach in the Java testing chapter, which shows you <<java_testing.adoc#sec:configuring_java_integration_tests,how to set up integration tests>> in a project.
 
 You'll learn more about source sets and the features they provide in:
 
  * <<#sec:custom_java_source_set_paths,Customizing file and directory locations>>
- * <<java_testing#sec:configuring_java_integration_tests,Configuring Java integration tests>>
+ * <<java_testing.adoc#sec:configuring_java_integration_tests,Configuring Java integration tests>>
 
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies
 
-The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project. Dependency management is a big topic, so we will focus on the basics for Java projects here. If you'd like to dive into the detail, check out the <<introduction_dependency_management#,introduction to dependency management>>.
+The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project. Dependency management is a big topic, so we will focus on the basics for Java projects here. If you'd like to dive into the detail, check out the <<introduction_dependency_management.adoc#introduction_dependency_management,introduction to dependency management>>.
 
 Specifying the dependencies for your Java project requires just three pieces of information:
 
@@ -123,7 +123,7 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or running a module — a more flexible form of Maven scopes
  * _Module coordinate_ (ex: `org.hibernate:hibernate-core-3.6.7.Final`) — the ID of the dependency, usually in the form '__<group>__:__<module>__:__<version>__' (or '__<groupId>__:__<artifactId>__:__<version>__' in Maven terminology)
 
-You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology#,here>>.
+You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
 
 As far as configurations go, the main ones of interest are:
 
@@ -134,9 +134,9 @@ As far as configurations go, the main ones of interest are:
  * `testImplementation` — test equivalent of `implementation`
  * `testRuntimeOnly` — test equivalent of `runtimeOnly`
 
-You can learn more about these and how they relate to one another in the <<java_plugin#sec:java_plugin_and_dependency_management,plugin reference chapter>>.
+You can learn more about these and how they relate to one another in the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,plugin reference chapter>>.
 
-Be aware that the <<java_library_plugin#,Java Library Plugin>> creates an additional configuration — `api` — for dependencies that are required for compiling both the module and any modules that depend on it.
+Be aware that the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> creates an additional configuration — `api` — for dependencies that are required for compiling both the module and any modules that depend on it.
 
 [NOTE]
 .Why no `compile` configuration?
@@ -146,12 +146,12 @@ The Java Plugin has historically used the `compile` configuration for dependenci
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
 
- * Defining a custom <<repository_types#sub:maven_repo,Maven\->> or <<repository_types#sec:ivy_repositories,Ivy-compatible>> repository
- * Using dependencies from a <<repository_types#sec:flat_dir_resolver,local filesystem directory>>
- * Declaring dependencies with <<declaring_dependencies#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
- * Declaring a sibling <<declaring_dependencies#sec:declaring_project_dependency,project as a dependency>>
- * <<managing_transitive_dependencies#,Controlling transitive dependencies and their versions>>
- * Testing your fixes to a 3rd-party dependency via <<composite_builds#,composite builds>> (a better alternative to publishing to and consuming from <<repository_types#sub:maven_local,Maven Local>>)
+ * Defining a custom <<repository_types.adoc#sub:maven_repo,Maven\->> or <<repository_types.adoc#sec:ivy_repositories,Ivy-compatible>> repository
+ * Using dependencies from a <<repository_types.adoc#sec:flat_dir_resolver,local filesystem directory>>
+ * Declaring dependencies with <<declaring_dependencies.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependencies.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring a sibling <<declaring_dependencies.adoc#sec:declaring_project_dependency,project as a dependency>>
+ * <<managing_transitive_dependencies.adoc#managing_transitive_dependencies,Controlling transitive dependencies and their versions>>
+ * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<repository_types.adoc#sub:maven_local,Maven Local>>)
 
 You'll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 
@@ -167,7 +167,7 @@ Compiling both your production and test code can be trivially easy if you follow
  4. Declare your test compile dependencies in the `testCompileOnly` or `testImplementation` configurations
  5. Run the `compileJava` task for the production code and `compileTestJava` for the tests
 
-Other JVM language plugins, such as the one for <<groovy_plugin#,Groovy>>, follow the same pattern of conventions. We recommend that you follow these conventions wherever possible, but you don't have to. There are several options for customization, as you'll see next.
+Other JVM language plugins, such as the one for <<groovy_plugin.adoc#groovy_plugin,Groovy>>, follow the same pattern of conventions. We recommend that you follow these conventions wherever possible, but you don't have to. There are several options for customization, as you'll see next.
 
 [[sec:custom_java_source_set_paths]]
 === Customizing file and directory locations
@@ -202,7 +202,7 @@ You can see all the properties and methods available on source sets in the DSL r
 
 Most of the compiler options are accessible through the corresponding task, such as `compileJava` and `compileTestJava`. These tasks are of type link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile], so read the task reference for an up-to-date and comprehensive list of the options.
 
-For example, if you want to use <<java_plugin#sec:incremental_compile,incremental compilation>>, use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
+For example, if you want to use <<java_plugin.adoc#sec:incremental_compile,incremental compilation>>, use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
 === Example: Setting Java compiler options
 
@@ -240,7 +240,7 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 * `Javadoc` task to use the correct `javadoc` executable
 * `Test` and the `JavaExec` task to use the correct `java` executable.
 
-The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment#sec:gradle_configuration_properties>> ] in the user's home directory on each developer machine, as shown in the example.
+The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment.adoc#sec:gradle_configuration_properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
 === Example: Configure Java 6 build
 
@@ -261,7 +261,7 @@ include::{samples-path}/java/crossCompilation/build.gradle[tag=java-cross-compil
 
 Most projects have at least two independent sets of sources: the production code and the test code. Gradle already makes this scenario part of its Java convention, but what if you have other sets of sources? One of the most common scenarios is when you have separate integration tests of some form or other. In that case, a custom source set may be just what you need.
 
-You can see a complete example for setting up integration tests in the <<java_testing#sec:configuring_java_integration_tests,Java testing chapter>>. You can set up other source sets that fulfil different roles in the same way. The question then becomes: when should you define a custom source set?
+You can see a complete example for setting up integration tests in the <<java_testing.adoc#sec:configuring_java_integration_tests,Java testing chapter>>. You can set up other source sets that fulfil different roles in the same way. The question then becomes: when should you define a custom source set?
 
 To answer that question, consider whether the sources:
 
@@ -285,12 +285,12 @@ Many Java projects make use of resources beyond source files, such as images, co
 
 The task's name follows the convention of `process__SourceSet__Resources` — or `processResources` for the `main` source set — and it will automatically copy any files in _src/[sourceSet]/resources_ to a directory that will be included in the production JAR. This target directory will also be included in the runtime classpath of the tests.
 
-Since `processResources` is an instance of the `Copy` task, you can perform any of the processing described in the <<working_with_files#sec:copying_files,Working With Files>> chapter.
+Since `processResources` is an instance of the `Copy` task, you can perform any of the processing described in the <<working_with_files.adoc#sec:copying_files,Working With Files>> chapter.
 
 [[sec:properties_files]]
 === Java properties files and reproducible builds
 
-You can easily create Java properties files via the link:{groovy-dsl-path}/org.gradle.api.tasks.WriteProperties.html[WriteProperties] task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<more_about_tasks#sec:up_to_date_checks,incremental builds>>.
+You can easily create Java properties files via the link:{groovy-dsl-path}/org.gradle.api.tasks.WriteProperties.html[WriteProperties] task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental builds>>.
 
 The standard Java API for writing properties files produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments. Gradle's `WriteProperties` task generates exactly the same output byte-for-byte if none of the properties have changed. This is achieved by a few tweaks to how a properties file is generated:
 
@@ -315,7 +315,7 @@ Alongside providing automatic compilation of unit tests in _src/test/java_, the 
 
 You do _not_ get a `Test` task for every source set you declare, since not every source set represents tests! That's why you typically need to <<#sec:custom_java_source_sets,create your own `Test` tasks>> for things like integration and acceptance tests if they can't be included with the `test` source set.
 
-As there is a lot to cover when it comes to testing, the topic has its <<java_testing#,own chapter>> in which we look at:
+As there is a lot to cover when it comes to testing, the topic has its <<java_testing.adoc#java_testing,own chapter>> in which we look at:
 
  * How tests are run
  * How to run a subset of tests via filtering
@@ -358,9 +358,9 @@ include::{samples-path}/userguide/files/archivesWithJavaPlugin/build.gradle[tag=
 
 There are several options for publishing a JAR once it has been created:
 
- * the <<publishing_maven#,Maven Publish Plugin>>
- * the <<publishing_ivy#,Ivy Publish Plugin>>
- * the `uploadArchives` task — the <<artifact_management#,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin#,Maven Plugin>>) Maven
+ * the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
+ * the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
+ * the `uploadArchives` task — the <<artifact_management.adoc#artifact_management,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin.adoc#maven_plugin,Maven Plugin>>) Maven
 
 The former two "Publish" plugins are the preferred options.
 
@@ -443,23 +443,23 @@ These are just two non-trivial but common customizations that you might come acr
 [[sec:cleaning_java_build]]
 == Cleaning the build
 
-The Java Plugin adds a `clean` task to your project by virtue of applying the <<base_plugin#,Base Plugin>>. This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there. The task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete] and you can change what directory it deletes by setting its `dir` property.
+The Java Plugin adds a `clean` task to your project by virtue of applying the <<base_plugin.adoc#base_plugin,Base Plugin>>. This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there. The task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.Delete.html[Delete] and you can change what directory it deletes by setting its `dir` property.
 
 [[sec:building_java_libraries]]
 == Building Java libraries
 
 The unique aspect of library projects is that they are used (or "consumed") by other Java projects. That means the dependency metadata published with the JAR file — usually in the form of a Maven POM —  is crucial. In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
-Gradle manages this distinction via the <<java_library_plugin#,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter. If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration. Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
+Gradle manages this distinction via the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter. If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration. Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
 NOTE: The Java Library Plugin automatically applies the standard Java Plugin as well.
 
-If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
+If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin.adoc#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
 
 [[sec:building_java_applications]]
 == Building Java applications
 
-Java applications packaged as a JAR aren't set up for easy launching from the command line or a desktop environment. The <<application_plugin#,Application Plugin>> solves the command line aspect by creating a distribution that includes the production JAR, its dependencies and launch scripts Unix-like and Windows systems.
+Java applications packaged as a JAR aren't set up for easy launching from the command line or a desktop environment. The <<application_plugin.adoc#application_plugin,Application Plugin>> solves the command line aspect by creating a distribution that includes the production JAR, its dependencies and launch scripts Unix-like and Windows systems.
 
 See the plugin's chapter for more details, but here's a quick summary of what you get:
 
@@ -477,7 +477,7 @@ You can see a basic example of building a Java application in the corresponding 
 
 Java web applications can be packaged and deployed in a number of ways depending on the technology you use. For example, you might use https://projects.spring.io/spring-boot/[Spring Boot] with a fat JAR or a https://www.reactivemanifesto.org/[Reactive]-based system running on https://netty.io/[Netty]. Whatever technology you use, Gradle and its large community of plugins will satisfy your needs. Core Gradle, though, only directly supports traditional Servlet-based web applications deployed as WAR files.
 
-That support comes via the <<war_plugin#,War Plugin>>, which automatically applies the Java Plugin and adds an extra packaging step that does the following:
+That support comes via the <<war_plugin.adoc#war_plugin,War Plugin>>, which automatically applies the Java Plugin and adds an extra packaging step that does the following:
 
  * Copies static resources from _src/main/webapp_ into the root of the WAR
  * Copies the compiled production classes into a _WEB-INF/classes_ subdirectory of the WAR
@@ -490,4 +490,4 @@ There is no core support for running your web application directly from the buil
 [[sec:building_java_enterprise_apps]]
 == Building Java EE applications
 
-Java enterprise systems have changed a lot over the years, but if you're still deploying to JEE application servers, you can make use of the <<ear_plugin#,Ear Plugin>>. This adds conventions and a task for building EAR files. The plugin's chapter has more details.
+Java enterprise systems have changed a lot over the years, but if you're still deploying to JEE application servers, you can make use of the <<ear_plugin.adoc#ear_plugin,Ear Plugin>>. This adds conventions and a task for building EAR files. The plugin's chapter has more details.

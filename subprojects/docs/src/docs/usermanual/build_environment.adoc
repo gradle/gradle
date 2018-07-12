@@ -20,7 +20,7 @@ Gradle provides multiple mechanisms for configuring behavior of Gradle itself an
 
 When configuring Gradle behavior you can use these methods, listed in order of highest to lowest precedence (first one wins):
 
-* <<command_line_interface#, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
+* <<command_line_interface.adoc#command_line_interface, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
 * <<#sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file.
 * <<#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `GRADLE_USER_HOME` environment variable.
 * <<#sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
@@ -41,15 +41,15 @@ Setting up a consistent environment for your build is as simple as placing these
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
-When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache#, using the build cache>>.
+When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
 `org.gradle.caching.debug=(true,false)`::
-When set to true, individual input property hashes and the build cache key for each task are logged on the console. Learn more about <<build_cache#sec:task_output_caching, task output caching>>.
+When set to true, individual input property hashes and the build cache key for each task are logged on the console. Learn more about <<build_cache.adoc#sec:task_output_caching, task output caching>>.
 `org.gradle.configureondemand=(true,false)`::
-Enables incubating <<multi_project_builds#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
+Enables incubating <<multi_project_builds.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
 `org.gradle.console=(auto,plain,rich,verbose)`::
-Customize console output coloring or verbosity. Default depends on how Gradle is invoked. See <<command_line_interface#sec:command_line_logging, command-line logging>> for additional details.
+Customize console output coloring or verbosity. Default depends on how Gradle is invoked. See <<command_line_interface.adoc#sec:command_line_logging, command-line logging>> for additional details.
 `org.gradle.daemon=(true,false)`::
-When set to `true` the <<gradle_daemon#, Gradle Daemon>> is used to run the build. Default is `true`.
+When set to `true` the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> is used to run the build. Default is `true`.
 `org.gradle.daemon.idletimeout=(# of idle millis)`::
 Gradle Daemon will terminate itself after specified number of idle milliseconds. Default is `10800000` (3 hours).
 `org.gradle.debug=(true,false)`::
@@ -59,13 +59,13 @@ Specifies the Java home for the Gradle build process. The value can be set to ei
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
-When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging#sec:choosing_a_log_level>>.
+When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level>>.
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see link:https://guides.gradle.org/performance/#parallel_execution[the Gradle performance guide].
 `org.gradle.warning.mode=(all,none,summary)`::
-When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface#sec:command_line_logging>> for details.
+When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
-When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<command_line_interface#sec:command_line_performance, performance command-line options>>.
+When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 
 The following example demonstrates usage of various properties.
 
@@ -107,7 +107,7 @@ systemProp.gradle.wrapperPassword=mypassword
 The following system properties are available. Note that command-line options take precedence over system properties.
 
 `gradle.wrapperUser=(myuser)`::
-Specify user name to download Gradle distributions from servers using HTTP Basic Authentication. Learn more in <<gradle_wrapper#sec:authenticated_download,the section on "authenticated wrapper downloads">>.
+Specify user name to download Gradle distributions from servers using HTTP Basic Authentication. Learn more in <<gradle_wrapper.adoc#sec:authenticated_download,the section on "authenticated wrapper downloads">>.
 `gradle.wrapperPassword=(mypassword)`::
 Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`::
@@ -121,7 +121,7 @@ In a multi project build, “`systemProp.`” properties set in any project exce
 The following environment variables are available for the `gradle` command. Note that command-line options and system properties take precedence over environment variables.
 
 `GRADLE_OPTS`::
-Specifies <<command_line_interface#, command-line arguments>> to use when starting the Gradle client. This can be useful for setting the properties to use when running Gradle.
+Specifies <<command_line_interface.adoc#command_line_interface, command-line arguments>> to use when starting the Gradle client. This can be useful for setting the properties to use when running Gradle.
 `GRADLE_USER_HOME`::
 Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
 `JAVA_HOME`::
@@ -178,7 +178,7 @@ The `JAVA_OPTS` environment variable is used for the Gradle client, but not fork
 JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
 
-You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon#, Gradle Daemon>>.
+You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>.
 
 === Example: Changing JVM settings for forked Gradle JVMs
 [source,properties]
@@ -190,7 +190,7 @@ org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -
 ====
 Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
 
-When running with the <<gradle_daemon#, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+When running with the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
 ====
 
 Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using link:{javadoc-path}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)] for JUnit or TestNG tests. You must configure these through the tasks themselves.
@@ -207,7 +207,7 @@ tasks.withType(JavaCompile) {
 }
 ----
 
-See other examples in the link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing#sec:test_execution, test execution in the Java plugin reference>>.
+See other examples in the link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
 
 link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option.
 

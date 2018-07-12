@@ -19,13 +19,13 @@
 [NOTE]
 ====
 
-Support for building native software is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+Support for building native software is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
 
 ====
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
 
-The native software plugins make use of the Gradle <<software_model#,software model>>.
+The native software plugins make use of the Gradle <<software_model.adoc#software_model,software model>>.
 
 
 [[sec:native_features]]
@@ -156,7 +156,7 @@ To build on Linux, install a compatible version of GCC or Clang. The native plug
 [[sec:native_software_model]]
 == Native software model
 
-The native software model builds on the base Gradle <<software_model_concepts#,software model>>.
+The native software model builds on the base Gradle <<software_model_concepts.adoc#software_model_concepts,software model>>.
 
 To build native software using Gradle, your project should define one or more _native components_. Each component represents either an executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
 
@@ -173,7 +173,7 @@ Gradle uses the single build worker pool to concurrently compile and link native
 
 By default, the worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
 
-The build worker pool is shared across all build tasks. This means that when using <<multi_project_builds#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
+The build worker pool is shared across all build tasks. This means that when using <<multi_project_builds.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
 
 [[sec:building_a_library]]
 == Building a library

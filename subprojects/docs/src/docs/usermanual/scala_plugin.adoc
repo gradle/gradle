@@ -185,7 +185,7 @@ The best way to avoid this problem is to be more selective when configuring the 
 include::{samples-path}/userguide/scala/zincOverride/build.gradle[tag=zinc-dependency]
 ----
 
-You can diagnose problems with the version of the Zinc compiler selected by running <<inspecting_dependencies#,dependencyInsight>> for the `zinc` configuration.
+You can diagnose problems with the version of the Zinc compiler selected by running <<inspecting_dependencies.adoc#inspecting_dependencies,dependencyInsight>> for the `zinc` configuration.
 
 
 [[sec:scala_convention_properties]]
@@ -203,7 +203,7 @@ The Scala source files of this source set. Contains all `.scala` and `.java` fil
 
 `scala.srcDirs` — type: `Set&lt;File&gt;`::
 The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
-Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
+Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 _Default value:_ `[__projectDir__/src/__name__/scala]`.
 
 `allScala` — type: link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
@@ -263,7 +263,7 @@ Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to
 [[sec:scala_cross_compilation]]
 == Compiling and testing for Java 6 or Java 7
 
-The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java source, you can follow the same steps as for the <<building_java_projects#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java source, you can follow the same steps as for the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 
 === Example: Configure Java 6 build for Scala
 

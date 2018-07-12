@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-The Distribution Plugin is currently <<feature_lifecycle#,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The Distribution Plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
@@ -114,12 +114,12 @@ The `baseName` property has also been changed. This will cause the distribution 
 [[sec:publishing_distributions]]
 == Publishing
 
-A distribution can be published using the <<publishing_ivy#, Ivy Publish Plugin>> or <<publishing_maven#, Maven Publish Plugin>>, or via the _original_ publishing mechanism using the `uploadArchives` task.
+A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, or via the _original_ publishing mechanism using the `uploadArchives` task.
 
 [[sec:publishing_distributions_publish_plugins]]
 === Using the Ivy/Maven Publish Plugins
 
-To publish a distribution to an Ivy repository with the <<publishing_ivy#, Ivy Publish Plugin>>, simply add one or both of its archive tasks to an link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
+To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, simply add one or both of its archive tasks to an link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
 
 === Example: Adding distribution archives to an Ivy publication
 
@@ -129,7 +129,7 @@ To publish a distribution to an Ivy repository with the <<publishing_ivy#, Ivy P
 include::{samples-path}/ivy-publish/distribution/build.gradle[tag=publishing]
 ----
 
-Similarly, to publish a distribution to a Maven repository using the <<publishing_maven#, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
+Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
 
 === Example: Adding distribution archives to a Maven publication
 
@@ -142,7 +142,7 @@ include::{samples-path}/maven-publish/distribution/build.gradle[tag=publishing]
 [[sec:publishing_distributions_upload]]
 === Using the `uploadArchives` task
 
-The Distribution Plugin adds the distribution archives as default publishing artifact candidates. With the <<maven_plugin#, Maven Plugin>> applied, the distribution ZIP file will be published when running `uploadArchives` if no other default artifact is configured.
+The Distribution Plugin adds the distribution archives as default publishing artifact candidates. With the <<maven_plugin.adoc#maven_plugin, Maven Plugin>> applied, the distribution ZIP file will be published when running `uploadArchives` if no other default artifact is configured.
 
 === Example: Publishing the distribution ZIP with the Maven Plugin
 

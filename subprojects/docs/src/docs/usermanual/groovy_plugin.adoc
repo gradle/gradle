@@ -185,7 +185,7 @@ The Groovy source files of this source set. Contains all `.groovy` and `.java` f
 `groovy.srcDirs` — type: `Set&lt;File&gt;`::
 _Default value_: `[__projectDir__/src/__name__/groovy]`
 +
-The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Specifying Multiple Files>>.
+The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 
 `allGroovy` — type: link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
 _Default value_: Not null
@@ -209,7 +209,7 @@ The Groovy plugin also modifies some source set properties:
 [[sec:groovyCompile]]
 == GroovyCompile
 
-The Groovy plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project. The task type extends the `JavaCompile` task (see <<java_plugin#sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The Groovy plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project. The task type extends the `JavaCompile` task (see <<java_plugin.adoc#sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
 
 .Groovy plugin - GroovyCompile properties
 [%header%autowidth,compact]
@@ -221,7 +221,7 @@ The Groovy plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.Gro
 | `__sourceSet__.compileClasspath`
 
 |  `source`
-| link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]. Can set using anything described in <<working_with_files#sec:specifying_multiple_files,Specifying Multiple Files>>.
+| link:{javadoc-path}/org/gradle/api/file/FileTree.html[FileTree]. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 | `__sourceSet__.groovy`
 
 |  `destinationDir`
@@ -237,7 +237,7 @@ The Groovy plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.Gro
 [[sec:groovy_cross_compilation]]
 == Compiling and testing for Java 6 or Java 7
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<building_java_projects#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 
 === Example: Configure Java 6 build for Groovy
 

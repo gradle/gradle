@@ -18,7 +18,7 @@
 You can install the Gradle build tool on Linux, macOS, or Windows.
 This document covers installing using a package manager like SDKMAN!, Homebrew, or Scoop, as well as manual installation.
 
-Use of the <<gradle_wrapper#sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
+Use of the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
 
 You can find all releases and their checksums on the link:https://gradle.org/releases[releases page].
 
@@ -149,9 +149,9 @@ JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
 OS:           Mac OS X 10.13.3 x86_64
 ----
 
-If you run into any trouble, see the <<troubleshooting#sec:troubleshooting_installation,section on troubleshooting installation>>.
+If you run into any trouble, see the <<troubleshooting.adoc#sec:troubleshooting_installation,section on troubleshooting installation>>.
 
-You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:https://gradle.org/releases[releases page]) and following these <<gradle_wrapper#sec:verification,verification instructions>>.
+You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:https://gradle.org/releases[releases page]) and following these <<gradle_wrapper.adoc#sec:verification,verification instructions>>.
 
 [[sec:installation_next_steps]]
 == Next steps
@@ -160,6 +160,6 @@ Now that you have Gradle installed, use these resources for getting started:
 
  * Create your first Gradle project by following the link:https://guides.gradle.org/creating-new-gradle-builds/[Creating New Gradle Builds] tutorial.
  * Sign up for a link:https://gradle.org/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
- * Learn how to achieve common tasks through the <<command_line_interface#,command-line interface>>.
- * <<build_environment#,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
+ * Learn how to achieve common tasks through the <<command_line_interface.adoc#command_line_interface,command-line interface>>.
+ * <<build_environment.adoc#build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
  * Subscribe to the link:https://newsletter.gradle.com/[Gradle Newsletter] for monthly release and community updates.
