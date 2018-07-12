@@ -66,7 +66,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         lock.lock();
         try {
             if (workerCount < maxWorkers) {
-                expand();
+                expand(true);
             }
 
             queue.add(execution);
@@ -78,10 +78,16 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
 
     @Override
     public void expand() {
+        expand(false);
+    }
+
+    private void expand(boolean force) {
         lock.lock();
         try {
-            executor.submit(new ExecutionRunner());
-            workerCount++;
+            if (force || !queue.isEmpty()) {
+                executor.submit(new ExecutionRunner());
+                workerCount++;
+            }
         } finally {
             lock.unlock();
         }
