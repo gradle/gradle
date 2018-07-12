@@ -45,7 +45,7 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
             appendText("""
                 buildCache {
                     local { isEnabled = false }
-                    remote(DirectoryBuildCache::class.java) {
+                    remote(DirectoryBuildCache::class) {
                         directory = file("local-build-cache")
                         isEnabled = true
                         isPush = true
