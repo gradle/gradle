@@ -415,7 +415,7 @@ class Interpreter(val host: Host) {
             ).bin
 
         override fun compileSecondStageScript(
-            scriptPath: String,
+            scriptText: String,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,
@@ -463,7 +463,7 @@ class Interpreter(val host: Host) {
                                 programTarget,
                                 host.implicitImports
                             ).emitStage2ProgramFor(
-                                File(scriptPath),
+                                temporaryFileFor(originalScriptPath, scriptText),
                                 originalScriptPath
                             )
                         }
