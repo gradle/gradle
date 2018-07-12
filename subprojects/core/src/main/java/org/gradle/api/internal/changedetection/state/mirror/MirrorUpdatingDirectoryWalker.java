@@ -91,7 +91,7 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    String name = dir.getFileName().toString();
+                    String name = stringInterner.intern(dir.getFileName().toString());
                     if (relativePath.isRoot() || isAllowed(dir, name, true, attrs, relativePath)) {
                         relativePath.enter(name);
                         levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
@@ -103,7 +103,7 @@ public class MirrorUpdatingDirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
-                    String name = file.getFileName().toString();
+                    String name = stringInterner.intern(file.getFileName().toString());
                     if (isAllowed(file, name, false, attrs, relativePath)) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
