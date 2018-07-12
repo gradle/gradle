@@ -171,12 +171,16 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 repositories { maven { url = uri("../$localPluginRepoPath") } }
                 dependencies { classpath 'my-plugin:my-plugin.gradle.plugin:1.0' }
             }
-            plugins { id 'my-plugin' version '1.0' }
+            plugins { 
+                id 'my-plugin' version '1.0'
+                id 'java'
+            }
             repositories { maven { url = uri("../$localPluginRepoPath") } }
+            task resolve { doLast { configurations.compile.resolve() } }
         """
 
         when:
-        fails 'help'
+        fails 'resolve'
 
         then:
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
