@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.util.Path;
 
@@ -24,5 +25,12 @@ public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<Def
         DefaultProjectDescriptor projectDescriptor = removeProject(oldPath.toString());
         projectDescriptor.setPath(newPath);
         addProject(projectDescriptor);
+        refreshSubProjectsDescriptorPaths(projectDescriptor);
+    }
+
+    private void refreshSubProjectsDescriptorPaths(DefaultProjectDescriptor projectDescriptor) {
+        for (ProjectDescriptor subProjectDescriptor: projectDescriptor.getChildren()) {
+            subProjectDescriptor.setName(subProjectDescriptor.getName());
+        }
     }
 }
