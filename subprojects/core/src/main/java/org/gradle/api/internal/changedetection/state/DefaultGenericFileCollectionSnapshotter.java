@@ -29,8 +29,11 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
+    private final StringInterner stringInterner;
+
     public DefaultGenericFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        this.stringInterner = stringInterner;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
             case OUTPUT:
                 return new AbsolutePathFingerprintingStrategy(false);
             case RELATIVE:
-                return new RelativePathFingerprintingStrategy();
+                return new RelativePathFingerprintingStrategy(stringInterner);
             case NAME_ONLY:
                 return new NameOnlyFingerprintingStrategy();
             case NONE:

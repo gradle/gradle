@@ -62,7 +62,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
                 return new NonNormalizedFileSnapshot(absolutePath, snapshot);
             case DEFAULT_NORMALIZATION:
                 String normalizedPath = decoder.readString();
-                return new DefaultNormalizedFileSnapshot(normalizedPath, snapshot);
+                return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), snapshot);
             case IGNORED_PATH_NORMALIZATION:
                 return snapshot;
             default:
