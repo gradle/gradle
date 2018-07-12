@@ -59,7 +59,12 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
-@ScriptTemplateAdditionalCompilerArguments(["-Xjsr305=strict"])
+@ScriptTemplateAdditionalCompilerArguments([
+    "-Xjsr305=strict",
+    "-XXLanguage:+NewInference",
+    "-XXLanguage:+SamConversionForKotlinFunctions",
+    "-Xprogressive"
+])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
