@@ -81,4 +81,8 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
         return FingerprintCompareStrategy.NORMALIZED;
     }
 
+    @Override
+    public Identifier getIdentifier() {
+        return Identifier.RELATIVE_PATH;
+    }
 }

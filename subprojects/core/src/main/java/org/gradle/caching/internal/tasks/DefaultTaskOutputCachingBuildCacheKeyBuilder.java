@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -43,7 +44,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     private List<HashCode> actionClassLoaderHashes;
     private ImmutableList<String> actionTypes;
     private boolean valid = true;
-    private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
+    private final ImmutableSortedMap.Builder<String, HashCode> inputValueHashes = ImmutableSortedMap.naturalOrder();
+    private final ImmutableSortedMap.Builder<String, FileCollectionSnapshot> inputFiles = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> inputPropertiesLoadedByUnknownClassLoader = ImmutableSortedSet.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
@@ -90,10 +92,17 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     }
 
     @Override
-    public void appendInputPropertyHash(String propertyName, HashCode hashCode) {
+    public void appendInputValuePropertyHash(String propertyName, HashCode hashCode) {
         hasher.putString(propertyName);
         hasher.putHash(hashCode);
-        inputHashes.put(propertyName, hashCode);
+        inputValueHashes.put(propertyName, hashCode);
+    }
+
+    @Override
+    public void appendInputFilesProperty(String propertyName, FileCollectionSnapshot fileCollectionSnapshot) {
+        hasher.putString(propertyName);
+        hasher.putHash(fileCollectionSnapshot.getHash());
+        inputFiles.put(propertyName, fileCollectionSnapshot);
     }
 
     @Override
@@ -110,7 +119,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
 
     @Override
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputHashes.build(), inputPropertiesLoadedByUnknownClassLoader.build(), outputPropertyNames.build());
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputValueHashes.build(), inputFiles.build(), inputPropertiesLoadedByUnknownClassLoader.build(), outputPropertyNames.build());
         HashCode hash;
         if (!valid) {
             hash = null;

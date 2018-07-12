@@ -38,20 +38,22 @@ import java.util.Map;
 
 public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot {
 
+    private final FingerprintingStrategy.Identifier fingerprintingStrategyIdentifier;
     private final FingerprintCompareStrategy strategy;
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final Iterable<PhysicalSnapshot> roots;
     private HashCode hash;
 
     public DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash) {
-        this(strategy, snapshots, hash, null);
+        this(null, strategy, snapshots, hash, null);
     }
 
     public DefaultFileCollectionFingerprint(FingerprintingStrategy strategy, Iterable<PhysicalSnapshot> roots) {
-        this(strategy.getCompareStrategy(), strategy.collectSnapshots(roots), null, roots);
+        this(strategy.getIdentifier(), strategy.getCompareStrategy(), strategy.collectSnapshots(roots), null, roots);
     }
 
-    private DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash, @Nullable Iterable<PhysicalSnapshot> roots) {
+    private DefaultFileCollectionFingerprint(@Nullable FingerprintingStrategy.Identifier fingerprintingStrategyIdentifier, FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash, @Nullable Iterable<PhysicalSnapshot> roots) {
+        this.fingerprintingStrategyIdentifier = fingerprintingStrategyIdentifier;
         this.strategy = strategy;
         this.snapshots = snapshots;
         this.hash = hash;
@@ -80,12 +82,27 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
 
     @Override
     public void visitRoots(PhysicalSnapshotVisitor visitor) {
+        for (PhysicalSnapshot root : getRoots()) {
+            root.accept(visitor);
+        }
+    }
+
+    @Override
+    public Iterable<PhysicalSnapshot> getRoots() {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }
-        for (PhysicalSnapshot root : roots) {
-            root.accept(visitor);
+
+        return roots;
+    }
+
+    @Override
+    public String getNormalizationStrategyName() {
+        if (fingerprintingStrategyIdentifier == null) {
+            throw new UnsupportedOperationException("normalizationStrategyName not available.");
         }
+
+        return fingerprintingStrategyIdentifier.name();
     }
 
     @Override

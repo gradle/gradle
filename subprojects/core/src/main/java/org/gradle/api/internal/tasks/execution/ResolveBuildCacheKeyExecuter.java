@@ -25,6 +25,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -33,11 +38,12 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -130,8 +136,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
         @Nullable
         @Override
-        public Map<String, String> getInputHashes() {
-            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputHashes();
+        public Map<String, String> getInputValueHashes() {
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
             if (inputHashes == null || inputHashes.isEmpty()) {
                 return null;
             } else {
@@ -141,6 +147,145 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                         return input.toString();
                     }
                 });
+            }
+        }
+
+        @Override
+        public Map<String, String> getInputHashes() {
+            ImmutableSortedMap.Builder<String, String> builder = ImmutableSortedMap.naturalOrder();
+            Map<String, String> inputValueHashes = getInputValueHashes();
+            if (inputValueHashes != null) {
+                builder.putAll(inputValueHashes);
+            }
+            ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles != null) {
+                for (Map.Entry<String, FileCollectionSnapshot> entry : inputFiles.entrySet()) {
+                    builder.put(entry.getKey(), entry.getValue().getHash().toString());
+                }
+            }
+            return builder.build();
+        }
+
+        private static class State implements VisitState, PhysicalSnapshotVisitor {
+            private final InputFilePropertyVisitor visitor;
+            Map<String, NormalizedFileSnapshot> normalizedSnapshots;
+
+            String propertyName;
+            HashCode propertyHash;
+            String propertyNormalizationStrategyName;
+            String name;
+            String path;
+            HashCode hash;
+
+            public State(InputFilePropertyVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public String getPropertyName() {
+                return propertyName;
+            }
+
+            @Override
+            public String getPropertyHash() {
+                return propertyHash.toString();
+            }
+
+            @Override
+            public String getPropertyNormalizationStrategyName() {
+                return propertyNormalizationStrategyName;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public String getHash() {
+                return hash.toString();
+            }
+
+            @Override
+            public boolean preVisitDirectory(String path, String name) {
+                this.path = path;
+                this.name = name;
+                this.hash = null;
+
+                visitor.preDirectory(this);
+
+                return true;
+            }
+
+            @Override
+            public void visit(String path, String name, FileContentSnapshot content) {
+                FileContentSnapshot snapshot = snapshot(path);
+                if (snapshot == null) {
+                    return;
+                }
+
+                this.path = path;
+                this.name = name;
+                this.hash = snapshot.getContentMd5();
+
+                visitor.file(this);
+            }
+
+            private FileContentSnapshot snapshot(String path) {
+                NormalizedFileSnapshot normalizedFileSnapshot = normalizedSnapshots.get(path);
+                if (normalizedFileSnapshot == null) {
+                    // This file was ignored by normalization
+                    return null;
+                }
+                FileContentSnapshot snapshot = normalizedFileSnapshot.getSnapshot();
+                if (snapshot == null) {
+                    throw new IllegalStateException("snapshot is null : " + path);
+                }
+                return snapshot;
+            }
+
+            @Override
+            public void postVisitDirectory() {
+                visitor.postDirectory();
+            }
+        }
+
+
+        @Override
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            State state = new State(visitor);
+            ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles == null) {
+                return;
+            }
+            for (Map.Entry<String, FileCollectionSnapshot> entry : inputFiles.entrySet()) {
+                FileCollectionSnapshot fileCollectionSnapshot = entry.getValue();
+
+                state.propertyName = entry.getKey();
+                state.propertyHash = fileCollectionSnapshot.getHash();
+                state.propertyNormalizationStrategyName = fileCollectionSnapshot.getNormalizationStrategyName();
+                state.normalizedSnapshots = fileCollectionSnapshot.getSnapshots();
+
+                visitor.preProperty(state);
+                for (PhysicalSnapshot tree : fileCollectionSnapshot.getRoots()) {
+                    if (tree.getType() == FileType.Missing) {
+                        continue;
+                    }
+
+                    state.path = tree.getAbsolutePath();
+                    state.name = tree.getName();
+                    state.hash = null;
+
+                    visitor.preRoot(state);
+                    tree.accept(state);
+                    visitor.postRoot();
+                }
+                visitor.postProperty();
             }
         }
 

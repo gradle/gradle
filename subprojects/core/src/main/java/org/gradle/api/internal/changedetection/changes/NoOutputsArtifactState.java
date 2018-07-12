@@ -48,6 +48,7 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
         null,
         null,
         null,
+        null,
         null
     );
 

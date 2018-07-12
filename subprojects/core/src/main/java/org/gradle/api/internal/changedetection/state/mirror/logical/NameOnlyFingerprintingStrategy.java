@@ -72,4 +72,9 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.NORMALIZED;
     }
+
+    @Override
+    public Identifier getIdentifier() {
+        return Identifier.NAME_ONLY;
+    }
 }

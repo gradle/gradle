@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -56,6 +57,16 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    }
+
+    @Override
+    public Iterable<PhysicalSnapshot> getRoots() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public String getNormalizationStrategyName() {
+        return null;
     }
 
     @Override
