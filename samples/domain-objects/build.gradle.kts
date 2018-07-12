@@ -31,7 +31,7 @@ tasks {
 class DocumentationPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val books = project.container(Book::class.java) { name ->
+        val books = project.container(Book::class) { name ->
             Book(name, project.file("src/docs/$name"))
         }
         project.extensions.add("books", books)
