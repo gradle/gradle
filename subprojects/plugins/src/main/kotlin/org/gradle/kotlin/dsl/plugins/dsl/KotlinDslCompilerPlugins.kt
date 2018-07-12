@@ -51,6 +51,7 @@ open class KotlinDslCompilerPlugins : Plugin<Project> {
 fun KotlinCompile.enableSamConversionForKotlinFunctions() {
     kotlinOptions {
         freeCompilerArgs += listOf(
+            "-Xprogressive",
             "-XXLanguage:+NewInference",
             "-XXLanguage:+SamConversionForKotlinFunctions"
         )
