@@ -119,7 +119,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (source instanceof RepositoryChainModuleSource) {
             return ((RepositoryChainModuleSource) source).getRepositoryId();
         }
-        return "<unknown>";
+        return null;
     }
 
     @Override

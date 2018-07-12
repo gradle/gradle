@@ -41,7 +41,7 @@ public class DefaultResolutionResultBuilder {
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.visitComponent(new DetachedComponentResult(0L, id, VersionSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, "<unknown>"));
+        builder.visitComponent(new DetachedComponentResult(0L, id, VersionSelectionReasons.root(), componentIdentifier, "<empty>", ImmutableAttributes.EMPTY, null));
         return builder.complete(0L);
     }
 

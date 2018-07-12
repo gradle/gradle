@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
 class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -159,32 +159,36 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     def "repositories shared across repository container types are stable"() {
         setup:
-        String localPluginRepoPath = "local-plugin-repository"
-        withBinaryPluginPublishedLocally(localPluginRepoPath)
+        publishTestPlugin('plugin', 'org.example.plugin', 'org.example.plugin:plugin:1.0')
+        publishTestPlugin('plugin2', 'org.example.plugin2', 'org.example.plugin:plugin2:1.0')
         settingsFile << """
         pluginManagement {
-            repositories { maven { url = uri("../$localPluginRepoPath") } }
+            repositories { maven { url = '$mavenRepo.uri' } }
         }
         """
         buildFile << """
             buildscript {
-                repositories { maven { url = uri("../$localPluginRepoPath") } }
-                dependencies { classpath 'my-plugin:my-plugin.gradle.plugin:1.0' }
+                repositories { maven { url = '$mavenRepo.uri' } }
+                dependencies { classpath "org.example.plugin:plugin2:1.0" }
             }
-            plugins { 
-                id 'my-plugin' version '1.0'
+            plugins {
+                id 'org.example.plugin' version '1.0'
                 id 'java'
             }
-            repositories { maven { url = uri("../$localPluginRepoPath") } }
+            apply plugin: 'org.example.plugin2'
+            repositories { maven { url = '$mavenRepo.uri' } }
             task resolve { doLast { configurations.compile.resolve() } }
         """
 
         when:
-        fails 'resolve'
+        succeeds 'resolve'
 
         then:
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
-        ops.details.repositories.size() == 1
+        ops.size() == 3
+        def opsWithRepos = ops.details.findAll { it.containsKey('repositories') }
+        opsWithRepos.size() == 2
+        opsWithRepos.repositories.repositoryId.unique(false).size() == 1
     }
 
     def "repositories shared across projects are stable"() {
@@ -487,64 +491,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         map
     }
 
-    private void withBinaryPluginPublishedLocally(String repoPath) {
-        def pluginBundleName = 'my-local-plugins'
-        withBinaryPluginBuild(pluginBundleName)
-        file("$pluginBundleName/settings.gradle").createFile()
-        file("$pluginBundleName/build.gradle") << """
-            apply plugin: 'maven-publish'
-            publishing { repositories { maven { url = uri("../$repoPath") } } }
-        """.stripIndent()
-
-        executer.expectDeprecationWarning()
-        succeeds '-b', "$pluginBundleName/build.gradle", 'publish'
-
-        file("$repoPath/com/acme/$pluginBundleName/1.0/$pluginBundleName-1.0.jar").assertExists()
-        file("$repoPath/my-plugin/my-plugin.gradle.plugin/1.0/my-plugin.gradle.plugin-1.0.pom").assertExists()
-    }
-
-    private void withBinaryPluginBuild(String projectPath) {
-        FeaturePreviewsFixture.enableStablePublishing(file("$projectPath/settings.gradle"))
-        file("$projectPath/src/main/groovy/my/MyPlugin.groovy") << """
-
-            package my
-            
-            import org.gradle.api.*
-            
-            class MyPlugin implements Plugin<Project> {
-                @Override
-                void apply(Project project) {
-                    println("Plugin my-plugin applied! (to ${'$'}{project.path})")
-                }
-            }
-
-        """.stripIndent()
-        file("$projectPath/build.gradle") << """
-
-            plugins {
-                id("groovy")
-                id("java-gradle-plugin")
-            }
-
-            group = "com.acme"
-            version = "1.0"
-            
-            gradlePlugin {
-                plugins {
-                    myPlugin {
-                        id = "my-plugin"
-                        implementationClass = "my.MyPlugin"
-                    }
-                }
-            }
-
-            dependencies {
-                compileOnly(gradleApi())
-            }
-
-            ${jcenterRepository()}
-
-        """.stripIndent()
+    private publishTestPlugin(String path, String id, String coordinates) {
+        def pluginBuilder = new PluginBuilder(testDirectory.file(path))
+        def message = "from plugin"
+        def taskName = "pluginTask"
+        pluginBuilder.addPluginWithPrintlnTask(taskName, message, id)
+        pluginBuilder.publishAs(coordinates, mavenRepo, executer)
     }
 
 }

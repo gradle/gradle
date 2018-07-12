@@ -38,8 +38,8 @@ public interface ResolvedComponentResult {
      * <p>The return type is declared as an opaque {@link ComponentIdentifier}, however the identifier may also implement one of the following interfaces:</p>
      *
      * <ul>
-     *     <li>{@link org.gradle.api.artifacts.component.ProjectComponentIdentifier} for those component instances which are produced by the current build.</li>
-     *     <li>{@link org.gradle.api.artifacts.component.ModuleComponentIdentifier} for those component instances which are found in some repository.</li>
+     * <li>{@link org.gradle.api.artifacts.component.ProjectComponentIdentifier} for those component instances which are produced by the current build.</li>
+     * <li>{@link org.gradle.api.artifacts.component.ModuleComponentIdentifier} for those component instances which are found in some repository.</li>
      * </ul>
      *
      * @return the identifier of this component
@@ -49,10 +49,10 @@ public interface ResolvedComponentResult {
     /**
      * <p>Returns the identifier of the repository used to source this component.
      *
-     * @return the identifier of the repository used to source this component
-     *
+     * @return the identifier of the repository used to source this component , or {@code null} if this component was not resolved from a repository.
      * @since 4.10
      */
+    @Nullable
     String getRepositoryId();
 
     /**
@@ -62,8 +62,8 @@ public interface ResolvedComponentResult {
      * following instances:</p>
      *
      * <ul>
-     *     <li>{@link ResolvedDependencyResult} for dependencies which were successfully resolved.</li>
-     *     <li>{@link UnresolvedDependencyResult} for dependencies which could not be resolved for some reason.</li>
+     * <li>{@link ResolvedDependencyResult} for dependencies which were successfully resolved.</li>
+     * <li>{@link UnresolvedDependencyResult} for dependencies which could not be resolved for some reason.</li>
      * </ul>
      *
      * @return the dependencies of this component
@@ -99,7 +99,6 @@ public interface ResolvedComponentResult {
      * "configuration" (for an Ivy dependency) or "scope" (for a Maven dependency).
      *
      * @return the resolved variant for this component
-     *
      * @since 4.6
      */
     ResolvedVariantResult getVariant();

@@ -50,7 +50,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
         String variantName = decoder.readString();
         AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-        String repositoryId = decoder.readString();
+        String repositoryId = decoder.readNullableString();
         return new DetachedComponentResult(resultId, id, reason, componentId, variantName, attributes, repositoryId);
     }
 
@@ -61,7 +61,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         componentIdSerializer.write(encoder, value.getComponentId());
         encoder.writeString(value.getVariantName().getDisplayName());
         attributeContainerSerializer.write(encoder, value.getVariantAttributes());
-        encoder.writeString(value.getRepositoryId());
+        encoder.writeNullableString(value.getRepositoryId());
     }
 
     void reset() {

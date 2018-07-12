@@ -20,7 +20,9 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.Unroll
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -53,8 +55,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         """
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
-        def m2 = mavenHttpRepo.module('org.foo', 'unknown');
-        def m3 = mavenHttpRepo.module('org.foo', 'broken');
+        def m2 = mavenHttpRepo.module('org.foo', 'unknown')
+        def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         m1.allowAll()
@@ -474,5 +476,78 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.details.configurationName == "compile"
         op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
         op.result == null
+    }
+
+    def "resolved components contain their source repository id"() {
+        setup:
+        def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
+        buildFile << """                
+            apply plugin: "java"
+            repositories {
+                maven { 
+                    name 'maven2'
+                    url '${secondMavenHttpRepo.uri}'
+                }
+                maven { 
+                    name 'maven1'
+                    url '${mavenHttpRepo.uri}'
+                }
+            }
+            dependencies {
+                compile 'org.foo:good:1.0'
+                compile 'org.foo:unknown:1.0' // does not exist
+                compile project(':child')
+                compile 'org.foo:good-transitive:1.0' // contains resolved transitive dependency
+                compile 'org.foo:bad-transitive:1.0' // contains unresolved transitive dependency
+            }
+
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+        settingsFile << "include 'child'"
+
+        // 'org.foo:good' on maven1
+        mavenHttpRepo.module('org.foo', 'good').publish().allowAll()
+        secondMavenHttpRepo.module('org.foo', 'good').allowAll()
+
+        // 'org.foo:unknown' nowhere
+        mavenHttpRepo.module('org.foo', 'unknown').allowAll()
+        secondMavenHttpRepo.module('org.foo', 'unknown').allowAll()
+
+        // 'org.foo:good-transitive' on maven2
+        mavenHttpRepo.module('org.foo', 'good-transitive').allowAll()
+        def goodTransitive = secondMavenHttpRepo.module('org.foo', 'good-transitive')
+        goodTransitive.allowAll()
+
+        // 'org.foo:bad-transitive' on maven2
+        mavenHttpRepo.module('org.foo', 'bad-transitive').allowAll()
+        def badTransitive = secondMavenHttpRepo.module('org.foo', 'bad-transitive').publish()
+        badTransitive.allowAll()
+
+        // 'org.bar:good-transitive' on maven2
+        mavenHttpRepo.module('org.bar', 'good-transitive').allowAll()
+        def goodTransitive2 = secondMavenHttpRepo.module('org.bar', 'good-transitive').publish()
+        goodTransitive2.allowAll()
+        goodTransitive.dependsOn(goodTransitive2).publish()
+
+        // 'org.bar:bad-transitive' on maven2, but broken
+        mavenHttpRepo.module('org.bar', 'bad-transitive').allowAll()
+        def badTransitive2 = secondMavenHttpRepo.module('org.bar', 'bad-transitive')
+        badTransitive2.pom.expectGetBroken()
+        badTransitive.dependsOn(badTransitive2).publish()
+
+        when:
+        fails 'resolve'
+
+        then:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def repos = op.details.repositories.collectEntries { repo -> [(repo.repositoryId): repo.name] } as Map<String, String>
+        op.result.resolvedDependenciesCount == 5
+        def resolvedComponents = op.result.components
+        resolvedComponents.size() == 5
+        repos.find { k, v -> k in resolvedComponents.'org.foo:good:1.0'.repoId }.value == 'maven1'
+        resolvedComponents.'project :'.repoId == [null]
+        repos.find { k, v -> k in resolvedComponents.'org.foo:good-transitive:1.0'.repoId }.value == 'maven2'
+        repos.find { k, v -> k in resolvedComponents.'org.bar:good-transitive:1.0'.repoId }.value == 'maven2'
+        repos.find { k, v -> k in resolvedComponents.'org.foo:bad-transitive:1.0'.repoId }.value == 'maven2'
     }
 }
