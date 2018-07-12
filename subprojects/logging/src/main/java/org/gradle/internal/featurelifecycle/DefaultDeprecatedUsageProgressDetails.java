@@ -19,34 +19,28 @@ package org.gradle.internal.featurelifecycle;
 import java.util.List;
 
 public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails {
-    private final String message;
-    private final String details;
-    private final String advice;
 
-    private final List<StackTraceElement> stackTrace;
+    private final FeatureUsage featureUsage;
 
-    public DefaultDeprecatedUsageProgressDetails(String message, String details, String advice, List<StackTraceElement> stackTrace) {
-        this.message = message;
-        this.details = details;
-        this.advice = advice;
-        this.stackTrace = stackTrace;
+    public DefaultDeprecatedUsageProgressDetails(FeatureUsage featureUsage) {
+        this.featureUsage = featureUsage;
     }
 
     @Override
     public String getMessage() {
-        return message;
+        return featureUsage.getMessage();
     }
 
     public String getDetails() {
-        return details;
+        return featureUsage.getDetails();
     }
 
     public String getAdvice() {
-        return advice;
+        return featureUsage.getAdvice();
     }
 
     @Override
     public List<StackTraceElement> getStackTrace() {
-        return stackTrace;
+        return featureUsage.getStack();
     }
 }

@@ -22,8 +22,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.time.Clock;
 
-import java.util.List;
-
 public class DeprecatedUsageBuildOperationProgressBroadaster {
 
     private final static OperationIdentifierProvider DEFAULT_CURRENT_OPERATION_IDENTIFIER = new OperationIdentifierProvider() {
@@ -48,12 +46,12 @@ public class DeprecatedUsageBuildOperationProgressBroadaster {
         this.buildOperationIdentifierProvider = currentOperationIdentifier;
     }
 
-    void progress(FeatureUsage feature, List<StackTraceElement> stackTrace) {
+    void progress(FeatureUsage feature) {
         OperationIdentifier id = buildOperationIdentifierProvider.getCurrentOperationIdentifier();
         if (id != null) {
             listener.progress(id,
                 new OperationProgressEvent(clock.getCurrentTime(),
-                    new DefaultDeprecatedUsageProgressDetails(feature.getMessage(), feature.getDetails(), feature.getAdvice(), stackTrace)));
+                    new DefaultDeprecatedUsageProgressDetails(feature)));
         }
 
     }

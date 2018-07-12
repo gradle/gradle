@@ -60,8 +60,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     @Override
     public void featureUsed(FeatureUsage usage) {
         String featureMessage = usage.formattedMessage();
+        usage = usage.withStackTrace();
         if (messages.add(featureMessage)) {
-            usage = usage.withStackTrace();
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
@@ -78,7 +78,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     private void fireDeprecatedUsageBuildOperationProgress(FeatureUsage usage) {
         if (buildOperationProgressBroadaster != null) {
-            buildOperationProgressBroadaster.progress(usage, usage.withStackTrace().getStack());
+            buildOperationProgressBroadaster.progress(usage);
         }
     }
 

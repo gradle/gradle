@@ -29,26 +29,28 @@ public class FeatureUsage {
     private final String message;
     private final String details;
     private final String advice;
-    private final List<StackTraceElement> stack;
     private final Class<?> calledFrom;
+    private final Exception stackTraceRoot;
+
+    private List<StackTraceElement> stack;
 
     public FeatureUsage(String message, String details, String advice, Class<?> calledFrom) {
         this.message = message;
         this.details = details;
         this.advice = advice;
         this.calledFrom = calledFrom;
-        this.stack = Collections.emptyList();
+        this.stackTraceRoot = null;
     }
 
-    FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
-        if (stack == null) {
-            throw new NullPointerException("stack");
+    FeatureUsage(FeatureUsage usage, Exception stackTraceRoot) {
+        if (stackTraceRoot == null) {
+            throw new NullPointerException("stackTraceRoot");
         }
         this.message = usage.message;
         this.details = usage.details;
         this.advice = usage.advice;
         this.calledFrom = usage.calledFrom;
-        this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
+        this.stackTraceRoot= stackTraceRoot;
     }
 
     public String getMessage() {
@@ -64,19 +66,18 @@ public class FeatureUsage {
     }
 
     public List<StackTraceElement> getStack() {
+        if(stackTraceRoot == null){
+            return Collections.emptyList();
+        }
+
+        if(stack == null) {
+            stack = calculateStack(calledFrom, stackTraceRoot);
+        }
         return stack;
     }
 
-    /**
-     * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that
-     * this method is called from the same thread that triggered the usage.
-     */
-    public FeatureUsage withStackTrace() {
-        if (!stack.isEmpty()) {
-            return this;
-        }
-
-        StackTraceElement[] originalStack = new Exception().getStackTrace();
+    private static List<StackTraceElement> calculateStack(Class<?> calledFrom, Exception traceRoot) {
+        StackTraceElement[] originalStack = traceRoot.getStackTrace();
         final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;
@@ -94,12 +95,22 @@ public class FeatureUsage {
         }
 
         caller = skipSystemStackElements(originalStack, caller);
-
         List<StackTraceElement> result = new ArrayList<StackTraceElement>();
         for (; caller < originalStack.length; caller++) {
             result.add(originalStack[caller]);
         }
-        return new FeatureUsage(this, result);
+        return result;
+    }
+
+    /**
+     * Creates a copy of this usage with the a deterministic trace root. Implementation is a bit limited in that it assumes that
+     * this method is called from the same thread that triggered the usage.
+     */
+    public FeatureUsage withStackTrace() {
+        if (stackTraceRoot != null) {
+            return this;
+        }
+        return new FeatureUsage(this, new Exception());
     }
 
     private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
