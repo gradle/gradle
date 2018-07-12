@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
@@ -29,6 +30,11 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class RelativePathFingerprintingStrategy implements FingerprintingStrategy {
+    private final StringInterner stringInterner;
+
+    public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
+        this.stringInterner = stringInterner;
+    }
 
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
@@ -43,7 +49,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                     boolean isRoot = relativePathHolder.isRoot();
                     relativePathHolder.enter(name);
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(relativePathHolder.getRelativePathString(), DirContentSnapshot.INSTANCE);
+                        NormalizedFileSnapshot snapshot = isRoot ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), DirContentSnapshot.INSTANCE);
                         builder.put(absolutePath, snapshot);
                     }
                     return true;
@@ -62,7 +68,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
 
                 private NormalizedFileSnapshot createNormalizedFileSnapshot(String name, FileContentSnapshot content) {
                     relativePathHolder.enter(name);
-                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(relativePathHolder.getRelativePathString(), content);
+                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), content);
                     relativePathHolder.leave();
                     return normalizedFileSnapshot;
                 }

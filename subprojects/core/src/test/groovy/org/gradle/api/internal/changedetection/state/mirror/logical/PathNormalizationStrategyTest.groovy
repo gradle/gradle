@@ -28,6 +28,8 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
+    private StringInterner stringInterner = new StringInterner()
+
     public static final String IGNORED = "IGNORED"
     List<PhysicalSnapshot> roots
     TestFile jarFile1
@@ -94,7 +96,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity RELATIVE"() {
-        def snapshots = collectSnapshots(new RelativePathFingerprintingStrategy())
+        def snapshots = collectSnapshots(new RelativePathFingerprintingStrategy(stringInterner))
         expect:
         snapshots[jarFile1]                      == jarFile1.name
         snapshots[jarFile2]                      == jarFile2.name

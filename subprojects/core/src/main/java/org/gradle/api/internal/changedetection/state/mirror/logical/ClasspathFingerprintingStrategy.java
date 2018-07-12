@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
@@ -45,13 +46,15 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
     private final JarHasher jarHasher;
+    private final StringInterner stringInterner;
     private final HashCode jarHasherConfigurationHash;
 
-    public ClasspathFingerprintingStrategy(NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService) {
+    public ClasspathFingerprintingStrategy(NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.cacheService = cacheService;
         this.classpathResourceHasher = classpathResourceHasher;
         this.jarHasher = new JarHasher(classpathResourceHasher);
+        this.stringInterner = stringInterner;
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
         this.jarHasherConfigurationHash = hasher.hash();
@@ -84,7 +87,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
                 private NormalizedFileSnapshot createNormalizedSnapshot(String name, FileContentSnapshot content) {
                     relativePathHolder.enter(name);
-                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(relativePathHolder.getRelativePathString(), content);
+                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), content);
                     relativePathHolder.leave();
                     return normalizedFileSnapshot;
                 }
