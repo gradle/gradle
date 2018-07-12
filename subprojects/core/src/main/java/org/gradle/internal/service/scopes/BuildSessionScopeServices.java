@@ -65,6 +65,7 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.DefaultFileHasher;
@@ -73,6 +74,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -213,5 +215,15 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
         return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
+    }
+
+    DeprecatedUsageBuildOperationProgressBroadaster createDeprecatedUsageBuildOperationProgressBroadaster(
+        Clock clock,
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
+        return new DeprecatedUsageBuildOperationProgressBroadaster(
+            clock,
+            buildOperationListenerManager.getBroadcaster()
+        );
     }
 }

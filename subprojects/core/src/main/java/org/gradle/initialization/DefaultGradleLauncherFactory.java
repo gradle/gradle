@@ -45,8 +45,6 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -168,10 +166,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
-
-        BuildOperationListenerManager buildOperationListenerManager = serviceRegistry.get(BuildOperationListenerManager.class);
-        BuildOperationListener buildOperationBroadcaster= buildOperationListenerManager.getBroadcaster();
-        DeprecatedUsageBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationBroadcaster);
+        DeprecatedUsageBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = serviceRegistry.get(DeprecatedUsageBuildOperationProgressBroadaster.class);
         DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), deprecationWarningBuildOperationProgressBroadaster);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
