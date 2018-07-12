@@ -16,6 +16,7 @@
 
 package org.gradle.util;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
@@ -135,9 +136,9 @@ public class SingleMessageLogger {
     }
 
     /**
-     * This is package protected as its only used for convenience in testing.
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
+    @VisibleForTesting
     static void nagUserWith(String message) {
         if (isEnabled()) {
             nagUserWith(message, getRemovalDetails(), null);
