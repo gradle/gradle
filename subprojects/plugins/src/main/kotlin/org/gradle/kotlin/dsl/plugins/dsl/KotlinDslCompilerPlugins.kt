@@ -20,6 +20,10 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+import org.gradle.kotlin.dsl.withType
+
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
 
@@ -36,5 +40,19 @@ open class KotlinDslCompilerPlugins : Plugin<Project> {
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(HasImplicitReceiver::class.qualifiedName!!)
         }
+
+        tasks.withType<KotlinCompile> {
+            enableSamConversionForKotlinFunctions()
+        }
+    }
+}
+
+
+fun KotlinCompile.enableSamConversionForKotlinFunctions() {
+    kotlinOptions {
+        freeCompilerArgs += listOf(
+            "-XXLanguage:+NewInference",
+            "-XXLanguage:+SamConversionForKotlinFunctions"
+        )
     }
 }

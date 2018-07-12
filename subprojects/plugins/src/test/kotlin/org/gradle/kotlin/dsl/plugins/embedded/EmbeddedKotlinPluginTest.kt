@@ -106,9 +106,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect"))}
@@ -165,9 +163,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
@@ -225,9 +221,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 customConfiguration("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             configurations["customConfiguration"].files.map { println(it) }
         """)

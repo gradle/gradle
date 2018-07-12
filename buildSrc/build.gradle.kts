@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.8"
+    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.9"
 
     dependencies {
         classpath(pluginsExperiments)
@@ -24,13 +24,15 @@ plugins {
 }
 
 apply(plugin = "org.gradle.kotlin.ktlint-convention")
+
 apply<PrecompiledScriptPlugins>()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
-            "-Xskip-runtime-version-check"
+            "-Xskip-runtime-version-check",
+            "-Xskip-metadata-version-check"
         )
     }
 }

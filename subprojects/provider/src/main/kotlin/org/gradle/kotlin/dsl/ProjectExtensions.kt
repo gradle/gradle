@@ -44,6 +44,7 @@ import org.gradle.api.provider.PropertyState
 import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.support.configureWith
 
 import java.io.File
@@ -227,7 +228,26 @@ fun Project.gradleKotlinDsl(): Dependency =
     DefaultSelfResolvingDependency(
         fileCollectionOf(
             gradleKotlinDslOf(project),
-            "gradleKotlinDsl") as FileCollectionInternal)
+            "gradleKotlinDsl"
+        ) as FileCollectionInternal
+    )
+
+
+fun Project.gradleKotlinDslJars(): FileCollection =
+    fileCollectionOf(
+        kotlinScriptClassPathProviderOf(project).gradleKotlinDslJars.asFiles.filter(::isGradleKotlinDslJar),
+        "gradleKotlinDsl"
+    )
+
+
+internal
+fun isGradleKotlinDslJar(file: File) =
+    isGradleKotlinDslJarName(file.name)
+
+
+internal
+fun isGradleKotlinDslJarName(jarName: String) =
+    jarName.startsWith("gradle-kotlin-dsl-")
 
 
 @Deprecated("Will be removed in 1.0", ReplaceWith("gradleKotlinDsl()"))

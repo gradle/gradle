@@ -19,6 +19,8 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
         val classpathDependency =
             withFile("classpath.jar")
 
+        withDefaultSettings()
+
         withBuildScript("""
             plugins {
                 `kotlin-dsl`

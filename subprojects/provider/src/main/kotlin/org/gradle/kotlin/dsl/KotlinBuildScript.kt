@@ -45,7 +45,12 @@ annotation class KotlinScriptTemplate
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
-@ScriptTemplateAdditionalCompilerArguments(["-Xjsr305=strict"])
+@ScriptTemplateAdditionalCompilerArguments([
+    "-Xjsr305=strict",
+    "-XXLanguage:+NewInference",
+    "-XXLanguage:+SamConversionForKotlinFunctions",
+    "-Xprogressive"
+])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinBuildScript(

@@ -42,7 +42,7 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
 
         withFile("gradle.properties", "org.gradle.caching=true")
         existing("settings.gradle.kts").run {
-            writeText(readText() + """
+            appendText("""
                 buildCache {
                     local { isEnabled = false }
                     remote(DirectoryBuildCache::class.java) {

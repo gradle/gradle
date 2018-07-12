@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -45,6 +46,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
     fun `gradle kotlin dsl api is available for test implementation`() {
+
         withBuildScript("""
 
             plugins {
@@ -52,9 +54,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 `kotlin-dsl`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 testCompile("junit:junit:4.12")
@@ -109,9 +109,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 `kotlin-dsl`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 testCompile("junit:junit:4.12")
@@ -228,6 +226,61 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         val result = buildWithPlugin("classes")
 
         assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
+    }
+
+    @Test
+    fun `enables SAM conversion for Kotlin functions`() {
+
+        withSettingsIn("buildSrc", pluginManagementBlock)
+
+        withBuildScriptIn("buildSrc", """
+
+            plugins {
+                `kotlin-dsl`
+            }
+
+        """)
+
+        withFile("buildSrc/src/main/kotlin/my.kt", """
+            package my
+
+            // Action<T> is a SAM with receiver
+            fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
+
+            // NamedDomainObjectFactory<T> is a regular SAM
+            fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
+
+            fun <T : Any> createK(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
+
+            fun test() {
+
+                // Implicit SAM conversion in regular source
+                println(createK(String::class) { it.toUpperCase() })
+                println(create("FOO") { it.toLowerCase() })
+
+                // Implicit SAM with receiver conversion in regular source
+                applyActionTo("BAR") {
+                    println(toLowerCase())
+                }
+            }
+        """)
+
+        withBuildScript("""
+
+            task("test") {
+                doLast { my.test() }
+            }
+
+         """)
+
+        assertThat(
+            build("test", "-q").output.also(::println),
+            containsMultiLineString("""
+                STRING
+                foo
+                bar
+            """)
+        )
     }
 
     private

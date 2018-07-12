@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
+import org.gradle.kotlin.dsl.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.minus
 import org.gradle.kotlin.dsl.support.root
@@ -162,7 +163,7 @@ class KotlinScriptClassPathProvider(
     private
     fun gradleKotlinDslJars(): List<File> =
         gradleJars.filter {
-            it.name.let { isKotlinJar(it) || it.startsWith("gradle-kotlin-dsl-") }
+            it.name.let { isKotlinJar(it) || isGradleKotlinDslJarName(it) }
         }
 
     private
