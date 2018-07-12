@@ -54,7 +54,7 @@ fun gradleKotlinDslOf(project: Project): List<File> =
     }
 
 
-private
+internal
 fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
@@ -107,7 +107,7 @@ class KotlinScriptClassPathProvider(
     /**
      * gradle-kotlin-dsl.jar plus kotlin libraries.
      */
-    private
+    internal
     val gradleKotlinDslJars: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslJars())
     }
