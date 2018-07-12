@@ -23,6 +23,7 @@ import org.hamcrest.CoreMatchers.allOf
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 import java.util.jar.JarFile
 
@@ -136,11 +137,20 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `generated jar contains Gradle API extensions sources and byte code`() {
 
-        withBuildScript("")
+        val tag = "gradleUserHomeDir="
 
-        build("help", "-g", "guh")
+        withBuildScript("""
+            task("printGradleUserHomeDir") {
+                doLast {
+                    println("$tag${'$'}{gradle.gradleUserHomeDir}")
+                }
+            }
+        """)
 
-        val generatedJar = existing("guh/caches")
+        val gradleUserHomeDir = build("printGradleUserHomeDir", "-q").output.lines()
+            .single { it.contains(tag) }.substringAfter(tag).let { File(it) }
+
+        val generatedJar = gradleUserHomeDir.resolve("caches")
             .listFiles { f -> f.isDirectory && f.name[0].isDigit() }.single()
             .resolve("generated-gradle-jars")
             .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }.single()
