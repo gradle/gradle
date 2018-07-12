@@ -83,6 +83,14 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can use Gradle API generated extensions in buildSrc`() {
 
+        withSettingsIn("buildSrc", """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    kotlinDev()
+                }
+            }
+        """)
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
