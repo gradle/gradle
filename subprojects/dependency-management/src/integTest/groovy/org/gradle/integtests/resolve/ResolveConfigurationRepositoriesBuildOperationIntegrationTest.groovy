@@ -336,7 +336,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             type == 'flat_dir'
             repositoryId
             properties.size() == 1
-            properties.Dirs.sort() == ["${getBuildFile().parentFile.absolutePath}/lib1", "${getBuildFile().parentFile.absolutePath}/lib2"].sort()
+            properties.Dirs.sort() == [file('lib1').absolutePath, file('lib2').absolutePath].sort()
         }
     }
 
