@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration;
+package org.gradle.api;
+
+import org.gradle.api.internal.GradleProcessEnvironment;
 
 /**
- * Encapsulates what happened when we tried to modify the environment.
+ * Gradle environmental variable
+ * @since 4.10
  */
-public enum EnvironmentModificationResult {
-    SUCCESS(null),
-    ONLY_SET_GRADLE_ENV("Java 9 does not support modifying environment variables."),
-    UNSUPPORTED_ENVIRONMENT("There is no native integration with this operating environment.");
-
-    private final String reason;
-
-    EnvironmentModificationResult(String reason) {
-        this.reason = reason;
-    }
-
-    @Override
-    public String toString() {
-        return reason;
-    }
-
-    public boolean isSuccess() {
-        return this == SUCCESS;
+@Incubating
+public class GradleSystem {
+    @Incubating
+    public static String getenv(String env) {
+        return GradleProcessEnvironment.getenv(env);
     }
 }

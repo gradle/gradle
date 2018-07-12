@@ -18,50 +18,58 @@ package org.gradle.internal.nativeintegration.processenvironment;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.ReflectiveEnvironment;
+import org.gradle.internal.nativeintegration.EnvVariableHandler;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
+import org.gradle.internal.nativeintegration.GradleEnvVariableHandler;
+import org.gradle.internal.nativeintegration.UnixReflectiveEnvVariableHandler;
+import org.gradle.internal.nativeintegration.WindowsReflectiveEnvVariableHandler;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
-    //for updates to private JDK caches of the environment state
-    private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
+    private final EnvVariableHandler envVariableHandler = handler();
+
+    private EnvVariableHandler handler() {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return GradleEnvVariableHandler.INSTANCE;
+        } else if (OperatingSystem.current().isWindows()) {
+            return WindowsReflectiveEnvVariableHandler.INSTANCE;
+        } else {
+            return UnixReflectiveEnvVariableHandler.INSTANCE;
+        }
+    }
 
     @Override
     public EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
-        }
         // need to take copy to prevent ConcurrentModificationException
         List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
         for (String key : keysToRemove) {
             removeEnvironmentVariable(key);
         }
         for (Map.Entry<String, String> entry : source.entrySet()) {
-           setEnvironmentVariable(entry.getKey(), entry.getValue());
+            setEnvironmentVariable(entry.getKey(), entry.getValue());
         }
-        return EnvironmentModificationResult.SUCCESS;
+
+        return envVariableHandler.result();
     }
 
     @Override
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
         removeNativeEnvironmentVariable(name);
-        reflectiveEnvironment.unsetenv(name);
+        envVariableHandler.unsetenv(name);
     }
 
     protected abstract void removeNativeEnvironmentVariable(String name);
 
     @Override
     public EnvironmentModificationResult maybeRemoveEnvironmentVariable(String name) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
-        }
         removeEnvironmentVariable(name);
-        return EnvironmentModificationResult.SUCCESS;
+        return envVariableHandler.result();
     }
 
     @Override
@@ -72,18 +80,15 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
         }
 
         setNativeEnvironmentVariable(name, value);
-        reflectiveEnvironment.setenv(name, value);
+        envVariableHandler.setenv(name, value);
     }
 
     protected abstract void setNativeEnvironmentVariable(String name, String value);
 
     @Override
     public EnvironmentModificationResult maybeSetEnvironmentVariable(String name, String value) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
-        }
         setEnvironmentVariable(name, value);
-        return EnvironmentModificationResult.SUCCESS;
+        return envVariableHandler.result();
     }
 
     @Override

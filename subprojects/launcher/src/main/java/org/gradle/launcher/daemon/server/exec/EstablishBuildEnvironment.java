@@ -71,7 +71,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
                 + System.getProperty("line.separator") + "  "
                 + "If the daemon was started with a significantly different environment from the client, and your build "
                 + System.getProperty("line.separator") + "  "
-                + "relies on environment variables, you may experience unexpected behavior.");
+                + "relies on environment variables, you may experience unexpected behavior. Consider using Gradle.getenv()");
         }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 

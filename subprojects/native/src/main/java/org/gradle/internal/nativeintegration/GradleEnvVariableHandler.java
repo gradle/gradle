@@ -16,26 +16,23 @@
 
 package org.gradle.internal.nativeintegration;
 
-/**
- * Encapsulates what happened when we tried to modify the environment.
- */
-public enum EnvironmentModificationResult {
-    SUCCESS(null),
-    ONLY_SET_GRADLE_ENV("Java 9 does not support modifying environment variables."),
-    UNSUPPORTED_ENVIRONMENT("There is no native integration with this operating environment.");
+import org.gradle.api.internal.GradleProcessEnvironment;
 
-    private final String reason;
+public enum GradleEnvVariableHandler implements EnvVariableHandler {
+    INSTANCE;
 
-    EnvironmentModificationResult(String reason) {
-        this.reason = reason;
+    @Override
+    public void unsetenv(String name) {
+        GradleProcessEnvironment.unsetenv(name);
     }
 
     @Override
-    public String toString() {
-        return reason;
+    public void setenv(String name, String value) {
+        GradleProcessEnvironment.setenv(name, value);
     }
 
-    public boolean isSuccess() {
-        return this == SUCCESS;
+    @Override
+    public EnvironmentModificationResult result() {
+        return EnvironmentModificationResult.ONLY_SET_GRADLE_ENV;
     }
 }

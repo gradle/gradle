@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration;
+package org.gradle.api.internal;
 
-/**
- * Encapsulates what happened when we tried to modify the environment.
- */
-public enum EnvironmentModificationResult {
-    SUCCESS(null),
-    ONLY_SET_GRADLE_ENV("Java 9 does not support modifying environment variables."),
-    UNSUPPORTED_ENVIRONMENT("There is no native integration with this operating environment.");
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    private final String reason;
+public class GradleProcessEnvironment {
+    private static final Map<String, String> ENVS = new ConcurrentHashMap<String, String>();
 
-    EnvironmentModificationResult(String reason) {
-        this.reason = reason;
+    public static String getenv(String env) {
+        return ENVS.get(env);
     }
 
-    @Override
-    public String toString() {
-        return reason;
+    public static void unsetenv(String name) {
+        ENVS.remove(name);
     }
 
-    public boolean isSuccess() {
-        return this == SUCCESS;
+    public static void setenv(String name, String value) {
+        ENVS.put(name, value);
     }
 }
+
