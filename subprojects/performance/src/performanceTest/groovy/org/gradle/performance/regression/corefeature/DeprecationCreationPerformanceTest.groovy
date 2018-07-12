@@ -22,11 +22,10 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
 
     def "create many deprecation warnings"() {
         given:
-        runner.testProject = "createLotsOfDeprecationWarnings"
+        runner.testProject = "generateLotsOfDeprecationWarnings"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.minimumVersion = '4.9'
-        runner.targetVersions = ["4.9-20180620235919+0000"]
 
         when:
         def result = runner.run()

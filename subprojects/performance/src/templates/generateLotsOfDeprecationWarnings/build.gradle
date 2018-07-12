@@ -27,4 +27,4 @@ void createDeprecations(int iterations) {
     }
 }
 
-createDeprecations($deprecationTotalCount)
+createDeprecations(10000)
