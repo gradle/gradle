@@ -164,6 +164,7 @@ class Interpreter(val host: Host) {
 
         val specializedProgram =
             emitSpecializedProgramFor(
+                scriptHost,
                 scriptSource,
                 sourceHash,
                 templateId,
@@ -219,6 +220,7 @@ class Interpreter(val host: Host) {
 
     private
     fun emitSpecializedProgramFor(
+        scriptHost: KotlinScriptHost<Any>,
         scriptSource: ScriptSource,
         sourceHash: HashCode,
         templateId: String,
@@ -230,7 +232,7 @@ class Interpreter(val host: Host) {
     ): Class<*> {
 
         val scriptPath =
-            scriptSource.fileName!!
+            scriptHost.fileName
 
         val cachedDir =
             host.cachedDirFor(
@@ -414,7 +416,6 @@ class Interpreter(val host: Host) {
 
         override fun compileSecondStageScript(
             scriptPath: String,
-            originalScriptPath: String,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,
@@ -422,6 +423,9 @@ class Interpreter(val host: Host) {
             programTarget: ProgramTarget,
             accessorsClassPath: ClassPath?
         ): Class<*> {
+
+            val originalScriptPath =
+                scriptHost.fileName
 
             val targetScope =
                 scriptHost.targetScope

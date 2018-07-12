@@ -39,6 +39,8 @@ class KotlinScriptHost<out T : Any>(
     private val serviceRegistry: ServiceRegistry
 ) {
 
+    val fileName = scriptSource.fileName!!
+
     internal
     val operations by unsafeLazy {
         fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile)

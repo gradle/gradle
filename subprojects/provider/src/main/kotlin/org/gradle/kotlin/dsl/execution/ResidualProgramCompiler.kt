@@ -97,7 +97,6 @@ class ResidualProgramCompiler(
     fun emitDynamicProgram(program: Dynamic) {
 
         val scriptSource = program.source
-        val originalScriptPath = scriptSource.path
         val scriptFile = scriptFileFor(scriptSource, "stage-2")
         val sourceFilePath = scriptFile.canonicalPath
 
@@ -109,7 +108,7 @@ class ResidualProgramCompiler(
                 emitEvaluateSecondStageOf()
             }
 
-            overrideLoadSecondStageFor(sourceFilePath, originalScriptPath)
+            overrideLoadSecondStageFor(sourceFilePath)
         }
     }
 
@@ -300,7 +299,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun ClassWriter.overrideLoadSecondStageFor(sourceFilePath: String, originalPath: String) {
+    fun ClassWriter.overrideLoadSecondStageFor(sourceFilePath: String) {
         publicMethod(
             "loadSecondStageFor",
             "(" +
@@ -319,16 +318,15 @@ class ResidualProgramCompiler(
                 ")Ljava/lang/Class<*>;"
         ) {
 
-            emitCompileSecondStageScript(sourceFilePath, originalPath)
+            emitCompileSecondStageScript(sourceFilePath)
             ARETURN()
         }
     }
 
     private
-    fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalScriptPath: String) {
+    fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String) {
         ALOAD(Vars.ProgramHost)
         LDC(sourceFilePath)
-        LDC(originalScriptPath)
         ALOAD(Vars.ScriptHost)
         ALOAD(3)
         ALOAD(4)
@@ -338,7 +336,7 @@ class ResidualProgramCompiler(
         invokeHost(
             ExecutableProgram.Host::compileSecondStageScript.name,
             "(" +
-                "Ljava/lang/String;Ljava/lang/String;" +
+                "Ljava/lang/String;" +
                 "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
                 "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
                 "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +

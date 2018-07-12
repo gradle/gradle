@@ -197,7 +197,6 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             verify(programHost).compileSecondStageScript(
                 scriptFile.canonicalPath,
-                source.path,
                 scriptHost,
                 stage2SettingsTemplateId,
                 sourceHash,
@@ -498,7 +497,6 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 val scriptFile = outputDir().resolve("stage-2").resolve(originalScriptPath)
                 verify(programHost).compileSecondStageScript(
                     scriptFile.canonicalPath,
-                    originalScriptPath,
                     scriptHost,
                     scriptTemplateId,
                     sourceHash,
@@ -514,9 +512,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     private
     fun scriptHostWith(
         target: Any = mock(),
-        scriptSource: ScriptSource = mock(),
         scriptHandler: ScriptHandlerInternal = mock()
-    ) = KotlinScriptHost(target, scriptSource, scriptHandler, mock(), mock(), mock())
+    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock())
+
+    private
+    fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }
 
     private
     fun withExecutableProgramFor(
