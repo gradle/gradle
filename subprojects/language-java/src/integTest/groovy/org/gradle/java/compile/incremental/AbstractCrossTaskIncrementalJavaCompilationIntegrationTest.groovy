@@ -33,9 +33,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         buildFile << """
             subprojects {
                 apply plugin: 'java'
-                tasks.withType(JavaCompile) {
-                    options.incremental = true
-                }
                 ${mavenCentralRepository()}
             }
             $projectDependencyBlock

@@ -49,10 +49,6 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
                     apply plugin: '${testComponent.languageName}-lang'
                     
                     ${mavenCentralRepository()}
-                
-                    tasks.withType(org.gradle.api.tasks.compile.AbstractCompile) {
-                        it.options.incremental = true
-                    }
                 }
                 project(':library') {
                     model {

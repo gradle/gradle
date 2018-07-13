@@ -51,10 +51,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            
-            compileJava {
-                compileJava.options.incremental = true
-            }
         """
 
         processorProjectDir.file("build.gradle") << """
