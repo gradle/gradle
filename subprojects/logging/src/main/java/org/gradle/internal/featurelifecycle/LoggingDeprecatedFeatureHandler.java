@@ -60,7 +60,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     @Override
     public void featureUsed(FeatureUsage usage) {
         String featureMessage = usage.formattedMessage();
-        usage = usage.withStackTrace();
         if (messages.add(featureMessage)) {
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);

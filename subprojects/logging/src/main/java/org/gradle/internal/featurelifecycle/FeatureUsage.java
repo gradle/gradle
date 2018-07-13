@@ -17,10 +17,10 @@
 package org.gradle.internal.featurelifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,7 +31,7 @@ public class FeatureUsage {
     private final String details;
     private final String advice;
     private final Class<?> calledFrom;
-    private final Exception stackTraceRoot;
+    private final Exception traceException;
 
     private List<StackTraceElement> stack;
 
@@ -40,19 +40,16 @@ public class FeatureUsage {
         this.details = details;
         this.advice = advice;
         this.calledFrom = calledFrom;
-        this.stackTraceRoot = null;
+        this.traceException = new Exception();
     }
 
     @VisibleForTesting
-    FeatureUsage(FeatureUsage usage, Exception stackTraceRoot) {
-        if (stackTraceRoot == null) {
-            throw new NullPointerException("stackTraceRoot");
-        }
+    FeatureUsage(FeatureUsage usage, Exception traceException) {
         this.message = usage.message;
         this.details = usage.details;
         this.advice = usage.advice;
         this.calledFrom = usage.calledFrom;
-        this.stackTraceRoot = stackTraceRoot;
+        this.traceException = Preconditions.checkNotNull(traceException);
     }
 
     public String getMessage() {
@@ -68,12 +65,8 @@ public class FeatureUsage {
     }
 
     public List<StackTraceElement> getStack() {
-        if (stackTraceRoot == null) {
-            return Collections.emptyList();
-        }
-
         if (stack == null) {
-            stack = calculateStack(calledFrom, stackTraceRoot);
+            stack = calculateStack(calledFrom, traceException);
         }
         return stack;
     }
@@ -102,17 +95,6 @@ public class FeatureUsage {
             result.add(originalStack[caller]);
         }
         return result;
-    }
-
-    /**
-     * Creates a copy of this usage with the a deterministic trace root. Implementation is a bit limited in that it assumes that
-     * this method is called from the same thread that triggered the usage.
-     */
-    public FeatureUsage withStackTrace() {
-        if (stackTraceRoot != null) {
-            return this;
-        }
-        return new FeatureUsage(this, new Exception());
     }
 
     private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
