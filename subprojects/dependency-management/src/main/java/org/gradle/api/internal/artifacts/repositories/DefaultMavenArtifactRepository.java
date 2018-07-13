@@ -298,7 +298,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private Map<RepositoryPropertyType, ?> computeProperties() {
         ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
-        builder.put(RepositoryPropertyType.URL, getUrl().toASCIIString());
+
+        URI uri = getUrl();
+        if (uri != null) {
+            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
+        }
+
         builder.put(RepositoryPropertyType.ARTIFACT_URLS, getArtifactUrls());
         List<String> metadataSourcesList = metadataSources.asList();
         if (!metadataSourcesList.isEmpty()) {

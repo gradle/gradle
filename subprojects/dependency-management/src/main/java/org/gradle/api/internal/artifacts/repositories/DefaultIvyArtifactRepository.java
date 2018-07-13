@@ -280,7 +280,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private Map<RepositoryPropertyType, ?> computeProperties() {
         ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
-        builder.put(RepositoryPropertyType.URL, getUrl().toASCIIString());
+        URI uri = getUrl();
+        if (uri != null) {
+            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
+        }
 
         String layoutType;
         boolean m2Compatible;
