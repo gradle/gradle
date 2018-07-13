@@ -29,12 +29,14 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     @LeaksFileHandles
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
-        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it })
+        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter { it }
     }
 
     @Test
     fun `given a buildscript block separated by CRLF, it will be used to compute the runtime classpath`() {
-        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it.replace("\r\n", "\n").replace("\n", "\r\n") })
+        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter {
+            it.replace("\r\n", "\n").replace("\n", "\r\n")
+        }
     }
 
     private
@@ -232,7 +234,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             build("print-kotlin-version").output,
-            containsString(expectedKotlinCompilerVersionString + "[compileKotlin=true, compileTestKotlin=true]"))
+            containsString("$expectedKotlinCompilerVersionString[compileKotlin=true, compileTestKotlin=true]"))
     }
 
     @Test

@@ -221,7 +221,7 @@ class StandardKotlinScriptEvaluator(
             scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
 
         private
-        val cacheProperties = mapOf("version" to "9")
+        val cacheProperties = mapOf("version" to "11")
 
         private
         val cacheKeyPrefix =

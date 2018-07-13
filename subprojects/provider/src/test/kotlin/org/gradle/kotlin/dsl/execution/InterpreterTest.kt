@@ -134,9 +134,15 @@ class InterpreterTest : TestWithTempFiles() {
             on {
                 loadClassInChildScopeOf(any(), any(), any(), any(), isNull())
             } doAnswer {
-                classLoaderFor(it.getArgument(2))
+
+                val location = it.getArgument<File>(2)
+                val className = it.getArgument<String>(3)
+
+                val newLocation = relocate(location)
+
+                classLoaderFor(newLocation)
                     .also { classLoaders.add(it) }
-                    .loadClass(it.getArgument(3))
+                    .loadClass(className)
             }
         }
 
@@ -212,5 +218,12 @@ class InterpreterTest : TestWithTempFiles() {
                 it.close()
             }
         }
+    }
+
+    private
+    fun relocate(location: File): File {
+        val newLocation = location.parentFile.resolve(location.name + "-relocated")
+        location.renameTo(newLocation)
+        return newLocation
     }
 }
