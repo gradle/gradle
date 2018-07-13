@@ -21,6 +21,8 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -42,9 +44,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler()
     final TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
-    final Clock clock = Mock(Clock);
+    final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
-    final DeprecatedUsageBuildOperationProgressBroadaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationListener, testIdProvider());
+    final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
+    final DeprecatedUsageBuildOperationProgressBroadaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationListener, currentBuildOperationRef)
 
     def setup() {
         handler.init(locationReporter, WarningMode.All, progressBroadcaster)
@@ -129,7 +132,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    private Exception mockTraceRootException(List<StackTraceElement> stackTraceElements){
+    private Exception mockTraceRootException(List<StackTraceElement> stackTraceElements) {
         Exception mock = Mock()
         _ * mock.getStackTrace() >> stackTraceElements.toArray(new StackTraceElement[stackTraceElements.size()])
         mock
@@ -375,6 +378,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'deprecated usages are exposed as build operation progress'() {
         when:
+        currentBuildOperationRef.set(new DefaultBuildOperationRef(new OperationIdentifier(1), null))
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
@@ -391,15 +395,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         then:
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
-    }
-
-    private DeprecatedUsageBuildOperationProgressBroadaster.OperationIdentifierProvider testIdProvider() {
-        new DeprecatedUsageBuildOperationProgressBroadaster.OperationIdentifierProvider() {
-            @Override
-            OperationIdentifier getCurrentOperationIdentifier() {
-                return buildOperationExecutor.currentOperation.id
-            }
-        }
     }
 
     private void progressFired(OperationProgressEvent progressEvent, String message) {
