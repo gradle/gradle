@@ -55,7 +55,7 @@ public final class BuildCacheHasherHelper {
                 hash(val, cacheHasher);
             }
         } else {
-            throw new IllegalStateException("cannot hash " + value.getClass());
+            hash(value.toString(), cacheHasher);
         }
     }
 }

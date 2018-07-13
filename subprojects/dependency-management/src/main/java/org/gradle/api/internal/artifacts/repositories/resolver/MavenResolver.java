@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -59,7 +60,7 @@ import java.util.regex.Pattern;
 public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata> {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
-    private final String repositoryId;
+    private final RepositoryDetails details;
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
@@ -67,7 +68,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
     public MavenResolver(String name,
-                         String repositoryId,
+                         RepositoryDetails details,
                          URI rootUri,
                          RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -90,7 +91,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             componentMetadataSupplierFactory,
             versionListerFactory,
             injector);
-        this.repositoryId = repositoryId;
+        this.details = details;
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();
@@ -181,7 +182,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
             String timestamp = mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return new MavenUniqueSnapshotModuleSource(repositoryId, timestamp);
+            return new MavenUniqueSnapshotModuleSource(details.id, timestamp);
         }
         return null;
     }
@@ -192,7 +193,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (!matcher.matches()) {
             return null;
         }
-        return new MavenUniqueSnapshotModuleSource(repositoryId, matcher.group(1));
+        return new MavenUniqueSnapshotModuleSource(details.id, matcher.group(1));
     }
 
     private MavenMetadata parseMavenMetadata(ExternalResourceName metadataLocation) {
@@ -209,6 +210,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        return details;
     }
 
     public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {

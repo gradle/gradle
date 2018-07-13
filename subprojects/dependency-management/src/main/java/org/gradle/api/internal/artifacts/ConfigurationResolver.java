@@ -38,6 +38,9 @@ public interface ConfigurationResolver {
      */
     void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
 
+    /**
+     * Returns the list of repositories available to resolve a given configuration. This is used for reporting only.
+     */
     List<Repository> getRepositories();
 
 }

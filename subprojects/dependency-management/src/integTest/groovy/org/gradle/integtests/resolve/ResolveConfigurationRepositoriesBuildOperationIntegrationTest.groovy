@@ -32,7 +32,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     @Unroll
-    def "repositories used when resolving project configurations are exposed via build operation, and are stable (repo: #repo)"() {
+    def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
@@ -57,12 +57,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 
-        when:
-        succeeds 'resolve'
-
-        then: // stable
-        repos == operations.first(ResolveConfigurationDependenciesBuildOperationType).details.repositories
-
         where:
         repo                   | repoBlock                     | expectedRepo
         'maven'                | mavenRepoBlock()              | expectedMavenRepo()
@@ -75,7 +69,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo()
     }
 
-    def "repositories used in buildscript blocks are exposed via build operation, and are stable"() {
+    def "repositories used in buildscript blocks are exposed via build operation"() {
         setup:
         def module = mavenHttpRepo.module('org', 'foo')
         module.pom.expectGetBroken()
@@ -106,16 +100,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         }
-
-        when:
-        module.pom.expectGetBroken()
-        fails 'help'
-
-        then: // stable
-        repos == operations.first(ResolveConfigurationDependenciesBuildOperationType).details.repositories
     }
 
-    def "repositories used in plugins blocks are exposed via build operation, and are stable"() {
+    def "repositories used in plugins blocks are exposed via build operation"() {
         setup:
         def module = mavenHttpRepo.module('my-plugin', 'my-plugin.gradle.plugin')
         module.pom.expectGetBroken()
@@ -148,13 +135,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         }
-
-        when:
-        module.pom.expectGetBroken()
-        fails 'help'
-
-        then: // stable
-        repos == operations.first(ResolveConfigurationDependenciesBuildOperationType).details.repositories
     }
 
     def "repositories shared across repository container types are stable"() {
@@ -186,9 +166,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         then:
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         ops.size() == 3
-        def opsWithRepos = ops.details.findAll { it.containsKey('repositories') }
-        opsWithRepos.size() == 3
-        opsWithRepos.repositories.getId.unique(false).size() == 1
+        ops.details.repositories.id.flatten().unique(false).size() == 1
     }
 
     def "repositories shared across projects are stable"() {
@@ -256,6 +234,39 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
+    def "every maven repository details attributes are used to compute the id"() {
+        setup:
+        def urls = ["url = 'http://foo.com'", "url = 'http://bar.com'"]
+        def artifactUrls = ["artifactUrls 'http://foo.com/artifacts1'", "artifactUrls 'http://bar.com/artifacts1'"]
+        def metadataSources = [' metadataSources { gradleMetadata(); artifact() }', ' metadataSources { artifact() }']
+        def credentials = [null, "credentials { username 'foo' }", "credentials { username 'bar' }"]
+        def authentication = [null, 'authentication { digest(DigestAuthentication) }', 'authentication { basic(BasicAuthentication) }']
+        def combinations = [urls, artifactUrls, metadataSources, credentials, authentication].combinations()
+        def allRepos = combinations.collect { list ->
+            """
+            maven {
+                name = "${list.join(', ')}"
+                ${list.findAll { it != null }.join("\n")}
+            }
+            """
+        }
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                $allRepos
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == combinations.size()
+        ops.details.repositories.id.flatten().unique(false).size() == combinations.size()
+    }
+
     def "ivy repository attributes are stored"() {
         setup:
         buildFile << """
@@ -315,6 +326,48 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
+    def "every ivy repository details attributes are used to compute the id"() {
+        setup:
+        def urls = ["url = 'http://foo.com'", "url = 'http://bar.com'"]
+        def artifactPatterns = ["artifactPattern 'http://foo.com/[organisation]/[module]/[artifact]-[revision]'", "artifactPattern 'http://bar.com/[module]/[artifact]-[revision]'"]
+        def ivyPatterns = ["ivyPattern 'http://foo.com/[organisation]/[module]/ivy-[revision].sml'", "ivyPattern 'http://bar.com/[module]/ivy-[revision].xml'"]
+        def layouts = [
+            "layout 'pattern', { artifact '[module]/[organisation]/[revision]/[artifact]'; artifact '3rd-party/[module]/[organisation]/[revision]/[artifact]'; ivy '[module]/[organisation]/[revision]/ivy.xml'; m2compatible = true}",
+            "layout 'pattern', { artifact '[module]/[organisation]/[revision]/[artifact]'; ivy '[module]/[organisation]/[revision]/ivy.xml'; m2compatible = true}",
+            "layout 'pattern', { artifact '[module]/[organisation]/[revision]/[artifact]'; ivy '[module]/[organisation]/[revision]/ivy.xml'; m2compatible = false}",
+            "layout 'gradle'",
+            "layout 'maven'",
+            "layout 'ivy'"
+        ]
+        def metadataSources = [' metadataSources { gradleMetadata(); artifact() }', ' metadataSources { artifact() }']
+        def credentials = [null, "credentials { username 'foo' }", "credentials { username 'bar' }"]
+        def authentication = [null, 'authentication { digest(DigestAuthentication) }', 'authentication { basic(BasicAuthentication) }']
+        def combinations = [urls, artifactPatterns, ivyPatterns, layouts, metadataSources, credentials, authentication].combinations()
+        def allRepos = combinations.collect { list ->
+            """
+            ivy {
+                name = "${list.join(', ')}"
+                ${list.findAll { it != null }.join("\n")}
+            }
+            """
+        }
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                $allRepos
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == combinations.size()
+        ops.details.repositories.id.flatten().unique(false).size() == combinations.size()
+    }
+
     def "flat-dir repository attributes are stored"() {
         setup:
         buildFile << """
@@ -342,6 +395,35 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             properties.size() == 1
             properties.DIRS.sort() == [file('lib1').absolutePath, file('lib2').absolutePath].sort()
         }
+    }
+
+    def "every flat-dir repository details attributes are used to compute the id"() {
+        setup:
+        def dirs = ["dirs 'lib1', 'lib2'", "dirs 'lib1'"]
+        def combinations = [dirs]
+        def allRepos = combinations.collect { list ->
+            """
+            flatDir {
+                name = "${list.join(', ')}"
+                ${list.findAll { it != null }.join("\n")}
+            }
+            """
+        }
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                $allRepos
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == combinations.size()
+        ops.details.repositories.id.flatten().unique(false).size() == combinations.size()
     }
 
     private static String mavenRepoBlock() {
@@ -495,6 +577,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def message = 'from plugin'
         def taskName = 'pluginTask'
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, id)
+        executer.expectDeprecationWarning()
         pluginBuilder.publishAs(coordinates, mavenRepo, executer)
     }
 

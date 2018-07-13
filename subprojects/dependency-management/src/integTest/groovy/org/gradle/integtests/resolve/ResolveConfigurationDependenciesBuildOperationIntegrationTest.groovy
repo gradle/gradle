@@ -550,4 +550,41 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         repos.find { k, v -> k in resolvedComponents.'org.bar:good-transitive:1.0'.repoId }.value == 'maven2'
         repos.find { k, v -> k in resolvedComponents.'org.foo:bad-transitive:1.0'.repoId }.value == 'maven2'
     }
+
+    def "resolved components contain their source repository id, even when they are structurally identical"() {
+        setup:
+        buildFile << """                
+            apply plugin: "java"
+            repositories {
+                maven { 
+                    name 'withoutCreds'
+                    url '${mavenHttpRepo.uri}'
+                }
+                maven { 
+                    name 'withCreds'
+                    url '${mavenHttpRepo.uri}'
+                    credentials {
+                        username = 'foo'
+                        password = 'bar'
+                    }
+                }
+            }
+            dependencies {
+                compile 'org.foo:good:1.0'
+            }
+
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+        mavenHttpRepo.module('org.foo', 'good').publish().allowAll()
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def repos = op.details.repositories.collectEntries { repo -> [(repo.id): repo.name] } as Map<String, String>
+        def resolvedComponents = op.result.components
+        resolvedComponents.size() == 1
+        repos.find { k, v -> k in resolvedComponents.'org.foo:good:1.0'.repoId }.value == 'withCreds'
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.jcip.annotations.NotThreadSafe;
@@ -41,7 +42,6 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
 
 @NotThreadSafe
@@ -312,13 +312,13 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         @Override
         public Object getCustomOperationTraceSerializableModel() {
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("pluginId", getPluginId());
-            map.put("pluginClass", getPluginClass().getName());
-            map.put("targetType", getTargetType());
-            map.put("targetPath", getTargetPath());
-            map.put("buildPath", getBuildPath());
-            return map;
+            ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+            builder.put("pluginId", getPluginId());
+            builder.put("pluginClass", getPluginClass().getName());
+            builder.put("targetType", getTargetType());
+            builder.put("targetPath", getTargetPath());
+            builder.put("buildPath", getBuildPath());
+            return builder.build();
         }
     }
 

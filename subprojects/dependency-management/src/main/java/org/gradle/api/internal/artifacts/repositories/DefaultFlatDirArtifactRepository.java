@@ -189,7 +189,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
 
         RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList());
         ImplicitInputsCapturingInstantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
+        IvyResolver resolver = new IvyResolver(getName(), getDetails(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");

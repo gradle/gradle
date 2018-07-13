@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
@@ -59,9 +60,11 @@ class DependencyResolverIdentifierTest extends Specification {
 
     def patterns(ExternalResourceResolver resolver, Field field, List<String> patterns) {
         field.accessible = true
-        field.set(resolver, patterns.collect { p -> Mock(ResourcePattern) {
-            getPattern() >> p
-        }})
+        field.set(resolver, patterns.collect { p ->
+            Mock(ResourcePattern) {
+                getPattern() >> p
+            }
+        })
     }
 
     def id(ExternalResourceResolver resolver) {
@@ -103,5 +106,9 @@ class DependencyResolverIdentifierTest extends Specification {
             throw new UnsupportedOperationException()
         }
 
+        @Override
+        RepositoryDetails getDetails() {
+            throw new UnsupportedOperationException()
+        }
     }
 }

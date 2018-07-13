@@ -185,7 +185,7 @@ class IvyResolverTest extends Specification {
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
         new IvyResolver(
-            "repo",
+            "repo", getDetails(),
             transport,
             Stub(LocallyAvailableResourceFinder),
             false,

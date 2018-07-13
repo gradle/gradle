@@ -79,7 +79,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), getUrl(), getResourcesFileStore());
         MavenResolver resolver = new MavenResolver(
             getName(),
-            getDetails().id, rootUri,
+            getDetails(),
+            rootUri,
             transport,
             getLocallyAvailableResourceFinder(),
             getArtifactFileStore(),
@@ -88,7 +89,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             MavenMetadataArtifactProvider.INSTANCE,
             mavenMetadataLoader,
             null,
-            null, injector);
+            null,
+            injector);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

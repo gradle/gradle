@@ -16,12 +16,10 @@
 
 package org.gradle.api.execution.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details, CustomOperationTraceSerialization {
 
@@ -59,12 +57,12 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("buildPath", getBuildPath());
-        map.put("taskPath", getTaskPath());
-        map.put("taskClass", getTaskClass().getName());
-        map.put("taskId", getTaskId());
-        return map;
+        ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+        builder.put("buildPath", getBuildPath());
+        builder.put("taskPath", getTaskPath());
+        builder.put("taskClass", getTaskClass().getName());
+        builder.put("taskId", getTaskId());
+        return builder.build();
 
     }
 }

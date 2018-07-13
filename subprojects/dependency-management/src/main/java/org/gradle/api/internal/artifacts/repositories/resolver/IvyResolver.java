@@ -19,16 +19,17 @@ import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -41,12 +42,14 @@ import java.net.URI;
 
 public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata> implements PatternBasedResolver {
 
+    private final RepositoryDetails details;
     private final boolean dynamicResolve;
     private boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
     public IvyResolver(String name,
+                       RepositoryDetails details,
                        RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                        boolean dynamicResolve,
@@ -55,8 +58,10 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
                        @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
                        ImmutableMetadataSources repositoryContentFilter,
-                       MetadataArtifactProvider metadataArtifactProvider, Instantiator injector) {
+                       MetadataArtifactProvider metadataArtifactProvider,
+                       Instantiator injector) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, repositoryContentFilter, metadataArtifactProvider, componentMetadataSupplierFactory, componentMetadataVersionListerFactory, injector);
+        this.details = details;
         this.dynamicResolve = dynamicResolve;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
@@ -71,6 +76,11 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     protected void appendId(BuildCacheHasher hasher) {
         super.appendId(hasher);
         hasher.putBoolean(isM2compatible());
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        return details;
     }
 
     @Override

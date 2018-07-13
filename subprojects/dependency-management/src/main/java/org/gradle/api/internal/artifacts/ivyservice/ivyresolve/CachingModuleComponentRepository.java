@@ -483,8 +483,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Nullable
         @Override
-        public String getRepositoryId() {
-            return delegate.getRepositoryId();
+        public String getRepositoryDetailsId() {
+            return delegate.getRepositoryDetailsId();
         }
     }
 }

@@ -35,7 +35,7 @@ class MavenUniqueSnapshotModuleSource implements ModuleSource {
 
     @Nullable
     @Override
-    public String getRepositoryId() {
+    public String getRepositoryDetailsId() {
         return repositoryId;
     }
 

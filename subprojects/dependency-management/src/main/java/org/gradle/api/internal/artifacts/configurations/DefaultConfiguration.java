@@ -73,6 +73,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -987,28 +988,29 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
             Set<ResolvedComponentResult> alreadySeen = new HashSet<ResolvedComponentResult>();
             Map<String, List<Object>> components = new HashMap<String, List<Object>>();
-            walk(getRootComponent(), components, alreadySeen);
+            walk((ResolvedComponentResultInternal) getRootComponent(), components, alreadySeen);
             model.put("components", components);
             return model;
         }
 
-        private static void walk(ResolvedComponentResult component, Map<String, List<Object>> components, Set<ResolvedComponentResult> alreadySeen) {
+        private static void walk(ResolvedComponentResultInternal component, Map<String, List<Object>> components, Set<ResolvedComponentResult> alreadySeen) {
             if (alreadySeen.contains(component)) {
                 return;
             }
             alreadySeen.add(component);
             String componentDisplayName = component.getId().getDisplayName();
             List<Object> componentDetails;
+            Set<? extends DependencyResult> dependencies = component.getDependencies();
             if (components.containsKey(componentDisplayName)) {
                 componentDetails = components.get(componentDisplayName);
             } else {
-                componentDetails = new ArrayList<Object>();
+                componentDetails = new ArrayList<Object>(dependencies.size() + 1);
                 components.put(componentDisplayName, componentDetails);
             }
             componentDetails.add(Collections.singletonMap("repoId", component.getRepositoryId()));
-            for (DependencyResult dependencyResult : component.getDependencies()) {
+            for (DependencyResult dependencyResult : dependencies) {
                 if (dependencyResult instanceof ResolvedDependencyResult) {
-                    walk(((ResolvedDependencyResult) dependencyResult).getSelected(), components, alreadySeen);
+                    walk((ResolvedComponentResultInternal) ((ResolvedDependencyResult) dependencyResult).getSelected(), components, alreadySeen);
                 }
             }
         }

@@ -31,6 +31,6 @@ public interface ModuleSource extends Serializable {
      * Returns the unique id of the repository used as module source.
      */
     @Nullable
-    String getRepositoryId();
+    String getRepositoryDetailsId();
 
 }

@@ -48,7 +48,7 @@ public interface ModuleComponentRepository extends ModuleComponentRepositoryIden
     InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();
 
     /**
-     * returns details about this repository, such as a unique ID and a map of properties used for reporting.
+     * Returns details about this repository, such as a unique ID and a map of properties used for reporting.
      */
     RepositoryDetails getDetails();
 

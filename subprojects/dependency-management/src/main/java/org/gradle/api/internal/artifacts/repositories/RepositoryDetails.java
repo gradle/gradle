@@ -19,9 +19,17 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Map;
 
+/**
+ * Details about a repository.
+ * See {@link ResolutionAwareRepository} and {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository}
+ */
 public class RepositoryDetails {
 
+    /**
+     * A _unique_ identifier for a repository.
+     */
     public final String id;
+
     public final String name;
     public final RepositoryType type;
     public final Map<RepositoryPropertyType, ?> properties;
@@ -45,7 +53,7 @@ public class RepositoryDetails {
         AUTHENTICATED,
         AUTHENTICATION_SCHEMES,
         LAYOUT_TYPE,
-        M2_COMPATIBLE;
+        M2_COMPATIBLE
 
     }
 
@@ -54,7 +62,8 @@ public class RepositoryDetails {
 
         MAVEN,
         IVY,
-        FLAT_DIR;
+        FLAT_DIR,
+        UNSUPPORTED
 
     }
 
