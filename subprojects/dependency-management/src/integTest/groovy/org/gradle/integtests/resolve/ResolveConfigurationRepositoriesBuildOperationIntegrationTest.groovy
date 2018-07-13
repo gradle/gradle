@@ -577,7 +577,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def message = 'from plugin'
         def taskName = 'pluginTask'
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, id)
-        executer.expectDeprecationWarning()
         pluginBuilder.publishAs(coordinates, mavenRepo, executer)
     }
 

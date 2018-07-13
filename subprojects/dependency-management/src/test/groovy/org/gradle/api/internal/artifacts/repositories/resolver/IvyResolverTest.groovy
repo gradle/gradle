@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
@@ -183,9 +184,15 @@ class IvyResolverTest extends Specification {
 
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
-
+        def repoDetails = new RepositoryDetails(
+            "repoId",
+            "repo",
+            RepositoryDetails.RepositoryType.IVY,
+            [:]
+        )
         new IvyResolver(
-            "repo", getDetails(),
+            "repo",
+            repoDetails,
             transport,
             Stub(LocallyAvailableResourceFinder),
             false,

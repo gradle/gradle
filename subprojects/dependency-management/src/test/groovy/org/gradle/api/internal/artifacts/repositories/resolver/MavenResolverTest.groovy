@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
@@ -30,9 +31,9 @@ import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -112,8 +113,8 @@ class MavenResolverTest extends Specification {
 
     def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
         given:
-        def resolver1 = resolver( false, false)
-        def resolver2 = resolver( false, true)
+        def resolver1 = resolver(false, false)
+        def resolver2 = resolver(false, true)
 
         resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
         resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
@@ -145,7 +146,25 @@ class MavenResolverTest extends Specification {
 
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
-
-        new MavenResolver("repo", getDetails().id, new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator))
+        def repoDetails = new RepositoryDetails(
+            "repoId",
+            "repo",
+            RepositoryDetails.RepositoryType.MAVEN,
+            [:]
+        )
+        new MavenResolver("repo",
+            repoDetails,
+            new URI("http://localhost"),
+            Stub(RepositoryTransport),
+            Stub(LocallyAvailableResourceFinder),
+            Stub(FileStore),
+            moduleIdentifierFactory,
+            metadataSources,
+            metadataArtifactProvider,
+            Stub(MavenMetadataLoader),
+            supplier,
+            lister,
+            Mock(Instantiator)
+        )
     }
 }

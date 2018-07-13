@@ -34,7 +34,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
     final originalSource = Mock(ModuleSource)
     final result = new DefaultBuildableArtifactResolveResult()
 
-    def repo1 = Stub(ModuleComponentRepository) {
+    def repo1 = Mock(ModuleComponentRepository) {
         getId() >> "repo1"
     }
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
@@ -44,7 +44,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         getRemoteAccess() >> remoteAccess2
         getId() >> "repo2"
     }
-    def repo2Source = new RepositoryChainModuleSource("repo2", originalSource)
+    def repo2Source = new RepositoryChainModuleSource(repo2, originalSource)
 
     final RepositoryChainArtifactResolver resolver = new RepositoryChainArtifactResolver()
 

@@ -28,7 +28,7 @@ import spock.lang.Specification
 class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specification {
 
     def delegate = Mock(ExternalResourceArtifactResolver)
-    def resolver = new MavenUniqueSnapshotExternalResourceArtifactResolver(delegate, new MavenUniqueSnapshotModuleSource(repositoryId, "timestamp"))
+    def resolver = new MavenUniqueSnapshotExternalResourceArtifactResolver(delegate, new MavenUniqueSnapshotModuleSource("repoId", "timestamp"))
 
     def "creates timestamped artifact"() {
         when:
@@ -38,7 +38,7 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
         def artifact = resolver.timestamp(originalArtifact)
 
         then:
-        with (artifact.id.componentIdentifier) {
+        with(artifact.id.componentIdentifier) {
             group == "group"
             module == "name"
             version == "1.0-SNAPSHOT"
