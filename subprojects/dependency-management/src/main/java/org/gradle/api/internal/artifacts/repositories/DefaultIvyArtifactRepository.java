@@ -311,11 +311,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         if (!metadataSourcesList.isEmpty()) {
             builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
         }
-        if (getCredentials().getUsername() != null || getCredentials().getPassword() != null) {
+        if (getConfiguredCredentials() != null) {
             builder.put(RepositoryPropertyType.AUTHENTICATED, true);
         }
-        if (!getAuthentication().isEmpty()) {
-            Set<String> authenticationTypes = CollectionUtils.collect(getAuthentication(), new Transformer<String, Authentication>() {
+        Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
+        if (!configuredAuthentication.isEmpty()) {
+            List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
                 @Override
                 public String transform(Authentication authentication) {
                     return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();

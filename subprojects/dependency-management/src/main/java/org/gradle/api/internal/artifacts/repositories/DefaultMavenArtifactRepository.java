@@ -67,6 +67,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -306,8 +307,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         if (getConfiguredCredentials() != null) {
             builder.put(RepositoryPropertyType.AUTHENTICATED, true);
         }
-        if (!getAuthentication().isEmpty()) {
-            Set<String> authenticationTypes = CollectionUtils.collect(getAuthentication(), new Transformer<String, Authentication>() {
+        Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
+        if (!configuredAuthentication.isEmpty()) {
+            List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
                 @Override
                 public String transform(Authentication authentication) {
                     return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
