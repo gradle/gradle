@@ -187,7 +187,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         ops.size() == 3
         def opsWithRepos = ops.details.findAll { it.containsKey('repositories') }
-        opsWithRepos.size() == 2
+        opsWithRepos.size() == 3
         opsWithRepos.repositories.repositoryId.unique(false).size() == 1
     }
 
