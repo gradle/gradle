@@ -28,7 +28,7 @@ import java.util.concurrent.Callable
 
 import static org.gradle.util.WrapUtil.toSet
 
-public class DefaultTaskDependencyTest extends Specification {
+class DefaultTaskDependencyTest extends Specification {
     private final TaskResolver resolver = Mock(TaskResolver.class)
     private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver)
     private Task task
@@ -278,6 +278,45 @@ The following types/formats are supported:
 
         then:
         dependency.getDependencies(task) == toSet(otherTask)
+    }
+
+    def "can mutate dependency values by removing a Task instance from dependency"() {
+        given:
+        dependency.add(otherTask)
+
+        when:
+        dependency.mutableValues.remove(otherTask)
+
+        then:
+        dependency.getDependencies(task) == toSet()
+    }
+
+    def "can mutate dependency values by removing a Task instance from dependency containing a Provider to the Task instance"() {
+        given:
+        def provider = Mock(ProviderInternal)
+        provider.type >> otherTask.class
+        provider.get() >> otherTask
+        dependency.add(provider)
+
+        when:
+        dependency.mutableValues.remove(otherTask)
+
+        then:
+        dependency.getDependencies(task) == toSet()
+    }
+
+    def "can mutate dependency values by removing a Provider instance from dependency containing the Provider instance"() {
+        given:
+        def provider = Mock(ProviderInternal)
+        provider.type >> otherTask.class
+        provider.get() >> otherTask
+        dependency.add(provider)
+
+        when:
+        dependency.mutableValues.remove(provider)
+
+        then:
+        dependency.getDependencies(task) == toSet()
     }
 
     def "can nest iterables and maps and closures and callables"() {
