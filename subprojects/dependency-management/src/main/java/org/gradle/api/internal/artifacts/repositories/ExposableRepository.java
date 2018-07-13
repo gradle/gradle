@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import java.util.Map;
 
 public interface ExposableRepository extends ResolutionAwareRepository {
 
     Map<RepositoryPropertyType, ?> getProperties();
 
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     enum RepositoryPropertyType {
 
         URL("URL"),
