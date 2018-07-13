@@ -173,7 +173,7 @@ Here's the complete build file for our sample:
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samples-path}/java/quickstart/build.gradle[tags=*]
+include::{samples-path}/java/quickstart/build.gradle[tags=use-plugin;use-eclipse-plugin;customization;repo;dependencies;task-customization;upload]
 ----
 
 
