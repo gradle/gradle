@@ -294,6 +294,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return builder.build();
     }
 
+    @Override
+    public RepositoryType getType() {
+        return RepositoryType.MAVEN;
+    }
+
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {

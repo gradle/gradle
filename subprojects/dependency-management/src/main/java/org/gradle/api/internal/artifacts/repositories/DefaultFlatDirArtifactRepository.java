@@ -160,6 +160,11 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         }));
     }
 
+    @Override
+    public RepositoryType getType() {
+        return RepositoryType.FLAT_DIR;
+    }
+
     private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {
         @Override
         public void withResource(String relativePath, Action<? super InputStream> action) {

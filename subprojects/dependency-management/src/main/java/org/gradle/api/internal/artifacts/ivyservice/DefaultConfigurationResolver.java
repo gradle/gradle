@@ -23,9 +23,6 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -62,6 +59,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.Resoluti
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
 import org.gradle.api.internal.artifacts.repositories.ExposableRepository;
 import org.gradle.api.internal.artifacts.repositories.ExposableRepository.RepositoryPropertyType;
+import org.gradle.api.internal.artifacts.repositories.ExposableRepository.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -212,7 +210,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 ConfiguredModuleComponentRepository resolver = exposableRepository.createResolver();
                 result.add(RepositoryImpl.from(
                     resolver.getId(),
-                    getTypeOf(exposableRepository),
+                    exposableRepository.getType(),
                     resolver.getName(),
                     exposableRepository.getProperties()
                 ));
@@ -269,17 +267,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
     }
 
-    private RepositoryType getTypeOf(ExposableRepository repository) {
-        if (repository instanceof IvyArtifactRepository) {
-            return RepositoryType.IVY;
-        } else if (repository instanceof MavenArtifactRepository) {
-            return RepositoryType.MAVEN;
-        } else if (repository instanceof FlatDirectoryArtifactRepository) {
-            return RepositoryType.FLAT_DIR;
-        } else {
-            throw new IllegalArgumentException("unhandled repository type: " + repository.getClass());
-        }
-    }
 
     private static class ArtifactResolveState {
         final ResolvedGraphResults graphResults;
@@ -295,20 +282,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             this.failures = failures;
             this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
         }
-    }
-
-    private enum RepositoryType {
-
-        MAVEN("maven"),
-        IVY("ivy"),
-        FLAT_DIR("flat_dir");
-
-        public final String displayName;
-
-        RepositoryType(String displayName) {
-            this.displayName = displayName;
-        }
-
     }
 
 }

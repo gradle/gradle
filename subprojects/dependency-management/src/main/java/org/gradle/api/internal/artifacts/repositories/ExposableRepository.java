@@ -24,6 +24,8 @@ public interface ExposableRepository extends ResolutionAwareRepository {
 
     Map<RepositoryPropertyType, ?> getProperties();
 
+    RepositoryType getType();
+
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     enum RepositoryPropertyType {
 
@@ -41,6 +43,21 @@ public interface ExposableRepository extends ResolutionAwareRepository {
         public final String displayName;
 
         RepositoryPropertyType(String displayName) {
+            this.displayName = displayName;
+        }
+
+    }
+
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    enum RepositoryType {
+
+        MAVEN("maven"),
+        IVY("ivy"),
+        FLAT_DIR("flat_dir");
+
+        public final String displayName;
+
+        RepositoryType(String displayName) {
             this.displayName = displayName;
         }
 

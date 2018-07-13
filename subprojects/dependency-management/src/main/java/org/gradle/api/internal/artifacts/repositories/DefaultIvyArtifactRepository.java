@@ -60,9 +60,9 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -302,6 +302,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
         }
         return builder.build();
+    }
+
+    @Override
+    public RepositoryType getType() {
+        return RepositoryType.IVY;
     }
 
     /**
