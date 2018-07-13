@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.ArtifactRepository;
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 
 import java.util.List;
 
@@ -38,6 +38,6 @@ public interface ConfigurationResolver {
      */
     void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
 
-    List<ArtifactRepository> getRepositories();
+    List<Repository> getRepositories();
 
 }

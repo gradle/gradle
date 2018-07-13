@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.ArtifactRepository;
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
@@ -203,12 +203,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     @Override
-    public List<ArtifactRepository> getRepositories() {
+    public List<Repository> getRepositories() {
         List<ExposableRepository> exposableRepositories = CollectionUtils.collect(repositories, Transformers.cast(ExposableRepository.class));
-        List<ArtifactRepository> result = Lists.newArrayListWithExpectedSize(exposableRepositories.size());
+        List<Repository> result = Lists.newArrayListWithExpectedSize(exposableRepositories.size());
         for (ExposableRepository repository : exposableRepositories) {
             ConfiguredModuleComponentRepository resolver = repository.createResolver();
-            result.add(ArtifactRepositoryImpl.from(
+            result.add(RepositoryImpl.from(
                 resolver.getId(),
                 getTypeOf(repository),
                 resolver.getName(),
@@ -218,26 +218,26 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return result;
     }
 
-    private static class ArtifactRepositoryImpl implements ArtifactRepository {
+    private static class RepositoryImpl implements Repository {
 
         private final String repositoryId;
         private final String type;
         private final String name;
         private final Map<String, ?> properties;
 
-        private ArtifactRepositoryImpl(String repositoryId, RepositoryType type, String name, Map<String, ?> properties) {
+        private RepositoryImpl(String repositoryId, RepositoryType type, String name, Map<String, ?> properties) {
             this.repositoryId = repositoryId;
             this.type = type.displayName;
             this.name = name;
             this.properties = ImmutableMap.copyOf(properties);
         }
 
-        private static ArtifactRepositoryImpl from(String repositoryId, RepositoryType type, String name, Map<RepositoryPropertyType, ?> properties) {
+        private static RepositoryImpl from(String repositoryId, RepositoryType type, String name, Map<RepositoryPropertyType, ?> properties) {
             Map<String, Object> props = new HashMap<String, Object>(properties.size());
             for (Map.Entry<RepositoryPropertyType, ?> entry : properties.entrySet()) {
                 props.put(entry.getKey().displayName, entry.getValue());
             }
-            return new ArtifactRepositoryImpl(
+            return new RepositoryImpl(
                 repositoryId,
                 type,
                 name,

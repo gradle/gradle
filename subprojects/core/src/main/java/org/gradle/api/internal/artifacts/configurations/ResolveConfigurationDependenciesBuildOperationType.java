@@ -54,7 +54,7 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
          * @since 4.10
          */
         @Nullable
-        List<ArtifactRepository> getRepositories();
+        List<Repository> getRepositories();
 
     }
 
@@ -66,7 +66,7 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
     }
 
     @UsedByScanPlugin
-    public interface ArtifactRepository {
+    public interface Repository {
 
         String getRepositoryId();
 
