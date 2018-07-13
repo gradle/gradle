@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.fingerprint;
 
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.tasks.FileNormalizer;
 
 /**
- * Normalizes file input by ignoring the order of files.
+ * {@link FileNormalizer} that uses absolute paths for input files. The default.
  */
-public interface GenericFileNormalizer extends FileNormalizer {
+public interface AbsolutePathInputNormalizer extends FileCollectionSnapshotter, FileNormalizer {
 }

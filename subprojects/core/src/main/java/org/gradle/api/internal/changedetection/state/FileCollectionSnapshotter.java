@@ -36,5 +36,5 @@ public interface FileCollectionSnapshotter {
     /**
      * Creates a snapshot of the contents of the given collection.
      */
-    CurrentFileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy);
+    CurrentFileCollectionFingerprint snapshot(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy);
 }

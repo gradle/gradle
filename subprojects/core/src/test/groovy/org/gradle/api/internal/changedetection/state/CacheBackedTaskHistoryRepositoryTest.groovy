@@ -18,11 +18,9 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.changedetection.rules.AbstractTaskStateChangesTest
-import org.gradle.api.internal.tasks.GenericFileNormalizer
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
-
-import static org.gradle.api.internal.changedetection.state.PathNormalizationStrategy.ABSOLUTE
 
 class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest {
     static final NORMALIZATION_STRATEGY = InputNormalizationStrategy.NOT_CONFIGURED
@@ -38,8 +36,8 @@ class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest 
         CacheBackedTaskHistoryRepository.fingerprintTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
 
         then:
-        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileNormalizer) >> mockInputFileSnapshotter
-        1 * mockInputFileSnapshotter.snapshot(_, ABSOLUTE, NORMALIZATION_STRATEGY) >> { throw cause }
+        1 * mockInputFileSnapshotterRegistry.getSnapshotter(AbsolutePathInputNormalizer) >> mockInputFileSnapshotter
+        1 * mockInputFileSnapshotter.snapshot(_, NORMALIZATION_STRATEGY) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

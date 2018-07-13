@@ -20,7 +20,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 /**
  * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java
- * compile classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
+ * compile classpath. Compared to {@link org.gradle.internal.fingerprint.RelativePathInputNormalizer} this fingerprinter orders files within any sub-tree.
  *
  * @see org.gradle.api.tasks.CompileClasspath
  */
