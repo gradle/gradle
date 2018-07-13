@@ -75,8 +75,8 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         if (collection.isEmpty()) {
             return true;
         } else {
-            for (T o : collection) {
-                if (accept(o)) {
+            for (Iterator<?> it = iterator(); it.hasNext();) {
+                if (accept(it.next())) {
                     return false;
                 }
             }

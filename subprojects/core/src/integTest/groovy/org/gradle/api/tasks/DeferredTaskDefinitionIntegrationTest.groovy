@@ -799,4 +799,30 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "foo"
     }
+
+    def "realizes only the task of the given type when verifying if a filtered task collection is empty"() {
+        buildFile << '''
+            def defaultTaskRealizedCount = 0
+            (1..100).each {
+                tasks.register("aDefaultTask_$it") {
+                    defaultTaskRealizedCount++
+                }
+            }
+            def zipTaskRealizedCount = 0
+            tasks.register("aZipTask", Zip) {
+                zipTaskRealizedCount++
+            }
+
+            task foo {
+                def hasZipTask = tasks.withType(Zip).empty
+                doLast {
+                    assert defaultTaskRealizedCount == 0, "All DefaultTask shouldn't be realized"
+                    assert zipTaskRealizedCount == 1, "All Zip task should be realized"
+                }
+            }
+        '''
+
+        expect:
+        succeeds "foo"
+    }
 }
