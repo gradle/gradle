@@ -46,6 +46,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -102,6 +103,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -111,8 +113,11 @@ import org.gradle.util.WrapUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -952,7 +957,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result {
+    private static class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
 
         private static final Action<? super Throwable> FAIL_SAFE = Actions.doNothing();
 
@@ -975,6 +980,39 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             return incoming.getResolutionResult().getRoot();
         }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            Map<String, Object> model = new HashMap<String, Object>();
+            model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
+            Set<ResolvedComponentResult> alreadySeen = new HashSet<ResolvedComponentResult>();
+            Map<String, List<Object>> components = new HashMap<String, List<Object>>();
+            walk(getRootComponent(), components, alreadySeen);
+            model.put("components", components);
+            return model;
+        }
+
+        private static void walk(ResolvedComponentResult component, Map<String, List<Object>> components, Set<ResolvedComponentResult> alreadySeen) {
+            if (alreadySeen.contains(component)) {
+                return;
+            }
+            alreadySeen.add(component);
+            String componentDisplayName = component.getId().getDisplayName();
+            List<Object> componentDetails;
+            if (components.containsKey(componentDisplayName)) {
+                componentDetails = components.get(componentDisplayName);
+            } else {
+                componentDetails = new ArrayList<Object>();
+                components.put(componentDisplayName, componentDetails);
+            }
+            componentDetails.add(Collections.singletonMap("repoId", component.getRepositoryId()));
+            for (DependencyResult dependencyResult : component.getDependencies()) {
+                if (dependencyResult instanceof ResolvedDependencyResult) {
+                    walk(((ResolvedDependencyResult) dependencyResult).getSelected(), components, alreadySeen);
+                }
+            }
+        }
+
     }
 
     private class ConfigurationFileCollection extends AbstractFileCollection {

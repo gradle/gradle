@@ -17,20 +17,12 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
 class SerializedOperationFinish implements SerializedOperation {
 
@@ -46,45 +38,9 @@ class SerializedOperationFinish implements SerializedOperation {
     SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent) {
         this.id = descriptor.getId().getId();
         this.endTime = finishEvent.getEndTime();
-        this.result = transform(finishEvent.getResult());
+        this.result = toSerializableModel(finishEvent.getResult());
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
-    }
-
-    private Object transform(Object result) {
-        if (result instanceof ResolveConfigurationDependenciesBuildOperationType.Result) {
-            Set<ResolvedComponentResult> alreadySeen = new HashSet<ResolvedComponentResult>();
-            ResolveConfigurationDependenciesBuildOperationType.Result cast = (ResolveConfigurationDependenciesBuildOperationType.Result) result;
-            Map<String, Object> transform = new HashMap<String, Object>();
-            transform.put("resolvedDependenciesCount", cast.getRootComponent().getDependencies().size());
-            Map<String, List<Object>> components = new HashMap<String, List<Object>>();
-            walk(cast.getRootComponent(), components, alreadySeen);
-            transform.put("components", components);
-            return transform;
-        }
-
-        return result;
-    }
-
-    private void walk(ResolvedComponentResult component, Map<String, List<Object>> components, Set<ResolvedComponentResult> alreadySeen) {
-        if (alreadySeen.contains(component)) {
-            return;
-        }
-        alreadySeen.add(component);
-        String componentDisplayName = component.getId().getDisplayName();
-        List<Object> componentDetails;
-        if (components.containsKey(componentDisplayName)) {
-            componentDetails = components.get(componentDisplayName);
-        } else {
-            componentDetails = new ArrayList<Object>();
-            components.put(componentDisplayName, componentDetails);
-        }
-        componentDetails.add(Collections.singletonMap("repoId", component.getRepositoryId()));
-        for (DependencyResult dependencyResult : component.getDependencies()) {
-            if (dependencyResult instanceof ResolvedDependencyResult) {
-                walk(((ResolvedDependencyResult) dependencyResult).getSelected(), components, alreadySeen);
-            }
-        }
     }
 
     SerializedOperationFinish(Map<String, ?> map) {

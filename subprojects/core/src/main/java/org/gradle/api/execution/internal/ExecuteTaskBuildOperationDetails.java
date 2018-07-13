@@ -18,8 +18,12 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
-public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details {
+import java.util.HashMap;
+import java.util.Map;
+
+public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TaskInternal task;
 
@@ -53,4 +57,14 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
         return task.getTaskIdentity().type;
     }
 
+    @Override
+    public Object getCustomOperationTraceSerializableModel() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("buildPath", getBuildPath());
+        map.put("taskPath", getTaskPath());
+        map.put("taskClass", getTaskClass().getName());
+        map.put("taskId", getTaskId());
+        return map;
+
+    }
 }
