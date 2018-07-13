@@ -16,16 +16,31 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import java.io.File
+
 
 internal
-fun temporaryFileFor(scriptPath: String, scriptText: String) =
-    createTempDir(prefix = "gradle-kotlin-dsl-")
-        .resolve(scriptFileNameFor(scriptPath))
-        .run {
-            writeText(scriptText)
-            deleteOnExit()
-            canonicalFile
+inline fun <T> withTemporaryScriptFileFor(scriptPath: String, scriptText: String, action: (File) -> T): T =
+    createTempDir(prefix = "gradle-kotlin-dsl-").let { tempDir ->
+        try {
+            val tempFile = canonicalScriptFileFor(tempDir, scriptPath, scriptText)
+            try {
+                action(tempFile)
+            } finally {
+                tempFile.delete()
+            }
+        } finally {
+            tempDir.delete()
         }
+    }
+
+
+private
+fun canonicalScriptFileFor(baseDir: File, scriptPath: String, scriptText: String): File =
+    baseDir.resolve(scriptFileNameFor(scriptPath)).run {
+        writeText(scriptText)
+        canonicalFile
+    }
 
 
 private

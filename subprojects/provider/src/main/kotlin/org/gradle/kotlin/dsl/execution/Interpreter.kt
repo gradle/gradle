@@ -454,18 +454,21 @@ class Interpreter(val host: Host) {
                                 targetScopeClassPath + it
                             } ?: targetScopeClassPath
 
-                        scriptSource.withLocationAwareExceptionHandling {
-                            ResidualProgramCompiler(
-                                outputDir,
-                                compilationClassPath,
-                                sourceHash,
-                                programKind,
-                                programTarget,
-                                host.implicitImports
-                            ).emitStage2ProgramFor(
-                                temporaryFileFor(originalScriptPath, scriptText),
-                                originalScriptPath
-                            )
+                        withTemporaryScriptFileFor(originalScriptPath, scriptText) { scriptFile ->
+
+                            scriptSource.withLocationAwareExceptionHandling {
+                                ResidualProgramCompiler(
+                                    outputDir,
+                                    compilationClassPath,
+                                    sourceHash,
+                                    programKind,
+                                    programTarget,
+                                    host.implicitImports
+                                ).emitStage2ProgramFor(
+                                    scriptFile,
+                                    originalScriptPath
+                                )
+                            }
                         }
                     }
                 }

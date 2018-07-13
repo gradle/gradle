@@ -497,9 +497,10 @@ class ResidualProgramCompiler(
 
     private
     fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
-        val scriptFile = temporaryFileFor(source.path, source.text)
-        val originalScriptPath = source.path
-        return compileScript(scriptFile, originalScriptPath, scriptDefinition)
+        withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
+            val originalScriptPath = source.path
+            return compileScript(scriptFile, originalScriptPath, scriptDefinition)
+        }
     }
 
     private
