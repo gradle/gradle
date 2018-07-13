@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotWriter
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -27,7 +27,7 @@ import spock.lang.Subject
 class IncrementalResultStoringCompilerTest extends Specification {
 
     def compiler = Mock(Compiler)
-    def writer = Mock(JarClasspathSnapshotWriter)
+    def writer = Mock(ClasspathSnapshotWriter)
     def infoUpdater = Mock(ClassSetAnalysisUpdater)
     def compileSpec = Stub(JavaCompileSpec)
     def processorPathStore = Mock(AnnotationProcessorPathStore)
@@ -44,7 +44,7 @@ class IncrementalResultStoringCompilerTest extends Specification {
         then:
         1 * compiler.execute(compileSpec) >> result
         1 * infoUpdater.updateAnalysis(compileSpec, result)
-        1 * writer.storeJarSnapshots(_)
+        1 * writer.storeSnapshots(_)
         1 * processorPathStore.put(_)
         0 * _
     }

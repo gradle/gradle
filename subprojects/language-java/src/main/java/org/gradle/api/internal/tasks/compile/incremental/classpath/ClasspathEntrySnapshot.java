@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -28,11 +28,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class JarSnapshot {
+public class ClasspathEntrySnapshot {
 
-    private final JarSnapshotData data;
+    private final ClasspathEntrySnapshotData data;
 
-    public JarSnapshot(JarSnapshotData data) {
+    public ClasspathEntrySnapshot(ClasspathEntrySnapshotData data) {
         this.data = data;
     }
 
@@ -57,7 +57,7 @@ public class JarSnapshot {
         return result;
     }
 
-    public IntSet getRelevantConstants(JarSnapshot other, Set<String> affectedClasses) {
+    public IntSet getRelevantConstants(ClasspathEntrySnapshot other, Set<String> affectedClasses) {
         IntSet result = new IntOpenHashSet();
         for (String affectedClass : affectedClasses) {
             IntSet difference = new IntOpenHashSet(other.getData().data.getConstants(affectedClass));
@@ -67,13 +67,13 @@ public class JarSnapshot {
         return result;
     }
 
-    public AffectedClasses getAffectedClassesSince(JarSnapshot other) {
+    public AffectedClasses getAffectedClassesSince(ClasspathEntrySnapshot other) {
         DependentsSet affectedClasses = affectedSince(other);
         Set<String> addedClasses = addedSince(other);
         return new AffectedClasses(affectedClasses, addedClasses);
     }
 
-    private DependentsSet affectedSince(JarSnapshot other) {
+    private DependentsSet affectedSince(ClasspathEntrySnapshot other) {
         final Set<String> affected = new HashSet<String>();
         for (Map.Entry<String, HashCode> otherClass : other.getHashes().entrySet()) {
             String otherClassName = otherClass.getKey();
@@ -92,7 +92,7 @@ public class JarSnapshot {
         return DependentsSet.dependents(affected);
     }
 
-    private Set<String> addedSince(JarSnapshot other) {
+    private Set<String> addedSince(ClasspathEntrySnapshot other) {
         Set<String> addedClasses = new HashSet<String>(getClasses());
         addedClasses.removeAll(other.getClasses());
         return addedClasses;
@@ -114,7 +114,7 @@ public class JarSnapshot {
         return data.hashes.keySet();
     }
 
-    public JarSnapshotData getData() {
+    public ClasspathEntrySnapshotData getData() {
         return data;
     }
 }

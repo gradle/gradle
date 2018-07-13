@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -31,15 +31,15 @@ import java.util.Set;
 public class PreviousCompilation {
 
     private ClassSetAnalysis analysis;
-    private LocalJarClasspathSnapshotStore classpathSnapshotStore;
-    private final JarSnapshotCache jarSnapshotCache;
+    private LocalClasspathSnapshotStore classpathSnapshotStore;
+    private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final AnnotationProcessorPathStore annotationProcessorPathStore;
-    private Map<File, JarSnapshot> jarSnapshots;
+    private Map<File, ClasspathEntrySnapshot> snapshots;
 
-    public PreviousCompilation(ClassSetAnalysis analysis, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache, AnnotationProcessorPathStore annotationProcessorPathStore) {
+    public PreviousCompilation(ClassSetAnalysis analysis, LocalClasspathSnapshotStore classpathSnapshotStore, ClasspathEntrySnapshotCache classpathEntrySnapshotCache, AnnotationProcessorPathStore annotationProcessorPathStore) {
         this.analysis = analysis;
         this.classpathSnapshotStore = classpathSnapshotStore;
-        this.jarSnapshotCache = jarSnapshotCache;
+        this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
         this.annotationProcessorPathStore = annotationProcessorPathStore;
     }
 
@@ -51,12 +51,12 @@ public class PreviousCompilation {
         return analysis.getData().getClassNameForFile(path);
     }
 
-    public JarSnapshot getJarSnapshot(File file) {
-        if (jarSnapshots == null) {
-            JarClasspathSnapshotData data = classpathSnapshotStore.get();
-            jarSnapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
+    public ClasspathEntrySnapshot getClasspathEntrySnapshot(File file) {
+        if (snapshots == null) {
+            ClasspathSnapshotData data = classpathSnapshotStore.get();
+            snapshots = classpathEntrySnapshotCache.getClasspathEntrySnapshots(data.getFileHashes());
         }
-        return jarSnapshots.get(file);
+        return snapshots.get(file);
     }
 
     public DependentsSet getDependents(String className, IntSet newConstants) {
@@ -69,12 +69,12 @@ public class PreviousCompilation {
         return analysis.getAggregatedTypes();
     }
 
-    public Map<File, JarSnapshot> getJarSnapshots() {
-        if (jarSnapshots == null) {
-            JarClasspathSnapshotData data = classpathSnapshotStore.get();
-            jarSnapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
+    public Map<File, ClasspathEntrySnapshot> getSnapshots() {
+        if (snapshots == null) {
+            ClasspathSnapshotData data = classpathSnapshotStore.get();
+            snapshots = classpathEntrySnapshotCache.getClasspathEntrySnapshots(data.getFileHashes());
         }
-        return Collections.unmodifiableMap(jarSnapshots);
+        return Collections.unmodifiableMap(snapshots);
     }
 
     public List<File> getAnnotationProcessorPath() {

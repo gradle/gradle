@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental.jar
+package org.gradle.api.internal.tasks.compile.incremental.classpath
 
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitor
@@ -34,17 +34,17 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @UsesNativeServices
-class DefaultJarSnapshotterTest extends Specification {
+class DefaultClasspathEntrySnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def hasher = Mock(StreamHasher)
     def classDependenciesAnalyzer = Mock(ClassDependenciesAnalyzer)
-    @Subject snapshotter = new DefaultJarSnapshotter(hasher, classDependenciesAnalyzer)
+    @Subject snapshotter = new DefaultClasspathEntrySnapshotter(hasher, classDependenciesAnalyzer)
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DefaultDirectoryFileTreeFactory().create(new File("missing")))))
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new ClasspathEntry(new File("a.jar"), new FileTreeAdapter(new DefaultDirectoryFileTreeFactory().create(new File("missing")))))
         snapshot.hashes.isEmpty()
         snapshot.analysis
     }
@@ -62,7 +62,7 @@ class DefaultJarSnapshotterTest extends Specification {
         def jarFileTree = Mock(FileTree)
 
         when:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new JarArchive(jarFile, jarFileTree))
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new ClasspathEntry(jarFile, jarFileTree))
 
         then:
         1 * jarFileTree.visit(_) >> { FileVisitor visitor ->

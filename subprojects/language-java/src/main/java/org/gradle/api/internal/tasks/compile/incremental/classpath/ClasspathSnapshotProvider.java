@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import java.io.File;
 
-public interface JarClasspathSnapshotWriter {
-    void storeJarSnapshots(Iterable<File> classpath);
+public interface ClasspathSnapshotProvider {
+    ClasspathSnapshot getClasspathSnapshot(Iterable<File> classpath);
 }

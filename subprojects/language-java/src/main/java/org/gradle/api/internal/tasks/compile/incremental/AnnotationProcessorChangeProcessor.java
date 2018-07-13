@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.file.DefaultFileHierarchySet;

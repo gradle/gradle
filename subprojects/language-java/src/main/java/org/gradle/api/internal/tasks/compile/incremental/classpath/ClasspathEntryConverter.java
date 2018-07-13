@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.file.FileOperations;
 
@@ -24,20 +24,20 @@ import java.util.List;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
-public class ClasspathJarFinder {
+public class ClasspathEntryConverter {
     private final FileOperations fileOperations;
 
-    public ClasspathJarFinder(FileOperations fileOperations) {
+    public ClasspathEntryConverter(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
     }
 
-    public Iterable<JarArchive> findJarArchives(Iterable<File> classpath) {
-        List<JarArchive> out = new LinkedList<JarArchive>();
+    public Iterable<ClasspathEntry> asClasspathEntries(Iterable<File> classpath) {
+        List<ClasspathEntry> out = new LinkedList<ClasspathEntry>();
         for (File file : classpath) {
             if (hasExtension(file, ".jar")) {
-                out.add(new JarArchive(file, fileOperations.zipTree(file)));
+                out.add(new ClasspathEntry(file, fileOperations.zipTree(file)));
             } else if (file.isDirectory()) {
-                out.add(new JarArchive(file, fileOperations.fileTree(file)));
+                out.add(new ClasspathEntry(file, fileOperations.fileTree(file)));
             }
         }
         return out;

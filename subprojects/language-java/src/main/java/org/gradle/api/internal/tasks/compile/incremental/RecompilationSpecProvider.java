@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeProcessor;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryChangeProcessor;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.util.Alignment;
@@ -50,20 +50,20 @@ public class RecompilationSpecProvider {
     }
 
     private void processJarClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, current.getClasspathSnapshot(), previous);
-        Map<File, JarSnapshot> previousCompilationJarSnapshots = previous.getJarSnapshots();
-        JarClasspathSnapshot currentJarSnapshots = current.getClasspathSnapshot();
+        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(fileOperations, current.getClasspathSnapshot(), previous);
+        Map<File, ClasspathEntrySnapshot> previousCompilationJarSnapshots = previous.getSnapshots();
+        ClasspathSnapshot currentJarSnapshots = current.getClasspathSnapshot();
 
         Set<File> previousCompilationJars = previousCompilationJarSnapshots.keySet();
-        Set<File> currentCompilationJars = currentJarSnapshots.getJars();
+        Set<File> currentCompilationJars = currentJarSnapshots.getEntries();
         List<Alignment<File>> alignment = Alignment.align(currentCompilationJars.toArray(new File[0]), previousCompilationJars.toArray(new File[0]));
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    jarChangeProcessor.processChange(FileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "jar", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(FileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "jar", FileType.RegularFile), spec);
                     break;
                 case removed:
-                    jarChangeProcessor.processChange(FileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "jar", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(FileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "jar", FileType.RegularFile), spec);
                     break;
                 case transformed:
                     // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
@@ -72,10 +72,10 @@ public class RecompilationSpecProvider {
                     return;
                 case identical:
                     File key = fileAlignment.getPreviousValue();
-                    JarSnapshot previousSnapshot = previousCompilationJarSnapshots.get(key);
-                    JarSnapshot snapshot = currentJarSnapshots.getSnapshot(key);
+                    ClasspathEntrySnapshot previousSnapshot = previousCompilationJarSnapshots.get(key);
+                    ClasspathEntrySnapshot snapshot = currentJarSnapshots.getSnapshot(key);
                     if (!snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        jarChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "jar", FileType.RegularFile, FileType.RegularFile), spec);
+                        classpathEntryChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "jar", FileType.RegularFile, FileType.RegularFile), spec);
                     }
                     break;
             }

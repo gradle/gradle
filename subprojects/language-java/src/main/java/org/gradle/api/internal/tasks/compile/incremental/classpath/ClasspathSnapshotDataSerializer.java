@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.hash.HashCode;
@@ -32,21 +32,21 @@ import java.util.Set;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
-public class JarClasspathSnapshotDataSerializer extends AbstractSerializer<JarClasspathSnapshotData> {
+public class ClasspathSnapshotDataSerializer extends AbstractSerializer<ClasspathSnapshotData> {
     private final MapSerializer<File, HashCode> mapSerializer = new MapSerializer<File, HashCode>(FILE_SERIALIZER, new HashCodeSerializer());
     private final SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
     @Override
-    public JarClasspathSnapshotData read(Decoder decoder) throws Exception {
+    public ClasspathSnapshotData read(Decoder decoder) throws Exception {
         Set<String> duplicates = setSerializer.read(decoder);
         Map<File, HashCode> hashes = mapSerializer.read(decoder);
-        return new JarClasspathSnapshotData(hashes, duplicates);
+        return new ClasspathSnapshotData(hashes, duplicates);
     }
 
     @Override
-    public void write(Encoder encoder, JarClasspathSnapshotData value) throws Exception {
+    public void write(Encoder encoder, ClasspathSnapshotData value) throws Exception {
         setSerializer.write(encoder, value.getDuplicateClasses());
-        mapSerializer.write(encoder, value.getJarHashes());
+        mapSerializer.write(encoder, value.getFileHashes());
     }
 
     @Override
@@ -55,7 +55,7 @@ public class JarClasspathSnapshotDataSerializer extends AbstractSerializer<JarCl
             return false;
         }
 
-        JarClasspathSnapshotDataSerializer rhs = (JarClasspathSnapshotDataSerializer) obj;
+        ClasspathSnapshotDataSerializer rhs = (ClasspathSnapshotDataSerializer) obj;
         return Objects.equal(mapSerializer, rhs.mapSerializer) && Objects.equal(setSerializer, rhs.setSerializer);
     }
 

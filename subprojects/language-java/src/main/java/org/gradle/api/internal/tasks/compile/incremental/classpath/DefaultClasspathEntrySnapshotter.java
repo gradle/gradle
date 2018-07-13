@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
@@ -31,38 +31,38 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-class DefaultJarSnapshotter {
-    private static final Logger LOGGER = Logging.getLogger(DefaultJarSnapshotter.class);
+class DefaultClasspathEntrySnapshotter {
+    private static final Logger LOGGER = Logging.getLogger(DefaultClasspathEntrySnapshotter.class);
 
     private final StreamHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
 
-    public DefaultJarSnapshotter(StreamHasher hasher, ClassDependenciesAnalyzer analyzer) {
+    public DefaultClasspathEntrySnapshotter(StreamHasher hasher, ClassDependenciesAnalyzer analyzer) {
         this.hasher = hasher;
         this.analyzer = analyzer;
     }
 
-    public JarSnapshot createSnapshot(HashCode hash, JarArchive jarArchive) {
+    public ClasspathEntrySnapshot createSnapshot(HashCode hash, ClasspathEntry classpathEntry) {
         final Map<String, HashCode> hashes = Maps.newHashMap();
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
 
         try {
-            jarArchive.contents.visit(new JarVisitor(accumulator, hashes));
+            classpathEntry.contents.visit(new EntryVisitor(accumulator, hashes));
         } catch (Exception e) {
-            accumulator.fullRebuildNeeded("jar file " + jarArchive.file.getName() + " could not be analyzed. See the debug log for more details");
+            accumulator.fullRebuildNeeded("classpath entry" + classpathEntry.file + " could not be analyzed. See the debug log for more details");
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Could not analyze jar file " + jarArchive.file.getName(), e);
+                LOGGER.debug("Could not analyze classpath entry " + classpathEntry.file, e);
             }
         }
 
-        return new JarSnapshot(new JarSnapshotData(hash, hashes, accumulator.getAnalysis()));
+        return new ClasspathEntrySnapshot(new ClasspathEntrySnapshotData(hash, hashes, accumulator.getAnalysis()));
     }
 
-    private class JarVisitor implements FileVisitor {
+    private class EntryVisitor implements FileVisitor {
         private final ClassDependentsAccumulator accumulator;
         private final Map<String, HashCode> hashes;
 
-        public JarVisitor(ClassDependentsAccumulator accumulator, Map<String, HashCode> hashes) {
+        public EntryVisitor(ClassDependentsAccumulator accumulator, Map<String, HashCode> hashes) {
             this.accumulator = accumulator;
             this.hashes = hashes;
         }

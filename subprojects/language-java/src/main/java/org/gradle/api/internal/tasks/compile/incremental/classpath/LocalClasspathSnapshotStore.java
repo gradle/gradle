@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.cache.PersistentIndexedCache;
 
-//Keeps the jar classpath snapshot of given compile task
-public class LocalJarClasspathSnapshotStore {
+//Keeps the classpath snapshot of given compile task
+public class LocalClasspathSnapshotStore {
     private final String taskPath;
-    private final PersistentIndexedCache<String, JarClasspathSnapshotData> cache;
+    private final PersistentIndexedCache<String, ClasspathSnapshotData> cache;
 
-    public LocalJarClasspathSnapshotStore(String taskPath, PersistentIndexedCache<String, JarClasspathSnapshotData> cache) {
+    public LocalClasspathSnapshotStore(String taskPath, PersistentIndexedCache<String, ClasspathSnapshotData> cache) {
         this.taskPath = taskPath;
         this.cache = cache;
     }
 
-    public void put(JarClasspathSnapshotData data) {
+    public void put(ClasspathSnapshotData data) {
         cache.put(taskPath, data);
     }
 
-    public JarClasspathSnapshotData get() {
+    public ClasspathSnapshotData get() {
         return cache.get(taskPath);
     }
 }

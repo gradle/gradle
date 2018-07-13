@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
@@ -28,36 +28,36 @@ import org.gradle.internal.hash.HashCode;
 import java.io.File;
 import java.util.Map;
 
-public class DefaultJarSnapshotCache implements JarSnapshotCache {
+public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache {
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final MinimalPersistentCache<HashCode, JarSnapshotData> cache;
+    private final MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData> cache;
 
-    public DefaultJarSnapshotCache(FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, JarSnapshotData> persistentCache) {
+    public DefaultClasspathEntrySnapshotCache(FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-        cache = new MinimalPersistentCache<HashCode, JarSnapshotData>(persistentCache);
+        cache = new MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData>(persistentCache);
     }
 
     @Override
-    public Map<File, JarSnapshot> getJarSnapshots(final Map<File, HashCode> jarHashes) {
-        Map<File, JarSnapshot> out = Maps.newLinkedHashMap();
-        for (Map.Entry<File, HashCode> entry : jarHashes.entrySet()) {
-            JarSnapshotData snapshotData = cache.get(entry.getValue());
+    public Map<File, ClasspathEntrySnapshot> getClasspathEntrySnapshots(final Map<File, HashCode> fileHashes) {
+        Map<File, ClasspathEntrySnapshot> out = Maps.newLinkedHashMap();
+        for (Map.Entry<File, HashCode> entry : fileHashes.entrySet()) {
+            ClasspathEntrySnapshotData snapshotData = cache.get(entry.getValue());
             if (snapshotData == null) {
-                throw new IllegalStateException("No Jar snapshot data available for " + entry.getKey() + " with hash " + entry.getValue() + ".");
+                throw new IllegalStateException("No incremental compile snapshot data available for " + entry.getKey() + " with hash " + entry.getValue() + ".");
             }
-            JarSnapshot snapshot = new JarSnapshot(snapshotData);
+            ClasspathEntrySnapshot snapshot = new ClasspathEntrySnapshot(snapshotData);
             out.put(entry.getKey(), snapshot);
         }
         return out;
     }
 
     @Override
-    public JarSnapshot get(File key, final Factory<JarSnapshot> factory) {
+    public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
         Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(key);
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         fileSnapshot.appendToHasher(hasher);
-        return new JarSnapshot(cache.get(hasher.hash(), new Factory<JarSnapshotData>() {
-            public JarSnapshotData create() {
+        return new ClasspathEntrySnapshot(cache.get(hasher.hash(), new Factory<ClasspathEntrySnapshotData>() {
+            public ClasspathEntrySnapshotData create() {
                 return factory.create().getData();
             }
         }));

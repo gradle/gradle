@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-public interface JarSnapshotter {
-    JarSnapshot createSnapshot(JarArchive jarArchive);
+public interface ClasspathEntrySnapshotter {
+    ClasspathEntrySnapshot createSnapshot(ClasspathEntry classpathEntry);
 }
