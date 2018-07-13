@@ -20,6 +20,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Map;
 
+/**
+ * A repository whose properties can be queried, for reporting purposes.
+ */
 public interface ExposableRepository extends ResolutionAwareRepository {
 
     Map<RepositoryPropertyType, ?> getProperties();
