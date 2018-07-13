@@ -221,13 +221,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     private static class RepositoryImpl implements Repository {
 
-        private final String repositoryId;
+        private final String id;
         private final String type;
         private final String name;
         private final Map<String, ?> properties;
 
-        private RepositoryImpl(String repositoryId, RepositoryType type, String name, Map<String, ?> properties) {
-            this.repositoryId = repositoryId;
+        private RepositoryImpl(String id, RepositoryType type, String name, Map<String, ?> properties) {
+            this.id = id;
             this.type = type.displayName;
             this.name = name;
             this.properties = ImmutableMap.copyOf(properties);
@@ -247,8 +247,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         @Override
-        public String getRepositoryId() {
-            return repositoryId;
+        public String getId() {
+            return id;
         }
 
         @Override

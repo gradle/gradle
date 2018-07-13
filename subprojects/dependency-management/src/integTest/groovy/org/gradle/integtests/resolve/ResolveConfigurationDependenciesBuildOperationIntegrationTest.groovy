@@ -540,7 +540,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        def repos = op.details.repositories.collectEntries { repo -> [(repo.repositoryId): repo.name] } as Map<String, String>
+        def repos = op.details.repositories.collectEntries { repo -> [(repo.id): repo.name] } as Map<String, String>
         op.result.resolvedDependenciesCount == 5
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 5

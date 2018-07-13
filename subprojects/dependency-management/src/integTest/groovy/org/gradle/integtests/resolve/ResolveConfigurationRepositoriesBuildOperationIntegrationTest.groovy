@@ -99,7 +99,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         with(repos[0]) {
             name == 'maven'
             type == 'maven'
-            repositoryId
+            id
             properties == [
                 URL: getMavenHttpRepo().uri.toString(),
                 'Artifact URLs': [],
@@ -141,7 +141,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         with(repos[0]) {
             name == 'maven'
             type == 'maven'
-            repositoryId
+            id
             properties == [
                 URL: getMavenHttpRepo().uri.toString(),
                 'Artifact URLs': [],
@@ -188,7 +188,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         ops.size() == 3
         def opsWithRepos = ops.details.findAll { it.containsKey('repositories') }
         opsWithRepos.size() == 3
-        opsWithRepos.repositories.repositoryId.unique(false).size() == 1
+        opsWithRepos.repositories.getId.unique(false).size() == 1
     }
 
     def "repositories shared across projects are stable"() {
@@ -245,7 +245,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         with(repo) {
             name == 'custom repo'
             type == 'maven'
-            repositoryId
+            id
             properties.size() == 5
             properties.URL == 'http://foo.com'
             properties.'Artifact URLs'.size() == 1
@@ -295,7 +295,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         with(repo) {
             name == 'custom repo'
             type == 'ivy'
-            repositoryId
+            id
             properties.size() == 8
             properties.URL == 'http://myCompanyBucket/ivyrepo'
             properties.Layout == 'Pattern'
@@ -338,7 +338,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         with(repo) {
             name == 'custom repo'
             type == 'flat_dir'
-            repositoryId
+            id
             properties.size() == 1
             properties.Dirs.sort() == [file('lib1').absolutePath, file('lib2').absolutePath].sort()
         }
@@ -475,9 +475,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static Map<String, ?> stripRepoId(Map<String, ?> map) {
-        assert map.containsKey('repositoryId')
+        assert map.containsKey('id')
         def returnedMap = Maps.newHashMap(map)
-        returnedMap.remove('repositoryId')
+        returnedMap.remove('id')
         returnedMap
     }
 
