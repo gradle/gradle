@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class FeatureUsage {
         this.stackTraceRoot = null;
     }
 
+    @VisibleForTesting
     FeatureUsage(FeatureUsage usage, Exception stackTraceRoot) {
         if (stackTraceRoot == null) {
             throw new NullPointerException("stackTraceRoot");
