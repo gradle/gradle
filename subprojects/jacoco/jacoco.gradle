@@ -22,7 +22,6 @@ dependencies {
     compile project(':plugins')
     compile project(':reporting')
     testCompile testLibraries.jsoup
-    testCompile project(':internalIntegTesting')
 }
 
 gradlebuildJava {

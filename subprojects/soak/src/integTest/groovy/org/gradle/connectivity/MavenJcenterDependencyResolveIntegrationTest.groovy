@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.maven
+package org.gradle.connectivity
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
-
 @Requires(TestPrecondition.ONLINE)
-class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenJcenterDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "resolves a minimal dependency from bintray's jcenter"() {
         given:
         buildFile << """
 repositories {
-    ${jcenterRepository()}
+    jcenter()
     jcenter { // just test this syntax works.
         name = "otherJcenter"
     }

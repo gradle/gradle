@@ -18,13 +18,15 @@ package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepositoryDefinition
 
 @SelfType(AbstractIntegrationSpec)
 trait ReplaceExternalRepoTrait {
     def addReplaceJcenterAction() {
         executer.beforeExecute {
-            buildFile.replace('jcenter()', jcenterRepositoryDefinition())
+            if (buildFile.exists()) {
+                buildFile.replace('jcenter()', jcenterRepositoryDefinition())
+            }
         }
     }
 }
