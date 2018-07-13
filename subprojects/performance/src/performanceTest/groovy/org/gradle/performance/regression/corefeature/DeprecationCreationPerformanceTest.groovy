@@ -16,8 +16,13 @@
 
 package org.gradle.performance.regression.corefeature;
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest;
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.junit.Ignore;
 
+/**
+ * TODO RG: unignore when we have a baseline available
+ */
+@Ignore
 class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "create many deprecation warnings"() {
