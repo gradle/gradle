@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 
 public interface TaskScopedCompileCaches {
     ClassAnalysisCache getClassAnalysisCache();
-    ClasspathEntrySnapshotCache getJarSnapshotCache();
-    LocalClasspathSnapshotStore getLocalJarClasspathSnapshotStore();
+    ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
+    LocalClasspathSnapshotStore getLocalClasspathSnapshotStore();
     LocalClassSetAnalysisStore getLocalClassSetAnalysisStore();
     AnnotationProcessorPathStore getAnnotationProcessorPathStore();
 }

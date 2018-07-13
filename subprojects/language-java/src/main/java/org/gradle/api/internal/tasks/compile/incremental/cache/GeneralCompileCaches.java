@@ -33,7 +33,7 @@ public interface GeneralCompileCaches {
 
     ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
 
-    LocalClasspathSnapshotStore createLocalJarClasspathSnapshotStore(String taskPath);
+    LocalClasspathSnapshotStore createLocalClasspathSnapshotStore(String taskPath);
 
     LocalClassSetAnalysisStore createLocalClassSetAnalysisStore(String taskPath);
 

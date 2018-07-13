@@ -69,8 +69,8 @@ public class IncrementalCompilerFactory {
         TaskScopedCompileCaches compileCaches = createCompileCaches(taskPath);
         Compiler<JavaCompileSpec> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), compileCaches.getClassAnalysisCache());
-        ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(streamHasher, fileSystemSnapshotter, analyzer, compileCaches.getJarSnapshotCache());
-        ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor), new ClasspathEntryConverter(fileOperations));
+        ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(streamHasher, fileSystemSnapshotter, analyzer, compileCaches.getClasspathEntrySnapshotCache());
+        ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(compileCaches.getLocalClasspathSnapshotStore(), new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor), new ClasspathEntryConverter(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs((FileTreeInternal) sources);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs);
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
@@ -82,7 +82,7 @@ public class IncrementalCompilerFactory {
 
     private TaskScopedCompileCaches createCompileCaches(String path) {
         final LocalClassSetAnalysisStore localClassSetAnalysisStore = generalCompileCaches.createLocalClassSetAnalysisStore(path);
-        final LocalClasspathSnapshotStore localClasspathSnapshotStore = generalCompileCaches.createLocalJarClasspathSnapshotStore(path);
+        final LocalClasspathSnapshotStore localClasspathSnapshotStore = generalCompileCaches.createLocalClasspathSnapshotStore(path);
         final AnnotationProcessorPathStore annotationProcessorPathStore = generalCompileCaches.createAnnotationProcessorPathStore(path);
         return new TaskScopedCompileCaches() {
             @Override
@@ -91,12 +91,12 @@ public class IncrementalCompilerFactory {
             }
 
             @Override
-            public ClasspathEntrySnapshotCache getJarSnapshotCache() {
+            public ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache() {
                 return generalCompileCaches.getClasspathEntrySnapshotCache();
             }
 
             @Override
-            public LocalClasspathSnapshotStore getLocalJarClasspathSnapshotStore() {
+            public LocalClasspathSnapshotStore getLocalClasspathSnapshotStore() {
                 return localClasspathSnapshotStore;
             }
 

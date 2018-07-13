@@ -76,7 +76,7 @@ public class IncrementalCompilerDecorator {
             LOG.info("Full recompilation is required because no previous class analysis is available.");
             return rebuildAllCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache(), compileCaches.getAnnotationProcessorPathStore());
+        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalClasspathSnapshotStore(), compileCaches.getClasspathEntrySnapshotCache(), compileCaches.getAnnotationProcessorPathStore());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, staleClassDetecter, compilationInitializer, classpathSnapshotMaker);
     }
 }

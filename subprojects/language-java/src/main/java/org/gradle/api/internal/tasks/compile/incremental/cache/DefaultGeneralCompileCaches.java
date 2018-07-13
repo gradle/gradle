@@ -101,7 +101,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     }
 
     @Override
-    public LocalClasspathSnapshotStore createLocalJarClasspathSnapshotStore(String taskPath) {
+    public LocalClasspathSnapshotStore createLocalClasspathSnapshotStore(String taskPath) {
         return new LocalClasspathSnapshotStore(taskPath, taskJarCache);
     }
 
