@@ -156,7 +156,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int size() {
         int i = 0;
-        // TODO this will realize all pending elements that may be filter out by the filter#spec, still better than realizing everything
+        // NOTE: There isn't much we can do about collection.matching { } filters as the spec requires a realized element, unless make major changes
         for (Iterator<?> it = iterator(); it.hasNext();) {
             if (accept(it.next())) {
                 ++i;
