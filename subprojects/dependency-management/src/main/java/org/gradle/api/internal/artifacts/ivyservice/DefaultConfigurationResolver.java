@@ -102,6 +102,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final BuildIdentifier currentBuild;
 
+    private List<Repository> resolvedRepositories;
+
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
                                         ResolutionResultsStoreFactory storeFactory,
@@ -203,6 +205,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public List<Repository> getRepositories() {
+        if (resolvedRepositories == null) {
+            resolvedRepositories = computeResolvedRepositories();
+        }
+        return resolvedRepositories;
+    }
+
+    private List<Repository> computeResolvedRepositories() {
         List<Repository> result = new ArrayList<Repository>();
         for (ArtifactRepository repository : repositories) {
             if (repository instanceof ExposableRepository) {
