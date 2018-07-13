@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepositoryDefinition
 
@@ -31,8 +32,9 @@ trait ReplaceExternalRepoTrait {
     def replaceJcenter(File rootDir) {
         rootDir.eachFileRecurse { file ->
             if (file.name == 'build.gradle') {
-                String text = file.text.replace('jcenter()', jcenterRepositoryDefinition())
-                file.text = text
+                file.text = file.text.replace('jcenter()', jcenterRepositoryDefinition())
+            } else if (file.name == 'build.gradle.kts') {
+                file.text = file.text.replace('jcenter()', jcenterRepositoryDefinition(GradleDsl.KOTLIN))
             }
         }
     }
