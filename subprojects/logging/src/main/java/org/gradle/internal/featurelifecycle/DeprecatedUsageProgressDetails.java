@@ -20,11 +20,18 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
-
+/**
+ * A usage of some deprecated API or feature.
+ *
+ * @since 4.10
+ */
 @UsedByScanPlugin
 public interface DeprecatedUsageProgressDetails {
     String getMessage();
+
     String getDetails();
+
     String getAdvice();
+
     List<StackTraceElement> getStackTrace();
 }
