@@ -22,10 +22,17 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterReposito
 
 @SelfType(AbstractIntegrationSpec)
 trait ReplaceExternalRepoTrait {
-    def addReplaceJcenterAction() {
+    def addReplaceJcenterAction(File rootDir = testDirectory) {
         executer.beforeExecute {
-            if (buildFile.exists()) {
-                buildFile.replace('jcenter()', jcenterRepositoryDefinition())
+            replaceJcenter(rootDir)
+        }
+    }
+
+    def replaceJcenter(File rootDir) {
+        rootDir.eachFileRecurse { file ->
+            if (file.name == 'build.gradle') {
+                String text = file.text.replace('jcenter()', jcenterRepositoryDefinition())
+                file.text = text
             }
         }
     }
