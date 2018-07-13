@@ -87,9 +87,9 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeServices {
-        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory wor) {
+        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, asyncWorkTracker, instantiatorFactory);
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorate().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, fileResolver, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, wor);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorate().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, fileResolver, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

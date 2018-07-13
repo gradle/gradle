@@ -96,13 +96,13 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     public boolean hasUncompletedWork(BuildOperationRef operation) {
         lock.lock();
         try {
-            List<AsyncWorkCompletion> workItems = ImmutableList.copyOf(items.get(operation));
-            return CollectionUtils.any(workItems, new Spec<AsyncWorkCompletion>() {
-                @Override
-                public boolean isSatisfiedBy(AsyncWorkCompletion workCompletion) {
-                    return !workCompletion.isComplete();
+            List<AsyncWorkCompletion> workItems = items.get(operation);
+            for (AsyncWorkCompletion workCompletion : workItems) {
+                if (!workCompletion.isComplete()) {
+                    return true;
                 }
-            });
+            }
+            return false;
         } finally {
             lock.unlock();
         }
