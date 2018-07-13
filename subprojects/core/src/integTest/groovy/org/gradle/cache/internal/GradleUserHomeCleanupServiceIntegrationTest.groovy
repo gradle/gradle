@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
-class VersionSpecificCacheAndWrapperDistributionCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 
     def "cleans up unused version-specific cache directories and corresponding distributions"() {
         given:

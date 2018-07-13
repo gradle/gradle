@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -32,8 +31,6 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
@@ -47,7 +44,6 @@ public class VersionSpecificCacheCleanupAction {
     private static final long CLEANUP_TIMEOUT_MILLIS = 10000;
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
-    private final List<Action<? super GradleVersion>> postCleanupActions = new ArrayList<Action<? super GradleVersion>>();
     private final long maxUnusedDaysForReleases;
     private final long maxUnusedDaysForSnapshots;
 
@@ -61,11 +57,6 @@ public class VersionSpecificCacheCleanupAction {
         this.versionSpecificCacheDirectoryScanner = new VersionSpecificCacheDirectoryScanner(cacheBaseDir);
         this.maxUnusedDaysForReleases = maxUnusedDaysForReleases;
         this.maxUnusedDaysForSnapshots = maxUnusedDaysForSnapshots;
-    }
-
-    public VersionSpecificCacheCleanupAction andThen(Action<? super GradleVersion> action) {
-        postCleanupActions.add(action);
-        return this;
     }
 
     public void execute() {
@@ -128,7 +119,6 @@ public class VersionSpecificCacheCleanupAction {
             if (cleanupCondition.isSatisfiedBy(cacheDir)) {
                 try {
                     deleteCacheDir(cacheDir.getDir());
-                    executePostCleanupActions(cacheDir.getVersion());
                 } catch (Exception e) {
                     LOGGER.error("Failed to process/clean up version-specific cache directory: {}", cacheDir.getDir(), e);
                 }
@@ -140,12 +130,6 @@ public class VersionSpecificCacheCleanupAction {
     private void deleteCacheDir(File cacheDir) throws IOException {
         LOGGER.debug("Deleting version-specific cache directory at {}", cacheDir);
         FileUtils.deleteDirectory(cacheDir);
-    }
-
-    private void executePostCleanupActions(GradleVersion version) {
-        for (Action<? super GradleVersion> action : postCleanupActions) {
-            action.execute(version);
-        }
     }
 
     private static class CleanupCondition implements Spec<VersionSpecificCacheDirectory> {
