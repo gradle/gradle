@@ -454,9 +454,10 @@ class Interpreter(val host: Host) {
                                 targetScopeClassPath + it
                             } ?: targetScopeClassPath
 
-                        withTemporaryScriptFileFor(originalScriptPath, scriptText) { scriptFile ->
+                        scriptSource.withLocationAwareExceptionHandling {
 
-                            scriptSource.withLocationAwareExceptionHandling {
+                            withTemporaryScriptFileFor(originalScriptPath, scriptText) { scriptFile ->
+
                                 ResidualProgramCompiler(
                                     outputDir,
                                     compilationClassPath,
