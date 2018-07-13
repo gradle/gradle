@@ -397,11 +397,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
                 doLast {
                     def threadGroup = Thread.currentThread().threadGroup
-                    println "threads: \${threadGroup.activeCount()} groups: \${threadGroup.activeGroupCount()}"
+                    println "\\nWorker Executor threads:"
                     def threads = new Thread[threadGroup.activeCount()]
                     threadGroup.enumerate(threads) 
                     def executorThreads = threads.findAll { it.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
-                    threads.each { println it }
+                    executorThreads.each { println it }
+                    
+                    // Ensure that we don't leave any threads lying around
                     assert executorThreads.size() <= ${maxWorkers}
                 }
             }

@@ -31,6 +31,7 @@ import org.gradle.internal.work.AbstractConditionalExecution;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueue;
+import org.gradle.internal.work.DefaultConditionalExecutionQueue;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
@@ -130,6 +131,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
+    /**
+     * Wait for any outstanding work to complete.  Note that if there is uncompleted work associated
+     * with the current build operation, we'll also temporarily expand the thread pool of the execution queue.
+     * This is to avoid a thread starvation scenario (see {@link DefaultConditionalExecutionQueue#expand(boolean)}
+     * for further details).
+     */
     @Override
     public void await() throws WorkerExecutionException {
         BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
