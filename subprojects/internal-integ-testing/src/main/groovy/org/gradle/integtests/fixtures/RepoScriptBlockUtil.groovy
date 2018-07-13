@@ -76,6 +76,7 @@ class RepoScriptBlockUtil {
             repositories.maven { MavenArtifactRepository repo ->
                 repo.name = name
                 repo.url = mirrorUrl
+                System.out.println("name: ${repo.name}, url: ${repo.url}")
             }
         }
     }
