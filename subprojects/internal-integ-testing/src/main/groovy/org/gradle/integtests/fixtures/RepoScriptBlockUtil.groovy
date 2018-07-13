@@ -17,6 +17,8 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
@@ -69,6 +71,13 @@ class RepoScriptBlockUtil {
                 """
             }
         }
+
+        void configure(RepositoryHandler repositories) {
+            repositories.maven { MavenArtifactRepository repo ->
+                repo.name = name
+                repo.url = mirrorUrl
+            }
+        }
     }
 
     private RepoScriptBlockUtil() {
@@ -80,6 +89,10 @@ class RepoScriptBlockUtil {
                 ${jcenterRepositoryDefinition(dsl)}
             }
         """
+    }
+
+    static void configureJcenter(RepositoryHandler repositories) {
+        MirroredRepository.JCENTER.configure(repositories)
     }
 
     static String mavenCentralRepository(GradleDsl dsl = GROOVY) {

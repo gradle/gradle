@@ -19,11 +19,13 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ReplaceExternalRepoTrait
 
-class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
+class AbstractInitIntegrationSpec extends AbstractIntegrationSpec implements ReplaceExternalRepoTrait {
 
     def setup() {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+        addReplaceJcenterAction()
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {

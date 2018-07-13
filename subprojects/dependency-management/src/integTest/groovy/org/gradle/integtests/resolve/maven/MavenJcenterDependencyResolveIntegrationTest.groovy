@@ -19,13 +19,15 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
+
 @Requires(TestPrecondition.ONLINE)
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "resolves a minimal dependency from bintray's jcenter"() {
         given:
         buildFile << """
 repositories {
-    jcenter()
+    ${jcenterRepository()}
     jcenter { // just test this syntax works.
         name = "otherJcenter"
     }
