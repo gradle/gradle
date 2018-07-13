@@ -37,7 +37,6 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
     javaScript.googleApis()
 }
 
@@ -59,8 +58,7 @@ configurations {
 }
 
 dependencies {
-    asciidoctor "org.asciidoctor:asciidoctorj:1.5.5"
-    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.1.9"
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.2.0"
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
@@ -88,8 +86,6 @@ gradlebuildJava {
 ext {
     srcDocsDir = file('src/docs')
     releaseFeaturesFile = file("$srcDocsDir/release/release-features.txt")
-    userguideSrcDir = new File(srcDocsDir, 'userguide')
-    asciidocSanitizeStylesheet = file("$srcDocsDir/stylesheets/asciidocSanitize.xsl")
     asciidocOutputDir = new File(buildDir, 'asciidoc/userguide')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
@@ -103,13 +99,13 @@ ext {
 
 ext.outputs = [:]
 outputs.samples = files(samplesDir) {
-    builtBy 'samples'
+    builtBy 'samplesAsciidoctor'
 }
 outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocsAsciidoctor'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'asciidoctor', 'dslHtml', 'releaseNotes'
+    builtBy 'javadocAll', 'userManual', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -275,11 +271,8 @@ task distDocsAsciidoctor(type: AsciidoctorTask) {
     backends 'html5'
 }
 
-asciidoctorj {
-    version = '1.5.5'
-}
-
 asciidoctor {
+    dependsOn defaultImports
     // FIXME: asciidoctor should re-run when CSS/JS or samples change
     sourceDir = new File(srcDocsDir, 'usermanual')
     sources { include '*.adoc' }
@@ -324,6 +317,7 @@ asciidoctor {
 asciidoctor.dependsOn(samplesAsciidoctor)
 
 task userManualPdf(type: AsciidoctorTask) {
+    dependsOn defaultImports
     sourceDir = new File(srcDocsDir, 'usermanual')
     sources { include 'userguide_single.adoc' }
     outputDir = pdfDir
