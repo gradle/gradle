@@ -40,6 +40,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.DefaultIvyPatternRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.GradleRepositoryLayout;
@@ -62,6 +64,8 @@ import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
+import org.gradle.caching.internal.BuildCacheHasherHelper;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.authentication.AuthenticationInternal;
@@ -85,7 +89,7 @@ import java.util.Set;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ExposableRepository, PublicationAwareRepository {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private Object baseUrl;
     private AbstractRepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
@@ -104,6 +108,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
+    private Map<RepositoryPropertyType, ?> properties;
+    private String id;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -154,6 +160,16 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        return new RepositoryDetails(
+            getId(),
+            getName(),
+            getType(),
+            getProperties()
+        );
     }
 
     protected IvyResolver createRealResolver() {
@@ -255,8 +271,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return metaDataProvider;
     }
 
-    @Override
-    public Map<RepositoryPropertyType, ?> getProperties() {
+    private Map<RepositoryPropertyType, ?> getProperties() {
+        if (properties == null) {
+            properties = computeProperties();
+        }
+        return properties;
+    }
+
+    private Map<RepositoryPropertyType, ?> computeProperties() {
         ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
         builder.put(RepositoryPropertyType.URL, getUrl().toASCIIString());
 
@@ -304,9 +326,24 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return builder.build();
     }
 
-    @Override
-    public RepositoryType getType() {
+    private String getId() {
+        if (id == null) {
+            id = computeId();
+        }
+        return id;
+    }
+
+    RepositoryType getType() {
         return RepositoryType.IVY;
+    }
+
+    private String computeId() {
+        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
+        cacheHasher.putString(getClass().getName());
+        cacheHasher.putString(getName());
+        cacheHasher.putString(getType().name());
+        BuildCacheHasherHelper.hash(getProperties(), cacheHasher);
+        return cacheHasher.hash().toString();
     }
 
     /**

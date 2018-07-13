@@ -31,6 +31,7 @@ public class RepositoryChainModuleSource implements ModuleSource {
         return "{repo: " + repositoryId + ", source: " + delegate + "}";
     }
 
+    @Override
     public String getRepositoryId() {
         return repositoryId;
     }

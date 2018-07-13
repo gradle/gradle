@@ -17,14 +17,26 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.internal.component.model.ModuleSource;
 
+import javax.annotation.Nullable;
+
 class MavenUniqueSnapshotModuleSource implements ModuleSource {
+
+    private final String repositoryId;
     private final String timestamp;
 
-    MavenUniqueSnapshotModuleSource(String timestamp) {
+    MavenUniqueSnapshotModuleSource(String repositoryId, String timestamp) {
+        this.repositoryId = repositoryId;
         this.timestamp = timestamp;
     }
 
     public String getTimestamp() {
         return timestamp;
     }
+
+    @Nullable
+    @Override
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
 }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
@@ -91,6 +92,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     @Override
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return delegate.getComponentMetadataSupplier();
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        return delegate.getDetails();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {

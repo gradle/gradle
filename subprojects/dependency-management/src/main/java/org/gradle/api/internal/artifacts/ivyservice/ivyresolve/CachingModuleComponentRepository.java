@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
@@ -60,6 +61,7 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.Map;
@@ -134,6 +136,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     @Override
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return delegate.getComponentMetadataSupplier();
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        return delegate.getDetails();
     }
 
     private ModuleIdentifier getCacheKey(ModuleComponentSelector requested) {
@@ -472,6 +479,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         public ModuleSource getDelegate() {
             return delegate;
+        }
+
+        @Nullable
+        @Override
+        public String getRepositoryId() {
+            return delegate.getRepositoryId();
         }
     }
 }

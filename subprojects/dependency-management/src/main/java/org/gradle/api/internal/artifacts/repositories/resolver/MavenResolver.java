@@ -30,10 +30,10 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -59,13 +59,16 @@ import java.util.regex.Pattern;
 public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata> {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
+    private final String repositoryId;
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
-    public MavenResolver(String name, URI rootUri,
+    public MavenResolver(String name,
+                         String repositoryId,
+                         URI rootUri,
                          RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -74,7 +77,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          MetadataArtifactProvider metadataArtifactProvider,
                          MavenMetadataLoader mavenMetadataLoader,
                          @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory, Instantiator injector) {
+                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
+                         Instantiator injector) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -86,6 +90,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             componentMetadataSupplierFactory,
             versionListerFactory,
             injector);
+        this.repositoryId = repositoryId;
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();
@@ -176,7 +181,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
             String timestamp = mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return new MavenUniqueSnapshotModuleSource(timestamp);
+            return new MavenUniqueSnapshotModuleSource(repositoryId, timestamp);
         }
         return null;
     }
@@ -187,7 +192,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (!matcher.matches()) {
             return null;
         }
-        return new MavenUniqueSnapshotModuleSource(matcher.group(1));
+        return new MavenUniqueSnapshotModuleSource(repositoryId, matcher.group(1));
     }
 
     private MavenMetadata parseMavenMetadata(ExternalResourceName metadataLocation) {

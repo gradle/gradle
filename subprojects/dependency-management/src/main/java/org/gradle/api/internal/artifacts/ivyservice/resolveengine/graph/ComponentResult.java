@@ -64,6 +64,11 @@ public interface ComponentResult {
      */
     AttributeContainer getVariantAttributes();
 
+    /**
+     * <p>Returns the identifier of the repository used to source this component.
+     *
+     * @return the identifier of the repository used to source this component , or {@code null} if this component was not resolved from a repository.
+     */
     @Nullable
     String getRepositoryId();
 }

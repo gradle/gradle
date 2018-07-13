@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Map;
 
-/**
- * A repository whose properties can be queried, for reporting purposes.
- */
-public interface ExposableRepository extends ResolutionAwareRepository {
+public class RepositoryDetails {
 
-    Map<RepositoryPropertyType, ?> getProperties();
+    public final String id;
+    public final String name;
+    public final RepositoryType type;
+    public final Map<RepositoryPropertyType, ?> properties;
 
-    RepositoryType getType();
+    public RepositoryDetails(String id, String name, RepositoryType type, Map<RepositoryPropertyType, ?> properties) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.properties = properties;
+    }
 
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    enum RepositoryPropertyType {
+    public enum RepositoryPropertyType {
 
         URL,
         DIRS,
@@ -46,7 +50,7 @@ public interface ExposableRepository extends ResolutionAwareRepository {
     }
 
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    enum RepositoryType {
+    public enum RepositoryType {
 
         MAVEN,
         IVY,

@@ -47,15 +47,6 @@ public interface ResolvedComponentResult {
     ComponentIdentifier getId();
 
     /**
-     * <p>Returns the identifier of the repository used to source this component.
-     *
-     * @return the identifier of the repository used to source this component , or {@code null} if this component was not resolved from a repository.
-     * @since 4.10
-     */
-    @Nullable
-    String getRepositoryId();
-
-    /**
      * <p>Returns the dependencies of this component. Includes resolved and unresolved dependencies (if any).
      *
      * <p>The elements of the returned collection are declared as {@link DependencyResult}, however the dependency instances will also implement one of the

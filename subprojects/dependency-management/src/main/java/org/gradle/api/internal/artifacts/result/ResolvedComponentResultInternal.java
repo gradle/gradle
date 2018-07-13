@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.artifacts.result;
+
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
 
 /**
- * A memento for any resolution state that is relevant to locate the artifacts of a resolved module version.
- *
- * Implementations must retain as little state as possible and must be able to be serialized. Also note that
- * a given instance may be passed to multiple repository instances.
+ * Represents a component instance in the resolved dependency graph. Provides some basic identity and dependency information about the component.
  */
-public interface ModuleSource extends Serializable {
+public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
+
 
     /**
-     * Returns the unique id of the repository used as module source.
+     * <p>Returns the identifier of the repository used to source this component.
+     *
+     * @return the identifier of the repository used to source this component , or {@code null} if this component was not resolved from a repository.
      */
     @Nullable
     String getRepositoryId();

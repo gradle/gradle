@@ -27,6 +27,8 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -39,6 +41,8 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
+import org.gradle.caching.internal.BuildCacheHasherHelper;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
@@ -59,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ExposableRepository, PublicationAwareRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
@@ -68,6 +72,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
+    private Map<RepositoryPropertyType, ?> properties;
+    private String id;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
@@ -125,6 +131,52 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     @Override
+    public RepositoryDetails getDetails() {
+        return new RepositoryDetails(
+            getId(),
+            getName(),
+            getType(),
+            getProperties()
+        );
+    }
+
+    private Map<RepositoryPropertyType, ?> getProperties() {
+        if (properties == null) {
+            properties = computeProperties();
+        }
+        return properties;
+    }
+
+    private Map<RepositoryPropertyType, ?> computeProperties() {
+        return ImmutableMap.of(RepositoryPropertyType.DIRS, CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath();
+            }
+        }));
+    }
+
+    private String getId() {
+        if (id == null) {
+            id = computeId();
+        }
+        return id;
+    }
+
+    private RepositoryType getType() {
+        return RepositoryType.FLAT_DIR;
+    }
+
+    private String computeId() {
+        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
+        cacheHasher.putString(getClass().getName());
+        cacheHasher.putString(getName());
+        cacheHasher.putString(getType().name());
+        BuildCacheHasherHelper.hash(getProperties(), cacheHasher);
+        return cacheHasher.hash().toString();
+    }
+
+    @Override
     protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new NoOpRepositoryResourceAccessor();
     }
@@ -148,21 +200,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private ImmutableMetadataSources createMetadataSources() {
         MetadataSource artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
         return new DefaultImmutableMetadataSources(Collections.<MetadataSource<?>>singletonList(artifactMetadataSource));
-    }
-
-    @Override
-    public Map<RepositoryPropertyType, ?> getProperties() {
-        return ImmutableMap.of(RepositoryPropertyType.DIRS, CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath();
-            }
-        }));
-    }
-
-    @Override
-    public RepositoryType getType() {
-        return RepositoryType.FLAT_DIR;
     }
 
     private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {

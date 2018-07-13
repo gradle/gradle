@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -57,9 +56,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDep
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
-import org.gradle.api.internal.artifacts.repositories.ExposableRepository;
-import org.gradle.api.internal.artifacts.repositories.ExposableRepository.RepositoryPropertyType;
-import org.gradle.api.internal.artifacts.repositories.ExposableRepository.RepositoryType;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -214,15 +212,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private List<Repository> computeResolvedRepositories() {
         List<Repository> result = new ArrayList<Repository>();
         for (ArtifactRepository repository : repositories) {
-            if (repository instanceof ExposableRepository) {
-                ExposableRepository exposableRepository = (ExposableRepository) repository;
-                ConfiguredModuleComponentRepository resolver = exposableRepository.createResolver();
-                result.add(RepositoryImpl.from(
-                    resolver.getId(),
-                    exposableRepository.getType(),
-                    resolver.getName(),
-                    exposableRepository.getProperties()
-                ));
+            if (repository instanceof ResolutionAwareRepository) {
+                ResolutionAwareRepository resolutionAwareRepository = (ResolutionAwareRepository) repository;
+                result.add(RepositoryImpl.from(resolutionAwareRepository.getDetails()));
             }
         }
         return result;
@@ -235,22 +227,22 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         private final String name;
         private final Map<String, ?> properties;
 
-        private RepositoryImpl(String id, RepositoryType type, String name, Map<String, ?> properties) {
+        private RepositoryImpl(String id, String type, String name, Map<String, ?> properties) {
             this.id = id;
-            this.type = type.name();
+            this.type = type;
             this.name = name;
             this.properties = ImmutableMap.copyOf(properties);
         }
 
-        private static RepositoryImpl from(String repositoryId, RepositoryType type, String name, Map<RepositoryPropertyType, ?> properties) {
-            Map<String, Object> props = new HashMap<String, Object>(properties.size());
-            for (Map.Entry<RepositoryPropertyType, ?> entry : properties.entrySet()) {
+        private static RepositoryImpl from(RepositoryDetails repositoryDetails) {
+            Map<String, Object> props = new HashMap<String, Object>(repositoryDetails.properties.size());
+            for (Map.Entry<RepositoryPropertyType, ?> entry : repositoryDetails.properties.entrySet()) {
                 props.put(entry.getKey().name(), entry.getValue());
             }
             return new RepositoryImpl(
-                repositoryId,
-                type,
-                name,
+                repositoryDetails.id,
+                repositoryDetails.type.name(),
+                repositoryDetails.name,
                 props
             );
         }

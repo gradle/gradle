@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
@@ -81,6 +82,11 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     public ConfiguredModuleComponentRepository createResolver() {
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies, and don't have repository details available.");
     }
 
     public ModuleVersionPublisher createPublisher() {
