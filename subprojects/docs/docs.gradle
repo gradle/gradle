@@ -271,12 +271,19 @@ task distDocsAsciidoctor(type: AsciidoctorTask) {
     backends 'html5'
 }
 
+asciidoctorj {
+    noDefaultRepositories = true
+    version = '1.5.7'
+}
+
 asciidoctor {
     dependsOn defaultImports
     // FIXME: asciidoctor should re-run when CSS/JS or samples change
     sourceDir = new File(srcDocsDir, 'usermanual')
     sources { include '*.adoc' }
     outputDir = userguideDir
+    // Verbose mode reports broken links. See asciidoctor/asciidoctor-gradle-plugin#233
+    requires file('src/docs/ruby/verbose-mode.rb')
     separateOutputDirs = false
     options doctype: 'book'
     backends = ['html5']
@@ -325,7 +332,15 @@ task userManualPdf(type: AsciidoctorTask) {
     options doctype: 'book'
     backends 'pdf'
 
-    attributes toc          : 'auto',
+//    extensions {
+//
+//    }
+
+    attributes \
+        lang                : 'en-US',
+        encoding            : 'utf-8',
+        toc                 : 'auto',
+        toclevels           : 3,
         imagesdir           : 'images',
         'source-highlighter': 'coderay',
         'gradle-home-url'   : 'https://gradle.org',

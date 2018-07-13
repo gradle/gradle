@@ -56,7 +56,6 @@ You configure the project layout by configuring the appropriate source set. This
 include::{samples-path}/java/customizedLayout/build.gradle[tag=define-main]
 ----
 
-[[sec:java_source_sets]]
 == Source sets
 
 The plugin adds the following <<building_java_projects.adoc#sec:java_source_sets,source sets>>:
@@ -493,7 +492,6 @@ The `clean` task is an instance of link:{groovy-dsl-path}/org.gradle.api.tasks.D
 Default value: `__buildDir__`
 
 
-[[sec:java_resources]]
 == Resources
 
 The Java plugin uses the link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files>>.
@@ -507,7 +505,6 @@ Default value: `__sourceSet__.resources`. Can set using anything described in <<
 Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<working_with_files.adoc#sec:locating_files,file paths in depth>>.
 
 
-[[sec:compile]]
 == CompileJava
 
 The Java plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] instance for each source set in the project. Some of the most common configuration options are shown below.

@@ -209,7 +209,7 @@ The Groovy plugin also modifies some source set properties:
 [[sec:groovyCompile]]
 == GroovyCompile
 
-The Groovy plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project. The task type extends the `JavaCompile` task (see <<java_plugin.adoc#sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The Groovy plugin adds a link:{groovy-dsl-path}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project. The task type extends the `JavaCompile` task (see <<building_java_projects.adoc#sec:compile, the relevant Java Plugin section>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
 
 .Groovy plugin - GroovyCompile properties
 [%header%autowidth,compact]

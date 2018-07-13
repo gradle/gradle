@@ -663,7 +663,8 @@ Similar to the above, `File` can be any type accepted by link:{groovy-dsl-path}/
 
 ===== Additional annotations used to further qualifying property type annotations
 
-anchor:skip-when-empty[]`link:{javadoc-path}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty]`::
+[#skip-when-empty]
+`link:{javadoc-path}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty]`::
 Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 `link:{javadoc-path}/org/gradle/api/tasks/Optional.html[@Optional]`::
