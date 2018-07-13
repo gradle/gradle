@@ -17,12 +17,7 @@
 package org.gradle.performance.regression.corefeature;
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.junit.Ignore;
 
-/**
- * TODO RG: unignore when we have a baseline available
- */
-@Ignore
 class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "create many deprecation warnings"() {
@@ -31,11 +26,12 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.minimumVersion = '4.9'
-
+        runner.targetVersions = ["4.10-20180713152236+0000"]
         when:
         def result = runner.run()
 
         then:
+
         result.assertCurrentVersionHasNotRegressed()
     }
 }
