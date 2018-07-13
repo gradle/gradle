@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryChangeProcessor;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.internal.file.FileType;
@@ -43,39 +43,39 @@ public class RecompilationSpecProvider {
 
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
-        processJarClasspathChanges(current, previous, spec);
+        processClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec);
         spec.getClassesToProcess().addAll(previous.getAggregatedTypes().getDependentClasses());
         return spec;
     }
 
-    private void processJarClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+    private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(fileOperations, current.getClasspathSnapshot(), previous);
-        Map<File, ClasspathEntrySnapshot> previousCompilationJarSnapshots = previous.getSnapshots();
-        ClasspathSnapshot currentJarSnapshots = current.getClasspathSnapshot();
+        Map<File, ClasspathEntrySnapshot> previousCompilationSnapshots = previous.getSnapshots();
+        ClasspathSnapshot currentSnapshots = current.getClasspathSnapshot();
 
-        Set<File> previousCompilationJars = previousCompilationJarSnapshots.keySet();
-        Set<File> currentCompilationJars = currentJarSnapshots.getEntries();
-        List<Alignment<File>> alignment = Alignment.align(currentCompilationJars.toArray(new File[0]), previousCompilationJars.toArray(new File[0]));
+        Set<File> previousCompilationEntries = previousCompilationSnapshots.keySet();
+        Set<File> currentCompilationEntries = currentSnapshots.getEntries();
+        List<Alignment<File>> alignment = Alignment.align(currentCompilationEntries.toArray(new File[0]), previousCompilationEntries.toArray(new File[0]));
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    classpathEntryChangeProcessor.processChange(FileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "jar", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(FileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
                     break;
                 case removed:
-                    classpathEntryChangeProcessor.processChange(FileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "jar", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(FileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
                     break;
                 case transformed:
                     // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
-                    // 2 jars are reversed in the order of classpath elements, and one class that was shadowing the other is now visible
+                    // 2 entries are reversed in the order of classpath elements, and one class that was shadowing the other is now visible
                     spec.setFullRebuildCause("Classpath has been changed", null);
                     return;
                 case identical:
                     File key = fileAlignment.getPreviousValue();
-                    ClasspathEntrySnapshot previousSnapshot = previousCompilationJarSnapshots.get(key);
-                    ClasspathEntrySnapshot snapshot = currentJarSnapshots.getSnapshot(key);
+                    ClasspathEntrySnapshot previousSnapshot = previousCompilationSnapshots.get(key);
+                    ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
                     if (!snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        classpathEntryChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "jar", FileType.RegularFile, FileType.RegularFile), spec);
+                        classpathEntryChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile), spec);
                     }
                     break;
             }
@@ -84,9 +84,8 @@ public class RecompilationSpecProvider {
 
     private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(previous, sourceToNameConverter);
-        ClassChangeProcessor classChangeProcessor = new ClassChangeProcessor(previous);
         AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor = new AnnotationProcessorChangeProcessor(current, previous);
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, classChangeProcessor, annotationProcessorChangeProcessor);
+        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor);
         current.visitChanges(action);
     }
 
