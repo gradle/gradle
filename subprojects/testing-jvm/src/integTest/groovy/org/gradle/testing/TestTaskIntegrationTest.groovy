@@ -233,7 +233,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         executer.expectDeprecationWarning()
         succeeds("test")
         then:
-        outputContains("The setTestClassesDir(File) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the setTestClassesDirs(FileCollection) method instead.")
+        outputContains("The setTestClassesDir(File) method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the setTestClassesDirs(FileCollection) method instead.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3627")

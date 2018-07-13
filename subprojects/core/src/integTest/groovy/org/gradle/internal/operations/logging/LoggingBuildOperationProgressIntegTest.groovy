@@ -19,6 +19,7 @@ package org.gradle.internal.operations.logging
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
@@ -156,7 +157,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds "help"
 
         then:
-        assertNestedTaskOutputTracked()
+        assertNestedTaskOutputTracked(':buildSrc')
     }
 
     def "captures output from composite builds"() {
@@ -337,14 +338,14 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         then:
-        def progressEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
-        assert progressEvents
-            .findAll { it.details.category != LoggingIncubatingFeatureHandler.name }
+        def progressOutputEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
+        assert progressOutputEvents
+            .findAll { it.details.containsKey('category') && (it.details.category != LoggingIncubatingFeatureHandler.name && it.details.category != LoggingDeprecatedFeatureHandler.name) }
             .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
-    private void assertNestedTaskOutputTracked() {
-        def nestedTaskProgress = operations.only("Execute doLast {} action for :foo").progress
+    private void assertNestedTaskOutputTracked(String projectPath = ':nested') {
+        def nestedTaskProgress = operations.only("Execute doLast {} action for ${projectPath}:foo").progress
         assert nestedTaskProgress.size() == 2
 
         assert nestedTaskProgress[0].details.logLevel == 'QUIET'

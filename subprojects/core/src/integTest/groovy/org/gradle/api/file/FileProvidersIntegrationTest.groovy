@@ -35,8 +35,8 @@ def p = $expr
 
         where:
         expr                       | warning
-        "layout.newDirectoryVar()" | "The ProjectLayout.newDirectoryVar() method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ProjectLayout.directoryProperty() method instead."
-        "layout.newFileVar()"      | "The ProjectLayout.newFileVar() method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ProjectLayout.fileProperty() method instead."
+        "layout.newDirectoryVar()" | "The ProjectLayout.newDirectoryVar() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ProjectLayout.directoryProperty() method instead."
+        "layout.newFileVar()"      | "The ProjectLayout.newFileVar() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ProjectLayout.fileProperty() method instead."
     }
 
     def "can attach a calculated directory to task property"() {

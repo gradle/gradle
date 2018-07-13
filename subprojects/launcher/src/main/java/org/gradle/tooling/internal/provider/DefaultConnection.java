@@ -113,7 +113,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
             UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
         } catch (IllegalArgumentException e) {
             // https://github.com/gradle/gradle/issues/3317
-            DeprecationLogger.nagUserWith(e.getMessage());
+            DeprecationLogger.nagUserWith(e.getMessage(), null, null);
         }
     }
 

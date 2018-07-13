@@ -46,4 +46,15 @@ class FeatureUsageTest extends Specification {
         SimulatedGroovyCallLocation | INDIRECT_CALL   | 'indirectly'   | SimulatedGroovyCallLocation.indirectly()
         SimulatedGroovyCallLocation | INDIRECT_CALL_2 | 'indirectly2'  | SimulatedGroovyCallLocation.indirectly2()
     }
+
+    def "formats messages"() {
+        expect:
+        new FeatureUsage(message, warning, advice, getClass()).formattedMessage() == expected
+
+        where:
+        expected                 | message   | warning   | advice
+        "message"                | "message" | null      | null
+        "message warning"        | "message" | "warning" | null
+        "message warning advice" | "message" | "warning" | "advice"
+    }
 }

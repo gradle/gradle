@@ -16,7 +16,7 @@
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-public class DeferredConfigurableExtensionIntegrationTest extends AbstractIntegrationSpec {
+class DeferredConfigurableExtensionIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         settingsFile << "rootProject.name = 'customProject'"
@@ -87,7 +87,7 @@ apply plugin: CustomPlugin
         then:
         executer.expectDeprecationWarning()
         succeeds('help')
-        outputContains("@DeferredConfigurable has been deprecated and is scheduled to be removed in Gradle 5.0")
+        outputContains("@DeferredConfigurable has been deprecated. This is scheduled to be removed in Gradle 5.0.")
     }
 
     def "configure actions on deferred configurable extension are not applied if extension is not referenced"() {

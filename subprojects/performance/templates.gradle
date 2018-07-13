@@ -80,6 +80,12 @@ tasks.register("createLotsOfTasks", JvmProjectGeneratorTask) {
     numberOfExternalDependencies = 0
 }
 
+tasks.register("generateLotsOfDeprecationWarnings", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
+
 // === Gradle Kotlin DSL ===
 tasks.register("ktsManyProjects", KtsProjectGeneratorTask) {
     projects = 100

@@ -239,7 +239,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds "test"
-        output.contains "The chaining of the $method method has been deprecated and is scheduled to be removed in Gradle 5.0. Use '$method' on TaskInputs directly instead."
+        output.contains "The chaining of the $method method has been deprecated. This is scheduled to be removed in Gradle 5.0. Use '$method' on TaskInputs directly instead."
 
         where:
         method                     | call
@@ -502,7 +502,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
  - No value has been specified for property 'input'."""
     }
 
@@ -528,7 +528,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
  - No value has been specified for property 'input'."""
 
         where:
@@ -561,7 +561,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
  - No value has been specified for property 'output'."""
 
         where:
@@ -595,7 +595,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
  - $type '${file("missing")}' specified for property 'input' does not exist."""
 
         where:
@@ -618,7 +618,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
  - ${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type."""
 
         where:

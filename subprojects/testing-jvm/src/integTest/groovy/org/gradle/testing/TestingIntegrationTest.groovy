@@ -81,13 +81,12 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         executer.withArgument("-Dtest.debug").expectDeprecationWarning()
         then:
         succeeds("test")
-        output.contains("System property 'test.debug' has been deprecated and is scheduled to be removed in Gradle 5.0. Use --debug-jvm to enable remote debugging of tests.")
-
+        output.contains("System property 'test.debug' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --debug-jvm to enable remote debugging of tests.")
         when:
         executer.withArgument("-D:test.debug").expectDeprecationWarning()
         then:
         succeeds("test")
-        output.contains("System property ':test.debug' has been deprecated and is scheduled to be removed in Gradle 5.0. Use --debug-jvm to enable remote debugging of tests.")
+        output.contains("System property ':test.debug' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --debug-jvm to enable remote debugging of tests.")
 
         expect:
         succeeds("test", "--debug-jvm")
@@ -113,14 +112,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         executer.withArgument("-Dtest.single=pattern").expectDeprecationWarning()
         then:
         succeeds("test")
-        output.contains("System property 'test.single' has been deprecated and is scheduled to be removed in Gradle 5.0. Use --tests to filter which tests to run instead.")
+        output.contains("System property 'test.single' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --tests to filter which tests to run instead.")
 
 
         when:
         executer.withArgument("-D:test.single=pattern").expectDeprecationWarning()
         then:
         succeeds("test")
-        output.contains("System property ':test.single' has been deprecated and is scheduled to be removed in Gradle 5.0. Use --tests to filter which tests to run instead.")
+        output.contains("System property ':test.single' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --tests to filter which tests to run instead.")
     }
 
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {

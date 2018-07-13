@@ -186,19 +186,19 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             return getFiles().toArray();
         }
         if (type.isAssignableFrom(File[].class)) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not cast FileCollection to File[]");
+            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File[].");
             Set<File> files = getFiles();
             return files.toArray(new File[0]);
         }
         if (type.isAssignableFrom(File.class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File", "Call getSingleFile() instead");
+            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File.", "Call getSingleFile() instead.");
             return getSingleFile();
         }
         if (type.isAssignableFrom(FileCollection.class)) {
             return this;
         }
         if (type.isAssignableFrom(FileTree.class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to FileTree", "Call getAsFileTree() instead");
+            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to FileTree.", "Call getAsFileTree() instead.");
             return getAsFileTree();
         }
         return DefaultGroovyMethods.asType(this, type);

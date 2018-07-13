@@ -73,7 +73,7 @@ abstract class CheckstyleInvoker {
                 def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
 
                 if (userProvidedConfigLoc) {
-                    SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks")
+                    SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
                 } else if (configDir) {
                     // Use configDir for config_loc
                     property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())

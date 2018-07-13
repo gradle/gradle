@@ -18,7 +18,6 @@ package org.gradle.play.internal.platform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.CollectionUtils;
@@ -63,7 +62,7 @@ public enum PlayMajorVersion {
         VersionNumber versionNumber = VersionNumber.parse(playVersion);
         if (versionNumber.getMajor() == 2) {
             if (versionNumber.getMinor() == 2) {
-                DeprecationLogger.nagUserWith("Play 2.2 support " + LoggingDeprecatedFeatureHandler.getDeprecationMessage() + ". Please upgrade your Play.");
+                DeprecationLogger.nagUserWith("Play 2.2 support has been deprecated.", "Please upgrade your Play.");
             }
             int index = versionNumber.getMinor() - 2;
             if (index < 0 || index >= values().length) {

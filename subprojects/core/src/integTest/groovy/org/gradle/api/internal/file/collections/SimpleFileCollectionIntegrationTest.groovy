@@ -28,6 +28,6 @@ class SimpleFileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "The SimpleFileCollection type has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Project.files() instead."
+        output.contains "The SimpleFileCollection type has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use Project.files() instead."
     }
 }

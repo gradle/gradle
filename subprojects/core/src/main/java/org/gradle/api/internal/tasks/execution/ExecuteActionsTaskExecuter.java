@@ -120,7 +120,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getPath()).name(actionDisplayName);
+                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getIdentityPath().getPath()).name(actionDisplayName);
             }
 
             @Override

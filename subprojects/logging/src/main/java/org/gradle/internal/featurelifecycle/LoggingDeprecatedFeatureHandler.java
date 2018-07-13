@@ -43,39 +43,46 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
+
     private WarningMode warningMode;
+    private DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster;
 
     public LoggingDeprecatedFeatureHandler() {
-        this(DoNothingReporter.INSTANCE);
+        this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter) {
-        this.locationReporter = locationReporter;
-    }
-
-    public void init(UsageLocationReporter reporter, WarningMode warningMode) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
+        this.buildOperationProgressBroadaster = buildOperationProgressBroadaster;
     }
 
     @Override
     public void featureUsed(FeatureUsage usage) {
-        if (messages.add(usage.getMessage())) {
-            usage = usage.withStackTrace();
+        String featureMessage = usage.formattedMessage();
+        if (messages.add(featureMessage)) {
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
                 message.append(SystemProperties.getInstance().getLineSeparator());
             }
-            message.append(usage.getMessage());
-            logTraceIfNecessary(usage.getStack(), message);
+            message.append(featureMessage);
+            appendLogTraceIfNecessary(usage.getStack(), message);
             if (warningMode == WarningMode.All) {
                 LOGGER.warn(message.toString());
             }
         }
+        fireDeprecatedUsageBuildOperationProgress(usage);
+    }
+
+    private void fireDeprecatedUsageBuildOperationProgress(FeatureUsage usage) {
+        if (buildOperationProgressBroadaster != null) {
+            buildOperationProgressBroadaster.progress(usage);
+        }
     }
 
     public void reset() {
+        buildOperationProgressBroadaster = null;
         messages.clear();
     }
 
@@ -88,7 +95,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         }
     }
 
-    private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+    private static void appendLogTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (isTraceLoggingEnabled()) {
@@ -155,13 +162,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     private static String initDeprecationMessage() {
-        String messageBase = "has been deprecated and is scheduled to be removed in";
+        String messageBase = "is scheduled to be removed in";
         String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
 
-        return String.format("%s %s", messageBase, when);
+        return String.format("%s %s.", messageBase, when);
     }
 
-    public static String getDeprecationMessage() {
+    public static String getRemovalDetails() {
         if (deprecationMessage == null) {
             deprecationMessage = initDeprecationMessage();
         }

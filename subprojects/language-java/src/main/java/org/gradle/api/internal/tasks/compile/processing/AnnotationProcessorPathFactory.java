@@ -148,7 +148,8 @@ public class AnnotationProcessorPathFactory {
                         DeprecationLogger.nagUserWith(
                             COMPILE_CLASSPATH_DEPRECATION_MESSAGE +
                             " '" + Joiner.on("' and '").join(processors.keySet()) + "'. " +
-                            "Detecting annotation processors on the compile classpath is deprecated and Gradle 5.0 will ignore them. " +
+                            "Detecting annotation processors on the compile classpath is deprecated.",
+                            "Gradle 5.0 will ignore annotation processors on the compile classpath.",
                             "Please add them to the annotation processor path instead. " +
                             "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them."
                         );

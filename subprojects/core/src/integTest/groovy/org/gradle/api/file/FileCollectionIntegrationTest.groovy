@@ -63,7 +63,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "Do not cast FileCollection to File[]. This behaviour has been deprecated and is scheduled to be removed in Gradle 5.0"
+        output.contains "Do not cast FileCollection to File[]. This has been deprecated and is scheduled to be removed in Gradle 5.0"
     }
 
     def "using 'as' operator with FileTree type produces deprecation warning"() {
@@ -95,7 +95,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "The FileCollection.add() method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileCollection.from() method instead."
+        output.contains "The FileCollection.add() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileCollection.from() method instead."
     }
 
     def "using 'FileTree.add()' produces deprecation warning"() {
@@ -108,7 +108,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "The FileCollection.add() method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileTree.from() method instead."
+        output.contains "The FileCollection.add() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileTree.from() method instead."
     }
 
     def "using 'stopExecutionIfEmpty()' produces deprecation warning"() {
@@ -121,7 +121,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "help"
         failureHasCause "File collection does not contain any files."
-        output.contains "The FileCollection.stopExecutionIfEmpty() method has been deprecated and is scheduled to be removed in Gradle 5.0."
+        output.contains "The FileCollection.stopExecutionIfEmpty() method has been deprecated. This is scheduled to be removed in Gradle 5.0."
     }
 
     def "getting build dependencies from custom file collection produces deprecation warning"() {
@@ -138,6 +138,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "The AbstractFileCollection.getBuildDependencies() method has been deprecated and is scheduled to be removed in Gradle 5.0. CustomFileCollection extends AbstractFileCollection. Don't do that, use Project.files() instead."
+        output.contains "The AbstractFileCollection.getBuildDependencies() method has been deprecated. This is scheduled to be removed in Gradle 5.0. CustomFileCollection extends AbstractFileCollection. Don't do that, use Project.files() instead."
     }
 }
