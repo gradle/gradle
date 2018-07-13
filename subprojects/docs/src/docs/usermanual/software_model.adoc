@@ -515,7 +515,7 @@ Most DSL rules take a closure containing some code to run to configure the subje
 
 [TIP]
 ====
-You can use the <<#model-report,model report>> to determine the type of a particular model element.
+You can use the <<software_model.adoc#model-report,model report>> to determine the type of a particular model element.
 ====
 
 In general, a rule closure may contain arbitrary code, mixed with some type specific DSL syntax.
@@ -640,7 +640,7 @@ include::{samples-path}/modelRules/modelDsl/build.gradle[tag=rule-inputs]
 ----
 NOTE: The code for this example can be found at **`samples/modelRules/modelDsl`** in the ‘-all’ distribution of Gradle.
 
-In the above snippet, the `$.person` construct is an input reference. The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <<#model-report,Model Report>>). It may appear anywhere in the rule that an expression may normally appear. It is not limited to the right hand side of variable assignments.
+In the above snippet, the `$.person` construct is an input reference. The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <<software_model.adoc#model-report,Model Report>>). It may appear anywhere in the rule that an expression may normally appear. It is not limited to the right hand side of variable assignments.
 
 The input element is guaranteed to be fully configured before the rule executes. That is, all of the rules that mutate the element are guaranteed to have been previously executed, leaving the target element in its final, immutable, state.
 

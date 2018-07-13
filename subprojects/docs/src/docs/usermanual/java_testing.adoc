@@ -25,11 +25,11 @@ Testing on the JVM is a rich subject matter. There are many different testing li
 
 It explains:
 
- * Ways to control how the tests are run (<<#sec:test_execution,Test execution>>)
- * How to select specific tests to run (<<#test_filtering,Test filtering>>)
- * What test reports are generated and how to influence the process (<<#test_reporting,Test reporting>>)
- * How Gradle finds tests to run (<<#sec:test_detection,Test detection>>)
- * How to make use of the major frameworks' mechanisms for grouping tests together (<<#test_grouping,Test grouping>>)
+ * Ways to control how the tests are run (<<java_testing.adoc#sec:test_execution,Test execution>>)
+ * How to select specific tests to run (<<java_testing.adoc#test_filtering,Test filtering>>)
+ * What test reports are generated and how to influence the process (<<java_testing.adoc#test_reporting,Test reporting>>)
+ * How Gradle finds tests to run (<<java_testing.adoc#sec:test_detection,Test detection>>)
+ * How to make use of the major frameworks' mechanisms for grouping tests together (<<java_testing.adoc#test_grouping,Test grouping>>)
 
 But first, we look at the basics of JVM testing in Gradle.
 
@@ -64,7 +64,7 @@ include::{samples-path}/userguide/java/basic/build.gradle[tag=java-basic-test-co
 
 The link:{groovy-dsl-path}/org.gradle.api.tasks.testing.Test.html[Test] task has many generic configuration options as well as several framework-specific ones that you can find described in link:{javadoc-path}/org/gradle/api/tasks/testing/junit/JUnitOptions.html[JUnitOptions], link:{javadoc-path}/org/gradle/api/tasks/testing/junitplatform/JUnitPlatformOptions.html[JUnitPlatformOptions] and link:{javadoc-path}/org/gradle/api/tasks/testing/testng/TestNGOptions.html[TestNGOptions]. We cover a significant number of them in the rest of the chapter.
 
-If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in <<#sec:configuring_java_integration_tests,Configuring integration tests>>.
+If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in <<java_testing.adoc#sec:configuring_java_integration_tests,Configuring integration tests>>.
 
 [[sec:test_execution]]
 == Test execution

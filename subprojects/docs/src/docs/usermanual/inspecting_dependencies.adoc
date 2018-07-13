@@ -54,7 +54,7 @@ The dependencies report provides detailed information about the dependencies ava
 [[sec:identifying_reason_dependency_selection]]
 == Identifying which dependency version was selected and why
 
-Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<#sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
+Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<inspecting_dependencies.adoc#sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
 
 Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. In this example the conflicting dependency is represented by `commons-codec:commons-codec`.
 

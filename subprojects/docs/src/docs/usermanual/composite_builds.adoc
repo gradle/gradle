@@ -38,9 +38,9 @@ A build that is included in a composite build is referred to, naturally enough, 
 
 Included builds interact with other builds via `dependency substitution`. If any build in the composite has a dependency that can be satisfied by the included build, then that dependency will be replaced by a project dependency on the included build.
 
-By default, Gradle will attempt to determine the dependencies that can be substituted by an included build. However for more flexibility, it is possible to explicitly declare these substitutions if the default ones determined by Gradle are not correct for the composite. See <<#included_build_declaring_substitutions,Declaring substitutions>>.
+By default, Gradle will attempt to determine the dependencies that can be substituted by an included build. However for more flexibility, it is possible to explicitly declare these substitutions if the default ones determined by Gradle are not correct for the composite. See <<composite_builds.adoc#included_build_declaring_substitutions,Declaring substitutions>>.
 
-As well as consuming outputs via project dependencies, a composite build can directly declare task dependencies on included builds. Included builds are isolated, and are not able to declare task dependencies on the composite build or on other included builds. See <<#included_build_task_dependencies,Depending on tasks in an included build>>.
+As well as consuming outputs via project dependencies, a composite build can directly declare task dependencies on included builds. Included builds are isolated, and are not able to declare task dependencies on the composite build or on other included builds. See <<composite_builds.adoc#included_build_task_dependencies,Depending on tasks in an included build>>.
 
 [[defining_composite_builds]]
 == Defining a composite build
@@ -130,7 +130,7 @@ Tasks from the composite build can be executed from the command line, or from yo
 [NOTE]
 ====
 
-There is not (yet) any means to directly execute a task from an included build via the command line. Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
+There is not (yet) any means to directly execute a task from an included build via the command line. Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<composite_builds.adoc#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
 
 ====
 
@@ -227,7 +227,7 @@ We think composite builds are pretty useful already. However, there are some thi
 
 Limitations of the current implementation include:
 
-* No support for included builds that have publications that don't mirror the project default configuration. See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
+* No support for included builds that have publications that don't mirror the project default configuration. See <<composite_builds.adoc#included_build_substitution_limitations,Cases where composite builds won't work>>.
 * Native builds are not supported. (Binary dependencies are not yet supported for native builds).
 * Substituting plugins only works with the `buildscript` block but not with the `plugins` block.
 

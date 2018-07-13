@@ -69,7 +69,7 @@ There are four main things you can configure in a Maven publication:
  * Standard metadata like `artifactId`, `groupId` and `version`.
  * Other contents of the POM file — via link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)].
 
-You can see all of these in action in the <<#publishing_maven:complete_example,complete publishing example>>. The API documentation for `MavenPublication` has additional code samples.
+You can see all of these in action in the <<publishing_maven.adoc#publishing_maven:complete_example,complete publishing example>>. The API documentation for `MavenPublication` has additional code samples.
 
 [[sec:identity_values_in_the_generated_pom]]
 === Identity values in the generated POM

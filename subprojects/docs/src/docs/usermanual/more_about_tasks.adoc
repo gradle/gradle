@@ -46,12 +46,12 @@ Task's outputs could be found from a previous execution.
 Task did not execute its actions.
 +
 * Task has been explicitly excluded from the command-line. See <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,Excluding tasks from execution>>.
-* Task has an `onlyIf` predicate return false. See <<#sec:using_a_predicate,Using a predicate>>.
+* Task has an `onlyIf` predicate return false. See <<more_about_tasks.adoc#sec:using_a_predicate,Using a predicate>>.
 
 `NO-SOURCE`::
 Task did not need to execute its actions.
 +
-* Task has inputs and outputs, but <<#skip-when-empty,no sources>>. For example, source files are `.java` files for link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile].
+* Task has inputs and outputs, but <<more_about_tasks.adoc#skip-when-empty,no sources>>. For example, source files are `.java` files for link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile].
 
 
 [[sec:defining_tasks]]
@@ -478,7 +478,7 @@ include::{samples-path}/userguide/tutorial/disableTask/disableTask.out[]
 
 An important part of any build tool is the ability to avoid doing work that has already been done. Consider the process of compilation. Once your source files have been compiled, there should be no need to recompile them unless something has changed that affects the output, such as the modification of a source file or the removal of an output file. And compilation can take a significant amount of time, so skipping the step when it’s not needed saves a lot of time.
 
-Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<#sec:task_outcomes,Task outcomes>>.
+Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<more_about_tasks.adoc#sec:task_outcomes,Task outcomes>>.
 
 How does incremental build work? And what does it take to make use of it in your own tasks? Let’s take a look.
 
@@ -582,7 +582,7 @@ For this example, we’re using a custom class to represent the model data. Howe
 +
 The directory where the generated files go. As with input files, there are several annotations for output files and directories. A property representing a single directory requires `@OutputDirectory`. You’ll learn about the others soon.
 
-These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<#sec:how_does_it_work,changes later>>.
+These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<more_about_tasks.adoc#sec:how_does_it_work,changes later>>.
 
 This example is particularly interesting because it works with collections of source files. What happens if only one source file changes? Does the task process all the source files again or just the modified one? That depends on the task implementation. If the latter, then the task itself is incremental, but that’s a different feature to the one we’re discussing here. Gradle does help task implementers with this via its <<custom_tasks.adoc#incremental_tasks,incremental task inputs>> feature.
 
@@ -604,12 +604,12 @@ A single input directory (not file)
 An iterable of input files and directories
 
 `@link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]` — Expected property type: `Iterable&lt;File&gt;`*::
-An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
+An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<more_about_tasks.adoc#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 +
 **Note:** The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible with earlier Gradle versions, classpath properties should also be annotated with `@InputFiles`.
 
 `@link:{javadoc-path}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]` — Expected property type: `Iterable&lt;File&gt;`*::
-An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
+An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<more_about_tasks.adoc#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 +
 The following kinds of changes to the classpath will be ignored:
 +
@@ -667,7 +667,7 @@ anchor:skip-when-empty[]`link:{javadoc-path}/org/gradle/api/tasks/SkipWhenEmpty.
 Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 `link:{javadoc-path}/org/gradle/api/tasks/Optional.html[@Optional]`::
-Used with any of the property type annotations listed in the link:{javadoc-path}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
+Used with any of the property type annotations listed in the link:{javadoc-path}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<more_about_tasks.adoc#sec:task_input_output_validation,the section on validation>> for more details.
 
 `link:{javadoc-path}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]`::
 [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
@@ -687,7 +687,7 @@ As opposed to input properties annotated with `@link:{javadoc-path}/org/gradle/a
 On the other hand, the names and paths of the directories and jar files on the classpath itself are ignored.
 Timestamps and the order of class files and resources inside jar files on a classpath are ignored, too, thus recreating a jar file with different file dates will not make the task out of date.
 
-Runtime classpaths are marked with `@link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]`, and they offer further customization via <<#sec:configure_input_normalization,classpath normalization>>.
+Runtime classpaths are marked with `@link:{javadoc-path}/org/gradle/api/tasks/Classpath.html[Classpath]`, and they offer further customization via <<more_about_tasks.adoc#sec:configure_input_normalization,classpath normalization>>.
 
 Input properties annotated with `@link:{javadoc-path}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]` are considered Java compile classpaths.
 Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> to further filter changes that don't affect the class' ABIs.
@@ -856,7 +856,7 @@ include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/build.g
 include::{samples-path}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiConfiguration.out[]
 ----
 
-The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<#skip-when-empty,`@SkipWhenEmpty`>>.
+The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<more_about_tasks.adoc#skip-when-empty,`@SkipWhenEmpty`>>.
 
 Prior to Gradle 3.0, you had to use the `TaskInputs.source()` and `TaskInputs.sourceDir()` methods to get the same behavior as with `skipWhenEmpty()`. These methods are now deprecated and should not be used with Gradle 3.0 and above.
 

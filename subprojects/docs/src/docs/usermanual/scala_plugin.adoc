@@ -116,7 +116,7 @@ include::{samples-path}/scala/customizedLayout/build.gradle[tag=custom-source-lo
 [[sec:scala_dependency_management]]
 == Dependency management
 
-Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.footnote:[See <<#sec:configure_scala_classpath,Automatic configuration of Scala classpath>>.]
+Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.footnote:[See <<scala_plugin.adoc#sec:configure_scala_classpath,Automatic configuration of Scala classpath>>.]
 
 If Scala is used for production code, the `scala-library` dependency should be added to the `compile` configuration:
 

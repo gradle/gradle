@@ -39,7 +39,7 @@ Every entry in the metadata cache includes a record of the repository that provi
 [[sub:cache_repository_independence]]
 == Repository caches are independent
 
-As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases <<#sub:cache_artifact_reuse,no download will be required>>.
+As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases <<dependency_cache.adoc#sub:cache_artifact_reuse,no download will be required>>.
 
 Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository. Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before. This is a key feature to create builds that are reliable and reproducible in any environment.
 

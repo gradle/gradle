@@ -21,11 +21,11 @@ Gradle provides multiple mechanisms for configuring behavior of Gradle itself an
 When configuring Gradle behavior you can use these methods, listed in order of highest to lowest precedence (first one wins):
 
 * <<command_line_interface.adoc#command_line_interface, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
-* <<#sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file.
-* <<#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `GRADLE_USER_HOME` environment variable.
-* <<#sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
+* <<build_environment.adoc#sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file.
+* <<build_environment.adoc#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `GRADLE_USER_HOME` environment variable.
+* <<build_environment.adoc#sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
 
-Aside from configuring the build environment, you can configure a given project build using <<#sec:project_properties, Project properties>> such as `-PreleaseType=final`.
+Aside from configuring the build environment, you can configure a given project build using <<build_environment.adoc#sec:project_properties, Project properties>> such as `-PreleaseType=final`.
 
 [[sec:gradle_configuration_properties]]
 == Gradle properties
@@ -57,7 +57,7 @@ When set to `true`, Gradle will run the build with remote debugging enabled, lis
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. A reasonable default is used if the setting is unspecified.
 `org.gradle.jvmargs=(JVM arguments)`::
-Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
+Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<build_environment.adoc#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level>>.
 `org.gradle.parallel=(true,false)`::
@@ -238,7 +238,7 @@ include::{samples-path}/userguide/tutorial/configureTaskUsingProjectProperty/con
 [[sec:accessing_the_web_via_a_proxy]]
 == Accessing the web through a HTTP proxy
 
-Configuring an HTTP or HTTPS proxy (for downloading dependencies, for example) is done via standard JVM system properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`. Alternatively, the properties can be <<#sec:gradle_configuration_properties,specified in gradle.properties>>.
+Configuring an HTTP or HTTPS proxy (for downloading dependencies, for example) is done via standard JVM system properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`. Alternatively, the properties can be <<build_environment.adoc#sec:gradle_configuration_properties,specified in gradle.properties>>.
 
 [source,properties]
 .Configuring an HTTP proxy using `gradle.properties`

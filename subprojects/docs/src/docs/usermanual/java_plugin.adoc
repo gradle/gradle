@@ -564,7 +564,7 @@ Incremental annotation processing will be deactivated if a custom `executable` o
 
 ==== Making an annotation processor incremental
 
-Please first have a look at <<#sec:incremental_compile,incremental Java compilation>>, as incremental annotation processing builds on top of it.
+Please first have a look at <<java_plugin.adoc#sec:incremental_compile,incremental Java compilation>>, as incremental annotation processing builds on top of it.
 
 Gradle supports incremental compilation for two common categories of annotation processors: "isolating" and "aggregating".
 Please consult the information below to decide which category fits your processor.

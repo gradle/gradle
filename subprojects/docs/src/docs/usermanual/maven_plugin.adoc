@@ -50,7 +50,7 @@ The Maven plugin defines the following tasks:
 `install` — type: link:{groovy-dsl-path}/org.gradle.api.tasks.Upload.html[Upload]::
 _Depends on_: All tasks that build the associated archives.
 +
-Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see <<#sub:installing_to_the_local_repository,Installing to the local repository>>
+Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see <<maven_plugin.adoc#sub:installing_to_the_local_repository,Installing to the local repository>>
 
 
 [[sec:maven_dependency_management]]
@@ -67,7 +67,7 @@ The Maven plugin defines the following convention properties:
 The directory where the generated POMs are written to. _Default value_: `__${project.buildDir}__/poms`
 
 `conf2ScopeMappings` — type: `link:{javadoc-path}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer]`::
-Instructions for mapping Gradle configurations to Maven scopes. See <<#sub:dependency_mapping,Dependency mapping>>.
+Instructions for mapping Gradle configurations to Maven scopes. See <<maven_plugin.adoc#sub:dependency_mapping,Dependency mapping>>.
 
 These properties are provided by a link:{groovy-dsl-path}/org.gradle.api.plugins.MavenPluginConvention.html[MavenPluginConvention] convention object.
 
@@ -112,7 +112,7 @@ include::{samples-path}/userguide/artifacts/maven/build.gradle[tag=upload-file]
 
 That is all. Calling the `uploadArchives` task will generate the POM and deploys the artifact and the POM to the specified repository.
 
-There is more work to do if you need support for protocols other than `file`. In this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what protocol you plan to use. The available protocols and the corresponding libraries are listed in <<#wagonLibs,Protocol JARs for Maven deployment>> (those libraries have transitive dependencies which have transitive dependencies).footnote:[It is planned for a future release to provide out-of-the-box support for this] For example, to use the ssh protocol you can do:
+There is more work to do if you need support for protocols other than `file`. In this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what protocol you plan to use. The available protocols and the corresponding libraries are listed in <<maven_plugin.adoc#wagonLibs,Protocol JARs for Maven deployment>> (those libraries have transitive dependencies which have transitive dependencies).footnote:[It is planned for a future release to provide out-of-the-box support for this] For example, to use the ssh protocol you can do:
 
 === Example: Upload of file via SSH
 
@@ -122,7 +122,7 @@ There is more work to do if you need support for protocols other than `file`. In
 include::{samples-path}/userguide/artifacts/maven/build.gradle[tag=upload-with-ssh]
 ----
 
-There are many configuration options for the Maven deployer. The configuration is done via a Groovy builder. All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean elements. To add bean elements to its parent, you use a closure. In the example above _repository_ and _authentication_ are such bean elements. <<#deployerConfig,Configuration elements of Maven deployer>> lists the available bean elements and a link to the Javadoc of the corresponding class. In the Javadoc you can see the possible attributes you can set for a particular element.
+There are many configuration options for the Maven deployer. The configuration is done via a Groovy builder. All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean elements. To add bean elements to its parent, you use a closure. In the example above _repository_ and _authentication_ are such bean elements. <<maven_plugin.adoc#deployerConfig,Configuration elements of Maven deployer>> lists the available bean elements and a link to the Javadoc of the corresponding class. In the Javadoc you can see the possible attributes you can set for a particular element.
 
 In Maven you can define repositories and optionally snapshot repositories. If no snapshot repository is defined, releases and snapshots are both deployed to the `repository` element. Otherwise snapshots are deployed to the `snapshotRepository` element.
 
@@ -247,9 +247,9 @@ Note: `groupId`, `artifactId`, `version`, and `packaging` should always be set d
 include::{samples-path}/maven/pomGeneration/build.gradle[tag=when-configured]
 ----
 
-If you have more than one artifact to publish, things work a little bit differently. See <<#sub:multiple_artifacts_per_project,Multiple artifacts per project>>.
+If you have more than one artifact to publish, things work a little bit differently. See <<maven_plugin.adoc#sub:multiple_artifacts_per_project,Multiple artifacts per project>>.
 
-To customize the settings for the Maven installer (see <<#sub:installing_to_the_local_repository,Installing to the local repository>>), you can do:
+To customize the settings for the Maven installer (see <<maven_plugin.adoc#sub:installing_to_the_local_repository,Installing to the local repository>>), you can do:
 
 === Example: Customization of Maven installer
 

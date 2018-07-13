@@ -45,7 +45,7 @@ By default, Gradle caches dynamic versions and changing modules for 24 hours. Du
 Using a short TTL threshold for dynamic or changing versions may result in longer build times due to the increased number of HTTP(s) calls.
 ====
 
-You can override the default cache modes using <<#sec:controlling_dependency_caching_command_line,command line options>>. You can also <<#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
+You can override the default cache modes using <<troubleshooting_dependency_resolution.adoc#sec:controlling_dependency_caching_command_line,command line options>>. You can also <<troubleshooting_dependency_resolution.adoc#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
 
 [[sec:controlling_dependency_caching_programmatically]]
 == Controlling dependency caching programmatically

@@ -59,7 +59,7 @@ You can run a task and all of its <<tutorial_using_tasks.adoc#sec:task_dependenc
 ❯ gradle myTask
 ----
 
-You can learn about what projects and tasks are available in the <<#sec:command_line_project_reporting, project reporting section>>.
+You can learn about what projects and tasks are available in the <<command_line_interface.adoc#sec:command_line_project_reporting, project reporting section>>.
 
 === Executing tasks in multi-project builds
 In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
@@ -314,10 +314,10 @@ Shows a help message with all available CLI options.
 Prints Gradle, Groovy, Ant, JVM, and operating system version information.
 
 `-S`, `--full-stacktrace`::
-Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec:command_line_logging, logging options>>.
+Print out the full (very verbose) stacktrace for any exceptions. See also <<command_line_interface.adoc#sec:command_line_logging, logging options>>.
 
 `-s`, `--stacktrace`::
-Print out the stacktrace also for user exceptions (e.g. compile error).  See also <<#sec:command_line_logging, logging options>>.
+Print out the stacktrace also for user exceptions (e.g. compile error).  See also <<command_line_interface.adoc#sec:command_line_logging, logging options>>.
 
 `--scan`::
 Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.

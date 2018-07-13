@@ -37,7 +37,7 @@ The link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:de
 
 There are various <<dependency_types.adoc#dependency_types,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
-To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
+To define an module dependency, you add it to a <<dependency_management_for_java_projects.adoc#sec:configurations_java_tutorial,dependency configuration>>:
 
 === Example: Definition of a module dependency
 

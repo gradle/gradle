@@ -160,7 +160,7 @@ include::{samples-path}/userguide/tutorial/lazyDependsOn/lazyDependsOn.out[]
 
 The dependency of `taskX` to `taskY` is declared before `taskY` is defined. This is very important for multi-project builds. Task dependencies are discussed in more detail in <<more_about_tasks.adoc#sec:adding_dependencies_to_tasks,Adding dependencies to a task>>.
 
-Please notice that you can't use <<#sec:shortcut_notations, shortcut notation>> when referring to a task that is not yet defined.
+Please notice that you can't use <<tutorial_using_tasks.adoc#sec:shortcut_notations, shortcut notation>> when referring to a task that is not yet defined.
 
 [[sec:dynamic_tasks]]
 == Dynamic tasks

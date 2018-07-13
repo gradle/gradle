@@ -74,7 +74,7 @@ image::groovyPluginTasks.png[]
 [[sec:groovy_project_layout]]
 == Project layout
 
-The Groovy plugin assumes the project layout shown in <<#groovylayout,Groovy Layout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[Gradle uses the same conventions as introduced by Russel Winder's link:https://gant.github.io/[Gant tool].] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
+The Groovy plugin assumes the project layout shown in <<groovy_plugin.adoc#groovylayout,Groovy Layout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[Gradle uses the same conventions as introduced by Russel Winder's link:https://gant.github.io/[Gant tool].] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
 
 [[groovylayout]]
 include::javaProjectMainLayout.adoc[]

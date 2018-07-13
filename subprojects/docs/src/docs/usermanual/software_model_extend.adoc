@@ -58,7 +58,7 @@ The _public type_ is exposed to build logic.
 [[sec:internal_views]]
 === Internal views
 
-Adding internal views to your model type, you can make some data visible to build logic via a public type, while hiding the rest of the data behind the internal view types. This is covered in a <<#software-model-extend-internal-views,dedicated section>> below.
+Adding internal views to your model type, you can make some data visible to build logic via a public type, while hiding the rest of the data behind the internal view types. This is covered in a <<software_model_extend.adoc#software-model-extend-internal-views,dedicated section>> below.
 
 [[sec:components_all_the_way_down]]
 === Components all the way down

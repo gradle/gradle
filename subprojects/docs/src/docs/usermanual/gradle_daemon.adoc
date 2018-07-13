@@ -64,7 +64,7 @@ to the file `«USER_HOME»/.gradle/gradle.properties`, where `«USER_HOME»` is 
 * `/Users/<username>` (macOS)
 * `/home/<username>` (Linux)
 
-If that file doesn’t exist, just create it using a text editor. You can find details of other ways to disable (and enable) the Daemon in <<#daemon_faq,Daemon FAQ>> further down. That section also contains more detailed information on how the Daemon works.
+If that file doesn’t exist, just create it using a text editor. You can find details of other ways to disable (and enable) the Daemon in <<gradle_daemon.adoc#daemon_faq,Daemon FAQ>> further down. That section also contains more detailed information on how the Daemon works.
 
 Note that having the Daemon enabled, all your builds will take advantage of the speed boost, regardless of the version of Gradle a particular build uses.
 

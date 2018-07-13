@@ -61,7 +61,7 @@ There are four main things you can configure in an Ivy publication:
  * Standard metadata like `module`, `organisation` and `revision`.
  * Other contents of the module descriptor — via link:{groovy-dsl-path}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:descriptor(org.gradle.api.Action)[IvyPublication.descriptor(org.gradle.api.Action)].
 
-You can see all of these in action in the <<#publishing_ivy:example,complete publishing example>>. The API documentation for `IvyPublication` has additional code samples.
+You can see all of these in action in the <<publishing_ivy.adoc#publishing_ivy:example,complete publishing example>>. The API documentation for `IvyPublication` has additional code samples.
 
 [[sec:identity_values_for_the_published_project]]
 === Identity values for the published project

@@ -84,7 +84,7 @@ As before, the shaded boxes represent properties of the source set, which in thi
 
 In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests. You can learn more about this task and related topics in the <<java_testing.adoc#java_testing,Java testing>> chapter.
 
-Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. The alternative approach is to <<#sec:custom_java_source_sets,define a new source set>> for each of your other test types, which is typically done for one or both of the following reasons:
+Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. The alternative approach is to <<building_java_projects.adoc#sec:custom_java_source_sets,define a new source set>> for each of your other test types, which is typically done for one or both of the following reasons:
 
  * You want to keep the tests separate from one another for aesthetics and manageability
  * The different test types require different compilation or runtime classpaths or some other difference in setup
@@ -93,7 +93,7 @@ You can see an example of this approach in the Java testing chapter, which shows
 
 You'll learn more about source sets and the features they provide in:
 
- * <<#sec:custom_java_source_set_paths,Customizing file and directory locations>>
+ * <<building_java_projects.adoc#sec:custom_java_source_set_paths,Customizing file and directory locations>>
  * <<java_testing.adoc#sec:configuring_java_integration_tests,Configuring Java integration tests>>
 
 [[sec:java_dependency_management_overview]]
@@ -141,7 +141,7 @@ Be aware that the <<java_library_plugin.adoc#java_library_plugin,Java Library Pl
 [NOTE]
 .Why no `compile` configuration?
 ====
-The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated — although it won't be going away any time soon — because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in <<#sec:building_java_libraries,Building Java libraries>>.
+The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated — although it won't be going away any time soon — because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in <<building_java_projects.adoc#sec:building_java_libraries,Building Java libraries>>.
 ====
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
@@ -222,7 +222,7 @@ Defines which language version of Java your source files should be treated as.
 `targetCompatibility`::
 Defines the minimum JVM version your code should run on, i.e. it determines the version of byte code the compiler generates.
 
-If you need or want more than one compilation task for any reason, you can either <<#sec:custom_java_source_sets,create a new source set>> or simply define a new task of type link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]. We look at setting up a new source set next.
+If you need or want more than one compilation task for any reason, you can either <<building_java_projects.adoc#sec:custom_java_source_sets,create a new source set>> or simply define a new task of type link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]. We look at setting up a new source set next.
 
 [[sec:java_cross_compilation]]
 === Compiling and testing Java 6/7
@@ -313,7 +313,7 @@ Alongside providing automatic compilation of unit tests in _src/test/java_, the 
  * Fine-grained control over how the tests are run
  * The opportunity to create your own test execution and test reporting tasks
 
-You do _not_ get a `Test` task for every source set you declare, since not every source set represents tests! That's why you typically need to <<#sec:custom_java_source_sets,create your own `Test` tasks>> for things like integration and acceptance tests if they can't be included with the `test` source set.
+You do _not_ get a `Test` task for every source set you declare, since not every source set represents tests! That's why you typically need to <<building_java_projects.adoc#sec:custom_java_source_sets,create your own `Test` tasks>> for things like integration and acceptance tests if they can't be included with the `test` source set.
 
 As there is a lot to cover when it comes to testing, the topic has its <<java_testing.adoc#java_testing,own chapter>> in which we look at:
 

@@ -32,7 +32,7 @@ The API has two parts to it:
  * Specifying which files and directories to process
  * Specifying what to do with them
 
-The <<#sec:locating_files,File paths in depth>> section covers the first of these in detail, while subsequent sections, like <<#sec:copying_files,File copying in depth>>, cover the second. To begin with, we'll show you examples of the most common scenarios that users encounter.
+The <<working_with_files.adoc#sec:locating_files,File paths in depth>> section covers the first of these in detail, while subsequent sections, like <<working_with_files.adoc#sec:copying_files,File copying in depth>>, cover the second. To begin with, we'll show you examples of the most common scenarios that users encounter.
 
 [[sec:copying_single_file_example]]
 == Copying a single file
@@ -49,7 +49,7 @@ include::{samples-path}/userguide/files/copy/build.gradle[tag=copy-single-file-e
 
 The link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[file()] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:from(java.lang.Object++[]++)[Copy.from(java.lang.Object...)] and which directory to copy it to using link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:into(java.lang.Object)[Copy.into(java.lang.Object)].
 
-You can even use the path directly without the `file()` method, as explained early in the section <<#sec:copying_files,File copying in depth>>:
+You can even use the path directly without the `file()` method, as explained early in the section <<working_with_files.adoc#sec:copying_files,File copying in depth>>:
 
 === Example: Using implicit string paths
 
@@ -84,7 +84,7 @@ You can extend the previous examples to multiple files very easily by providing 
 include::{samples-path}/userguide/files/copy/build.gradle[tag=copy-multiple-files-example]
 ----
 
-Two files are now copied into the archive directory. You can also use multiple `from()` statements to do the same thing, as shown in the first example of the section <<#sec:copying_files, File copying in depth>>.
+Two files are now copied into the archive directory. You can also use multiple `from()` statements to do the same thing, as shown in the first example of the section <<working_with_files.adoc#sec:copying_files, File copying in depth>>.
 
 Now consider another example: what if you want to copy all the PDFs in a directory without having to specify each one? To do this, attach inclusion and/or exclusion patterns to the copy specification. Here we use a string pattern to include PDFs only:
 
@@ -116,7 +116,7 @@ This task has the following effect:
 .The effect of a deep filter on copying
 image::copy-with-deep-filter-example.png[]
 
-One thing to bear in mind is that a deep filter like this has the side effect of copying the directory structure below `reports` as well as the files. If you just want to copy the files without the directory structure, you need to use an explicit `fileTree(_dir_) { _includes_ }.files` expression. We talk more about the difference between file trees and file collections in the <<#sec:file_trees,File trees>> section.
+One thing to bear in mind is that a deep filter like this has the side effect of copying the directory structure below `reports` as well as the files. If you just want to copy the files without the directory structure, you need to use an explicit `fileTree(_dir_) { _includes_ }.files` expression. We talk more about the difference between file trees and file collections in the <<working_with_files.adoc#sec:file_trees,File trees>> section.
 
 This is just one of the variations in behavior you're likely to come across when dealing with file operations in Gradle builds. Fortunately, Gradle provides elegant solutions to almost all those use cases. Read the _in-depth_ sections later in the chapter for more detail on how the file operations work in Gradle and what options you have for configuring them.
 
@@ -164,7 +164,7 @@ The simplest case involves archiving the entire contents of a directory, which t
 include::{samples-path}/userguide/files/copy/build.gradle[tag=create-archive-example]
 ----
 
-Notice how we specify the destination and name of the archive instead of an `into()`: both are required. You often won't see them explicitly set, because most projects apply the <<base_plugin.adoc#base_plugin,Base Plugin>>. It provides some conventional values for those properties. The next example demonstrates this and you can learn more about the conventions in the <<#sec:archive_naming,archive naming>> section.
+Notice how we specify the destination and name of the archive instead of an `into()`: both are required. You often won't see them explicitly set, because most projects apply the <<base_plugin.adoc#base_plugin,Base Plugin>>. It provides some conventional values for those properties. The next example demonstrates this and you can learn more about the conventions in the <<working_with_files.adoc#sec:archive_naming,archive naming>> section.
 
 Each type of archive has its own task type, the most common ones being link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Tar.html[Tar] and link:{groovy-dsl-path}/org.gradle.api.tasks.bundling.Jar.html[Jar]. They all share most of the configuration options of `Copy`, including filtering and renaming.
 
@@ -377,7 +377,7 @@ This method is very flexible and allows you to pass multiple strings, `File` ins
 You can even pass in tasks as arguments if they have <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>.
 Learn about all the supported argument types in the reference guide.
 
-As with the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
+As with the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<working_with_files.adoc#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
 
 === Example: Creating a file collection
 
@@ -517,14 +517,14 @@ Here are some simple examples of creating archive-based file trees:
 include::{samples-path}/userguide/files/fileTrees/build.gradle[tag=archive-trees]
 ----
 
-You can see a practical example of extracting an archive file <<#sec:unpacking_archives_example,in among the common scenarios>> we cover.
+You can see a practical example of extracting an archive file <<working_with_files.adoc#sec:unpacking_archives_example,in among the common scenarios>> we cover.
 
 [[sec:specifying_multiple_files]]
 === Understanding implicit conversion to file collections
 
 Many objects in Gradle have properties which accept a set of input files.
 For example, the link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task has a `source` property that defines the source files to compile.
-You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the api docs.
+You can set the value of this property using any of the types supported by the <<working_with_files.adoc#sec:file_collections,files()>> method, as mentioned in the api docs.
 This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure.
 
 *This is a feature of specific tasks*!
@@ -542,7 +542,7 @@ Here are some examples of the different types of arguments that the `source` pro
 include::{samples-path}/userguide/files/inputFiles/build.gradle[tag=set-input-files]
 ----
 
-One other thing to note is that properties like `source` have corresponding methods in core Gradle tasks. Those methods follow the convention of _appending_ to collections of values rather than replacing them. Again, this method accepts any of the types supported by the <<#sec:file_collections,files()>> method, as shown here:
+One other thing to note is that properties like `source` have corresponding methods in core Gradle tasks. Those methods follow the convention of _appending_ to collections of values rather than replacing them. Again, this method accepts any of the types supported by the <<working_with_files.adoc#sec:file_collections,files()>> method, as shown here:
 
 === Example: Appending a set of files
 
@@ -597,7 +597,7 @@ Here is an example that uses multiple `from()` specifications, each with a diffe
 include::{samples-path}/userguide/files/copy/build.gradle[tag=copy-task-2]
 ----
 
-Note that the lazy configuration of `into()` is different from a <<#sub:using_child_copy_specifications,child specification>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
+Note that the lazy configuration of `into()` is different from a <<working_with_files.adoc#sub:using_child_copy_specifications,child specification>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
 
 === Filtering files
 
@@ -626,7 +626,7 @@ Note that the inclusions and exclusions in the above example will apply to _all_
 [[sec:renaming_files]]
 === Renaming files
 
-The <<#sec:renaming_files_example,example of how to rename files on copy>> gives you most of the information you need to perform this operation. It demonstrates the two options for renaming:
+The <<working_with_files.adoc#sec:renaming_files_example,example of how to rename files on copy>> gives you most of the information you need to perform this operation. It demonstrates the two options for renaming:
 
  * Using a regular expression
  * Using a closure
@@ -826,7 +826,7 @@ include::{samples-path}/userguide/files/copy/build.gradle[tag=create-archive-exa
 
 In the next section you'll learn about convention-based archive names, which can save you from always configuring the destination directory and archive name.
 
-The full power of copy specifications are available to you when creating archives, which means you can do content filtering, file renaming or anything else that is covered in the previous section. A particularly common requirement is copying files into subdirectories of the archive that don't exist in the source folders, something that can be achieved with `into()` <<#sub:using_child_copy_specifications,child specifications>>.
+The full power of copy specifications are available to you when creating archives, which means you can do content filtering, file renaming or anything else that is covered in the previous section. A particularly common requirement is copying files into subdirectories of the archive that don't exist in the source folders, something that can be achieved with `into()` <<working_with_files.adoc#sub:using_child_copy_specifications,child specifications>>.
 
 Gradle does of course allow you create as many archive tasks as you want, but it's worth bearing in mind that many convention-based plugins provide their own. For example, the Java plugin adds a `jar` task for packaging a project's compiled classes and resources in a JAR. Many of these plugins provide sensible conventions for the names of archives as well as the copy specifications used. We recommend you use these tasks wherever you can, rather than overriding them with your own.
 
@@ -918,7 +918,7 @@ The filename extension for the archive. By default, this is set based on the arc
 [[sec:sharing_content_between_multiple_archives]]
 === Sharing content between multiple archives
 
-<<#sub:sharing_copy_specs,As described earlier>>, you can use the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)] method to share content between archives.
+<<working_with_files.adoc#sub:sharing_copy_specs,As described earlier>>, you can use the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)] method to share content between archives.
 
 [[sec:reproducible_archives]]
 === Reproducible archives

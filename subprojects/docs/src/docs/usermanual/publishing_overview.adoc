@@ -19,9 +19,9 @@ The vast majority of software projects build something that aims to be consumed 
 
 In Gradle, that process looks like this:
 
- 1. Define <<#publishing_overview:what,what>> to publish
- 2. Define <<#publishing_overview:where,where>> to publish it to
- 3. <<#publishing_overview:how,Do>> the publishing
+ 1. Define <<publishing_overview.adoc#publishing_overview:what,what>> to publish
+ 2. Define <<publishing_overview.adoc#publishing_overview:where,where>> to publish it to
+ 3. <<publishing_overview.adoc#publishing_overview:how,Do>> the publishing
 
 Each of the these steps is dependent on the type of repository to which you want to publish artifacts. The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
 
@@ -36,7 +36,7 @@ Let's take a look at those steps in more detail:
 
 [[publishing_overview:what]]
 What to publish::
-Gradle needs to know what files and information to publish so that consumers can use your project. This is typically a combination of <<#glossary:artifact,artifacts>> and metadata that Gradle calls a <<#glossary:publication,publication>>. Exactly what a publication contains depends on the type of repository it's being published to.
+Gradle needs to know what files and information to publish so that consumers can use your project. This is typically a combination of <<publishing_overview.adoc#glossary:artifact,artifacts>> and metadata that Gradle calls a <<publishing_overview.adoc#glossary:publication,publication>>. Exactly what a publication contains depends on the type of repository it's being published to.
 +
 For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies. The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
 
@@ -80,7 +80,7 @@ Once the appropriate plugin has been applied, you can configure the publications
 include::{samples-path}/userguide/publishing/javaLibrary/build.gradle[tag=configure-publishing]
 ----
 
-This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<#glossary:component,component>> of the project.
+This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovy-dsl-path}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<publishing_overview.adoc#glossary:component,component>> of the project.
 
 NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` link:{javadoc-path}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent], while the War Plugin defines `components.web`.
 
@@ -135,7 +135,7 @@ If your build produces a primary artifact that isn't supported by a predefined c
 
 Inter-project dependencies have nothing to do with publishing, but both features typically apply to the same set of artifacts in a Gradle project. So how do you tie them together?
 
-You start by defining a custom artifact and attaching it to a Gradle <<#glossary:configuration,configuration>> of your choice. The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
+You start by defining a custom artifact and attaching it to a Gradle <<publishing_overview.adoc#glossary:configuration,configuration>> of your choice. The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
 
 === Example: Defining a custom artifact for a configuration
 
@@ -266,11 +266,11 @@ Artifacts are typically designed to be used or consumed by users or other projec
 Component::
 Any single version of a <<dependency_management_terminology.adoc#sub:terminology_module,module>>.
 +
-Components are defined by plugins and provide a simple way to define a publication for publishing. They comprise one or more <<#glossary:artifact,artifacts>> as well as the appropriate metadata. For example, the `java` component consists of the production JAR — produced by the `jar` task — and its dependency information.
+Components are defined by plugins and provide a simple way to define a publication for publishing. They comprise one or more <<publishing_overview.adoc#glossary:artifact,artifacts>> as well as the appropriate metadata. For example, the `java` component consists of the production JAR — produced by the `jar` task — and its dependency information.
 
 [[glossary:configuration]]
 Configuration::
-A named collection of <<dependency_management_terminology.adoc#sub:terminology_configuration,dependencies>> or <<#glossary:artifact,artifacts>>.
+A named collection of <<dependency_management_terminology.adoc#sub:terminology_configuration,dependencies>> or <<publishing_overview.adoc#glossary:artifact,artifacts>>.
 +
 Gradle's configurations can be somewhat confusing because they apply to both dependencies and artifacts. The main difference is that dependencies are consumed by the project, while artifacts are produced by it. Even then, the artifacts produced by a project are often consumed as dependencies by other projects.
 +

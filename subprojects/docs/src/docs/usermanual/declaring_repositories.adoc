@@ -35,7 +35,7 @@ To declare JCenter as repository, add this code to your build script:
 include::{samples-path}/userguide/dependencyManagement/declaringRepositories/publicRepository/build.gradle[tag=public-repository]
 ----
 
-Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the link:{groovy-dsl-path}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Alternatively, you can <<declaring_repositories.adoc#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
 [[sec:declaring_custom_repository]]
 == Declaring a custom repository by URL

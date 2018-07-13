@@ -139,7 +139,7 @@ For optimal readability and maintainability follow these rules:
 * Any other configuration logic for a task should be defined as part of link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)] if possible.
 * <<tutorial_using_tasks.adoc#sec:hello_world,Task actions>> should only be declared with the methods link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
 * link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] should be used if the task only defines a single action.
-* A task should <<#sec:improving_task_discoverability,define a group and description>>.
+* A task should <<authoring_maintainable_build_scripts.adoc#sec:improving_task_discoverability,define a group and description>>.
 
 === Example: Definition of tasks following best practices
 
@@ -234,7 +234,7 @@ The following practices should be avoided:
 
 * Explicitly depending on a task from another project via link:{groovy-dsl-path}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object[])[Task.dependsOn(java.lang.Object...)].
 * Setting property values or calling methods on domain objects from another project.
-* Executing another portion of the build with <<#sec:avoiding_use_of_gradlebuild,GradleBuild>>.
+* Executing another portion of the build with <<authoring_maintainable_build_scripts.adoc#sec:avoiding_use_of_gradlebuild,GradleBuild>>.
 * Declaring unnecessary <<declaring_dependencies.adoc#sec:declaring_project_dependency,project dependencies>>.
 
 [[sec:avoiding_passwords_in_plain_text]]

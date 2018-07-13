@@ -206,7 +206,7 @@ You can check if Gradle was able to determine the incremental changes to input f
 [[sec:an_incremental_task_in_action]]
 === An incremental task in action
 
-Given the incremental task implementation <<#taskDefinition,above>>, we can explore the various change scenarios by example. Note that the various mutation tasks ('updateInputs', 'removeInput', etc) are only present for demonstration purposes: these would not normally be part of your build script.
+Given the incremental task implementation <<custom_tasks.adoc#taskDefinition,above>>, we can explore the various change scenarios by example. Note that the various mutation tasks ('updateInputs', 'removeInput', etc) are only present for demonstration purposes: these would not normally be part of your build script.
 
 First, consider the `IncrementalReverseTask` executed against a set of inputs for the first time. In this case, all inputs will be considered “out of date”:
 
@@ -334,7 +334,7 @@ Let's have a look at an example to illustrate the functionality. The custom task
 include::{samples-path}/userguide/tasks/commandLineOption/stringOption/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
 ----
 
-All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
+All options declared for a task can be <<custom_tasks.adoc#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
 
 [[sec:using_task_option_command_line]]
 === Using an option on the command line
@@ -401,7 +401,7 @@ include::{samples-path}/userguide/tasks/commandLineOption/optionValues/buildSrc/
 [[sec:listing_task_options]]
 === Listing command line options
 
-Command line options using the annotations link:{javadoc-path}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadoc-path}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
+Command line options using the annotations link:{javadoc-path}/org/gradle/api/tasks/options/Option.html[Option] and link:{javadoc-path}/org/gradle/api/tasks/options/OptionValues.html[OptionValues] are self-documenting. You will see <<custom_tasks.adoc#sec:declaring_task_option,declared options>> and their <<custom_tasks.adoc#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
 
 === Example: Listing available values for option
 
@@ -430,7 +430,7 @@ The Worker API is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> fea
 
 ====
 
-As can be seen from the discussion of <<#incremental_tasks,incremental tasks>>, the work that a task performs can be viewed as discrete units (i.e. a subset of inputs that are transformed to a certain subset of outputs). Many times, these units of work are highly independent of each other, meaning they can be performed in any order and simply aggregated together to form the overall action of the task. In a single threaded execution, these units of work would execute in sequence, however if we have multiple processors, it would be desirable to perform independent units of work concurrently. By doing so, we can fully utilize the available resources at build time and complete the activity of the task faster.
+As can be seen from the discussion of <<custom_tasks.adoc#incremental_tasks,incremental tasks>>, the work that a task performs can be viewed as discrete units (i.e. a subset of inputs that are transformed to a certain subset of outputs). Many times, these units of work are highly independent of each other, meaning they can be performed in any order and simply aggregated together to form the overall action of the task. In a single threaded execution, these units of work would execute in sequence, however if we have multiple processors, it would be desirable to perform independent units of work concurrently. By doing so, we can fully utilize the available resources at build time and complete the activity of the task faster.
 
 The Worker API provides a mechanism for doing exactly this. It allows for safe, concurrent execution of multiple items of work during a task action. But the benefits of the Worker API are not confined to parallelizing the work of a task. You can also configure a desired level of isolation such that work can be executed in an isolated classloader or even in an isolated process. Furthermore, the benefits extend beyond even the execution of a single task. Using the Worker API, Gradle can begin to execute tasks in parallel by default. In other words, once a task has submitted its work to be executed asynchronously, and has exited the task action, Gradle can then begin the execution of other independent tasks in parallel, even if those tasks are in the same project.
 
@@ -541,4 +541,4 @@ There are different ways to re-use logic between task classes.
 The easiest case is when you can extract the logic you want to share in a separate method or class and then use the extracted piece of code in your tasks.
 For example, the link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task re-uses the logic of the link:{groovy-dsl-path}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method.
 Another option is to add a task dependency on the task which outputs you want to re-use.
-Other options include using <<more_about_tasks.adoc#sec:task_rules,task rules>> or the <<#worker_api,worker API>>.
+Other options include using <<more_about_tasks.adoc#sec:task_rules,task rules>> or the <<custom_tasks.adoc#worker_api,worker API>>.

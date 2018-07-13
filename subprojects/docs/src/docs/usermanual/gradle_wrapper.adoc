@@ -27,9 +27,9 @@ image::wrapper-workflow.png[]
 
 **So how does it work? For a user there are typically three different workflows:**
 
-- You set up a new Gradle project and want to <<#sec:adding_wrapper,add the Wrapper>> to it.
-- You want to <<#sec:using_wrapper,run a project with the Wrapper>> that already provides it.
-- You want to <<#sec:upgrading_wrapper,upgrade the Wrapper>> to a new version of Gradle.
+- You set up a new Gradle project and want to <<gradle_wrapper.adoc#sec:adding_wrapper,add the Wrapper>> to it.
+- You want to <<gradle_wrapper.adoc#sec:using_wrapper,run a project with the Wrapper>> that already provides it.
+- You want to <<gradle_wrapper.adoc#sec:upgrading_wrapper,upgrade the Wrapper>> to a new version of Gradle.
 
 The following sections explain each of these use cases in more detail.
 
@@ -79,7 +79,7 @@ The Gradle distribution type used for the Wrapper. Available options are `bin` a
 The full URL pointing to Gradle distribution ZIP file. Using this option makes `--gradle-version` and `--distribution-type` obsolete as the URL already contains this information. This option is extremely valuable if you want to host the Gradle distribution inside your company’s network.
 
 `--gradle-distribution-sha256-sum`::
-The SHA256 hash sum used for <<#sec:verification,verifying the downloaded Gradle distribution>>.
+The SHA256 hash sum used for <<gradle_wrapper.adoc#sec:verification,verifying the downloaded Gradle distribution>>.
 
 Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version 4.0 and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
@@ -126,7 +126,7 @@ A properties file responsible for configuring the Wrapper runtime behavior e.g. 
 `gradlew`, `gradlew.bat`::
 A shell script and a Windows batch script for executing the build with the Wrapper.
 
-You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to <<#sec:adding_wrapper,generate them>>.
+You can go ahead and <<gradle_wrapper.adoc#sec:using_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to <<gradle_wrapper.adoc#sec:adding_wrapper,generate them>>.
 
 [[sec:using_wrapper]]
 == Using the Gradle Wrapper
@@ -152,7 +152,7 @@ The Wrapper shell script and batch file reside in the root directory of a single
 [[sec:upgrading_wrapper]]
 == Upgrading the Gradle Wrapper
 
-Projects will typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements. One way to upgrade the Gradle version is manually change the `distributionUrl` property in the Wrapper property file. The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>. Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project. As usual you’d commit the changes to the Wrapper files to version control.
+Projects will typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements. One way to upgrade the Gradle version is manually change the `distributionUrl` property in the Wrapper property file. The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<gradle_wrapper.adoc#sec:adding_wrapper,Adding the Gradle Wrapper>>. Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project. As usual you’d commit the changes to the Wrapper files to version control.
 
 Use the Gradle `wrapper` task to generate the wrapper, specifying a version. The default is the current version, which you can check by executing `./gradlew --version`.
 
