@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
-@UsedByScanPlugin
 public interface ModuleComponentRepositoryIdentifier {
     /**
      * A unique identifier for this repository, based on it's type and attributes.
