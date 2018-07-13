@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -34,6 +35,11 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
     @Override
     public Iterable<MutablePhysicalSnapshot> getChildren() {
         return children.values();
+    }
+
+    @Override
+    public HashCode getTreeHash() {
+        return null;
     }
 
     @Override

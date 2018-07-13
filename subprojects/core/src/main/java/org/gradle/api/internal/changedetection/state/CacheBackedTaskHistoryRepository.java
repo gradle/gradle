@@ -28,6 +28,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -398,7 +399,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         private final Map<String, PhysicalSnapshot> snapshots = new HashMap<String, PhysicalSnapshot>();
 
         @Override
-        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+        public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             snapshots.put(directorySnapshot.getAbsolutePath(), directorySnapshot);
             return true;
         }

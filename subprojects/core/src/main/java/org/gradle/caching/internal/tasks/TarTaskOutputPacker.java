@@ -33,6 +33,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -319,7 +320,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         @Override
-        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+        public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             boolean root = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(directorySnapshot);
             assertCorrectType(root, directorySnapshot);

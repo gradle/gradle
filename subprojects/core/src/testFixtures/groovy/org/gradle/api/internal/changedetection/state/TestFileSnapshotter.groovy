@@ -38,7 +38,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
             return new PhysicalFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }
         if (file.isDirectory()) {
-            return new ImmutablePhysicalDirectorySnapshot(file.absolutePath, file.name, [])
+            return new ImmutablePhysicalDirectorySnapshot(file.absolutePath, file.name, [], null)
         }
         return new PhysicalMissingSnapshot(file.absolutePath, file.name)
     }

@@ -124,7 +124,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
     }
 
     private static PhysicalSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
-        walker.walk(new ImmutablePhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), []), patterns)
+        walker.walk(new ImmutablePhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), [], null), patterns)
     }
 }
 
@@ -132,7 +132,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+    boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
         relativePath.addLast(directorySnapshot.name)
         visit(directorySnapshot.absolutePath, relativePath)
         return true

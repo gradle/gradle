@@ -46,7 +46,7 @@ public class FilteredFileSystemSnapshot implements FileSystemSnapshot {
             private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
 
             @Override
-            public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+            public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 relativePath.enter(directorySnapshot);
                 if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePath.getRelativePath(), fileSystem))) {
                     visitor.preVisitDirectory(directorySnapshot);

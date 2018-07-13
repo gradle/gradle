@@ -24,7 +24,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -45,11 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
 import java.util.EnumSet;
-import java.util.List;
 
 @SuppressWarnings("Since15")
 public class MirrorUpdatingDirectoryWalker {
@@ -79,21 +74,17 @@ public class MirrorUpdatingDirectoryWalker {
         return walkDir(rootPath, patterns);
     }
 
-    private ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
+    private PhysicalSnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
         final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
-        final MutableReference<ImmutablePhysicalDirectorySnapshot> result = MutableReference.empty();
+        final MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
-                private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
-                private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
-
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     String name = stringInterner.intern(dir.getFileName().toString());
-                    if (relativePath.isRoot() || isAllowed(dir, name, true, attrs, relativePath)) {
-                        relativePath.enter(name);
-                        levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
+                    if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePathSegmentsTracker())) {
+                        builder.preVisitDirectory(internedAbsolutePath(dir), name);
                         return FileVisitResult.CONTINUE;
                     } else {
                         return FileVisitResult.SKIP_SUBTREE;
@@ -103,7 +94,7 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
                     String name = stringInterner.intern(file.getFileName().toString());
-                    if (isAllowed(file, name, false, attrs, relativePath)) {
+                    if (isAllowed(file, name, false, attrs, builder.getRelativePathSegmentsTracker())) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                         }
@@ -121,7 +112,7 @@ public class MirrorUpdatingDirectoryWalker {
                     // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                     // so we include all the other files apart from the loop.
                     // This way, we include each file only once.
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, relativePath)) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePathSegmentsTracker())) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -135,15 +126,7 @@ public class MirrorUpdatingDirectoryWalker {
                     if (isNotFileSystemLoopException(exc)) {
                         throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
                     }
-                    String directoryPath = relativePath.leave();
-                    List<PhysicalSnapshot> children = levelHolder.removeLast();
-                    ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(internedAbsolutePath(dir), directoryPath, children);
-                    List<PhysicalSnapshot> siblings = levelHolder.peekLast();
-                    if (siblings != null) {
-                        siblings.add(directorySnapshot);
-                    } else {
-                        result.set(directorySnapshot);
-                    }
+                    builder.postVisitDirectory();
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -156,7 +139,7 @@ public class MirrorUpdatingDirectoryWalker {
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
                     PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
-                    levelHolder.peekLast().add(fileSnapshot);
+                    builder.visit(fileSnapshot);
                 }
 
                 private String internedAbsolutePath(Path file) {
@@ -176,7 +159,7 @@ public class MirrorUpdatingDirectoryWalker {
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
-        return result.get();
+        return builder.getResult();
     }
 
     private static class PathBackedFileTreeElement implements FileTreeElement {

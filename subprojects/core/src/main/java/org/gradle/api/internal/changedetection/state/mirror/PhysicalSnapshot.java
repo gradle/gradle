@@ -19,12 +19,21 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
+import java.util.Comparator;
+
 /**
  * A snapshot of a concrete file/directory tree.
  *
  * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
 public interface PhysicalSnapshot extends FileSystemSnapshot {
+
+    Comparator<PhysicalSnapshot> BY_NAME = new Comparator<PhysicalSnapshot>() {
+        @Override
+        public int compare(PhysicalSnapshot o1, PhysicalSnapshot o2) {
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
 
     /**
      * The type of the file.
