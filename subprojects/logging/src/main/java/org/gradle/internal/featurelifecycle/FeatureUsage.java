@@ -50,7 +50,7 @@ public class FeatureUsage {
         this.details = usage.details;
         this.advice = usage.advice;
         this.calledFrom = usage.calledFrom;
-        this.stackTraceRoot= stackTraceRoot;
+        this.stackTraceRoot = stackTraceRoot;
     }
 
     public String getMessage() {
@@ -66,11 +66,11 @@ public class FeatureUsage {
     }
 
     public List<StackTraceElement> getStack() {
-        if(stackTraceRoot == null){
+        if (stackTraceRoot == null) {
             return Collections.emptyList();
         }
 
-        if(stack == null) {
+        if (stack == null) {
             stack = calculateStack(calledFrom, stackTraceRoot);
         }
         return stack;
