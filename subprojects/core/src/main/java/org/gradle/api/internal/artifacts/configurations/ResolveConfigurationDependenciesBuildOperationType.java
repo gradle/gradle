@@ -50,6 +50,9 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         boolean isConfigurationTransitive();
 
+        /**
+         * @since 4.10
+         */
         @Nullable
         List<ArtifactRepository> getRepositories();
 
