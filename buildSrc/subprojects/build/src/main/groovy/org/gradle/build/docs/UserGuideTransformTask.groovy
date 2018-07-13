@@ -44,7 +44,6 @@ import org.w3c.dom.Element
  * Takes the following as input:
  * <ul>
  * <li>A source docbook XML file.</li>
- * <li>A directory containing the snippets for the samples to be included in the document, as produced by {@link ExtractSnippetsTask}.</li>
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  *
@@ -69,10 +68,6 @@ class UserGuideTransformTask extends DefaultTask {
 
     @OutputFile
     File destFile
-
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
-    File snippetsDir
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
@@ -240,12 +235,6 @@ class UserGuideTransformTask extends DefaultTask {
                         programListingElement.setAttribute('language', 'xml')
                     }
                     File srcFile
-                    String snippet = child.'@snippet'
-                    if (snippet) {
-                        srcFile = new File(snippetsDir, "$srcDir/$file-$snippet")
-                    } else {
-                        srcFile = new File(snippetsDir, "$srcDir/$file")
-                    }
                     programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
                     exampleElement.appendChild(programListingElement)
                 } else if (child.name() == 'output') {
