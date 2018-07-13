@@ -157,106 +157,89 @@ Managed properties can be of any scalar type. In addition, properties can also b
 | `String`
 | Yes
 |
-=== Example: a String property
-
+.Example: a String property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-string]
 ----
 
-
 | `File`
 | Yes
 |
-=== Example: a File property
-
+.Example: a File property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-file]
 ----
 
-
 | `Integer`, `Boolean`, `Byte`, `Short`, `Float`, `Long`, `Double`
 | Yes
 |
-=== Example: a Long property
-
+.Example: a Long property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-long]
 ----
 
-
 | `int`, `boolean`, `byte`, `short`, `float`, `long`, `double`
 | No
 |
-=== Example: a boolean property
-
+.Example: a boolean property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-boolean]
 ----
 
-=== Example: an int property
-
+.Example: an int property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-int]
 ----
 
-
 | Another _managed_ type.
 | Only if read/write
 |
-=== Example: a managed property
-
+.Example: a managed property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managed]
 ----
 
-
 | An _enumeration_ type.
 | Yes
 |
-=== Example: an enumeration type property
-
+.Example: an enumeration type property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-enum]
 ----
 
-
 | A `ManagedSet`. A managed set supports the creation of new named model elements, but not their removal.
 | Only if read/write
 |
-=== Example: a managed set
-
+.Example: a managed set
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managedset]
 ----
 
-
 | A `Set` or `List` of scalar types. All classic operations on collections are supported: add, remove, clear...
 | Only if read/write
 |
-=== Example: a scalar collection
-
+.Example: a scalar collection
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle
 ----
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-collection-scalar]
 ----
-
 
 |===
 
@@ -270,7 +253,7 @@ Managed types can be defined out of interfaces or abstract classes and are usual
 There are particular types (language types) supported by the model space and can be generalised as follows:
 
 .Type definitions
-[%header%autowidth,compact]
+[cols="2,5a"]
 |===
 | Type | Definition
 
@@ -282,7 +265,6 @@ There are particular types (language types) supported by the model space and can
 * a `String`
 * a `File`
 * an enumeration type
-
 
 | Scalar Collection
 | A java.util.List or java.util.Set containing one of the scalar types
@@ -298,7 +280,7 @@ There are particular types (language types) supported by the model space and can
 There are various contexts in which these types can be used:
 
 .Model type support
-[%header%autowidth,compact]
+[cols="2,5a"]
 |===
 | Context | Supported types
 
