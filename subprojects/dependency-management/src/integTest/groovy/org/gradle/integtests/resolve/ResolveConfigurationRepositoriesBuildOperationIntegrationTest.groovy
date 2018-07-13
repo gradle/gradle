@@ -53,8 +53,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repos = op.details.repositories
         repos.size() == 1
         stripRepoId(repos[0]) == augmentMapWithProperties(expectedRepo, [
-            'URL': expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
-            'Dirs': [buildFile.parentFile.file('fooDir').absolutePath]
+            URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
+            DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 
         when:
@@ -98,12 +98,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         repos.size() == 1
         with(repos[0]) {
             name == 'maven'
-            type == 'maven'
+            type == 'MAVEN'
             id
             properties == [
                 URL: getMavenHttpRepo().uri.toString(),
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         }
 
@@ -140,12 +140,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         repos.size() == 1
         with(repos[0]) {
             name == 'maven'
-            type == 'maven'
+            type == 'MAVEN'
             id
             properties == [
                 URL: getMavenHttpRepo().uri.toString(),
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         }
 
@@ -244,15 +244,15 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repo = ops.details.repositories[0]
         with(repo) {
             name == 'custom repo'
-            type == 'maven'
+            type == 'MAVEN'
             id
             properties.size() == 5
             properties.URL == 'http://foo.com'
-            properties.'Artifact URLs'.size() == 1
-            properties.'Artifact URLs'[0].path == '/artifacts1'
-            properties.'Metadata sources' == ['gradleMetadata', 'artifact']
-            properties.Authenticated == true
-            properties.'Authentication schemes' == ['DigestAuthentication']
+            properties.ARTIFACT_URLS.size() == 1
+            properties.ARTIFACT_URLS[0].path == '/artifacts1'
+            properties.METADATA_SOURCES == ['gradleMetadata', 'artifact']
+            properties.AUTHENTICATED == true
+            properties.'AUTHENTICATION_SCHEMES' == ['DigestAuthentication']
         }
     }
 
@@ -294,24 +294,24 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repo = ops.details.repositories[0]
         with(repo) {
             name == 'custom repo'
-            type == 'ivy'
+            type == 'IVY'
             id
             properties.size() == 8
             properties.URL == 'http://myCompanyBucket/ivyrepo'
-            properties.Layout == 'Pattern'
-            properties.'M2 compatible' == true
-            properties.'Ivy patterns' == [
+            properties.LAYOUT_TYPE == 'Pattern'
+            properties.M2_COMPATIBLE == true
+            properties.IVY_PATTERNS == [
                 '[module]/[organisation]/[revision]/ivy.xml',
                 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
             ]
-            properties.'Artifact patterns' == [
+            properties.ARTIFACT_PATTERNS == [
                 '[module]/[organisation]/[revision]/[artifact]',
                 '3rd-party/[module]/[organisation]/[revision]/[artifact]',
                 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
             ]
-            properties.'Metadata sources' == ['gradleMetadata', 'ivyDescriptor', 'artifact']
-            properties.Authenticated == true
-            properties.'Authentication schemes' == ['BasicAuthentication']
+            properties.METADATA_SOURCES == ['gradleMetadata', 'ivyDescriptor', 'artifact']
+            properties.AUTHENTICATED == true
+            properties.AUTHENTICATION_SCHEMES == ['BasicAuthentication']
         }
     }
 
@@ -337,10 +337,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repo = ops.details.repositories[0]
         with(repo) {
             name == 'custom repo'
-            type == 'flat_dir'
+            type == 'FLAT_DIR'
             id
             properties.size() == 1
-            properties.Dirs.sort() == [file('lib1').absolutePath, file('lib2').absolutePath].sort()
+            properties.DIRS.sort() == [file('lib1').absolutePath, file('lib2').absolutePath].sort()
         }
     }
 
@@ -351,11 +351,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedMavenRepo() {
         [
             name: 'maven',
-            type: 'maven',
+            type: 'MAVEN',
             properties: [
                 URL: null,
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -367,14 +367,14 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedIvyRepo() {
         [
             name: 'ivy',
-            type: 'ivy',
+            type: 'IVY',
             properties: [
                 URL: null,
-                Layout: 'Gradle',
-                'M2 compatible': false,
-                'Ivy patterns': ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
-                'Artifact patterns': ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'],
-                'Metadata sources': ['ivyDescriptor', 'artifact']
+                LAYOUT_TYPE: 'Gradle',
+                M2_COMPATIBLE: false,
+                IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
+                ARTIFACT_PATTERNS: ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'],
+                METADATA_SOURCES: ['ivyDescriptor', 'artifact']
             ]
         ]
     }
@@ -386,9 +386,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedFlatDirRepo() {
         [
             name: 'flatDir',
-            type: 'flat_dir',
+            type: 'FLAT_DIR',
             properties: [
-                Dirs: null
+                DIRS: null
             ]
         ]
     }
@@ -400,11 +400,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedMavenLocalRepo() {
         [
             name: 'MavenLocal',
-            type: 'maven',
+            type: 'MAVEN',
             properties: [
                 URL: null,
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -413,15 +413,14 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         "repositories { mavenCentral() }"
     }
 
-
     private static Map expectedMavenCentralRepo() {
         [
             name: 'MavenRepo',
-            type: 'maven',
+            type: 'MAVEN',
             properties: [
                 URL: 'https://repo.maven.apache.org/maven2/',
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -433,11 +432,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedJcenterRepo() {
         [
             name: 'BintrayJCenter',
-            type: 'maven',
+            type: 'MAVEN',
             properties: [
                 URL: 'https://jcenter.bintray.com/',
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -449,11 +448,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedGoogleRepo() {
         [
             name: 'Google',
-            type: 'maven',
+            type: 'MAVEN',
             properties: [
                 URL: 'https://dl.google.com/dl/android/maven2/',
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -465,11 +464,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     private static Map expectedGradlePluginPortalRepo() {
         [
             name: 'Gradle Central Plugin Repository',
-            type: 'maven',
+            type: 'MAVEN',
             properties: [
                 URL: 'https://plugins.gradle.org/m2',
-                'Artifact URLs': [],
-                'Metadata sources': ['mavenPom', 'artifact']
+                ARTIFACT_URLS: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         ]
     }
@@ -493,8 +492,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private publishTestPlugin(String path, String id, String coordinates) {
         def pluginBuilder = new PluginBuilder(testDirectory.file(path))
-        def message = "from plugin"
-        def taskName = "pluginTask"
+        def message = 'from plugin'
+        def taskName = 'pluginTask'
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, id)
         pluginBuilder.publishAs(coordinates, mavenRepo, executer)
     }

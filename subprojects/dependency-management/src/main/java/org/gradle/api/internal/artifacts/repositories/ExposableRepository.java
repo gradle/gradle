@@ -32,37 +32,25 @@ public interface ExposableRepository extends ResolutionAwareRepository {
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     enum RepositoryPropertyType {
 
-        URL("URL"),
-        DIRS("Dirs"),
-        ARTIFACT_URLS("Artifact URLs"),
-        IVY_PATTERNS("Ivy patterns"),
-        ARTIFACT_PATTERNS("Artifact patterns"),
-        METADATA_SOURCES("Metadata sources"),
-        AUTHENTICATED("Authenticated"),
-        AUTHENTICATION_SCHEMES("Authentication schemes"),
-        LAYOUT_TYPE("Layout"),
-        M2_COMPATIBLE("M2 compatible");
-
-        public final String displayName;
-
-        RepositoryPropertyType(String displayName) {
-            this.displayName = displayName;
-        }
+        URL,
+        DIRS,
+        ARTIFACT_URLS,
+        IVY_PATTERNS,
+        ARTIFACT_PATTERNS,
+        METADATA_SOURCES,
+        AUTHENTICATED,
+        AUTHENTICATION_SCHEMES,
+        LAYOUT_TYPE,
+        M2_COMPATIBLE;
 
     }
 
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     enum RepositoryType {
 
-        MAVEN("maven"),
-        IVY("ivy"),
-        FLAT_DIR("flat_dir");
-
-        public final String displayName;
-
-        RepositoryType(String displayName) {
-            this.displayName = displayName;
-        }
+        MAVEN,
+        IVY,
+        FLAT_DIR;
 
     }
 

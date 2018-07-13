@@ -228,7 +228,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         private RepositoryImpl(String id, RepositoryType type, String name, Map<String, ?> properties) {
             this.id = id;
-            this.type = type.displayName;
+            this.type = type.name();
             this.name = name;
             this.properties = ImmutableMap.copyOf(properties);
         }
@@ -236,7 +236,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         private static RepositoryImpl from(String repositoryId, RepositoryType type, String name, Map<RepositoryPropertyType, ?> properties) {
             Map<String, Object> props = new HashMap<String, Object>(properties.size());
             for (Map.Entry<RepositoryPropertyType, ?> entry : properties.entrySet()) {
-                props.put(entry.getKey().displayName, entry.getValue());
+                props.put(entry.getKey().name(), entry.getValue());
             }
             return new RepositoryImpl(
                 repositoryId,
