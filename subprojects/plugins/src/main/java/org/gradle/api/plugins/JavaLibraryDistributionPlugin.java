@@ -35,7 +35,7 @@ public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
-        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(JavaLibraryPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
         DefaultDistributionContainer defaultDistributionContainer =
@@ -49,7 +49,7 @@ public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
 
         CopySpec libSpec = project.copySpec();
         libSpec.into("lib");
-        libSpec.from(project.getConfigurations().getByName("runtime"));
+        libSpec.from(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
         childSpec.with(libSpec);
 

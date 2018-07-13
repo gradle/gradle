@@ -41,6 +41,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Java Library Distribution Plugin utilizes Java Library Plugin
+
+The “[Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html)“ is now based on the
+“[Java Library Plugin](userguide/java_library_plugin.html)“ instead of the “[Java Plugin](userguide/java_plugin.html)“.
+Additionally the created distribution will contain the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
+
 <!--
 ### Example breaking change
 -->
