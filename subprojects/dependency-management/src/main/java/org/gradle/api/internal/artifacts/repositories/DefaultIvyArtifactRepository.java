@@ -387,6 +387,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             artifact = false;
         }
 
+        /**
+         * This is used for reporting purposes on build scans.
+         * Changing this means a change of repository for build scans.
+         *
+         * @return a list of implemented metadata sources, as strings.
+         */
         List<String> asList() {
             List<String> list = new ArrayList<String>();
             if (gradleMetadata) {
