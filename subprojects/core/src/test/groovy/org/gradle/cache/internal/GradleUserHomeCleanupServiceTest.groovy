@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -25,14 +26,22 @@ import spock.lang.Subject
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 
-class VersionSpecificCacheAndWrapperDistributionCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class GradleUserHomeCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
 
-    @Subject def cleanupService = new VersionSpecificCacheAndWrapperDistributionCleanupService(userHomeDir)
+    def userHomeDirProvider = Stub(GradleUserHomeDirProvider) {
+        getGradleUserHomeDirectory() >> userHomeDir
+    }
+    def cacheScopeMapping = new DefaultCacheScopeMapping(userHomeDir, null, GradleVersion.current())
+    def usedGradleVersions = Stub(UsedGradleVersions) {
+        getUsedGradleVersions() >> ([] as SortedSet)
+    }
+
+    @Subject def cleanupService = new GradleUserHomeCleanupService(userHomeDirProvider, cacheScopeMapping, usedGradleVersions)
 
     def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
         given:
