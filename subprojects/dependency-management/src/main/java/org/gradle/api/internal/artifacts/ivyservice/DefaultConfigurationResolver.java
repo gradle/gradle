@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -77,6 +77,7 @@ import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,16 +205,18 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public List<Repository> getRepositories() {
-        List<ExposableRepository> exposableRepositories = CollectionUtils.collect(repositories, Transformers.cast(ExposableRepository.class));
-        List<Repository> result = Lists.newArrayListWithExpectedSize(exposableRepositories.size());
-        for (ExposableRepository repository : exposableRepositories) {
-            ConfiguredModuleComponentRepository resolver = repository.createResolver();
-            result.add(RepositoryImpl.from(
-                resolver.getId(),
-                getTypeOf(repository),
-                resolver.getName(),
-                repository.getProperties()
-            ));
+        List<Repository> result = new ArrayList<Repository>();
+        for (ArtifactRepository repository : repositories) {
+            if (repository instanceof ExposableRepository) {
+                ExposableRepository exposableRepository = (ExposableRepository) repository;
+                ConfiguredModuleComponentRepository resolver = exposableRepository.createResolver();
+                result.add(RepositoryImpl.from(
+                    resolver.getId(),
+                    getTypeOf(exposableRepository),
+                    resolver.getName(),
+                    exposableRepository.getProperties()
+                ));
+            }
         }
         return result;
     }
