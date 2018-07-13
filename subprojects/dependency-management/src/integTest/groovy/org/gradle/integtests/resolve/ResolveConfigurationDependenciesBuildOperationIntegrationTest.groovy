@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.Unroll
@@ -575,7 +576,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
             task resolve { doLast { configurations.compile.resolve() } }
         """
-        mavenHttpRepo.module('org.foo', 'good').publish().allowAll()
+        def module = mavenHttpRepo.module('org.foo', 'good').publish()
+        server.authenticationScheme = AuthScheme.BASIC
+        server.allowGetOrHead('/repo/org/foo/good/1.0/good-1.0.pom', 'foo', 'bar', module.pomFile)
+        server.allowGetOrHead('/repo/org/foo/good/1.0/good-1.0.jar', 'foo', 'bar', module.artifactFile)
 
         when:
         succeeds 'resolve'
@@ -584,7 +588,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         def repos = op.details.repositories.collectEntries { repo -> [(repo.id): repo.name] } as Map<String, String>
         def resolvedComponents = op.result.components
-        resolvedComponents.size() == 1
+        resolvedComponents.size() == 2
         repos.find { k, v -> k in resolvedComponents.'org.foo:good:1.0'.repoId }.value == 'withCreds'
     }
 }
