@@ -18,19 +18,17 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ReplaceExternalRepoTrait
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
-class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec implements ReplaceExternalRepoTrait {
+class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @UsesSample('compositeBuilds/basic')
     def "can run app with command-line composite"() {
         when:
-        addReplaceJcenterAction(sample.dir)
         executer.inDirectory(sample.dir.file("my-app")).withArguments("--include-build", "../my-utils")
         succeeds(':run')
 
@@ -42,7 +40,6 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec imple
     @UsesSample('compositeBuilds/basic')
     def "can run app when modified to be a composite"() {
         when:
-        addReplaceJcenterAction(sample.dir)
         executer.inDirectory(sample.dir.file("my-app")).withArguments("--settings-file", "settings-composite.gradle")
         succeeds(':run')
 
@@ -54,7 +51,6 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec imple
     @UsesSample('compositeBuilds/basic')
     def "can run app when included in a composite"() {
         when:
-        addReplaceJcenterAction(sample.dir)
         executer.inDirectory(sample.dir.file("composite"))
         succeeds(':run')
 
@@ -66,7 +62,6 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec imple
     @UsesSample('compositeBuilds/hierarchical-multirepo')
     def "can run app in hierarchical composite"() {
         when:
-        addReplaceJcenterAction(sample.dir)
         executer.inDirectory(sample.dir.file("multirepo-app"))
         succeeds(':run')
 
@@ -78,7 +73,6 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec imple
     @UsesSample('compositeBuilds/hierarchical-multirepo')
     def "can publish locally and remove submodule from hierarchical composite"() {
         when:
-        addReplaceJcenterAction(sample.dir)
         executer.inDirectory(sample.dir.file("multirepo-app"))
         succeeds(':publishDeps')
 

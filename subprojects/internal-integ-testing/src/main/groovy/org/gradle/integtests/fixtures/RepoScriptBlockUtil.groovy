@@ -29,11 +29,10 @@ import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
-
-    private static enum MirroredRepository {
-        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
-        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
-        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
+    static enum MirroredRepository {
+        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven", "jcenter()"),
+        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven", "mavenCentral()"),
+        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven", "google()"),
         LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
         LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
         SPRING_RELEASES('https://maven.springframework.org/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
@@ -46,12 +45,18 @@ class RepoScriptBlockUtil {
         String mirrorUrl
         String name
         String type
+        String declaration
 
         private MirroredRepository(String originalUrl, String mirrorUrl, String type) {
+            this(originalUrl, mirrorUrl, type, null)
+        }
+
+        private MirroredRepository(String originalUrl, String mirrorUrl, String type, String declaration) {
             this.originalUrl = originalUrl
             this.mirrorUrl = mirrorUrl ?: originalUrl
             this.name = mirrorUrl ? name() + "_MIRROR" : name()
             this.type = type
+            this.declaration = declaration
         }
 
         String getRepositoryDefinition(GradleDsl dsl = GROOVY) {

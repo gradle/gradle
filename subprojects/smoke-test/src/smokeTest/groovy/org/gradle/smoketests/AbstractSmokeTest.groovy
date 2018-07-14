@@ -17,16 +17,19 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.integtests.fixtures.ReplaceExternalRepos
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 abstract class AbstractSmokeTest extends Specification {
 
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @Rule
+    final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
     def setup() {
@@ -46,11 +49,19 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     GradleRunner runner(String... tasks) {
-        GradleRunner.create()
+        new RepoMirrorGradleRunner()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
             .withArguments(tasks.toList() + ['-s'])
+    }
+
+    private static class RepoMirrorGradleRunner extends DefaultGradleRunner {
+        @Override
+        DefaultGradleRunner withProjectDir(File projectDir) {
+            ReplaceExternalRepos.replaceExternalRepos(projectDir)
+            super.withProjectDir(projectDir)
+        }
     }
 
     protected void useSample(String sampleDirectory) {
