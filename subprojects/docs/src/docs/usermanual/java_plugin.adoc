@@ -494,7 +494,7 @@ Default value: `__buildDir__`
 
 == Resources
 
-The Java plugin uses the link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files>>.
+The Java plugin uses the link:{groovy-dsl-path}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files,Copying files>>.
 
 === ProcessResources properties
 

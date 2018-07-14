@@ -178,7 +178,7 @@ One of the most common scenarios involves copying files into specified subdirect
 include::{samples-path}/userguide/files/archivesWithBasePlugin/build.gradle[tag=create-archive-with-base-plugin-example]
 ----
 
-As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration. See <<Using child specifications>> for more information on this feature.
+As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration. See <<working_with_files.adoc#sub:using_child_copy_specifications,Using child Copy specifications>> for more information on this feature.
 
 [[sec:unpacking_archives_example]]
 == Unpacking archives

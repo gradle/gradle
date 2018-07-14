@@ -59,11 +59,11 @@ Specifies the Java home for the Gradle build process. The value can be set to ei
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<build_environment.adoc#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
-When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level>>.
+When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see link:https://guides.gradle.org/performance/#parallel_execution[the Gradle performance guide].
 `org.gradle.warning.mode=(all,none,summary)`::
-When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging>> for details.
+When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging,Command-line logging options>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 
@@ -107,7 +107,7 @@ systemProp.gradle.wrapperPassword=mypassword
 The following system properties are available. Note that command-line options take precedence over system properties.
 
 `gradle.wrapperUser=(myuser)`::
-Specify user name to download Gradle distributions from servers using HTTP Basic Authentication. Learn more in <<gradle_wrapper.adoc#sec:authenticated_download,the section on "authenticated wrapper downloads">>.
+Specify user name to download Gradle distributions from servers using HTTP Basic Authentication. Learn more in <<gradle_wrapper.adoc#sec:authenticated_download,Authenticated wrapper downloads>>.
 `gradle.wrapperPassword=(mypassword)`::
 Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`::

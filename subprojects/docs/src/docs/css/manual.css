@@ -803,6 +803,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Links */
 a {
     color: #1DA2BD;
     text-decoration: none;
@@ -812,6 +813,33 @@ a:hover,
 a:focus {
     text-decoration: underline;
 }
+
+#content a {
+    font-style: italic;
+}
+
+#content a[href^='../dsl/'],
+#content a[href^='../javadoc/'] {
+    font-family: monospace;
+    font-style: normal;
+    border-bottom: 1px dotted #1DA2BD;
+}
+
+#content a[href^='../dsl/']:hover,
+#content a[href^='../dsl/']:focus,
+#content a[href^='../javadoc/']:hover,
+#content a[href^='../javadoc/']:focus {
+    text-decoration: none;
+}
+
+#content a.link,
+#content a.anchor,
+#content a[href^='http']
+#content a[href^='#'] {
+    font-style: normal;
+}
+
+/* Copy */
 
 p {
     font-size: 1rem;
@@ -913,6 +941,24 @@ table.tableblock > .title,
     font-family: inherit;
 }
 
+#content .admonitionblock .icon .title {
+    color: transparent;
+    font-size: 3.5em;
+    text-shadow: 0 0 #00c489;
+    opacity: 0.7;
+}
+
+.admonitionblock td.content > .title {
+    font-family: inherit;
+    font-style: normal;
+    font-size: 1.25em;
+    color: #555;
+}
+
+.admonitionblock table tr td {
+    padding: 0;
+}
+
 .imageblock,
 .videoblock {
     /*border: 1px solid #e5e5e5;*/
@@ -961,6 +1007,10 @@ body.book #header > h1 {
 
 #content a.link {
     color: #02303A;
+}
+
+.highlight .com {
+    color: #777;
 }
 
 .listingblock pre.highlightjs > code {
@@ -1401,7 +1451,13 @@ div.screenshot {
       navigates directly to section anchors. It doesn't work if you try
       to apply the padding and margin to the `h` elements directly.
      */
-    .chapter a[name] {
+    h2[id],
+    h3[id],
+    h4[id],
+    h5[id],
+
+    .chapter a[name],
+    .chapter .anchor {
         padding-top: 60px;
         margin-top: -60px;
         text-decoration: none;

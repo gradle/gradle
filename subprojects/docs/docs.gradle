@@ -60,6 +60,7 @@ configurations {
 dependencies {
     asciidoctor "org.gradle:docs-asciidoctor-extensions:0.2.0"
     asciidoctor project.files("src/main/resources")
+    asciidoctor project.files("src/docs/css")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
     userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
@@ -278,9 +279,13 @@ asciidoctorj {
 
 asciidoctor {
     dependsOn defaultImports
-    // FIXME: asciidoctor should re-run when CSS/JS or samples change
-    sourceDir = new File(srcDocsDir, 'usermanual')
-    sources { include '*.adoc' }
+    sourceDir = srcDocsDir
+    sources {
+        include '*.css'
+        include '*.js'
+        include 'samples'
+        include 'usermanual/*.adoc'
+    }
     outputDir = userguideDir
     // Verbose mode reports broken links. See asciidoctor/asciidoctor-gradle-plugin#233
     requires file('src/docs/ruby/verbose-mode.rb')
@@ -302,7 +307,7 @@ asciidoctor {
         // TODO: inline prettify code highlighting instead of CDN
 //        prettifydir           : '???',
         sectanchors           : true,
-        sectlinks             : true,
+        sectlinks             : false,
         linkattrs             : true,
         reproducible          : '',
         lang                  : 'en-US',
@@ -339,7 +344,7 @@ task userManualPdf(type: AsciidoctorTask) {
     attributes \
         lang                : 'en-US',
         encoding            : 'utf-8',
-        toc                 : 'auto',
+        toc                 : 'preamble',
         toclevels           : 3,
         imagesdir           : 'images',
         'source-highlighter': 'coderay',
@@ -351,6 +356,13 @@ task userManualPdf(type: AsciidoctorTask) {
         'groovy-dsl-path'   : "https://gradle.org/$version/dsl",
         'javadoc-path'      : "https://gradle.org/$version/javadoc",
         'samples-path'      : "../../samples"
+
+    doLast {
+        copy {
+            from new File(pdfDir, 'userguide_single.pdf')
+            into new File(pdfDir, 'userguide.pdf')
+        }
+    }
 }
 
 task userManual {

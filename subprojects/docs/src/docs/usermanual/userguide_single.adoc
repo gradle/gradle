@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-= Gradle User Manual
+= Gradle User Manual: Version {gradle-version}
 
 include::licenses.adoc[leveloffset=+1]
 
