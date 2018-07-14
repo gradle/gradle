@@ -24,7 +24,7 @@ import org.gradle.util.GradleVersion;
 
 public class UnsupportedJavaRuntimeException extends GradleException {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
-    public static final String JAVA7_DEPRECATION_WARNING = "Support for running Gradle using Java 7 has been deprecated"; // and is scheduled to be removed in Gradle 5.0. ";
+    public static final String JAVA7_DEPRECATION_WARNING = "Support for running Gradle using Java 7 has been deprecated."; // and is scheduled to be removed in Gradle 5.0. ";
     private static final String JAVA7_DEPRECATION_WARNING_DOC = "Please see " + DOCUMENTATION_REGISTRY.getDocumentationFor("java_plugin", "sec:java_cross_compilation") + " for more details.";
 
     public UnsupportedJavaRuntimeException(String message) {
