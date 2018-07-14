@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 4.9.
 
-Publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be [depended upon by other projects](https://github.com/gradle/gradle/issues/1061) in the same build.
+First, publishing tools get some more love: projects that publish auxiliary publications (e.g. test fixtures) through `maven-publish` and `ivy-publish` can now be [depended upon by other projects](https://github.com/gradle/gradle/issues/1061) in the same build.
 There is also a [new Publishing Overview chapter](userguide/publishing_overview.html) in the user manual and updates throughout the documentation regarding publishing artifacts using Maven and Ivy.
 
 On to the Kotlin DSL, which reaches version 0.18.4 included in this distribution of Gradle.
@@ -21,11 +21,11 @@ We hope you will build happiness with Gradle 4.9, and we look forward to your fe
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 4.9 RC2 quickly by updating your wrapper properties:
+Switch your build to use Gradle 4.9 quickly by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=4.9-rc-2`
+`./gradlew wrapper --gradle-version=4.9`
 
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+Standalone downloads are available at [gradle.org/install](https://gradle.org/install). 
 
 ## New and noteworthy
 
