@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -27,72 +27,72 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 import java.util.Deque;
 import java.util.Set;
 
-public class JarChangeDependentsFinder {
+public class ClasspathChangeDependentsFinder {
 
-    private final JarClasspathSnapshot jarClasspathSnapshot;
+    private final ClasspathSnapshot classpathSnapshot;
     private final PreviousCompilation previousCompilation;
 
-    public JarChangeDependentsFinder(JarClasspathSnapshot jarClasspathSnapshot, PreviousCompilation previousCompilation) {
-        this.jarClasspathSnapshot = jarClasspathSnapshot;
+    public ClasspathChangeDependentsFinder(ClasspathSnapshot classpathSnapshot, PreviousCompilation previousCompilation) {
+        this.classpathSnapshot = classpathSnapshot;
         this.previousCompilation = previousCompilation;
     }
 
-    public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
-        if (jarChangeDetails.isAdded()) {
-            if (jarClasspathSnapshot.isAnyClassDuplicated(jarArchive)) {
-                //at least one of the classes from the new jar is already present in jar classpath
+    public DependentsSet getActualDependents(InputFileDetails entryChangeDetails, ClasspathEntry classpathEntry) {
+        if (entryChangeDetails.isAdded()) {
+            if (classpathSnapshot.isAnyClassDuplicated(classpathEntry)) {
+                //at least one of the classes from the new entry is already present in classpath
                 //to avoid calculation which class gets on the classpath first, rebuild all
-                return DependentsSet.dependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
+                return DependentsSet.dependencyToAll("at least one of the classes of '" + classpathEntry.file + "' is already present in classpath");
             } else {
-                //none of the new classes in the jar are duplicated on classpath, don't rebuild
+                //none of the new classes in the entry are duplicated on classpath, don't rebuild
                 return DependentsSet.empty();
             }
         }
-        final JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
+        final ClasspathEntrySnapshot previous = previousCompilation.getClasspathEntrySnapshot(entryChangeDetails.getFile());
 
         if (previous == null) {
-            //we don't know what classes were dependents of the jar in the previous build
-            //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return DependentsSet.dependencyToAll("missing jar snapshot of '" + jarArchive.file.getName() + "' from previous build");
+            //we don't know what classes were dependents of the entry in the previous build
+            //for example, a class with a constant might have changed into a class without a constant - we need to rebuild everything
+            return DependentsSet.dependencyToAll("missing classpath entry snapshot of '" + classpathEntry.file + "' from previous build");
         }
 
-        if (jarChangeDetails.isRemoved()) {
+        if (entryChangeDetails.isRemoved()) {
             DependentsSet allClasses = previous.getAllClasses();
             if (allClasses.isDependencyToAll()) {
                 return allClasses;
             }
-            //recompile all dependents of all the classes from jar
+            //recompile all dependents of all the classes from this entry
             return previousCompilation.getDependents(allClasses.getDependentClasses(), previous.getAllConstants(allClasses));
         }
 
-        if (jarChangeDetails.isModified()) {
-            final JarSnapshot currentSnapshot = jarClasspathSnapshot.getSnapshot(jarArchive);
+        if (entryChangeDetails.isModified()) {
+            final ClasspathEntrySnapshot currentSnapshot = classpathSnapshot.getSnapshot(classpathEntry);
             AffectedClasses affected = currentSnapshot.getAffectedClassesSince(previous);
             DependentsSet altered = affected.getAltered();
             if (altered.isDependencyToAll()) {
-                //at least one of the classes changed in the jar is a 'dependency-to-all'
+                //at least one of the classes changed in the entry is a 'dependency-to-all'
                 return altered;
             }
 
-            if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
+            if (classpathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
                 //A new duplicate class on classpath. As we don't fancy-handle classpath order right now, we don't know which class is on classpath first.
                 //For safe measure rebuild everything
-                return DependentsSet.dependencyToAll("at least one of the classes of modified jar '" + jarArchive.file.getName() + "' is already present in the classpath");
+                return DependentsSet.dependencyToAll("at least one of the classes of modified classpath entry '" + classpathEntry.file + "' is already present in the classpath");
             }
 
-            //recompile all dependents of the classes changed in the jar
+            //recompile all dependents of the classes changed in the entry
 
             final Set<String> dependentClasses = Sets.newHashSet(altered.getDependentClasses());
             final Deque<String> queue = Lists.newLinkedList(dependentClasses);
             while (!queue.isEmpty()) {
                 final String dependentClass = queue.poll();
-                jarClasspathSnapshot.forEachSnapshot(new Action<JarSnapshot>() {
+                classpathSnapshot.forEachSnapshot(new Action<ClasspathEntrySnapshot>() {
                     @Override
-                    public void execute(JarSnapshot jarSnapshot) {
-                        if (jarSnapshot != previous) {
-                            // we need to find in the other jars classes that would potentially extend classes changed
+                    public void execute(ClasspathEntrySnapshot classpathEntrySnapshot) {
+                        if (classpathEntrySnapshot != previous) {
+                            // we need to find classes in other entries that would potentially extend classes changed
                             // in the current snapshot (they are intermediates)
-                            ClassSetAnalysisData data = jarSnapshot.getData().data;
+                            ClassSetAnalysisData data = classpathEntrySnapshot.getData().data;
                             Set<String> children = data.getChildren(dependentClass);
                             for (String child : children) {
                                 if (dependentClasses.add(child)) {
@@ -106,6 +106,6 @@ public class JarChangeDependentsFinder {
             return previousCompilation.getDependents(dependentClasses, currentSnapshot.getRelevantConstants(previous, dependentClasses));
         }
 
-        throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);
+        throw new IllegalArgumentException("Unknown input file details provided: " + entryChangeDetails);
     }
 }

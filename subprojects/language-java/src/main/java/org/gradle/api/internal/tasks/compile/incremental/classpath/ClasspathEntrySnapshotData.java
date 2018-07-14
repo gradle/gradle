@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
 
-public class JarSnapshotData {
+public class ClasspathEntrySnapshotData {
 
     final Map<String, HashCode> hashes;
     final ClassSetAnalysisData data;
     final HashCode hash;
 
     /**
-     * @param hash of this jar
-     * @param hashes hashes of all classes from the jar
-     * @param data of classes analysis in this jar
+     * @param hash of this entry
+     * @param hashes hashes of all classes from the entry
+     * @param data of classes analysis in this entry
      */
-    public JarSnapshotData(HashCode hash, Map<String, HashCode> hashes, ClassSetAnalysisData data) {
+    public ClasspathEntrySnapshotData(HashCode hash, Map<String, HashCode> hashes, ClassSetAnalysisData data) {
         assert hash != null;
         assert hashes != null;
         assert data != null;

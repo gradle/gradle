@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.Action;
 
@@ -23,26 +23,26 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-public class JarClasspathSnapshot {
+public class ClasspathSnapshot {
 
-    private final LinkedHashMap<File, JarSnapshot> jarSnapshots;
-    private final JarClasspathSnapshotData data;
+    private final LinkedHashMap<File, ClasspathEntrySnapshot> entrySnapshots;
+    private final ClasspathSnapshotData data;
 
-    public JarClasspathSnapshot(LinkedHashMap<File, JarSnapshot> jarSnapshots, JarClasspathSnapshotData data) {
-        this.jarSnapshots = jarSnapshots;
+    public ClasspathSnapshot(LinkedHashMap<File, ClasspathEntrySnapshot> entrySnapshots, ClasspathSnapshotData data) {
+        this.entrySnapshots = entrySnapshots;
         this.data = data;
     }
 
-    public JarSnapshot getSnapshot(JarArchive jarArchive) {
-        return jarSnapshots.get(jarArchive.file);
+    public ClasspathEntrySnapshot getSnapshot(ClasspathEntry classpathEntry) {
+        return entrySnapshots.get(classpathEntry.file);
     }
 
-    public JarSnapshot getSnapshot(File file) {
-        return jarSnapshots.get(file);
+    public ClasspathEntrySnapshot getSnapshot(File file) {
+        return entrySnapshots.get(file);
     }
 
-    public Set<File> getJars() {
-        return jarSnapshots.keySet();
+    public Set<File> getEntries() {
+        return entrySnapshots.keySet();
     }
 
     public boolean isAnyClassDuplicated(Set<String> classNames) {
@@ -50,18 +50,18 @@ public class JarClasspathSnapshot {
         return !noCommonElements;
     }
 
-    public JarClasspathSnapshotData getData() {
+    public ClasspathSnapshotData getData() {
         return data;
     }
 
-    public boolean isAnyClassDuplicated(JarArchive jarArchive) {
-        JarSnapshot snapshot = getSnapshot(jarArchive);
+    public boolean isAnyClassDuplicated(ClasspathEntry classpathEntry) {
+        ClasspathEntrySnapshot snapshot = getSnapshot(classpathEntry);
         return isAnyClassDuplicated(snapshot.getClasses());
     }
 
-    public void forEachSnapshot(Action<? super JarSnapshot> action) {
-        for (JarSnapshot jarSnapshot : jarSnapshots.values()) {
-            action.execute(jarSnapshot);
+    public void forEachSnapshot(Action<? super ClasspathEntrySnapshot> action) {
+        for (ClasspathEntrySnapshot classpathEntrySnapshot : entrySnapshots.values()) {
+            action.execute(classpathEntrySnapshot);
         }
     }
 }

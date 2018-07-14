@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
-
-import org.gradle.cache.internal.Cache;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.api.file.FileTree;
 
 import java.io.File;
-import java.util.Map;
 
-public interface JarSnapshotCache extends Cache<File, JarSnapshot> {
-    /**
-     * Returns the jar snapshots for the given files. The resulting map has the same order as the input.
-     */
-    Map<File, JarSnapshot> getJarSnapshots(Map<File, HashCode> jarHashes);
+public class ClasspathEntry {
+    final File file;
+    final FileTree contents;
+
+    public ClasspathEntry(File file, FileTree contents) {
+        this.file = file;
+        this.contents = contents;
+    }
 }

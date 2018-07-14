@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar
+package org.gradle.api.internal.tasks.compile.incremental.classpath
 
 import org.gradle.api.file.FileTree
 import org.gradle.internal.hash.HashCode
@@ -22,17 +22,17 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 import spock.lang.Subject
 
-class JarClasspathSnapshotFactoryTest extends Specification {
+class ClasspathSnapshotFactoryTest extends Specification {
 
-    def snapshotter = Mock(JarSnapshotter)
-    @Subject factory = new JarClasspathSnapshotFactory(snapshotter, new TestBuildOperationExecutor())
+    def snapshotter = Mock(ClasspathEntrySnapshotter)
+    @Subject factory = new ClasspathSnapshotFactory(snapshotter, new TestBuildOperationExecutor())
 
     def "creates classpath snapshot with correct duplicate classes"() {
         def jar1 = stubArchive("f1"); def jar2 = stubArchive("f2"); def jar3 = stubArchive("f3")
 
-        def sn1 = Stub(JarSnapshot) { getClasses() >> ["A", "B", "C"] }
-        def sn2 = Stub(JarSnapshot) { getClasses() >> ["C", "D"] }
-        def sn3 = Stub(JarSnapshot) { getClasses() >> ["B", "E"] }
+        def sn1 = Stub(ClasspathEntrySnapshot) { getClasses() >> ["A", "B", "C"] }
+        def sn2 = Stub(ClasspathEntrySnapshot) { getClasses() >> ["C", "D"] }
+        def sn3 = Stub(ClasspathEntrySnapshot) { getClasses() >> ["B", "E"] }
 
         when:
         def s = factory.createSnapshot([jar1, jar2, jar3])
@@ -50,8 +50,8 @@ class JarClasspathSnapshotFactoryTest extends Specification {
         def jar1 = stubArchive("f1")
         def jar2 = stubArchive("f2")
 
-        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromInt(0x1234) }
-        def sn2 = Stub(JarSnapshot) { getHash() >> HashCode.fromInt(0x2345) }
+        def sn1 = Stub(ClasspathEntrySnapshot) { getHash() >> HashCode.fromInt(0x1234) }
+        def sn2 = Stub(ClasspathEntrySnapshot) { getHash() >> HashCode.fromInt(0x2345) }
 
         when:
         def s = factory.createSnapshot([jar1, jar2])
@@ -60,16 +60,16 @@ class JarClasspathSnapshotFactoryTest extends Specification {
         1 * snapshotter.createSnapshot(jar1) >> sn1
         1 * snapshotter.createSnapshot(jar2) >> sn2
 
-        s.data.jarHashes.size() == 2
-        s.data.jarHashes[new File("f1")] == HashCode.fromInt(0x1234)
-        s.data.jarHashes[new File("f2")] == HashCode.fromInt(0x2345)
+        s.data.fileHashes.size() == 2
+        s.data.fileHashes[new File("f1")] == HashCode.fromInt(0x1234)
+        s.data.fileHashes[new File("f2")] == HashCode.fromInt(0x2345)
     }
 
     def "doesn't call snapshotter if file doesn't exist"() {
         def jar1 = stubArchive("f1", true)
         def jar2 = stubArchive("f2", false)
 
-        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromInt(0x1234) }
+        def sn1 = Stub(ClasspathEntrySnapshot) { getHash() >> HashCode.fromInt(0x1234) }
 
         when:
         factory.createSnapshot([jar1, jar2])
@@ -79,8 +79,8 @@ class JarClasspathSnapshotFactoryTest extends Specification {
         0 * snapshotter.createSnapshot(jar2)
     }
 
-    private JarArchive stubArchive(String name, boolean exists = true) {
-        new JarArchive(new File(name) {
+    private ClasspathEntry stubArchive(String name, boolean exists = true) {
+        new ClasspathEntry(new File(name) {
             boolean exists() { exists }
         }, Stub(FileTree))
     }

@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
@@ -29,17 +29,17 @@ import java.util.Collection;
 public class CurrentCompilation {
     private final IncrementalTaskInputs inputs;
     private final JavaCompileSpec spec;
-    private final JarClasspathSnapshotProvider jarClasspathSnapshotProvider;
+    private final ClasspathSnapshotProvider classpathSnapshotProvider;
 
-    CurrentCompilation(IncrementalTaskInputs inputs, JavaCompileSpec spec, JarClasspathSnapshotProvider jarClasspathSnapshotProvider) {
+    CurrentCompilation(IncrementalTaskInputs inputs, JavaCompileSpec spec, ClasspathSnapshotProvider classpathSnapshotProvider) {
 
         this.inputs = inputs;
         this.spec = spec;
-        this.jarClasspathSnapshotProvider = jarClasspathSnapshotProvider;
+        this.classpathSnapshotProvider = classpathSnapshotProvider;
     }
 
-    public JarClasspathSnapshot getClasspathSnapshot() {
-        return jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getCompileClasspath());
+    public ClasspathSnapshot getClasspathSnapshot() {
+        return classpathSnapshotProvider.getClasspathSnapshot(spec.getCompileClasspath());
     }
 
     public Collection<File> getAnnotationProcessorPath() {

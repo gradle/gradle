@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import org.gradle.cache.internal.Cache;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
 
-public class JarClasspathSnapshotData {
-
-    private final Map<File, HashCode> jarHashes;
-    private final Set<String> duplicateClasses;
-
-    public JarClasspathSnapshotData(Map<File, HashCode> jarHashes, Set<String> duplicateClasses) {
-        this.jarHashes = jarHashes;
-        this.duplicateClasses = duplicateClasses;
-    }
-
-    public Set<String> getDuplicateClasses() {
-        return duplicateClasses;
-    }
-
-    public Map<File, HashCode> getJarHashes() {
-        return jarHashes;
-    }
+public interface ClasspathEntrySnapshotCache extends Cache<File, ClasspathEntrySnapshot> {
+    /**
+     * Returns the classpath entry snapshots for the given files. The resulting map has the same order as the input.
+     */
+    Map<File, ClasspathEntrySnapshot> getClasspathEntrySnapshots(Map<File, HashCode> fileHashes);
 }

@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-public class JarChangeProcessor {
+public class ClasspathEntryChangeProcessor {
 
     private final FileOperations fileOperations;
-    private final JarChangeDependentsFinder dependentsFinder;
+    private final ClasspathChangeDependentsFinder dependentsFinder;
 
-    public JarChangeProcessor(FileOperations fileOperations, JarClasspathSnapshot jarClasspathSnapshot, PreviousCompilation previousCompilation) {
+    public ClasspathEntryChangeProcessor(FileOperations fileOperations, ClasspathSnapshot classpathSnapshot, PreviousCompilation previousCompilation) {
         this.fileOperations = fileOperations;
-        this.dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
+        this.dependentsFinder = new ClasspathChangeDependentsFinder(classpathSnapshot, previousCompilation);
     }
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
-        JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
-        DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
+        ClasspathEntry classpathEntry = new ClasspathEntry(input.getFile(), fileOperations.zipTree(input.getFile()));
+        DependentsSet actualDependents = dependentsFinder.getActualDependents(input, classpathEntry);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;

@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotData;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotDataSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotDataSerializer;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
@@ -34,18 +34,18 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompileCaches, Closeable {
-    private final JarSnapshotCache jarSnapshotCache;
+    private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PersistentCache cache;
 
-    public DefaultUserHomeScopedCompileCaches(FileHasher fileHasher, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultUserHomeScopedCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository
             .cache("javaCompile")
             .withDisplayName("Java compile cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
-        PersistentIndexedCacheParameters<HashCode, JarSnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, JarSnapshotData>("jarAnalysis", new HashCodeSerializer(), new JarSnapshotDataSerializer())
+        PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData>("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer())
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.jarSnapshotCache = new DefaultJarSnapshotCache(fileHasher, cache.createCache(jarCacheParameters));
+        this.classpathEntrySnapshotCache = new DefaultClasspathEntrySnapshotCache(fileSystemSnapshotter, cache.createCache(jarCacheParameters));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
     }
 
     @Override
-    public JarSnapshotCache getJarSnapshotCache() {
-        return jarSnapshotCache;
+    public ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache() {
+        return classpathEntrySnapshotCache;
     }
 }

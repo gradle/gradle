@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.jar;
+package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
@@ -30,28 +30,28 @@ import java.util.Map;
 
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
-public class JarSnapshotDataSerializer extends AbstractSerializer<JarSnapshotData> {
+public class ClasspathEntrySnapshotDataSerializer extends AbstractSerializer<ClasspathEntrySnapshotData> {
 
     private final MapSerializer<String, HashCode> mapSerializer;
     private final Serializer<ClassSetAnalysisData> analysisSerializer;
     private final HashCodeSerializer hashCodeSerializer;
 
-    public JarSnapshotDataSerializer() {
+    public ClasspathEntrySnapshotDataSerializer() {
         hashCodeSerializer = new HashCodeSerializer();
         mapSerializer = new MapSerializer<String, HashCode>(STRING_SERIALIZER, hashCodeSerializer);
         analysisSerializer = new ClassSetAnalysisData.Serializer();
     }
 
     @Override
-    public JarSnapshotData read(Decoder decoder) throws Exception {
+    public ClasspathEntrySnapshotData read(Decoder decoder) throws Exception {
         HashCode hash = hashCodeSerializer.read(decoder);
         Map<String, HashCode> hashes = mapSerializer.read(decoder);
         ClassSetAnalysisData data = analysisSerializer.read(decoder);
-        return new JarSnapshotData(hash, hashes, data);
+        return new ClasspathEntrySnapshotData(hash, hashes, data);
     }
 
     @Override
-    public void write(Encoder encoder, JarSnapshotData value) throws Exception {
+    public void write(Encoder encoder, ClasspathEntrySnapshotData value) throws Exception {
         hashCodeSerializer.write(encoder, value.hash);
         mapSerializer.write(encoder, value.hashes);
         analysisSerializer.write(encoder, value.data);
@@ -63,7 +63,7 @@ public class JarSnapshotDataSerializer extends AbstractSerializer<JarSnapshotDat
             return false;
         }
 
-        JarSnapshotDataSerializer rhs = (JarSnapshotDataSerializer) obj;
+        ClasspathEntrySnapshotDataSerializer rhs = (ClasspathEntrySnapshotDataSerializer) obj;
         return Objects.equal(mapSerializer, rhs.mapSerializer)
             && Objects.equal(analysisSerializer, rhs.analysisSerializer)
             && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);

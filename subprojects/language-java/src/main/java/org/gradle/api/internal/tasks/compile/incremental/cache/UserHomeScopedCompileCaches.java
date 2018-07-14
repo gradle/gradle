@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
 
 public interface UserHomeScopedCompileCaches {
-    JarSnapshotCache getJarSnapshotCache();
+    ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
 }

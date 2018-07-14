@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -41,12 +39,6 @@ import java.util.Set;
 public class ClassSetAnalysisUpdater {
 
     private final static Logger LOG = Logging.getLogger(ClassSetAnalysisUpdater.class);
-    private static final Predicate<File> IS_CLASS_DIRECTORY = new Predicate<File>() {
-        @Override
-        public boolean apply(File input) {
-            return input.isDirectory();
-        }
-    };
 
     private final Stash<ClassSetAnalysisData> stash;
     private final FileOperations fileOperations;
@@ -87,7 +79,6 @@ public class ClassSetAnalysisUpdater {
     private void visitClassFiles(JavaCompileSpec spec, CompilationResultAnalyzer analyzer) {
         Set<File> baseDirs = Sets.newLinkedHashSet();
         baseDirs.add(spec.getDestinationDir());
-        Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);
         }

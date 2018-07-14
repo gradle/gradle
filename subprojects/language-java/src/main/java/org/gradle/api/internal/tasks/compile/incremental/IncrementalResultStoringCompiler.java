@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotWriter;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotWriter;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -25,14 +25,14 @@ import org.gradle.language.base.internal.compile.Compiler;
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
  */
-class IncrementalResultStoringDecorator implements Compiler<JavaCompileSpec> {
+class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final JarClasspathSnapshotWriter writer;
+    private final ClasspathSnapshotWriter writer;
     private final ClassSetAnalysisUpdater updater;
     private final AnnotationProcessorPathStore annotationProcessorPathStore;
 
-    public IncrementalResultStoringDecorator(Compiler<JavaCompileSpec> delegate, JarClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
+    public IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
         this.delegate = delegate;
         this.writer = writer;
         this.updater = updater;
@@ -43,7 +43,7 @@ class IncrementalResultStoringDecorator implements Compiler<JavaCompileSpec> {
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
         updater.updateAnalysis(spec, out);
-        writer.storeJarSnapshots(spec.getCompileClasspath());
+        writer.storeSnapshots(spec.getCompileClasspath());
         annotationProcessorPathStore.put(spec.getAnnotationProcessorPath());
         return out;
     }
