@@ -129,7 +129,7 @@ public class HttpClientHelper implements Closeable {
                 || request.getURI().toString().contains("repo.jfrog.org")
                 || request.getURI().toString().contains("dl.google.com")
             ) {
-            throw new IllegalStateException("");
+            throw new AssertionError("");
         }
         if (sharedContext == null) {
             // There's no authentication involved, requests can be done concurrently
