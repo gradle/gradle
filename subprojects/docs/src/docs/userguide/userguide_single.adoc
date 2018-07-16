@@ -16,7 +16,6 @@
 
 include::licenses.adoc[leveloffset=+1]
 
-
 == About Gradle
 
 include::overview.adoc[leveloffset=+2]
@@ -211,3 +210,4 @@ include::custom_plugins.adoc[leveloffset=+2]
 include::java_gradle_plugin.adoc[leveloffset=+2]
 
 include::lazy_configuration.adoc[leveloffset=+2]
+

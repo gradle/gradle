@@ -60,7 +60,6 @@ configurations {
 dependencies {
     asciidoctor "org.gradle:docs-asciidoctor-extensions:0.2.0"
     asciidoctor project.files("src/main/resources")
-    asciidoctor project.files("src/docs/css")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
     userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
@@ -87,26 +86,27 @@ gradlebuildJava {
 ext {
     srcDocsDir = file('src/docs')
     releaseFeaturesFile = file("$srcDocsDir/release/release-features.txt")
-    asciidocOutputDir = new File(buildDir, 'asciidoc/userguide')
-    dslSrcDir = new File(srcDocsDir, 'dsl')
-    docsDir = file("$buildDir/docs")
-    userguideDir = new File(docsDir, 'userguide')
-    pdfDir = new File(docsDir, 'pdf')
-    distDocsDir = new File(buildDir, 'distDocsAsciidoctor')
-    samplesDir = file("$buildDir/samples")
+    docsOutputDir = new File(buildDir, 'docs')
+    userguideSrcDir = new File(srcDocsDir, 'userguide')
+    userguideIntermediateOutputDir = new File(buildDir, 'userguideIntermediate')
+    userguidePdfOutputDir = new File(buildDir, 'userguidePdf')
+    userguideOutputDir = new File(docsOutputDir, 'userguide')
+    distDocsDir = new File(buildDir, 'distDocs')
+    srcSamplesDir = file('src/samples')
+    samplesOutputDir = new File(buildDir, 'samples')
     docbookSrc = new File(project.buildDir, 'src')
-    samplesSrcDir = file('src/samples')
+    dslSrcDir = new File(srcDocsDir, 'dsl')
 }
 
 ext.outputs = [:]
-outputs.samples = files(samplesDir) {
-    builtBy 'samplesAsciidoctor'
+outputs.samples = files(samplesOutputDir) {
+    builtBy 'samples'
 }
 outputs.distDocs = files(distDocsDir) {
-    builtBy 'distDocsAsciidoctor'
+    builtBy 'distDocs'
 }
-outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'userManual', 'dslHtml', 'releaseNotes'
+outputs.docs = files(docsOutputDir) {
+    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -150,9 +150,22 @@ ext.cssFiles = fileTree(css.destinationDir) {
     builtBy css
 }
 
-task samplesAsciidoctor(type: Copy) {
-    into samplesDir
-    from samplesSrcDir
+def imageFiles = fileTree(userguideSrcDir) {
+    include 'images/*.png'
+    include 'images/*.gif'
+    include 'images/*.jpg'
+}
+def resourceFiles = imageFiles + cssFiles
+
+task samples(type: Copy) {
+    from srcSamplesDir
+    into samplesOutputDir
+
+    exclude '**/*.out'
+    exclude '**/*.sample.conf*'
+    exclude '**/readme.xml'
+    exclude '**/build/**'
+    exclude '**/.gradle/**'
 }
 
 task userguideStyleSheets(type: Copy) {
@@ -218,7 +231,7 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
 task dslHtml(type: Docbook2Xhtml) {
     group = "Documentation"
     source dslStandaloneDocbook
-    destDir = new File(docsDir, 'dsl')
+    destDir = new File(docsOutputDir, 'dsl')
     stylesheetName = 'dslHtml.xsl'
     resources = cssFiles + fileTree(dslSrcDir) {
         include '*.js'
@@ -243,7 +256,7 @@ task javadocAll(type: Javadoc) {
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
-    destinationDir = new File(docsDir, 'javadoc')
+    destinationDir = new File(docsOutputDir, 'javadoc')
     classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     PublicApi.includes.each {
         include it
@@ -263,8 +276,8 @@ task checkstyleApi(type: Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-task distDocsAsciidoctor(type: AsciidoctorTask) {
-    sourceDir = new File(srcDocsDir, 'usermanual')
+task distDocs(type: AsciidoctorTask) {
+    sourceDir = userguideSrcDir
     sources { include 'getting-started.adoc' }
     outputDir = distDocsDir
     separateOutputDirs = false
@@ -277,16 +290,14 @@ asciidoctorj {
     version = '1.5.7'
 }
 
-asciidoctor {
-    dependsOn defaultImports
-    sourceDir = srcDocsDir
+task userguideAsciidoc(type: AsciidoctorTask) {
+    dependsOn css, samples, defaultImports
+    sourceDir = userguideSrcDir
     sources {
-        include '*.css'
-        include '*.js'
-        include 'samples'
-        include 'usermanual/*.adoc'
+        include '*.adoc'
+        exclude 'javaProject*Layout.adoc'
     }
-    outputDir = userguideDir
+    outputDir = userguideIntermediateOutputDir
     // Verbose mode reports broken links. See asciidoctor/asciidoctor-gradle-plugin#233
     requires file('src/docs/ruby/verbose-mode.rb')
     separateOutputDirs = false
@@ -304,8 +315,6 @@ asciidoctor {
         'caution-caption'     : '&#9888;',
         'warning-caption'     : '&#9888;',
         'source-highlighter'  : 'prettify',
-        // TODO: inline prettify code highlighting instead of CDN
-//        prettifydir           : '???',
         sectanchors           : true,
         sectlinks             : false,
         linkattrs             : true,
@@ -326,20 +335,14 @@ asciidoctor {
         'samples-path'        : "../../samples"
 }
 
-asciidoctor.dependsOn(samplesAsciidoctor)
-
-task userManualPdf(type: AsciidoctorTask) {
+task userguidePdf(type: AsciidoctorTask) {
     dependsOn defaultImports
-    sourceDir = new File(srcDocsDir, 'usermanual')
+    sourceDir = userguideSrcDir
     sources { include 'userguide_single.adoc' }
-    outputDir = pdfDir
+    outputDir = userguidePdfOutputDir
     separateOutputDirs = false
     options doctype: 'book'
     backends 'pdf'
-
-//    extensions {
-//
-//    }
 
     attributes \
         lang                : 'en-US',
@@ -356,22 +359,22 @@ task userManualPdf(type: AsciidoctorTask) {
         'groovy-dsl-path'   : "https://gradle.org/$version/dsl",
         'javadoc-path'      : "https://gradle.org/$version/javadoc",
         'samples-path'      : "../../samples"
-
-    doLast {
-        copy {
-            from new File(pdfDir, 'userguide_single.pdf')
-            into new File(pdfDir, 'userguide.pdf')
-        }
-    }
 }
 
-task userManual {
-    dependsOn asciidoctor, userManualPdf
+// Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
+task userguide(type: Copy) {
+    dependsOn userguideAsciidoc, userguidePdf
     description = 'Generates the userguide HTML and PDF'
     group = 'documentation'
 
-    inputs.dir srcDocsDir
-    outputs.dir new File(distDocsDir, 'usermanual/asciidoc')
+    outputs.dir userguideOutputDir
+
+    from resourceFiles
+    from userguideIntermediateOutputDir
+    from userguidePdfOutputDir
+
+    into userguideOutputDir
+    rename 'userguide_single.pdf', 'userguide.pdf'
 }
 
 task editReleaseNotes() {
@@ -386,11 +389,11 @@ task releaseNotesMarkdown(type: PegDown, group: "release notes", constructorArgs
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
-    into "$docsDir"
+    into "$docsOutputDir"
     from releaseNotesMarkdown
     jsoup.plugins "src/transforms/release-notes.gradle"
     filter(ReplaceTokens, tokens: [version: project.version.toString(), baseVersion: rootProject.baseVersion])
-    ext.entryPoint = file("$docsDir/$fileName")
+    ext.entryPoint = file("$docsOutputDir/$fileName")
 }
 
 tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
@@ -427,7 +430,7 @@ test {
 }
 
 task docs {
-    dependsOn javadocAll, userManual, distDocsAsciidoctor, dslHtml, releaseNotes
+    dependsOn javadocAll, userguide, distDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
     group = 'documentation'
 }
