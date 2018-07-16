@@ -16,11 +16,16 @@
 
 package org.gradle.api.internal;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GradleProcessEnvironment {
     private static final Map<String, String> ENVS = new ConcurrentHashMap<String, String>();
+
+    public static Map<String, String> getenv() {
+        return Collections.unmodifiableMap(ENVS);
+    }
 
     public static String getenv(String env) {
         return ENVS.get(env);

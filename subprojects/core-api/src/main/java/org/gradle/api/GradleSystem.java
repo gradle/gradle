@@ -18,8 +18,11 @@ package org.gradle.api;
 
 import org.gradle.api.internal.GradleProcessEnvironment;
 
+import java.util.Map;
+
 /**
  * Gradle environmental variable
+ *
  * @since 4.10
  */
 @Incubating
@@ -27,5 +30,10 @@ public class GradleSystem {
     @Incubating
     public static String getenv(String env) {
         return GradleProcessEnvironment.getenv(env);
+    }
+
+    @Incubating
+    public static Map<String, String> getenv() {
+        return GradleProcessEnvironment.getenv();
     }
 }
