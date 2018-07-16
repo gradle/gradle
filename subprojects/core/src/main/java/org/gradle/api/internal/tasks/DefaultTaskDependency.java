@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.DeprecationLogger;
 
@@ -240,21 +241,21 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
             for (Iterator<Object> it = delegate.iterator(); it.hasNext();) {
                 Object obj = it.next();
-                if (obj instanceof ProviderInternal) {
-                    if (((ProviderInternal) obj).getType().isInstance(o)) {
-                        obj = ((ProviderInternal) obj).get();
-                    } else {
-                        continue;
-                    }
-                }
-
-                if (obj.equals(o)) {
+                if (isTaskProvider(obj) && o instanceof Task && isTaskProviderOfTask((TaskProvider) obj, (Task) o)) {
                     DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a Task instance from a task dependency set when it contains a Provider to the Task instance.");
                     it.remove();
                     return true;
                 }
             }
             return false;
+        }
+
+        private static boolean isTaskProvider(Object obj) {
+            return obj instanceof TaskProvider;
+        }
+
+        private static boolean isTaskProviderOfTask(TaskProvider provider, Task task) {
+            return provider instanceof ProviderInternal && ((ProviderInternal) provider).getType().isInstance(task) && provider.getName().equals(task.getName());
         }
 
         @Override

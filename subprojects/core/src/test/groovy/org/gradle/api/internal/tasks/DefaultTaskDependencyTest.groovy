@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -293,9 +294,11 @@ The following types/formats are supported:
 
     def "can mutate dependency values by removing a Task instance from dependency containing a Provider to the Task instance"() {
         given:
-        def provider = Mock(ProviderInternal)
+        otherTask.name >> "otherTask"
+
+        def provider = Mock(TestTaskProvider)
         provider.type >> otherTask.class
-        provider.get() >> otherTask
+        provider.name >> otherTask.name
         dependency.add(provider)
 
         when:
@@ -307,9 +310,7 @@ The following types/formats are supported:
 
     def "can mutate dependency values by removing a Provider instance from dependency containing the Provider instance"() {
         given:
-        def provider = Mock(ProviderInternal)
-        provider.type >> otherTask.class
-        provider.get() >> otherTask
+        def provider = Mock(TestTaskProvider)
         dependency.add(provider)
 
         when:
@@ -342,5 +343,8 @@ The following types/formats are supported:
     }
 
     interface TestProvider extends ProviderInternal, TaskDependencyContainer {
+    }
+
+    interface TestTaskProvider extends ProviderInternal, TaskProvider {
     }
 }
