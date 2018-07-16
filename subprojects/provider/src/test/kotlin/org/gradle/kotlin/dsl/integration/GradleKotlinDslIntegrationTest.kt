@@ -816,6 +816,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         withDefaultSettingsIn("buildSrc")
 
         withFile("buildSrc/build.gradle.kts", """
+
             plugins {
                 `kotlin-dsl`
                 `java-gradle-plugin`
