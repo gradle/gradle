@@ -30,7 +30,7 @@ You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle 
 
 ### Getting Help
 
-If you run into any trouble, please reach out to us in the #gradle channel of the public [Kotlin Slack](http://kotlinslackin.herokuapp.com/) instance.
+If you run into any trouble, please reach out to us in the #gradle channel of the public [Kotlin Slack](https://kotlinlang.slack.com) instance.
 
 ### Creating Commits And Writing Commit Messages
 
