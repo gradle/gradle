@@ -1,7 +1,7 @@
 multi-kotlin-project-config-injection
 =====================================
 
-A multi-project build with two Kotlin based projects:
+A [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) with two Kotlin based projects:
 
  1. [core](./core) implements the main algorithm to compute the answer to the ultimate question of Life, the Universe and Everything
  2. [cli](./cli) implements the command line interface

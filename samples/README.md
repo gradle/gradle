@@ -10,7 +10,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
  - [`buildSrc-plugin`](./buildSrc-plugin): demonstrates how to use the `kotlin-dsl` and `java-gradle-plugin` plugins together in `buildSrc`
  - [`code-quality`](./code-quality): demonstrates how to configure Gradle code quality plugins
- - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
+ - [`composite-builds`](./composite-builds): demonstrates how to use [Composite Builds](https://docs.gradle.org/current/userguide/composite_builds.html)
  - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
  - [`domain-objects`](./domain-objects): demonstrates how to create and configure a `NamedDomainObjectContainer` from a Kotlin build script.
  - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
@@ -30,7 +30,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
  - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
  - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
- - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
+ - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) with custom build logic in `buildSrc`, including a custom task
  - [`precompiled-script-plugin`](./precompiled-script-plugin): demonstrates a Gradle plugin implemented as a precompiled script 
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
  - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic in `buildSrc`
