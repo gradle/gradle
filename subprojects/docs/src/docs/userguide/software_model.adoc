@@ -194,6 +194,8 @@ include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=proper
 include::{samples-path}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-boolean]
 ----
 
+'''
+
 .Example: an int property
 [source.multi-language-sample,groovy,indent=0]
 .build.gradle

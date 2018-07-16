@@ -293,6 +293,10 @@ asciidoctorj {
 task userguideAsciidoc(type: AsciidoctorTask) {
     dependsOn css, samples, defaultImports
     sourceDir = userguideSrcDir
+
+    inputs.file "$srcDocsDir/css/manual.css"
+    inputs.dir file("src/main/resources")
+    inputs.dir srcSamplesDir
     sources {
         include '*.adoc'
         exclude 'javaProject*Layout.adoc'
@@ -316,7 +320,7 @@ task userguideAsciidoc(type: AsciidoctorTask) {
         'warning-caption'     : '&#9888;',
         'source-highlighter'  : 'prettify',
         sectanchors           : true,
-        sectlinks             : false,
+        sectlinks             : true,
         linkattrs             : true,
         reproducible          : '',
         lang                  : 'en-US',
