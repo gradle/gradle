@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.component.ArtifactType;
@@ -84,11 +83,6 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
                 throw new UnsupportedOperationException();
             }
         };
-    }
-
-    @Override
-    public RepositoryDetails getDetails() {
-        throw new UnsupportedOperationException();
     }
 
     interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata {

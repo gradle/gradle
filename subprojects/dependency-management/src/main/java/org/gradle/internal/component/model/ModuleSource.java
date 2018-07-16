@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
@@ -28,9 +27,9 @@ import java.io.Serializable;
 public interface ModuleSource extends Serializable {
 
     /**
-     * Returns the unique id of the repository used as module source.
+     * Returns the name of the repository used as module source.
+     * The repository name is unique within a single repository container.
      */
-    @Nullable
-    String getRepositoryDetailsId();
+    String getRepositoryName();
 
 }

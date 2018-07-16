@@ -25,17 +25,11 @@ import java.util.Map;
  */
 public class RepositoryDetails {
 
-    /**
-     * A _unique_ identifier for a repository.
-     */
-    public final String id;
-
     public final String name;
     public final RepositoryType type;
     public final Map<RepositoryPropertyType, ?> properties;
 
-    public RepositoryDetails(String id, String name, RepositoryType type, Map<RepositoryPropertyType, ?> properties) {
-        this.id = id;
+    public RepositoryDetails(String name, RepositoryType type, Map<RepositoryPropertyType, ?> properties) {
         this.name = name;
         this.type = type;
         this.properties = properties;

@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
@@ -146,14 +145,7 @@ class MavenResolverTest extends Specification {
 
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
-        def repoDetails = new RepositoryDetails(
-            "repoId",
-            "repo",
-            RepositoryDetails.RepositoryType.MAVEN,
-            [:]
-        )
         new MavenResolver("repo",
-            repoDetails,
             new URI("http://localhost"),
             Stub(RepositoryTransport),
             Stub(LocallyAvailableResourceFinder),

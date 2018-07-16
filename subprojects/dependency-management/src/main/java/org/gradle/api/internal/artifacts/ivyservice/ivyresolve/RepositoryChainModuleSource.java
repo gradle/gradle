@@ -15,19 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.internal.component.model.ModuleSource;
-
-import javax.annotation.Nullable;
 
 public class RepositoryChainModuleSource implements ModuleSource {
     private final String repositoryId;
-    private final RepositoryDetails repositoryDetails;
+    private final String repositoryName;
     private final ModuleSource delegate;
 
     public RepositoryChainModuleSource(ModuleComponentRepository repository, ModuleSource delegate) {
         this.repositoryId = repository.getId();
-        this.repositoryDetails = repository.getDetails();
+        this.repositoryName = repository.getName();
         this.delegate = delegate;
     }
 
@@ -44,9 +41,8 @@ public class RepositoryChainModuleSource implements ModuleSource {
         return delegate;
     }
 
-    @Nullable
     @Override
-    public String getRepositoryDetailsId() {
-        return repositoryDetails.id;
+    public String getRepositoryName() {
+        return repositoryName;
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.internal.action.InstantiatingAction;
 
 import java.util.Map;
@@ -69,11 +68,6 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
     @Override
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return delegate.getComponentMetadataSupplier();
-    }
-
-    @Override
-    public RepositoryDetails getDetails() {
-        return delegate.getDetails();
     }
 
 }

@@ -64,8 +64,6 @@ import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
-import org.gradle.caching.internal.BuildCacheHasherHelper;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.authentication.AuthenticationInternal;
@@ -165,7 +163,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     @Override
     public RepositoryDetails getDetails() {
         return new RepositoryDetails(
-            getId(),
             getName(),
             getType(),
             getProperties()
@@ -198,7 +195,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), externalResourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplierFactory = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> listerFactory = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new IvyResolver(getName(), getDetails(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
+        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
     }
 
     @Override
@@ -330,24 +327,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return builder.build();
     }
 
-    private String getId() {
-        if (id == null) {
-            id = computeId();
-        }
-        return id;
-    }
-
     RepositoryType getType() {
         return RepositoryType.IVY;
-    }
-
-    private String computeId() {
-        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
-        cacheHasher.putString(getClass().getName());
-        cacheHasher.putString(getName());
-        cacheHasher.putString(getType().name());
-        BuildCacheHasherHelper.hash(getProperties(), cacheHasher);
-        return cacheHasher.hash().toString();
     }
 
     /**

@@ -35,9 +35,9 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final ResolvedVariantResult variant;
-    private final String repositoryId;
+    private final String repositoryName;
 
-    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repoId) {
+    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repositoryName) {
         assert moduleVersion != null;
         assert selectionReason != null;
         assert variant != null;
@@ -46,7 +46,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         this.selectionReason = selectionReason;
         this.componentId = componentId;
         this.variant = variant;
-        this.repositoryId = repoId;
+        this.repositoryName = repositoryName;
     }
 
     @Override
@@ -54,9 +54,10 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return componentId;
     }
 
+    @Nullable
     @Override
-    public String getRepositoryId() {
-        return repositoryId;
+    public String getRepositoryName() {
+        return repositoryName;
     }
 
     @Override

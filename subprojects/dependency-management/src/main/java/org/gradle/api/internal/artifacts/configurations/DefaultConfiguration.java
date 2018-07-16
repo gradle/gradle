@@ -1007,7 +1007,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 componentDetails = new ArrayList<Object>(dependencies.size() + 1);
                 components.put(componentDisplayName, componentDetails);
             }
-            componentDetails.add(Collections.singletonMap("repoId", component.getRepositoryId()));
+            componentDetails.add(Collections.singletonMap("repoName", component.getRepositoryName()));
             for (DependencyResult dependencyResult : dependencies) {
                 if (dependencyResult instanceof ResolvedDependencyResult) {
                     walk((ResolvedComponentResultInternal) ((ResolvedDependencyResult) dependencyResult).getSelected(), components, alreadySeen);

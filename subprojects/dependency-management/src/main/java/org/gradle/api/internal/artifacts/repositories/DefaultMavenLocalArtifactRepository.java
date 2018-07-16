@@ -79,7 +79,6 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), getUrl(), getResourcesFileStore());
         MavenResolver resolver = new MavenResolver(
             getName(),
-            getDetails(),
             rootUri,
             transport,
             getLocallyAvailableResourceFinder(),

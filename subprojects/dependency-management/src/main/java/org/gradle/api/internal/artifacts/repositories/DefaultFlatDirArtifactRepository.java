@@ -41,8 +41,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
-import org.gradle.caching.internal.BuildCacheHasherHelper;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
@@ -133,7 +131,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     @Override
     public RepositoryDetails getDetails() {
         return new RepositoryDetails(
-            getId(),
             getName(),
             getType(),
             getProperties()
@@ -156,24 +153,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         }));
     }
 
-    private String getId() {
-        if (id == null) {
-            id = computeId();
-        }
-        return id;
-    }
-
     private RepositoryType getType() {
         return RepositoryType.FLAT_DIR;
-    }
-
-    private String computeId() {
-        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
-        cacheHasher.putString(getClass().getName());
-        cacheHasher.putString(getName());
-        cacheHasher.putString(getType().name());
-        BuildCacheHasherHelper.hash(getProperties(), cacheHasher);
-        return cacheHasher.hash().toString();
     }
 
     @Override
@@ -189,7 +170,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
 
         RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList());
         ImplicitInputsCapturingInstantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        IvyResolver resolver = new IvyResolver(getName(), getDetails(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
+        IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");

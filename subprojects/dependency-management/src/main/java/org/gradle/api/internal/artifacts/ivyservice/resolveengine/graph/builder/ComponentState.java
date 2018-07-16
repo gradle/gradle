@@ -113,9 +113,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public String getRepositoryId() {
+    public String getRepositoryName() {
         ModuleSource moduleSource = metadata.getSource();
-        return moduleSource == null ? null : moduleSource.getRepositoryDetailsId();
+        return moduleSource == null ? null : moduleSource.getRepositoryName();
     }
 
     @Override

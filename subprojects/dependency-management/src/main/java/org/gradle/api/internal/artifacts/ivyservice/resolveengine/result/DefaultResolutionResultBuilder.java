@@ -50,7 +50,7 @@ public class DefaultResolutionResultBuilder {
     }
 
     public void visitComponent(ComponentResult component) {
-        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), variantDetails(component), component.getRepositoryId());
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), variantDetails(component), component.getRepositoryName());
     }
 
     private static ResolvedVariantResult variantDetails(ComponentResult component) {
@@ -72,9 +72,9 @@ public class DefaultResolutionResultBuilder {
         }
     }
 
-    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repoId) {
+    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repoName) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, variant, repoId));
+            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, variant, repoName));
         }
     }
 

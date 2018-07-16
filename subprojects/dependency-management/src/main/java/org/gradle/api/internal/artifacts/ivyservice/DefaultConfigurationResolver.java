@@ -222,13 +222,11 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     private static class RepositoryImpl implements Repository {
 
-        private final String id;
         private final String type;
         private final String name;
         private final Map<String, ?> properties;
 
-        private RepositoryImpl(String id, String type, String name, Map<String, ?> properties) {
-            this.id = id;
+        private RepositoryImpl(String type, String name, Map<String, ?> properties) {
             this.type = type;
             this.name = name;
             this.properties = ImmutableMap.copyOf(properties);
@@ -240,16 +238,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 props.put(entry.getKey().name(), entry.getValue());
             }
             return new RepositoryImpl(
-                repositoryDetails.id,
                 repositoryDetails.type.name(),
                 repositoryDetails.name,
                 props
             );
-        }
-
-        @Override
-        public String getId() {
-            return id;
         }
 
         @Override

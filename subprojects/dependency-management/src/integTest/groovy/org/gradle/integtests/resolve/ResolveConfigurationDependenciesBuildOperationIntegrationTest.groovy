@@ -479,7 +479,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result == null
     }
 
-    def "resolved components contain their source repository id"() {
+    def "resolved components contain their source repository name"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
         buildFile << """                
@@ -541,15 +541,14 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        def repos = op.details.repositories.collectEntries { repo -> [(repo.id): repo.name] } as Map<String, String>
         op.result.resolvedDependenciesCount == 5
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 5
-        repos.find { k, v -> k in resolvedComponents.'org.foo:good:1.0'.repoId }.value == 'maven1'
-        resolvedComponents.'project :'.repoId == [null]
-        repos.find { k, v -> k in resolvedComponents.'org.foo:good-transitive:1.0'.repoId }.value == 'maven2'
-        repos.find { k, v -> k in resolvedComponents.'org.bar:good-transitive:1.0'.repoId }.value == 'maven2'
-        repos.find { k, v -> k in resolvedComponents.'org.foo:bad-transitive:1.0'.repoId }.value == 'maven2'
+        resolvedComponents.'org.foo:good:1.0'.repoName == ['maven1']
+        resolvedComponents.'project :'.repoName == [null]
+        resolvedComponents.'org.foo:good-transitive:1.0'.repoName == ['maven2']
+        resolvedComponents.'org.bar:good-transitive:1.0'.repoName == ['maven2']
+        resolvedComponents.'org.foo:bad-transitive:1.0'.repoName == ['maven2']
     }
 
     def "resolved components contain their source repository id, even when they are structurally identical"() {

@@ -68,8 +68,6 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
     @UsedByScanPlugin
     public interface Repository {
 
-        String getId();
-
         String getType();
 
         String getName();

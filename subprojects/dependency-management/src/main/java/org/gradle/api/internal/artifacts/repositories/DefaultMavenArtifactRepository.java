@@ -51,8 +51,6 @@ import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
-import org.gradle.caching.internal.BuildCacheHasherHelper;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.authentication.AuthenticationInternal;
@@ -204,7 +202,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     @Override
     public RepositoryDetails getDetails() {
         return new RepositoryDetails(
-            getId(),
             getName(),
             getType(),
             getProperties()
@@ -232,7 +229,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new MavenResolver(getName(), getDetails(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector);
     }
 
     @Override
@@ -330,24 +327,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return builder.build();
     }
 
-    private String getId() {
-        if (id == null) {
-            id = computeId();
-        }
-        return id;
-    }
-
     RepositoryType getType() {
         return RepositoryType.MAVEN;
-    }
-
-    private String computeId() {
-        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
-        cacheHasher.putString(getClass().getName());
-        cacheHasher.putString(getName());
-        cacheHasher.putString(getType().name());
-        BuildCacheHasherHelper.hash(getProperties(), cacheHasher);
-        return cacheHasher.hash().toString();
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
