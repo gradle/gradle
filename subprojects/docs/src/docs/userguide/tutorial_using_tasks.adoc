@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[tutorial_using_tasks]]
 = Build Script Basics
 
 

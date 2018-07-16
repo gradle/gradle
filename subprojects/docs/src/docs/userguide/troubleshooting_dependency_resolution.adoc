@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[troubleshooting_dependency_resolution]]
 = Troubleshooting Dependency Resolution
 
 Managing dependencies in a project can be challenging. This chapter describes techniques for troubleshooting issues you might encounter in your project as well as best practices for avoiding common problems.

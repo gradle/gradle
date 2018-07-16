@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency_management_for_java_projects]]
 = Dependency Management for Java Projects
 
 This chapter explains how to apply basic dependency management concepts to Java-based projects. For a detailed introduction to dependency management, see <<introduction_dependency_management.adoc#introduction_dependency_management,Introduction to Dependency Management>>.

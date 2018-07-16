@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[jdepend_plugin]]
 = The JDepend Plugin
 
 The JDepend plugin performs quality checks on your project's source files using http://clarkware.com/software/JDepend.html[JDepend] and generates reports from these checks.

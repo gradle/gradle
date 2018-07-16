@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[codenarc_plugin]]
 = The CodeNarc Plugin
 
 The CodeNarc plugin performs quality checks on your project's Groovy source files using http://codenarc.sourceforge.net/index.html[CodeNarc] and generates reports from these checks.

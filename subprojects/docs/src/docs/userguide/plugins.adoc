@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[plugins]]
 = Using Gradle Plugins
 
 Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. link:{groovy-dsl-path}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g. link:{groovy-dsl-path}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.

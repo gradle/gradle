@@ -1,4 +1,3 @@
-[[dependency_types]]
 = Dependency Types
 
 [[sub:module_dependencies]]

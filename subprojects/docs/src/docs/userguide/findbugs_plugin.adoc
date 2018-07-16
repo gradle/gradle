@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[findbugs_plugin]]
 = The FindBugs Plugin
 
 The FindBugs plugin performs quality checks on your project's Java source files using http://findbugs.sourceforge.net[FindBugs] and generates reports from these checks.

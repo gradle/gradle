@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[eclipse_plugin]]
 = The Eclipse Plugins
 
 The Eclipse plugins generate files that are used by the http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse (`File` - `Import...` - `Existing Projects into Workspace`).

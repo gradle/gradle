@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[authoring_maintainable_build_scripts]]
 = Authoring Maintainable Build Scripts
 
 Gradle build scripts combine the qualities of declarative build logic, expressiveness as well as flexibility and rigidity as needed.

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[standard_plugins]]
 = Standard Gradle plugins
 
 There are a number of plugins included in the Gradle distribution. These are listed below.

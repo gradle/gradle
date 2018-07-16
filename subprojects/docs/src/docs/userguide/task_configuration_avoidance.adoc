@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[task_configuration_avoidance]]
 = Task Configuration Avoidance
 
 We are asking early adopters to try out a new API for creating and configuring tasks to iron out any issues and gather feedback. This chapter provides a quick introduction to the feature and explains some guidelines for migrating your build to use the new API. We intend for this new API to eventually replace the existing API through our usual deprecation process over several major releases.

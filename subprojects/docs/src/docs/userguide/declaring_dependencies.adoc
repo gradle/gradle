@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring_dependencies]]
 = Declaring Dependencies
 
 Gradle builds can declare dependencies on modules hosted in repositories, files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types.adoc#dependency_types,full reference on all types of dependencies>>.

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring_repositories]]
 = Declaring Repositories
 
 Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types.adoc#repository_types,full reference on all types of repositories>> for more information.

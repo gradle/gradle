@@ -1,4 +1,3 @@
-[[dependency_management_terminology]]
 = Dependency Management Terminology
 
 Dependency management comes with a wealth of terminology. Here you can find the most commonly-used terms including references to the user guide to learn about their practical application.

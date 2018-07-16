@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[multi_project_builds]]
 = Authoring Multi-Project Builds
 
 The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the most intellectually challenging.

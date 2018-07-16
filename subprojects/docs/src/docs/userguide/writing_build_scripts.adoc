@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[writing_build_scripts]]
 = Writing Build Scripts
 
 This chapter looks at some of the details of writing a build script.

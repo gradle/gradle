@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[java_plugin]]
 = The Java Plugin
 
 The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis for many of the other JVM language Gradle plugins. You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects.adoc#building_java_projects,Building Java Projects>> chapter.
