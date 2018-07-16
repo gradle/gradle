@@ -16,6 +16,7 @@ import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertNotEquals
@@ -871,6 +872,23 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         build("help")
+    }
+
+    @Test
+    fun `can use kotlin java8 inline-only methods`() {
+
+        withBuildScript("""
+            task("test") {
+                doLast {
+                    println(project.properties.getOrDefault("non-existent-property", "default-value"))
+                }
+            }
+        """)
+
+        assertThat(
+            build("-q", "test").output.trim(),
+            equalTo("default-value")
+        )
     }
 
     private
