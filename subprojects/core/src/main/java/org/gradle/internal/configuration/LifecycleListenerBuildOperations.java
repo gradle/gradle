@@ -27,7 +27,13 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 
 public final class LifecycleListenerBuildOperations {
 
+    // takes Object as we have generic addListener methods in the Gradle interface
     public static Object maybeDecorate(Object listener, BuildOperationExecutor buildOperationExecutor) {
+        // can be extended to support other types like BuildListener
+        // currently these are implemented as interface-specific wrappers, but we could potentially
+        // turn them into dynamic proxies if that gets too unwieldy
+
+        // we'd also put a check for an internal marker interface to recognise internal callers here
         if (listener instanceof ProjectEvaluationListener) {
             return new BuildOperationEmittingProjectEvaluationListener(
                 (ProjectEvaluationListener) listener,
@@ -37,6 +43,8 @@ public final class LifecycleListenerBuildOperations {
         return listener;
     }
 
+    // For wrapping Closure-based listeners. We don't look for any internal impls etc as we don't expect internal
+    // callers to be registering closures.
     public static Dispatch<MethodInvocation> decorate(Closure<?> closure, String name, BuildOperationExecutor buildOperationExecutor) {
         return new LifecycleListenerBuildOperationDispatch(
             new ClosureBackedMethodInvocationDispatch(name, closure),
@@ -46,8 +54,10 @@ public final class LifecycleListenerBuildOperations {
         );
     }
 
+    // For wrapping Action-based listeners
     public static Dispatch<MethodInvocation> maybeDecorate(Action<?> action, String name, BuildOperationExecutor buildOperationExecutor) {
         ActionInvocationHandler handler = new ActionInvocationHandler("afterEvaluate", action);
+        // check for internal implementation details that we don't want to emit ops for
         if (action instanceof InternalAction) {
             return handler;
         } else {

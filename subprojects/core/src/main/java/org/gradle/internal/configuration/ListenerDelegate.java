@@ -16,6 +16,10 @@
 
 package org.gradle.internal.configuration;
 
+// Intended to support listener deregistration, probably in DefaultListenerManager
+// Not implemented yet in this spike
+// Needed as the listener registered in the ListenerManager is now a wrapper around the one passed in, so
+// it won't match the same listener being passed to a deregistration call.
 public interface ListenerDelegate {
 
     Object getDelegate();

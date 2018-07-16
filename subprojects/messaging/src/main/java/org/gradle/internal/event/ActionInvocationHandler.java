@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.internal.dispatch.FilteringDispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 
+// just busted out of BroadcastDispatch in this spike so that we can register them higher up
+// and optionally decorate with ops
 public class ActionInvocationHandler implements FilteringDispatch<MethodInvocation> {
     private final String methodName;
     private final Action action;

@@ -40,6 +40,8 @@ public class LifecycleListenerBuildOperationDispatch implements Dispatch<MethodI
 
     @Override
     public void dispatch(final MethodInvocation message) {
+        // we have this check for FilteringDispatch here so that we don't emit ops for unimplemented
+        // methods when we e.g. turn a closure into a dynamic proxy of an interface with a bunch of other methods
         if (!(delegate instanceof FilteringDispatch) || ((FilteringDispatch<MethodInvocation>) delegate).willDispatch(message)) {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
