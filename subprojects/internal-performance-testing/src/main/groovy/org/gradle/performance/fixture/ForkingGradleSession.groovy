@@ -105,7 +105,11 @@ class ForkingGradleSession implements GradleSession {
 
         def exitCode = run.start().waitFor()
         if (exitCode != 0 && !invocation.expectFailure) {
-            throw new IllegalStateException("Build failed, see ${invocationInfo.buildLog} for details")
+            if (invocationInfo.buildLog.exists()) {
+                throw new IllegalStateException("Build failed, see ${invocationInfo.buildLog.text} for details")
+            } else {
+                throw new IllegalStateException("Build failed, see unexisted ${invocationInfo.buildLog} for details")
+            }
         }
     }
 
