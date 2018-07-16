@@ -6,6 +6,8 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 import java.net.HttpURLConnection
 import java.net.URL
@@ -76,18 +78,24 @@ class UserGuideLinkTest {
 }
 
 
-class UserGuideLinkIntegrationTest {
+@RunWith(Parameterized::class)
+class UserGuideLinkIntegrationTest(
+    private val pluginId: String
+) {
+
+    companion object {
+        @Parameterized.Parameters(name = "{0}")
+        @JvmStatic
+        fun testCases() = linkedPlugins
+    }
 
     @Test
-    fun `linked resources are available`() {
-        linkedPlugins
-            .mapNotNull { UserGuideLink.forPlugin(it) }
-            .map { URL(it.replace("/current/", "/nightly/")) }
-            .forEach { url ->
-                (url.openConnection() as HttpURLConnection).run {
-                    requestMethod = "HEAD"
-                    assertThat(url.toString(), responseCode, equalTo(200))
-                }
-            }
+    fun `linked resource is available`() {
+        val link = UserGuideLink.forPlugin(pluginId)!!
+        val url = URL(link.replace("/current/", "/nightly/"))
+        (url.openConnection() as HttpURLConnection).run {
+            requestMethod = "HEAD"
+            assertThat(url.toString(), responseCode, equalTo(200))
+        }
     }
 }
