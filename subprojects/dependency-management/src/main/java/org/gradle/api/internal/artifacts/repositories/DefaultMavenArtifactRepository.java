@@ -304,7 +304,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
         }
 
-        builder.put(RepositoryPropertyType.ARTIFACT_URLS, getArtifactUrls());
+        builder.put(RepositoryPropertyType.ARTIFACT_URLS, CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
+            @Override
+            public String transform(URI uri) {
+                return uri.toASCIIString();
+            }
+        }));
         List<String> metadataSourcesList = metadataSources.asList();
         if (!metadataSourcesList.isEmpty()) {
             builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
