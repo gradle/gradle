@@ -170,7 +170,7 @@ object UserGuideLink {
             "java" to "java_plugin.html",
             "java-base" to "standard_plugins.html#sec:base_plugins",
 
-            "java-gradle-plugin" to "javaGradle_plugin.html",
+            "java-gradle-plugin" to "java_gradle_plugin.html",
 
             "java-lang" to "java_software.html",
 
