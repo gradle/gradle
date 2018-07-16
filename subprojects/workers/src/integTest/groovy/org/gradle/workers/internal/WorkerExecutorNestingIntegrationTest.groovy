@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.work.DefaultConditionalExecutionQueue
 import spock.lang.Unroll
 
 @IntegrationTestTimeout(120)
@@ -131,6 +132,40 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         where:
         nestedIsolationMode << ISOLATION_MODES
+    }
+
+    def "does not leave more than max-workers threads running when work items submit more work"() {
+        def maxWorkers = 4
+
+        buildFile << """
+            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            task runInWorker(type: NestingWorkerTask) {
+                submissions = ${maxWorkers * 2}
+                childSubmissions = ${maxWorkers * 10}
+
+                doLast {
+                    // Let the keep-alive time on the thread pool expire
+                    sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS + 100})
+
+                    def threadGroup = Thread.currentThread().threadGroup
+                    println "\\nWorker Executor threads:"
+                    def threads = new Thread[threadGroup.activeCount()]
+                    threadGroup.enumerate(threads)                     
+                    def executorThreads = threads.findAll { it.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                    executorThreads.each { println it }
+                    
+                    // Ensure that we don't leave any threads lying around
+                    assert executorThreads.size() <= ${maxWorkers}
+                }
+            }
+        """.stripIndent()
+
+        when:
+        executer.withArguments("--max-workers=${maxWorkers}")
+        succeeds("runInWorker")
+
+        then:
+        result.groupedOutput.task(':runInWorker').output.contains("Hello World")
     }
 
     String getRunnableWithNesting(String isolationMode, String nestedIsolationMode) {
