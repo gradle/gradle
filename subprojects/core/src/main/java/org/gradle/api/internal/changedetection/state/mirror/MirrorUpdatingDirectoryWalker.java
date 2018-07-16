@@ -24,6 +24,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -59,10 +60,10 @@ public class MirrorUpdatingDirectoryWalker {
     }
 
     public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot) {
-        return walk(fileSnapshot, null);
+        return walk(fileSnapshot, null, new MutableBoolean(false));
     }
 
-    public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns, MutableBoolean hasBeenFiltered) {
         if (fileSnapshot.getType() == FileType.Missing) {
             // The root missing file should not be tracked for trees.
             return FileSystemSnapshot.EMPTY;
@@ -71,11 +72,11 @@ public class MirrorUpdatingDirectoryWalker {
             return fileSnapshot;
         }
         Path rootPath = Paths.get(fileSnapshot.getAbsolutePath());
-        return walkDir(rootPath, patterns);
+        return walkDir(rootPath, patterns, hasBeenFiltered);
     }
 
-    private PhysicalSnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
-        final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
+    private PhysicalSnapshot walkDir(Path rootPath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+        final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
         final MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
 
         try {
@@ -87,6 +88,7 @@ public class MirrorUpdatingDirectoryWalker {
                         builder.preVisitDirectory(internedAbsolutePath(dir), name);
                         return FileVisitResult.CONTINUE;
                     } else {
+                        hasBeenFiltered.set(true);
                         return FileVisitResult.SKIP_SUBTREE;
                     }
                 }
@@ -103,6 +105,8 @@ public class MirrorUpdatingDirectoryWalker {
                             throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                         }
                         addFileSnapshot(file, name, attrs);
+                    } else {
+                        hasBeenFiltered.set(true);
                     }
                     return FileVisitResult.CONTINUE;
                 }
