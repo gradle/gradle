@@ -1,15 +1,11 @@
-import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val kotlinVersion = file("../kotlin-version.txt").readText().trim()
-
-    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.7"
+    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.8"
 
     dependencies {
-        classpath(kotlin("gradle-plugin", version = kotlinVersion))
         classpath(pluginsExperiments)
     }
 
@@ -24,12 +20,10 @@ buildscript {
 
 plugins {
     `java-gradle-plugin`
-    `kotlin-dsl` apply false
+    `kotlin-dsl`
 }
 
 apply(plugin = "org.gradle.kotlin.ktlint-convention")
-apply(plugin = "kotlin")
-apply<KotlinDslCompilerPlugins>()
 apply<PrecompiledScriptPlugins>()
 
 tasks.withType<KotlinCompile> {

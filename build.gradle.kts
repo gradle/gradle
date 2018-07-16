@@ -9,36 +9,29 @@ buildscript {
 
     build.loadExtraPropertiesOf(project)
 
-    val kotlinVersion: String by extra
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-    }
-
-    repositories {
-        gradlePluginPortal()
-    }
 }
 
 plugins {
     base
+    kotlin("jvm") apply false
     id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
 }
 
 allprojects {
     group = "org.gradle"
-    version = "0.17.5"
+    version = "0.18.4"
     createOpenTestReportTasks()
 }
 
-val publishedPluginsVersion by extra { "0.17.5" }
-val futurePluginsVersion = "0.17.6"
+val publishedPluginsVersion by extra { "0.18.1" }
+val futurePluginsVersion = "0.18.2"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
 }
 
-val publishedPluginsExperimentsVersion by extra { "0.1.7" }
-val futurePluginsExperimentsVersion = "0.1.8"
+val publishedPluginsExperimentsVersion by extra { "0.1.8" }
+val futurePluginsExperimentsVersion = "0.1.9"
 project(":plugins-experiments") {
     group = "org.gradle.kotlin"
     version = futurePluginsExperimentsVersion
@@ -48,7 +41,6 @@ project(":plugins-experiments") {
 val publishedProjects =
     listOf(
         project(":provider"),
-        project(":provider-spi"),
         project(":provider-plugins"),
         project(":tooling-models"),
         project(":tooling-builders"))
@@ -63,7 +55,7 @@ dependencies {
 
 allprojects {
     repositories {
-        maven(url = "https://repo.gradle.org/gradle/repo")
+        gradlePluginPortal()
     }
 }
 
@@ -155,7 +147,7 @@ fun Project.createOpenTestReportTasks() {
         val test = this
         reports.all {
             val report = this
-            tasks.createLater("open${test.name.capitalize()}${report.name.capitalize()}Report") {
+            tasks.register("open${test.name.capitalize()}${report.name.capitalize()}Report") {
                 group = JavaBasePlugin.VERIFICATION_GROUP
                 description = "Opens the ${report.name} report produced by the ${test.name} task."
                 doLast {
