@@ -48,6 +48,7 @@ buildTypes {
     create("sanityCheck") {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality",
+            "docs:userguideAsciidoc", // This is in sanityCheck because we want to leverage build cache and avoid https://github.com/gradle/gradle-private/issues/1352
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
         projectProperties("ignoreIncomingBuildReceipt" to true)
     }
