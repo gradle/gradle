@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
+// TODO - Let this class handle changing values
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
     private final PendingSource<T> pending = new DefaultPendingSource<T>();

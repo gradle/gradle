@@ -47,6 +47,10 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     // Represents the pending elements that have not yet been realized.
     private final PendingSource<T> pending = new DefaultPendingSource<T>();
 
+    // Cache the ordered set of values so that we don't have to construct the list every time we need to iterate
+    private final Set<T> orderedValuesCache = new LinkedHashSet<T>();
+    private boolean allElementsRealized;
+
     @Override
     public boolean isEmpty() {
         return inserted.isEmpty();
@@ -74,11 +78,13 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     @Override
     public Iterator<T> iterator() {
         pending.realizePending();
-        Set<T> allValues = new LinkedHashSet<T>();
-        for (SetElement element : inserted) {
-            allValues.addAll(element.getValues());
+        if (!allElementsRealized) {
+            for (SetElement element : inserted) {
+                orderedValuesCache.addAll(element.getValues());
+            }
+            allElementsRealized = true;
         }
-        return allValues.iterator();
+        return orderedValuesCache.iterator();
     }
 
     @Override
@@ -87,13 +93,19 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     }
 
     private Set<T> allRealizedValues() {
-        Set<T> realizedValues = new LinkedHashSet<T>();
-        for (SetElement element: inserted) {
-            if (element.realized) {
-                realizedValues.addAll(element.getValues());
+        if (orderedValuesCache.isEmpty()) {
+            for (SetElement element : inserted) {
+                if (element.realized) {
+                    orderedValuesCache.addAll(element.getValues());
+                }
             }
         }
-        return realizedValues;
+        return orderedValuesCache;
+    }
+
+    private void clearCachedValues() {
+        orderedValuesCache.clear();
+        allElementsRealized = false;
     }
 
     @Override
@@ -113,10 +125,16 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         if (allRealizedValues().contains(element)) {
             // Represents an already inserted value (such as a just-realized provider value)
             // that may or may not have already been "added".
+            clearCachedValues();
             return added.add(element);
         } else {
             // A realized element that has not been inserted before.
-            return added.add(element) && inserted.add(new SetElement(element));
+            if (added.add(element) && inserted.add(new SetElement(element))) {
+                clearCachedValues();
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -132,6 +150,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
                     if (values.size() == 1) {
                         iterator.remove();
                     }
+                    clearCachedValues();
                     return added.remove(o);
                 }
             }
@@ -144,6 +163,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         inserted.clear();
         added.clear();
         pending.clear();
+        clearCachedValues();
     }
 
     @Override
@@ -160,6 +180,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     public void addPending(ProviderInternal<? extends T> provider) {
         pending.addPending(provider);
         inserted.add(new SetElement(provider));
+        clearCachedValues();
     }
 
     @Override
@@ -172,12 +193,14 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             }
         }
         pending.removePending(provider);
+        clearCachedValues();
     }
 
     @Override
     public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
         pending.addPendingCollection(provider);
         inserted.add(new SetElement(provider));
+        clearCachedValues();
     }
 
     @Override
@@ -190,6 +213,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             }
         }
         pending.removePendingCollection(provider);
+        clearCachedValues();
     }
 
     @Override
@@ -202,6 +226,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
                         // Use the set element here so that we call provider.get() once and cache the value
                         DefaultSetProperty<T> setProperty = new DefaultSetProperty<T>(null);
                         setProperty.set(element.getValues());
+                        clearCachedValues();
                         action.execute(setProperty);
                     }
                 }
@@ -265,6 +290,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
                         pending.addPendingCollection(collectionProviderInternal);
                         value = null;
                         realized = false;
+                        clearCachedValues();
                     }
                 }
             };
