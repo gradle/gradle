@@ -116,7 +116,7 @@ object UserGuideLink {
             "binary-base" to "software_model_concepts.html",
 
             "build-announcements" to "build_announcements_plugin.html",
-            "build-dashboard" to "buildDashboard_plugin.html",
+            "build-dashboard" to "build_dashboard_plugin.html",
 
             "build-init" to "build_init_plugin.html",
             "c" to "native_software.html#sec:c_sources",
@@ -175,7 +175,7 @@ object UserGuideLink {
             "java-lang" to "java_software.html",
 
             "java-library" to "java_library_plugin.html",
-            "java-library-distribution" to "javaLibraryDistribution_plugin.html",
+            "java-library-distribution" to "java_library_distribution_plugin.html",
 
             // "javascript-base" to "javascript_base_plugin.html",
 
@@ -215,8 +215,8 @@ object UserGuideLink {
 
             "pmd" to "pmd_plugin.html",
 
-            "project-report" to "project_reports_plugin.html",
-            "project-reports" to "project_reports_plugin.html",
+            "project-report" to "project_report_plugin.html",
+            "project-reports" to "project_report_plugin.html",
 
             // "publishing" to "publishing_plugin.html",
 
