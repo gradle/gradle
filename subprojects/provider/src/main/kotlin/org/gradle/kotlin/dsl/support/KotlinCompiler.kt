@@ -202,12 +202,12 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, languageVersionSettings)
+        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
 
 private
-val languageVersionSettings = LanguageVersionSettingsImpl(
+val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     languageVersion = LanguageVersion.KOTLIN_1_2,
     apiVersion = ApiVersion.KOTLIN_1_2,
     specificFeatures = mapOf(
