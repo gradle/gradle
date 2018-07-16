@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathF
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
@@ -43,6 +44,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Collections;
@@ -89,7 +91,12 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     protected void compile() {
         ScalaJavaJointCompileSpec spec = createSpec();
         configureIncrementalCompilation(spec);
-        getCompiler(spec).execute(spec);
+        Compiler<ScalaJavaJointCompileSpec> compiler = getCompiler(spec);
+        File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
+        if(analysisFile==null){
+            compiler = (new CleaningScalaCompiler(compiler, getOutputs())).getCompiler();
+        }
+        compiler.execute(spec);
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
