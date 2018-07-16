@@ -30,4 +30,33 @@ public class FilePathUtil {
     public static String[] getPathSegments(String path) {
         return StringUtils.split(path, FILE_PATH_SEPARATORS);
     }
+
+    /**
+     * Does not include the file separator.
+     */
+    public static int sizeOfCommonPrefix(String path1, String path2, int offset) {
+        int pos = 0;
+        int lastSeparator = 0;
+        int maxPos = Math.min(path1.length(), path2.length() - offset);
+        for (; pos < maxPos; pos++) {
+            if (path1.charAt(pos) != path2.charAt(pos + offset)) {
+                break;
+            }
+            if (path1.charAt(pos) == File.separatorChar) {
+                lastSeparator = pos;
+            }
+        }
+        if (pos == maxPos) {
+            if (path1.length() == path2.length() - offset) {
+                return pos;
+            }
+            if (pos < path1.length() && path1.charAt(pos) == File.separatorChar) {
+                return pos;
+            }
+            if (pos < path2.length() - offset && path2.charAt(pos + offset) == File.separatorChar) {
+                return pos;
+            }
+        }
+        return lastSeparator;
+    }
 }

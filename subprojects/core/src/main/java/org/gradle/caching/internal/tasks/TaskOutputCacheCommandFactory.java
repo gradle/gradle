@@ -164,6 +164,7 @@ public class TaskOutputCacheCommandFactory {
                         break;
                     case DIRECTORY:
                         roots.add(snapshot);
+                        fileSystemMirror.putFile(snapshot);
                         fileSystemMirror.putDirectory(absolutePath, snapshot);
                         break;
                     default:

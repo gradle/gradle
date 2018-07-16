@@ -29,10 +29,8 @@ import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
@@ -179,16 +177,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
         TarArchiveEntry tarEntry;
         OriginTaskExecutionMetadata originMetadata = null;
-        Map<String, MutablePhysicalSnapshot> fileSnapshots = new HashMap<String, MutablePhysicalSnapshot>();
+        Map<String, PhysicalSnapshot> fileSnapshots = new HashMap<String, PhysicalSnapshot>();
 
         long entries = 0;
-        while ((tarEntry = tarInput.getNextTarEntry()) != null) {
+        tarEntry = tarInput.getNextTarEntry();
+        while (tarEntry != null) {
             ++entries;
             String path = tarEntry.getName();
 
             if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
                 originMetadata = readOriginAction.execute(new CloseShieldInputStream(tarInput));
+                tarEntry = tarInput.getNextTarEntry();
             } else {
                 // handle output property
                 Matcher matcher = PROPERTY_PATH.matcher(path);
@@ -204,7 +204,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
                 boolean outputMissing = matcher.group(1) != null;
                 String childPath = matcher.group(3);
-                unpackPropertyEntry(propertySpec, tarInput, tarEntry, childPath, outputMissing, fileSnapshots);
+                tarEntry = unpackPropertyEntry(propertySpec, tarInput, tarEntry, childPath, outputMissing, fileSnapshots);
             }
         }
         if (originMetadata == null) {
@@ -214,74 +214,104 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return new UnpackResult(originMetadata, entries, fileSnapshots);
     }
 
-    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, Map<String, MutablePhysicalSnapshot> snapshots) throws IOException {
+    private TarArchiveEntry unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, PhysicalSnapshot> snapshots) throws IOException {
         File propertyRoot = propertySpec.getOutputFile();
         String propertyName = propertySpec.getPropertyName();
         if (propertyRoot == null) {
             throw new IllegalStateException("Optional property should have a value: " + propertyName);
         }
 
-        File outputFile;
-        boolean isDirEntry = entry.isDirectory();
+        boolean isDirEntry = rootEntry.isDirectory();
         boolean root = Strings.isNullOrEmpty(childPath);
-        if (root) {
-            // We are handling the root of the property here
-            if (missing) {
-                if (!makeDirectory(propertyRoot.getParentFile())) {
-                    // Make sure output is removed if it exists already
-                    if (propertyRoot.exists()) {
-                        FileUtils.forceDelete(propertyRoot);
-                    }
+        if (!root) {
+            throw new IllegalStateException("Root needs to be the first entry in a property");
+        }
+        // We are handling the root of the property here
+        if (missing) {
+            if (!makeDirectory(propertyRoot.getParentFile())) {
+                // Make sure output is removed if it exists already
+                if (propertyRoot.exists()) {
+                    FileUtils.forceDelete(propertyRoot);
                 }
-                return;
             }
+            return input.getNextTarEntry();
+        }
 
-            OutputType outputType = propertySpec.getOutputType();
+        OutputType outputType = propertySpec.getOutputType();
+
+        if (outputType == OutputType.FILE) {
             if (isDirEntry) {
-                if (outputType != OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output directory property: " + propertyName);
-                }
-            } else {
-                if (outputType == OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output file property: " + propertyName);
-                }
+                throw new IllegalStateException("Property should be an output file property: " + propertyName);
             }
             ensureDirectoryForProperty(outputType, propertyRoot);
-            outputFile = propertyRoot;
-        } else {
-            outputFile = new File(propertyRoot, childPath);
-        }
-
-        MutablePhysicalSnapshot rootSnapshot = snapshots.get(propertyName);
-        if (rootSnapshot == null && propertySpec.getOutputType() == OutputType.DIRECTORY) {
-            rootSnapshot = new MutablePhysicalDirectorySnapshot(stringInterner.intern(propertyRoot.getAbsolutePath()), propertyRoot.getName(), stringInterner);
-            snapshots.put(propertyName, rootSnapshot);
-        }
-        String outputPath = stringInterner.intern(outputFile.getAbsolutePath());
-        String outputFileName = stringInterner.intern(outputFile.getName());
-        RelativePath relativePath = root ? RelativePath.parse(!isDirEntry, outputFileName) : RelativePath.parse(!isDirEntry, childPath);
-        if (isDirEntry) {
-            FileUtils.forceMkdir(outputFile);
-            if (!root) {
-                rootSnapshot.add(relativePath.getSegments(), 0, new MutablePhysicalDirectorySnapshot(outputPath, outputFileName, stringInterner));
-            }
-        } else {
-            OutputStream output = new FileOutputStream(outputFile);
+            OutputStream output = new FileOutputStream(propertyRoot);
             HashCode hash;
             try {
                 hash = streamHasher.hashCopy(input, output);
+                fileSystem.chmod(propertyRoot, rootEntry.getMode() & FILE_PERMISSION_MASK);
             } finally {
                 IOUtils.closeQuietly(output);
             }
-            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, hash, outputFile.lastModified());
-            if (root) {
-                snapshots.put(propertyName, fileSnapshot);
-            } else {
-                rootSnapshot.add(relativePath.getSegments(), 0, fileSnapshot);
-            }
+            String outputPath = stringInterner.intern(propertyRoot.getAbsolutePath());
+            String outputFileName = stringInterner.intern(propertyRoot.getName());
+            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, hash, propertyRoot.lastModified());
+            snapshots.put(propertyName, fileSnapshot);
+            return input.getNextTarEntry();
         }
 
-        fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);
+        if (!isDirEntry) {
+            throw new IllegalStateException("Property should be an output directory property: " + propertyName);
+        }
+        ensureDirectoryForProperty(outputType, propertyRoot);
+        fileSystem.chmod(propertyRoot, rootEntry.getMode() & FILE_PERMISSION_MASK);
+
+        RelativePathParser parser = new RelativePathParser();
+        parser.rootPath(rootEntry.getName());
+
+        MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
+        builder.preVisitDirectory(stringInterner.intern(propertyRoot.getAbsolutePath()), stringInterner.intern(propertyRoot.getName()));
+
+        TarArchiveEntry entry;
+
+        int depth = 1;
+        while ((entry = input.getNextTarEntry()) != null) {
+            int directoriesLeft = parser.nextPath(entry.getName(), entry.isDirectory());
+            for (int i = 0; i < directoriesLeft; i++) {
+                builder.postVisitDirectory();
+                depth--;
+            }
+            if (depth == 0) {
+                break;
+            }
+            boolean isDir = entry.isDirectory();
+
+            String outputFileName = stringInterner.intern(parser.getName());
+            File outputFile = new File(propertyRoot, parser.getRelativePath());
+            String absolutePath = stringInterner.intern(outputFile.getAbsolutePath());
+            if (isDir) {
+                FileUtils.forceMkdir(outputFile);
+                builder.preVisitDirectory(absolutePath, outputFileName);
+            } else {
+                OutputStream output = new FileOutputStream(outputFile);
+                HashCode hash;
+                try {
+                    hash = streamHasher.hashCopy(input, output);
+                } finally {
+                    IOUtils.closeQuietly(output);
+                }
+                PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(absolutePath, outputFileName, hash, outputFile.lastModified());
+                builder.visit(fileSnapshot);
+            }
+
+            fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);
+        }
+
+        for (;depth > 0; depth--) {
+            builder.postVisitDirectory();
+        }
+
+        snapshots.put(propertyName, builder.getResult());
+        return entry;
     }
 
     private static String escape(String name) {
