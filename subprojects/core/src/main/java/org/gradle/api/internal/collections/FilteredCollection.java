@@ -75,8 +75,8 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         if (collection.isEmpty()) {
             return true;
         } else {
-            for (T o : collection) {
-                if (accept(o)) {
+            for (Iterator<?> it = iterator(); it.hasNext();) {
+                if (accept(it.next())) {
                     return false;
                 }
             }
@@ -156,9 +156,9 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int size() {
         int i = 0;
-        // TODO this will realize all pending elements
-        for (T o : collection) {
-            if (accept(o)) {
+        // NOTE: There isn't much we can do about collection.matching { } filters as the spec requires a realized element, unless make major changes
+        for (Iterator<?> it = iterator(); it.hasNext();) {
+            if (accept(it.next())) {
                 ++i;
             }
         }
