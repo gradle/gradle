@@ -57,8 +57,20 @@ class RelativePathParserTest extends Specification {
         parser.nextPath("property-some/more-file.txt", false) == 1
         parser.name == "more-file.txt"
         parser.relativePath == "more-file.txt"
+        parser.depth == 1
 
         parser.nextPath("property-other/", true) == 1
+        parser.depth == 0
     }
 
+    def "can parse with dots"() {
+        def parser = new RelativePathParser()
+
+        expect:
+        parser.rootPath("property-reports.html.destination/")
+        parser.nextPath("property-reports.html.destination/classes/", true) == 0
+        parser.nextPath("property-reports.html.destination/classes/FooTest.html", false) == 0
+        parser.nextPath("property-reports.html.destination/css/", true) == 1
+        parser.depth == 2
+    }
 }

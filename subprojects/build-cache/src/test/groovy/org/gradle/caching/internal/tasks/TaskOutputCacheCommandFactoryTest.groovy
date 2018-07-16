@@ -100,7 +100,12 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             assert basePath == outputDir.absolutePath
             assert Iterables.getOnlyElement(dir.children).absolutePath == outputDirFile.absolutePath
         }
-        1 * fileSystemMirror.putFile(_) >> { args ->
+        1 * fileSystemMirror.putFile(_ as PhysicalDirectorySnapshot) >> { args ->
+            PhysicalDirectorySnapshot snapshot = args[0]
+            assert snapshot.absolutePath == outputDir.absolutePath
+            assert snapshot.name == outputDir.name
+        }
+        1 * fileSystemMirror.putFile(_ as PhysicalFileSnapshot) >> { args ->
             PhysicalFileSnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name

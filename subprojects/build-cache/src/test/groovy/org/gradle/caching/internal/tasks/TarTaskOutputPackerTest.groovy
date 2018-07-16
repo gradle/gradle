@@ -102,24 +102,26 @@ class TarTaskOutputPackerTest extends Specification {
         def targetDataFile = targetSubDir.file("data.txt")
         def output = new ByteArrayOutputStream()
         when:
-        pack output, prop(DIRECTORY, sourceOutputDir)
+        def packResult = pack output, prop(DIRECTORY, sourceOutputDir)
 
         then:
         1 * fileSystem.getUnixMode(sourceSubDir) >> 0711
         1 * fileSystem.getUnixMode(sourceDataFile) >> 0600
         0 * _
+        packResult.entries == 4
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, prop(DIRECTORY, targetOutputDir)
+        def result = unpack input, prop(DIRECTORY, targetOutputDir)
 
         then:
         1 * fileSystem.chmod(targetOutputDir, 0755)
         1 * fileSystem.chmod(targetSubDir, 0711)
         1 * fileSystem.chmod(targetDataFile, 0600)
-        then:
-        targetDataFile.text == "output"
         0 * _
+        and:
+        targetDataFile.text == "output"
+        result.entries == 4
     }
 
     @Unroll

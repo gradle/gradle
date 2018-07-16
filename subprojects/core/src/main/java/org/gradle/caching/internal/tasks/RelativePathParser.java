@@ -40,29 +40,33 @@ public class RelativePathParser {
 
     public int nextPath(String nextPath, boolean directory) {
         currentName = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
-        if (directoryPaths.isEmpty()) {
-            rootLength = nextPath.length();
-            directoryPaths.addLast(currentName);
-            return 0;
-        }
         String lastDirPath = directoryPaths.peekLast();
         sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentName, 0);
-        int directoriesUp = (sizeOfCommonPrefix == lastDirPath.length()) ? 0 : IS_SLASH.countIn(lastDirPath.substring(sizeOfCommonPrefix));
-        if (sizeOfCommonPrefix == 0) {
-            directoriesUp++;
-        }
-        for (int i = 0; i < directoriesUp; i++) {
+        int directoriesLeft = determineDirectoriesLeft(lastDirPath, sizeOfCommonPrefix);
+        for (int i = 0; i < directoriesLeft; i++) {
             directoryPaths.removeLast();
         }
-        if (directory) {
+        if (directory && getDepth() > 0) {
             directoryPaths.addLast(currentName);
         }
-        return directoriesUp;
+        return directoriesLeft;
+    }
+
+    private int determineDirectoriesLeft(String lastDirPath, int sizeOfCommonPrefix) {
+        if (sizeOfCommonPrefix == lastDirPath.length()) {
+            return 0;
+        }
+        int rootDirAdjustment = (sizeOfCommonPrefix == 0) ? 1 : 0;
+        return rootDirAdjustment + IS_SLASH.countIn(lastDirPath.substring(sizeOfCommonPrefix));
     }
 
     public void rootPath(String path) {
         directoryPaths.addLast(path.substring(0, path.length() - 1));
         rootLength = path.length();
+    }
+
+    public int getDepth() {
+        return directoryPaths.size();
     }
 
 }
