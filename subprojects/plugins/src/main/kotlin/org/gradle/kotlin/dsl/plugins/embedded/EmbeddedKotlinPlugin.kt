@@ -72,8 +72,8 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
     if (kotlinVersion != embeddedKotlinVersion) {
         warn(
             """
-            WARNING: Unsupported Kotlin plugin version.
-            The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
+                WARNING: Unsupported Kotlin plugin version.
+                The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
             """.trimIndent(),
             embeddedKotlinVersion,
             kotlinVersion
