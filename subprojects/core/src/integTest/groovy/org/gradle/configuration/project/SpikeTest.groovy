@@ -18,6 +18,7 @@ package org.gradle.configuration.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.configuration.LifecycleListenerExecutionBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class SpikeTest extends AbstractIntegrationSpec {
@@ -149,8 +150,8 @@ gradle.with {
         operations.all(~/.*/).each { println "$it (id: $it.id, parent: $it.parentId)"; it.progress.each { if (it.details.containsKey('spans')) print "  ${it.details.spans.text.join("")}" } }
 
         then:
-        def afterEvaluateWrapperOpId = operations.only("Notify afterEvaluate listeners of :").id
-        def afterEvaluateOps = operations.all(~/Execute .*afterEvaluate listener.*/)
+        def afterEvaluateWrapperOpId = operations.only(NotifyProjectAfterEvaluatedBuildOperationType).id
+        def afterEvaluateOps = operations.all(LifecycleListenerExecutionBuildOperationType) // we only have afterEvaluate decorated currently
         afterEvaluateOps.size() == 8 // 6 in settings.gradle, 2 in build.gradle
         // these all belong to the expected parent
         afterEvaluateOps.each {
@@ -160,17 +161,16 @@ gradle.with {
         operations.all(~/.*/).findAll { it.parentId == afterEvaluateWrapperOpId }.size() == afterEvaluateOps.size()
 
         // did we capture the correct parent op id at time of registration in these ops?
-        // these are currently just in the display name rather than creating detail/result objects
         def settingsScriptOpId = operations.only(~/Apply script settings.gradle to settings '.*'/).id
         def crossConfigureOpId = operations.only("Cross-configure project :").id
         def buildScriptOpId = operations.only("Apply script build.gradle to root project 'root'").id
-        afterEvaluateOps.find { hasProgress(it, "settings gradle.addProjectEvaluationListener.afterEvaluate root project 'root'\n") }.displayName.endsWith("parent id $settingsScriptOpId")
-        afterEvaluateOps.find { hasProgress(it, "settings gradle.rootProject.afterEvaluate (Action)\n") }.displayName.endsWith("parent id $crossConfigureOpId")
-        afterEvaluateOps.find { hasProgress(it, "build.gradle afterEvaluate (Closure)\n") }.displayName.endsWith("parent id $buildScriptOpId")
+        afterEvaluateOps.find { hasProgress(it, "settings gradle.addProjectEvaluationListener.afterEvaluate root project 'root'\n") }.details.applicationId == settingsScriptOpId
+        afterEvaluateOps.find { hasProgress(it, "settings gradle.rootProject.afterEvaluate (Action)\n") }.details.applicationId == crossConfigureOpId
+        afterEvaluateOps.find { hasProgress(it, "build.gradle afterEvaluate (Closure)\n") }.details.applicationId == buildScriptOpId
 
         // find nested one, should have the script as the parent, not the enclosing listener
         // NOTE: this does not work currently - may be better to stitch these together in the consumer, which should be observing them all anyway
-        //afterEvaluateOps.find { hasProgress(it, "build.gradle afterEvaluate afterEvaluate (Closure)\n") }.displayName.endsWith("parent id $buildScriptOpId")
+        //afterEvaluateOps.find { hasProgress(it, "build.gradle afterEvaluate afterEvaluate (Closure)\n") }.details.applicationId == buildScriptOpId
     }
 
     private static boolean hasProgress(BuildOperationRecord record, String msg) {

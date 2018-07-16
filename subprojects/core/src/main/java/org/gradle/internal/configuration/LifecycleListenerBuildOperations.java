@@ -48,7 +48,6 @@ public final class LifecycleListenerBuildOperations {
     public static Dispatch<MethodInvocation> decorate(Closure<?> closure, String name, BuildOperationExecutor buildOperationExecutor) {
         return new LifecycleListenerBuildOperationDispatch(
             new ClosureBackedMethodInvocationDispatch(name, closure),
-            name,
             buildOperationExecutor,
             parentBuildOperationId(buildOperationExecutor)
         );
@@ -56,14 +55,13 @@ public final class LifecycleListenerBuildOperations {
 
     // For wrapping Action-based listeners
     public static Dispatch<MethodInvocation> maybeDecorate(Action<?> action, String name, BuildOperationExecutor buildOperationExecutor) {
-        ActionInvocationHandler handler = new ActionInvocationHandler("afterEvaluate", action);
+        ActionInvocationHandler handler = new ActionInvocationHandler(name, action);
         // check for internal implementation details that we don't want to emit ops for
         if (action instanceof InternalAction) {
             return handler;
         } else {
             return new LifecycleListenerBuildOperationDispatch(
                 handler,
-                name,
                 buildOperationExecutor,
                 parentBuildOperationId(buildOperationExecutor)
             );

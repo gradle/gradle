@@ -19,6 +19,7 @@ package org.gradle.internal.configuration;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
+import org.gradle.internal.configuration.LifecycleListenerExecutionBuildOperationType.DetailsImpl;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -46,11 +47,12 @@ public class BuildOperationEmittingProjectEvaluationListener implements ProjectE
             @Override
             public void run(BuildOperationContext context) {
                 delegate.afterEvaluate(project, state);
+                context.setResult(LifecycleListenerExecutionBuildOperationType.RESULT);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Execute ProjectEvaluationListener.afterEvaluate listener parent id " + parentBuildOperationId);
+                return new DetailsImpl(parentBuildOperationId).desc();
             }
         });
     }

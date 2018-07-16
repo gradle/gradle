@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration;
 
+import org.gradle.internal.configuration.LifecycleListenerExecutionBuildOperationType.DetailsImpl;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.FilteringDispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
@@ -27,13 +28,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 public class LifecycleListenerBuildOperationDispatch implements Dispatch<MethodInvocation> {
 
     private final Dispatch<MethodInvocation> delegate;
-    private final String operationName;
     private final BuildOperationExecutor buildOperationExecutor;
     private final long parentBuildOperationId;
 
-    public LifecycleListenerBuildOperationDispatch(Dispatch<MethodInvocation> delegate, String operationName, BuildOperationExecutor buildOperationExecutor, long parentBuildOperationId) {
+    public LifecycleListenerBuildOperationDispatch(Dispatch<MethodInvocation> delegate, BuildOperationExecutor buildOperationExecutor, long parentBuildOperationId) {
         this.delegate = delegate;
-        this.operationName = operationName;
         this.buildOperationExecutor = buildOperationExecutor;
         this.parentBuildOperationId = parentBuildOperationId;
     }
@@ -47,11 +46,12 @@ public class LifecycleListenerBuildOperationDispatch implements Dispatch<MethodI
                 @Override
                 public void run(BuildOperationContext context) {
                     delegate.dispatch(message);
+                    context.setResult(LifecycleListenerExecutionBuildOperationType.RESULT);
                 }
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Execute dispatch based " + operationName + " listener parent id " + parentBuildOperationId);
+                    return new DetailsImpl(parentBuildOperationId).desc();
                 }
             });
         }
