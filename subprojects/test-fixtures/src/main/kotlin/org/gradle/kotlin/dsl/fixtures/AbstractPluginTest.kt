@@ -14,6 +14,9 @@ import java.util.*
  */
 open class AbstractPluginTest : AbstractIntegrationTest() {
 
+    override val defaultSettingsScript: String
+        get() = pluginManagementBlock
+
     protected
     val pluginManagementBlock by lazy {
         """

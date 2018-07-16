@@ -39,7 +39,7 @@ open class AbstractIntegrationTest {
         withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
-    val defaultSettingsScript
+    open val defaultSettingsScript
         get() = ""
 
     protected
