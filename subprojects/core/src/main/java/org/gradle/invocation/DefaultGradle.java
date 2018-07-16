@@ -39,15 +39,21 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.configuration.BuildOperationEmittingProjectEvaluationListener;
+import org.gradle.internal.configuration.InternalAction;
+import org.gradle.internal.configuration.LifecycleListenerBuildOperationDispatch;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.configuration.LifecycleListenerBuildOperations;
+import org.gradle.internal.event.ActionInvocationHandler;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
@@ -60,6 +66,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+
+import static org.gradle.internal.configuration.LifecycleListenerBuildOperations.decorate;
+import static org.gradle.internal.configuration.LifecycleListenerBuildOperations.maybeDecorate;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private SettingsInternal settings;
@@ -279,12 +288,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void afterProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        projectEvaluationListenerBroadcast.add(decorate(closure, "afterEvaluate", getBuildOperationExecutor()));
     }
 
     @Override
     public void afterProject(Action<? super Project> action) {
-        projectEvaluationListenerBroadcast.add("afterEvaluate", action);
+        projectEvaluationListenerBroadcast.add(maybeDecorate(action,  "afterEvaluate", getBuildOperationExecutor()));
     }
 
     @Override
@@ -339,11 +348,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addListener(Object listener) {
-        getListenerManager().addListener(listener);
+        getListenerManager().addListener(maybeDecorate(listener, getBuildOperationExecutor()));
     }
 
     @Override
     public void removeListener(Object listener) {
+        // FIXME need to handle removing wrapped listeners
         getListenerManager().removeListener(listener);
     }
 
@@ -447,6 +457,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Inject
     public PluginManagerInternal getPluginManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 }

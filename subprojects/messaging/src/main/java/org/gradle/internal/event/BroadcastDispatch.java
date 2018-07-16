@@ -77,22 +77,6 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     public abstract BroadcastDispatch<T> removeAll(Collection<?> listeners);
 
-    private static class ActionInvocationHandler implements Dispatch<MethodInvocation> {
-        private final String methodName;
-        private final Action action;
-
-        ActionInvocationHandler(String methodName, Action action) {
-            this.methodName = methodName;
-            this.action = action;
-        }
-
-        public void dispatch(MethodInvocation message) {
-            if (message.getMethod().getName().equals(methodName)) {
-                action.execute(message.getArguments()[0]);
-            }
-        }
-    }
-
     private static class EmptyDispatch<T> extends BroadcastDispatch<T> {
         EmptyDispatch(Class<T> type) {
             super(type);

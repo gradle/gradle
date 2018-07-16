@@ -18,11 +18,12 @@ package org.gradle.listener;
 
 import groovy.lang.Closure;
 import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.FilteringDispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 
 import java.util.Arrays;
 
-public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInvocation> {
+public class ClosureBackedMethodInvocationDispatch implements FilteringDispatch<MethodInvocation> {
     private final String methodName;
     private final Closure closure;
 
@@ -32,13 +33,18 @@ public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInv
     }
 
     public void dispatch(MethodInvocation message) {
-        if (message.getMethod().getName().equals(methodName)) {
+        if (willDispatch(message)) {
             Object[] parameters = message.getArguments();
             if (closure.getMaximumNumberOfParameters() < parameters.length) {
                 parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
             }
             closure.call(parameters);
         }
+    }
+
+    @Override
+    public boolean willDispatch(MethodInvocation message) {
+        return message.getMethod().getName().equals(methodName);
     }
 
     @Override

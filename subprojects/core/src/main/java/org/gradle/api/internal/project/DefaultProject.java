@@ -75,6 +75,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.configuration.LifecycleListenerBuildOperationDispatch;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
@@ -82,12 +83,15 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.configuration.LifecycleListenerBuildOperations;
+import org.gradle.internal.event.ActionInvocationHandler;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -981,7 +985,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        evaluationListener.add("afterEvaluate", action);
+        evaluationListener.add(LifecycleListenerBuildOperations.maybeDecorate(action, "afterEvaluate", getBuildOperationExecutor()));
     }
 
     @Override
@@ -991,7 +995,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        evaluationListener.add(LifecycleListenerBuildOperations.decorate(closure, "afterEvaluate", getBuildOperationExecutor()));
     }
 
     @Override
@@ -1403,5 +1407,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return nextBatch.isEmpty()
             ? null
             : nextBatch.getSource();
+    }
+
+    @Inject
+    public BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
     }
 }
