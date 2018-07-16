@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GradleProcessEnvironment {
-    private static final Map<String, String> ENVS = new ConcurrentHashMap<String, String>();
+    private static final Map<String, String> ENVS = new ConcurrentHashMap<String, String>(System.getenv());
 
     public static Map<String, String> getenv() {
         return Collections.unmodifiableMap(ENVS);

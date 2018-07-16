@@ -22,22 +22,25 @@ class GradleSystemIntegrationTest extends AbstractIntegrationSpec {
     def 'can set env variables via GradleSystem and switch env variables between daemons'() {
         given:
         buildFile << '''
-            println GradleSystem.getenv('myEnv')
+            println "myEnv: ${GradleSystem.getenv('myEnv')}"
+            println "anotherEnv: ${GradleSystem.getenv('anotherEnv')}"
         '''
 
         when:
-        executer.withEnvironmentVars([myEnv: 'myValue1'])
+        executer.withEnvironmentVars([myEnv: 'myValue1', anotherEnv: 'anotherValue'])
         succeeds('help')
 
         then:
-        outputContains('myValue1')
+        outputContains('myEnv: myValue1')
+        outputContains('anotherEnv: anotherValue')
 
         when:
         executer.withEnvironmentVars([myEnv: 'myValue2'])
         succeeds('help')
 
         then:
-        outputContains('myValue2')
+        outputContains('myEnv: myValue2')
+        outputContains('anotherEnv: null')
     }
 
     def 'forked workers can read the env variables'() {

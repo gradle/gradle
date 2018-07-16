@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -68,7 +69,7 @@ public class DaemonParameters {
         }
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
-        envVariables = new HashMap<String, String>(System.getenv());
+        envVariables = new HashMap<String, String>(GradleSystem.getenv());
     }
 
     public boolean isInteractive() {
@@ -163,7 +164,7 @@ public class DaemonParameters {
     }
 
     public void setEnvironmentVariables(Map<String, String> envVariables) {
-        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
+        this.envVariables = envVariables == null ? new HashMap<String, String>(GradleSystem.getenv()) : envVariables;
     }
 
     public void setDebug(boolean debug) {

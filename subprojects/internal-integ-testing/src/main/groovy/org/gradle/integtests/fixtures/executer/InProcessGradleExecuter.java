@@ -21,6 +21,7 @@ import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -233,7 +234,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
         File originalUserDir = new File(originalSysProperties.getProperty("user.dir")).getAbsoluteFile();
-        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
+        Map<String, String> originalEnv = new HashMap<String, String>(GradleSystem.getenv());
 
         GradleInvocation invocation = buildInvocation();
         Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
@@ -335,7 +336,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     private BuildActionParameters createBuildActionParameters(StartParameter startParameter) {
         return new DefaultBuildActionParameters(
             System.getProperties(),
-            System.getenv(),
+            GradleSystem.getenv(),
             SystemProperties.getInstance().getCurrentDir(),
             startParameter.getLogLevel(),
             false,

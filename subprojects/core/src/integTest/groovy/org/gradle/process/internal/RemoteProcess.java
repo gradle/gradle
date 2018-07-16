@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
+import org.gradle.api.GradleSystem;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -29,7 +30,7 @@ public class RemoteProcess implements Action<WorkerProcessContext>, Serializable
     public void execute(WorkerProcessContext workerProcessContext) {
         // Check environment
         assertThat(System.getProperty("test.system.property"), equalTo("value"));
-        assertThat(System.getenv().get("TEST_ENV_VAR"), equalTo("value"));
+        assertThat(GradleSystem.getenv().get("TEST_ENV_VAR"), equalTo("value"));
 
         // Check ClassLoaders
         ClassLoader antClassLoader = Project.class.getClassLoader();

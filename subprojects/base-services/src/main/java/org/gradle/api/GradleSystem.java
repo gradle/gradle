@@ -18,16 +18,18 @@ package org.gradle.api;
 
 import org.gradle.api.internal.GradleProcessEnvironment;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * Gradle environmental variable
+ * Gradle environmental variable collection.
  *
  * @since 4.10
  */
 @Incubating
 public class GradleSystem {
     @Incubating
+    @Nullable
     public static String getenv(String env) {
         return GradleProcessEnvironment.getenv(env);
     }

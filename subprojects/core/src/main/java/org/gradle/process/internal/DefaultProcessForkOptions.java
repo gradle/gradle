@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.GradleSystem;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ProcessForkOptions;
@@ -73,7 +74,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     public Map<String, Object> getEnvironment() {
         if (environment == null) {
-            setEnvironment(Jvm.current().getInheritableEnvironmentVariables(System.getenv()));
+            setEnvironment(Jvm.current().getInheritableEnvironmentVariables(GradleSystem.getenv()));
         }
         return environment;
     }

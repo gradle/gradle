@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import org.gradle.api.GradleSystem;
 import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
@@ -28,7 +29,7 @@ public class DefaultMavenFileLocations implements MavenFileLocations {
 
     @Nullable
     public File getGlobalMavenDir() {
-        String m2Home = System.getenv("M2_HOME");
+        String m2Home = GradleSystem.getenv("M2_HOME");
         if (m2Home == null) {
             return null;
         }

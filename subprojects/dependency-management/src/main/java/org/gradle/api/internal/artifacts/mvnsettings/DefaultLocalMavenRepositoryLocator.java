@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.settings.building.SettingsBuildingException;
+import org.gradle.api.GradleSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +107,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
 
         @Override
         public String getEnv(String name) {
-            return System.getenv(name);
+            return GradleSystem.getenv(name);
         }
     }
 }

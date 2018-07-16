@@ -26,6 +26,7 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.Terminals;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
@@ -118,7 +119,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     private static String getNativeDirOverride() {
-        return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
+        return System.getProperty(NATIVE_DIR_OVERRIDE, GradleSystem.getenv(NATIVE_DIR_OVERRIDE));
     }
 
     public static synchronized NativeServices getInstance() {

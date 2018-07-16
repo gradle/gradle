@@ -17,6 +17,7 @@ package org.gradle.internal.nativeintegration.processenvironment;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -47,7 +48,7 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     @Override
     public EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source) {
         // need to take copy to prevent ConcurrentModificationException
-        List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
+        List<String> keysToRemove = Lists.newArrayList(Sets.difference(GradleSystem.getenv().keySet(), source.keySet()));
         for (String key : keysToRemove) {
             removeEnvironmentVariable(key);
         }

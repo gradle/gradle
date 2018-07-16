@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.fixtures;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -327,7 +328,7 @@ public class AvailableToolChains {
             String compilerPath = Joiner.on(File.pathSeparator).join(pathEntries);
 
             if (compilerPath.length() > 0) {
-                originalPath = System.getenv(pathVarName);
+                originalPath = GradleSystem.getenv(pathVarName);
                 String path = compilerPath + File.pathSeparator + originalPath;
                 System.out.println(String.format("Using path %s", path));
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, path);
@@ -367,7 +368,7 @@ public class AvailableToolChains {
                 return Collections.emptyList();
             }
 
-            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + GradleSystem.getenv(pathVarName);
             return Collections.singletonList(pathVarName + "=" + path);
         }
 
