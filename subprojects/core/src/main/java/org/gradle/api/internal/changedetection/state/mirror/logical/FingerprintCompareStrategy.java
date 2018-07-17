@@ -24,6 +24,7 @@ import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -49,15 +50,11 @@ public enum FingerprintCompareStrategy {
      */
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
-        if (isTrivialComparison(current, previous)) {
-            return compareTrivialSnapshots(visitor, current, previous, propertyTitle, includeAdded);
+        Boolean trivialResult = compareTrivialSnapshots(visitor, current, previous, propertyTitle, includeAdded);
+        if (trivialResult != null) {
+            return trivialResult;
         }
         return delegate.visitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
-    }
-
-    @VisibleForTesting
-    static boolean isTrivialComparison(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
-        return current.isEmpty() || previous.isEmpty() || (current.size() == 1 && previous.size() == 1);
     }
 
     public void appendToHasher(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots) {
@@ -67,15 +64,13 @@ public enum FingerprintCompareStrategy {
     /**
      * Compares collection fingerprints if one of current or previous are empty or both have at most one element.
      *
-     * @param visitor the {@link TaskStateChangeVisitor} receiving the changes.
-     * @param current the current state of the snapshot.
-     * @param previous the previous state of the snapshot.
-     * @param propertyTitle the property title to use when creating the {@link FileChange}.
-     * @param includeAdded whether or not to include added files.
-     * @return whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
+     * @return {@code null} if the comparison is not trivial.
+     * For a trivial comparision returns whether the {@link TaskStateChangeVisitor} is looking for further changes.
+     * See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
      */
     @VisibleForTesting
-    static boolean compareTrivialSnapshots(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
+    @Nullable
+    static Boolean compareTrivialSnapshots(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
         switch (current.size()) {
             case 0:
                 switch (previous.size()) {
@@ -100,12 +95,12 @@ public enum FingerprintCompareStrategy {
                         Map.Entry<String, NormalizedFileSnapshot> currentEntry = current.entrySet().iterator().next();
                         return compareTrivialSnapshotEntries(visitor, currentEntry, previousEntry, propertyTitle, includeAdded);
                     default:
-                        throw new AssertionError();
+                        return null;
                 }
 
             default:
                 if (!previous.isEmpty()) {
-                    throw new AssertionError();
+                    return null;
                 }
                 return reportAllAdded(visitor, current, propertyTitle, includeAdded);
         }
