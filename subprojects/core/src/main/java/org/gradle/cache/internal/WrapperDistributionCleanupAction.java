@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.GradleVersion;
@@ -36,7 +37,6 @@ import java.io.FileFilter;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +49,7 @@ import java.util.zip.ZipFile;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.util.CollectionUtils.single;
 
-public class WrapperDistributionCleanupAction {
+public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
     private static final Logger LOGGER = Logging.getLogger(WrapperDistributionCleanupAction.class);
@@ -69,26 +69,20 @@ public class WrapperDistributionCleanupAction {
     }
 
     private final File distsDir;
-    private final UsedGradleVersions usedGradleVersions;
+    private Multimap<GradleVersion, File> checksumDirsByVersion;
 
-    public WrapperDistributionCleanupAction(File gradleUserHomeDirectory, UsedGradleVersions usedGradleVersions) {
+    public WrapperDistributionCleanupAction(File gradleUserHomeDirectory) {
         this.distsDir = new File(gradleUserHomeDirectory, WRAPPER_DISTRIBUTION_FILE_PATH);
-        this.usedGradleVersions = usedGradleVersions;
     }
 
-    public void execute() {
-        Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();
-        Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();
-        for (GradleVersion version : checksumDirsByVersion.keySet()) {
-            if (!usedVersions.contains(version) && version.compareTo(GradleVersion.current()) < 0) {
-                deleteDistributions(checksumDirsByVersion.get(version));
-            }
-        }
+    @Override
+    public void execute(GradleVersion version) {
+        deleteDistributions(version);
     }
 
-    private void deleteDistributions(Collection<File> dirs) {
+    private void deleteDistributions(GradleVersion version) {
         Set<File> parentsOfDeletedDistributions = Sets.newLinkedHashSet();
-        for (File checksumDir : dirs) {
+        for (File checksumDir : getChecksumDirsByVersion().get(version)) {
             LOGGER.debug("Deleting distribution at {}", checksumDir);
             if (FileUtils.deleteQuietly(checksumDir)) {
                 parentsOfDeletedDistributions.add(checksumDir.getParentFile());
@@ -99,6 +93,13 @@ public class WrapperDistributionCleanupAction {
                 parentDir.delete();
             }
         }
+    }
+
+    private Multimap<GradleVersion, File> getChecksumDirsByVersion() {
+        if (checksumDirsByVersion == null) {
+            checksumDirsByVersion = determineChecksumDirsByVersion();
+        }
+        return checksumDirsByVersion;
     }
 
     private Multimap<GradleVersion, File> determineChecksumDirsByVersion() {

@@ -29,29 +29,21 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def userHomeDir = temporaryFolder.createDir("user-home")
-    def usedGradleVersions = Mock(UsedGradleVersions) {
-        getUsedGradleVersions() >> ([] as SortedSet)
-    }
 
-    @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir, usedGradleVersions)
+    @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir)
 
     def "deletes distributions for unused versions"() {
         given:
-        def unusedDist = createDistributionChecksumDir(GradleVersion.version("2.3.4"))
-        def usedVersion = GradleVersion.version("3.4.5")
-        def stillUsedDist = createDistributionChecksumDir(usedVersion)
+        def versionToCleanUp = GradleVersion.version("2.3.4")
+        def oldDist = createDistributionChecksumDir(versionToCleanUp)
         def currentDist = createDistributionChecksumDir(currentVersion)
-        def unusedFutureDist = createDistributionChecksumDir(currentVersion.nextMajor)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
-        1 * usedGradleVersions.getUsedGradleVersions() >> ([usedVersion] as SortedSet)
-        unusedDist.parentFile.assertDoesNotExist()
-        stillUsedDist.assertExists()
+        oldDist.parentFile.assertDoesNotExist()
         currentDist.assertExists()
-        unusedFutureDist.assertExists()
     }
 
     def "deletes custom distributions for unused versions"() {
@@ -63,7 +55,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def currentBinDist = createCustomDistributionChecksumDir("my-bin-dist-${currentVersion.version}", currentVersion)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
         oldAllDist.parentFile.assertDoesNotExist()
@@ -79,7 +71,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def currentDist = createCustomDistributionChecksumDir("my-dist", currentVersion)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
         oldDist.assertDoesNotExist()
@@ -93,7 +85,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         distributionWithMultipleSubDirectories.createDir("foo")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
         distributionWithMultipleSubDirectories.assertExists()
@@ -105,7 +97,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
         distributionWithoutJar.assertExists()
@@ -119,7 +111,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         }
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
         distributionWithoutBuildReceiptInJar.assertExists()
@@ -131,7 +123,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(versionToCleanUp)
 
         then:
         distributionWithInvalidVersionInDirName.assertExists()
@@ -143,7 +135,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "gradle-core")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(version)
 
         then:
         distribution.assertDoesNotExist()
@@ -155,7 +147,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "gradle-version-info")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(version)
 
         then:
         distribution.assertDoesNotExist()
@@ -167,7 +159,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "some-other-jar")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(version)
 
         then:
         distribution.assertExists()
