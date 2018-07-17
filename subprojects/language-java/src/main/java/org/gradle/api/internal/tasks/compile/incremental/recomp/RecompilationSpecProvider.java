@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.internal.file.FileType;
@@ -31,11 +30,9 @@ import java.util.Set;
 public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
-    private final FileOperations fileOperations;
 
-    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, FileOperations fileOperations) {
+    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter) {
         this.sourceToNameConverter = sourceToNameConverter;
-        this.fileOperations = fileOperations;
     }
 
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
@@ -47,7 +44,7 @@ public class RecompilationSpecProvider {
     }
 
     private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(fileOperations, current.getClasspathSnapshot(), previous);
+        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(current.getClasspathSnapshot(), previous);
         Map<File, ClasspathEntrySnapshot> previousCompilationSnapshots = previous.getSnapshots();
         ClasspathSnapshot currentSnapshots = current.getClasspathSnapshot();
 

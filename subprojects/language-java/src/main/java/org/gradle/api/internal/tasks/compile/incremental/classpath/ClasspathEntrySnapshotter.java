@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import java.io.File;
+
 public interface ClasspathEntrySnapshotter {
-    ClasspathEntrySnapshot createSnapshot(ClasspathEntry classpathEntry);
+    ClasspathEntrySnapshot createSnapshot(File classpathEntry);
 }

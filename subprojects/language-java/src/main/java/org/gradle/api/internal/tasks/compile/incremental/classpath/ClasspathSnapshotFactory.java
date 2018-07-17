@@ -40,7 +40,7 @@ public class ClasspathSnapshotFactory {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    ClasspathSnapshot createSnapshot(final Iterable<ClasspathEntry> entries) {
+    ClasspathSnapshot createSnapshot(final Iterable<File> entries) {
         final Set<CreateSnapshot> snapshotOperations = snapshotAll(entries);
 
         final LinkedHashMap<File, ClasspathEntrySnapshot> snapshots = Maps.newLinkedHashMap();
@@ -49,11 +49,11 @@ public class ClasspathSnapshotFactory {
         final Set<String> duplicateClasses = Sets.newHashSet();
 
         for (CreateSnapshot operation : snapshotOperations) {
-            ClasspathEntry entry = operation.entry;
+            File entry = operation.entry;
             ClasspathEntrySnapshot snapshot = operation.snapshot;
             if (snapshot != null) {
-                snapshots.put(entry.getFile(), snapshot);
-                hashes.put(entry.getFile(), snapshot.getHash());
+                snapshots.put(entry, snapshot);
+                hashes.put(entry, snapshot.getHash());
                 for (String c : snapshot.getClasses()) {
                     if (!allClasses.add(c)) {
                         duplicateClasses.add(c);
@@ -66,13 +66,13 @@ public class ClasspathSnapshotFactory {
         return new ClasspathSnapshot(snapshots, classpathSnapshotData);
     }
 
-    private Set<CreateSnapshot> snapshotAll(final Iterable<ClasspathEntry> entries) {
+    private Set<CreateSnapshot> snapshotAll(final Iterable<File> entries) {
         final Set<CreateSnapshot> snapshotOperations = Sets.newLinkedHashSet();
 
         buildOperationExecutor.runAll(new Action<BuildOperationQueue<CreateSnapshot>>() {
             @Override
             public void execute(BuildOperationQueue<CreateSnapshot> buildOperationQueue) {
-                for (ClasspathEntry entry : entries) {
+                for (File entry : entries) {
                     CreateSnapshot operation = new CreateSnapshot(entry);
                     snapshotOperations.add(operation);
                     buildOperationQueue.add(operation);
@@ -83,16 +83,16 @@ public class ClasspathSnapshotFactory {
     }
 
     private class CreateSnapshot implements RunnableBuildOperation {
-        private final ClasspathEntry entry;
+        private final File entry;
         private ClasspathEntrySnapshot snapshot;
 
-        private CreateSnapshot(ClasspathEntry entry) {
+        private CreateSnapshot(File entry) {
             this.entry = entry;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            if (entry.getFile().exists()) {
+            if (entry.exists()) {
                 snapshot = classpathEntrySnapshotter.createSnapshot(entry);
             }
         }

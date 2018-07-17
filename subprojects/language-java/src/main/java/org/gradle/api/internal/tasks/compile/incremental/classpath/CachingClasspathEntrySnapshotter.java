@@ -18,11 +18,14 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.Snapshot;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+
+import java.io.File;
 
 public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshotter {
 
@@ -30,24 +33,24 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final ClasspathEntrySnapshotCache cache;
 
-    public CachingClasspathEntrySnapshotter(StreamHasher streamHasher, FileSystemSnapshotter fileSystemSnapshotter, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache) {
-        this.snapshotter = new DefaultClasspathEntrySnapshotter(streamHasher, analyzer);
+    public CachingClasspathEntrySnapshotter(StreamHasher streamHasher, FileSystemSnapshotter fileSystemSnapshotter, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
+        this.snapshotter = new DefaultClasspathEntrySnapshotter(streamHasher, analyzer, fileOperations);
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.cache = cache;
     }
 
     @Override
-    public ClasspathEntrySnapshot createSnapshot(final ClasspathEntry classpathEntry) {
+    public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
         final HashCode hash = getHash(classpathEntry);
-        return cache.get(classpathEntry.getFile(), new Factory<ClasspathEntrySnapshot>() {
+        return cache.get(classpathEntry, new Factory<ClasspathEntrySnapshot>() {
             public ClasspathEntrySnapshot create() {
                 return snapshotter.createSnapshot(hash, classpathEntry);
             }
         });
     }
 
-    private HashCode getHash(ClasspathEntry classpathEntry) {
-        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(classpathEntry.getFile());
+    private HashCode getHash(File classpathEntry) {
+        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(classpathEntry);
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         fileSnapshot.appendToHasher(hasher);
         return hasher.hash();

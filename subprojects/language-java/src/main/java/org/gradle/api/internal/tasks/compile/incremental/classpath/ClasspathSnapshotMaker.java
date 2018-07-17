@@ -27,14 +27,12 @@ public class ClasspathSnapshotMaker implements ClasspathSnapshotProvider {
 
     private static final Logger LOG = Logging.getLogger(ClasspathSnapshotMaker.class);
 
-    private final ClasspathEntryConverter classpathEntryConverter;
     private final ClasspathSnapshotFactory classpathSnapshotFactory;
 
     private ClasspathSnapshot classpathSnapshot;
 
-    public ClasspathSnapshotMaker(ClasspathSnapshotFactory classpathSnapshotFactory, ClasspathEntryConverter classpathEntryConverter) {
+    public ClasspathSnapshotMaker(ClasspathSnapshotFactory classpathSnapshotFactory) {
         this.classpathSnapshotFactory = classpathSnapshotFactory;
-        this.classpathEntryConverter = classpathEntryConverter;
     }
 
     @Override
@@ -48,9 +46,8 @@ public class ClasspathSnapshotMaker implements ClasspathSnapshotProvider {
             return;
         }
         Timer clock = Time.startTimer();
-        Iterable<ClasspathEntry> entriesArchives = classpathEntryConverter.asClasspathEntries(classpath);
 
-        classpathSnapshot = classpathSnapshotFactory.createSnapshot(entriesArchives);
+        classpathSnapshot = classpathSnapshotFactory.createSnapshot(classpath);
         int duplicatesCount = classpathSnapshot.getData().getDuplicateClasses().size();
         String duplicateClassesMessage = duplicatesCount == 0 ? "" : ". " + duplicatesCount + " duplicate classes found in classpath (see all with --debug)";
         LOG.info("Created classpath snapshot for incremental compilation in {}{}.", clock.getElapsed(), duplicateClassesMessage);
