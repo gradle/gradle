@@ -93,7 +93,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         configureIncrementalCompilation(spec);
         Compiler<ScalaJavaJointCompileSpec> compiler = getCompiler(spec);
         File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
-        if(analysisFile==null){
+        if(!analysisFile.exists()){
             compiler = (new CleaningScalaCompiler(compiler, getOutputs())).getCompiler();
         }
         compiler.execute(spec);
