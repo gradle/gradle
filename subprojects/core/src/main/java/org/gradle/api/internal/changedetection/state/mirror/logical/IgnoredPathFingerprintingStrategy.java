@@ -27,6 +27,11 @@ import java.util.Map;
 
 public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy {
 
+    public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
+
+    private IgnoredPathFingerprintingStrategy() {
+    }
+
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();

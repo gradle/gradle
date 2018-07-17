@@ -111,7 +111,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity ABSOLUTE (include missing = true)"() {
-        def snapshots = collectSnapshots(new AbsolutePathFingerprintingStrategy(true))
+        def snapshots = collectSnapshots(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
         expect:
         allFilesToSnapshot.each { file ->
             assert snapshots[file] == file.absolutePath
@@ -120,7 +120,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity ABSOLUTE (include missing = false)"() {
-        def snapshots = collectSnapshots(new AbsolutePathFingerprintingStrategy(false))
+        def snapshots = collectSnapshots(AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
         expect:
         (allFilesToSnapshot - missingFile).each { file ->
             assert snapshots[file] == file.absolutePath

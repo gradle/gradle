@@ -135,7 +135,7 @@ public class TaskOutputCacheCommandFactory {
 
         private void updateSnapshots(Map<String, ? extends PhysicalSnapshot> propertiesSnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
-            AbsolutePathFingerprintingStrategy fingerprintingStrategy = new AbsolutePathFingerprintingStrategy(false);
+            AbsolutePathFingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();

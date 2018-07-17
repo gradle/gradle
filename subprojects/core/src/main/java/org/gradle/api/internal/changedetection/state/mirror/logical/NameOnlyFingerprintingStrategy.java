@@ -28,6 +28,11 @@ import java.util.Map;
 
 public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
+    public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+
+    private NameOnlyFingerprintingStrategy() {
+    }
+
     @Override
     public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();

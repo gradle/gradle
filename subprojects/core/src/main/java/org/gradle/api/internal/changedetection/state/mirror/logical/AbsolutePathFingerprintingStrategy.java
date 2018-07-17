@@ -26,11 +26,13 @@ import org.gradle.internal.file.FileType;
 import java.util.HashSet;
 import java.util.Map;
 
-public class AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
+public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
+
+    INCLUDE_MISSING(true), IGNORE_MISSING(false);
 
     private final boolean includeMissing;
 
-    public AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+    AbsolutePathFingerprintingStrategy(boolean includeMissing) {
         this.includeMissing = includeMissing;
     }
 
