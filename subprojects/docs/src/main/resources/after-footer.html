@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright 2018 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<script type="text/javascript">
+    // Polyfill Element.matches()
+    if (!Element.prototype.matches) {
+        Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    }
+    // Polyfill Element.closest()
+    if (!Element.prototype.closest) {
+        Element.prototype.closest = function(s) {
+            var el = this;
+            if (!document.documentElement.contains(el)) return null;
+            do {
+                if (typeof el.matches === "function" && el.matches(s)) return el;
+                el = el.parentElement || el.parentNode;
+            } while (el !== null);
+            return null;
+        };
+    }
+    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='"+ window.location.pathname +"']"), function(link) {
+        // Add "active" to all links same as current URL
+        link.classList.add("active");
+
+        // Expand all parent navigation
+        var parentListEl = link.closest("li");
+        while (parentListEl !== null) {
+            var dropDownEl = parentListEl.querySelector(".nav-dropdown");
+            if (dropDownEl !== null) {
+                dropDownEl.classList.add("expanded");
+            }
+            parentListEl = parentListEl.parentNode.closest("li");
+        }
+    });
+
+    // Expand/contract multi-level side navigation
+    [].forEach.call(document.querySelectorAll(".docs-navigation .nav-dropdown"), function registerSideNavActions(collapsibleElement) {
+        collapsibleElement.addEventListener("click", function toggleExpandedSideNav(evt) {
+            evt.preventDefault();
+            evt.target.classList.toggle("expanded");
+            evt.target.setAttribute("aria-expanded", evt.target.classList.contains("expanded").toString());
+            return false;
+        }, false);
+    });
+</script>
