@@ -41,7 +41,7 @@ public class RelativePathParser {
     public int nextPath(String nextPath, boolean directory) {
         currentName = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
         String lastDirPath = directoryPaths.peekLast();
-        sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentName, 0);
+        sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentName, 0, '/');
         int directoriesLeft = determineDirectoriesLeft(lastDirPath, sizeOfCommonPrefix);
         for (int i = 0; i < directoriesLeft; i++) {
             directoryPaths.removeLast();

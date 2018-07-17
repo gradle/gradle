@@ -26,8 +26,8 @@ class FilePathUtilTest extends Specification {
     @Unroll
     def "common prefix for #commonPrefix/{#firstPostFix,#secondPostFix}"() {
         expect:
-        sizeOfCommonPrefix(commonPrefix + "/" + firstPostFix, commonPrefix + "/" + secondPostFix, 0) == commonPrefix.length()
-        sizeOfCommonPrefix(commonPrefix + "/" + secondPostFix, commonPrefix + "/" + firstPostFix, 0) == commonPrefix.length()
+        sizeOfCommonPrefix(commonPrefix + "/" + firstPostFix, commonPrefix + "/" + secondPostFix, 0, '/' as char) == commonPrefix.length()
+        sizeOfCommonPrefix(commonPrefix + "/" + secondPostFix, commonPrefix + "/" + firstPostFix, 0, '/' as char) == commonPrefix.length()
 
         where:
         commonPrefix | firstPostFix | secondPostFix
