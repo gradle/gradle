@@ -55,6 +55,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
+import org.gradle.api.internal.tasks.ProtectApiService;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.model.ObjectFactory;
@@ -181,8 +182,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return parentFactory.createChild(project, get(InstantiatorFactory.class).injectAndDecorate(this));
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor);
+    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, ProtectApiService protectApiService) {
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, protectApiService);
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer() {

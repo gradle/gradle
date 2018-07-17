@@ -55,7 +55,8 @@ class DefaultTaskContainerTest extends Specification {
         project,
         accessListener,
         new TaskStatistics(),
-        new TestBuildOperationExecutor()
+        new TestBuildOperationExecutor(),
+        new DefaultProtectApiService()
     ).create()
 
     void 'cannot create task with no name'() {

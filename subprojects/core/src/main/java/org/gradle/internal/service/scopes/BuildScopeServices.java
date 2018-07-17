@@ -61,6 +61,8 @@ import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.DefaultProtectApiService;
+import org.gradle.api.internal.tasks.ProtectApiService;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
@@ -260,6 +262,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new TaskFactory(
                 get(ClassGenerator.class))
         );
+    }
+
+    protected ProtectApiService createLazyConfigurationService() {
+        return new DefaultProtectApiService();
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,

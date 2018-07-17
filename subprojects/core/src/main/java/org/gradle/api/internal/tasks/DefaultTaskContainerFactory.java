@@ -50,8 +50,9 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProtectApiService protectApiService;
 
-    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, ProtectApiService protectApiService) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
@@ -59,10 +60,11 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.protectApiService = protectApiService;
     }
 
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor, protectApiService);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }
