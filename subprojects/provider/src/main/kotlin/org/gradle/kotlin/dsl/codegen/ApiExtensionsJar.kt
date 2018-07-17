@@ -29,15 +29,8 @@ fun generateApiExtensionsJar(outputFile: File, gradleJars: Collection<File>, onP
 }
 
 
-internal
-interface KotlinFileCompiler {
-    fun compileToDirectory(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>)
-}
-
-
-internal
+private
 class ApiExtensionsJarGenerator(
-    val compiler: KotlinFileCompiler = StandardKotlinFileCompiler,
     val onProgress: () -> Unit = {}
 ) {
 
@@ -55,13 +48,18 @@ class ApiExtensionsJarGenerator(
 
     private
     fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
-        compiler.compileToDirectory(
+        compileKotlinApiExtensionsTo(
             outputDir,
-            gradleApiExtensionsSourceFilesFor(gradleJars, outputDir) +
-                builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir),
-            classPath = gradleJars)
+            sourceFilesFor(gradleJars, outputDir),
+            classPath = gradleJars
+        )
         onProgress()
     }
+
+    private
+    fun sourceFilesFor(gradleJars: Collection<File>, outputDir: File) =
+        (gradleApiExtensionsSourceFilesFor(gradleJars, outputDir)
+            + builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir))
 
     private
     fun gradleApiExtensionsSourceFilesFor(gradleJars: Collection<File>, outputDir: File) =
@@ -92,21 +90,20 @@ class ApiExtensionsJarGenerator(
 
 
 internal
-object StandardKotlinFileCompiler : KotlinFileCompiler {
-    override fun compileToDirectory(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) {
+fun compileKotlinApiExtensionsTo(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) {
 
-        val success = compileToDirectory(
-            outputDirectory,
-            sourceFiles,
-            loggerFor<StandardKotlinFileCompiler>(),
-            classPath = classPath)
+    val success = compileToDirectory(
+        outputDirectory,
+        sourceFiles,
+        loggerFor<ApiExtensionsJarGenerator>(),
+        classPath = classPath
+    )
 
-        if (!success) {
-            throw IllegalStateException(
-                "Unable to compile Gradle Kotlin DSL API Extensions Jar\n" +
-                    "\tFrom:\n" +
-                    sourceFiles.joinToString("\n\t- ", prefix = "\t- ", postfix = "\n") +
-                    "\tSee compiler logs for details.")
-        }
+    if (!success) {
+        throw IllegalStateException(
+            "Unable to compile Gradle Kotlin DSL API Extensions Jar\n" +
+                "\tFrom:\n" +
+                sourceFiles.joinToString("\n\t- ", prefix = "\t- ", postfix = "\n") +
+                "\tSee compiler logs for details.")
     }
 }

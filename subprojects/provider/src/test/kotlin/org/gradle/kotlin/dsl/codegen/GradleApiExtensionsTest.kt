@@ -312,7 +312,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             }
         }
 
-        StandardKotlinFileCompiler.compileToDirectory(
+        compileKotlinApiExtensionsTo(
             file("out").also { it.mkdirs() },
             generatedSourceFiles + usageFiles,
             apiJars
