@@ -31,16 +31,18 @@ import java.util.Set;
 public class ClasspathEntrySnapshot {
 
     private final ClasspathEntrySnapshotData data;
+    private final ClassSetAnalysis analysis;
 
     public ClasspathEntrySnapshot(ClasspathEntrySnapshotData data) {
         this.data = data;
+        this.analysis = new ClassSetAnalysis(data.getClassAnalysis());
     }
 
     public DependentsSet getAllClasses() {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
-            DependentsSet dependents = getAnalysis().getRelevantDependents(className, IntSets.EMPTY_SET);
+            DependentsSet dependents = getClassAnalysis().getRelevantDependents(className, IntSets.EMPTY_SET);
             if (dependents.isDependencyToAll()) {
                 return dependents;
             }
@@ -82,7 +84,7 @@ public class ClasspathEntrySnapshot {
             if (thisClsBytes == null || !thisClsBytes.equals(otherClassBytes)) {
                 //removed since or changed since
                 affected.add(otherClassName);
-                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
+                DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }
@@ -106,8 +108,8 @@ public class ClasspathEntrySnapshot {
         return data.getHashes();
     }
 
-    public ClassSetAnalysis getAnalysis() {
-        return new ClassSetAnalysis(data.getClassAnalysis());
+    public ClassSetAnalysis getClassAnalysis() {
+        return analysis;
     }
 
     public Set<String> getClasses() {

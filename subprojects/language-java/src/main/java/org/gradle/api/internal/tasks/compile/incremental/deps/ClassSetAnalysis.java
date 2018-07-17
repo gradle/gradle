@@ -50,6 +50,10 @@ public class ClassSetAnalysis {
         this.dependenciesFromAnnotationProcessing = dependenciesFromAnnotationProcessing.build();
     }
 
+    public ClassSetAnalysis withAnnotationProcessingData(AnnotationProcessingData annotationProcessingData) {
+        return new ClassSetAnalysis(classAnalysis, annotationProcessingData);
+    }
+
     public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
         Set<String> result = null;
         for (String cls : classes) {
@@ -133,5 +137,9 @@ public class ClassSetAnalysis {
 
     public IntSet getConstants(String className) {
         return classAnalysis.getConstants(className);
+    }
+
+    public String getClassNameForFile(String path) {
+        return classAnalysis.getClassNameForFile(path);
     }
 }

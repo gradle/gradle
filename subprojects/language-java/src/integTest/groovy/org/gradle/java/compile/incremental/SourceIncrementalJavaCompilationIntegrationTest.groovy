@@ -615,7 +615,7 @@ dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
 
         then:
         succeeds "compileJava", "--info"
-        outputContains("Full recompilation is required because class file LocaleElements_zh__PINYIN.class could not be analyzed.")
+        outputContains("Full recompilation is required because LocaleElements_zh__PINYIN.class could not be analyzed for incremental compilation.")
     }
 
     @Issue("GRADLE-3495")

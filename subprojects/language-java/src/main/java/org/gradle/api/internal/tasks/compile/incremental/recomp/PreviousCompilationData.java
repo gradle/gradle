@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotDataSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -30,20 +29,20 @@ import java.io.File;
 import java.util.List;
 
 public class PreviousCompilationData {
-    private final ClassSetAnalysisData classAnalysis;
+    private final File destinationDir;
     private final AnnotationProcessingData annotationProcessingData;
     private final ClasspathSnapshotData classpathSnapshot;
     private final List<File> annotationProcessorPath;
 
-    public PreviousCompilationData(ClassSetAnalysisData classAnalysis, AnnotationProcessingData annotationProcessingData, ClasspathSnapshotData classpathSnapshot, List<File> annotationProcessorPath) {
-        this.classAnalysis = classAnalysis;
+    public PreviousCompilationData(File destinationDir, AnnotationProcessingData annotationProcessingData, ClasspathSnapshotData classpathSnapshot, List<File> annotationProcessorPath) {
+        this.destinationDir = destinationDir;
         this.annotationProcessingData = annotationProcessingData;
         this.classpathSnapshot = classpathSnapshot;
         this.annotationProcessorPath = annotationProcessorPath;
     }
 
-    public ClassSetAnalysisData getClassAnalysis() {
-        return classAnalysis;
+    public File getDestinationDir() {
+        return destinationDir;
     }
 
     public AnnotationProcessingData getAnnotationProcessingData() {
@@ -59,23 +58,22 @@ public class PreviousCompilationData {
     }
 
     public static class Serializer extends AbstractSerializer<PreviousCompilationData> {
-        private static final ClassSetAnalysisData.Serializer CLASS_ANALYSIS_SERIALIZER = new ClassSetAnalysisData.Serializer();
         private static final ClasspathSnapshotDataSerializer CLASSPATH_SNAPSHOT_SERIALIZER = new ClasspathSnapshotDataSerializer();
         private static final ListSerializer<File> PROCESSOR_PATH_SERIALZER = new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER);
         private static final AnnotationProcessingData.Serializer ANNOTATION_PROCESSING_DATA_SERIALIZER = new AnnotationProcessingData.Serializer();
 
         @Override
         public PreviousCompilationData read(Decoder decoder) throws Exception {
-            ClassSetAnalysisData classAnalysis = CLASS_ANALYSIS_SERIALIZER.read(decoder);
+            File destinationDir = BaseSerializerFactory.FILE_SERIALIZER.read(decoder);
             ClasspathSnapshotData classpathSnapshot = CLASSPATH_SNAPSHOT_SERIALIZER.read(decoder);
             List<File> processorPath = PROCESSOR_PATH_SERIALZER.read(decoder);
             AnnotationProcessingData annotationProcessingData = ANNOTATION_PROCESSING_DATA_SERIALIZER.read(decoder);
-            return new PreviousCompilationData(classAnalysis, annotationProcessingData, classpathSnapshot, processorPath);
+            return new PreviousCompilationData(destinationDir, annotationProcessingData, classpathSnapshot, processorPath);
         }
 
         @Override
         public void write(Encoder encoder, PreviousCompilationData value) throws Exception {
-            CLASS_ANALYSIS_SERIALIZER.write(encoder, value.classAnalysis);
+            BaseSerializerFactory.FILE_SERIALIZER.write(encoder, value.destinationDir);
             CLASSPATH_SNAPSHOT_SERIALIZER.write(encoder, value.classpathSnapshot);
             PROCESSOR_PATH_SERIALZER.write(encoder, value.annotationProcessorPath);
             ANNOTATION_PROCESSING_DATA_SERIALIZER.write(encoder, value.annotationProcessingData);

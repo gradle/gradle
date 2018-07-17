@@ -33,22 +33,31 @@ import java.util.Set;
 public class PreviousCompilation {
 
     private final PreviousCompilationData data;
-    private final ClassSetAnalysis classAnalysis;
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
-    private Map<File, ClasspathEntrySnapshot> snapshots;
+    private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
 
-    public PreviousCompilation(PreviousCompilationData data, ClasspathEntrySnapshotCache classpathEntrySnapshotCache) {
+    private Map<File, ClasspathEntrySnapshot> snapshots;
+    private ClassSetAnalysis classAnalysis;
+
+    public PreviousCompilation(PreviousCompilationData data, ClasspathEntrySnapshotCache classpathEntrySnapshotCache, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer) {
         this.data = data;
-        this.classAnalysis = new ClassSetAnalysis(data.getClassAnalysis(), data.getAnnotationProcessingData());
         this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
+        this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
     }
 
     public DependentsSet getDependents(Set<String> allClasses, IntSet constants) {
-        return classAnalysis.getRelevantDependents(allClasses, constants);
+        return getClassAnalysis().getRelevantDependents(allClasses, constants);
     }
 
     public String getClassName(String path) {
-        return data.getClassAnalysis().getClassNameForFile(path);
+        return getClassAnalysis().getClassNameForFile(path);
+    }
+
+    private ClassSetAnalysis getClassAnalysis() {
+        if (classAnalysis == null) {
+            classAnalysis = previousCompilationOutputAnalyzer.getAnalysis(data.getDestinationDir()).withAnnotationProcessingData(data.getAnnotationProcessingData());
+        }
+        return classAnalysis;
     }
 
     public ClasspathEntrySnapshot getClasspathEntrySnapshot(File file) {
@@ -69,13 +78,13 @@ public class PreviousCompilation {
     }
 
     public DependentsSet getDependents(String className, IntSet newConstants) {
-        IntSet constants = new IntOpenHashSet(classAnalysis.getConstants(className));
+        IntSet constants = new IntOpenHashSet(getClassAnalysis().getConstants(className));
         constants.removeAll(newConstants);
-        return classAnalysis.getRelevantDependents(className, constants);
+        return getClassAnalysis().getRelevantDependents(className, constants);
     }
 
     public Set<String> getTypesToReprocess() {
-        return classAnalysis.getTypesToReprocess();
+        return getClassAnalysis().getTypesToReprocess();
     }
 
 

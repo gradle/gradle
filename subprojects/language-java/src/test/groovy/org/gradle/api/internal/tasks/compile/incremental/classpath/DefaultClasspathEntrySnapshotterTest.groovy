@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,16 +38,17 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def hasher = Mock(StreamHasher)
+    def fileHasher = Mock(FileHasher)
+    def streamHasher = Mock(StreamHasher)
     def classDependenciesAnalyzer = Mock(ClassDependenciesAnalyzer)
     def fileOperations = Mock(FileOperations)
-    @Subject snapshotter = new DefaultClasspathEntrySnapshotter(hasher, classDependenciesAnalyzer, fileOperations)
+    @Subject snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations)
 
     def "creates snapshot for an empty entry"() {
         expect:
         def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), temp.file("foo"))
         snapshot.hashes.isEmpty()
-        snapshot.analysis
+        snapshot.classAnalysis
     }
 
     def "creates snapshot of an entry with classes"() {
@@ -71,11 +73,11 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
             visitor.visitFile(f2Details)
             visitor.visitFile(new DefaultFileVisitDetails(f3, null, null))
         }
-        1 * hasher.hash(_) >> f1Hash
+        1 * fileHasher.hash(_) >> f1Hash
         1 * classDependenciesAnalyzer.getClassAnalysis(f1Hash, f1Details) >> Stub(ClassAnalysis) {
             getClassName() >> "Foo"
         }
-        1 * hasher.hash(_) >> f2Hash
+        1 * fileHasher.hash(_) >> f2Hash
         1 * classDependenciesAnalyzer.getClassAnalysis(f2Hash, f2Details) >> Stub(ClassAnalysis) {
             getClassName() >> "com.Foo2"
         }
@@ -83,6 +85,6 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
 
         and:
         snapshot.hashes == ["Foo": f1Hash, "com.Foo2": f2Hash]
-        snapshot.analysis
+        snapshot.classAnalysis
     }
 }

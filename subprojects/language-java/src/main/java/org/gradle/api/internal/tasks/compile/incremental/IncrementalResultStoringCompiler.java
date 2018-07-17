@@ -16,17 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimaps;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationOutputAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
@@ -45,12 +40,10 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> delegate;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
     private final Stash<PreviousCompilationData> stash;
-    private final CompilationOutputAnalyzer compilationOutputAnalyzer;
 
-    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, CompilationOutputAnalyzer compilationOutputAnalyzer, Stash<PreviousCompilationData> stash) {
+    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash) {
         this.delegate = delegate;
         this.classpathSnapshotProvider = classpathSnapshotProvider;
-        this.compilationOutputAnalyzer = compilationOutputAnalyzer;
         this.stash = stash;
     }
 
@@ -65,10 +58,9 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
     }
 
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
-        ClassSetAnalysisData classAnalysis = compilationOutputAnalyzer.getAnalysis(spec, result);
         ClasspathSnapshotData classpathSnapshot = classpathSnapshotProvider.getClasspathSnapshot(spec.getCompileClasspath()).getData();
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
-        PreviousCompilationData data = new PreviousCompilationData(classAnalysis, annotationProcessingData, classpathSnapshot, spec.getAnnotationProcessorPath());
+        PreviousCompilationData data = new PreviousCompilationData(spec.getDestinationDir(), annotationProcessingData, classpathSnapshot, spec.getAnnotationProcessorPath());
         stash.put(data);
     }
 
