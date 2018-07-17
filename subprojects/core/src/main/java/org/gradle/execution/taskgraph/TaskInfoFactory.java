@@ -112,6 +112,10 @@ public class TaskInfoFactory {
         }
 
         @Override
+        protected  void notifyDependencyFinished(ExecutionState state) {
+        }
+
+        @Override
         public boolean isSuccessful() {
             return state == State.SUCCESS;
         }

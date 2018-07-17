@@ -142,7 +142,7 @@ public class TaskExecutionServices {
         executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, taskOutputChangesListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
-        executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
+        executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);

@@ -32,8 +32,7 @@ import java.util.Set;
  */
 public abstract class WorkInfo implements Comparable<WorkInfo> {
 
-    @VisibleForTesting
-    enum ExecutionState {
+    protected enum ExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
     }
 
@@ -107,18 +106,27 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     public void finishExecution() {
         assert state == ExecutionState.EXECUTING;
-        state = ExecutionState.EXECUTED;
+        setFinishedState(ExecutionState.EXECUTED);
     }
 
     public void skipExecution() {
         assert state == ExecutionState.SHOULD_RUN;
-        state = ExecutionState.SKIPPED;
+        setFinishedState(ExecutionState.SKIPPED);
     }
 
     public void abortExecution() {
         assert isReady();
-        state = ExecutionState.SKIPPED;
+        setFinishedState(ExecutionState.SKIPPED);
     }
+
+    private void setFinishedState(ExecutionState state) {
+        this.state = state;
+        for (WorkInfo dependencyPredecessor : dependencyPredecessors) {
+            dependencyPredecessor.notifyDependencyFinished(state);
+        }
+    }
+
+    protected abstract void notifyDependencyFinished(ExecutionState state);
 
     public void require() {
         state = ExecutionState.SHOULD_RUN;

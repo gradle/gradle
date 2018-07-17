@@ -79,6 +79,10 @@ Instances of this class are intended to be created only by the `base` plugin and
 
 Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
 
+### Querying the execution graph for task dependencies
+
+`TaskExecutionGraph.getDependencies(Task)` is now deprecated.
+
 ## Potential breaking changes
 
 ### Kotlin DSL breakages

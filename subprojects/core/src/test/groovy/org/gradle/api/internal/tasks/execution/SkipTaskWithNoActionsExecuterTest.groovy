@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -24,25 +23,21 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
 class SkipTaskWithNoActionsExecuterTest extends Specification {
-    final TaskInternal task = Mock()
-    final TaskStateInternal state = Mock()
-    final TaskExecutionContext executionContext = Mock()
-    final TaskExecuter target = Mock()
-    final TaskInternal dependency = Mock()
-    final TaskStateInternal dependencyState = Mock()
-    final TaskExecutionGraph taskExecutionGraph = Mock()
-    final SkipTaskWithNoActionsExecuter executor = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, target)
+    def task = Mock(TaskInternal)
+    def state = Mock(TaskStateInternal)
+    def executionContext = Mock(TaskExecutionContext)
+    def target = Mock(TaskExecuter)
+    def taskState = Mock(TaskStateInternal)
+    def executor = new SkipTaskWithNoActionsExecuter(target)
 
     def setup() {
-        _ * taskExecutionGraph.getDependencies(task) >> ([dependency] as Set)
-        _ * dependency.state >> dependencyState
+        _ * task.state >> taskState
     }
 
     def skipsTaskWithNoActionsAndMarksUpToDateIfAllItsDependenciesWereSkipped() {
         given:
         task.hasTaskActions() >> false
-        dependencyState.skipped >> true
-        taskExecutionGraph.hasTask(task) >> true
+        taskState.hasDependencyDoneWork() >> false
 
         when:
         executor.execute(task, state, executionContext)
@@ -57,8 +52,8 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
     def skipsTaskWithNoActionsAndMarksOutOfDateDateIfAnyOfItsDependenciesWereNotSkipped() {
         given:
         task.hasTaskActions() >> false
-        dependencyState.skipped >> false
-        taskExecutionGraph.hasTask(task) >> true
+        taskState.skipped >> false
+        taskState.hasDependencyDoneWork() >> true
 
         when:
         executor.execute(task, state, executionContext)
@@ -66,22 +61,6 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
         then:
         1 * state.setActionable(false)
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        0 * target._
-        0 * state._
-    }
-
-    def skipsTaskWhichIsNotPartOfTheTaskGraph() {
-        given:
-        task.hasTaskActions() >> false
-        dependency.skipped >> false
-        taskExecutionGraph.hasTask(task) >> false
-
-        when:
-        executor.execute(task, state, executionContext)
-
-        then:
-        1 * state.setActionable(false)
-        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
         0 * target._
         0 * state._
     }

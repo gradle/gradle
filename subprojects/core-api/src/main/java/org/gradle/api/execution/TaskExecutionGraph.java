@@ -17,7 +17,6 @@ package org.gradle.api.execution;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 
 import java.util.List;
@@ -152,8 +151,9 @@ public interface TaskExecutionGraph {
      * @return The tasks. Returns an empty set if there are no dependent tasks.
      * @throws IllegalStateException When this graph has not been populated or the task is not part of it.
      *
+     * @deprecated This method is discontinued without replacement.
      * @since 4.6
      */
-    @Incubating
+    @Deprecated
     Set<Task> getDependencies(Task task);
 }

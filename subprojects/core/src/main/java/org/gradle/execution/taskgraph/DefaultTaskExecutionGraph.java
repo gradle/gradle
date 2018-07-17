@@ -47,6 +47,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,6 +235,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskExecutionGraph.getDependencies(Task)");
         ensurePopulated();
         return taskExecutionPlan.getDependencies(task);
     }

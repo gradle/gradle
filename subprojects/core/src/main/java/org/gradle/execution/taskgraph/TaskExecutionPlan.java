@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -45,9 +44,9 @@ public interface TaskExecutionPlan extends Describable {
      * @return The tasks. Returns an empty set if there are no dependent tasks.
      * @throws IllegalStateException When the task is not part of the execution plan.
      *
-     * @since 4.5
+     * @deprecated This should be removed together with {@link org.gradle.api.execution.TaskExecutionGraph#getDependencies(Task)}.
      */
-    @Incubating
+    @Deprecated
     Set<Task> getDependencies(Task task);
 
     /**

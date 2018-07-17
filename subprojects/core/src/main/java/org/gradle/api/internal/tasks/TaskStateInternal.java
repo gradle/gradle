@@ -27,7 +27,9 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
+    private boolean dependencyDoneWork;
 
+    @Override
     public boolean getDidWork() {
         return didWork;
     }
@@ -36,6 +38,7 @@ public class TaskStateInternal implements TaskState {
         this.didWork = didWork;
     }
 
+    @Override
     public boolean getExecuted() {
         return outcome != null;
     }
@@ -78,10 +81,12 @@ public class TaskStateInternal implements TaskState {
         return taskOutputCaching;
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }
 
+    @Override
     public void rethrowFailure() {
         if (failure == null) {
             return;
@@ -95,14 +100,17 @@ public class TaskStateInternal implements TaskState {
         throw new GradleException("Task failed with an exception.", failure);
     }
 
+    @Override
     public boolean getSkipped() {
         return outcome != null && outcome.isSkipped();
     }
 
+    @Override
     public String getSkipMessage() {
         return outcome != null ? outcome.getMessage() : null;
     }
 
+    @Override
     public boolean getUpToDate() {
         return outcome != null && outcome.isUpToDate();
     }
@@ -124,4 +132,17 @@ public class TaskStateInternal implements TaskState {
         this.actionable = actionable;
     }
 
+    /**
+     * Records that a dependency of this task has done work.
+     */
+    public void markDependencyDoneWork() {
+        dependencyDoneWork = true;
+    }
+
+    /**
+     * Returns whether any dependency of this task has done work.
+     */
+    public boolean hasDependencyDoneWork() {
+        return dependencyDoneWork;
+    }
 }

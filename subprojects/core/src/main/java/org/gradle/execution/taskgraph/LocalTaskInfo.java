@@ -85,6 +85,13 @@ public class LocalTaskInfo extends TaskInfo {
         }
     }
 
+    @Override
+    protected void notifyDependencyFinished(ExecutionState state) {
+        if (state != ExecutionState.SKIPPED) {
+            task.getState().markDependencyDoneWork();
+        }
+    }
+
     private Set<WorkInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
     }

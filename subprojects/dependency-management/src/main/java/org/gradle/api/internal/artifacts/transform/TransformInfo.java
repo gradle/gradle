@@ -77,6 +77,10 @@ public abstract class TransformInfo extends WorkInfo {
     public abstract void execute(BuildOperationExecutor buildOperationExecutor);
 
     @Override
+    protected void notifyDependencyFinished(ExecutionState state) {
+    }
+
+    @Override
     public String toString() {
         return artifactTransformer.getDisplayName();
     }
