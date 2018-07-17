@@ -35,6 +35,7 @@ import org.gradle.internal.IoActions
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
+import javax.annotation.Nullable
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -45,12 +46,13 @@ import java.util.zip.ZipInputStream
  * blocks until all the jobs have finished and aggregates their status.
  */
 @CompileStatic
+@CacheableTask
 class DistributedPerformanceTest extends PerformanceTest {
 
-    @Input @Optional
+    @Internal
     String coordinatorBuildId
 
-    @Input @Optional
+    @Internal
     String branchName
 
     @Input
@@ -69,9 +71,11 @@ class DistributedPerformanceTest extends PerformanceTest {
     String teamCityPassword
 
     @OutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioList
 
     @OutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioReport
 
     private RESTClient client
@@ -91,6 +95,19 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
+    }
+
+    @Nullable
+    @Optional
+    @Input
+    String getBaselineCacheKey() {
+        List baselineList = baselines == null ? [] : baselines.split(',').collect { String it -> it.trim() }
+        if (baselineList.contains('last') || baselineList.contains('nightly')) {
+            // turn off cache if the baseline contains 'nightly' or 'last'
+            return UUID.randomUUID().toString()
+        } else {
+            return baselines
+        }
     }
 
     @Override
@@ -137,9 +154,9 @@ class DistributedPerformanceTest extends PerformanceTest {
         def scenarios = scenarioList.readLines()
             .collect { line ->
                 def parts = Splitter.on(';').split(line).toList()
-                new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
+                new Scenario(id: parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
             }
-            .sort{ -it.estimatedRuntime }
+            .sort { -it.estimatedRuntime }
 
         createClient()
 
@@ -245,6 +262,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             response = client.get(path: "builds/id:$jobId")
             finished = response.data.@state == "finished"
             if (!finished) {
+                println "Waiting for scenario build $jobId to finish"
                 sleep(TimeUnit.MINUTES.toMillis(1))
             }
         }

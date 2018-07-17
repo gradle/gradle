@@ -22,8 +22,11 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.build.BuildState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
@@ -38,13 +41,22 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     @Override
     public void execute(Configuration classpath) {
         ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
+        boolean found = false;
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
             ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            build(currentBuild, componentArtifactIdentifier);
+            found |= build(currentBuild, componentArtifactIdentifier);
+        }
+        if (found) {
+            List<Throwable> taskFailures = new ArrayList<Throwable>();
+            includedBuildTaskGraph.awaitTaskCompletion(taskFailures);
+            if (!taskFailures.isEmpty()) {
+                throw new MultipleBuildFailures(taskFailures);
+            }
         }
     }
 
-    public void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
+    public boolean build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
+        boolean found = false;
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             BuildIdentifier targetBuild = compositeBuildArtifact.getComponentId().getBuild();
@@ -53,9 +65,8 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             for (Task task : tasks) {
                 includedBuildTaskGraph.addTask(requestingBuild, targetBuild, task.getPath());
             }
-            for (Task task : tasks) {
-                includedBuildTaskGraph.awaitCompletion(targetBuild, task.getPath());
-            }
+            found = true;
         }
+        return found;
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -30,7 +31,14 @@ public class ProjectReportsPluginConvention {
     private String projectReportDirName = "project";
     private final Project project;
 
+    /**
+     * Creates a {@link ProjectReportsPluginConvention} instance.
+     *
+     * @deprecated Creating instances of this class is deprecated. These should be created by the reporting base plugin only.
+     */
+    @Deprecated
     public ProjectReportsPluginConvention(Project project) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of ProjectReportsPluginConvention");
         this.project = project;
     }
 

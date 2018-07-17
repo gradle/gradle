@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
 import org.gradle.internal.DisplayName
@@ -256,7 +255,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
-        def moduleVersionSelector = newSelector(DefaultModuleIdentifier.newId("x", requested), new DefaultMutableVersionConstraint("1"))
+        def moduleVersionSelector = newSelector(DefaultModuleIdentifier.newId("x", requested), "1")
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
         new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)
     }
@@ -272,6 +271,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ComponentIdentifier componentId
         DisplayName variantName
         AttributeContainer variantAttributes
+        String repositoryName
     }
 
     class DummyInternalDependencyResult implements DependencyResult {

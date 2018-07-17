@@ -17,48 +17,29 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Effectively immutable implementation of ConfigurationMetadata.
  * Used to represent Ivy and Maven modules in the dependency graph.
  */
-public class DefaultConfigurationMetadata implements ConfigurationMetadata, VariantResolveMetadata {
-    private final ModuleComponentIdentifier componentId;
-    private final String name;
-    private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-    private final boolean transitive;
-    private final boolean visible;
-    private final ImmutableList<String> hierarchy;
-    private final VariantMetadataRules componentMetadataRules;
-    private final ImmutableList<ExcludeMetadata> excludes;
-    private final ImmutableAttributes attributes;
-    private final ImmutableCapabilities capabilities;
+public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata {
 
-    // Should be final, and set in constructor
-    private ImmutableList<ModuleDependencyMetadata> configDependencies;
+    private final VariantMetadataRules componentMetadataRules;
+
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
     // Could be precomputed, but we avoid doing so if attributes are never requested
     private ImmutableAttributes computedAttributes;
     private CapabilitiesMetadata computedCapabilities;
 
-    protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+    public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                            VariantMetadataRules componentMetadataRules,
                                            ImmutableList<ExcludeMetadata> excludes,
@@ -72,110 +53,36 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes attributes,
                                          ImmutableList<ModuleDependencyMetadata> configDependencies) {
-        this.componentId = componentId;
-        this.name = name;
-        this.transitive = transitive;
-        this.visible = visible;
-        this.artifacts = artifacts;
-        this.hierarchy = hierarchy;
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, ImmutableCapabilities.EMPTY);
         this.componentMetadataRules = componentMetadataRules;
-        this.excludes = excludes;
-        this.attributes = attributes;
-        this.configDependencies = configDependencies;
-        this.capabilities = ImmutableCapabilities.EMPTY;
-    }
-
-    @Override
-    public DisplayName asDescribable() {
-        return Describables.of(componentId, "configuration", name);
-    }
-
-    @Override
-    public String toString() {
-        return asDescribable().getDisplayName();
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Collection<String> getHierarchy() {
-        return hierarchy;
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return visible;
     }
 
     @Override
     public ImmutableAttributes getAttributes() {
         if (computedAttributes == null) {
-            computedAttributes = componentMetadataRules.applyVariantAttributeRules(this, attributes);
+            computedAttributes = componentMetadataRules.applyVariantAttributeRules(this, super.getAttributes());
         }
         return computedAttributes;
     }
 
     @Override
-    public boolean isCanBeConsumed() {
-        return true;
-    }
-
-    @Override
-    public boolean isCanBeResolved() {
-        return false;
-    }
-
-    @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(this, configDependencies);
+            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(this, getConfigDependencies());
         }
         return calculatedDependencies;
-    }
-
-    protected void setDependencies(List<ModuleDependencyMetadata> dependencies) {
-        assert this.configDependencies == null; // Can only set once: should really be part of the constructor
-        this.configDependencies = ImmutableList.copyOf(dependencies);
-    }
-
-    @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifacts() {
-        return artifacts;
     }
 
     @Override
     public CapabilitiesMetadata getCapabilities() {
         if (computedCapabilities == null) {
-            computedCapabilities = componentMetadataRules.applyCapabilitiesRules(this, capabilities);
+            computedCapabilities = componentMetadataRules.applyCapabilitiesRules(this, super.getCapabilities());
         }
         return computedCapabilities;
     }
 
-    @Override
-    public Set<? extends VariantResolveMetadata> getVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
-    }
-
-    @Override
-    public ImmutableList<ExcludeMetadata> getExcludes() {
-        return excludes;
-    }
-
-    @Override
-    public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
-    }
-
-    protected DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, attributes, configDependencies);
+    public DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
     }
 
 }

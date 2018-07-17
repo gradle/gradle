@@ -110,7 +110,7 @@ class RunningPlayApp {
     }
 
     void waitForStarted(int occurrence = 0) {
-        int timeout = 60
+        int timeout = 120
         ConcurrentTestUtil.poll(timeout) {
             assert parseHttpPort(occurrence) != UNASSIGNED : "Could not parse Play http port from spec output after ${timeout} seconds"
         }

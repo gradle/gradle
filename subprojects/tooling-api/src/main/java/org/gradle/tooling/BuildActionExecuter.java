@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
  * @param <T> The type of result produced by this executer.
  * @since 1.8
  */
-@Incubating
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
 
     /**
@@ -82,7 +81,6 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
      * @return this
      * @since 3.5
      */
-    @Incubating
     BuildActionExecuter<T> forTasks(String... tasks);
 
     /**
@@ -94,7 +92,6 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
      * @return this
      * @since 3.5
      */
-    @Incubating
     BuildActionExecuter<T> forTasks(Iterable<String> tasks);
 
     /**

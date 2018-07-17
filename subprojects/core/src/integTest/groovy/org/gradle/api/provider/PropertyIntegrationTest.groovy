@@ -40,7 +40,7 @@ p.get()
         run()
 
         then:
-        output.contains("The property(Class) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ObjectFactory.property(Class) method instead.")
+        output.contains("The property(Class) method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ObjectFactory.property(Class) method instead.")
 
         where:
         expr                         | _

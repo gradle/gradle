@@ -956,6 +956,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return !runningNodes.isEmpty();
     }
 
+    @Override
+    public int size() {
+        return workInfoMapping.workInfos.size();
+    }
+
     private static class GraphEdge {
         private final WorkInfo from;
         private final WorkInfo to;

@@ -45,7 +45,7 @@ normalization {
 
 def generatedTestResourcesDir = gradlebuildJava.generatedTestResourcesDir
 
-task wrapperBuildReceiptResource(type: Copy) {
+def wrapperBuildReceiptResource = tasks.register("wrapperBuildReceiptResource", Copy) {
     from {
         tasks.getByPath(':createBuildReceipt').outputs.files
     }
@@ -53,7 +53,7 @@ task wrapperBuildReceiptResource(type: Copy) {
 }
 sourceSets.test.output.dir generatedTestResourcesDir, builtBy: wrapperBuildReceiptResource
 
-task executableJar(type: Jar) {
+tasks.register("executableJar", Jar) {
     // gradle-wrapper.jar will be part of the plugins.jar - so it needs to be identical for now
     reproducibleFileOrder = true
     preserveFileTimestamps = false

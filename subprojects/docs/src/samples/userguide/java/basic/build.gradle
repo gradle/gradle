@@ -70,7 +70,6 @@ test.onlyIf { !project.hasProperty('mySkipTests') }
 
 // START SNIPPET java-compiler-options
 compileJava {
-    options.incremental = true
     options.fork = true
     options.failOnError = false
 }

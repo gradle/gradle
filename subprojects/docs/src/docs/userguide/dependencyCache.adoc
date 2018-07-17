@@ -45,3 +45,8 @@ It is possible for different repositories to provide a different binary artifact
 === Cache Locking
 
 The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
+
+[[sub:cache_cleanup]]
+=== Cache Cleanup
+
+Gradle keeps track of which artifacts in the dependency cache are accessed. Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days. Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.

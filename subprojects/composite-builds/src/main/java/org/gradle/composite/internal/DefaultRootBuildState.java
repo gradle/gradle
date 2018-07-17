@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.AbstractBuildState;
@@ -37,7 +38,6 @@ import org.gradle.util.Path;
 
 class DefaultRootBuildState extends AbstractBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private SettingsInternal settings;
     private GradleLauncher gradleLauncher;
 
     DefaultRootBuildState(BuildDefinition buildDefinition, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry parentServices) {
@@ -61,6 +61,10 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     }
 
     @Override
+    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
+    }
+
+    @Override
     public void stop() {
         gradleLauncher.stop();
     }
@@ -77,16 +81,9 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
         }
     }
 
-    public void setSettings(SettingsInternal settings) {
-        this.settings = settings;
-    }
-
     @Override
     public SettingsInternal getLoadedSettings() {
-        if (settings == null) {
-            throw new IllegalStateException("Settings have not been attached to this build yet.");
-        }
-        return settings;
+        return gradleLauncher.getGradle().getSettings();
     }
 
     @Override

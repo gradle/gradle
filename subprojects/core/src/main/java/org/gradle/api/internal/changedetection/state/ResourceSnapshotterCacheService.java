@@ -19,5 +19,5 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.internal.hash.HashCode;
 
 public interface ResourceSnapshotterCacheService {
-    HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash);
+    HashCode hashFile(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content, RegularFileHasher hasher, HashCode configurationHash);
 }

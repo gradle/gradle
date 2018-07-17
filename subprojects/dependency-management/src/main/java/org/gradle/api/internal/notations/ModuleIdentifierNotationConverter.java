@@ -16,18 +16,15 @@
 
 package org.gradle.api.internal.notations;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.GUtil;
 
-import java.util.List;
+import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
 
 public class ModuleIdentifierNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
-    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',');
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
@@ -48,18 +45,6 @@ public class ModuleIdentifierNotationConverter extends TypedNotationConverter<St
         String group = validate(split[0].trim(), notation);
         String name = validate(split[1].trim(), notation);
         return moduleIdentifierFactory.module(group, name);
-    }
-
-    public static String validate(String part, String notation) {
-        if (!GUtil.isTrue(part)) {
-            throw new UnsupportedNotationException(notation);
-        }
-        for (char c : INVALID_SPEC_CHARS) {
-            if (part.indexOf(c) != -1) {
-                throw new UnsupportedNotationException(notation);
-            }
-        }
-        return part;
     }
 
     @Override

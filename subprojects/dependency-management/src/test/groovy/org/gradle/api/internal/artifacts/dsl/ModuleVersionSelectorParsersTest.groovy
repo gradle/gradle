@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl;
-
+package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
@@ -38,8 +36,6 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '1.0'
-        v[0].versionConstraint.preferredVersion == '1.0'
-        v[0].versionConstraint.rejectedVersions == []
     }
 
     def "works with CharSequences"() {
@@ -54,7 +50,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
 
     def "allows exact type on input"() {
         def module = DefaultModuleIdentifier.newId("org.foo", "bar")
-        def id = newSelector(module, new DefaultMutableVersionConstraint("2.0"))
+        def id = newSelector(module, "2.0")
 
         when:
         def v = multiParser().parseNotation(id) as List
@@ -64,13 +60,11 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '2.0'
-        v[0].versionConstraint.preferredVersion == '2.0'
-        v[0].versionConstraint.rejectedVersions == []
     }
 
     def "allows list of objects on input"() {
         def module = DefaultModuleIdentifier.newId("org.foo", "bar")
-        def id = newSelector(module, new DefaultMutableVersionConstraint("2.0"))
+        def id = newSelector(module,"2.0")
 
         when:
         def v = multiParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
@@ -91,8 +85,6 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '1.0'
-        v[0].versionConstraint.preferredVersion == '1.0'
-        v[0].versionConstraint.rejectedVersions == []
     }
 
     def "fails for unknown types"() {
@@ -159,7 +151,5 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v.group == 'org.foo'
         v.name  == 'bar'
         v.version  == '1.0'
-        v.versionConstraint.preferredVersion == '1.0'
-        v.versionConstraint.rejectedVersions == []
     }
 }

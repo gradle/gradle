@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-import org.gradle.util.CollectionUtils
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -76,7 +76,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         executed ":${buildName}:jar"
 
         and:
-        def root = CollectionUtils.single(operations.roots())
+        def root = operations.root(RunBuildBuildOperationType)
 
         def loadOps = operations.all(LoadBuildBuildOperationType)
         loadOps.size() == 2

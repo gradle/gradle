@@ -126,8 +126,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             Path identityPath = project.getIdentityPath();
             String displayName = "Configure project " + identityPath.toString();
 
-            String progressDisplayName = project.getPath();
-            if (progressDisplayName.equals(":")) {
+            String progressDisplayName = identityPath.toString();
+            if (identityPath.equals(Path.ROOT)) {
                 progressDisplayName = "root project";
             }
 

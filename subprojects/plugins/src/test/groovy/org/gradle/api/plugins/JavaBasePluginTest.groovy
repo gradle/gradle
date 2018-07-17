@@ -16,9 +16,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -35,6 +37,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
+import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.WrapUtil.toLinkedSet
 
@@ -42,7 +45,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
 
-    void appliesBasePluginsAndAddsConventionObject() {
+    void "applies base plugins and adds convention and extensions"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -50,6 +53,64 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
+        project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
+        project.extensions.java instanceof JavaPluginExtension
+    }
+
+    void "sourceSets extension is exposed as SourceSetContainer"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        project.extensions.extensionsSchema.find { it.name == "sourceSets" }.publicType == typeOf(SourceSetContainer)
+    }
+
+    void "properties on convention and extension are synchronized"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        def ext = project.extensions.java
+        project.sourceCompatibility == JavaVersion.current()
+        project.targetCompatibility == JavaVersion.current()
+        ext.sourceCompatibility == JavaVersion.current()
+        ext.targetCompatibility == JavaVersion.current()
+
+        when:
+        project.sourceCompatibility = JavaVersion.VERSION_1_6
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_6
+        project.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility == JavaVersion.VERSION_1_6
+        ext.targetCompatibility == JavaVersion.VERSION_1_6
+
+        when:
+        ext.sourceCompatibility = JavaVersion.VERSION_1_8
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_8
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_8
+
+        when:
+        project.targetCompatibility = JavaVersion.VERSION_1_7
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_7
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_7
+
+        when:
+        ext.targetCompatibility = JavaVersion.VERSION_1_6
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
 
     void "creates tasks and applies mappings for source set"() {
@@ -158,7 +219,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation ' instead)."
+        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation' instead)."
 
         then:
         def implementation = project.configurations.customImplementation
@@ -173,7 +234,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly ' instead)."
+        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly' instead)."
 
         and:
         def runtimeOnly = project.configurations.customRuntimeOnly

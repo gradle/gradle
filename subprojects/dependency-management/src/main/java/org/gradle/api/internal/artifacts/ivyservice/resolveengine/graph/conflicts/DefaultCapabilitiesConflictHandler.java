@@ -85,7 +85,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         String capabilityId = capability.getCapabilityId();
         Set<ComponentState> componentStates = capabilityWithoutVersionToComponents.get(capabilityId);
         if (componentStates == null) {
-            componentStates = Sets.newHashSet();
+            componentStates = Sets.newLinkedHashSet();
             capabilityWithoutVersionToComponents.put(capabilityId, componentStates);
         }
 

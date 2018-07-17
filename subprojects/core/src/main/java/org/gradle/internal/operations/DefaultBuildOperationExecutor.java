@@ -33,8 +33,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.resources.ResourceDeadlockException;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -55,22 +53,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
-    private final ResourceLockCoordinationService resourceLockCoordinationService;
     private final ManagedExecutor fixedSizePool;
     private final ParallelismConfigurationManager parallelismConfigurationManager;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
-    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory,
-                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
-                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager,
-                                         BuildOperationIdFactory buildOperationIdFactory) {
+    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfigurationManager parallelismConfigurationManager, BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.resourceLockCoordinationService = resourceLockCoordinationService;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
         this.parallelismConfigurationManager = parallelismConfigurationManager;
         this.buildOperationIdFactory = buildOperationIdFactory;
@@ -130,8 +123,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
-        failIfInResourceLockTransform();
-
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
 
         List<GradleException> failures = Lists.newArrayList();
@@ -156,8 +147,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        failIfInResourceLockTransform();
-
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
         if (parent == null) {
@@ -202,12 +191,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             setCurrentBuildOperation(parentOperation);
             newOperation.setRunning(false);
             LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
-        }
-    }
-
-    private void failIfInResourceLockTransform() {
-        if (resourceLockCoordinationService.getCurrent() != null) {
-            throw new ResourceDeadlockException("An attempt was made to execute build operations inside of a resource lock transform.  Aborting to avoid a deadlock.");
         }
     }
 

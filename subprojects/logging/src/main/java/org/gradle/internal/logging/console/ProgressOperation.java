@@ -24,15 +24,13 @@ import java.util.Set;
 
 public class ProgressOperation {
 
-    private final String shortDescription;
     private String status;
     private final String category;
     private final OperationIdentifier operationId;
     private ProgressOperation parent;
     private Set<ProgressOperation> children;
 
-    public ProgressOperation(String shortDescription, String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
-        this.shortDescription = shortDescription;
+    public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
@@ -46,9 +44,6 @@ public class ProgressOperation {
     public String getMessage() {
         if (GUtil.isTrue(status)) {
             return status;
-        }
-        if (GUtil.isTrue(shortDescription)) {
-            return shortDescription;
         }
         return null;
     }

@@ -18,14 +18,12 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -46,7 +44,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             return rootBuild.run(new Transformer<Object, BuildController>() {
                 @Override
                 public Object transform(BuildController buildController) {
-                    checkDeprecations(action.getStartParameter());
                     buildActionRunner.run(action, buildController);
                     return buildController.getResult();
                 }
@@ -54,12 +51,5 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         } finally {
             buildOperationNotificationValve.stop();
         }
-    }
-
-    private void checkDeprecations(StartParameterInternal startParameter) {
-        UnsupportedJavaRuntimeException.javaDeprecationWarning();
-
-        // This must be done here because DeprecationLogger needs to be initialized properly
-        startParameter.checkDeprecation();
     }
 }

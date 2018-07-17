@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
-import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -40,23 +40,23 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     private final Compiler<JavaCompileSpec> rebuildAllCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
     private final IncrementalCompilationInitializer incrementalCompilationInitializer;
-    private final JarClasspathSnapshotProvider jarClasspathSnapshotProvider;
+    private final ClasspathSnapshotProvider classpathSnapshotProvider;
 
     public SelectiveCompiler(IncrementalTaskInputs inputs, PreviousCompilation previousCompilation, CleaningJavaCompiler cleaningCompiler,
-                             Compiler<JavaCompileSpec> rebuildAllCompiler, RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, JarClasspathSnapshotProvider jarClasspathSnapshotProvider) {
+                             Compiler<JavaCompileSpec> rebuildAllCompiler, RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, ClasspathSnapshotProvider classpathSnapshotProvider) {
         this.inputs = inputs;
         this.previousCompilation = previousCompilation;
         this.cleaningCompiler = cleaningCompiler;
         this.rebuildAllCompiler = rebuildAllCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
         this.incrementalCompilationInitializer = compilationInitializer;
-        this.jarClasspathSnapshotProvider = jarClasspathSnapshotProvider;
+        this.classpathSnapshotProvider = classpathSnapshotProvider;
     }
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         Timer clock = Time.startTimer();
-        CurrentCompilation currentCompilation = new CurrentCompilation(inputs, spec, jarClasspathSnapshotProvider);
+        CurrentCompilation currentCompilation = new CurrentCompilation(inputs, spec, classpathSnapshotProvider);
 
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(currentCompilation, previousCompilation);
 

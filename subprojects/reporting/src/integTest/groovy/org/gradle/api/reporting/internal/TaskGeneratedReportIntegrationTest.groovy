@@ -35,6 +35,6 @@ class TaskGeneratedReportIntegrationTest extends AbstractIntegrationSpec {
         succeeds('help')
 
         then:
-        output.contains("The ConfigurableReport.setDestination(Object) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the method ConfigurableReport.setDestination(File) instead.")
+        output.contains("The ConfigurableReport.setDestination(Object) method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the method ConfigurableReport.setDestination(File) instead.")
     }
 }

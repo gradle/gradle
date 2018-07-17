@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -66,10 +67,9 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         return moduleIdentifier.getName();
     }
 
-    @Nullable
     @Override
     public String getVersion() {
-        return versionConstraint.getPreferredVersion();
+        return Strings.emptyToNull(versionConstraint.getPreferredVersion());
     }
 
     @Override

@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
@@ -33,6 +35,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,16 +54,27 @@ class ModuleResolveState implements CandidateModule {
     private final List<SelectorState> selectors = Lists.newArrayListWithExpectedSize(4);
     private final VariantNameBuilder variantNameBuilder;
     private final ImmutableAttributesFactory attributesFactory;
+    private final Comparator<Version> versionComparator;
+    private final VersionParser versionParser;
     private ComponentState selected;
     private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
     private AttributeMergingException attributeMergingError;
+    private VirtualPlatformState platformState;
 
-    ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver, VariantNameBuilder variantNameBuilder, ImmutableAttributesFactory attributesFactory) {
+    ModuleResolveState(IdGenerator<Long> idGenerator,
+                       ModuleIdentifier id,
+                       ComponentMetaDataResolver metaDataResolver,
+                       VariantNameBuilder variantNameBuilder,
+                       ImmutableAttributesFactory attributesFactory,
+                       Comparator<Version> versionComparator,
+                       VersionParser versionParser) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
         this.variantNameBuilder = variantNameBuilder;
         this.attributesFactory = attributesFactory;
+        this.versionComparator = versionComparator;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -271,4 +285,10 @@ class ModuleResolveState implements CandidateModule {
         return incoming;
     }
 
+    VirtualPlatformState getPlatformState() {
+        if (platformState == null) {
+            platformState = new VirtualPlatformState(versionComparator, versionParser, this);
+        }
+        return platformState;
+    }
 }

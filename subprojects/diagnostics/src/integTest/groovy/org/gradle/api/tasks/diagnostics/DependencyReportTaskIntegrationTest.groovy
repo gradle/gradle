@@ -282,7 +282,7 @@ rootProject.name = 'root'
 
         then:
         output.contains """
-compile - Dependencies for source set 'main' (deprecated, use 'implementation ' instead).
+compile - Dependencies for source set 'main' (deprecated, use 'implementation' instead).
 +--- project :a
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
@@ -693,7 +693,7 @@ rootProject.name = 'root'
 
         then:
         output.contains """
-compile - Dependencies for source set 'main' (deprecated, use 'implementation ' instead).
+compile - Dependencies for source set 'main' (deprecated, use 'implementation' instead).
 +--- project :a
 |    \\--- foo:bar:1.0 -> 2.0
 +--- project :b

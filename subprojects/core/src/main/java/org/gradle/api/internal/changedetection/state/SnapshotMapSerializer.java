@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.logical.ContentSnapshotSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -28,16 +29,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SnapshotMapSerializer extends AbstractSerializer<Map<String, NormalizedFileSnapshot>> {
-    private static final byte DIR_SNAPSHOT = 1;
-    private static final byte MISSING_FILE_SNAPSHOT = 2;
-    private static final byte REGULAR_FILE_SNAPSHOT = 3;
-
     private static final byte NO_NORMALIZATION = 1;
     private static final byte DEFAULT_NORMALIZATION = 2;
-    private static final byte INDEXED_NORMALIZATION = 3;
-    private static final byte IGNORED_PATH_NORMALIZATION = 4;
+    private static final byte IGNORED_PATH_NORMALIZATION = 3;
 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
+    private final ContentSnapshotSerializer contentSnapshotSerializer = new ContentSnapshotSerializer();
     private final StringInterner stringInterner;
 
     public SnapshotMapSerializer(StringInterner stringInterner) {
@@ -45,46 +42,29 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> read(Decoder decoder) throws Exception {
+    public Map<String, NormalizedFileSnapshot> read(Decoder decoder) throws IOException {
         int snapshotsCount = decoder.readSmallInt();
         Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<String, NormalizedFileSnapshot>(snapshotsCount);
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
-            NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder, stringInterner);
+            NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder);
             snapshots.put(absolutePath, snapshot);
         }
         return snapshots;
     }
 
-    private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder, StringInterner stringInterner) throws IOException {
-        byte fileSnapshotKind = decoder.readByte();
-        FileContentSnapshot snapshot;
-        switch (fileSnapshotKind) {
-            case DIR_SNAPSHOT:
-                snapshot = DirContentSnapshot.getInstance();
-                break;
-            case MISSING_FILE_SNAPSHOT:
-                snapshot = MissingFileContentSnapshot.getInstance();
-                break;
-            case REGULAR_FILE_SNAPSHOT:
-                snapshot = new FileHashSnapshot(hashCodeSerializer.read(decoder));
-                break;
-            default:
-                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
-        }
+    private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder) throws IOException {
+        FileContentSnapshot snapshot = contentSnapshotSerializer.read(decoder);
 
         int normalizedSnapshotKind = decoder.readByte();
         switch (normalizedSnapshotKind) {
             case NO_NORMALIZATION:
                 return new NonNormalizedFileSnapshot(absolutePath, snapshot);
             case DEFAULT_NORMALIZATION:
-                String normalizedPath = stringInterner.intern(decoder.readString());
-                return new DefaultNormalizedFileSnapshot(normalizedPath, snapshot);
-            case INDEXED_NORMALIZATION:
-                int index = decoder.readSmallInt();
-                return new IndexedNormalizedFileSnapshot(absolutePath, index, snapshot);
+                String normalizedPath = decoder.readString();
+                return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), snapshot);
             case IGNORED_PATH_NORMALIZATION:
-                return new IgnoredPathFileSnapshot(snapshot);
+                return snapshot;
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
@@ -116,27 +96,14 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     private void writeSnapshot(Encoder encoder, NormalizedFileSnapshot value) throws IOException {
-        FileContentSnapshot snapshot = value.getSnapshot();
-        if (snapshot instanceof DirContentSnapshot) {
-            encoder.writeByte(DIR_SNAPSHOT);
-        } else if (snapshot instanceof MissingFileContentSnapshot) {
-            encoder.writeByte(MISSING_FILE_SNAPSHOT);
-        } else if (snapshot instanceof FileHashSnapshot) {
-            encoder.writeByte(REGULAR_FILE_SNAPSHOT);
-            hashCodeSerializer.write(encoder, snapshot.getContentMd5());
-        } else {
-            throw new AssertionError();
-        }
+        contentSnapshotSerializer.write(encoder, value.getSnapshot());
 
         if (value instanceof NonNormalizedFileSnapshot) {
             encoder.writeByte(NO_NORMALIZATION);
         } else if (value instanceof DefaultNormalizedFileSnapshot) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
             encoder.writeString(value.getNormalizedPath());
-        } else if (value instanceof IndexedNormalizedFileSnapshot) {
-            encoder.writeByte(INDEXED_NORMALIZATION);
-            encoder.writeSmallInt(((IndexedNormalizedFileSnapshot) value).getIndex());
-        } else if (value instanceof IgnoredPathFileSnapshot) {
+        } else if (value instanceof FileContentSnapshot) {
             encoder.writeByte(IGNORED_PATH_NORMALIZATION);
         } else {
             throw new AssertionError();

@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
-    private final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
+    protected final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
 
     boolean useIvy() {
         GradleMetadataResolveRunner.useIvy()

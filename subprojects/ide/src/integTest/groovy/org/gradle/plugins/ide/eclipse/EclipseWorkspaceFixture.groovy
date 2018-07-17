@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
 
@@ -25,10 +26,11 @@ class EclipseWorkspaceFixture extends IdeWorkspaceFixture {
 
     EclipseWorkspaceFixture(TestFile workspaceDir) {
         this.workspaceDir = workspaceDir
+        workspaceDir.file(".project").assertExists()
     }
 
     @Override
-    void assertExists() {
-        workspaceDir.file(".project").assertExists()
+    void assertContains(IdeProjectFixture project) {
+        // Doesn't really make sense
     }
 }

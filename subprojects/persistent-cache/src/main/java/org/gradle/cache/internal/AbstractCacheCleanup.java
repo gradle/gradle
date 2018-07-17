@@ -40,7 +40,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
         int filesDeleted = 0;
         for (File file : findEligibleFiles(cleanableStore)) {
             if (timer.hasExpired()) {
-                LOGGER.warn("{} cleanup was aborted because timeout has expired", cleanableStore.getDisplayName());
+                LOGGER.debug("{} cleanup was aborted because timeout has expired", cleanableStore.getDisplayName());
                 break;
             }
             if (shouldDelete(file)) {
@@ -50,10 +50,10 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
                 }
             }
         }
-        LOGGER.info("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
+        LOGGER.debug("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
     }
 
-    private int deleteEmptyParentDirectories(File baseDir, File dir) {
+    protected int deleteEmptyParentDirectories(File baseDir, File dir) {
         if (dir.equals(baseDir)) {
             return 0;
         }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
@@ -37,14 +38,17 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
+    private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
 
     public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                            NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
-                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
+                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
+                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
+        this.componentIdentifierParser = dependencyNotationParser;
     }
 
     @Override
@@ -89,6 +93,11 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     @Override
     public void allVariants(Action<? super VariantMetadata> action) {
         action.execute(instantiator.newInstance(VariantMetadataAdapter.class, Specs.satisfyAll(), metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+    }
+
+    @Override
+    public void belongsTo(Object notation) {
+        metadata.belongsTo(componentIdentifierParser.parseNotation(notation));
     }
 
     @Override

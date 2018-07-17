@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
@@ -40,16 +41,26 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.rules.RuleAction;
 import org.gradle.internal.rules.SpecRuleAction;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -59,13 +70,52 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
             @Override
             public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
-                return componentMetadataContext.getMutableMetadata().asImmutable();
+                ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
+                return metadata;
             }
         };
+
+    // This method and the next one can be used to force realisation and serialization, making sure all required state will be cached
+    private ModuleComponentResolveMetadata forceRealisation(ModuleComponentResolveMetadata metadata) {
+        if (metadata instanceof DefaultIvyModuleResolveMetadata) {
+            metadata = RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
+        } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
+            metadata = RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
+        } else {
+            throw new IllegalStateException("Invalid type received: " + metadata.getClass());
+        }
+        metadata = forceSerialization(metadata);
+        return metadata;
+    }
+
+    private ModuleComponentResolveMetadata forceSerialization(ModuleComponentResolveMetadata metadata) {
+        Serializer<ModuleComponentResolveMetadata> serializer = ruleExecutor.getComponentMetadataContextSerializer();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] bytes;
+        try {
+            serializer.write(new OutputStreamBackedEncoder(byteArrayOutputStream), metadata);
+            bytes = byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                byteArrayOutputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return metadata;
+    }
 
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
+    private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataRuleExecutor ruleExecutor;
     private final MetadataResolutionContext metadataResolutionContext;
@@ -77,6 +127,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                                              Instantiator instantiator,
                                              NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
                                              NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
+                                             NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
                                              ImmutableAttributesFactory attributesFactory,
                                              ComponentMetadataRuleExecutor ruleExecutor,
                                              MetadataResolutionContext resolutionContext) {
@@ -85,6 +136,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
+        this.componentIdentifierNotationParser = componentIdentifierNotationParser;
         this.attributesFactory = attributesFactory;
         this.ruleExecutor = ruleExecutor;
         this.metadataResolutionContext = resolutionContext;
@@ -99,7 +151,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             updatedMetadata = processClassRuleWithCaching(metadata, metadataResolutionContext);
         } else {
             MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-            ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
+            ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
             processAllRules(metadata, details, metadata.getModuleVersionId());
             updatedMetadata = mutableMetadata.asImmutable();
         }
@@ -116,7 +168,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         if (rules.isEmpty() && classBasedRules.isEmpty()) {
             updatedMetadata = metadata;
         } else {
-            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
+            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(componentIdentifierNotationParser, metadata, attributesFactory);
             processAllRules(null, details, metadata.getId());
             updatedMetadata = details.asImmutable();
         }
@@ -153,7 +205,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                 new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
                     @Override
                     public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
-                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
+                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
                     }
                 }, metadataResolutionContext.getCachePolicy());
         } catch (InvalidUserCodeException e) {
@@ -217,16 +269,20 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     static class ShallowComponentMetadataAdapter implements ComponentMetadataDetails {
+        private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
         private final ModuleVersionIdentifier id;
         private boolean changing;
         private List<String> statusScheme;
         private AttributeContainerInternal attributes;
+        private final List<ComponentIdentifier> owners;
 
-        public ShallowComponentMetadataAdapter(ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
+        public ShallowComponentMetadataAdapter(NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser, ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
+            this.componentIdentifierNotationParser = componentIdentifierNotationParser;
             id = source.getId();
             changing = source.isChanging();
             statusScheme = source.getStatusScheme();
             attributes = attributesFactory.mutable((AttributeContainerInternal) source.getAttributes());
+            owners = Lists.newArrayListWithExpectedSize(1);
         }
 
         @Override
@@ -252,6 +308,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         @Override
         public void allVariants(Action<? super VariantMetadata> action) {
 
+        }
+
+        @Override
+        public void belongsTo(Object notation) {
+            owners.add(componentIdentifierNotationParser.parseNotation(notation));
         }
 
         @Override

@@ -17,6 +17,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeClassAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeSourceAnnotation
@@ -38,7 +39,7 @@ import spock.lang.Subject
 class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     @Subject
-    analyzer = new DefaultClassDependenciesAnalyzer()
+    analyzer = new DefaultClassDependenciesAnalyzer(new StringInterner())
 
     private ClassAnalysis analyze(Class foo) {
         analyzer.getClassAnalysis(classStream(foo))

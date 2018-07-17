@@ -30,6 +30,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
@@ -49,6 +50,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Class<? extends ComponentMetadataVersionLister> componentMetadataListerRuleClass;
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
+    private final ObjectFactory objectFactory;
+
+    protected AbstractArtifactRepository(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
+    }
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -124,10 +130,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
                 return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
             }
         });
+        registry.add(ObjectFactory.class, objectFactory);
         return new ImplicitInputsCapturingInstantiator(registry, instantiatorFactory);
     }
 
-    private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
+    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
@@ -140,5 +147,4 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
             }
         });
     }
-
 }

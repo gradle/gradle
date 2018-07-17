@@ -16,12 +16,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.util.ToBeImplemented
 
 class ComponentMetadataRulesInjectionIntegrationTest extends AbstractHttpDependencyResolutionTest implements ComponentMetadataRulesSupport {
 
-    @ToBeImplemented("Ideally we would have a solution to provide such a service in this case")
-    def 'cannot inject and use RepositoryResourceAccessor for flat dir repo'() {
+    def 'inject no-op RepositoryResourceAccessor for flat dir repo'() {
         file('lib', 'my-lib-1.0.jar').createFile()
         buildFile << """
 repositories {
@@ -43,6 +41,9 @@ class AssertingRule implements ComponentMetadataRule {
     }
     public void execute(ComponentMetadataContext context) {
         println 'AssertingRule executed'
+        accessor.withResource('my-lib-1.0.jar') {
+            println 'Resource action executed'
+        }
     }
 }
 
@@ -64,12 +65,63 @@ task resolve {
 }
 """
         when:
-        fails 'resolve'
+        succeeds 'resolve'
 
         then:
-        failure.assertHasCause('Could not create an instance of type AssertingRule.')
-        failure.assertHasCause('Unable to determine AssertingRule argument #1: missing parameter value of type interface org.gradle.api.artifacts.repositories.RepositoryResourceAccessor')
+        outputContains('AssertingRule executed')
+        outputDoesNotContain('Resource action executed')
 
+    }
+
+    def 'can inject and use RepositoryResourceAccessor for ivy local repo'() {
+        ivyRepo.module("org", "my-lib", "1.0").publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyRepo.uri}" }
+}
+
+configurations {
+    conf
+}
+
+class AssertingRule implements ComponentMetadataRule {
+    RepositoryResourceAccessor accessor
+    
+    @javax.inject.Inject
+    public AssertingRule(RepositoryResourceAccessor accessor) {
+        this.accessor = accessor
+    }
+    public void execute(ComponentMetadataContext context) {
+        println 'AssertingRule executed'
+        accessor.withResource('org/my-lib/1.0/ivy.xml') {
+            assert it.available() != 0
+        }
+    }
+}
+
+dependencies {
+    components {
+        all(AssertingRule)
+    }
+    conf 'org:my-lib:1.0'
+}
+
+task resolve {
+    doLast {
+        delete 'libs'
+        copy {
+            from configurations.conf
+            into 'libs'
+        }
+    }
+}
+"""
+        when:
+        succeeds 'resolve'
+
+        then:
+        outputContains('AssertingRule executed')
     }
 
     def 'can inject and use RepositoryResourceAccessor for maven local repo'() {

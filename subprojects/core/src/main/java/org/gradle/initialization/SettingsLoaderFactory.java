@@ -18,12 +18,12 @@ package org.gradle.initialization;
 
 public interface SettingsLoaderFactory {
     /**
-     * Create a SettingsLoader for a top-level build: this loader will process `includeBuild` statements.
+     * Create a SettingsLoader for a top-level build.
      */
     SettingsLoader forTopLevelBuild();
 
     /**
-     * Create a SettingsLoader for a nested build: this loader will NOT process any `includeBuild` statements.
+     * Create a SettingsLoader for a nested build.
      */
     SettingsLoader forNestedBuild();
 }

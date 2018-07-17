@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -27,7 +28,14 @@ public class WarPluginConvention {
     private String webAppDirName;
     private final Project project;
 
+    /**
+     * Creates a {@link WarPluginConvention}.
+     *
+     * @deprecated Creating instances of this class is deprecated. These should be created by the WAR plugin only.
+     */
+    @Deprecated
     public WarPluginConvention(Project project) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of WarPluginConvention");
         this.project = project;
         webAppDirName = "src/main/webapp";
     }

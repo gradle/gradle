@@ -21,6 +21,7 @@ import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.BaselineVersion
@@ -80,6 +81,9 @@ class GradleBuildPerformanceTest extends Specification {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
+                if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}")
+                }
             }
         }
         runner.testGroup = 'gradle build'
@@ -137,7 +141,6 @@ class GradleBuildPerformanceTest extends Specification {
     }
 
     def "eager vs lazy on the gradle build"() {
-
         given:
         runner.testId = testName.methodName
 

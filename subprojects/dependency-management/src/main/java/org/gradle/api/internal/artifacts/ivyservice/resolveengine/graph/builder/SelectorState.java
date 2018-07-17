@@ -251,6 +251,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    public ComponentSelector getSelector() {
+        return dependencyState.getDependency().getSelector();
+    }
+
+    @Override
     public boolean isForce() {
         return forced;
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.java.InstalledJdk;
@@ -26,7 +25,6 @@ import org.gradle.tooling.model.java.InstalledJdk;
  *
  * @since 2.10
  */
-@Incubating
 public interface EclipseJavaSourceSettings {
     /**
      * Returns the Java source language level.

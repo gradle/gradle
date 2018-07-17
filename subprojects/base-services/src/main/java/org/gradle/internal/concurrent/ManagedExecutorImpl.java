@@ -103,4 +103,13 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
             throw new UnsupportedOperationException();
         }
     }
+
+    @Override
+    public void setKeepAlive(int timeout, TimeUnit timeUnit) {
+        if (executor instanceof ThreadPoolExecutor) {
+            ((ThreadPoolExecutor)executor).setKeepAliveTime(timeout, timeUnit);
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 }

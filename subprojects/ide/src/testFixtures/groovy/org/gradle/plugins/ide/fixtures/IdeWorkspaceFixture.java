@@ -17,5 +17,5 @@
 package org.gradle.plugins.ide.fixtures;
 
 public abstract class IdeWorkspaceFixture {
-    public abstract void assertExists();
+    public abstract void assertContains(IdeProjectFixture project);
 }

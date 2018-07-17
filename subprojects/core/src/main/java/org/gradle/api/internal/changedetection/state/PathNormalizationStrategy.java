@@ -16,16 +16,47 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.tasks.PathSensitivity;
 
-import javax.annotation.Nullable;
+public enum PathNormalizationStrategy {
 
-public interface PathNormalizationStrategy {
     /**
-     * Returns true when the normalized path is an absolute path and so uniquely identifies each file in a collection snapshot.
+     * Use the absolute path of the files.
      */
-    boolean isPathAbsolute();
+    ABSOLUTE,
 
-    @Nullable
-    NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner);
+    /**
+     * Like absolute, but ignoring missing files.
+     */
+    OUTPUT,
+
+    /**
+     * Use the location of the file related to a hierarchy.
+     */
+    RELATIVE,
+
+    /**
+     * Use the file name only.
+     */
+    NAME_ONLY,
+
+    /**
+     * Ignore the file path completely.
+     */
+    NONE;
+
+    public static PathNormalizationStrategy from(PathSensitivity pathSensitivity) {
+        switch (pathSensitivity) {
+            case ABSOLUTE:
+                return ABSOLUTE;
+            case RELATIVE:
+                return RELATIVE;
+            case NAME_ONLY:
+                return NAME_ONLY;
+            case NONE:
+                return NONE;
+            default:
+                throw new IllegalArgumentException("Unknown path usage: " + pathSensitivity);
+        }
+    }
 }

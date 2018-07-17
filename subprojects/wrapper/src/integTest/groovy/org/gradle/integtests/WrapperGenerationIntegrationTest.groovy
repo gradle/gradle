@@ -49,7 +49,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 54 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 55 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {

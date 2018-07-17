@@ -71,7 +71,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning()
         succeeds "test"
 
-        output.contains "Using TaskInputs.$method() with something that doesn't resolve to a File object has been deprecated and is scheduled to be removed in Gradle 5.0. Use TaskInputs.files() instead."
+        output.contains "Using TaskInputs.$method() with something that doesn't resolve to a File object has been deprecated. This is scheduled to be removed in Gradle 5.0. Use TaskInputs.files() instead."
 
         where:
         method << ["file", "dir"]

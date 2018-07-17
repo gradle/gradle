@@ -50,7 +50,8 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
         String variantName = decoder.readString();
         AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-        return new DetachedComponentResult(resultId, id, reason, componentId, variantName, attributes);
+        String repositoryName = decoder.readNullableString();
+        return new DetachedComponentResult(resultId, id, reason, componentId, variantName, attributes, repositoryName);
     }
 
     public void write(Encoder encoder, ComponentResult value) throws IOException {
@@ -60,6 +61,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         componentIdSerializer.write(encoder, value.getComponentId());
         encoder.writeString(value.getVariantName().getDisplayName());
         attributeContainerSerializer.write(encoder, value.getVariantAttributes());
+        encoder.writeNullableString(value.getRepositoryName());
     }
 
     void reset() {

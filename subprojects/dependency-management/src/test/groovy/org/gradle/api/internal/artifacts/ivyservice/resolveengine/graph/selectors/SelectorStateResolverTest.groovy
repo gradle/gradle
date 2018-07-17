@@ -19,19 +19,22 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -43,6 +46,8 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
+import org.gradle.util.Path
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -56,13 +61,15 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+
 /**
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
 class SelectorStateResolverTest extends Specification {
     private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
-    private final conflictResolver = new TestModuleConflictResolver()
+    private final conflictResolver = new ConflictResolverFactory(new DefaultVersionComparator(), new VersionParser()).createConflictResolver(ConflictResolution.latest)
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
 
@@ -79,6 +86,20 @@ class SelectorStateResolverTest extends Specification {
 
         where:
         permutation << SCENARIOS_TWO_DEPENDENCIES
+    }
+
+    @Ignore // Not yet implemented
+    @Unroll
+    def "resolve prefer pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
+        expect:
+        resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_PREFER
     }
 
     @Unroll
@@ -133,9 +154,10 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_FOUR_DEPENDENCIES
     }
 
-    def 'short circuits for identical versions'() {
-        def nine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
-        def otherNine = new NoConstraintSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+    def 'short circuits for matching project selectors'() {
+        def projectId = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
+        def nine = new TestProjectSelectorState(projectId)
+        def otherNine = new TestProjectSelectorState(projectId)
         ModuleConflictResolver mockResolver = Mock()
         SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root)
 
@@ -143,16 +165,17 @@ class SelectorStateResolverTest extends Specification {
         def selected = resolverWithMock.selectBest(moduleId, [nine, otherNine])
 
         then:
-        selected.version == '9'
+        selected.componentId == projectId
+        selected.version == TestProjectSelectorState.VERSION
         0 * mockResolver._
     }
 
     def "performs partial resolve when some selectors fail"() {
-        def missingLow = new TestSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
-        def nine = new TestSelectorState(componentIdResolver, FIXED_9.versionConstraint)
-        def ten = new TestSelectorState(componentIdResolver, FIXED_10.versionConstraint)
-        def range = new TestSelectorState(componentIdResolver, RANGE_10_11.versionConstraint)
-        def missingHigh = new TestSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
+        def missingLow = new TestModuleSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
+        def nine = new TestModuleSelectorState(componentIdResolver, FIXED_9.versionConstraint)
+        def ten = new TestModuleSelectorState(componentIdResolver, FIXED_10.versionConstraint)
+        def range = new TestModuleSelectorState(componentIdResolver, RANGE_10_11.versionConstraint)
+        def missingHigh = new TestModuleSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
 
         when:
         def selected = selectorStateResolver.selectBest(moduleId, [missingLow, nine, ten, range, missingHigh])
@@ -165,9 +188,9 @@ class SelectorStateResolverTest extends Specification {
     }
 
     def "rethrows failure when all selectors fail to resolve"() {
-        def missingLow = new TestSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
-        def missingHigh = new TestSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
-        def valid = new TestSelectorState(componentIdResolver, FIXED_10.versionConstraint)
+        def missingLow = new TestModuleSelectorState(componentIdResolver, RANGE_7_8.versionConstraint)
+        def missingHigh = new TestModuleSelectorState(componentIdResolver, RANGE_14_16.versionConstraint)
+        def valid = new TestModuleSelectorState(componentIdResolver, FIXED_10.versionConstraint)
 
         when:
         selectorStateResolver.selectBest(moduleId, [missingLow])
@@ -189,15 +212,15 @@ class SelectorStateResolverTest extends Specification {
     }
 
     String resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
-        List<TestSelectorState> selectors = versions.collect { version ->
-            new TestSelectorState(componentIdResolver, version.versionConstraint)
+        List<TestModuleSelectorState> selectors = versions.collect { version ->
+            new TestModuleSelectorState(componentIdResolver, version.versionConstraint)
         }
         def currentSelection = selectorStateResolver.selectBest(moduleId, selectors)
-        if (currentSelection.isRejected()) {
-            return VersionRangeResolveTestScenarios.REJECTED
-        }
         if (selectors.any { it.resolved?.failure != null }) {
             return VersionRangeResolveTestScenarios.FAILED
+        }
+        if (currentSelection.isRejected()) {
+            return VersionRangeResolveTestScenarios.REJECTED
         }
         return currentSelection.getVersion()
     }
@@ -205,11 +228,11 @@ class SelectorStateResolverTest extends Specification {
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
         ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentResolveMetadata metadata) {
-            return new TestComponentResolutionState(id)
+            return new TestComponentResolutionState(componentIdentifier, id)
         }
     }
 
-    static class TestModuleConflictResolver implements ModuleConflictResolver {
+    static class TestModuleConflictResolver1 implements ModuleConflictResolver {
         @Override
         <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
             Comparator<T> versionComparator = new ComponentVersionComparator() as Comparator<T>
@@ -318,19 +341,6 @@ class SelectorStateResolverTest extends Specification {
         @Override
         AttributeContainer getAttributes() {
             return ImmutableAttributes.EMPTY
-        }
-    }
-
-
-    static class NoConstraintSelectorState extends TestSelectorState {
-
-        NoConstraintSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
-            super(resolver, versionConstraint)
-        }
-
-        @Override
-        ResolvedVersionConstraint getVersionConstraint() {
-            return null
         }
     }
 

@@ -120,13 +120,14 @@ task verify {
 
             sourceSets {
                 main {
-                    groovy.outputDir = new File(buildDir,'bin')
+                    groovy.outputDir = file("$buildDir/bin")
                 }
             }
 
             task assertDirectoriesAreEquals {
                 doLast {
                     assert sourceSets.main.groovy.outputDir == compileGroovy.destinationDir
+                    assert sourceSets.main.groovy.outputDir == file("$buildDir/bin")
                 }
             }
         '''

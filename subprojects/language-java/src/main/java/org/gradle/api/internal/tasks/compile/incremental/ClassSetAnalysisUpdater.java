@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -26,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationResultAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -40,12 +39,6 @@ import java.util.Set;
 public class ClassSetAnalysisUpdater {
 
     private final static Logger LOG = Logging.getLogger(ClassSetAnalysisUpdater.class);
-    private static final Predicate<File> IS_CLASS_DIRECTORY = new Predicate<File>() {
-        @Override
-        public boolean apply(File input) {
-            return input.isDirectory();
-        }
-    };
 
     private final Stash<ClassSetAnalysisData> stash;
     private final FileOperations fileOperations;
@@ -73,7 +66,8 @@ public class ClassSetAnalysisUpdater {
     }
 
     private void visitAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result, CompilationResultAnalyzer analyzer) {
-        if (!spec.getEffectiveAnnotationProcessors().isEmpty()) {
+        Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
+        if (processors != null && !processors.isEmpty()) {
             AnnotationProcessingResult annotationProcessingResult = null;
             if (result instanceof JdkJavaCompilerResult) {
                 annotationProcessingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
@@ -85,7 +79,6 @@ public class ClassSetAnalysisUpdater {
     private void visitClassFiles(JavaCompileSpec spec, CompilationResultAnalyzer analyzer) {
         Set<File> baseDirs = Sets.newLinkedHashSet();
         baseDirs.add(spec.getDestinationDir());
-        Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);
         }

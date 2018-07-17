@@ -254,6 +254,24 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         jar.assertExists()
     }
 
+    def "cleans up unused versions of jars cache"() {
+        given:
+        requireOwnGradleUserHomeDir() // messes with caches
+        def oldCacheDirs = [
+            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-1"),
+            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-2")
+        ]
+        gcFile.createFile().lastModified = daysAgo(2)
+
+        when:
+        succeeds("tasks")
+
+        then:
+        oldCacheDirs.each {
+            it.assertDoesNotExist()
+        }
+    }
+
     void notInJarCache(String filename) {
         inJarCache(filename, false)
     }
@@ -267,8 +285,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     TestFile getGcFile() {
         return cacheDir.file("gc.properties")
     }
+
     TestFile getCacheDir() {
-        return getUserHomeCacheDir().file(DefaultCachedClasspathTransformer.CACHE_KEY)
+        return userHomeCacheDir.file(DefaultCachedClasspathTransformer.CACHE_KEY)
     }
 
 

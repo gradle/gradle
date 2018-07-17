@@ -24,6 +24,7 @@ import org.gradle.internal.time.CountdownTimer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class CompositeCleanupAction implements CleanupAction {
@@ -32,30 +33,37 @@ public class CompositeCleanupAction implements CleanupAction {
         return new Builder();
     }
 
-    private final List<ScopedCleanup> cleanups;
+    private final List<CleanupAction> cleanups;
 
-    private CompositeCleanupAction(List<ScopedCleanup> cleanups) {
+    private CompositeCleanupAction(List<CleanupAction> cleanups) {
         this.cleanups = cleanups;
     }
 
     @Override
     public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
-        for (ScopedCleanup scopedCleanup : cleanups) {
+        for (CleanupAction action : cleanups) {
             if (timer.hasExpired()) {
                 break;
             }
-            scopedCleanup.action.clean(new CleanableSubDir(cleanableStore, scopedCleanup.baseDir), timer);
+            action.clean(cleanableStore, timer);
         }
     }
 
     public static class Builder {
-        private List<ScopedCleanup> cleanups = new ArrayList<ScopedCleanup>();
+        private List<CleanupAction> cleanups = new ArrayList<CleanupAction>();
 
         private Builder() {
         }
 
-        public Builder add(File baseDir, CleanupAction cleanupAction) {
-            cleanups.add(new ScopedCleanup(baseDir, cleanupAction));
+        public Builder add(CleanupAction... actions) {
+            Collections.addAll(cleanups, actions);
+            return this;
+        }
+
+        public Builder add(File baseDir, CleanupAction... actions) {
+            for (CleanupAction action : actions) {
+                cleanups.add(new ScopedCleanupAction(baseDir, action));
+            }
             return this;
         }
 
@@ -64,13 +72,18 @@ public class CompositeCleanupAction implements CleanupAction {
         }
     }
 
-    private static class ScopedCleanup {
+    private static class ScopedCleanupAction implements CleanupAction {
         private final File baseDir;
         private final CleanupAction action;
 
-        ScopedCleanup(File baseDir, CleanupAction action) {
+        ScopedCleanupAction(File baseDir, CleanupAction action) {
             this.baseDir = baseDir;
             this.action = action;
+        }
+
+        @Override
+        public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
+            action.clean(new CleanableSubDir(cleanableStore, baseDir), timer);
         }
     }
 

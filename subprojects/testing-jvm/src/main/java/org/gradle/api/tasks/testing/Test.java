@@ -1080,7 +1080,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private void checkBackwardsCompatibilitySystemPropertyDebugFlag() {
-        String debugProp = getTaskPrefixedProperty("debug", "Use --debug-jvm to enable remote debugging of tests");
+        String debugProp = getTaskPrefixedProperty("debug", "Use --debug-jvm to enable remote debugging of tests.");
         if (debugProp != null) {
             setDebug(true);
         }
@@ -1095,7 +1095,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Nullable
     private String getTestSingleSystemPropertyValue() {
-        return getTaskPrefixedProperty("single", "Use --tests to filter which tests to run instead");
+        return getTaskPrefixedProperty("single", "Use --tests to filter which tests to run instead.");
     }
 
     /**

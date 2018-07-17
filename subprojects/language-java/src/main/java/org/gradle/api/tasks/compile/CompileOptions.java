@@ -82,7 +82,7 @@ public class CompileOptions extends AbstractOptions {
     private List<String> compilerArgs = Lists.newArrayList();
     private List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
-    private boolean incremental;
+    private boolean incremental = true;
 
     private FileCollection sourcepath;
 

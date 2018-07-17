@@ -18,13 +18,20 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.execution.taskgraph.WorkInfo;
 import org.gradle.execution.taskgraph.WorkInfoExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class TransformInfoExecutor implements WorkInfoExecutor {
+    private final BuildOperationExecutor buildOperationExecutor;
+
+    public TransformInfoExecutor(BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationExecutor = buildOperationExecutor;
+    }
+
     @Override
     public boolean execute(WorkInfo work) {
         if (work instanceof TransformInfo) {
-            TransformInfo transform = (TransformInfo) work;
-            transform.execute();
+            final TransformInfo transform = (TransformInfo) work;
+            transform.execute(buildOperationExecutor);
             return true;
         } else {
             return false;

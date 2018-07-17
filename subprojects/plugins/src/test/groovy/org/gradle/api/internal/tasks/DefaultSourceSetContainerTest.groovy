@@ -52,7 +52,7 @@ class DefaultSourceSetContainerTest extends Specification {
 
         then:
         1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
-            assertForbidden(name, usage.message)
+            assertForbidden(name, usage.formattedMessage())
         }
 
         cleanup:

@@ -18,14 +18,13 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
 
-import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
+import static org.gradle.api.internal.changedetection.state.PathNormalizationStrategy.ABSOLUTE;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
@@ -100,7 +99,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withPathNormalizationStrategy(InputPathNormalizationStrategy.valueOf(sensitivity));
+        return withPathNormalizationStrategy(PathNormalizationStrategy.from(sensitivity));
     }
 
     @Override

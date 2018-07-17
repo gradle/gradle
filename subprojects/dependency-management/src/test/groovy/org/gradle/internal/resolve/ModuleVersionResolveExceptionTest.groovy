@@ -16,9 +16,7 @@
 package org.gradle.internal.resolve
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -26,16 +24,13 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionResolveExceptionTest extends Specification {
-    private static VersionConstraint v(String version) {
-        new DefaultMutableVersionConstraint(version)
-    }
 
     private static ModuleIdentifier mid(String group, String name) {
         DefaultModuleIdentifier.newId(group, name)
     }
 
     def "provides default message that includes selector"() {
-        def exception1 = new ModuleVersionResolveException(newSelector(mid("org", "a"), v("1.2")), new RuntimeException())
+        def exception1 = new ModuleVersionResolveException(newSelector(mid("org", "a"), "1.2"), new RuntimeException())
 
         expect:
         exception1.message == 'Could not resolve org:a:1.2.'
@@ -47,7 +42,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
         def c = newId(mid("org", "c"), "1.0")
 
         def cause = new RuntimeException()
-        def exception = new ModuleVersionResolveException(newSelector(mid("a", "b"), v("c")), cause)
+        def exception = new ModuleVersionResolveException(newSelector(mid("a", "b"), "c"), cause)
         def onePath = exception.withIncomingPaths([[a, b, c]])
         def twoPaths = exception.withIncomingPaths([[a, b, c], [a, c]])
 

@@ -72,8 +72,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         succeeds ":util:resolve"
 
-        def transformationPosition2 = output.indexOf("Transformed lib1.jar to lib1.jar.txt")
-        def transformationPosition1 = output.indexOf("Transformed lib2.jar to lib2.jar.txt")
+        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project :lib) with FileSizer")
+        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project :lib) with FileSizer")
         def taskPosition = output.indexOf("> Task :util:resolve")
 
         then:

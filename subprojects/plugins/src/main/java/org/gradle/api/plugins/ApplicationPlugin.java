@@ -27,10 +27,13 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -59,7 +62,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
-        addPluginConvention();
+        addExtensions();
         addRunTask();
         addCreateScriptsTask();
 
@@ -102,10 +105,16 @@ public class ApplicationPlugin implements Plugin<Project> {
         });
     }
 
-    private void addPluginConvention() {
-        pluginConvention = new ApplicationPluginConvention(project);
+    private void addExtensions() {
+        pluginConvention = DeprecationLogger.whileDisabled(new Factory<ApplicationPluginConvention>() {
+            @Override
+            public ApplicationPluginConvention create() {
+                return new ApplicationPluginConvention(project);
+            }
+        });
         pluginConvention.setApplicationName(project.getName());
         project.getConvention().getPlugins().put("application", pluginConvention);
+        project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }
 
     private void addRunTask() {

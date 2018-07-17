@@ -98,7 +98,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         then:
 
         outputContains("running custom wrapper task")
-        outputContains("Creating a custom task named 'wrapper' has been deprecated and is scheduled to be removed in Gradle 5.0. You can configure the existing task using the 'wrapper { }' syntax or create your custom task under a different name.'")
+        outputContains("Creating a custom task named 'wrapper' has been deprecated. This is scheduled to be removed in Gradle 5.0. You can configure the existing task using the 'wrapper { }' syntax or create your custom task under a different name.")
         wrapper.notGenerated()
     }
 }

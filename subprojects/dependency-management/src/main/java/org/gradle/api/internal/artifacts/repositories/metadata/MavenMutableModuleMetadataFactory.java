@@ -22,9 +22,9 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 
 import java.util.Collections;
 import java.util.List;

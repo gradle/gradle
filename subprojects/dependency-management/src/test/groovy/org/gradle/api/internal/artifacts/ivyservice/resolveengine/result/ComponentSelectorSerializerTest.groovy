@@ -43,7 +43,7 @@ import static org.gradle.util.Path.path
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final VersionParser versionParser = new VersionParser()
     private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
-    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     private ImmutableVersionConstraint constraint(String version, boolean strict = false) {
         def reject = strict ? versionSelectorScheme.complementForRejection(versionSelectorScheme.parseSelector(version)) : null
@@ -201,6 +201,6 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.module == 'name-one'
         result.version == 'version-one'
         result.versionConstraint.preferredVersion == 'version-one'
-        result.versionConstraint.rejectedVersions == [']version-one,)']
+        result.versionConstraint.rejectedVersions == ['(version-one,)']
     }
 }

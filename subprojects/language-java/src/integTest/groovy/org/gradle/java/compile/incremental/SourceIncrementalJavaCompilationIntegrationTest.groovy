@@ -31,7 +31,6 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
 
         buildFile << """
             apply plugin: 'java'
-            compileJava.options.incremental = true
         """
     }
 
@@ -465,10 +464,6 @@ sourceSets {
     }
 
     def "recompilation does not process removed classes from dependent sourceSet"() {
-        buildFile << """
-compileTestJava.options.incremental = true
-"""
-
         def unusedClass = java("public class Unused {}")
         // Need another class or :compileJava will always be considered UP-TO-DATE
         java("public class Other {}")
@@ -569,7 +564,7 @@ compileTestJava.options.incremental = true
         then:
         outputs.recompiledClasses("A", "B", "C")
         output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
-        output.contains(":compileJava - is not incremental. Unable to infer the source directories.")
+        output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
     def "handles duplicate class across source directories"() {
@@ -841,5 +836,73 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 
         then:
         failure.assertHasErrorOutput 'Runnable r = b;'
+    }
+
+    def "deletes empty packages dirs"() {
+        given:
+        def a = file('src/main/java/com/foo/internal/A.java') << """
+            package com.foo.internal;
+            public class A {}
+        """
+        file('src/main/java/com/bar/B.java') << """
+            package com.bar;
+            public class B {}
+        """
+
+        succeeds "compileJava"
+        a.delete()
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        ! file("build/classes/java/main/com/foo").exists()
+    }
+
+    def "recompiles types whose names look like inne classes even if they aren't"() {
+        given:
+        file('src/main/java/Test.java') << 'public class Test{}'
+        file('src/main/java/Test$$InnerClass.java') << 'public class Test$$InnerClass{}'
+        buildFile << '''
+            apply plugin: 'java'
+        '''.stripIndent()
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/Test.class').assertExists()
+        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+
+        when:
+        file('src/main/java/Test.java').text = 'public class Test{ void foo() {} }'
+        succeeds ':compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/Test.class').assertExists()
+        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+    }
+
+    def "incremental java compilation ignores empty packages"() {
+        given:
+        file('src/main/java/org/gradle/test/MyTest.java').text = """
+            package org.gradle.test;
+            
+            class MyTest {}
+        """
+
+        when:
+        run 'compileJava'
+        then:
+        executedAndNotSkipped(':compileJava')
+
+        when:
+        file('src/main/java/org/gradle/different').createDir()
+        run('compileJava')
+
+        then:
+        skipped(':compileJava')
     }
 }

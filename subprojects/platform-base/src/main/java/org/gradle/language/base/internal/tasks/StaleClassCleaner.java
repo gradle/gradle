@@ -15,17 +15,10 @@
  */
 package org.gradle.language.base.internal.tasks;
 
-import com.google.common.collect.Sets;
-
 import java.io.File;
-import java.util.Set;
 
 public abstract class StaleClassCleaner {
-    protected Set<String> prefixes = Sets.newHashSet();
-
     public abstract void execute();
 
-    public void addDirToClean(File toClean) {
-        prefixes.add(toClean.getAbsolutePath() + File.separator);
-    }
+    public abstract void addDirToClean(File toClean);
 }

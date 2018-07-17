@@ -98,20 +98,19 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                 result.converted(new File(uriDecode(notationString.substring(5))));
                 return;
             }
-            for (File file : File.listRoots()) {
-                String rootPath = file.getAbsolutePath();
-                String normalisedStr = notationString;
-                if (!fileSystem.isCaseSensitive()) {
-                    rootPath = rootPath.toLowerCase();
-                    normalisedStr = normalisedStr.toLowerCase();
-                }
-                if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
-                    result.converted(new File(notationString));
-                    return;
-                }
-            }
-            // Check if string starts with a URI scheme
             if (URI_SCHEME.matcher(notationString).matches()) {
+                for (File file : File.listRoots()) {
+                    String rootPath = file.getAbsolutePath();
+                    String normalisedStr = notationString;
+                    if (!fileSystem.isCaseSensitive()) {
+                        rootPath = rootPath.toLowerCase();
+                        normalisedStr = normalisedStr.toLowerCase();
+                    }
+                    if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
+                        result.converted(new File(notationString));
+                        return;
+                    }
+                }
                 try {
                     result.converted(new URI(notationString));
                     return;

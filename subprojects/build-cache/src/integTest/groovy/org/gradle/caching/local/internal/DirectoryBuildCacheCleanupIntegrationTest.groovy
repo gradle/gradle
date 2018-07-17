@@ -16,7 +16,7 @@
 
 package org.gradle.caching.local.internal
 
-import org.gradle.cache.internal.DefaultPersistentDirectoryCache
+import org.gradle.cache.internal.DefaultPersistentDirectoryStore
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -128,7 +128,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
 
         // checkInterval-1 hours is not enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS - 1))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS - 1))
         lastCleanupCheck = gcFile().lastModified()
         run()
         then:
@@ -136,14 +136,14 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
 
         // checkInterval hours is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS))
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
         // More than checkInterval hours is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS * 10))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS * 10))
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)

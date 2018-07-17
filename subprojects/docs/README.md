@@ -96,7 +96,6 @@ This is a block element which adds some source code from one of the sample build
         <sourcefile file='water/build.gradle' snippet='some-snippet'/>
         <output args='-PsomeProp=1020 hello'/>
         <output args='-q hello' outputFile='someSample.out' ignoreExtraLines="true" ignoreLineOrder="true" expectFailure="false"/>
-        <test args="-q someTask"/>
     </sample>
 
 You can include zero or more `<sourcefile>` elements, zero or more `<output>` elements, and optionally one `<layout>` element. They can appear in any order, and are included in the userguide in the order they appear in the source document.
@@ -114,12 +113,6 @@ The `<sourcefile>` element includes a source file in the userguide. It must have
 ###### `<output>`
 
 The `<output>` element includes a screen listing showing the command to be executed and the expected output.
-
-###### `<test>`
-
-The `<test>` elements defines an integration test to exercise the sample. Nothing is included in the userguide for this element.
-
-When you use the `<sample>` element, a test is added to the integration testsuite to ensure that the sample actually works. If no `<output>`, `<test>`, or `<layout after='...'>` element is present, the test will run `gradle tasks` in the sample directory, and check that the build does not fail. For each `<output>` element, the test will run `gradle $args` and compare the output against the corresponding expected output file in `src/samples/userguideOutput`. For each `<test args='...'>` or `<layout after='...'>` element, the test will run `gradle $args`.
 
 ##### `condition="standalone"`
 
@@ -182,7 +175,7 @@ You can omit the method's parameters if the method has no overloads.
 
 #### All other custom elements
 
-Not everything is supported natively for Asciidoc. For other custom things like `<sample>`s and `<test>`s you can simply use the Docbook tags wrapped in a passthrough block:
+Not everything is supported natively for Asciidoc. For other custom things like `<sample>`s you must use the Docbook tags wrapped in a passthrough block:
 
 ```asciidoc
 ++++

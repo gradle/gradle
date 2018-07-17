@@ -50,19 +50,19 @@ integTestTasks.configureEach {
     maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
 }
 
-task configureJar {
+def configureJar = tasks.register("configureJar") {
     doLast {
         def classpath = [":baseServices", ":coreApi", ":core"].collect { project(it).jar.archivePath.name }.join(" ")
         jar.manifest.mainAttributes('Class-Path': classpath)
     }
 }
 
-jar {
+tasks.named("jar").configure {
     dependsOn configureJar
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
 }
 
-task startScripts(type: GradleStartScriptGenerator) {
+tasks.register("startScripts", GradleStartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     launcherJar = jar.outputs.files
 }

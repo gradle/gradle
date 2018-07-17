@@ -32,19 +32,28 @@ import java.io.Serializable;
 
 public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
 
-    private final static Transformer<Serializable, ModuleComponentResolveMetadata> KEY_TO_SNAPSHOTTABLE = new Transformer<Serializable, ModuleComponentResolveMetadata>() {
-        @Override
-        public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
-            return moduleMetadata.getContentHash().asBigInteger();
-        }
-    };
+    private static Transformer<Serializable, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer(final boolean improvedPomSupport) {
+        return new Transformer<Serializable, ModuleComponentResolveMetadata>() {
+            @Override
+            public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
+                return moduleMetadata.getOriginalContentHash().asHexString() + improvedPomSupport;
+            }
+        };
+    }
+
+    private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;
 
     public ComponentMetadataRuleExecutor(CacheRepository cacheRepository,
                                          InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                          ValueSnapshotter snapshotter,
                                          BuildCommencedTimeProvider timeProvider,
-                                         Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer) {
-        super("md-rule", cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), KEY_TO_SNAPSHOTTABLE, componentMetadataContextSerializer);
+                                         Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer, boolean improvedPomSupport) {
+        super("md-rule", cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), getKeyToSnapshotableTransformer(improvedPomSupport), componentMetadataContextSerializer);
+        this.componentMetadataContextSerializer = componentMetadataContextSerializer;
+    }
+
+    public Serializer<ModuleComponentResolveMetadata> getComponentMetadataContextSerializer() {
+        return componentMetadataContextSerializer;
     }
 
     private static EntryValidator<ModuleComponentResolveMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {

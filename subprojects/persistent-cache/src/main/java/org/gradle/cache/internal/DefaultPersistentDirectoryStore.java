@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
@@ -25,27 +26,45 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Time;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryStore.class);
+
+    public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
+
+    // Cleanup is performed while the file lock is being held. Using a timeout
+    // well below the limit used by another process to wait for the lock avoids
+    // those from timing out while waiting to acquire the file lock. Cleanup is
+    // usually much faster than this timeout.
+    private static final int DEFAULT_CLEANUP_TIMEOUT = DefaultFileLockManager.DEFAULT_LOCK_TIMEOUT / 3;
+
     private final File dir;
     private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
+    private final CleanupAction cleanupAction;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
     protected final File propertiesFile;
-    protected final File gcFile;
+    private final File gcFile;
     private CacheCoordinator cacheAccess;
 
-    public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, CleanupAction cleanupAction, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         this.dir = dir;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
+        this.cleanupAction = cleanupAction;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
@@ -95,17 +114,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     protected CacheCleanupAction getCleanupAction() {
-        return new CacheCleanupAction() {
-            @Override
-            public boolean requiresCleanup() {
-                return false;
-            }
-
-            @Override
-            public void cleanup() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return new Cleanup();
     }
 
     @Override
@@ -176,6 +185,38 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public void useCache(Runnable action) {
         cacheAccess.useCache(action);
+    }
+
+    private class Cleanup implements CacheCleanupAction {
+        @Override
+        public boolean requiresCleanup() {
+            if (cleanupAction != null) {
+                if (!gcFile.exists()) {
+                    GFileUtils.touch(gcFile);
+                } else {
+                    long duration = System.currentTimeMillis() - gcFile.lastModified();
+                    long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
+                    LOGGER.debug("{} has last been fully cleaned up {} hours ago", DefaultPersistentDirectoryStore.this, timeInHours);
+                    return timeInHours >= CLEANUP_INTERVAL_IN_HOURS;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void cleanup() {
+            if (cleanupAction != null) {
+                CountdownTimer timer = Time.startCountdownTimer(DEFAULT_CLEANUP_TIMEOUT);
+                cleanupAction.clean(DefaultPersistentDirectoryStore.this, timer);
+                if (timer.hasExpired()) {
+                    LOGGER.info("{} partially cleaned up in {}. Cleanup was aborted because it took too long to complete but will be resumed next time.",
+                        DefaultPersistentDirectoryStore.this, timer.getElapsed());
+                } else {
+                    GFileUtils.touch(gcFile);
+                    LOGGER.info("{} fully cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
+                }
+            }
+        }
     }
 
 }

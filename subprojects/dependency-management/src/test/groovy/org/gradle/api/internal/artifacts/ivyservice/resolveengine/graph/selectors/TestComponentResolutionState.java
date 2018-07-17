@@ -28,10 +28,17 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
+    private ComponentIdentifier componentIdentifier;
     private ModuleVersionIdentifier id;
     private boolean rejected;
 
+    public TestComponentResolutionState(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id) {
+        this.componentIdentifier = componentIdentifier;
+        this.id = id;
+    }
+
     public TestComponentResolutionState(ModuleVersionIdentifier id) {
+        this.componentIdentifier = DefaultModuleComponentIdentifier.newId(id);
         this.id = id;
     }
 
@@ -42,7 +49,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
 
     @Override
     public ComponentIdentifier getComponentId() {
-        return DefaultModuleComponentIdentifier.newId(id);
+        return componentIdentifier;
     }
 
     @Override

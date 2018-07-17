@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
@@ -84,7 +85,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !immutable.missing
         immutable.status == "integration"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
-        immutable.contentHash == EMPTY_CONTENT
+        immutable.originalContentHash == EMPTY_CONTENT
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
         immutable.getConfiguration("default").artifacts.first().name.name == id.module
@@ -110,7 +111,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.changing
         immutable.missing
         immutable.status == "broken"
-        immutable.contentHash == contentHash
+        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing
@@ -122,7 +123,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable2.changing
         immutable2.missing
         immutable2.status == "broken"
-        immutable2.contentHash == contentHash
+        immutable2.originalContentHash == contentHash
     }
 
     def "can changes to mutable metadata does not affect copies"() {
@@ -148,7 +149,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.changing
         immutable.missing
         immutable.status == "broken"
-        immutable.contentHash == contentHash
+        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing

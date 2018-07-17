@@ -16,7 +16,7 @@
 
 package org.gradle.invocation;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
@@ -25,6 +25,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -42,6 +43,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -58,8 +60,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private SettingsInternal settings;
@@ -70,7 +70,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
-    private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
+    private Collection<IncludedBuild> includedBuilds;
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
     private Path identityPath;
@@ -167,6 +167,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             root = root.getParent();
         }
         return root;
+    }
+
+    @Override
+    public BuildState getOwner() {
+        return getServices().get(BuildState.class);
     }
 
     @Override
@@ -369,22 +374,25 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public Collection<IncludedBuild> getIncludedBuilds() {
-        return Collections.unmodifiableCollection(includedBuilds);
+        if (includedBuilds == null) {
+            throw new IllegalStateException("Included builds are not yet available for this build.");
+        }
+        return includedBuilds;
     }
 
     @Override
     public void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds) {
-        this.includedBuilds.addAll(includedBuilds);
+        this.includedBuilds = ImmutableList.copyOf(includedBuilds);
     }
 
     @Override
     public IncludedBuild includedBuild(final String name) {
-        for (IncludedBuild includedBuild : includedBuilds) {
+        for (IncludedBuild includedBuild : getIncludedBuilds()) {
             if (includedBuild.getName().equals(name)) {
                 return includedBuild;
             }
         }
-        throw new NoSuchElementException("Included build '" + name + "' not found.");
+        throw new UnknownDomainObjectException("Included build '" + name + "' not found in " + toString() + ".");
     }
 
     @Override

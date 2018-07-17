@@ -31,6 +31,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -54,7 +56,12 @@ public class WarPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        final WarPluginConvention pluginConvention = new WarPluginConvention(project);
+        final WarPluginConvention pluginConvention = DeprecationLogger.whileDisabled(new Factory<WarPluginConvention>() {
+            @Override
+            public WarPluginConvention create() {
+                return new WarPluginConvention(project);
+            }
+        });
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(new Action<War>() {

@@ -30,7 +30,7 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static InputPathNormalizationStrategy.ABSOLUTE
+import static PathNormalizationStrategy.ABSOLUTE
 
 class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
@@ -51,19 +51,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, file2, file3), ABSOLUTE, normalizationStrategy)
 
         then:
-        snapshot.elements == [file, file2, file3]
-    }
-
-    def getElementsReturnsAllFilesRegardlessOfWhetherTheyExistedOrNot() {
-        given:
-        TestFile file = tmpDir.createFile('file1')
-        TestFile noExist = tmpDir.file('file3')
-
-        when:
-        def snapshot = snapshotter.snapshot(files(file, noExist), ABSOLUTE, normalizationStrategy)
-
-        then:
-        snapshot.elements == [file, noExist]
+        snapshot.snapshots.keySet().collect { new File(it) } == [file, file2, file3]
     }
 
     def getElementsIncludesRootDirectories() {
@@ -78,7 +66,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), ABSOLUTE, normalizationStrategy)
 
         then:
-        snapshot.elements == [file, dir, dir2, file2, noExist]
+        snapshot.snapshots.keySet().collect { new File(it) } == [file, dir, dir2, file2, noExist]
     }
 
     def "retains order of elements in the snapshot"() {
@@ -92,7 +80,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, file2, file3, file4), ABSOLUTE, normalizationStrategy)
 
         then:
-        snapshot.elements == [file, file2, file3, file4]
+        snapshot.snapshots.keySet().collect { new File(it) } == [file, file2, file3, file4]
     }
 
     def generatesEventWhenFileAdded() {
@@ -287,7 +275,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         changes(newSnapshot, snapshot, listener)
 
         then:
-        snapshot.elements.empty
+        snapshot.snapshots.isEmpty()
         1 * listener.added(file.path)
         0 * listener._
     }

@@ -45,14 +45,15 @@ import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_5),
-    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8)
+enum class ModuleType(val source: JavaVersion, val target: JavaVersion, val requiredCompiler: JavaVersion) {
+    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
+    ENTRY_POINT(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
+    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
+    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
+    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
+    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
+    REQUIRES_JAVA_9_COMPILER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_9);
 }
 
 
@@ -65,35 +66,35 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         addDependencies()
         addGeneratedResources(extension)
-        configureCompile()
+        configureCompile(extension)
         configureJarTasks()
         configureTests()
     }
 
     private
-    fun Project.configureCompile() {
+    fun Project.configureCompile(extension: UnitTestAndCompileExtension) {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
             tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
-                configureCompileTask(this, options, availableJavaInstallations)
+                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
-                configureCompileTask(this, options, availableJavaInstallations)
+                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
             }
         }
         addCompileAllTask()
     }
 
     private
-    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations, requiredCompilerVersion: JavaVersion) {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, JavaVersion.VERSION_1_7)
-        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(targetJdkVersion)
+        val compilerJdkVersion = maxOf(requiredCompilerVersion, JavaVersion.VERSION_1_7)
+        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(compilerJdkVersion)
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
@@ -196,16 +197,8 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType = ModuleType.UNDEFINED
         set(value) {
             field = value
-            // Entry points should run against Java so that we can give good error messages for people trying to run
-            // Gradle on Java 5. But Java 9 no longer support Java 5. Therefore, to be able to build Gradle on Java 9,
-            // we need to change the version to the minimum supported one.
-            if (BuildEnvironment.javaVersion.isJava9Compatible && moduleType == ModuleType.ENTRY_POINT) {
-                project.java.sourceCompatibility = JavaVersion.VERSION_1_6
-                project.java.targetCompatibility = JavaVersion.VERSION_1_6
-            } else {
-                project.java.targetCompatibility = moduleType.target
-                project.java.sourceCompatibility = moduleType.source
-            }
+            project.java.targetCompatibility = moduleType.target
+            project.java.sourceCompatibility = moduleType.source
         }
 
     init {

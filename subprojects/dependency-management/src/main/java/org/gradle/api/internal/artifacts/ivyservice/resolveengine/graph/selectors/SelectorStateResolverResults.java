@@ -115,7 +115,10 @@ class SelectorStateResolverResults {
             return false;
         }
         ResolvedVersionConstraint versionConstraint = dep.getVersionConstraint();
-        VersionSelector preferredSelector = versionConstraint == null ? null : versionConstraint.getPreferredSelector();
+        if (versionConstraint == null) {
+            return dep.getSelector().matchesStrictly(candidate.getId());
+        }
+        VersionSelector preferredSelector = versionConstraint.getPreferredSelector();
         if (preferredSelector == null || !preferredSelector.canShortCircuitWhenVersionAlreadyPreselected()) {
             return false;
         }

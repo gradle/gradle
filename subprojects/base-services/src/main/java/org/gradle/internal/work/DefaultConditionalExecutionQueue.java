@@ -18,6 +18,7 @@ package org.gradle.internal.work;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -26,7 +27,7 @@ import org.gradle.internal.resources.ResourceLockState;
 
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -38,6 +39,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 // TODO This class, DefaultBuildOperationQueue and TaskExecutionPlan have many of the same
 // behavior and concerns - we should look for a way to generalize this pattern.
 public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
+    public static final int KEEP_ALIVE_TIME_MS = 2000;
     private enum QueueState {
         Working, Stopped
     }
@@ -49,12 +51,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private QueueState queueState = QueueState.Working;
-    private int workerCount;
+    private volatile int workerCount;
 
     public DefaultConditionalExecutionQueue(String displayName, int maxWorkers, ExecutorFactory executorFactory, ResourceLockCoordinationService coordinationService) {
         this.maxWorkers = maxWorkers;
         this.executor = executorFactory.create(displayName);
         this.coordinationService = coordinationService;
+
+        executor.setKeepAlive(KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -65,8 +69,9 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
 
         lock.lock();
         try {
+            // expand the thread pool until we hit max workers
             if (workerCount < maxWorkers) {
-                expand();
+                expand(true);
             }
 
             queue.add(execution);
@@ -78,10 +83,24 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
 
     @Override
     public void expand() {
+        expand(false);
+    }
+
+    /**
+     * Expanding the thread pool is necessary when work items submit other work.  We want to avoid a starvation scenario where
+     * the thread pool is full of work items that are waiting on other queued work items.  The queued work items cannot execute
+     * because the thread pool is already full with their parent work items.  We use expand() to allow the thread pool to temporarily
+     * expand when work items have to wait on other work.  The thread pool will shrink below max workers again once the queue is
+     * drained.
+     */
+    private void expand(boolean force) {
         lock.lock();
         try {
-            executor.submit(new ExecutionRunner());
-            workerCount++;
+            // Only expand the thread pool if there is work in the queue or we know that work is about to be submitted (i.e. force == true)
+            if (force || !queue.isEmpty()) {
+                executor.submit(new ExecutionRunner());
+                workerCount++;
+            }
         } finally {
             lock.unlock();
         }
@@ -99,6 +118,10 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         executor.stop();
     }
 
+    /**
+     * ExecutionRunners process items from the queue until there are no items left, at which point it will either wait for
+     * new items to arrive (if there are < max workers threads running) or exit, finishing the thread.
+     */
     private class ExecutionRunner implements Runnable {
         @Override
         public void run() {
@@ -112,7 +135,9 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         private ConditionalExecution waitForNextOperation() {
             lock.lock();
             try {
-                while (queueState == QueueState.Working && queue.isEmpty()) {
+                // Wait for work to be submitted if the queue is empty and our worker count is under max workers
+                // This attempts to keep up to max workers threads alive once they've been started.
+                while (queueState == QueueState.Working && queue.isEmpty() && (workerCount <= maxWorkers)) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
@@ -127,6 +152,9 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             return getReadyExecution();
         }
 
+        /**
+         * Run executions until there are none ready to be executed.
+         */
         private void runBatch(final ConditionalExecution firstOperation) {
             ConditionalExecution operation = firstOperation;
             while (operation != null) {
@@ -136,10 +164,13 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         }
 
         /**
-         * Gets the next ConditionalExecution object that is ready to be executed.
+         * Gets the next ConditionalExecution object that is ready to be executed.  It does this by
+         * attempting to acquire the associated resource lock of each execution.  If successful, the
+         * execution is removed from the queue and returned.  If unsuccessful, it continues to iterate
+         * the queue looking for an execution that is ready to execute.
          */
         private ConditionalExecution getReadyExecution() {
-            final AtomicReference<ConditionalExecution> execution = new AtomicReference<ConditionalExecution>();
+            final MutableReference<ConditionalExecution> execution = MutableReference.empty();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -173,6 +204,9 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             return execution.get();
         }
 
+        /**
+         * Executes a conditional execution and then releases it's resource lock
+         */
         private void runExecution(ConditionalExecution execution) {
             try {
                 execution.getExecution().run();

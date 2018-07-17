@@ -23,4 +23,10 @@ public interface ResolutionAwareRepository {
      * Creates a resolver for this repository.
      */
     ConfiguredModuleComponentRepository createResolver();
+
+    /**
+     * Returns details about this repository, such as its name, type, and a map of properties used for reporting.
+     */
+    RepositoryDetails getDetails();
+
 }

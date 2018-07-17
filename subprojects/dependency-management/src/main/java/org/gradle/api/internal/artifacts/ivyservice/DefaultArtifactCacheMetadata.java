@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.internal.classpath.CachedJarFileStore;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import java.util.List;
 
 public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, CachedJarFileStore {
 
-    public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
+    public static final CacheVersion CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
     private final File transformsDir;
 

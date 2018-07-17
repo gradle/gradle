@@ -16,18 +16,19 @@
 
 package org.gradle.caching.internal.tasks
 
-import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.file.RelativePath
+import com.google.common.collect.Iterables
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot
-import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
@@ -78,15 +79,12 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         ] as SortedSet
         def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
 
-        def outputDirSnapshot = new DirectoryFileSnapshot(outputDir.path, RelativePath.EMPTY_ROOT, true)
         def outputDirFileContent = new FileHashSnapshot(HashCode.fromInt(123))
-        def outputDirFileSnapshot = new RegularFileSnapshot(outputDirFile.path, RelativePath.parse(true, "file.txt"), false, outputDirFileContent)
         def outputFileContent = new FileHashSnapshot(HashCode.fromInt(234))
-        def outputFileSnapshot = new RegularFileSnapshot(outputFile.path, RelativePath.EMPTY_ROOT, true, outputFileContent)
-        def fileSnapshots = ImmutableListMultimap.builder()
-            .putAll("outputDir", outputDirSnapshot, outputDirFileSnapshot)
-            .putAll("outputFile", outputFileSnapshot)
-            .build()
+        def outputFileSnapshot = new PhysicalFileSnapshot(outputFile.absolutePath, outputFile.name, outputFileContent)
+        def fileSnapshots = ImmutableMap.of(
+            "outputDir", new ImmutablePhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, outputDirFileContent))),
+            "outputFile", outputFileSnapshot)
 
         when:
         def result = load.load(input)
@@ -99,15 +97,22 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(outputProperties, input, _) >> new TaskOutputPacker.UnpackResult(originMetadata, 123, fileSnapshots)
 
         then:
-        1 * fileSystemMirror.putDirectory(_) >> { DirectoryTreeDetails dir ->
-            assert dir.path == outputDir.path
-            assert dir.descendants as List == [outputDirFileSnapshot]
+        1 * fileSystemMirror.putDirectory(_, _) >> { String absolutePath, PhysicalSnapshot dir ->
+            def basePath = dir.absolutePath.toString()
+            assert absolutePath == basePath
+            assert basePath == outputDir.absolutePath
+            assert Iterables.getOnlyElement(dir.children).absolutePath.toString() == outputDirFile.absolutePath
         }
-        1 * fileSystemMirror.putFile(outputFileSnapshot)
+        1 * fileSystemMirror.putFile(_) >> { args ->
+            PhysicalFileSnapshot snapshot = args[0]
+            assert snapshot.absolutePath == outputFileSnapshot.absolutePath
+            assert snapshot.name == outputFileSnapshot.name
+            assert snapshot.content == outputFileSnapshot.content
+        }
         1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots, OriginTaskExecutionMetadata metadata ->
             assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
-            assert propertySnapshots["outputFile"].elements == [outputFile]
-            assert propertySnapshots["outputDir"].elements == [outputDir, outputDirFile]
+            assert propertySnapshots["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
+            assert propertySnapshots["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:

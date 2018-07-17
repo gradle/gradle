@@ -60,7 +60,7 @@ public class EffectiveClassPath extends DefaultClassPath {
 
     private static void addClasspathFile(File classpathFile, List<File> classpathFiles) {
         if (classpathFile.exists() && !classpathFiles.contains(classpathFile)) {
-            classpathFiles.add(classpathFile);
+            classpathFiles.add(classpathFile.getAbsoluteFile());
             addManifestClasspathFiles(classpathFile, classpathFiles);
         }
     }

@@ -19,10 +19,10 @@ package org.gradle.internal.classpath
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.Factory
 import org.gradle.internal.file.JarCache
 import org.gradle.internal.resource.local.FileAccessTimeJournal
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,32 +30,33 @@ import spock.lang.Subject
 
 class DefaultCachedClasspathTransformerTest extends Specification {
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    TestFile testDir = testDirectoryProvider.testDirectory
+    def testDir = testDirectoryProvider.testDirectory
 
-    TestFile cachedDir = testDir.file("cached")
-    TestFile otherStore = testDir.file("other-store").createDir()
-    PersistentCache cache = Stub(PersistentCache) {
+    def cachedDir = testDir.file("cached")
+    def otherStore = testDir.file("other-store").createDir()
+    def cache = Stub(PersistentCache) {
         getBaseDir() >> cachedDir
         useCache(_) >> { Factory f -> f.create() }
     }
-    CacheBuilder cacheBuilder = Stub(CacheBuilder) {
+    def cacheBuilder = Stub(CacheBuilder) {
         open() >> cache
         withDisplayName(_) >> { cacheBuilder }
         withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
         withCleanup(_) >> { cacheBuilder }
     }
-    CacheRepository cacheRepository = Stub(CacheRepository) {
+    def cacheRepository = Stub(CacheRepository) {
         cache(_) >> cacheBuilder
     }
-    CachedJarFileStore jarFileStore = Stub(CachedJarFileStore) {
+    def jarFileStore = Stub(CachedJarFileStore) {
         getFileStoreRoots() >> [otherStore]
     }
-    JarCache jarCache = Mock(JarCache)
-    FileAccessTimeJournal fileAccessTimeJournal = Mock(FileAccessTimeJournal)
+    def jarCache = Mock(JarCache)
+    def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
+    def usedGradleVersions = Stub(UsedGradleVersions)
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore])
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore], usedGradleVersions)
 
     def "can convert a classpath to cached jars"() {
         given:

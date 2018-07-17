@@ -25,12 +25,16 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -165,7 +169,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
     public Set<Object> getMutableValues() {
         if (mutableValues == null) {
-            mutableValues = Sets.newHashSet();
+            mutableValues = new TaskDependencySet();
         }
         return mutableValues;
     }
@@ -189,5 +193,104 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
         getMutableValues().add(dependency);
+    }
+
+    private static class TaskDependencySet implements Set<Object> {
+        private final Set<Object> delegate = Sets.newHashSet();
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return delegate.contains(o);
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return delegate.iterator();
+        }
+
+        @Override
+        public Object[] toArray() {
+            return delegate.toArray();
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            return delegate.toArray(a);
+        }
+
+        @Override
+        public boolean add(Object o) {
+            return delegate.add(o);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (delegate.remove(o)) {
+                return true;
+            }
+
+            for (Iterator<Object> it = delegate.iterator(); it.hasNext();) {
+                Object obj = it.next();
+                if (isTaskProvider(obj) && o instanceof Task && isTaskProviderOfTask((TaskProvider) obj, (Task) o)) {
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a Task instance from a task dependency set when it contains a Provider to the Task instance.");
+                    it.remove();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static boolean isTaskProvider(Object obj) {
+            return obj instanceof TaskProvider;
+        }
+
+        private static boolean isTaskProviderOfTask(TaskProvider provider, Task task) {
+            return provider instanceof ProviderInternal && ((ProviderInternal) provider).getType().isInstance(task) && provider.getName().equals(task.getName());
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return delegate.containsAll(c);
+        }
+
+        @Override
+        public boolean addAll(Collection<?> c) {
+            return delegate.addAll(c);
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            return delegate.retainAll(c);
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            return delegate.removeAll(c);
+        }
+
+        @Override
+        public void clear() {
+            delegate.clear();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return delegate.equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
     }
 }

@@ -37,18 +37,22 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.Factory;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -78,12 +82,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         this.objectFactory = objectFactory;
     }
 
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
-        JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
-        project.getConvention().getPlugins().put("java", javaConvention);
+        JavaPluginConvention javaConvention = addExtensions(project);
 
         configureSourceSetDefaults(javaConvention);
         configureCompileDefaults(project, javaConvention);
@@ -94,6 +97,19 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureBuildDependents(project);
         configureSchema(project);
         bridgeToSoftwareModelIfNecessary(project);
+    }
+
+    private JavaPluginConvention addExtensions(final ProjectInternal project) {
+        JavaPluginConvention javaConvention = DeprecationLogger.whileDisabled(new Factory<JavaPluginConvention>() {
+            @Override
+            public JavaPluginConvention create() {
+                return new JavaPluginConvention(project, instantiator);
+            }
+        });
+        project.getConvention().getPlugins().put("java", javaConvention);
+        project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
+        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
+        return javaConvention;
     }
 
     private void bridgeToSoftwareModelIfNecessary(ProjectInternal project) {
@@ -218,7 +234,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         Configuration compileConfiguration = configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + " ' instead).");
+        compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + "' instead).");
 
         Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
         implementationConfiguration.setVisible(false);
@@ -230,7 +246,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         Configuration runtimeConfiguration = configurations.maybeCreate(runtimeConfigurationName);
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + " ' instead).");
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + "' instead).");
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);

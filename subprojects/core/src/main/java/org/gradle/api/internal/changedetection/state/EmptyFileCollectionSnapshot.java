@@ -18,12 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -37,8 +36,8 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        for (Map.Entry<String, FileContentSnapshot> entry : oldSnapshot.getContentSnapshots().entrySet()) {
-            if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : oldSnapshot.getSnapshots().entrySet()) {
+            if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getSnapshot().getType()))) {
                 return false;
             }
         }
@@ -51,18 +50,12 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public Collection<File> getElements() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return Collections.emptyMap();
     }
 
     @Override
-    public Map<String, FileContentSnapshot> getContentSnapshots() {
-        return Collections.emptyMap();
+    public void visitRoots(PhysicalSnapshotVisitor visitor) {
     }
 
     @Override

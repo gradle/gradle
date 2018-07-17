@@ -221,7 +221,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 try {
                     validator.validate(propertyName, value, context, severity);
                 } catch (UnsupportedNotationException ex) {
-                    DeprecationLogger.nagUserOfDeprecated("Using TaskInputs." + method + "() with something that doesn't resolve to a File object", "Use TaskInputs.files() instead");
+                    DeprecationLogger.nagUserOfDeprecated("Using TaskInputs." + method + "() with something that doesn't resolve to a File object", "Use TaskInputs.files() instead.");
                 }
             }
         };

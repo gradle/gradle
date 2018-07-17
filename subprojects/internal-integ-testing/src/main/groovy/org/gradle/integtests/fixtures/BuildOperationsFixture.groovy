@@ -48,10 +48,14 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> roots() {
-        return operations.roots
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        def roots = operations.roots.findAll {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
+        assert roots.size() == 1
+        return roots[0]
     }
-
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {

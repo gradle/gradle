@@ -28,23 +28,27 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=3.3")
     def "Included builds are present in the model"() {
         given:
-        singleProjectBuildInRootFolder("root") {
+        def rootDir = singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 rootProject.name = 'root'
                 includeBuild 'includedBuild'
             """
         }
-        multiProjectBuildInSubFolder("includedBuild", ["a", "b", "c"])
+        def includedBuildDir = multiProjectBuildInSubFolder("includedBuild", ["a", "b", "c"])
 
         when:
         GradleBuild model = loadToolingModel(GradleBuild)
 
         then:
+        model.buildIdentifier.rootDir == rootDir
         model.rootProject.name == "root"
         model.includedBuilds.size() == 1
+
         def includedBuild = model.includedBuilds[0]
+        includedBuild.buildIdentifier.rootDir == includedBuildDir
         includedBuild.rootProject.name == "includedBuild"
         includedBuild.projects.size() == 4
+        includedBuild.includedBuilds.empty
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
@@ -87,7 +91,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         GradleBuild model = loadToolingModel(GradleBuild)
 
         then:
-        model.includedBuilds.size() == 0
+        model.includedBuilds.empty
     }
 
     def "No included builds for single root project"() {
@@ -96,6 +100,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         GradleBuild model = loadToolingModel(GradleBuild)
 
         then:
-        model.includedBuilds.size() == 0
+        model.includedBuilds.empty
     }
 }

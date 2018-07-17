@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -39,6 +40,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.*
 import static org.gradle.util.Matchers.normalizedLineSeparators
 
 /**
@@ -48,6 +50,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  */
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
+@IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
 class AbstractIntegrationSpec extends Specification {
 
     @Rule

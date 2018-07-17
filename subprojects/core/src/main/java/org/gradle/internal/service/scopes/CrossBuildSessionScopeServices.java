@@ -36,7 +36,6 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -120,10 +119,9 @@ public class CrossBuildSessionScopeServices implements Closeable {
             super(parent);
         }
 
-        GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry, BuildProgressLogger buildProgressLogger) {
+        GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
             return new DefaultGradleLauncherFactory(
                 userHomeDirServiceRegistry,
-                buildProgressLogger,
                 CrossBuildSessionScopeServices.this
             );
         }
@@ -137,7 +135,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
             ProgressLoggerFactory progressLoggerFactory,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ResourceLockCoordinationService resourceLockCoordinationService,
             ParallelismConfigurationManager parallelismConfigurationManager,
             BuildOperationIdFactory buildOperationIdFactory
         ) {
@@ -147,7 +144,6 @@ public class CrossBuildSessionScopeServices implements Closeable {
                 progressLoggerFactory,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                resourceLockCoordinationService,
                 parallelismConfigurationManager,
                 buildOperationIdFactory
             );

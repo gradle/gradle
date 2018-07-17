@@ -16,68 +16,41 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.internal.BiAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.util.JarUtils
 
-import java.util.concurrent.TimeUnit
+import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
 
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.MARKER_FILE_PATH
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupService.WRAPPER_DISTRIBUTION_FILE_PATH
-import static org.gradle.cache.internal.VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture.MarkerFileType.MISSING_MARKER_FILE
+trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements VersionSpecificCacheCleanupFixture {
 
-trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+    private static final BiAction<GradleVersion, File> DEFAULT_JAR_WRITER = { version, jarFile ->
+        jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: ${version.version}")
+    }
+    static final String DEFAULT_JAR_PREFIX = 'gradle-base-services'
 
-    TestFile createVersionSpecificCacheDir(GradleVersion version, MarkerFileType type = MISSING_MARKER_FILE) {
-        return createCacheSubDir(version.version, type)
+    @Override
+    TestFile getCachesDir() {
+        gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
-    TestFile createCacheSubDir(String name, MarkerFileType type = MISSING_MARKER_FILE) {
-        def cachesDir = getGradleUserHomeDir().file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME).createDir()
-        def versionDir = cachesDir.file(name).createDir()
-        def markerFile = versionDir.file(MARKER_FILE_PATH)
-        type.process(markerFile)
-        return versionDir
+    TestFile createDistributionChecksumDir(GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX) {
+        createCustomDistributionChecksumDir("gradle-${version.version}-all", version, jarPrefix)
     }
 
-    TestFile createDistributionDir(GradleVersion version, String distributionType) {
-        def cachesDir = getGradleUserHomeDir().file(WRAPPER_DISTRIBUTION_FILE_PATH).createDir()
-        def versionDir = cachesDir.file("gradle-${version.version}-$distributionType").createDir()
-        return versionDir
+    TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX, BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {
+        def checksumDir = distsDir.file(parentDirName).createDir(UUID.randomUUID())
+        def libDir = checksumDir.file("gradle-${version.baseVersion.version}", "lib").createDir()
+        def jarFile = libDir.file("$jarPrefix-${version.baseVersion.version}.jar")
+        jarWriter.execute(version, jarFile)
+        return checksumDir
     }
 
-    TestFile getGcFile(TestFile currentCacheDir) {
-        currentCacheDir.file("gc.properties")
+    TestFile getDistsDir() {
+        gradleUserHomeDir.file(WRAPPER_DISTRIBUTION_FILE_PATH)
     }
 
     abstract TestFile getGradleUserHomeDir()
 
-    static enum MarkerFileType {
-
-        USED_TODAY {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-            }
-        },
-
-        NOT_USED_WITHIN_30_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(31)
-            }
-        },
-
-        NOT_USED_WITHIN_7_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8)
-            }
-        },
-
-        MISSING_MARKER_FILE
-
-        void process(TestFile markerFile) {}
-    }
 }

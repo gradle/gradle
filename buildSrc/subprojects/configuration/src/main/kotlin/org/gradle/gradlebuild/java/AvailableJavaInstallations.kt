@@ -37,7 +37,15 @@ const val java7HomePropertyName = "java7Home"
 
 
 private
+const val java9HomePropertyName = "java9Home"
+
+
+private
 const val testJavaHomePropertyName = "testJavaHome"
+
+
+private
+const val oracleJdk9 = "Oracle JDK 9"
 
 
 private
@@ -59,7 +67,9 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
 
     init {
         val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
-        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home)
+        val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
+        require(resolvedJava9Home != null || JavaVersion.current().isJava9Compatible) { "Building gradle on Java 7/8 requires $java9HomePropertyName system property or project property" }
+        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
         val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
         javaInstallations = findJavaInstallations(javaHomesForCompilation)
         currentJavaInstallation = DefaultJavaInstallation(true, Jvm.current().javaHome).apply {
@@ -109,8 +119,8 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
         return mapOf(
             "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
             validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.displayName != oracleJdk7),
-            "Must use Oracle JDK 8 to perform this build. Is currently ${currentJavaInstallation.displayName} at ${currentJavaInstallation.javaHome}." to
-                (currentJavaInstallation.displayName != oracleJdk8)
+            "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.displayName} at ${currentJavaInstallation.javaHome}." to
+                (currentJavaInstallation.displayName != oracleJdk8 && currentJavaInstallation.displayName != oracleJdk9)
         ).filterValues { it }.keys
     }
 

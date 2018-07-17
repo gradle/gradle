@@ -132,6 +132,25 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         0 * delegate._
     }
 
+    def 'empty graph result for build dependencies does not interact with dependency locking'() {
+        given:
+        ResolutionStrategyInternal resolutionStrategy = Mock()
+
+        configuration.name >> 'lockedConf'
+        configuration.resolutionStrategy >> resolutionStrategy
+        dependencies.isEmpty() >> true
+        dependencyConstraints.isEmpty() >> true
+        configuration.getAllDependencies() >> dependencies
+        configuration.getAllDependencyConstraints() >> dependencyConstraints
+
+        when:
+        dependencyResolver.resolveBuildDependencies(configuration, results)
+
+        then:
+
+        0 * resolutionStrategy._
+    }
+
     def 'empty graph result still interacts with dependency locking'() {
         given:
         ResolutionStrategyInternal resolutionStrategy = Mock()

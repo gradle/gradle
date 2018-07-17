@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -28,7 +29,7 @@ import java.util.concurrent.Callable
 
 import static org.gradle.util.WrapUtil.toSet
 
-public class DefaultTaskDependencyTest extends Specification {
+class DefaultTaskDependencyTest extends Specification {
     private final TaskResolver resolver = Mock(TaskResolver.class)
     private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver)
     private Task task
@@ -280,6 +281,45 @@ The following types/formats are supported:
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
+    def "can mutate dependency values by removing a Task instance from dependency"() {
+        given:
+        dependency.add(otherTask)
+
+        when:
+        dependency.mutableValues.remove(otherTask)
+
+        then:
+        dependency.getDependencies(task) == toSet()
+    }
+
+    def "can mutate dependency values by removing a Task instance from dependency containing a Provider to the Task instance"() {
+        given:
+        otherTask.name >> "otherTask"
+
+        def provider = Mock(TestTaskProvider)
+        provider.type >> otherTask.class
+        provider.name >> otherTask.name
+        dependency.add(provider)
+
+        when:
+        dependency.mutableValues.remove(otherTask)
+
+        then:
+        dependency.getDependencies(task) == toSet()
+    }
+
+    def "can mutate dependency values by removing a Provider instance from dependency containing the Provider instance"() {
+        given:
+        def provider = Mock(TestTaskProvider)
+        dependency.add(provider)
+
+        when:
+        dependency.mutableValues.remove(provider)
+
+        then:
+        dependency.getDependencies(task) == toSet()
+    }
+
     def "can nest iterables and maps and closures and callables"() {
         Map nestedMap = [task: otherTask]
         Iterable nestedCollection = [nestedMap]
@@ -303,5 +343,8 @@ The following types/formats are supported:
     }
 
     interface TestProvider extends ProviderInternal, TaskDependencyContainer {
+    }
+
+    interface TestTaskProvider extends ProviderInternal, TaskProvider {
     }
 }

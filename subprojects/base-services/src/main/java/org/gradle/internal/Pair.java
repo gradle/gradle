@@ -18,33 +18,42 @@ package org.gradle.internal;
 
 import com.google.common.base.Function;
 
+import javax.annotation.Nullable;
+
 public final class Pair<L, R> {
 
+    @Nullable
     public final L left;
+
+    @Nullable
     public final R right;
 
-    private Pair(L left, R right) {
+    private Pair(@Nullable L left, @Nullable R right) {
         this.left = left;
         this.right = right;
     }
 
+    @Nullable
     public L getLeft() {
         return left;
     }
 
+    @Nullable
     public R getRight() {
         return right;
     }
 
+    @Nullable
     public L left() {
         return left;
     }
 
+    @Nullable
     public R right() {
         return right;
     }
 
-    public static <L, R> Pair<L, R> of(L left, R right) {
+    public static <L, R> Pair<L, R> of(@Nullable L left, @Nullable R right) {
         return new Pair<L, R>(left, right);
     }
 
@@ -72,6 +81,7 @@ public final class Pair<L, R> {
         return of(left, function.apply(right));
     }
 
+    @Nullable
     public <T> T map(Function<? super Pair<L, R>, ? extends T> function) throws Exception {
         return function.apply(this);
     }

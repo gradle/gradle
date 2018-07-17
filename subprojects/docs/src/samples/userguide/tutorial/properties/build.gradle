@@ -3,7 +3,6 @@ task printProps {
         println commandLineProjectProp
         println gradlePropertiesProp
         println systemProjectProp
-        println envProjectProp
         println System.properties['system']
     }
 }

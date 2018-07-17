@@ -323,7 +323,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         executer.expectDeprecationWarning()
         succeeds "checkstyleMain"
         then:
-        outputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated and is scheduled to be removed in Gradle 5.0. Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
+        outputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated. This is scheduled to be removed in Gradle 5.0. Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
         result.assertTaskExecuted(":checkstyleMain")
     }
 

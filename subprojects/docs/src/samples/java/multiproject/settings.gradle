@@ -1,3 +1,4 @@
+rootProject.name = 'multiproject'
 
 // START SNIPPET include-projects
 include "shared", "api", "services:webservice", "services:shared"

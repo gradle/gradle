@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -30,6 +30,8 @@ public interface FileCollectionSnapshot extends Snapshot {
 
     /**
      * Visits the changes to file contents since the given snapshot, subject to the given filters.
+     *
+     * @return Whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
      */
     boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
@@ -39,11 +41,16 @@ public interface FileCollectionSnapshot extends Snapshot {
     HashCode getHash();
 
     /**
-     * Returns the elements of this snapshot, including regular files, directories and missing files
+     * The underlying snapshots.
      */
-    Collection<File> getElements();
-
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
-    Map<String, FileContentSnapshot> getContentSnapshots();
+    /**
+     * Visits the roots of this file collection snapshot.
+     *
+     * {@link FileCollectionSnapshot}s loaded from the task history don't have the roots available.
+     *
+     * @throws UnsupportedOperationException if the roots are not available.
+     */
+    void visitRoots(PhysicalSnapshotVisitor visitor);
 }

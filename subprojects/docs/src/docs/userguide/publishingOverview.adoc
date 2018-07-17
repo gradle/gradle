@@ -201,7 +201,7 @@ Gradle allows you to skip any task you want based on a condition via the api:org
 ++++
 <sample dir="maven-publish/conditional-publishing" id="publishingMavenConditionally" title="Configuring which artifacts should be published to which repositories">
     <sourcefile file="build.gradle" snippet="task-config"/>
-    <output args="publish publishToMavenLocal"/>
+    <output args="publish"/>
 </sample>
 ++++
 

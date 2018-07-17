@@ -17,17 +17,15 @@
 package org.gradle.plugins.ide.fixtures
 
 import groovy.util.slurpersupport.GPathResult
+import org.gradle.test.fixtures.file.TestFile
 
 class IdeaProjectFixture extends IdeWorkspaceFixture {
-    private GPathResult ipr
+    private final GPathResult ipr
+    private final TestFile file
 
-    IdeaProjectFixture(GPathResult ipr) {
+    IdeaProjectFixture(TestFile file, GPathResult ipr) {
+        this.file = file
         this.ipr = ipr
-    }
-
-    @Override
-    void assertExists() {
-        // Already done
     }
 
     String getLanguageLevel() {
@@ -61,6 +59,12 @@ class IdeaProjectFixture extends IdeWorkspaceFixture {
         return new ProjectModules(moduleNames)
     }
 
+    @Override
+    void assertContains(IdeProjectFixture project) {
+        assert project instanceof IdeaModuleFixture
+        def path = project.file.relativizeFrom(file.parentFile).path
+        modules.modules.contains("\$PROJECT_DIR/$path")
+    }
 
     static class ProjectModules {
         List<String> modules
@@ -79,7 +83,7 @@ class IdeaProjectFixture extends IdeWorkspaceFixture {
 
         void assertHasModules(String... name) {
             List<String> modules = Arrays.asList(name)
-            assert modules.every { modules.contains(it) }
+            assert this.modules.every { modules.contains(it) }
         }
     }
 

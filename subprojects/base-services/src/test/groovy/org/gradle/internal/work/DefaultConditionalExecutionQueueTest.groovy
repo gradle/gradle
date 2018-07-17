@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
@@ -29,8 +30,9 @@ import java.util.concurrent.Callable
 
 class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
     private static final DISPLAY_NAME = "Test Execution Queue"
+    private static final int MAX_WORKERS = 4
     ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
-    DefaultConditionalExecutionQueue queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, 4, new DefaultExecutorFactory(), coordinationService)
+    DefaultConditionalExecutionQueue queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, MAX_WORKERS, new DefaultExecutorFactory(), coordinationService)
 
     def "can conditionally execute a runnable"() {
         def execution = testExecution({
@@ -190,8 +192,39 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
             }
         }
 
+        and:
+        ConcurrentTestUtil.poll {
+            queue.workerCount <= maxWorkers
+        }
+
         where:
         maxWorkers << [1, 2, 4]
+    }
+
+    def "submitting a large number of executions does not start more than max workers"() {
+        def executions = []
+        expect:
+        async {
+            start {
+                3000.times { i ->
+                    def execution = testExecution({
+                        println("Execution ${i} running!")
+                    })
+                    executions.add(execution)
+                    queue.submit(execution)
+                }
+                instant.allSubmitted
+            }
+        }
+        thread.blockUntil.allSubmitted
+        assert queue.workerCount <= MAX_WORKERS
+        executions.each { release(it) }
+        executions.each { it.await() }
+
+        and:
+        ConcurrentTestUtil.poll {
+            queue.workerCount <= MAX_WORKERS
+        }
     }
 
     def "can get a result from an execution"() {

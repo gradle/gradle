@@ -636,10 +636,11 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeImplemented
     @Issue(["https://github.com/gradle/gradle/issues/2463", "https://github.com/gradle/gradle/issues/3444"])
-    def "java compilation ignores empty packages"() {
+    def "non-incremental java compilation ignores empty packages"() {
         given:
         buildFile << """
             plugins { id 'java' }
+            compileJava.options.incremental = false
         """
 
         file('src/main/java/org/gradle/test/MyTest.java').text = """
@@ -652,11 +653,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         run 'compileJava'
         then:
         executedAndNotSkipped(':compileJava')
-
-        when:
-        run 'compileJava'
-        then:
-        skipped(':compileJava')
 
         when:
         file('src/main/java/org/gradle/different').createDir()
@@ -895,6 +891,30 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         succeeds "compileJava"
-        output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
+        output.contains "The CompileOptions.bootClasspath property has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
+    }
+
+    def "deletes empty packages dirs"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        def a = file('src/main/java/com/foo/internal/A.java') << """
+            package com.foo.internal;
+            public class A {}
+        """
+        file('src/main/java/com/bar/B.java') << """
+            package com.bar;
+            public class B {}
+        """
+
+        succeeds "compileJava"
+        a.delete()
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        ! file("build/classes/java/main/com/foo").exists()
     }
 }

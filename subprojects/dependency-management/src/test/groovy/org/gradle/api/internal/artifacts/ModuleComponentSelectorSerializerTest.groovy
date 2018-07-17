@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
@@ -30,7 +30,7 @@ import static org.gradle.util.TestUtil.attributesFactory
 class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     private final static ModuleIdentifier UTIL = DefaultModuleIdentifier.newId("org", "util")
 
-    private serializer = new ModuleComponentSelectorSerializer(new AttributeContainerSerializer(attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    private serializer = new ModuleComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     @Unroll
     def "serializes"() {

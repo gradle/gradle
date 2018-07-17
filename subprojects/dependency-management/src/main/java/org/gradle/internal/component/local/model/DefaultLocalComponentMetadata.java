@@ -212,6 +212,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
+    public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+        return ImmutableList.of();
+    }
+
+    @Override
     public Set<String> getConfigurationNames() {
         return allConfigurations.keySet();
     }

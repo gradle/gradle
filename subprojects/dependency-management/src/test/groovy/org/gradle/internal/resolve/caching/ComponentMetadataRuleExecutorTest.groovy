@@ -37,6 +37,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -92,16 +93,19 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         cachePolicy = Mock()
         detailsToResult = Mock()
         onCacheMiss = Mock()
-        executor = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
+        executor = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer, false)
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Cache expiry check age=#age, refresh = #mustRefresh - #scenario - #ruleClass")
+    @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def hashValue = Mock(HashValue)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
+        def hasher = new DefaultBuildCacheHasher()
+        inputsSnapshot.appendToHasher(hasher)
+        def keyHash = hasher.hash()
         def cachedResult = Mock(ModuleComponentResolveMetadata)
         Multimap<String, ImplicitInputRecord<?, ?>> implicits = HashMultimap.create()
         def record = Mock(ImplicitInputRecord)
@@ -121,10 +125,10 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         execute(key)
 
         then:
-        1 * key.contentHash >> hashValue
-        1 * hashValue.asBigInteger() >> new BigInteger("42")
+        1 * key.originalContentHash >> hashValue
+        1 * hashValue.asHexString() >> "42"
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
-        1 * store.get(inputsSnapshot) >> cachedEntry
+        1 * store.get(keyHash) >> cachedEntry
         if (expired) {
             // should check that the recorded service call returns the same value
             1 * record.getInput() >> '124'
@@ -147,7 +151,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             }
             1 * onCacheMiss.transform(key) >> details
             1 * detailsToResult.transform(details) >> Mock(ModuleComponentResolveMetadata)
-            1 * store.put(inputsSnapshot, _)
+            1 * store.put(keyHash, _)
         }
         if (ruleClass == TestSupplierWithService && reexecute) {
             1 * someService.provide()

@@ -1,0 +1,13 @@
+commands: [{
+    executable: gradle
+    execution-subdirectory: plugin
+    args: uploadArchives
+}, {
+    executable: gradle
+    execution-subdirectory: consumer
+    args: hello
+}, {
+    executable: gradle
+    execution-subdirectory: plugin
+    args: cleanCustomPluginFromMavenLocal
+}]

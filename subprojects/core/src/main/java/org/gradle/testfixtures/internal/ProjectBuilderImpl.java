@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -49,7 +50,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
@@ -65,6 +65,7 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collections;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -115,6 +116,7 @@ public class ProjectBuilderImpl {
         topLevelRegistry.add(BuildState.class, build);
 
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
+        gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
             topLevelRegistry.get(FileResolver.class));
@@ -127,11 +129,6 @@ public class ProjectBuilderImpl {
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
-
-        // Initialize progress logger infrastructure
-        // This is required if Task.execute is called
-        BuildProgressLogger progressLogger = project.getServices().get(BuildProgressLogger.class);
-        progressLogger.buildStarted();
 
         // Take a root worker lease, it won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = topLevelRegistry.get(ResourceLockCoordinationService.class);

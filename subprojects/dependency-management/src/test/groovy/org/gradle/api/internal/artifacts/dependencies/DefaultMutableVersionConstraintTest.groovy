@@ -41,11 +41,11 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         where:
         preferred    | complement
-        '1.0'        | ']1.0,)'
-        '[1.0, 2.0]' | ']2.0,)'
-        '[1.0, 2.0[' | '[2.0,)'
-        '(, 2.0['    | '[2.0,)'
-        '(, 2.0]'    | ']2.0,)'
+        '1.0'        | '(1.0,)'
+        '[1.0, 2.0]' | '(2.0,)'
+        '[1.0, 2.0)' | '[2.0,)'
+        '(, 2.0)'    | '[2.0,)'
+        '(, 2.0]'    | '(2.0,)'
     }
 
     @Unroll
@@ -94,7 +94,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '2.0'
-        version.rejectedVersions == [']2.0,)']
+        version.rejectedVersions == ['(2.0,)']
     }
 
     def "can declare rejected versions"() {
@@ -139,7 +139,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '1.1'
-        version.rejectedVersions == [']1.1,)']
+        version.rejectedVersions == ['(1.1,)']
     }
 
     def "cannot use an empty list of rejections"() {

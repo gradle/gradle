@@ -187,7 +187,7 @@ public abstract class Actions {
      * @param runnable The runnable to run for the action execution.
      * @return An action that runs the given runnable, ignoring the argument.
      */
-    public static <T> Action<T> toAction(Runnable runnable) {
+    public static <T> Action<T> toAction(@Nullable Runnable runnable) {
         //TODO SF this method accepts Closure instance as parameter but does not work correctly for it
         if (runnable == null) {
             return Actions.doNothing();

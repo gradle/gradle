@@ -34,6 +34,8 @@ import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
@@ -169,16 +171,16 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        doAddDependencyMetadataRule(metadataImplementation, rule)
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
         if (supportedInMetadata(metadataType)) {
-            dependencies.size() == 2
-            dependencies[0].pending == addAllDependenciesAsConstraints()
-            dependencies[1].pending == addAllDependenciesAsConstraints()
+            assert dependencies.size() == 2
+            assert dependencies[0].pending == addAllDependenciesAsConstraints()
+            assert dependencies[1].pending == addAllDependenciesAsConstraints()
         } else {
-            dependencies.empty
+            assert dependencies.empty
         }
 
         where:
@@ -203,16 +205,16 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        doAddDependencyMetadataRule(metadataImplementation, rule)
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
         if (supportedInMetadata(metadataType)) {
-            dependencies[0].selector.version == "2.0"
-            dependencies[0].selector.versionConstraint.rejectedVersions[0] == "]2.0,)"
-            dependencies[0].pending == addAllDependenciesAsConstraints()
+            assert dependencies[0].selector.version == "2.0"
+            assert dependencies[0].selector.versionConstraint.rejectedVersions[0] == "(2.0,)"
+            assert dependencies[0].pending == addAllDependenciesAsConstraints()
         } else {
-            dependencies.empty
+            assert dependencies.empty
         }
 
         where:

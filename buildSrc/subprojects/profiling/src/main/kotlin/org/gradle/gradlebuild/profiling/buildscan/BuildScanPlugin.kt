@@ -27,9 +27,9 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-import kotlin.concurrent.thread
 
 
+@Suppress("unused") // consumed as plugin gradlebuild.buildscan
 open class BuildScanPlugin : Plugin<Project> {
 
     private
@@ -48,11 +48,6 @@ open class BuildScanPlugin : Plugin<Project> {
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
-    }
-
-    private
-    fun buildScan(configure: BuildScanExtension.() -> Unit) {
-        buildScan.apply(configure)
     }
 
     private
@@ -78,7 +73,10 @@ open class BuildScanPlugin : Plugin<Project> {
                         codenarcPackage.getElementsByTag("File").flatMap { file ->
                             file.getElementsByTag("Violation").map { violation ->
                                 val filePath = rootProject.relativePath(file.attr("name"))
-                                val message = violation.getElementsByTag("Message").first() ?: violation.getElementsByTag("SourceLine").first()
+                                val message = violation.run {
+                                    getElementsByTag("Message").first()
+                                        ?: getElementsByTag("SourceLine").first()
+                                }
                                 "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
                             }
                         }
@@ -98,8 +96,8 @@ open class BuildScanPlugin : Plugin<Project> {
                 tag(System.getenv("TEAMCITY_BUILDCONF_NAME"))
                 link("TeamCity Build", System.getenv("BUILD_URL"))
                 value("Build ID", System.getenv("BUILD_ID"))
+                setCommitId(System.getenv("BUILD_VCS_NUMBER"))
             }
-            setCommitId(System.getenv("BUILD_VCS_NUMBER"))
         } else {
             buildScan.tag("LOCAL")
         }
@@ -107,47 +105,31 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVcsData() {
+        buildScan {
 
-        fun fork(action: () -> Unit) = thread {
-            try {
-                action()
-            } catch (e: Exception) {
-                rootProject.logger.warn("Build scan user data async exec failed", e)
-            }
-        }
-
-        val threads = listOf(
-
-            fork {
+            background {
                 system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
                     setCommitId(commitId)
                 }
-            },
+            }
 
-            fork {
+            background {
                 system("git", "status", "--porcelain").let { status ->
                     if (status.isNotEmpty()) {
-                        buildScan {
-                            tag("dirty")
-                            value("Git Status", status)
-                        }
+                        tag("dirty")
+                        value("Git Status", status)
                     }
                 }
-            },
+            }
 
-            fork {
+            background {
                 system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
                     if (branchName.isNotEmpty() && branchName != "HEAD") {
-                        buildScan {
-                            tag(branchName)
-                            value("Git Branch Name", branchName)
-                        }
+                        tag(branchName)
+                        value("Git Branch Name", branchName)
                     }
                 }
-            })
-
-        buildScan.buildFinished {
-            awaitAll(threads)
+            }
         }
     }
 
@@ -192,11 +174,15 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.setCommitId(commitId: String) =
-        buildScan {
-            value("Git Commit ID", commitId)
-            link("Source", "https://github.com/gradle/gradle/commit/" + commitId)
-        }
+    fun BuildScanExtension.setCommitId(commitId: String) {
+        value("Git Commit ID", commitId)
+        link("Source", "https://github.com/gradle/gradle/commit/$commitId")
+    }
+
+    private
+    inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
+        buildScan.apply(configure)
+    }
 }
 
 
@@ -209,8 +195,3 @@ fun Project.system(vararg args: String): String =
             assert(waitFor() == 0)
             inputStream.bufferedReader().use { it.readText().trim() }
         }
-
-
-private
-fun awaitAll(threads: Iterable<Thread>) =
-    threads.forEach(Thread::join)

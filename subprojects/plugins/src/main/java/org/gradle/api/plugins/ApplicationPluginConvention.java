@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 
@@ -34,7 +35,14 @@ public class ApplicationPluginConvention {
 
     private final Project project;
 
+    /**
+     * Constructs an {@link ApplicationPluginConvention}.
+     *
+     * @deprecated Creating instances of this class is deprecated. These should be created by the application plugin only.
+     */
+    @Deprecated
     public ApplicationPluginConvention(Project project) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of ApplicationPluginConvention");
         this.project = project;
         applicationDistribution = project.copySpec();
     }
@@ -83,6 +91,7 @@ public class ApplicationPluginConvention {
 
     /**
      * Directory to place executables in
+     *
      * @since 4.5
      */
     @Incubating
@@ -92,6 +101,7 @@ public class ApplicationPluginConvention {
 
     /**
      * Directory to place executables in
+     *
      * @since 4.5
      */
     @Incubating

@@ -65,6 +65,10 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         return this;
     }
 
+    public ExternalDependencyDescriptor getDependencyDescriptor() {
+        return dependencyDescriptor;
+    }
+
     /**
      * Choose a set of target configurations based on: a) the consumer attributes (with associated schema) and b) the target component.
      *

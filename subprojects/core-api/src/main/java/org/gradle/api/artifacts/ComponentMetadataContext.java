@@ -18,8 +18,11 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
- * Provides access to compoment metadata from a {@link ComponentMetadataRule}.
+ * Provides access to component metadata from a {@link ComponentMetadataRule}.
  *
  * @since 4.9
  */
@@ -37,7 +40,9 @@ public interface ComponentMetadataContext {
      *
      * @see org.gradle.api.artifacts.ivy.IvyModuleDescriptor
      */
+    @Nullable
     <T> T getDescriptor(Class<T> descriptorClass);
 
+    @Nonnull
     ComponentMetadataDetails getDetails();
 }

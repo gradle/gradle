@@ -17,13 +17,12 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.GradleVersion
-import spock.lang.Timeout
-
-import java.util.concurrent.TimeUnit
 
 class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
-    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+
+    @IntegrationTestTimeout(120)
     def "should not hang when running with security manager"() {
         given:
         buildFile << """ 

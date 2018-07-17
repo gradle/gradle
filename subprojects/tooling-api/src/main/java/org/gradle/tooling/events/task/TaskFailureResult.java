@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FailureResult;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.FailureResult;
  *
  * @since 2.5
  */
-@Incubating
 public interface TaskFailureResult extends TaskOperationResult, FailureResult {
 }

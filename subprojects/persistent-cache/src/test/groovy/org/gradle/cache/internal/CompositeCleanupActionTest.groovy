@@ -26,33 +26,32 @@ import spock.lang.Specification
 class CompositeCleanupActionTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    private CleanableStore cleanableStore = Stub(CleanableStore) {
+    def cleanableStore = Stub(CleanableStore) {
         getBaseDir() >> temporaryFolder.getTestDirectory()
         getDisplayName() >> "My Cache"
     }
-    private CountdownTimer timer = Mock(CountdownTimer)
+    def timer = Mock(CountdownTimer)
 
-    def "calls configured cleanup actions for sub dirs"() {
+    def "calls configured cleanup actions for correct dirs"() {
         given:
-        def firstSubDir = temporaryFolder.file("first")
         def firstCleanupAction = Mock(CleanupAction)
-        def secondSubDir = temporaryFolder.file("second")
         def secondCleanupAction = Mock(CleanupAction)
+        def subDir = temporaryFolder.file("subDir")
 
         when:
         CompositeCleanupAction.builder()
-            .add(firstSubDir, firstCleanupAction)
-            .add(secondSubDir, secondCleanupAction)
+            .add(firstCleanupAction)
+            .add(subDir, secondCleanupAction)
             .build()
             .clean(cleanableStore, timer)
 
         then:
-        2 * timer.hasExpired()
+        2 * timer.hasExpired() >> false
         1 * firstCleanupAction.clean(_, timer) >> { store, timer ->
-            assert store.getBaseDir() == firstSubDir
+            assert store.getBaseDir() == temporaryFolder.getTestDirectory()
         }
         1 * secondCleanupAction.clean(_, timer) >> { store, timer ->
-            assert store.getBaseDir() == secondSubDir
+            assert store.getBaseDir() == subDir
         }
     }
 

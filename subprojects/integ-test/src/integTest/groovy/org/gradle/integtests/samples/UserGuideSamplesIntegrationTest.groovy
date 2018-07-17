@@ -16,23 +16,43 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
+import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
+import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer
+import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer
+import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer
+import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer
+import org.gradle.samples.test.runner.GradleSamplesRunner
+import org.gradle.samples.test.runner.SamplesOutputNormalizers
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.runner.RunWith
 
-@RunWith(UserGuideSamplesRunner.class)
+@Requires(TestPrecondition.JDK8_OR_LATER)
+@RunWith(GradleSamplesRunner.class)
+@SamplesOutputNormalizers([
+    JavaObjectSerializationOutputNormalizer.class,
+    SampleOutputNormalizer.class,
+    FileSeparatorOutputNormalizer.class,
+    ArtifactResolutionOmittingOutputNormalizer.class,
+    NativeComponentReportOutputNormalizer.class,
+    PlayComponentReportOutputNormalizer.class
+])
 class UserGuideSamplesIntegrationTest {
     /*
-    Important info:
+    Important info: This test uses Exemplar (https://github.com/gradle/exemplar/) to discover and check samples.
 
-     If you're working in samples area There are gradle tasks that you should know of:
-     - gradle intTestImage makes sure that the samples' resources are copied to the right place
-     - gradle docs:extractSamples makes sure that samples' info is extracted from XMLs
-     - the 'expected' content of the asserting mechanism lives under docs/src/samples/userguideOutput
-     - Running:
-        ./gradlew intTestImage docs:extractSamples integtest:integTest --tests "*UserGuideSamplesIntegrationTest*"
+    In order to add a new sample:
+        * Create your new sample project in a subdirectory under subprojects/docs/samples/
+        * Write a *.sample.conf HOCON file in the root of your sample project dir
+        * Exemplar will automatically discover your sample. See instructions below for running it
 
-     Samples are not tested by default. For a sample to be executed and tested, you need to:
-     - add a nested <output/> tag to the <sample/> tag
-     - use the `args` parameter of the output tag to specify the tasks to be executed
-     - optionally set the name of the reference output file (by default, will use [sample id].out)
+    To update a sample test, change the *.sample.conf file
+
+     You can run all samples tests with
+        ./gradlew :integtest:integTest --tests "UserGuideSamplesIntegrationTest"
+
+     To run a subset of samples, use a more fine-grained test filter like
+        ./gradlew :integtest:integTest --tests "UserGuideSamplesIntegrationTest.*native*"
     */
 }

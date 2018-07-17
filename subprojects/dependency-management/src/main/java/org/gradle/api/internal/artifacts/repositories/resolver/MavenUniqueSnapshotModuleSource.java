@@ -18,13 +18,22 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.internal.component.model.ModuleSource;
 
 class MavenUniqueSnapshotModuleSource implements ModuleSource {
+
+    private final String repositoryName;
     private final String timestamp;
 
-    MavenUniqueSnapshotModuleSource(String timestamp) {
+    MavenUniqueSnapshotModuleSource(String repositoryName, String timestamp) {
+        this.repositoryName = repositoryName;
         this.timestamp = timestamp;
     }
 
     public String getTimestamp() {
         return timestamp;
     }
+
+    @Override
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
 }

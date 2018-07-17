@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-import org.gradle.util.CollectionUtils
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -39,7 +39,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
 
         then:
-        def root = CollectionUtils.single(ops.roots())
+        def root = ops.root(RunBuildBuildOperationType)
 
         def buildSrcOps = ops.all(BuildBuildSrcBuildOperationType)
         buildSrcOps.size() == 1

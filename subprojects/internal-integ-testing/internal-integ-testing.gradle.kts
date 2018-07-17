@@ -40,6 +40,7 @@ dependencies {
     compile(library("jansi"))
     compile(library("commons_collections"))
     compile("org.apache.mina:mina-core")
+    compile(testLibrary("sampleCheck"))
 
     implementation(project(":dependencyManagement"))
 
@@ -56,7 +57,7 @@ testFixtures {
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-val prepareVersionsInfo by tasks.creating(PrepareVersionsInfo::class) {
+val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     destFile = generatedResourcesDir.resolve("all-released-versions.properties")
     versions = releasedVersions.allVersions
     mostRecent = releasedVersions.mostRecentRelease

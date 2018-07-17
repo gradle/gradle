@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
@@ -106,6 +107,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * settingsMock.getDefaultProject() >> expectedRootProjectDescriptor
         _ * settingsMock.getIncludedBuilds() >> []
         _ * settingsMock.getRootClassLoaderScope() >> baseClassLoaderScope
+        _ * settingsMock.getProjectRegistry() >> Stub(ProjectRegistry)
         0 * settingsMock._
 
         _ * gradleMock.getRootProject() >> expectedRootProject

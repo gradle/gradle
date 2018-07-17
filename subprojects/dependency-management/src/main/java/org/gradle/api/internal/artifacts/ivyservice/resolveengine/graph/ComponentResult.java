@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.DisplayName;
 
+import javax.annotation.Nullable;
+
 /**
  * The final representation of a component in the resolved dependency graph.
  * This is the type that is serialized on resolve and deserialized when we later need to build a `ResolutionResult`.
@@ -61,4 +63,10 @@ public interface ComponentResult {
      * not necessarily the case.
      */
     AttributeContainer getVariantAttributes();
+
+    /**
+     * Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
+     */
+    @Nullable
+    String getRepositoryName();
 }

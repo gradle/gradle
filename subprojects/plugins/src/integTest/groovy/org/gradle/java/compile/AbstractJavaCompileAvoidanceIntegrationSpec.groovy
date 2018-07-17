@@ -38,11 +38,11 @@ include 'a', 'b'
         """
     }
 
-    def useIncrementalCompile() {
+    def deactivateIncrementalCompile() {
         buildFile << """
             allprojects {
                 tasks.withType(JavaCompile) {
-                    options.incremental = true
+                    options.incremental = false
                 }
             }
         """

@@ -16,12 +16,11 @@
 
 package org.gradle.cache.internal.locklistener
 
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -36,8 +35,8 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     }
 
     def "manages contention for multiple locks"() {
-        def action1 = new AtomicBoolean()
-        def action2 = new AtomicBoolean()
+        def action1 = new MutableBoolean()
+        def action2 = new MutableBoolean()
 
         when:
         int port = handler.reservePort()
@@ -114,7 +113,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     }
 
     private void canHandleMoreRequests() {
-        def executed = new AtomicBoolean()
+        def executed = new MutableBoolean()
         int port = handler.reservePort();
         handler.start(15, { executed.set(true) } as Runnable)
         client.maybePingOwner(port, 15, "lock", 50000)

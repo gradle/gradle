@@ -42,6 +42,7 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
@@ -109,6 +110,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
+    }
+
+    @Override
+    public String getRepositoryName() {
+        ModuleSource moduleSource = metadata.getSource();
+        return moduleSource == null ? null : moduleSource.getRepositoryName();
     }
 
     @Override

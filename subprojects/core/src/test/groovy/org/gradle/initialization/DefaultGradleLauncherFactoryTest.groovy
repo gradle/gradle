@@ -25,7 +25,6 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.BuildTreeScopeServices
@@ -51,8 +50,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final def listenerManager = globalServices.get(ListenerManager)
     final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final def buildProgressLogger = globalServices.get(BuildProgressLogger)
-    final def factory = new DefaultGradleLauncherFactory(userHomeScopeServiceRegistry, buildProgressLogger, crossBuildSessionScopeServices)
+    final def factory = new DefaultGradleLauncherFactory(userHomeScopeServiceRegistry, crossBuildSessionScopeServices)
     def requestContext = Stub(BuildRequestContext)
 
     def cleanup() {

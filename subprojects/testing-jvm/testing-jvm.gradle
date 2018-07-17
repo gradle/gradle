@@ -44,7 +44,7 @@ gradlebuildJava {
     moduleType = ModuleType.WORKER
 }
 
-test {
+tasks.named("test").configure {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }
