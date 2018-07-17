@@ -101,10 +101,12 @@ fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<Ko
 
 private
 fun apiSpecFor(includes: List<String>, excludes: List<String>): Spec<RelativePath> =
-    if (includes.isEmpty() && excludes.isEmpty()) Specs.satisfyAll()
-    else if (includes.isEmpty()) Specs.negate(patternSpecFor(excludes))
-    else if (excludes.isEmpty()) patternSpecFor(includes)
-    else Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
+    when {
+        includes.isEmpty() && excludes.isEmpty() -> Specs.satisfyAll()
+        includes.isEmpty() -> Specs.negate(patternSpecFor(excludes))
+        excludes.isEmpty() -> patternSpecFor(includes)
+        else -> Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
+    }
 
 
 private
@@ -148,15 +150,19 @@ fun apiTypeKey(usage: ApiTypeUsage): List<Any> = usage.run {
 
 private
 fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction> =
-    type.functions.candidatesForExtension.asSequence()
+    candidatesForExtensionFrom(type)
         .sortedWithTypeOfTakingFunctionsFirst()
         .flatMap { function ->
 
             val candidateFor = object {
-                val groovyNamedArgumentsToVarargs = function.parameters.firstOrNull()?.type?.isGroovyNamedArgumentMap == true
-                val javaClassToKotlinClass = function.parameters.any {
-                    it.type.isJavaClass || (it.type.isKotlinArray && it.type.typeArguments.single().isJavaClass) || (it.type.isKotlinCollection && it.type.typeArguments.single().isJavaClass)
-                }
+
+                val groovyNamedArgumentsToVarargs =
+                    function.parameters.firstOrNull()?.type?.isGroovyNamedArgumentMap == true
+
+                val javaClassToKotlinClass =
+                    function.parameters.any {
+                        it.type.isJavaClass || (it.type.isKotlinArray && it.type.typeArguments.single().isJavaClass) || (it.type.isKotlinCollection && it.type.typeArguments.single().isJavaClass)
+                    }
 
                 val extension
                     get() = groovyNamedArgumentsToVarargs || javaClassToKotlinClass
@@ -168,16 +174,22 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
 
             val extensionTypeParameters = function.typeParameters + type.typeParameters
 
-            sequenceOf(KotlinExtensionFunction(
-                description = "Kotlin extension function ${if (candidateFor.javaClassToKotlinClass) "taking [kotlin.reflect.KClass] " else ""}for [${type.sourceName}.${function.name}]",
-                isIncubating = function.isIncubating,
-                isDeprecated = function.isDeprecated,
-                typeParameters = extensionTypeParameters,
-                targetType = type,
-                name = function.name,
-                parameters = function.newMappedParameters().groovyNamedArgumentsToVarargs().javaClassToKotlinClass(),
-                returnType = function.returnType))
+            sequenceOf(
+                KotlinExtensionFunction(
+                    description = "Kotlin extension function ${if (candidateFor.javaClassToKotlinClass) "taking [kotlin.reflect.KClass] " else ""}for [${type.sourceName}.${function.name}]",
+                    isIncubating = function.isIncubating,
+                    isDeprecated = function.isDeprecated,
+                    typeParameters = extensionTypeParameters,
+                    targetType = type,
+                    name = function.name,
+                    parameters = function.newMappedParameters().groovyNamedArgumentsToVarargs().javaClassToKotlinClass(),
+                    returnType = function.returnType))
         }
+
+
+private
+fun candidatesForExtensionFrom(type: ApiType) =
+    type.functions.filter(::isCandidateForExtension).asSequence()
 
 
 private
@@ -439,13 +451,12 @@ val ApiTypeUsage.isKotlinCollection
 
 
 private
-val List<ApiFunction>.candidatesForExtension: List<ApiFunction>
-    get() = filter {
-        it.name !in functionNameBlackList
-            && it.isPublic
-            && !it.isStatic
-            && it.parameters.none { it.type.isGroovyClosure }
-    }
+fun isCandidateForExtension(function: ApiFunction): Boolean = function.run {
+    (name !in functionNameBlackList
+        && isPublic
+        && !isStatic
+        && parameters.none { it.type.isGroovyClosure })
+}
 
 
 private
