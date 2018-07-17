@@ -77,7 +77,7 @@ public abstract class TransformInfo extends WorkInfo {
     public abstract void execute(BuildOperationExecutor buildOperationExecutor);
 
     @Override
-    protected void notifyDependencyFinished(ExecutionState state) {
+    protected void notifyDependencyFinished(WorkInfo dependency) {
     }
 
     @Override

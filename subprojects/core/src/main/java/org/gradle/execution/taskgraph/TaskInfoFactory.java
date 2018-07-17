@@ -112,7 +112,7 @@ public class TaskInfoFactory {
         }
 
         @Override
-        protected  void notifyDependencyFinished(ExecutionState state) {
+        protected void notifyDependencyFinished(WorkInfo dependency) {
         }
 
         @Override

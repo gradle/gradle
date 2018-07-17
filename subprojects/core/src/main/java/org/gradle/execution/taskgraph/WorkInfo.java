@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -51,8 +50,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
      */
     public abstract void collectTaskInto(ImmutableCollection.Builder<Task> builder);
 
-    @VisibleForTesting
-    ExecutionState getState() {
+    protected ExecutionState getState() {
         return state;
     }
 
@@ -122,11 +120,11 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     private void setFinishedState(ExecutionState state) {
         this.state = state;
         for (WorkInfo dependencyPredecessor : dependencyPredecessors) {
-            dependencyPredecessor.notifyDependencyFinished(state);
+            dependencyPredecessor.notifyDependencyFinished(this);
         }
     }
 
-    protected abstract void notifyDependencyFinished(ExecutionState state);
+    protected abstract void notifyDependencyFinished(WorkInfo dependency);
 
     public void require() {
         state = ExecutionState.SHOULD_RUN;
