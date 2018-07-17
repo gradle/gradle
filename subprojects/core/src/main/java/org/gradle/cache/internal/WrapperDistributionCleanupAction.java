@@ -109,7 +109,8 @@ public class WrapperDistributionCleanupAction {
                     GradleVersion gradleVersion = determineGradleVersionFromBuildReceipt(checksumDir);
                     result.put(gradleVersion, checksumDir);
                 } catch (Exception e) {
-                    LOGGER.debug("Could not determine Gradle version for {}", checksumDir, e);
+                    // TODO see https://github.com/gradle/gradle-private/issues/1379
+                    // LOGGER.debug("Could not determine Gradle version for {}", checksumDir, e);
                 }
             }
         }
