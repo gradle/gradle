@@ -36,8 +36,10 @@ class ReplaceExternalRepos {
     }
 
     static replaceRepositoriesInBuildFile(File file, GradleDsl dsl) {
+        String text = file.text
         [JCENTER, MAVEN_CENTRAL, GOOGLE].each {
-            file.text = file.text.replace(it.declaration, it.getRepositoryDefinition(dsl))
+            text = text.replace(it.declaration, it.getRepositoryDefinition(dsl))
         }
+        file.text = text
     }
 }
