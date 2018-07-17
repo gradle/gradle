@@ -36,10 +36,11 @@ class ComponentResultSerializerTest extends SerializerSpec {
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
         def selection = new DetachedComponentResult(12L,
-            newId("org", "foo", "2.0"),
+            newId('org', 'foo', '2.0'),
             VersionSelectionReasons.requested(),
             componentIdentifier, 'default',
-            attributes)
+            attributes,
+            'repoName')
 
         when:
         def result = serialize(selection, serializer)
@@ -47,9 +48,10 @@ class ComponentResultSerializerTest extends SerializerSpec {
         then:
         result.resultId == 12L
         result.selectionReason == VersionSelectionReasons.requested()
-        result.moduleVersion == newId("org", "foo", "2.0")
+        result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
         result.variantName.displayName == 'default'
         result.variantAttributes == attributes.asImmutable()
+        result.repositoryName == 'repoName'
     }
 }

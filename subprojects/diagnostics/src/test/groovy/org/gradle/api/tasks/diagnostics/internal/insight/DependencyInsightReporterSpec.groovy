@@ -133,9 +133,9 @@ class DependencyInsightReporterSpec extends Specification {
 
     def "can limit to a single path to a dependency"() {
         def dependencies = [
-                path('a:1.0 -> b:1.0 -> c:1.0'),
-                path('a:1.0 -> d:1.0'),
-                path('a:1.0 -> e:1.0 -> f:1.0')
+            path('a:1.0 -> b:1.0 -> c:1.0'),
+            path('a:1.0 -> d:1.0'),
+            path('a:1.0 -> e:1.0 -> f:1.0')
         ]
 
         when:
@@ -144,12 +144,12 @@ class DependencyInsightReporterSpec extends Specification {
         then:
         sorted.size() == 2
         verify(sorted[0]) {
-            selected'group:a:1.0'
+            selected 'group:a:1.0'
             isHeader()
             noMoreChildren()
         }
         verify(sorted[1]) {
-            selected'group:a:1.0'
+            selected 'group:a:1.0'
             isNotHeader()
             hasChild('group:b:1.0') {
                 noMoreChildren()
@@ -169,12 +169,12 @@ class DependencyInsightReporterSpec extends Specification {
         then:
         sorted.size() == 2
         verify(sorted[0]) {
-            selected'group:a:1.0'
+            selected 'group:a:1.0'
             isHeader()
             noMoreChildren()
         }
         verify(sorted[1]) {
-            selected'group:a:1.0'
+            selected 'group:a:1.0'
             isNotHeader()
             hasChild('group:b:1.0') {
                 noMoreChildren()
@@ -184,28 +184,28 @@ class DependencyInsightReporterSpec extends Specification {
         }
     }
 
-    private static void verify(RenderableDependency result, @DelegatesTo(value=RenderableDependencyResultFixture, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    private static void verify(RenderableDependency result, @DelegatesTo(value = RenderableDependencyResultFixture, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         spec.delegate = new RenderableDependencyResultFixture(result)
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
     }
 
-    private DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant())
+    private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant(), "repoId")
         new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), new DefaultMutableVersionConstraint(requested)),
-                selectedModule,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant()))
+            selectedModule,
+            new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), defaultVariant(), "repoId"))
     }
 
-    private DefaultResolvedVariantResult defaultVariant() {
+    private static DefaultResolvedVariantResult defaultVariant() {
         new DefaultResolvedVariantResult(Describables.of("default"), ImmutableAttributes.EMPTY)
     }
 
-    private DefaultResolvedDependencyResult path(String path) {
-        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), defaultVariant())
+    private static DefaultResolvedDependencyResult path(String path) {
+        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), defaultVariant(), "repoId")
         List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
             def (name, version) = it.split(':')
-            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), VersionSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), defaultVariant())
+            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), VersionSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), defaultVariant(), "repoId")
             def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), componentResult, from)
             from = componentResult
             result
@@ -243,7 +243,7 @@ class DependencyInsightReporterSpec extends Specification {
 
         void hasChild(String name, Closure<?> spec) {
             def child = actual.children.find { it.name == name }
-            assert child != null : "Unable to find child named $name. Known children to ${actual.name} = ${actual.children.name}"
+            assert child != null: "Unable to find child named $name. Known children to ${actual.name} = ${actual.children.name}"
             checkedChildren << child
             verify(child, spec)
         }

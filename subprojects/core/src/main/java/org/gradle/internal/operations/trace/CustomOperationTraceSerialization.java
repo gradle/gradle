@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.internal.operations.trace;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+/**
+ * Can be implemented by an operation details, result or progress object
+ * to provide a custom form for serializing into the trace files.
+ *
+ * By default, objects are serialized using Groovy's reflective JSON serializer.
+ */
+public interface CustomOperationTraceSerialization {
 
-public interface ResolutionAwareRepository {
-    /**
-     * Creates a resolver for this repository.
-     */
-    ConfiguredModuleComponentRepository createResolver();
-
-    /**
-     * Returns details about this repository, such as its name, type, and a map of properties used for reporting.
-     */
-    RepositoryDetails getDetails();
+    Object getCustomOperationTraceSerializableModel();
 
 }

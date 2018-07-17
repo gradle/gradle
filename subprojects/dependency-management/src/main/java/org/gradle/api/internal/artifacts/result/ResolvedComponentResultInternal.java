@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 
-public interface ResolutionAwareRepository {
+import javax.annotation.Nullable;
+
+public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
+
+
     /**
-     * Creates a resolver for this repository.
+     * <p>Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
      */
-    ConfiguredModuleComponentRepository createResolver();
-
-    /**
-     * Returns details about this repository, such as its name, type, and a map of properties used for reporting.
-     */
-    RepositoryDetails getDetails();
+    @Nullable
+    String getRepositoryName();
 
 }

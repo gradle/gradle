@@ -30,10 +30,10 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -65,7 +65,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
-    public MavenResolver(String name, URI rootUri,
+    public MavenResolver(String name,
+                         URI rootUri,
                          RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -74,7 +75,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          MetadataArtifactProvider metadataArtifactProvider,
                          MavenMetadataLoader mavenMetadataLoader,
                          @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory, Instantiator injector) {
+                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
+                         Instantiator injector) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -176,7 +178,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
             String timestamp = mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return new MavenUniqueSnapshotModuleSource(timestamp);
+            return new MavenUniqueSnapshotModuleSource(getName(), timestamp);
         }
         return null;
     }
@@ -187,7 +189,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (!matcher.matches()) {
             return null;
         }
-        return new MavenUniqueSnapshotModuleSource(matcher.group(1));
+        return new MavenUniqueSnapshotModuleSource(getName(), matcher.group(1));
     }
 
     private MavenMetadata parseMavenMetadata(ExternalResourceName metadataLocation) {

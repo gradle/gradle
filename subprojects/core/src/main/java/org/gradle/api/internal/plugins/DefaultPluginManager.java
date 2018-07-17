@@ -35,11 +35,13 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 @NotThreadSafe
@@ -271,7 +273,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private static class OperationDetails implements ApplyPluginBuildOperationType.Details {
+    private static class OperationDetails implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
 
         private final PluginImplementation<?> pluginImplementation;
         private final ConfigurationTargetIdentifier targetIdentifier;
@@ -306,6 +308,17 @@ public class DefaultPluginManager implements PluginManagerInternal {
         @Override
         public String getBuildPath() {
             return targetIdentifier.getBuildPath();
+        }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("pluginId", getPluginId());
+            map.put("pluginClass", getPluginClass().getName());
+            map.put("targetType", getTargetType());
+            map.put("targetPath", getTargetPath());
+            map.put("buildPath", getBuildPath());
+            return map;
         }
     }
 

@@ -21,6 +21,8 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Resolution of a configuration's dependencies.
@@ -48,6 +50,12 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         boolean isConfigurationTransitive();
 
+        /**
+         * @since 4.10
+         */
+        @Nullable
+        List<Repository> getRepositories();
+
     }
 
     @UsedByScanPlugin
@@ -56,4 +64,35 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
         ResolvedComponentResult getRootComponent();
 
     }
+
+    /**
+     * A full representation of a repository, with a map of properties that characterize it, such as artifact patterns or whether credentials were set.
+     */
+    @UsedByScanPlugin
+    public interface Repository {
+
+        /**
+         *  A unique identifier for this repository _within a single repository container_.
+         */
+        String getId();
+
+        /**
+         * Type of the repository. Taken from the name() of RepositoryDetails.RepositoryType.
+         */
+        String getType();
+
+        /**
+         *  The name of this repository.
+         */
+        String getName();
+
+        /**
+         * Map of properties characterizing this repository.
+         * Key is the name() of RepositoryDetails.RepositoryPropertyType.
+         * Value can be anything, but simple types such as String or List<String> should be preferred.
+         */
+        Map<String, ?> getProperties();
+
+    }
+
 }

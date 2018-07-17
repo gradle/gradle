@@ -86,7 +86,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -108,7 +107,6 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -557,9 +555,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
+                Path projectPath = domainObjectContext.getProjectPath();
+                String projectPathString = domainObjectContext.isScript() ? null : (projectPath == null ? null : projectPath.getPath());
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new OperationDetails());
+                    .details(new ResolveConfigurationResolutionBuildOperationDetails(
+                        getName(),
+                        domainObjectContext.isScript(),
+                        getDescription(),
+                        domainObjectContext.getBuildPath().getPath(),
+                        projectPathString,
+                        isVisible(),
+                        isTransitive(),
+                        resolver.getRepositories()
+                    ));
             }
         });
     }
@@ -947,31 +956,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public String getDisplayName() {
             return "configuration '" + identityPath + "'";
-        }
-    }
-
-    private static class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result {
-
-        private static final Action<? super Throwable> FAIL_SAFE = Actions.doNothing();
-
-        private final ResolvableDependenciesInternal incoming;
-        private final boolean failSafe;
-
-        public ResolveConfigurationResolutionBuildOperationResult(ResolvableDependenciesInternal incoming, boolean failSafe) {
-            this.incoming = incoming;
-            this.failSafe = failSafe;
-        }
-
-        @Override
-        public ResolvedComponentResult getRootComponent() {
-            if (failSafe) {
-                // When fail safe, we don't want the build operation listeners to fail whenever resolution throws an error
-                // because:
-                // 1. the `failed` method will have been called with the user facing error
-                // 2. such an error still leads to a valid dependency graph
-                return incoming.getResolutionResult(FAIL_SAFE).getRoot();
-            }
-            return incoming.getResolutionResult().getRoot();
         }
     }
 
@@ -1546,50 +1530,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     rethrowFailure("task dependencies", failures);
                 }
             }
-        }
-    }
-
-    private class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
-
-        @Override
-        public String getConfigurationName() {
-            return getName();
-        }
-
-        @Nullable
-        @Override
-        public String getProjectPath() {
-            if (isScriptConfiguration()) {
-                return null;
-            } else {
-                Path projectPath = domainObjectContext.getProjectPath();
-                return projectPath == null ? null : projectPath.getPath();
-            }
-        }
-
-        @Override
-        public boolean isScriptConfiguration() {
-            return domainObjectContext.isScript();
-        }
-
-        @Override
-        public String getConfigurationDescription() {
-            return getDescription();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return domainObjectContext.getBuildPath().getPath();
-        }
-
-        @Override
-        public boolean isConfigurationVisible() {
-            return isVisible();
-        }
-
-        @Override
-        public boolean isConfigurationTransitive() {
-            return isTransitive();
         }
     }
 

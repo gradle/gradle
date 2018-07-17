@@ -16,15 +16,19 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -44,6 +48,7 @@ import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -53,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
@@ -64,6 +70,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
+    private Map<RepositoryPropertyType, ?> properties;
+    private String id;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
@@ -118,6 +126,35 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
 
     public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
+    }
+
+    @Override
+    public RepositoryDetails getDetails() {
+        return new RepositoryDetails(
+            getName(),
+            getType(),
+            getProperties()
+        );
+    }
+
+    private Map<RepositoryPropertyType, ?> getProperties() {
+        if (properties == null) {
+            properties = computeProperties();
+        }
+        return properties;
+    }
+
+    private Map<RepositoryPropertyType, ?> computeProperties() {
+        return ImmutableMap.of(RepositoryPropertyType.DIRS, CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath();
+            }
+        }));
+    }
+
+    private RepositoryType getType() {
+        return RepositoryType.FLAT_DIR;
     }
 
     @Override
