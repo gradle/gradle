@@ -28,8 +28,7 @@ import spock.lang.Specification
 
 abstract class AbstractSmokeTest extends Specification {
 
-    @Rule
-    final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
     def setup() {

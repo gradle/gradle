@@ -16,28 +16,28 @@
 
 package org.gradle.integtests.samples
 
-//import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
-//import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
-//import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer
-//import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer
-//import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer
-//import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer
-//import org.gradle.samples.test.runner.GradleSamplesRunner
-//import org.gradle.samples.test.runner.SamplesOutputNormalizers
-//import org.gradle.util.Requires
-//import org.gradle.util.TestPrecondition
-//import org.junit.runner.RunWith
-//
-//@Requires(TestPrecondition.JDK8_OR_LATER)
-//@RunWith(GradleSamplesRunner.class)
-//@SamplesOutputNormalizers([
-//    JavaObjectSerializationOutputNormalizer.class,
-//    SampleOutputNormalizer.class,
-//    FileSeparatorOutputNormalizer.class,
-//    ArtifactResolutionOmittingOutputNormalizer.class,
-//    NativeComponentReportOutputNormalizer.class,
-//    PlayComponentReportOutputNormalizer.class
-//])
+import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
+import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
+import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer
+import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer
+import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer
+import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer
+import org.gradle.samples.test.runner.GradleSamplesRunner
+import org.gradle.samples.test.runner.SamplesOutputNormalizers
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.junit.runner.RunWith
+
+@Requires(TestPrecondition.JDK8_OR_LATER)
+@RunWith(GradleSamplesRunner.class)
+@SamplesOutputNormalizers([
+    JavaObjectSerializationOutputNormalizer.class,
+    SampleOutputNormalizer.class,
+    FileSeparatorOutputNormalizer.class,
+    ArtifactResolutionOmittingOutputNormalizer.class,
+    NativeComponentReportOutputNormalizer.class,
+    PlayComponentReportOutputNormalizer.class
+])
 class UserGuideSamplesIntegrationTest {
     /*
     Important info: This test uses Exemplar (https://github.com/gradle/exemplar/) to discover and check samples.
