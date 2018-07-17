@@ -37,7 +37,7 @@ import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnaps
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
+import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.OutputType;
@@ -300,7 +300,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     private static class PackingVisitor implements PhysicalSnapshotVisitor {
-        private final RelativePathHolder relativePathHolder;
+        private final RelativePathStringTracker relativePathStringTracker;
         private final TarArchiveOutputStream tarOutput;
         private final String propertyPath;
         private final String propertyRoot;
@@ -315,13 +315,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             this.propertyRoot = propertyPath + "/";
             this.outputType = outputType;
             this.fileSystem = fileSystem;
-            this.relativePathHolder = new RelativePathHolder();
+            this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
         @Override
         public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-            boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(directorySnapshot);
+            boolean root = relativePathStringTracker.isRoot();
+            relativePathStringTracker.enter(directorySnapshot);
             assertCorrectType(root, directorySnapshot);
             String targetPath = getTargetPath(root);
             int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
@@ -332,8 +332,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
         @Override
         public void visit(PhysicalSnapshot fileSnapshot) {
-            boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(fileSnapshot);
+            boolean root = relativePathStringTracker.isRoot();
+            relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(root);
             if (fileSnapshot.getType() == FileType.Missing) {
                 storeMissingProperty(targetPath, tarOutput);
@@ -343,13 +343,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 int mode = fileSystem.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
             }
-            relativePathHolder.leave();
+            relativePathStringTracker.leave();
             entries++;
         }
 
         @Override
         public void postVisitDirectory() {
-            relativePathHolder.leave();
+            relativePathStringTracker.leave();
         }
 
         public long finish() {
@@ -383,7 +383,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             if (root) {
                 return propertyPath;
             }
-            String relativePath = relativePathHolder.getRelativePathString();
+            String relativePath = relativePathStringTracker.getRelativePathString();
             return propertyRoot + relativePath;
         }
 

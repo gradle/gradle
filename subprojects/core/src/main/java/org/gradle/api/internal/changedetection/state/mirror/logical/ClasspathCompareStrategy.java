@@ -25,6 +25,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Compares two {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s representing classpaths.
+ *
+ * That means that the comparison happens in-order with relative path sensitivity.
+ */
 public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override

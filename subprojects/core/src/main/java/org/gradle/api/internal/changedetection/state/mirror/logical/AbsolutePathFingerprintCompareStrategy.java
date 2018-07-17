@@ -27,6 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Compares by absolute paths and file contents. Order does not matter.
+ */
 public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override

@@ -22,12 +22,17 @@ import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapsh
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
+import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
 import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Fingerprint {@link org.gradle.api.file.FileCollection}s normalizing the path to the relative path in a hierarchy.
+ *
+ * File names for root directories are ignored. For root files, the file name is used as normalized path.
+ */
 public class RelativePathFingerprintingStrategy implements FingerprintingStrategy {
     private final StringInterner stringInterner;
 
@@ -41,15 +46,15 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
         final HashSet<String> processedEntries = new HashSet<String>();
         for (PhysicalSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
-                private final RelativePathHolder relativePathHolder = new RelativePathHolder();
+                private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override
                 public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-                    boolean isRoot = relativePathHolder.isRoot();
-                    relativePathHolder.enter(directorySnapshot);
+                    boolean isRoot = relativePathStringTracker.isRoot();
+                    relativePathStringTracker.enter(directorySnapshot);
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), directorySnapshot);
+                        NormalizedFileSnapshot snapshot = isRoot ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), directorySnapshot);
                         builder.put(absolutePath, snapshot);
                     }
                     return true;
@@ -59,21 +64,21 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 public void visit(PhysicalSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathHolder.isRoot() ? new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot) : createNormalizedFileSnapshot(fileSnapshot);
+                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathStringTracker.isRoot() ? new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot) : createNormalizedFileSnapshot(fileSnapshot);
                         builder.put(absolutePath, normalizedFileSnapshot);
                     }
                 }
 
                 private NormalizedFileSnapshot createNormalizedFileSnapshot(PhysicalSnapshot fileSnapshot) {
-                    relativePathHolder.enter(fileSnapshot);
-                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathHolder.getRelativePathString()), fileSnapshot);
-                    relativePathHolder.leave();
+                    relativePathStringTracker.enter(fileSnapshot);
+                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), fileSnapshot);
+                    relativePathStringTracker.leave();
                     return normalizedFileSnapshot;
                 }
 
                 @Override
                 public void postVisitDirectory() {
-                    relativePathHolder.leave();
+                    relativePathStringTracker.leave();
                 }
             });
         }

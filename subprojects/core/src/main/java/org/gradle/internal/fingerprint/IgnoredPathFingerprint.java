@@ -34,9 +34,9 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
     public static IgnoredPathFingerprint create(FileType type, HashCode contentHash) {
         switch (type) {
             case Directory:
-                return IgnoredPathFingerprint.DIRECTORY;
+                return DIRECTORY;
             case Missing:
-                return IgnoredPathFingerprint.MISSING_FILE;
+                return MISSING_FILE;
             case RegularFile:
                 return new IgnoredPathFingerprint(FileType.RegularFile, contentHash);
             default:

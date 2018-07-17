@@ -26,6 +26,11 @@ import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Fingerprint files normalizing the path to the file name.
+ *
+ * File names for root directories are ignored.
+ */
 public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
     public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();

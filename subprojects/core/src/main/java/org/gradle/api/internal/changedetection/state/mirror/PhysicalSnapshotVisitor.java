@@ -24,16 +24,12 @@ public interface PhysicalSnapshotVisitor {
     /**
      * Called before visiting the contents of a directory.
      *
-     * @param directorySnapshot The snapshot of the directory.
-     *
-     * @return whether the subtree should be visited.
+     * @return Whether the subtree should be visited.
      */
     boolean preVisitDirectory(PhysicalSnapshot directorySnapshot);
 
     /**
      * Called for each regular/missing file.
-     *
-     * @param fileSnapshot The snapshot of the file.
      */
     void visit(PhysicalSnapshot fileSnapshot);
 

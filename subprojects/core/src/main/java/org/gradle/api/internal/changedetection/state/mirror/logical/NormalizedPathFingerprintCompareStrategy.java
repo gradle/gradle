@@ -30,6 +30,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Compares by normalized path (relative/name only) and file contents. Order does not matter.
+ */
 public class NormalizedPathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
     private static final Comparator<Map.Entry<NormalizedFileSnapshot, ?>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, ?>>() {
         @Override
@@ -38,6 +41,18 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
         }
     };
 
+    /**
+     * Determines changes by:
+     *
+     * <ul>
+     *     <li>Determining which {@link NormalizedFileSnapshot}s are only in the previous or current fingerprint collection.</li>
+     *     <li>
+     *         For those only in the previous fingerprint collection it checks if some entry with the same normalized path is in the current collection.
+     *         If it is, file is reported as modified, if not as removed.
+     *     </li>
+     *     <li>Finally, if {@code includeAdded} is {@code true}, the remaining fingerprints which are only in the current collection are reported as added.</li>
+     * </ul>
+     */
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentFingerprints, Map<String, NormalizedFileSnapshot> previousFingerprints, String propertyTitle, boolean includeAdded) {
         ListMultimap<NormalizedFileSnapshot, FileChangeInformation> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();

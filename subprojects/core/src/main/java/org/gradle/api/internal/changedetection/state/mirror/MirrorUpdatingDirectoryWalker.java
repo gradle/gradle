@@ -85,7 +85,7 @@ public class MirrorUpdatingDirectoryWalker {
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
-                private final RelativePathTracker relativePath = new RelativePathTracker();
+                private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
                 private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
 
                 @Override
@@ -163,7 +163,7 @@ public class MirrorUpdatingDirectoryWalker {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathTracker relativePath) {
+                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathSegmentsTracker relativePath) {
                     if (spec == null) {
                         return true;
                     }

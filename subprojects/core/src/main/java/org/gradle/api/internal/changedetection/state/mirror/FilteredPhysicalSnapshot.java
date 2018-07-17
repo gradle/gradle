@@ -44,7 +44,7 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
     @Override
     public void accept(final PhysicalSnapshotVisitor visitor) {
         delegate.accept(new PhysicalSnapshotVisitor() {
-            private final RelativePathTracker relativePath = new RelativePathTracker();
+            private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
 
             @Override
             public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {

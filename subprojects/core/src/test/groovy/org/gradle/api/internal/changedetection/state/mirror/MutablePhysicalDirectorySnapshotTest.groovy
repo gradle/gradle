@@ -40,7 +40,7 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
         Map<String, HashCode> files = [:]
         Set<String> relativePaths = [] as Set
         root.accept(new PhysicalSnapshotVisitor() {
-            private final relativePathTracker = new RelativePathTracker()
+            private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
             boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {

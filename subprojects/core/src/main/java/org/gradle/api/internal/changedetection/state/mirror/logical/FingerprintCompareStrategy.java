@@ -28,10 +28,27 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * Strategy to compare two {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s.
+ *
+ * The strategy first tries to do a trivial comparison and delegates the more complex cases to a separate implementation.
+ */
 public enum FingerprintCompareStrategy {
+    /**
+     * Compares by absolute paths and file contents. Order does not matter.
+     */
     ABSOLUTE(new AbsolutePathFingerprintCompareStrategy()),
+    /**
+     * Compares by normalized path (relative/name only) and file contents. Order does not matter.
+     */
     NORMALIZED(new NormalizedPathFingerprintCompareStrategy()),
+    /**
+     * Compares by file contents only. Order does not matter.
+     */
     IGNORED_PATH(new IgnoredPathCompareStrategy()),
+    /**
+     * Compares by relative path per root. Order matters.
+     */
     CLASSPATH(new ClasspathCompareStrategy());
 
     private final Impl delegate;

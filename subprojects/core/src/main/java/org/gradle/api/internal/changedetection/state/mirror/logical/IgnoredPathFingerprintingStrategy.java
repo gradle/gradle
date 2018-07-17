@@ -25,6 +25,11 @@ import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Fingerprint files ignoring the path.
+ *
+ * Ignores directories.
+ */
 public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy {
 
     public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();

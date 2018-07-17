@@ -26,9 +26,12 @@ import org.gradle.internal.file.FileType;
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Fingerprint files without path or content normalization.
+ */
 public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
-
-    INCLUDE_MISSING(true), IGNORE_MISSING(false);
+    INCLUDE_MISSING(true),
+    IGNORE_MISSING(false);
 
     private final boolean includeMissing;
 

@@ -31,6 +31,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Compares {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s ignoring the path.
+ */
 public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Impl {
     private static final Comparator<Map.Entry<HashCode, FileChangeInformation>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FileChangeInformation>>() {
         @Override
@@ -39,6 +42,15 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
         }
     };
 
+    /**
+     * Determines changes by:
+     *
+     * <ul>
+     *     <li>Determining which content fingerprints are only in the previous or current fingerprint collection.</li>
+     *     <li>Those only in the previous fingerprint collection are reported as removed.</li>
+     *     <li>If {@code includeAdded} is {@code true}, the files with content fingerprints which are only in the current collection are reported as added.</li>
+     * </ul>
+     */
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
         ListMultimap<HashCode, FileChangeInformation> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
