@@ -296,24 +296,16 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private Map<RepositoryPropertyType, ?> computeProperties() {
         ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
 
-        URI uri = getUrl();
-        if (uri != null) {
-            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
-        }
+        computeUrlProperty(builder);
+        computeArtifactUrlsProperty(builder);
+        computeMetadataSourcesProperty(builder);
+        computeAuthenticatedProperty(builder);
+        computeAuthenticationSchemesProperty(builder);
 
-        builder.put(RepositoryPropertyType.ARTIFACT_URLS, CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
-            @Override
-            public String transform(URI uri) {
-                return uri.toASCIIString();
-            }
-        }));
-        List<String> metadataSourcesList = metadataSources.asList();
-        if (!metadataSourcesList.isEmpty()) {
-            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
-        }
-        if (getConfiguredCredentials() != null) {
-            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
-        }
+        return builder.build();
+    }
+
+    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
         Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
         if (!configuredAuthentication.isEmpty()) {
             List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
@@ -324,7 +316,35 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             });
             builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
         }
-        return builder.build();
+    }
+
+    private void computeAuthenticatedProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        if (getConfiguredCredentials() != null) {
+            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
+        }
+    }
+
+    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        List<String> metadataSourcesList = metadataSources.asList();
+        if (!metadataSourcesList.isEmpty()) {
+            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
+        }
+    }
+
+    private void computeArtifactUrlsProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        builder.put(RepositoryPropertyType.ARTIFACT_URLS, CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
+            @Override
+            public String transform(URI uri) {
+                return uri.toASCIIString();
+            }
+        }));
+    }
+
+    private void computeUrlProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        URI uri = getUrl();
+        if (uri != null) {
+            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
+        }
     }
 
     RepositoryType getType() {

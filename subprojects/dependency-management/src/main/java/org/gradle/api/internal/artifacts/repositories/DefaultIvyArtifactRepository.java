@@ -277,11 +277,43 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private Map<RepositoryPropertyType, ?> computeProperties() {
         ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
-        URI uri = getUrl();
-        if (uri != null) {
-            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
-        }
 
+        computeUrlProperty(builder);
+        computeLayoutBasedProperties(builder);
+        computeMetadataSourcesProperty(builder);
+        computeaAuthenticatedProperties(builder);
+        computeAuthenticationSchemesProperty(builder);
+
+        return builder.build();
+    }
+
+    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
+        if (!configuredAuthentication.isEmpty()) {
+            List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
+                @Override
+                public String transform(Authentication authentication) {
+                    return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
+                }
+            });
+            builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
+        }
+    }
+
+    private void computeaAuthenticatedProperties(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        if (getConfiguredCredentials() != null) {
+            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
+        }
+    }
+
+    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        List<String> metadataSourcesList = metadataSources.asList();
+        if (!metadataSourcesList.isEmpty()) {
+            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
+        }
+    }
+
+    private void computeLayoutBasedProperties(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
         String layoutType;
         boolean m2Compatible;
         if (layout instanceof GradleRepositoryLayout) {
@@ -300,31 +332,19 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             layoutType = "Unknown";
             m2Compatible = false;
         }
-        Collection<String> ivyPatterns = Sets.union(layout.getIvyPatterns(), additionalPatternsLayout.ivyPatterns);
-        Collection<String> artifactPatterns = Sets.union(layout.getArtifactPatterns(), additionalPatternsLayout.artifactPatterns);
         builder.put(RepositoryPropertyType.LAYOUT_TYPE, layoutType);
         builder.put(RepositoryPropertyType.M2_COMPATIBLE, m2Compatible);
+        Collection<String> ivyPatterns = Sets.union(layout.getIvyPatterns(), additionalPatternsLayout.ivyPatterns);
+        Collection<String> artifactPatterns = Sets.union(layout.getArtifactPatterns(), additionalPatternsLayout.artifactPatterns);
         builder.put(RepositoryPropertyType.IVY_PATTERNS, ivyPatterns);
         builder.put(RepositoryPropertyType.ARTIFACT_PATTERNS, artifactPatterns);
+    }
 
-        List<String> metadataSourcesList = metadataSources.asList();
-        if (!metadataSourcesList.isEmpty()) {
-            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
+    private void computeUrlProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+        URI uri = getUrl();
+        if (uri != null) {
+            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
         }
-        if (getConfiguredCredentials() != null) {
-            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
-        }
-        Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
-        if (!configuredAuthentication.isEmpty()) {
-            List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
-                @Override
-                public String transform(Authentication authentication) {
-                    return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
-                }
-            });
-            builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
-        }
-        return builder.build();
     }
 
     RepositoryType getType() {
