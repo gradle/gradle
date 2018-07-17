@@ -86,6 +86,12 @@ As mentioned, the Daemon is a background process. You needn’t worry about a bu
 
 This will terminate all Daemon processes that were started with the same version of Gradle used to execute the command. If you have the Java Development Kit (JDK) installed, you can easily verify that a Daemon has stopped by running the `jps` command. You’ll see any running Daemons listed with the name `GradleDaemon`.
 
+[[sec:set_env_variables_for_daemon]]
+=== Set environment variables for the Daemon
+
+In a JVM process, all environment variables are stored in an `UnmodifiableMap`, which can't be modified after the JVM starts up. To overcome this limitation, we recommend to use api:org.gradle.api.GradleSystem#getenv()[] instead of `java.lang.System.getenv()` in your build logic.
+
+
 [[daemon_faq]]
 === FAQ
 
