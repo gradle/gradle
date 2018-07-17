@@ -115,14 +115,20 @@ fun patternSpecFor(patterns: List<String>) =
 
 
 private
-fun kotlinDslApiExtensionsDeclarationsFor(api: ApiTypeProvider, apiSpec: Spec<RelativePath>): Sequence<KotlinExtensionFunction> =
+fun kotlinDslApiExtensionsDeclarationsFor(
+    api: ApiTypeProvider,
+    apiSpec: Spec<RelativePath>
+): Sequence<KotlinExtensionFunction> =
+
     api.allTypes()
-        .filter { type ->
-            apiSpec.isSatisfiedBy(RelativePath.parse(true, type.sourceName.replace(".", File.separator)))
-                && type.isPublic
-        }
+        .filter { type -> type.isPublic && apiSpec.isSatisfiedBy(relativeSourcePathOf(type)) }
         .flatMap { type -> kotlinExtensionFunctionsFor(type) }
         .distinctBy(::signatureKey)
+
+
+private
+fun relativeSourcePathOf(type: ApiType) =
+    RelativePath.parse(true, type.sourceName.replace(".", File.separator))
 
 
 private
