@@ -42,7 +42,7 @@ public class RecompilationSpecProvider {
         RecompilationSpec spec = new RecompilationSpec();
         processClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec);
-        spec.getClassesToProcess().addAll(previous.getAggregatedTypes().getDependentClasses());
+        spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
         return spec;
     }
 

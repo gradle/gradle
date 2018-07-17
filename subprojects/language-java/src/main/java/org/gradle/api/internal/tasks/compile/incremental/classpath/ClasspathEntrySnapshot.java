@@ -40,7 +40,7 @@ public class ClasspathEntrySnapshot {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
-            DependentsSet dependents = getAnalysis().getData().getDependents(className);
+            DependentsSet dependents = getAnalysis().getRelevantDependents(className, IntSets.EMPTY_SET);
             if (dependents.isDependencyToAll()) {
                 return dependents;
             }

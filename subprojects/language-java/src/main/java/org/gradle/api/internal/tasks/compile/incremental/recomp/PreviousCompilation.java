@@ -39,7 +39,7 @@ public class PreviousCompilation {
 
     public PreviousCompilation(PreviousCompilationData data, ClasspathEntrySnapshotCache classpathEntrySnapshotCache) {
         this.data = data;
-        this.classAnalysis = new ClassSetAnalysis(data.getClassAnalysis());
+        this.classAnalysis = new ClassSetAnalysis(data.getClassAnalysis(), data.getAnnotationProcessingData());
         this.classpathEntrySnapshotCache = classpathEntrySnapshotCache;
     }
 
@@ -69,13 +69,13 @@ public class PreviousCompilation {
     }
 
     public DependentsSet getDependents(String className, IntSet newConstants) {
-        IntSet constants = new IntOpenHashSet(classAnalysis.getData().getConstants(className));
+        IntSet constants = new IntOpenHashSet(classAnalysis.getConstants(className));
         constants.removeAll(newConstants);
         return classAnalysis.getRelevantDependents(className, constants);
     }
 
-    public DependentsSet getAggregatedTypes() {
-        return classAnalysis.getAggregatedTypes();
+    public Set<String> getTypesToReprocess() {
+        return classAnalysis.getTypesToReprocess();
     }
 
 

@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
 import java.io.File;
 import java.util.Collections;
@@ -34,8 +33,6 @@ import java.util.Set;
 public class ClassDependentsAccumulator {
 
     private final Set<String> dependenciesToAll = Sets.newHashSet();
-    private final Set<String> aggregatedTypes = Sets.newHashSet();
-    private final Set<String> dependentsOnAll = Sets.newHashSet();
     private final ImmutableMap.Builder<String, String> filePathToClassName = ImmutableMap.builder();
     private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
     private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
@@ -108,21 +105,6 @@ public class ClassDependentsAccumulator {
         return classesToConstants.build();
     }
 
-    public void addAnnotationProcessingResult(AnnotationProcessingResult annotationProcessingResult) {
-        for (Map.Entry<String, Set<String>> entry : annotationProcessingResult.getGeneratedTypesWithIsolatedOrigin().entrySet()) {
-            String originatingType = entry.getKey();
-            for (String generatedType : entry.getValue()) {
-                addDependency(originatingType, generatedType);
-                addDependency(generatedType, originatingType);
-            }
-        }
-        aggregatedTypes.addAll(annotationProcessingResult.getAggregatedTypes());
-        dependentsOnAll.addAll(annotationProcessingResult.getGeneratedAggregatingTypes());
-        if (annotationProcessingResult.getFullRebuildCause() != null) {
-            fullRebuildCause = annotationProcessingResult.getFullRebuildCause();
-        }
-    }
-
     private void addDependency(String dependency, String dependent) {
         Set<String> dependents = rememberClass(dependency);
         dependents.add(dependent);
@@ -133,7 +115,7 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName.build(), getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), DependentsSet.dependents(aggregatedTypes), DependentsSet.dependents(dependentsOnAll), fullRebuildCause);
+        return new ClassSetAnalysisData(filePathToClassName.build(), getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), fullRebuildCause);
     }
 
     private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {

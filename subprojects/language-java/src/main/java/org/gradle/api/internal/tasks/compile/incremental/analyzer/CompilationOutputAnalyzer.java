@@ -19,10 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -50,22 +47,10 @@ public class CompilationOutputAnalyzer {
     public ClassSetAnalysisData getAnalysis(JavaCompileSpec spec, WorkResult result) {
         Timer clock = Time.startTimer();
         CompilationResultAnalyzer analyzer = new CompilationResultAnalyzer(this.analyzer, fileHasher);
-        visitAnnotationProcessingResult(spec, result, analyzer);
         visitClassFiles(spec, analyzer);
         ClassSetAnalysisData data = analyzer.getAnalysis();
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
         return data;
-    }
-
-    private void visitAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result, CompilationResultAnalyzer analyzer) {
-        Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
-        if (processors != null && !processors.isEmpty()) {
-            AnnotationProcessingResult annotationProcessingResult = null;
-            if (result instanceof JdkJavaCompilerResult) {
-                annotationProcessingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
-            }
-            analyzer.visitAnnotationProcessingResult(annotationProcessingResult);
-        }
     }
 
     private void visitClassFiles(JavaCompileSpec spec, CompilationResultAnalyzer analyzer) {
