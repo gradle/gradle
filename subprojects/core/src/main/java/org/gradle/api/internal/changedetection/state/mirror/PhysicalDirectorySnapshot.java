@@ -21,6 +21,4 @@ import org.gradle.internal.hash.Hashing;
 
 public interface PhysicalDirectorySnapshot extends PhysicalSnapshot {
     HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
-
-    Iterable<? extends PhysicalSnapshot> getChildren();
 }

@@ -43,6 +43,8 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
         return other instanceof AbstractPhysicalDirectorySnapshot;
     }
 
+    abstract Iterable<? extends PhysicalSnapshot> getChildren();
+
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
         if (!visitor.preVisitDirectory(this)) {
