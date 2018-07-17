@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.LocalClasspathSnapshotStore;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
 
 /**
  * The build scoped compile caches.
@@ -33,9 +31,5 @@ public interface GeneralCompileCaches {
 
     ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
 
-    LocalClasspathSnapshotStore createLocalClasspathSnapshotStore(String taskPath);
-
-    LocalClassSetAnalysisStore createLocalClassSetAnalysisStore(String taskPath);
-
-    AnnotationProcessorPathStore createAnnotationProcessorPathStore(String taskPath);
+    PreviousCompilationStore createPreviousCompilationStore(String taskPath);
 }

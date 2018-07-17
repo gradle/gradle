@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationResultAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.internal.Stash;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -36,33 +33,28 @@ import org.gradle.internal.time.Timer;
 import java.io.File;
 import java.util.Set;
 
-public class ClassSetAnalysisUpdater {
+public class CompilationOutputAnalyzer {
 
-    private final static Logger LOG = Logging.getLogger(ClassSetAnalysisUpdater.class);
+    private final static Logger LOG = Logging.getLogger(CompilationOutputAnalyzer.class);
 
-    private final Stash<ClassSetAnalysisData> stash;
     private final FileOperations fileOperations;
     private ClassDependenciesAnalyzer analyzer;
     private final FileHasher fileHasher;
 
-    ClassSetAnalysisUpdater(Stash<ClassSetAnalysisData> stash, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer, FileHasher fileHasher) {
-        this.stash = stash;
+    public CompilationOutputAnalyzer(FileOperations fileOperations, ClassDependenciesAnalyzer analyzer, FileHasher fileHasher) {
         this.fileOperations = fileOperations;
         this.analyzer = analyzer;
         this.fileHasher = fileHasher;
     }
 
-    public void updateAnalysis(JavaCompileSpec spec, WorkResult result) {
-        if (result instanceof RecompilationNotNecessary) {
-            return;
-        }
+    public ClassSetAnalysisData getAnalysis(JavaCompileSpec spec, WorkResult result) {
         Timer clock = Time.startTimer();
         CompilationResultAnalyzer analyzer = new CompilationResultAnalyzer(this.analyzer, fileHasher);
         visitAnnotationProcessingResult(spec, result, analyzer);
         visitClassFiles(spec, analyzer);
         ClassSetAnalysisData data = analyzer.getAnalysis();
-        stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
+        return data;
     }
 
     private void visitAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result, CompilationResultAnalyzer analyzer) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -31,7 +31,7 @@ public class CurrentCompilation {
     private final JavaCompileSpec spec;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
 
-    CurrentCompilation(IncrementalTaskInputs inputs, JavaCompileSpec spec, ClasspathSnapshotProvider classpathSnapshotProvider) {
+    public CurrentCompilation(IncrementalTaskInputs inputs, JavaCompileSpec spec, ClasspathSnapshotProvider classpathSnapshotProvider) {
 
         this.inputs = inputs;
         this.spec = spec;

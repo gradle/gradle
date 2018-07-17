@@ -17,9 +17,13 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotWriter;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationOutputAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.internal.Stash;
 import org.gradle.language.base.internal.compile.Compiler;
 
 /**
@@ -28,23 +32,31 @@ import org.gradle.language.base.internal.compile.Compiler;
 class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final ClasspathSnapshotWriter writer;
-    private final ClassSetAnalysisUpdater updater;
-    private final AnnotationProcessorPathStore annotationProcessorPathStore;
+    private final ClasspathSnapshotProvider classpathSnapshotProvider;
+    private final Stash<PreviousCompilationData> stash;
+    private final CompilationOutputAnalyzer compilationOutputAnalyzer;
 
-    public IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
+    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, CompilationOutputAnalyzer compilationOutputAnalyzer, Stash<PreviousCompilationData> stash) {
         this.delegate = delegate;
-        this.writer = writer;
-        this.updater = updater;
-        this.annotationProcessorPathStore = annotationProcessorPathStore;
+        this.classpathSnapshotProvider = classpathSnapshotProvider;
+        this.compilationOutputAnalyzer = compilationOutputAnalyzer;
+        this.stash = stash;
     }
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        WorkResult out = delegate.execute(spec);
-        updater.updateAnalysis(spec, out);
-        writer.storeSnapshots(spec.getCompileClasspath());
-        annotationProcessorPathStore.put(spec.getAnnotationProcessorPath());
-        return out;
+        WorkResult result = delegate.execute(spec);
+        if (result instanceof RecompilationNotNecessary) {
+            return result;
+        }
+        storeResult(spec, result);
+        return result;
+    }
+
+    private void storeResult(JavaCompileSpec spec, WorkResult result) {
+        ClassSetAnalysisData classAnalysis = compilationOutputAnalyzer.getAnalysis(spec, result);
+        ClasspathSnapshotData classpathSnapshot = classpathSnapshotProvider.getClasspathSnapshot(spec.getCompileClasspath()).getData();
+        PreviousCompilationData data = new PreviousCompilationData(classAnalysis, classpathSnapshot, spec.getAnnotationProcessorPath());
+        stash.put(data);
     }
 }

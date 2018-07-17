@@ -47,11 +47,11 @@ class DefaultClasspathEntrySnapshotter {
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
 
         try {
-            classpathEntry.contents.visit(new EntryVisitor(accumulator, hashes));
+            classpathEntry.getContents().visit(new EntryVisitor(accumulator, hashes));
         } catch (Exception e) {
-            accumulator.fullRebuildNeeded("classpath entry" + classpathEntry.file + " could not be analyzed. See the debug log for more details");
+            accumulator.fullRebuildNeeded("classpath entry" + classpathEntry.getFile() + " could not be analyzed. See the debug log for more details");
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Could not analyze classpath entry " + classpathEntry.file, e);
+                LOGGER.debug("Could not analyze classpath entry " + classpathEntry.getFile(), e);
             }
         }
 

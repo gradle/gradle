@@ -52,8 +52,8 @@ public class ClasspathSnapshotFactory {
             ClasspathEntry entry = operation.entry;
             ClasspathEntrySnapshot snapshot = operation.snapshot;
             if (snapshot != null) {
-                snapshots.put(entry.file, snapshot);
-                hashes.put(entry.file, snapshot.getHash());
+                snapshots.put(entry.getFile(), snapshot);
+                hashes.put(entry.getFile(), snapshot.getHash());
                 for (String c : snapshot.getClasses()) {
                     if (!allClasses.add(c)) {
                         duplicateClasses.add(c);
@@ -92,7 +92,7 @@ public class ClasspathSnapshotFactory {
 
         @Override
         public void run(BuildOperationContext context) {
-            if (entry.file.exists()) {
+            if (entry.getFile().exists()) {
                 snapshot = classpathEntrySnapshotter.createSnapshot(entry);
             }
         }

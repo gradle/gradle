@@ -34,7 +34,7 @@ public class ClasspathSnapshot {
     }
 
     public ClasspathEntrySnapshot getSnapshot(ClasspathEntry classpathEntry) {
-        return entrySnapshots.get(classpathEntry.file);
+        return entrySnapshots.get(classpathEntry.getFile());
     }
 
     public ClasspathEntrySnapshot getSnapshot(File file) {

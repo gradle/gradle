@@ -26,18 +26,20 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.CompilationOutputAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
 import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClasspathEntrySnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryConverter;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotFactory;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.LocalClasspathSnapshotStore;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotFactory;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceToNameConverter;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.hash.FileHasher;
@@ -70,20 +72,18 @@ public class IncrementalCompilerFactory {
         Compiler<JavaCompileSpec> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), compileCaches.getClassAnalysisCache());
         ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(streamHasher, fileSystemSnapshotter, analyzer, compileCaches.getClasspathEntrySnapshotCache());
-        ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(compileCaches.getLocalClasspathSnapshotStore(), new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor), new ClasspathEntryConverter(fileOperations));
+        ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor), new ClasspathEntryConverter(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs((FileTreeInternal) sources);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs);
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
-        ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
         IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations, sources);
-        IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(classpathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, rebuildAllCompiler);
+        CompilationOutputAnalyzer compilationOutputAnalyzer = new CompilationOutputAnalyzer(fileOperations, analyzer, fileHasher);
+        IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(classpathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, recompilationSpecProvider, sourceDirs, rebuildAllCompiler, compilationOutputAnalyzer);
         return incrementalSupport.prepareCompiler(inputs);
     }
 
     private TaskScopedCompileCaches createCompileCaches(String path) {
-        final LocalClassSetAnalysisStore localClassSetAnalysisStore = generalCompileCaches.createLocalClassSetAnalysisStore(path);
-        final LocalClasspathSnapshotStore localClasspathSnapshotStore = generalCompileCaches.createLocalClasspathSnapshotStore(path);
-        final AnnotationProcessorPathStore annotationProcessorPathStore = generalCompileCaches.createAnnotationProcessorPathStore(path);
+        final PreviousCompilationStore previousCompilationStore = generalCompileCaches.createPreviousCompilationStore(path);
         return new TaskScopedCompileCaches() {
             @Override
             public ClassAnalysisCache getClassAnalysisCache() {
@@ -96,19 +96,10 @@ public class IncrementalCompilerFactory {
             }
 
             @Override
-            public LocalClasspathSnapshotStore getLocalClasspathSnapshotStore() {
-                return localClasspathSnapshotStore;
+            public PreviousCompilationStore getPreviousCompilationStore() {
+                return previousCompilationStore;
             }
 
-            @Override
-            public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
-                return localClassSetAnalysisStore;
-            }
-
-            @Override
-            public AnnotationProcessorPathStore getAnnotationProcessorPathStore() {
-                return annotationProcessorPathStore;
-            }
         };
     }
 

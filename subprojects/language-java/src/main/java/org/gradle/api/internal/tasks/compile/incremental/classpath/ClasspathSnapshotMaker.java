@@ -23,33 +23,23 @@ import org.gradle.internal.time.Timer;
 
 import java.io.File;
 
-public class ClasspathSnapshotMaker implements ClasspathSnapshotProvider, ClasspathSnapshotWriter {
+public class ClasspathSnapshotMaker implements ClasspathSnapshotProvider {
 
     private static final Logger LOG = Logging.getLogger(ClasspathSnapshotMaker.class);
 
-    private final LocalClasspathSnapshotStore classpathSnapshotStore;
     private final ClasspathEntryConverter classpathEntryConverter;
     private final ClasspathSnapshotFactory classpathSnapshotFactory;
 
     private ClasspathSnapshot classpathSnapshot;
 
-    public ClasspathSnapshotMaker(LocalClasspathSnapshotStore classpathSnapshotStore, ClasspathSnapshotFactory classpathSnapshotFactory, ClasspathEntryConverter classpathEntryConverter) {
-        this.classpathSnapshotStore = classpathSnapshotStore;
+    public ClasspathSnapshotMaker(ClasspathSnapshotFactory classpathSnapshotFactory, ClasspathEntryConverter classpathEntryConverter) {
         this.classpathSnapshotFactory = classpathSnapshotFactory;
         this.classpathEntryConverter = classpathEntryConverter;
     }
 
     @Override
-    public void storeSnapshots(Iterable<File> classpath) {
-        maybeInitialize(classpath); //clients may or may not have already created classpath snapshot
-        Timer clock = Time.startTimer();
-        classpathSnapshotStore.put(classpathSnapshot.getData());
-        LOG.info("Written classpath snapshot for incremental compilation in {}.", clock.getElapsed());
-    }
-
-    @Override
     public ClasspathSnapshot getClasspathSnapshot(Iterable<File> classpath) {
-        maybeInitialize(classpath); //clients may or may not have already created classpath snapshot
+        maybeInitialize(classpath);
         return classpathSnapshot;
     }
 

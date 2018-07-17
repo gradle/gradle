@@ -22,18 +22,14 @@ import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotDataSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotDataSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.LocalClasspathSnapshotStore;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.SplitClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -41,13 +37,9 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.ListSerializer;
 
 import java.io.Closeable;
-import java.io.File;
-import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -55,9 +47,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     private final ClassAnalysisCache classAnalysisCache;
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PersistentCache cache;
-    private final PersistentIndexedCache<String, ClasspathSnapshotData> taskJarCache;
-    private final PersistentIndexedCache<String, ClassSetAnalysisData> taskCompileCache;
-    private final PersistentIndexedCache<String, List<File>> taskProcessorPathCache;
+    private final PersistentIndexedCache<String, PreviousCompilationData> previousCompilationCache;
 
     public DefaultGeneralCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations) {
         cache = cacheRepository
@@ -73,16 +63,9 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
         this.classpathEntrySnapshotCache = new SplitClasspathEntrySnapshotCache(fileLocations, userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(), new DefaultClasspathEntrySnapshotCache(fileSystemSnapshotter, cache.createCache(jarCacheParameters)));
 
-        PersistentIndexedCacheParameters<String, ClasspathSnapshotData> taskJarCacheParameters = new PersistentIndexedCacheParameters<String, ClasspathSnapshotData>("taskJars", String.class, new ClasspathSnapshotDataSerializer())
+        PersistentIndexedCacheParameters<String, PreviousCompilationData> previousCompilationCacheParameters = new PersistentIndexedCacheParameters<String, PreviousCompilationData>("taskHistory", String.class, new PreviousCompilationData.Serializer())
             .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
-        taskJarCache = cache.createCache(taskJarCacheParameters);
-
-        PersistentIndexedCacheParameters<String, ClassSetAnalysisData> taskCompileCacheParameters = new PersistentIndexedCacheParameters<String, ClassSetAnalysisData>("taskHistory", String.class, new ClassSetAnalysisData.Serializer())
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
-        taskCompileCache = cache.createCache(taskCompileCacheParameters);
-        PersistentIndexedCacheParameters<String, List<File>> taskProcessorPathCacheParameters = new PersistentIndexedCacheParameters<String, List<File>>("processorPath", String.class, new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
-        taskProcessorPathCache = cache.createCache(taskProcessorPathCacheParameters);
+        previousCompilationCache = cache.createCache(previousCompilationCacheParameters);
     }
 
     @Override
@@ -101,17 +84,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     }
 
     @Override
-    public LocalClasspathSnapshotStore createLocalClasspathSnapshotStore(String taskPath) {
-        return new LocalClasspathSnapshotStore(taskPath, taskJarCache);
-    }
-
-    @Override
-    public LocalClassSetAnalysisStore createLocalClassSetAnalysisStore(String taskPath) {
-        return new LocalClassSetAnalysisStore(taskPath, taskCompileCache);
-    }
-
-    @Override
-    public AnnotationProcessorPathStore createAnnotationProcessorPathStore(String taskpath) {
-        return new AnnotationProcessorPathStore(taskpath, taskProcessorPathCache);
+    public PreviousCompilationStore createPreviousCompilationStore(String taskPath) {
+        return new PreviousCompilationStore(taskPath, previousCompilationCache);
     }
 }

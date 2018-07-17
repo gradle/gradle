@@ -52,7 +52,7 @@ public class ClasspathEntrySnapshot {
     public IntSet getAllConstants(DependentsSet dependents) {
         IntSet result = new IntOpenHashSet();
         for (String cn : dependents.getDependentClasses()) {
-            result.addAll(data.data.getConstants(cn));
+            result.addAll(data.getClassAnalysis().getConstants(cn));
         }
         return result;
     }
@@ -60,8 +60,8 @@ public class ClasspathEntrySnapshot {
     public IntSet getRelevantConstants(ClasspathEntrySnapshot other, Set<String> affectedClasses) {
         IntSet result = new IntOpenHashSet();
         for (String affectedClass : affectedClasses) {
-            IntSet difference = new IntOpenHashSet(other.getData().data.getConstants(affectedClass));
-            difference.removeAll(data.data.getConstants(affectedClass));
+            IntSet difference = new IntOpenHashSet(other.getData().getClassAnalysis().getConstants(affectedClass));
+            difference.removeAll(data.getClassAnalysis().getConstants(affectedClass));
             result.addAll(difference);
         }
         return result;
@@ -99,19 +99,19 @@ public class ClasspathEntrySnapshot {
     }
 
     public HashCode getHash() {
-        return data.hash;
+        return data.getHash();
     }
 
     public Map<String, HashCode> getHashes() {
-        return data.hashes;
+        return data.getHashes();
     }
 
     public ClassSetAnalysis getAnalysis() {
-        return new ClassSetAnalysis(data.data);
+        return new ClassSetAnalysis(data.getClassAnalysis());
     }
 
     public Set<String> getClasses() {
-        return data.hashes.keySet();
+        return data.getHashes().keySet();
     }
 
     public ClasspathEntrySnapshotData getData() {

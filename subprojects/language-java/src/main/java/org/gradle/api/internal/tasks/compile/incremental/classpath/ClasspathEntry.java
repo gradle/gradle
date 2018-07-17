@@ -20,11 +20,19 @@ import org.gradle.api.file.FileTree;
 import java.io.File;
 
 public class ClasspathEntry {
-    final File file;
-    final FileTree contents;
+    private final File file;
+    private final FileTree contents;
 
     public ClasspathEntry(File file, FileTree contents) {
         this.file = file;
         this.contents = contents;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public FileTree getContents() {
+        return contents;
     }
 }

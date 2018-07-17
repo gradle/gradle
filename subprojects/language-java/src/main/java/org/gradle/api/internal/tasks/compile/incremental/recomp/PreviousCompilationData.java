@@ -1,0 +1,74 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
+
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotDataSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.internal.serialize.AbstractSerializer;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.ListSerializer;
+
+import java.io.File;
+import java.util.List;
+
+public class PreviousCompilationData {
+    private final ClassSetAnalysisData classAnalysis;
+    private final ClasspathSnapshotData classpathSnapshot;
+    private final List<File> annotationProcessorPath;
+
+    public PreviousCompilationData(ClassSetAnalysisData classAnalysis, ClasspathSnapshotData classpathSnapshot, List<File> annotationProcessorPath) {
+        this.classAnalysis = classAnalysis;
+        this.classpathSnapshot = classpathSnapshot;
+        this.annotationProcessorPath = annotationProcessorPath;
+    }
+
+    public ClassSetAnalysisData getClassAnalysis() {
+        return classAnalysis;
+    }
+
+    public ClasspathSnapshotData getClasspathSnapshot() {
+        return classpathSnapshot;
+    }
+
+    public List<File> getAnnotationProcessorPath() {
+        return annotationProcessorPath;
+    }
+
+    public static class Serializer extends AbstractSerializer<PreviousCompilationData> {
+        private static final ClassSetAnalysisData.Serializer CLASS_ANALYSIS_SERIALIZER = new ClassSetAnalysisData.Serializer();
+        private static final ClasspathSnapshotDataSerializer CLASSPATH_SNAPSHOT_SERIALIZER = new ClasspathSnapshotDataSerializer();
+        private static final ListSerializer<File> PROCESSOR_PATH_SERIALZER = new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER);
+
+        @Override
+        public PreviousCompilationData read(Decoder decoder) throws Exception {
+            ClassSetAnalysisData classAnalysis = CLASS_ANALYSIS_SERIALIZER.read(decoder);
+            ClasspathSnapshotData classpathSnapshot = CLASSPATH_SNAPSHOT_SERIALIZER.read(decoder);
+            List<File> processorPath = PROCESSOR_PATH_SERIALZER.read(decoder);
+            return new PreviousCompilationData(classAnalysis, classpathSnapshot, processorPath);
+        }
+
+        @Override
+        public void write(Encoder encoder, PreviousCompilationData value) throws Exception {
+            CLASS_ANALYSIS_SERIALIZER.write(encoder, value.classAnalysis);
+            CLASSPATH_SNAPSHOT_SERIALIZER.write(encoder, value.classpathSnapshot);
+            PROCESSOR_PATH_SERIALZER.write(encoder, value.annotationProcessorPath);
+        }
+    }
+}

@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.processing;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.Loader;
+import org.gradle.cache.internal.Stash;
 
-import java.io.File;
-import java.util.List;
-
-public class AnnotationProcessorPathStore {
+//Keeps the class set analysis of the given JavaCompile task
+public class PreviousCompilationStore implements Loader<PreviousCompilationData>, Stash<PreviousCompilationData> {
     private final String taskPath;
-    private final PersistentIndexedCache<String, List<File>> cache;
+    private final PersistentIndexedCache<String, PreviousCompilationData> cache;
 
-    public AnnotationProcessorPathStore(String taskPath, PersistentIndexedCache<String, List<File>> cache) {
+    public PreviousCompilationStore(String taskPath, PersistentIndexedCache<String, PreviousCompilationData> cache) {
         this.taskPath = taskPath;
         this.cache = cache;
     }
 
-    public void put(List<File> processorPath) {
-        cache.put(taskPath, processorPath);
+    @Override
+    public void put(PreviousCompilationData analysis) {
+        cache.put(taskPath, analysis);
     }
 
-    public List<File> get() {
+    @Override
+    public PreviousCompilationData get() {
         return cache.get(taskPath);
     }
 }

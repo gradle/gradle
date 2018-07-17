@@ -39,7 +39,7 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     @Override
     public ClasspathEntrySnapshot createSnapshot(final ClasspathEntry classpathEntry) {
         final HashCode hash = getHash(classpathEntry);
-        return cache.get(classpathEntry.file, new Factory<ClasspathEntrySnapshot>() {
+        return cache.get(classpathEntry.getFile(), new Factory<ClasspathEntrySnapshot>() {
             public ClasspathEntrySnapshot create() {
                 return snapshotter.createSnapshot(hash, classpathEntry);
             }
@@ -47,7 +47,7 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     }
 
     private HashCode getHash(ClasspathEntry classpathEntry) {
-        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(classpathEntry.file);
+        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(classpathEntry.getFile());
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         fileSnapshot.appendToHasher(hasher);
         return hasher.hash();

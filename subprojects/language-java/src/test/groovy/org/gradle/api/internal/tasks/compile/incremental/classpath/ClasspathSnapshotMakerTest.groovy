@@ -25,34 +25,11 @@ import spock.lang.Subject
 
 class ClasspathSnapshotMakerTest extends Specification {
 
-    def store = Mock(LocalClasspathSnapshotStore)
     def analysis = Mock(ClassSetAnalysis)
     def factory = Mock(ClasspathSnapshotFactory)
     def finder = Mock(ClasspathEntryConverter)
 
-    @Subject maker = new ClasspathSnapshotMaker(store, factory, finder)
-
-    def "stores jar snapshots"() {
-        def jar1 = new ClasspathEntry(new File("jar1.jar"), Mock(FileTree));
-        def jar2 = new ClasspathEntry(new File("jar2.jar"), Mock(FileTree))
-
-        def snapshotData = Stub(ClasspathSnapshotData)
-        def classpathSnapshot = Stub(ClasspathSnapshot) { getData() >> snapshotData }
-        def filesDummy = [new File("f")]
-
-        when:
-        maker.storeSnapshots(filesDummy)
-
-        then:
-        maker.getClasspathSnapshot(filesDummy) == classpathSnapshot
-        maker.getClasspathSnapshot(filesDummy) == classpathSnapshot
-
-        and:
-        1 * finder.asClasspathEntries(filesDummy) >> [jar1, jar2]
-        1 * factory.createSnapshot([jar1, jar2]) >> classpathSnapshot
-        1 * store.put(snapshotData)
-        0 * _
-    }
+    @Subject maker = new ClasspathSnapshotMaker(factory, finder)
 
     def "gets classpath snapshot"() {
         def jar1 = new ClasspathEntry(new File("jar1.jar"), Mock(FileTree));
