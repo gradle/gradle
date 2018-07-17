@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.JarUtils
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
 
 trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements VersionSpecificCacheCleanupFixture {
@@ -35,16 +37,21 @@ trait VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture implements
         gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
-    TestFile createDistributionChecksumDir(GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX) {
-        createCustomDistributionChecksumDir("gradle-${version.version}-all", version, jarPrefix)
+    TestFile createDistributionChecksumDir(GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX, long lastModificationTime = twoDaysAgo()) {
+        createCustomDistributionChecksumDir("gradle-${version.version}-all", version, jarPrefix, lastModificationTime)
     }
 
-    TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX, BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {
+    TestFile createCustomDistributionChecksumDir(String parentDirName, GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX, long lastModificationTime = twoDaysAgo(), BiAction<GradleVersion, File> jarWriter = DEFAULT_JAR_WRITER) {
         def checksumDir = distsDir.file(parentDirName).createDir(UUID.randomUUID())
         def libDir = checksumDir.file("gradle-${version.baseVersion.version}", "lib").createDir()
         def jarFile = libDir.file("$jarPrefix-${version.baseVersion.version}.jar")
         jarWriter.execute(version, jarFile)
+        checksumDir.lastModified = lastModificationTime
         return checksumDir
+    }
+
+    long twoDaysAgo() {
+        System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2)
     }
 
     TestFile getDistsDir() {

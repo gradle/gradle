@@ -102,7 +102,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "ignores custom distributions without gradle-base-services JAR"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
+        def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
 
         when:
         cleanupAction.execute()
@@ -114,7 +114,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "ignores custom distributions without build receipt in gradle-base-services JAR"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithoutBuildReceiptInJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX) { version, jarFile ->
+        def distributionWithoutBuildReceiptInJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis()) { version, jarFile ->
             jarFile << JarUtils.jarWithContents(foo: "bar")
         }
 
@@ -128,7 +128,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def "ignores distributions with invalid gradle version"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
+        def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
 
         when:
         cleanupAction.execute()
@@ -171,6 +171,17 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
 
         then:
         distribution.assertExists()
+    }
+
+    def "does not delete recently downloaded but unused distributions"() {
+        given:
+        def justDownloadedButUnusedDist = createDistributionChecksumDir(GradleVersion.version("2.3.4"), DEFAULT_JAR_PREFIX, System.currentTimeMillis())
+
+        when:
+        cleanupAction.execute()
+
+        then:
+        justDownloadedButUnusedDist.assertExists()
     }
 
     @Override

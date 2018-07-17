@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -77,21 +78,26 @@ public class WrapperDistributionCleanupAction {
     }
 
     public void execute() {
+        long maximumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
         Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();
         Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();
         for (GradleVersion version : checksumDirsByVersion.keySet()) {
             if (!usedVersions.contains(version) && version.compareTo(GradleVersion.current()) < 0) {
-                deleteDistributions(checksumDirsByVersion.get(version));
+                deleteDistributions(checksumDirsByVersion.get(version), maximumTimestamp);
             }
         }
     }
 
-    private void deleteDistributions(Collection<File> dirs) {
+    private void deleteDistributions(Collection<File> dirs, long maximumTimestamp) {
         Set<File> parentsOfDeletedDistributions = Sets.newLinkedHashSet();
         for (File checksumDir : dirs) {
-            LOGGER.debug("Deleting distribution at {}", checksumDir);
-            if (FileUtils.deleteQuietly(checksumDir)) {
-                parentsOfDeletedDistributions.add(checksumDir.getParentFile());
+            if (checksumDir.lastModified() > maximumTimestamp) {
+                LOGGER.debug("Skipping distribution at {} because it was recently added", checksumDir);
+            } else {
+                LOGGER.debug("Deleting distribution at {}", checksumDir);
+                if (FileUtils.deleteQuietly(checksumDir)) {
+                    parentsOfDeletedDistributions.add(checksumDir.getParentFile());
+                }
             }
         }
         for (File parentDir : parentsOfDeletedDistributions) {
