@@ -253,14 +253,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new ProjectBackedModuleMetaDataProvider();
     }
 
-    protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new ServiceRegistryFactory() {
-            public ServiceRegistry createFor(Object domainObject) {
-                throw new UnsupportedOperationException();
-            }
-        };
-    }
-
     protected ComponentRegistry createComponentRegistry() {
         return new ComponentRegistry();
     }
