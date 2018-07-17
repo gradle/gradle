@@ -63,14 +63,14 @@ public class MirrorUpdatingDirectoryWalker {
         this.stringInterner = stringInterner;
     }
 
-    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot) {
+    public PhysicalTreeSnapshot walk(final PhysicalSnapshot fileSnapshot) {
         return walk(fileSnapshot, null);
     }
 
-    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public PhysicalTreeSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
             // The root missing file should not be tracked for trees.
-            return PhysicalSnapshot.EMPTY;
+            return PhysicalTreeSnapshot.EMPTY;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
             return fileSnapshot;

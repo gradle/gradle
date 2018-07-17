@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.caching.internal.DefaultBuildCacheHasher
@@ -322,7 +323,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         TestFiles.directoryFileTreeFactory().create(dir)
     }
 
-    private static List getTreeInfo(PhysicalSnapshot tree) {
+    private static List getTreeInfo(PhysicalTreeSnapshot tree) {
         String rootPath = null
         int count = 0
         tree.accept(new PhysicalSnapshotVisitor() {

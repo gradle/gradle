@@ -20,47 +20,11 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 /**
- * A snapshot of a file/directory tree.
+ * A snapshot of a concrete file/directory tree.
  *
  * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
-public interface PhysicalSnapshot {
-
-    /**
-     * An empty tree.
-     *
-     * Path and name are not available, since we don't know where the root is.
-     */
-    PhysicalSnapshot EMPTY = new PhysicalSnapshot() {
-        @Override
-        public FileType getType() {
-            return FileType.Missing;
-        }
-
-        @Override
-        public String getName() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getAbsolutePath() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public HashCode getContentHash() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void accept(PhysicalSnapshotVisitor visitor) {
-        }
-    };
+public interface PhysicalSnapshot extends PhysicalTreeSnapshot {
 
     /**
      * The type of the file.
@@ -86,11 +50,4 @@ public interface PhysicalSnapshot {
      * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
      */
     boolean isContentAndMetadataUpToDate(PhysicalSnapshot other);
-
-    /**
-     * Walks the whole hierarchy represented by this snapshot.
-     *
-     * The walk is depth first.
-     */
-    void accept(PhysicalSnapshotVisitor visitor);
 }

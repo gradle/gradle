@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
@@ -145,7 +146,7 @@ public class TaskOutputCacheCommandFactory {
                 }
                 PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
                 String absolutePath = internedAbsolutePath(outputFile);
-                List<PhysicalSnapshot> roots = new ArrayList<PhysicalSnapshot>();
+                List<PhysicalTreeSnapshot> roots = new ArrayList<PhysicalTreeSnapshot>();
 
                 if (snapshot == null) {
                     fileSystemMirror.putFile(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));

@@ -22,20 +22,19 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.InputStream;
 
-public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
+public class FilteredPhysicalTreeSnapshot implements PhysicalTreeSnapshot {
 
     private final Spec<FileTreeElement> spec;
-    private final PhysicalSnapshot delegate;
+    private final PhysicalTreeSnapshot delegate;
     private final FileSystem fileSystem;
 
-    public FilteredPhysicalSnapshot(Spec<FileTreeElement> spec, PhysicalSnapshot delegate, FileSystem fileSystem) {
+    public FilteredPhysicalTreeSnapshot(Spec<FileTreeElement> spec, PhysicalTreeSnapshot delegate, FileSystem fileSystem) {
         this.spec = spec;
         this.delegate = delegate;
         this.fileSystem = fileSystem;
@@ -74,33 +73,8 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
         });
     }
 
-    @Override
-    public FileType getType() {
-        return delegate.getType();
-    }
-
-    @Override
-    public String getName() {
-        return delegate.getName();
-    }
-
-    @Override
-    public String getAbsolutePath() {
-        return delegate.getAbsolutePath();
-    }
-
-    @Override
-    public HashCode getContentHash() {
-        return delegate.getContentHash();
-    }
-
-    @Override
-    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
-        return delegate.isContentAndMetadataUpToDate(other);
-    }
-
     /**
-     * Adapts a logical file snapshot to the {@link FileTreeElement} interface, e.g. to allow
+     * Adapts a {@link PhysicalSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
      *
      * The fields on this class are prefixed with _ to avoid users from accidentally referencing them

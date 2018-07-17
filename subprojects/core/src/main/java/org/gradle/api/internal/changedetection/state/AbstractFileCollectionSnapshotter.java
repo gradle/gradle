@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -58,7 +59,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);
-        List<PhysicalSnapshot> roots = visitor.getRoots();
+        List<PhysicalTreeSnapshot> roots = visitor.getRoots();
         if (roots.isEmpty()) {
             return EmptyFileCollectionSnapshot.INSTANCE;
         }
@@ -70,7 +71,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<PhysicalSnapshot> roots = new ArrayList<PhysicalSnapshot>();
+        private final List<PhysicalTreeSnapshot> roots = new ArrayList<PhysicalTreeSnapshot>();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -95,17 +96,17 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
+            PhysicalTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
             roots.add(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            PhysicalSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
+            PhysicalTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
             roots.add(treeSnapshot);
         }
 
-        public List<PhysicalSnapshot> getRoots() {
+        public List<PhysicalTreeSnapshot> getRoots() {
             return roots;
         }
     }

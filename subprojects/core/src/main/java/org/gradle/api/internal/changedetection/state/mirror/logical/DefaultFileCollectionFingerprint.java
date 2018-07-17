@@ -24,8 +24,8 @@ import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -42,10 +42,10 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
 
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final FingerprintCompareStrategy strategy;
-    private final Iterable<PhysicalSnapshot> roots;
+    private final Iterable<PhysicalTreeSnapshot> roots;
     private HashCode hash;
 
-    public static FileCollectionSnapshot from(Iterable<PhysicalSnapshot> roots, FingerprintingStrategy strategy) {
+    public static FileCollectionSnapshot from(Iterable<PhysicalTreeSnapshot> roots, FingerprintingStrategy strategy) {
         Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
         if (snapshots.isEmpty()) {
             return EmptyFileCollectionSnapshot.INSTANCE;
@@ -57,7 +57,7 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
         this(snapshots, strategy, null, hash);
     }
 
-    private DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable Iterable<PhysicalSnapshot> roots, @Nullable HashCode hash) {
+    private DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable Iterable<PhysicalTreeSnapshot> roots, @Nullable HashCode hash) {
         this.snapshots = snapshots;
         this.strategy = strategy;
         this.roots = roots;
@@ -89,7 +89,7 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }
-        for (PhysicalSnapshot root : roots) {
+        for (PhysicalTreeSnapshot root : roots) {
             root.accept(visitor);
         }
     }

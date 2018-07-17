@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
 
@@ -32,8 +33,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     private final Map<String, PhysicalSnapshot> files = new ConcurrentHashMap<String, PhysicalSnapshot>();
     private final Map<String, PhysicalSnapshot> cacheFiles = new ConcurrentHashMap<String, PhysicalSnapshot>();
     // Maps from interned absolute path for a directory to known details for the directory.
-    private final Map<String, PhysicalSnapshot> trees = new ConcurrentHashMap<String, PhysicalSnapshot>();
-    private final Map<String, PhysicalSnapshot> cacheTrees = new ConcurrentHashMap<String, PhysicalSnapshot>();
+    private final Map<String, PhysicalTreeSnapshot> trees = new ConcurrentHashMap<String, PhysicalTreeSnapshot>();
+    private final Map<String, PhysicalTreeSnapshot> cacheTrees = new ConcurrentHashMap<String, PhysicalTreeSnapshot>();
     // Maps from interned absolute path to a snapshot
     private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<String, Snapshot>();
     private final Map<String, Snapshot> cacheSnapshots = new ConcurrentHashMap<String, Snapshot>();
@@ -84,7 +85,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public PhysicalSnapshot getDirectoryTree(String absolutePath) {
+    public PhysicalTreeSnapshot getDirectoryTree(String absolutePath) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly also short-circuit some scanning if we have details for some sub trees
         if (wellKnownFileLocations.isImmutable(absolutePath)) {
@@ -95,7 +96,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putDirectory(String absolutePath, PhysicalSnapshot directory) {
+    public void putDirectory(String absolutePath, PhysicalTreeSnapshot directory) {
         if (wellKnownFileLocations.isImmutable(absolutePath)) {
             cacheTrees.put(absolutePath, directory);
         } else {

@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapsh
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.internal.file.FileType;
 
 import java.util.HashSet;
@@ -40,10 +41,10 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalTreeSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
-        for (PhysicalSnapshot root : roots) {
+        for (PhysicalTreeSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
