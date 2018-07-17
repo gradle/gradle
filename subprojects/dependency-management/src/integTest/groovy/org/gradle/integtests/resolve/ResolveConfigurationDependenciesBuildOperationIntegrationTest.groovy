@@ -537,14 +537,14 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert op.result.resolvedDependenciesCount == 3
             def resolvedComponents = op.result.components
             assert resolvedComponents.size() == 8
-            assert resolvedComponents.'project :'.repoName == [null]
-            assert resolvedComponents.'org.foo:direct1:1.0'.repoName == ['maven1']
-            assert resolvedComponents.'org.foo:direct2:1.0'.repoName == ['maven2']
-            assert resolvedComponents.'org.foo:transitive1:1.0'.repoName == ['maven1']
-            assert resolvedComponents.'org.foo:transitive2:1.0'.repoName == ['maven2']
-            assert resolvedComponents.'project :child'.repoName == [null]
-            assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoName == ['maven1']
-            assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoName == ['maven2']
+            assert resolvedComponents.'project :'.repoName == null
+            assert resolvedComponents.'org.foo:direct1:1.0'.repoName == 'maven1'
+            assert resolvedComponents.'org.foo:direct2:1.0'.repoName == 'maven2'
+            assert resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
+            assert resolvedComponents.'org.foo:transitive2:1.0'.repoName == 'maven2'
+            assert resolvedComponents.'project :child'.repoName == null
+            assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoName == 'maven1'
+            assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoName == 'maven2'
             return true
         }
 
@@ -606,10 +606,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 4
-        resolvedComponents.'project :'.repoName == [null]
-        resolvedComponents.'project :child'.repoName == [null]
-        resolvedComponents.'org.foo:direct1:1.0'.repoName == ['maven1']
-        resolvedComponents.'org.foo:transitive1:1.0'.repoName == ['maven1']
+        resolvedComponents.'project :'.repoName == null
+        resolvedComponents.'project :child'.repoName == null
+        resolvedComponents.'org.foo:direct1:1.0'.repoName == 'maven1'
+        resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
     }
 
     def "resolved components contain their source repository id, even when they are structurally identical"() {
@@ -648,7 +648,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
-        resolvedComponents.'org.foo:good:1.0'.repoName == ['withCreds']
+        resolvedComponents.'org.foo:good:1.0'.repoName == 'withCreds'
 
         when:
         server.resetExpectations()
@@ -660,6 +660,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op2 = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 2
-        resolvedComponents2.'org.foo:good:1.0'.repoName == ['withoutCreds']
+        resolvedComponents2.'org.foo:good:1.0'.repoName == 'withoutCreds'
     }
 }
