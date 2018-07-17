@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -65,7 +66,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
-import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.DefaultTaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
@@ -73,6 +73,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -98,6 +99,7 @@ public class TaskExecutionServices {
                                     TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,
                                     BuildCacheController buildCacheController,
                                     ListenerManager listenerManager,
+                                    ListenerBroadcast<TaskExecutionListener> taskExecutionListenerBroadcast,
                                     TaskInputsListener inputsListener,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
@@ -106,7 +108,6 @@ public class TaskExecutionServices {
                                     BuildScanPluginApplied buildScanPlugin,
                                     PathToFileResolver resolver,
                                     PropertyWalker propertyWalker,
-                                    TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
                                     BuildCancellationToken buildCancellationToken
     ) {
@@ -146,7 +147,7 @@ public class TaskExecutionServices {
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionGraph, executer);
+        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListenerBroadcast.getSource(), executer);
         return executer;
     }
 

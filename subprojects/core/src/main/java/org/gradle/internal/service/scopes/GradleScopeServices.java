@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -64,6 +65,7 @@ import org.gradle.execution.taskgraph.WorkInfoExecutor;
 import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -178,8 +180,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new LocalTaskInfoExecutor(taskExecuterFactory);
     }
 
-    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
-        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
+    ListenerBroadcast<TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
+        return listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
+    }
+
+    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, ListenerBroadcast<TaskExecutionListener> taskExecutionListenerBroadcast, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
+        return new DefaultTaskExecutionGraph(listenerManager, taskExecutionListenerBroadcast, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(ServiceRegistry services) {
