@@ -45,7 +45,6 @@ import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBa
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +56,7 @@ import java.lang.reflect.Proxy;
 /**
  * Provides various native platform integration services.
  */
-public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
+public class NativeServices extends DefaultServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativeIntegrations;
     private static final NativeServices INSTANCE = new NativeServices();
