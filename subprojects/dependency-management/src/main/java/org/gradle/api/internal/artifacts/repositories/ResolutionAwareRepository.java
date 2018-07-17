@@ -25,7 +25,7 @@ public interface ResolutionAwareRepository {
     ConfiguredModuleComponentRepository createResolver();
 
     /**
-     * Returns details about this repository, such as a unique ID and a map of properties used for reporting.
+     * Returns details about this repository, such as its name, type, and a map of properties used for reporting.
      */
     RepositoryDetails getDetails();
 

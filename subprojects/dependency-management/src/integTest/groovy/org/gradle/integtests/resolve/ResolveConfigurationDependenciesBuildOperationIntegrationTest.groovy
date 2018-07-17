@@ -79,7 +79,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.details.configurationTransitive == true
 
         op.result.resolvedDependenciesCount == 4
-
     }
 
     def "resolved detached configurations are exposed"() {
@@ -585,9 +584,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        def repos = op.details.repositories.collectEntries { repo -> [(repo.id): repo.name] } as Map<String, String>
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
-        repos.find { k, v -> k in resolvedComponents.'org.foo:good:1.0'.repoId }.value == 'withCreds'
+        resolvedComponents.'org.foo:good:1.0'.repoName == ['withCreds']
     }
 }

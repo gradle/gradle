@@ -245,6 +245,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         @Override
+        public String getId() {
+            // Using the name of the repository as unique identifier.
+            // The name is guaranteed to be unique within a single repository container.
+            return name;
+        }
+
+        @Override
         public String getType() {
             return type;
         }

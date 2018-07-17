@@ -65,13 +65,32 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
     }
 
+    /**
+     * A full representation of a repository, with a map of properties that characterize it, such as artifact patterns or whether credentials were set.
+     */
     @UsedByScanPlugin
     public interface Repository {
 
+        /**
+         *  A unique identifier for this repository _within a single repository container_.
+         */
+        String getId();
+
+        /**
+         * Type of the repository. Taken from the name() of RepositoryDetails.RepositoryType.
+         */
         String getType();
 
+        /**
+         *  The name of this repository.
+         */
         String getName();
 
+        /**
+         * Map of properties characterizing this repository.
+         * Key is the name() of RepositoryDetails.RepositoryPropertyType.
+         * Value can be anything, but simple types such as String or List<String> should be preferred.
+         */
         Map<String, ?> getProperties();
 
     }

@@ -30,9 +30,9 @@ import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -112,8 +112,8 @@ class MavenResolverTest extends Specification {
 
     def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
         given:
-        def resolver1 = resolver(false, false)
-        def resolver2 = resolver(false, true)
+        def resolver1 = resolver( false, false)
+        def resolver2 = resolver( false, true)
 
         resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
         resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
@@ -145,18 +145,7 @@ class MavenResolverTest extends Specification {
 
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
-        new MavenResolver("repo",
-            new URI("http://localhost"),
-            Stub(RepositoryTransport),
-            Stub(LocallyAvailableResourceFinder),
-            Stub(FileStore),
-            moduleIdentifierFactory,
-            metadataSources,
-            metadataArtifactProvider,
-            Stub(MavenMetadataLoader),
-            supplier,
-            lister,
-            Mock(Instantiator)
-        )
+
+        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator))
     }
 }

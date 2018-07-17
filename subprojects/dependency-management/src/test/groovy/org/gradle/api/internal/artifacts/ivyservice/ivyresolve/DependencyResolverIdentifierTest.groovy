@@ -59,11 +59,9 @@ class DependencyResolverIdentifierTest extends Specification {
 
     def patterns(ExternalResourceResolver resolver, Field field, List<String> patterns) {
         field.accessible = true
-        field.set(resolver, patterns.collect { p ->
-            Mock(ResourcePattern) {
-                getPattern() >> p
-            }
-        })
+        field.set(resolver, patterns.collect { p -> Mock(ResourcePattern) {
+            getPattern() >> p
+        }})
     }
 
     def id(ExternalResourceResolver resolver) {

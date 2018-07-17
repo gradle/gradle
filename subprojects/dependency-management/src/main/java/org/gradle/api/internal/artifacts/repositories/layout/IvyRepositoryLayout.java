@@ -25,8 +25,8 @@ import java.util.Set;
 /**
  * A Repository Layout that applies the following patterns:
  * <ul>
- * <li>Artifacts: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
- * <li>Ivy: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
+ *     <li>Artifacts: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
+ *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
  * </ul>
  */
 public class IvyRepositoryLayout extends AbstractRepositoryLayout {

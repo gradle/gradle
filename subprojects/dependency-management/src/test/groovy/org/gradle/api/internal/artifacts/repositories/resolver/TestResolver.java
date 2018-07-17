@@ -85,6 +85,5 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
         };
     }
 
-    interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata {
-    }
+    interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata {}
 }

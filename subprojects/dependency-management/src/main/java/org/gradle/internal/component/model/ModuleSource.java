@@ -28,7 +28,6 @@ public interface ModuleSource extends Serializable {
 
     /**
      * Returns the name of the repository used as module source.
-     * The repository name is unique within a single repository container.
      */
     String getRepositoryName();
 

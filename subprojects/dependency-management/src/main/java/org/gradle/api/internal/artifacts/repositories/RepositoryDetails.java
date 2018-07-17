@@ -29,7 +29,7 @@ public class RepositoryDetails {
     public final RepositoryType type;
     public final Map<RepositoryPropertyType, ?> properties;
 
-    public RepositoryDetails(String name, RepositoryType type, Map<RepositoryPropertyType, ?> properties) {
+    RepositoryDetails(String name, RepositoryType type, Map<RepositoryPropertyType, ?> properties) {
         this.name = name;
         this.type = type;
         this.properties = properties;

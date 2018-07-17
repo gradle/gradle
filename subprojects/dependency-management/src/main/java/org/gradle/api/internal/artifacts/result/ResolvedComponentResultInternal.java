@@ -20,16 +20,11 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 
 import javax.annotation.Nullable;
 
-/**
- * Represents a component instance in the resolved dependency graph. Provides some basic identity and dependency information about the component.
- */
 public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
 
 
     /**
-     * <p>Returns the name of the repository used to source this component.
-     *
-     * @return the name of the repository used to source this component , or {@code null} if this component was not resolved from a repository.
+     * <p>Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
      */
     @Nullable
     String getRepositoryName();
