@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
@@ -33,42 +32,43 @@ import java.util.List;
 import java.util.Map;
 
 public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Impl {
-    private static final Comparator<NonNormalizedFileSnapshot> ENTRY_COMPARATOR = new Comparator<NonNormalizedFileSnapshot>() {
+    private static final Comparator<Map.Entry<HashCode, FileChangeInformation>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FileChangeInformation>>() {
         @Override
-        public int compare(NonNormalizedFileSnapshot o1, NonNormalizedFileSnapshot o2) {
-            return o1.getNormalizedContentHash().compareTo(o2.getNormalizedContentHash());
+        public int compare(Map.Entry<HashCode, FileChangeInformation> o1, Map.Entry<HashCode, FileChangeInformation> o2) {
+            return o1.getKey().compareTo(o2.getKey());
         }
     };
 
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
-        ListMultimap<HashCode, NonNormalizedFileSnapshot> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
+        ListMultimap<HashCode, FileChangeInformation> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot.getNormalizedContentHash(), new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getNormalizedContentHash()));
+            unaccountedForPreviousFiles.put(previousSnapshot.getNormalizedContentHash(), new FileChangeInformation(absolutePath, previousSnapshot.getType()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
             NormalizedFileSnapshot currentSnapshot = entry.getValue();
             HashCode normalizedContentHash = currentSnapshot.getNormalizedContentHash();
-            List<NonNormalizedFileSnapshot> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(normalizedContentHash);
-            if (previousSnapshotsForContent.isEmpty()) {
+            List<FileChangeInformation> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
+            if (previousFilesForContent.isEmpty()) {
                 if (includeAdded) {
                     if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentSnapshot.getType()))) {
                         return false;
                     }
                 }
             } else {
-                previousSnapshotsForContent.remove(0);
+                previousFilesForContent.remove(0);
             }
         }
 
-        List<NonNormalizedFileSnapshot> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.values());
+        List<Map.Entry<HashCode, FileChangeInformation>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (NonNormalizedFileSnapshot unaccountedForPreviousSnapshot : unaccountedForPreviousEntries) {
-            if (!visitor.visitChange(FileChange.removed(unaccountedForPreviousSnapshot.getNormalizedPath(), propertyTitle, unaccountedForPreviousSnapshot.getType()))) {
+        for (Map.Entry<HashCode, FileChangeInformation> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
+            FileChangeInformation removedFile = unaccountedForPreviousEntry.getValue();
+            if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
                 return false;
             }
         }

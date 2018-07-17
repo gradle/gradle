@@ -33,9 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SnapshotMapSerializer extends AbstractSerializer<Map<String, NormalizedFileSnapshot>> {
-    private static final byte NO_NORMALIZATION = 1;
-    private static final byte DEFAULT_NORMALIZATION = 2;
-    private static final byte IGNORED_PATH_NORMALIZATION = 3;
+    private static final byte DEFAULT_NORMALIZATION = 1;
+    private static final byte IGNORED_PATH_NORMALIZATION = 2;
 
     private static final byte DIR_SNAPSHOT = 1;
     private static final byte MISSING_FILE_SNAPSHOT = 2;
@@ -66,8 +65,6 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
 
         byte normalizedSnapshotKind = decoder.readByte();
         switch (normalizedSnapshotKind) {
-            case NO_NORMALIZATION:
-                return new NonNormalizedFileSnapshot(absolutePath, fileType, contentHash);
             case DEFAULT_NORMALIZATION:
                 String normalizedPath = decoder.readString();
                 return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), fileType, contentHash);
@@ -146,9 +143,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
                 throw new AssertionError();
         }
 
-        if (value instanceof NonNormalizedFileSnapshot) {
-            encoder.writeByte(NO_NORMALIZATION);
-        } else if (value instanceof DefaultNormalizedFileSnapshot) {
+        if (value instanceof DefaultNormalizedFileSnapshot) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
             encoder.writeString(value.getNormalizedPath());
         } else if (value instanceof IgnoredPathFingerprint) {

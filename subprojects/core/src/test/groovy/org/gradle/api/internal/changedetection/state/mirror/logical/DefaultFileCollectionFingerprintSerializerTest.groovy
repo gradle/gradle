@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
-import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.internal.file.FileType
@@ -39,7 +38,7 @@ class DefaultFileCollectionFingerprintSerializerTest extends SerializerSpec {
         def out = serialize(new DefaultFileCollectionFingerprint(
             '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
             '/2': IgnoredPathFingerprint.create(FileType.RegularFile, hash),
-            '/3': new NonNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
+            '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
             strategy,
             combinedHash
         ), serializer)
@@ -72,7 +71,7 @@ class DefaultFileCollectionFingerprintSerializerTest extends SerializerSpec {
         when:
         DefaultFileCollectionFingerprint out = serialize(new DefaultFileCollectionFingerprint(
             "/3": new DefaultNormalizedFileSnapshot('3', FileType.RegularFile, HashCode.fromInt(1234)),
-            "/2": new NonNormalizedFileSnapshot('/2', FileType.RegularFile, HashCode.fromInt(5678)),
+            "/2": new DefaultNormalizedFileSnapshot('/2', FileType.RegularFile, HashCode.fromInt(5678)),
             "/1": new DefaultNormalizedFileSnapshot('1', FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
             FingerprintCompareStrategy.ABSOLUTE,
             null

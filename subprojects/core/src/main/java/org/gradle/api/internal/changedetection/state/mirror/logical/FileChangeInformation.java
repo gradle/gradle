@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
 
-public class NonNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
+/**
+ * The information about a file which is necessary to create a {@link org.gradle.api.internal.changedetection.rules.FileChange} from it.
+ */
+public class FileChangeInformation {
     private final String absolutePath;
+    private final FileType fileType;
 
-    public NonNormalizedFileSnapshot(String absolutePath, FileType type, HashCode contentHash) {
-        super(type, contentHash);
+    public FileChangeInformation(String absolutePath, FileType fileType) {
         this.absolutePath = absolutePath;
+        this.fileType = fileType;
     }
 
-    public NonNormalizedFileSnapshot(PhysicalSnapshot snapshot) {
-        this(snapshot.getAbsolutePath(), snapshot.getType(), snapshot.getContentHash());
+    public String getAbsolutePath() {
+        return absolutePath;
+    }
+
+    public FileType getFileType() {
+        return fileType;
     }
 
     @Override
-    public String getNormalizedPath() {
-        return absolutePath;
+    public String toString() {
+        return String.format("%s (%s)", fileType, absolutePath);
     }
 }

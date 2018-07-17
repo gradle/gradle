@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 
@@ -32,57 +31,56 @@ import java.util.List;
 import java.util.Map;
 
 public class NormalizedPathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
-    private static final Comparator<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>>() {
+    private static final Comparator<Map.Entry<NormalizedFileSnapshot, ?>> ENTRY_COMPARATOR = new Comparator<Map.Entry<NormalizedFileSnapshot, ?>>() {
         @Override
-        public int compare(Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot> o1, Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot> o2) {
+        public int compare(Map.Entry<NormalizedFileSnapshot, ?> o1, Map.Entry<NormalizedFileSnapshot, ?> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }
     };
 
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> currentFingerprints, Map<String, NormalizedFileSnapshot> previousFingerprints, String propertyTitle, boolean includeAdded) {
-        ListMultimap<NormalizedFileSnapshot, NonNormalizedFileSnapshot> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
-        ListMultimap<String, NonNormalizedFileSnapshot> addedFiles = MultimapBuilder.linkedHashKeys().linkedListValues().build();
+        ListMultimap<NormalizedFileSnapshot, FileChangeInformation> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
+        ListMultimap<String, FileChangeInformation> addedFilesByNormalizedPath = MultimapBuilder.linkedHashKeys().linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previousFingerprints.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousSnapshots.put(previousSnapshot, new NonNormalizedFileSnapshot(absolutePath, previousSnapshot.getType(), previousSnapshot.getNormalizedContentHash()));
+            unaccountedForPreviousFiles.put(previousSnapshot, new FileChangeInformation(absolutePath, previousSnapshot.getType()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : currentFingerprints.entrySet()) {
             String currentAbsolutePath = entry.getKey();
             NormalizedFileSnapshot currentSnapshot = entry.getValue();
-            List<NonNormalizedFileSnapshot> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentSnapshot);
-            if (previousSnapshotsForNormalizedPath.isEmpty()) {
-                NonNormalizedFileSnapshot currentSnapshotWithAbsolutePath = new NonNormalizedFileSnapshot(currentAbsolutePath, currentSnapshot.getType(), currentSnapshot.getNormalizedContentHash());
-                addedFiles.put(currentSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
+            List<FileChangeInformation> previousFilesForSnapshot = unaccountedForPreviousFiles.get(currentSnapshot);
+            if (previousFilesForSnapshot.isEmpty()) {
+                addedFilesByNormalizedPath.put(currentSnapshot.getNormalizedPath(), new FileChangeInformation(currentAbsolutePath, currentSnapshot.getType()));
             } else {
-                previousSnapshotsForNormalizedPath.remove(0);
+                previousFilesForSnapshot.remove(0);
             }
         }
-        List<Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
+        List<Map.Entry<NormalizedFileSnapshot, FileChangeInformation>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (Map.Entry<NormalizedFileSnapshot, NonNormalizedFileSnapshot> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
+        for (Map.Entry<NormalizedFileSnapshot, FileChangeInformation> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
             NormalizedFileSnapshot previousSnapshot = unaccountedForPreviousSnapshotEntry.getKey();
             String normalizedPath = previousSnapshot.getNormalizedPath();
-            List<NonNormalizedFileSnapshot> addedFilesForNormalizedPath = addedFiles.get(normalizedPath);
+            List<FileChangeInformation> addedFilesForNormalizedPath = addedFilesByNormalizedPath.get(normalizedPath);
             if (!addedFilesForNormalizedPath.isEmpty()) {
                 // There might be multiple files with the same normalized path, here we choose one of them
-                NonNormalizedFileSnapshot modifiedSnapshot = addedFilesForNormalizedPath.remove(0);
-                if (!visitor.visitChange(FileChange.modified(modifiedSnapshot.getNormalizedPath(), propertyTitle, previousSnapshot.getType(), modifiedSnapshot.getType()))) {
+                FileChangeInformation addedFile = addedFilesForNormalizedPath.remove(0);
+                if (!visitor.visitChange(FileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousSnapshot.getType(), addedFile.getFileType()))) {
                     return false;
                 }
             } else {
-                NonNormalizedFileSnapshot removedSnapshot = unaccountedForPreviousSnapshotEntry.getValue();
-                if (!visitor.visitChange(FileChange.removed(removedSnapshot.getNormalizedPath(), propertyTitle, removedSnapshot.getType()))) {
+                FileChangeInformation removedFile = unaccountedForPreviousSnapshotEntry.getValue();
+                if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
                     return false;
                 }
             }
         }
 
         if (includeAdded) {
-            for (NonNormalizedFileSnapshot addedFile : addedFiles.values()) {
-                if (!visitor.visitChange(FileChange.added(addedFile.getNormalizedPath(), propertyTitle, addedFile.getType()))) {
+            for (FileChangeInformation addedFile : addedFilesByNormalizedPath.values()) {
+                if (!visitor.visitChange(FileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType()))) {
                     return false;
                 }
             }
