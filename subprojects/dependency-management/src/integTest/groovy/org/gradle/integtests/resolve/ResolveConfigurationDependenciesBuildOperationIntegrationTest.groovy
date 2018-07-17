@@ -481,99 +481,135 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
+
+        // 'direct1' 'transitive1' and 'child-transitive1' are found in 'maven1'
+        mavenHttpRepo.module('org.foo', 'transitive1').publish().allowAll()
+        mavenHttpRepo.module('org.foo', 'direct1').publish().allowAll()
+        mavenHttpRepo.module('org.foo', 'child-transitive1').publish().allowAll()
+
+        // 'direct2' 'transitive2', and 'child-transitive2' are found in 'maven2' (unpublished in 'maven1')
+        mavenHttpRepo.module('org.foo', 'transitive2').allowAll()
+        secondMavenHttpRepo.module('org.foo', 'transitive2').publish().allowAll()
+
+        mavenHttpRepo.module('org.foo', 'direct2').allowAll()
+        secondMavenHttpRepo.module('org.foo', 'direct2')
+            .dependsOn('org.foo', 'transitive1', '1.0')
+            .dependsOn('org.foo', 'transitive2', '1.0')
+            .publish().allowAll()
+
+        mavenHttpRepo.module('org.foo', 'child-transitive2').allowAll()
+        secondMavenHttpRepo.module('org.foo', 'child-transitive2').publish().allowAll()
+
         buildFile << """                
             apply plugin: "java"
             repositories {
                 maven { 
+                    name 'maven1'
+                    url '${mavenHttpRepo.uri}'
+                }
+                maven { 
                     name 'maven2'
                     url '${secondMavenHttpRepo.uri}'
                 }
+            }
+            dependencies {
+                compile 'org.foo:direct1:1.0'
+                compile 'org.foo:direct2:1.0'
+                compile project(':child')
+            }
+
+            task resolve { doLast { configurations.compile.resolve() } }
+            
+            project(':child') {
+                apply plugin: "java"
+                dependencies {
+                    compile 'org.foo:child-transitive1:1.0'
+                    compile 'org.foo:child-transitive2:1.0'
+                }
+            }
+        """
+        settingsFile << "include 'child'"
+
+        def verifyExpectedOperation = {
+            def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+            assert ops.size() == 1
+            def op = ops[0]
+            assert op.result.resolvedDependenciesCount == 3
+            def resolvedComponents = op.result.components
+            assert resolvedComponents.size() == 8
+            assert resolvedComponents.'project :'.repoName == [null]
+            assert resolvedComponents.'org.foo:direct1:1.0'.repoName == ['maven1']
+            assert resolvedComponents.'org.foo:direct2:1.0'.repoName == ['maven2']
+            assert resolvedComponents.'org.foo:transitive1:1.0'.repoName == ['maven1']
+            assert resolvedComponents.'org.foo:transitive2:1.0'.repoName == ['maven2']
+            assert resolvedComponents.'project :child'.repoName == [null]
+            assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoName == ['maven1']
+            assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoName == ['maven2']
+            return true
+        }
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        true
+        verifyExpectedOperation()
+
+        when:
+        server.resetExpectations()
+        succeeds 'resolve'
+
+        then:
+        verifyExpectedOperation()
+    }
+
+    def "resolved components contain their source repository name when resolution fails"() {
+        setup:
+        mavenHttpRepo.module('org.foo', 'transitive1').publish().allowAll()
+        mavenHttpRepo.module('org.foo', 'direct1')
+            .dependsOn('org.foo', 'transitive1', '1.0')
+            .publish().allowAll()
+
+        buildFile << """                
+            apply plugin: "java"
+            repositories {
                 maven { 
                     name 'maven1'
                     url '${mavenHttpRepo.uri}'
                 }
             }
             dependencies {
-                compile 'org.foo:good:1.0'
-                compile 'org.foo:unknown:1.0' // does not exist
+                compile 'org.foo:direct1:1.0'
+                compile 'org.foo:missing-direct:1.0' // does not exist
                 compile project(':child')
-                compile 'org.foo:good-transitive:1.0' // contains resolved transitive dependency
-                compile 'org.foo:bad-transitive:1.0' // contains unresolved transitive dependency
             }
 
             task resolve { doLast { configurations.compile.resolve() } }
+            
+            project(':child') {
+                apply plugin: "java"
+                dependencies {
+                    compile 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
+                }
+            }
         """
         settingsFile << "include 'child'"
 
-        // 'org.foo:good' on maven1
-        def good1 = mavenHttpRepo.module('org.foo', 'good').publish()
-        good1.allowAll()
-        def good2 = secondMavenHttpRepo.module('org.foo', 'good')
-        good2.allowAll()
-
-        // 'org.foo:unknown' nowhere
-        def unknown1 = mavenHttpRepo.module('org.foo', 'unknown')
-        unknown1.allowAll()
-        def unknown2 = secondMavenHttpRepo.module('org.foo', 'unknown')
-        unknown2.allowAll()
-
-        // 'org.foo:good-transitive' on maven2
-        def goodTransitive1 = mavenHttpRepo.module('org.foo', 'good-transitive')
-        goodTransitive1.allowAll()
-        def goodTransitive2 = secondMavenHttpRepo.module('org.foo', 'good-transitive')
-        goodTransitive2.allowAll()
-
-        // 'org.foo:bad-transitive' on maven2
-        def badTransitive1 = mavenHttpRepo.module('org.foo', 'bad-transitive')
-        badTransitive1.allowAll()
-        def badTransitive2 = secondMavenHttpRepo.module('org.foo', 'bad-transitive').publish()
-        badTransitive2.allowAll()
-
-        // 'org.bar:good-transitive' on maven2
-        def goodTransitive3 = mavenHttpRepo.module('org.bar', 'good-transitive')
-        goodTransitive3.allowAll()
-        def goodTransitive4 = secondMavenHttpRepo.module('org.bar', 'good-transitive').publish()
-        goodTransitive4.allowAll()
-        goodTransitive2.dependsOn(goodTransitive4).publish()
-
-        // 'org.bar:bad-transitive' on maven2, but broken
-        def badTransitive3 = mavenHttpRepo.module('org.bar', 'bad-transitive')
-        badTransitive3.allowAll()
-        def badTransitive4 = secondMavenHttpRepo.module('org.bar', 'bad-transitive')
-        badTransitive4.pom.expectGetBroken()
-        badTransitive2.dependsOn(badTransitive4).publish()
-
         when:
+        mavenHttpRepo.module('org.foo', 'missing-direct').allowAll()
+        mavenHttpRepo.module('org.foo', 'broken-transitive').pom.expectGetBroken()
+
+        and:
         fails 'resolve'
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.result.resolvedDependenciesCount == 5
         def resolvedComponents = op.result.components
-        resolvedComponents.size() == 5
-        resolvedComponents.'org.foo:good:1.0'.repoName == ['maven1']
+        resolvedComponents.size() == 4
         resolvedComponents.'project :'.repoName == [null]
-        resolvedComponents.'org.foo:good-transitive:1.0'.repoName == ['maven2']
-        resolvedComponents.'org.bar:good-transitive:1.0'.repoName == ['maven2']
-        resolvedComponents.'org.foo:bad-transitive:1.0'.repoName == ['maven2']
-
-        when:
-        server.resetExpectations()
-        [good1, good2, unknown1, unknown2, goodTransitive1, goodTransitive2, goodTransitive3, goodTransitive4, badTransitive1, badTransitive2, badTransitive3, badTransitive4].each {
-            it.allowAll()
-        }
-        fails 'resolve'
-
-        then:
-        def op2 = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op2.result.resolvedDependenciesCount == 5
-        def resolvedComponents2 = op2.result.components
-        resolvedComponents2.size() == 5
-        resolvedComponents2.'org.foo:good:1.0'.repoName == ['maven1']
-        resolvedComponents2.'project :'.repoName == [null]
-        resolvedComponents2.'org.foo:good-transitive:1.0'.repoName == ['maven2']
-        resolvedComponents2.'org.bar:good-transitive:1.0'.repoName == ['maven2']
-        resolvedComponents2.'org.foo:bad-transitive:1.0'.repoName == ['maven2']
+        resolvedComponents.'project :child'.repoName == [null]
+        resolvedComponents.'org.foo:direct1:1.0'.repoName == ['maven1']
+        resolvedComponents.'org.foo:transitive1:1.0'.repoName == ['maven1']
     }
 
     def "resolved components contain their source repository id, even when they are structurally identical"() {
@@ -613,5 +649,17 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
         resolvedComponents.'org.foo:good:1.0'.repoName == ['withCreds']
+
+        when:
+        server.resetExpectations()
+        and:
+        succeeds 'resolve'
+
+        then:
+        // This demonstrates a bug in Gradle, where we ignore the requirement for credentials when retrieving from the cache
+        def op2 = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def resolvedComponents2 = op2.result.components
+        resolvedComponents2.size() == 2
+        resolvedComponents2.'org.foo:good:1.0'.repoName == ['withoutCreds']
     }
 }
