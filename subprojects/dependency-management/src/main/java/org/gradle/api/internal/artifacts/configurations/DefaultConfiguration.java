@@ -62,7 +62,6 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -72,7 +71,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -88,7 +86,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -103,7 +100,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -111,16 +107,11 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -564,9 +555,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
+                Path projectPath = domainObjectContext.getProjectPath();
+                String projectPathString = domainObjectContext.isScript() ? null : (projectPath == null ? null : projectPath.getPath());
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new OperationDetails());
+                    .details(new ResolveConfigurationResolutionBuildOperationDetails(
+                        getName(),
+                        domainObjectContext.isScript(),
+                        getDescription(),
+                        domainObjectContext.getBuildPath().getPath(),
+                        projectPathString,
+                        isVisible(),
+                        isTransitive(),
+                        resolver.getRepositories()
+                    ));
             }
         });
     }
@@ -955,62 +957,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public String getDisplayName() {
             return "configuration '" + identityPath + "'";
         }
-    }
-
-    private static class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
-
-        private static final Action<? super Throwable> FAIL_SAFE = Actions.doNothing();
-
-        private final ResolvableDependenciesInternal incoming;
-        private final boolean failSafe;
-
-        public ResolveConfigurationResolutionBuildOperationResult(ResolvableDependenciesInternal incoming, boolean failSafe) {
-            this.incoming = incoming;
-            this.failSafe = failSafe;
-        }
-
-        @Override
-        public ResolvedComponentResult getRootComponent() {
-            if (failSafe) {
-                // When fail safe, we don't want the build operation listeners to fail whenever resolution throws an error
-                // because:
-                // 1. the `failed` method will have been called with the user facing error
-                // 2. such an error still leads to a valid dependency graph
-                return incoming.getResolutionResult(FAIL_SAFE).getRoot();
-            }
-            return incoming.getResolutionResult().getRoot();
-        }
-
-        @Override
-        public Object getCustomOperationTraceSerializableModel() {
-            Map<String, Object> model = new HashMap<String, Object>();
-            model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
-            final Set<ResolvedComponentResult> alreadySeen = new HashSet<ResolvedComponentResult>();
-            final Map<String, List<Object>> components = new HashMap<String, List<Object>>();
-            incoming.getResolutionResult(FAIL_SAFE).allComponents(new Action<ResolvedComponentResult>() {
-                @Override
-                public void execute(ResolvedComponentResult resolvedComponentResult) {
-                    ResolvedComponentResultInternal component = (ResolvedComponentResultInternal) resolvedComponentResult;
-                    if (alreadySeen.contains(component)) {
-                        return;
-                    }
-                    alreadySeen.add(component);
-                    String componentDisplayName = component.getId().getDisplayName();
-                    List<Object> componentDetails;
-                    Set<? extends DependencyResult> dependencies = component.getDependencies();
-                    if (components.containsKey(componentDisplayName)) {
-                        componentDetails = components.get(componentDisplayName);
-                    } else {
-                        componentDetails = new ArrayList<Object>(dependencies.size() + 1);
-                        components.put(componentDisplayName, componentDetails);
-                    }
-                    componentDetails.add(Collections.singletonMap("repoName", component.getRepositoryName()));
-                }
-            });
-            model.put("components", components);
-            return model;
-        }
-
     }
 
     private class ConfigurationFileCollection extends AbstractFileCollection {
@@ -1584,55 +1530,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     rethrowFailure("task dependencies", failures);
                 }
             }
-        }
-    }
-
-    private class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
-
-        @Override
-        public String getConfigurationName() {
-            return getName();
-        }
-
-        @Nullable
-        @Override
-        public String getProjectPath() {
-            if (isScriptConfiguration()) {
-                return null;
-            } else {
-                Path projectPath = domainObjectContext.getProjectPath();
-                return projectPath == null ? null : projectPath.getPath();
-            }
-        }
-
-        @Override
-        public boolean isScriptConfiguration() {
-            return domainObjectContext.isScript();
-        }
-
-        @Override
-        public String getConfigurationDescription() {
-            return getDescription();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return domainObjectContext.getBuildPath().getPath();
-        }
-
-        @Override
-        public boolean isConfigurationVisible() {
-            return isVisible();
-        }
-
-        @Override
-        public boolean isConfigurationTransitive() {
-            return isTransitive();
-        }
-
-        @Override
-        public List<Repository> getRepositories() {
-            return resolver.getRepositories();
         }
     }
 
