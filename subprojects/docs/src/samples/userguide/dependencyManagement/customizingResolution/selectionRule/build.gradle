@@ -22,7 +22,7 @@ dependencies {
     }
 }
 
-// START SNIPPET reject-version-1.1
+// tag::reject-version-1-1[]
 configurations {
     rejectConfig {
         resolutionStrategy {
@@ -41,7 +41,7 @@ configurations {
 dependencies {
     rejectConfig "org.sample:api:1.+"
 }
-// END SNIPPET reject-version-1.1
+// end::reject-version-1-1[]
 
 task printRejectConfig {
     doLast {
@@ -49,7 +49,7 @@ task printRejectConfig {
     }
 }
 
-// START SNIPPET component-selection-with-metadata
+// tag::component-selection-with-metadata[]
 configurations {
     metadataRulesConfig {
         resolutionStrategy {
@@ -70,7 +70,7 @@ configurations {
         }
     }
 }
-// END SNIPPET component-selection-with-metadata
+// end::component-selection-with-metadata[]
 
 dependencies {
     metadataRulesConfig "org.sample:api:1.+"
@@ -83,7 +83,7 @@ task printMetadataRulesConfig {
     }
 }
 
-// START SNIPPET targeted-component-selection
+// tag::targeted-component-selection[]
 configurations {
     targetConfig {
         resolutionStrategy {
@@ -97,7 +97,7 @@ configurations {
         }
     }
 }
-// END SNIPPET targeted-component-selection
+// end::targeted-component-selection[]
 
 dependencies {
     targetConfig "org.sample:api:1.+"
@@ -109,7 +109,7 @@ task printTargetConfig {
     }
 }
 
-// START SNIPPET api-component-selection
+// tag::api-component-selection[]
 class RejectTestBranch {
     @Mutate
     void evaluateRule(ComponentSelection selection, IvyModuleDescriptor ivy) {
@@ -128,7 +128,7 @@ configurations {
         }
     }
 }
-// END SNIPPET api-component-selection
+// end::api-component-selection[]
 
 dependencies {
     ruleSourceConfig "org.sample:api:1.+"

@@ -16,7 +16,7 @@
 
 package org.gradle.sample
 
-// START SNIPPET functional-test-spock-gradle-version
+// tag::functional-test-spock-gradle-version[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
@@ -58,4 +58,4 @@ class BuildLogicFunctionalTest extends Specification {
         gradleVersion << ['2.6', '2.7']
     }
 }
-// END SNIPPET functional-test-spock-gradle-version
+// end::functional-test-spock-gradle-version[]

@@ -1,12 +1,12 @@
 apply plugin: 'java'
 
-//START SNIPPET locking-all
+// tag::locking-all[]
 dependencyLocking {
     lockAllConfigurations()
 }
-//END SNIPPET locking-all
+// end::locking-all[]
 
-//START SNIPPET resolve-all
+// tag::resolve-all[]
 task resolveAndLockAll {
     doFirst {
         assert gradle.startParameter.writeDependencyLocks
@@ -18,4 +18,4 @@ task resolveAndLockAll {
         }.each { it.resolve() }
     }
 }
-//END SNIPPET resolve-all
+// end::resolve-all[]

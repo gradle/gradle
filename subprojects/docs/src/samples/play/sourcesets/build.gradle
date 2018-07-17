@@ -20,7 +20,7 @@ dependencies {
     playTest "com.google.guava:guava:17.0"
 }
 
-// START SNIPPET default-sourcesets
+// tag::default-sourcesets[]
 model {
     components {
         play {
@@ -38,9 +38,9 @@ model {
         }
     }
 }
-// END SNIPPET default-sourcesets
+// end::default-sourcesets[]
 
-// START SNIPPET play-extra-sourcesets
+// tag::play-extra-sourcesets[]
 model {
     components {
         play {
@@ -58,5 +58,5 @@ model {
         }
     }
 }
-// END SNIPPET play-extra-sourcesets
+// end::play-extra-sourcesets[]
 

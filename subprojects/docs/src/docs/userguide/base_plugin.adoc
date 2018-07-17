@@ -13,24 +13,27 @@
 // limitations under the License.
 
 [[base_plugin]]
-== The Base Plugin
+= The Base Plugin
 
-The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<sec:lifecycle_tasks,_lifecycle_ tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
+The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<more_about_tasks.adoc#sec:lifecycle_tasks,_lifecycle_ tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
 
 [[sec:base_plugin_usage]]
-=== Usage
+== Usage
 
-++++
-<sample id="applyingBasePlugin" dir="userguide/basePlugin" title="Applying the Base Plugin">
-    <sourcefile file="build.gradle" snippet="apply-base-plugin"/>
-</sample>
-++++
+
+=== Example: Applying the Base Plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/basePlugin/build.gradle[tag=apply-base-plugin]
+----
 
 [[sec:base_tasks]]
-=== Tasks
+== Task
 
-`clean` — type: `Delete`::
-Deletes the build directory and everything in it, i.e. the path specified by the api:org.gradle.api.Project#getBuildDir()[] project property.
+`clean` — `Delete`::
+Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] project property.
 
 `check` — _lifecycle task_::
 Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
@@ -50,16 +53,16 @@ Assembles those artifacts attached to the named configuration. For example, `bui
 Does the same as `build__Configuration__`, but also uploads all the artifacts attached to the given configuration.
 
 `clean__Task__` — task rule::
-Removes the <<sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+Removes the <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
 
 
 [[sec:base_plugin_configurations]]
-=== Dependency management
+== Dependency management
 
-The Base Plugin adds no <<managing_dependency_configurations,configurations for dependencies>>, but it does add the following configurations for <<sec:artifacts_and_configurations,artifacts>>:
+The Base Plugin adds no <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations for dependencies>>, but it does add the following configurations for <<artifact_management.adoc#sec:artifacts_and_configurations,artifacts>>:
 
 `default`::
-A fallback configuration used by consumer projects. Let's say you have project B with a _<<sub:project_dependencies,project dependency>>_ on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
+A fallback configuration used by consumer projects. Let's say you have project B with a <<dependency_types.adoc#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
 +
 *New builds and plugins should not be using the `default` configuration!* It remains for the reason of backwards compatibility.
 
@@ -69,12 +72,12 @@ A standard configuration for the production artifacts of a project. This results
 Note that the `assemble` task generates all artifacts that are attached to the `archives` configuration.
 
 [[sec:base_plugin_conventions]]
-=== Conventions
+== Conventions
 
 The Base Plugin only adds conventions related to the creation of archives, such as ZIPs, TARs and JARs. Specifically, it provides the following project properties that you can set:
 
 `archivesBaseName` — default: `$project.name`::
-Provides the default api:org.gradle.api.tasks.bundling.AbstractArchiveTask#getBaseName()[] for archive tasks.
+Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:baseName[AbstractArchiveTask.getBaseName()] for archive tasks.
 
 `distsDirName` — default: _distributions_::
 Default name of the directory in which distribution archives, i.e. non-JARs, are created.
@@ -82,7 +85,7 @@ Default name of the directory in which distribution archives, i.e. non-JARs, are
 `libsDirName` — default: _libs_::
 Default name of the directory in which library archives, i.e. JARs, are created.
 
-The plugin also provides default values for the following properties on any task that extends api:org.gradle.api.tasks.bundling.AbstractArchiveTask[]:
+The plugin also provides default values for the following properties on any task that extends link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]:
 
 `destinationDir`::
 Defaults to __``$buildDir``/``$distsDirName``__ for non-JAR archives and __``$buildDir``/``$libsDirName``__ for JARs and derivatives of JAR, such as WARs.

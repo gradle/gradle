@@ -7,40 +7,40 @@ task originalInputs() {
     }
 }
 
-// START SNIPPET updated-inputs
+// tag::updated-inputs[]
 task updateInputs() {
     doLast {
         file('inputs/1.txt').text = 'Changed content for existing file 1.'
         file('inputs/4.txt').text = 'Content for new file 4.'
     }
 }
-// END SNIPPET updated-inputs
+// end::updated-inputs[]
 
-// START SNIPPET removed-input
+// tag::removed-input[]
 task removeInput() {
     doLast {
         file('inputs/3.txt').delete()
     }
 }
-// END SNIPPET removed-input
+// end::removed-input[]
 
-// START SNIPPET removed-output
+// tag::removed-output[]
 task removeOutput() {
     doLast {
         file("$buildDir/outputs/1.txt").delete()
     }
 }
-// END SNIPPET removed-output
+// end::removed-output[]
 
-// START SNIPPET reverse
+// tag::reverse[]
 task incrementalReverse(type: IncrementalReverseTask) {
     inputDir = file('inputs')
     outputDir = file("$buildDir/outputs")
     inputProperty = project.properties['taskInputProperty'] ?: 'original'
 }
-// END SNIPPET reverse
+// end::reverse[]
 
-// START SNIPPET incremental-task
+// tag::incremental-task[]
 class IncrementalReverseTask extends DefaultTask {
     @InputDirectory
     def File inputDir
@@ -55,26 +55,26 @@ class IncrementalReverseTask extends DefaultTask {
     void execute(IncrementalTaskInputs inputs) {
         println inputs.incremental ? 'CHANGED inputs considered out of date'
                                    : 'ALL inputs considered out of date'
-        // START SNIPPET handle-non-incremental-inputs
+        // tag::handle-non-incremental-inputs[]
         if (!inputs.incremental)
             project.delete(outputDir.listFiles())
-        // END SNIPPET handle-non-incremental-inputs
+        // end::handle-non-incremental-inputs[]
 
-        // START SNIPPET out-of-date-inputs
+        // tag::out-of-date-inputs[]
         inputs.outOfDate { change ->
             println "out of date: ${change.file.name}"
             def targetFile = new File(outputDir, change.file.name)
             targetFile.text = change.file.text.reverse()
         }
-        // END SNIPPET out-of-date-inputs
+        // end::out-of-date-inputs[]
 
-        // START SNIPPET removed-inputs
+        // tag::removed-inputs[]
         inputs.removed { change ->
             println "removed: ${change.file.name}"
             def targetFile = new File(outputDir, change.file.name)
             targetFile.delete()
         }
-        // END SNIPPET removed-inputs
+        // end::removed-inputs[]
     }
 }
-// END SNIPPET incremental-task
+// end::incremental-task[]

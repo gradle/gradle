@@ -1,17 +1,17 @@
 apply plugin: 'eclipse'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'groovy'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
-// START SNIPPET groovy-dependency
+// tag::groovy-dependency[]
 repositories {
     mavenCentral()
 }
 
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.15'
-// END SNIPPET groovy-dependency
+// end::groovy-dependency[]
     testCompile 'junit:junit:4.12'
-// START SNIPPET groovy-dependency
+// tag::groovy-dependency[]
 }
-// END SNIPPET groovy-dependency
+// end::groovy-dependency[]

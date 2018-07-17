@@ -1,5 +1,4 @@
 <!-- This file is an example of the Ivy module descriptor that this build will produce -->
-<!-- START SNIPPET content -->
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
   <info organisation="org.gradle.sample" module="project1" revision="1.0" status="integration" publication="«PUBLICATION-TIME-STAMP»">
@@ -19,4 +18,3 @@
     <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="compile-&gt;default"/>
   </dependencies>
 </ivy-module>
-<!-- END SNIPPET content -->

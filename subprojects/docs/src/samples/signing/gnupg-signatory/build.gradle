@@ -4,9 +4,9 @@ apply plugin: 'signing'
 group = 'gradle'
 version = '1.0'
 
-// START SNIPPET configure-signatory
+// tag::configure-signatory[]
 signing {
     useGpgCmd()
     sign configurations.archives
 }
-// END SNIPPET configure-signatory
+// end::configure-signatory[]

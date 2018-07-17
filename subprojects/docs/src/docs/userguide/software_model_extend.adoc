@@ -13,219 +13,257 @@
 // limitations under the License.
 
 [[software_model_extend]]
-== Extending the software model
+= Extending the software model
 
-
-[NOTE]
+[CAUTION]
+====
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
 ====
 
-Support for the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+== Introduction
 
-====
-
-One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support domains like the <<play_plugin,Play Framework>> or <<native_software,native software development>>. Before reading this you should be familiar with the Gradle software model <<software_model,rule based configuration>> and <<software_model_concepts,concepts>>.
+One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support domains like the <<play_plugin.adoc#play_plugin,Play Framework>> or <<native_software.adoc#native_software,native software development>>. Before reading this you should be familiar with the Gradle software model <<software_model.adoc#software_model,rule based configuration>> and <<software_model_concepts.adoc#software_model_concepts,concepts>>.
 
 The following build script is an example of using a custom software model for building Markdown based documentation:
 
-++++
-<sample id="sm-extensible-build-script" title="an example of using a custom software model" dir="customModel/languageType/" includeLocation="true">
-        <sourcefile file="build.gradle" snippet="build-script"/>
-    </sample>
-++++
+=== Example: an example of using a custom software model
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/customModel/languageType/build.gradle[tag=build-script]
+----
+NOTE: The code for this example can be found at **`samples/customModel/languageType/`** in the ‘-all’ distribution of Gradle.
 
 The rest of this chapter is dedicated to explaining what is going on behind this build script.
 
 
 [[sec:concepts]]
-=== Concepts
+== Concepts
 
 A custom software model type has a public type, a base interface and internal views. Multiple such types then collaborate to define a custom software model.
 
 
 [[sec:public_type_and_base_interfaces]]
-==== Public type and base interfaces
+=== Public type and base interfaces
 
 Extended types declare a _public type_ that extends a _base interface_:
 
-* Components extend the api:org.gradle.platform.base.ComponentSpec[] base interface
-* Binaries extend the api:org.gradle.platform.base.BinarySpec[] base interface
-* Source sets extend the api:org.gradle.language.base.LanguageSourceSet[] base interface
+* Components extend the link:{javadocPath}/org/gradle/platform/base/ComponentSpec.html[ComponentSpec] base interface
+* Binaries extend the link:{javadocPath}/org/gradle/platform/base/BinarySpec.html[BinarySpec] base interface
+* Source sets extend the link:{javadocPath}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet] base interface
 
 The _public type_ is exposed to build logic.
 
 [[sec:internal_views]]
-==== Internal views
+=== Internal views
 
-Adding internal views to your model type, you can make some data visible to build logic via a public type, while hiding the rest of the data behind the internal view types. This is covered in a <<software-model-extend-internal-views,dedicated section>> below.
+Adding internal views to your model type, you can make some data visible to build logic via a public type, while hiding the rest of the data behind the internal view types. This is covered in a <<#software-model-extend-internal-views,dedicated section>> below.
 
 [[sec:components_all_the_way_down]]
-==== Components all the way down
+=== Components all the way down
 
 Components are composed of other components. A source set is just a special kind of component representing sources. It might be that the sources are provided, or generated. Similarly, some components are composed of different binaries, which are built by tasks. All buildable components are built by tasks. In the software model, you will write rules to generate both binaries from components and tasks from binaries.
 
 [[sec:components]]
-=== Components
+== Components
 
-To declare a custom component type one must extend api:org.gradle.platform.base.ComponentSpec[], or one of the following, depending on the use case:
+To declare a custom component type one must extend link:{javadocPath}/org/gradle/platform/base/ComponentSpec.html[ComponentSpec], or one of the following, depending on the use case:
 
-* api:org.gradle.platform.base.SourceComponentSpec[] represents a component which has sources
-* api:org.gradle.platform.base.VariantComponentSpec[] represents a component which generates different binaries based on context (target platforms, build flavors, ...). Such a component generally produces multiple binaries.
-* api:org.gradle.platform.base.GeneralComponentSpec[] is a convenient base interface for components that are built from sources and variant-aware. This is the typical case for a lot of software components, and therefore it should be in most of the cases the base type to be extended.
+* link:{javadocPath}/org/gradle/platform/base/SourceComponentSpec.html[SourceComponentSpec] represents a component which has sources
+* link:{javadocPath}/org/gradle/platform/base/VariantComponentSpec.html[VariantComponentSpec] represents a component which generates different binaries based on context (target platforms, build flavors, ...). Such a component generally produces multiple binaries.
+* link:{javadocPath}/org/gradle/platform/base/GeneralComponentSpec.html[GeneralComponentSpec] is a convenient base interface for components that are built from sources and variant-aware. This is the typical case for a lot of software components, and therefore it should be in most of the cases the base type to be extended.
 
 
-The core software model includes more types that can be used as base for extension. For example: api:org.gradle.platform.base.LibrarySpec[] and api:org.gradle.platform.base.ApplicationSpec[] can also be extended in this manner. Theses are no-op extensions of `GeneralComponentSpec` used to describe a software model better by distinguishing libraries and applications components. api:org.gradle.testing.base.TestSuiteSpec[] should be used for all components that describe a test suite.
+The core software model includes more types that can be used as base for extension. For example: link:{javadocPath}/org/gradle/platform/base/LibrarySpec.html[LibrarySpec] and link:{javadocPath}/org/gradle/platform/base/ApplicationSpec.html[ApplicationSpec] can also be extended in this manner. Theses are no-op extensions of `GeneralComponentSpec` used to describe a software model better by distinguishing libraries and applications components. link:{javadocPath}/org/gradle/testing/base/TestSuiteSpec.html[TestSuiteSpec] should be used for all components that describe a test suite.
 
-++++
-<sample id="component-declaration" title="Declare a custom component" dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
-            <sourcefile file="DocumentationComponent.groovy" snippet="component-declaration"/>
-        </sample>
-++++
+=== Example: Declare a custom component
 
-Types extending `ComponentSpec` are registered via a rule annotated with api:org.gradle.platform.base.ComponentType[]:
+[source.multi-language-sample,groovy]
+.DocumentationComponent.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationComponent.groovy[tag=component-declaration]
+----
 
-++++
-<sample id="component-registration" title="Register a custom component" dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
-            <sourcefile file="DocumentationPlugin.groovy" snippet="component-registration"/>
-        </sample>
-++++
+Types extending `ComponentSpec` are registered via a rule annotated with link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]:
+
+=== Example: Register a custom component
+
+[source.multi-language-sample,groovy]
+.DocumentationPlugin.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationPlugin.groovy[tag=component-registration]
+----
 
 
 [[sec:binaries]]
-=== Binaries
+== Binaries
 
-To declare a custom binary type one must extend api:org.gradle.platform.base.BinarySpec[].
+To declare a custom binary type one must extend link:{javadocPath}/org/gradle/platform/base/BinarySpec.html[BinarySpec].
 
-++++
-<sample id="binary-declaration" title="Declare a custom binary" dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
-            <sourcefile file="DocumentationBinary.groovy" snippet="binary-declaration"/>
-        </sample>
-++++
+=== Example: Declare a custom binary
 
-Types extending `BinarySpec` are registered via a rule annotated with api:org.gradle.platform.base.ComponentType[]:
+[source.multi-language-sample,groovy]
+.DocumentationBinary.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationBinary.groovy[tag=binary-declaration]
+----
 
-++++
-<sample id="binary-registration" title="Register a custom binary" dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
-            <sourcefile file="DocumentationPlugin.groovy" snippet="binary-registration"/>
-        </sample>
-++++
+Types extending `BinarySpec` are registered via a rule annotated with link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]:
+
+=== Example: Register a custom binary
+
+[source.multi-language-sample,groovy]
+.DocumentationPlugin.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationPlugin.groovy[tag=binary-registration]
+----
 
 
 [[sec:source_sets]]
-=== Source sets
+== Source sets
 
-To declare a custom source set type one must extend api:org.gradle.language.base.LanguageSourceSet[].
+To declare a custom source set type one must extend link:{javadocPath}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet].
 
-++++
-<sample id="markdown-lang-declaration" title="Declare a custom source set" dir="customModel/languageType/buildSrc/src/main/groovy/sample/markdown">
-            <sourcefile file="MarkdownSourceSet.groovy" snippet="markdown-lang-declaration"/>
-        </sample>
-++++
+=== Example: Declare a custom source set
 
-Types extending `LanguageSourceSet` are registered via a rule annotated with api:org.gradle.platform.base.ComponentType[]:
+[source.multi-language-sample,groovy]
+.MarkdownSourceSet.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/markdown/MarkdownSourceSet.groovy[tag=markdown-lang-declaration]
+----
 
-++++
-<sample id="markdown-lang-registration" title="Register a custom source set" dir="customModel/languageType/buildSrc/src/main/groovy/sample/markdown">
-            <sourcefile file="MarkdownPlugin.groovy" snippet="markdown-lang-registration"/>
-        </sample>
-++++
+Types extending `LanguageSourceSet` are registered via a rule annotated with link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]:
+
+=== Example: Register a custom source set
+
+[source.multi-language-sample,groovy]
+.MarkdownPlugin.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/markdown/MarkdownPlugin.groovy[tag=markdown-lang-registration]
+----
 
 Setting the _language name_ is mandatory.
 
 [[sec:putting_it_all_together]]
-=== Putting it all together
+== Putting it all together
 
 
 [[sec:generating_binaries_from_components]]
-==== Generating binaries from components
+=== Generating binaries from components
 
-Binaries generation from components is done via rules annotated with api:org.gradle.platform.base.ComponentBinaries[]. This rule generates a `DocumentationBinary` named `exploded` for each `DocumentationComponent` and sets its `outputDir` property:
+Binaries generation from components is done via rules annotated with link:{javadocPath}/org/gradle/platform/base/ComponentBinaries.html[ComponentBinaries]. This rule generates a `DocumentationBinary` named `exploded` for each `DocumentationComponent` and sets its `outputDir` property:
 
-++++
-<sample id="binaries-gen" title="Generates documentation binaries" dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
-                <sourcefile file="DocumentationPlugin.groovy" snippet="binaries-generation"/>
-            </sample>
-++++
+=== Example: Generates documentation binaries
+
+[source.multi-language-sample,groovy]
+.DocumentationPlugin.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationPlugin.groovy[tag=binaries-generation]
+----
 
 
 [[sec:generating_tasks_from_binaries]]
-==== Generating tasks from binaries
+=== Generating tasks from binaries
 
-Tasks generation from binaries is done via rules annotated with api:org.gradle.platform.base.BinaryTasks[]. This rule generates a `Copy` task for each `TextSourceSet` of each `DocumentationBinary`:
+Tasks generation from binaries is done via rules annotated with link:{javadocPath}/org/gradle/platform/base/BinaryTasks.html[BinaryTasks]. This rule generates a `Copy` task for each `TextSourceSet` of each `DocumentationBinary`:
 
-++++
-<sample id="text-tasks-gen" title="Generates tasks for text source sets" dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
-                <sourcefile file="DocumentationPlugin.groovy" snippet="text-tasks-generation"/>
-            </sample>
-++++
+=== Example: Generates tasks for text source sets
+
+[source.multi-language-sample,groovy]
+.DocumentationPlugin.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/documentation/DocumentationPlugin.groovy[tag=text-tasks-generation]
+----
 
 This rule generates a `MarkdownCompileTask` task for each `MarkdownSourceSet` of each `DocumentationBinary`:
 
-++++
-<sample id="markdown-tasks-gen" title="Register a custom source set" dir="customModel/languageType/buildSrc/src/main/groovy/sample/markdown">
-                <sourcefile file="MarkdownPlugin.groovy" snippet="markdown-tasks-generation"/>
-            </sample>
-++++
+=== Example: Register a custom source set
+
+[source.multi-language-sample,groovy]
+.MarkdownPlugin.groovy
+----
+include::{samplesPath}/customModel/languageType/buildSrc/src/main/groovy/sample/markdown/MarkdownPlugin.groovy[tag=markdown-tasks-generation]
+----
 
 See the sample source for more on the `MarkdownCompileTask` task.
 
 [[sec:using_your_custom_model]]
-==== Using your custom model
+=== Using your custom model
 
 This build script demonstrate usage of the custom model defined in the sections above:
 
-++++
-<sample id="sm-extensible-build-script-re" title="an example of using a custom software model" dir="customModel/languageType/" includeLocation="true">
-                <sourcefile file="build.gradle" snippet="build-script"/>
-            </sample>
-++++
+=== Example: an example of using a custom software model
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/customModel/languageType//build.gradle[tag=build-script]
+----
+NOTE: The code for this example can be found at **`samples/customModel/languageType/`** in the ‘-all’ distribution of Gradle.
 
 And in the components reports for such a build script we can see our model types properly registered:
 
-++++
-<sample id="softwareModelExtend-components" title="components report" dir="customModel/languageType/">
-                <output args="-q components"/>
-            </sample>
-++++
+=== Example: components report
+
+.Output of **`gradle -q components`**
+----
+> gradle -q components
+include::{samplesPath}/customModel/languageType//softwareModelExtend-components.out[]
+----
 
 
 [[software-model-extend-internal-views]]
-=== About internal views
+== About internal views
 
 Internal views can be added to an already registered type or to a new custom type. In other words, using internal views, you can attach extra properties to already registered components, binaries and source sets types like `JvmLibrarySpec`, `JarBinarySpec` or `JavaSourceSet` and to the custom types you write.
 
 Let's start with a simple component public type and its internal view declarations:
 
-++++
-<sample id="iv-type-declaration" title="public type and internal view declaration" dir="customModel/internalViews">
-            <sourcefile file="build.gradle" snippet="type-declaration"/>
-        </sample>
-++++
+=== Example: public type and internal view declaration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/customModel/internalViews/build.gradle[tag=type-declaration]
+----
 
 The type registration is as follows:
 
-++++
-<sample id="iv-type-registration" title="type registration" dir="customModel/internalViews">
-            <sourcefile file="build.gradle" snippet="type-registration"/>
-        </sample>
-++++
+=== Example: type registration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/customModel/internalViews/build.gradle[tag=type-registration]
+----
 
 The `internalView(type)` method of the type builder can be called several times. This is how you would add several internal views to a type.
 
 Now, let's mutate both public and internal data using some rule:
 
-++++
-<sample id="iv-view-mutation" title="public and internal data mutation" dir="customModel/internalViews">
-            <sourcefile file="build.gradle" snippet="internal-view-mutation"/>
-        </sample>
-++++
+=== Example: public and internal data mutation
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/customModel/internalViews/build.gradle[tag=internal-view-mutation]
+----
 
 Our `internalData` property should not be exposed to build logic. Let's check this using the `model` task on the following build file:
 
-++++
-<sample id="softwareModelExtend-iv-model" title="example build script and model report output" dir="customModel/internalViews">
-            <sourcefile file="build.gradle" snippet="build-script"/>
-            <output args="-q model"/>
-        </sample>
-++++
+=== Example: Build script and model report output
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/customModel/internalViews/build.gradle[tag=build-script]
+----
+
+.Output of `gradle -q model`
+----
+> gradle -q model
+include::{samplesPath}/customModel/internalViews/softwareModelExtend-iv-model.out[]
+----
 
 We can see in this report that `publicData` is present and that `internalData` is not.

@@ -13,15 +13,15 @@
 // limitations under the License.
 
 [[plugins]]
-== Using Gradle Plugins
+= Using Gradle Plugins
 
-Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. api:org.gradle.api.tasks.compile.JavaCompile[]), domain objects (e.g. api:org.gradle.api.tasks.SourceSet[]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
+Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g. link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
 
 In this chapter we discuss how to use plugins and the terminology and concepts surrounding plugins.
 
 
 [[sec:what_plugins_do]]
-=== What plugins do
+== What plugins do
 
 Applying a plugin to a project allows the plugin to extend the project's capabilities. It can do things such as:
 
@@ -37,87 +37,93 @@ By applying plugins, rather than adding logic to the project build script, we ca
 
 
 [[sec:types_of_plugins]]
-=== Types of plugins
+== Types of plugins
 
-There are two general types of plugins in Gradle, _script_ plugins and _binary_ plugins. Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build. They are typically used within a build although they can be externalized and accessed from a remote location. Binary plugins are classes that implement the api:org.gradle.api.Plugin[] interface and adopt a programmatic approach to manipulating the build. Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
+There are two general types of plugins in Gradle, _script_ plugins and _binary_ plugins. Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build. They are typically used within a build although they can be externalized and accessed from a remote location. Binary plugins are classes that implement the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface and adopt a programmatic approach to manipulating the build. Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
 
 A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it's migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
 
 [[sec:using_plugins]]
-=== Using plugins
+== Using plugins
 
-To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the target, usually a api:org.gradle.api.Project[].
+To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the target, usually a link:{groovyDslPath}/org.gradle.api.Project.html[Project].
 
 _Resolving_ a plugin means finding the correct version of the jar which contains a given plugin and adding it the script classpath. Once a plugin is resolved, its API can be used in a build script. Script plugins are self-resolving in that they are resolved from the specific file path or URL provided when applying them. Core binary plugins provided as part of the Gradle distribution are automatically resolved.
 
-_Applying_ a plugin means actually executing the plugin's api:org.gradle.api.Plugin#apply(T)[] on the Project you want to enhance with the plugin. Applying plugins is _idempotent_. That is, you can safely apply any plugin multiple times without side effects.
+_Applying_ a plugin means actually executing the plugin's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] on the Project you want to enhance with the plugin. Applying plugins is _idempotent_. That is, you can safely apply any plugin multiple times without side effects.
 
-The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a common use case, it's recommended that build authors use the <<sec:plugins_block,plugins DSL>> to both resolve and apply plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
+The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a common use case, it's recommended that build authors use the <<#sec:plugins_block,plugins DSL>> to both resolve and apply plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
 
 [[sec:script_plugins]]
-=== Script plugins
+== Script plugins
 
 
-++++
-<sample id="configureProjectUsingScript" dir="userguide/organizingGradleProjects/configureProjectUsingScript" title="Applying a script plugin">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
+=== Example: Applying a script plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/organizingGradleProjects/configureProjectUsingScript/build.gradle[]
+----
 
 Script plugins are automatically resolved and can be applied from a script on the local filesystem or at a remote location. Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL. Multiple script plugins (of either form) can be applied to a given target.
 
 [[sec:binary_plugins]]
-=== Binary plugins
+== Binary plugins
 
-You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins. Core Gradle plugins are special in that they provide short names, such as `'java'` for the core api:org.gradle.api.plugins.JavaPlugin[]. All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`), although some legacy plugins may still utilize a short, unqualified form. Where you put the plugin id depends on whether you are using the <<sec:plugins_block,plugins DSL>> or the <<sec:old_plugin_application,buildscript block.>>
+You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins. Core Gradle plugins are special in that they provide short names, such as `'java'` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`), although some legacy plugins may still utilize a short, unqualified form. Where you put the plugin id depends on whether you are using the <<#sec:plugins_block,plugins DSL>> or the <<#sec:old_plugin_application,buildscript block.>>
 
 
 [[sec:binary_plugin_locations]]
-==== Locations of binary plugins
+=== Locations of binary plugins
 
-A plugin is simply any class that implements the api:org.gradle.api.Plugin[] interface. Gradle provides the core plugins (e.g. `JavaPlugin`) as part of its distribution which means they are automatically resolved. However, non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
+A plugin is simply any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface. Gradle provides the core plugins (e.g. `JavaPlugin`) as part of its distribution which means they are automatically resolved. However, non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
 
-* Including the plugin from the plugin portal or a <<sec:custom_plugin_repositories,custom repository>> using the plugins DSL (see <<sec:plugins_block>>).
-* Including the plugin from an external jar defined as a buildscript dependency (see <<sec:applying_plugins_buildscript>>).
-* Defining the plugin as a source file under the buildSrc directory in the project (see <<sec:build_sources>>).
+* Including the plugin from the plugin portal or a <<#sec:custom_plugin_repositories,custom repository>> using the plugins DSL (see <<#sec:plugins_block,Applying plugins using the plugins DSL>>).
+* Including the plugin from an external jar defined as a buildscript dependency (see see <<#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>).
+* Defining the plugin as a source file under the buildSrc directory in the project (see <<organizing_gradle_projects.adoc#sec:build_sources,Using buildSrc to extract functional logic>>).
 * Defining the plugin as an inline class declaration inside a build script.
 
-For more on defining your own plugins, see <<custom_plugins>>.
+For more on defining your own plugins, see <<custom_plugins.adoc#custom_plugins,Custom Plugins>>.
 
 [[sec:plugins_block]]
-==== Applying plugins with the plugins DSL
+=== Applying plugins with the plugins DSL
 
 
 [NOTE]
 ====
 
-The plugins DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The plugins DSL is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
-The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of api:org.gradle.plugin.use.PluginDependenciesSpec[].
+The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec].
 
 To apply a core plugin, the short name can be used:
 
-++++
-<sample id="useJavaPluginDSL" dir="plugins/dsl" title="Applying a core plugin">
-    <sourcefile file="build.gradle" snippet="use-plugin"/>
-</sample>
-++++
+==== Example: Applying a core plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/plugins/dsl/build.gradle[tag=use-plugin]
+----
 
 To apply a community plugin from the portal, the fully qualified plugin id must be used:
 
-++++
-<sample id="useCommunityPluginDSL" dir="plugins/dsl" title="Applying a community plugin">
-    <sourcefile file="build.gradle" snippet="use-community-plugin"/>
-</sample>
-++++
+==== Example: Applying a community plugin
 
-See api:org.gradle.plugin.use.PluginDependenciesSpec[] for more information on using the Plugin DSL.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/plugins/dsl/build.gradle[tag=use-community-plugin]
+----
+
+See link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec] for more information on using the Plugin DSL.
 
 
 [[plugins_dsl_limitations]]
-===== Limitations of the plugins DSL
+==== Limitations of the plugins DSL
 
 This way of adding plugins to a project is much more than a more convenient syntax. The plugins DSL is processed in a way which allows Gradle to determine the plugins in use very early and very quickly. This allows Gradle to do smart things such as:
 
@@ -131,7 +137,7 @@ There are some key differences between the new plugin mechanism and the “tradi
 
 
 [[sec:constrained_syntax]]
-====== Constrained Syntax
+===== Constrained Syntax
 
 The new `plugins {}` block does not support arbitrary Groovy code. It is constrained, in order to be idempotent (produce the same result every time) and side effect free (safe for Gradle to execute at any time).
 
@@ -150,29 +156,38 @@ Where `«plugin version»` and `«plugin id»` must be constant, literal, string
 The `plugins {}` block must also be a top level statement in the buildscript. It cannot be nested inside another construct (e.g. an if-statement or for-loop).
 
 [[sec:build_scripts_only]]
-====== Can only be used in build scripts
+===== Can only be used in build scripts
 
 The `plugins {}` block can currently only be used in a project's build script. It cannot be used in script plugins, the settings.gradle file or init scripts.
 
 _Future versions of Gradle will remove this restriction._
 
-If the restrictions of the new syntax are prohibitive, the recommended approach is to apply plugins using the <<sec:applying_plugins_buildscript,buildscript {} block>>.
+If the restrictions of the new syntax are prohibitive, the recommended approach is to apply plugins using the <<#sec:applying_plugins_buildscript,buildscript {} block>>.
 
 [[sec:subprojects_plugins_dsl]]
-===== Applying plugins to subprojects
+==== Applying plugins to subprojects
 
-If you have a <<multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block:
+If you have a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block:
 
-++++
-<sample id="pluginsOnSubprojects" dir="plugins/multiproject" title="Applying plugins only on certain subprojects.">
-    <sourcefile file="settings.gradle" snippet="include-subprojects"/>
-    <sourcefile file="build.gradle" snippet="plugins-on-subprojects"/>
-</sample>
-++++
+===== Example: Applying plugins only on certain subprojects.
+
+[.multi-language-sample,groovy]
+====
+.settings.gradle
+[source,groovy]
+----
+include::{samplesPath}/plugins/multiproject/settings.gradle[tag=include-subprojects]
+----
+
+.build.gradle
+[source,groovy]
+----
+include::{samplesPath}/plugins/multiproject/build.gradle[tag=plugins-on-subprojects]
+----
+====
 
 If you then run `gradle hello` you'll see that only the helloA and helloB subprojects had the hello plugin applied.
 
-[source]
 ----
 gradle/subprojects/docs/src/samples/plugins/multiproject $> gradle hello
 Parallel execution is an incubating feature.
@@ -185,120 +200,143 @@ BUILD SUCCEEDED
 ----
 
 [[sec:plugin_management]]
-===== Plugin Management
+==== Plugin Management
 
 
 [NOTE]
 ====
-The `pluginManagement {}` DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The `pluginManagement {}` DSL is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 ====
 
-The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts,Initialization Script>>.
+The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts.adoc#init_scripts,Initialization Script>>.
 
-++++
-<sample id="pluginManagementConfiguration" dir="plugins/pluginManagement" title="Configuring pluginManagement per-project and globally">
-    <sourcefile file="settings.gradle"/>
-    <sourcefile file="init.gradle"/>
-</sample>
-++++
+===== Example: Configuring pluginManagement per-project and globally
+
+[.multi-language-sample,groovy]
+====
+.settings.gradle
+[source,groovy]
+----
+include::{samplesPath}/plugins/pluginManagement/settings.gradle[]
+----
+
+.init.gradle
+[source,groovy]
+----
+include::{samplesPath}/plugins/pluginManagement/init.gradle[]
+----
+====
+
 
 [[sec:custom_plugin_repositories]]
-====== Custom Plugin Repositories
+===== Custom Plugin Repositories
 
 By default, the `plugins {}` DSL resolves plugins from the public https://plugins.gradle.org[Gradle Plugin Portal.] Many build authors would also like to resolve plugins from private Maven or Ivy repositories because the plugins contain proprietary implementation details, or just to have more control over what plugins are available to their builds.
 
 To specify custom plugin repositories, use the `repositories {}` block inside `pluginManagement {}`:
 
-++++
-<sample id="customPluginRepositories" dir="plugins/consuming" title="Using plugins from custom plugin repositories.">
-    <sourcefile file="settings.gradle" snippet="custom-plugin-repositories"/>
-</sample>
-++++
+====== Example: Using plugins from custom plugin repositories.
+
+[source.multi-language-sample,groovy]
+.settings.gradle
+----
+include::{samplesPath}/plugins/consuming/settings.gradle[tag=custom-plugin-repositories]
+----
 
 This tells Gradle to first look in the Maven repository at `maven-repo` when resolving plugins and then to check the Gradle Plugin Portal if the plugins are not found in the Maven repository. If you don't want the Gradle Plugin Portal to be searched, omit the `gradlePluginPortal()` line. Finally, the Ivy repository at `ivy-repo` will be checked.
 
 [[sec:plugin_resolution_rules]]
-====== Plugin Resolution Rules
+==== Plugin Resolution Rules
 
 Plugin resolution rules allow you to modify plugin requests made in `plugins {}` blocks, e.g. changing the requested version or explicitly specifying the implementation artifact coordinates.
 
 To add resolution rules, use the `resolutionStrategy {}` inside the `pluginManagement {}` block:
 
-++++
-<sample id="pluginResolutionStrategy" dir="plugins/resolutionRules" title="Plugin resolution strategy.">
-    <sourcefile file="settings.gradle" snippet="plugin-resolution-strategy"/>
-</sample>
-++++
+===== Example: Plugin resolution strategy.
+
+[source.multi-language-sample,groovy]
+.settings.gradle
+----
+include::{samplesPath}/plugins/resolutionRules/settings.gradle[tag=plugin-resolution-strategy]
+----
 
 This tells Gradle to use the specified plugin implementation artifact instead of using its built-in default mapping from plugin ID to Maven/Ivy coordinates.
 
-Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin>>.
+Custom Maven and Ivy plugin repositories must contain <<#sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin.adoc#java_gradle_plugin,Gradle Plugin Development Plugin>>.
 
-See api:org.gradle.plugin.management.PluginManagementSpec[] for complete documentation for using the `pluginManagement {}` block.
+See link:{javadocPath}/org/gradle/plugin/management/PluginManagementSpec.html[PluginManagementSpec] for complete documentation for using the `pluginManagement {}` block.
 
 [[sec:plugin_markers]]
-===== Plugin Marker Artifacts
+==== Plugin Marker Artifacts
 
-Since the `plugins {}` DSL block only allows for declaring plugins by their globally unique plugin `id` and `version` properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact. To do so, Gradle will look for a Plugin Marker Artifact with the coordinates `plugin.id:plugin.id.gradle.plugin:plugin.version`. This marker needs to have a dependency on the actual plugin implementation. Publishing these markers is automated by the <<java_gradle_plugin,java-gradle-plugin>>.
+Since the `plugins {}` DSL block only allows for declaring plugins by their globally unique plugin `id` and `version` properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact. To do so, Gradle will look for a Plugin Marker Artifact with the coordinates `plugin.id:plugin.id.gradle.plugin:plugin.version`. This marker needs to have a dependency on the actual plugin implementation. Publishing these markers is automated by the <<java_gradle_plugin.adoc#java_gradle_plugin,java-gradle-plugin>>.
 
-For example, the following complete sample from the `sample-plugins` project shows how to publish a `org.gradle.sample.hello` plugin and a `org.gradle.sample.goodbye` plugin to both an Ivy and Maven repository using the combination of the <<java_gradle_plugin,java-gradle-plugin>>, the <<publishing_maven,maven-publish>> plugin, and the <<publishing_ivy,ivy-publish>> plugin.
+For example, the following complete sample from the `sample-plugins` project shows how to publish a `org.gradle.sample.hello` plugin and a `org.gradle.sample.goodbye` plugin to both an Ivy and Maven repository using the combination of the <<java_gradle_plugin.adoc#java_gradle_plugin,java-gradle-plugin>>, the <<publishing_maven.adoc#publishing_maven,maven-publish>> plugin, and the <<publishing_ivy.adoc#publishing_ivy,ivy-publish>> plugin.
 
-++++
-<sample id="completePluginPublishing" title="Complete Plugin Publishing Sample" dir="plugins/publishing">
-    <sourcefile file="build.gradle" snippet="complete-plugin-publishing"/>
-</sample>
-++++
+===== Example: Complete Plugin Publishing Sample
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/plugins/publishing/build.gradle[tag=complete-plugin-publishing]
+----
 
 Running `gradle publish` in the sample directory causes the following repo layouts to exist:
 
-image::img/pluginMarkers.png[]
+image::pluginMarkers.png[]
 
 [[sec:old_plugin_application]]
-==== Legacy Plugin Application
+=== Legacy Plugin Application
 
-With the introduction of the <<sec:plugins_block,plugins DSL>>, users should have little reason to use the legacy method of applying plugins. It is documented here in case a build author cannot use the plugins DSL due to restrictions in how it currently works.
+With the introduction of the <<#sec:plugins_block,plugins DSL>>, users should have little reason to use the legacy method of applying plugins. It is documented here in case a build author cannot use the plugins DSL due to restrictions in how it currently works.
 
 
 [[sec:applying_binary_plugins]]
-===== Applying Binary Plugins
+==== Applying Binary Plugins
 
 
-++++
-<sample id="useJavaPlugin" dir="java/quickstart" title="Applying a binary plugin">
-    <sourcefile file="build.gradle" snippet="use-plugin"/>
-</sample>
-++++
+===== Example: Applying a binary plugin
 
-Plugins can be applied using a _plugin id_. In the above case, we are using the short name ‘`java`’ to apply the api:org.gradle.api.plugins.JavaPlugin[].
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/java/quickstart/build.gradle[tag=use-plugin]
+----
+
+Plugins can be applied using a _plugin id_. In the above case, we are using the short name ‘`java`’ to apply the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
 
 Rather than using a plugin id, plugins can also be applied by simply specifying the class of the plugin:
 
-++++
-<sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a binary plugin by type">
-    <sourcefile file="build.gradle" snippet="apply-by-type"/>
-</sample>
-++++
+===== Example: Applying a binary plugin by type
 
-The `JavaPlugin` symbol in the above sample refers to the api:org.gradle.api.plugins.JavaPlugin[]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<script-default-imports>>). Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/pluginIntro/build.gradle[tag=apply-by-type]
+----
+
+The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>). Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
 
 [[sec:applying_plugins_buildscript]]
-===== Applying plugins with the buildscript block
+==== Applying plugins with the buildscript block
 
-Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<sec:build_script_external_dependencies>>.
+Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>.
 
-++++
-<sample id="applyPluginBuildscript" dir="plugins/buildscript" title="Applying a plugin with the buildscript block">
-    <sourcefile file="build.gradle" snippet="buildscript_block"/>
-</sample>
-++++
+===== Example: Applying a plugin with the buildscript block
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/plugins/buildscript/build.gradle[tag=buildscript_block]
+----
 
 
 [[sec:finding_community_plugins]]
-=== Finding community plugins
+== Finding community plugins
 
-Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities. The Gradle http://plugins.gradle.org[plugin portal] provides an interface for searching and exploring community plugins.
+Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities. The Gradle https://plugins.gradle.org[plugin portal] provides an interface for searching and exploring community plugins.
 
 [[sec:more_on_plugins]]
-=== More on plugins
+== More on plugins
 
-This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings of plugins, see <<custom_plugins>>.
+This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings of plugins, see <<custom_plugins.adoc#custom_plugins,Custom Plugins>>.

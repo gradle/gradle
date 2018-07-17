@@ -13,127 +13,96 @@
 // limitations under the License.
 
 [[ear_plugin]]
-== The Ear Plugin
+= The Ear Plugin
 
 The Ear plugin adds support for assembling web application EAR files. It adds a default EAR archive task. It doesn't require the Java plugin, but for projects that also use the Java plugin it disables the default JAR archive generation.
 
 
 [[sec:ear_usage]]
-=== Usage
+== Usage
 
 To use the Ear plugin, include the following in your build script:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="earWithWar" dir="ear/earWithWar" title="Using the Ear plugin">
-            <sourcefile file="build.gradle" snippet="use-ear-plugin"/>
-            <test args="assemble"/>
-        </sample>
-++++
+=== Example: Using the Ear plugin
 
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/ear/earWithWar/build.gradle[tag=use-ear-plugin]
+----
 
 [[sec:ear_tasks]]
-=== Tasks
+== Tasks
 
 The Ear plugin adds the following tasks to the project.
 
-.Ear plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`ear` — link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear]::
+_Depends on_: `compile` (only if the Java plugin is also applied)
++
+Assembles the application EAR file.
 
-| `ear`
-| `compile` (only if the Java plugin is also applied)
-| api:org.gradle.plugins.ear.Ear[]
-| Assembles the application EAR file.
-|===
+=== Dependencies added to other tasks
 
-The Ear plugin adds the following dependencies to tasks added by the base plugin.
+The Ear plugin adds the following dependencies to tasks added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
-.Ear plugin - additional task dependencies
-[cols="a,a", options="header"]
-|===
-| Task name
-| Depends on
-| assemble
-| ear
-|===
+`assemble`::
+_Depends on_: `ear`.
 
 
 [[sec:ear_project_layout]]
-=== Project layout
+== Project layout
 
-
-.Ear plugin - project layout
-[cols="a,a", options="header"]
-|===
-| Directory
-| Meaning
-
-| `src/main/application`
-| Ear resources, such as a META-INF directory
-|===
+----
+.
+└── src
+    └── main
+        └── application // <1>
+----
+<1> Ear resources, such as a META-INF directory
 
 
 [[sec:ear_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All dependencies in the `deploy` configuration are placed in the root of the EAR archive, and are _not_ transitive. All dependencies in the `earlib` configuration are placed in the 'lib' directory in the EAR archive and _are_ transitive.
 
 [[sec:ear_convention_properties]]
-=== Convention properties
+== Convention properties
 
+`appDirName` — `String`::
+The name of the application source directory, relative to the project directory. _Default value: `src/main/application`_.
 
-.Ear plugin - directory properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`libDirName` — `String`::
+The name of the lib directory inside the generated EAR. _Default value: `lib`_.
 
-| `appDirName`
-| `String`
-| `src/main/application`
-| The name of the application source directory, relative to the project directory.
+`deploymentDescriptor` — link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html[DeploymentDescriptor]::
+Metadata to generate a deployment descriptor file, e.g. `application.xml`. _Default value: A deployment descriptor with sensible defaults named `application.xml`_. If this file already exists in the `appDirName/META-INF` then the existing file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.
 
-| `libDirName`
-| `String`
-| `lib`
-| The name of the lib directory inside the generated EAR.
-
-| `deploymentDescriptor`
-| `org.gradle.plugins.``ear.descriptor.``DeploymentDescriptor`
-| A deployment descriptor with sensible defaults named `application.xml`
-| Metadata to generate a deployment descriptor file, e.g. `application.xml`. If this file already exists in the `appDirName/META-INF` then the existing file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.
-|===
-
-These properties are provided by a api:org.gradle.plugins.ear.EarPluginConvention[] convention object.
+These properties are provided by a link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] convention object.
 
 [[sec:ear_default_settings]]
-=== Ear
+== Ear
 
 The default behavior of the Ear task is to copy the content of `src/main/application` to the root of the archive. If your `application` directory doesn't contain a `META-INF/application.xml` deployment descriptor then one will be generated for you.
 
-The api:org.gradle.plugins.ear.Ear[] class in the API documentation has additional useful information.
+The link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] class in the API documentation has additional useful information.
 
 [[sec:ear_customizing]]
-=== Customizing
+== Customizing
 
 Here is an example with the most important customization options:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="earCustomized" dir="ear/earCustomized/ear" title="Customization of ear plugin">
-            <sourcefile file="build.gradle"/>
-            <test args="assemble"/>
-        </sample>
-++++
+=== Example: Customization of ear plugin
 
-You can also use customization options that the api:org.gradle.plugins.ear.Ear[] task provides, such as `from` and `metaInf`.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/ear/earCustomized/ear/build.gradle[]
+----
+
+You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.
 
 [[sec:using_custom_app_xml]]
-=== Using custom descriptor file
+== Using custom descriptor file
 
 You may already have appropriate settings in a `application.xml` file and want to use that instead of configuring the `ear.deploymentDescriptor` section of the build script. To accommodate that goal, place the `META-INF/application.xml` in the right place inside your source folders (see the `appDirName` property). The file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.

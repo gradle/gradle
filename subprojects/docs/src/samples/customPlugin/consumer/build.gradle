@@ -1,5 +1,5 @@
-// START SNIPPET use-plugin
-// START SNIPPET use-task
+// tag::use-plugin[]
+// tag::use-task[]
 buildscript {
     repositories {
         maven {
@@ -17,12 +17,12 @@ buildscript {
 				  version: '1.0-SNAPSHOT'
     }
 }
-// END SNIPPET use-task
+// end::use-task[]
 apply plugin: 'org.samples.greeting'
-// END SNIPPET use-plugin
-// START SNIPPET use-task
+// end::use-plugin[]
+// tag::use-task[]
 
 task greeting(type: org.gradle.GreetingTask) {
     greeting = 'howdy!'
 }
-// END SNIPPET use-task
+// end::use-task[]

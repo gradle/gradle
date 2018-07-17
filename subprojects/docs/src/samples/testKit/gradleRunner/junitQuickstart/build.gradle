@@ -1,16 +1,16 @@
 apply plugin: 'java'
 
-// START SNIPPET declare-gradle-testkit-dependency
+// tag::declare-gradle-testkit-dependency[]
 dependencies {
     testCompile gradleTestKit()
 }
-// END SNIPPET declare-gradle-testkit-dependency
+// end::declare-gradle-testkit-dependency[]
 
-// START SNIPPET declare-junit-dependency
+// tag::declare-junit-dependency[]
 dependencies {
     testCompile 'junit:junit:4.12'
 }
-// END SNIPPET declare-junit-dependency
+// end::declare-junit-dependency[]
 
 repositories {
     mavenCentral()

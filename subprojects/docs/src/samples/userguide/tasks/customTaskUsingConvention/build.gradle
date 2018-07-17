@@ -1,4 +1,4 @@
-// START SNIPPET tasks
+// tag::tasks[]
 apply plugin: GreetingPlugin
 
 // our default greeting
@@ -9,9 +9,9 @@ task hello(type: GreetingTask)
 task bonjour(type: GreetingTask) {
     greeting = "Bonjour!"
 }
-// END SNIPPET tasks
+// end::tasks[]
 
-// START SNIPPET plugin
+// tag::plugin[]
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.tasks.withType(GreetingTask) { task ->
@@ -19,9 +19,9 @@ class GreetingPlugin implements Plugin<Project> {
         }
     }
 }
-// END SNIPPET plugin
+// end::plugin[]
 
-// START SNIPPET task
+// tag::task[]
 class GreetingTask extends DefaultTask {
 
     String greeting
@@ -31,4 +31,4 @@ class GreetingTask extends DefaultTask {
         println getGreeting()
     }
 }
-// END SNIPPET task
+// end::task[]

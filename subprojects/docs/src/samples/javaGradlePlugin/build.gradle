@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-java-gradle-plugin-plugin
+// tag::use-java-gradle-plugin-plugin[]
 plugins {
     id 'java-gradle-plugin'
 }
-// END SNIPPET use-java-gradle-plugin-plugin
+// end::use-java-gradle-plugin-plugin[]
 
-// START SNIPPET gradle-plugin-block
+// tag::gradle-plugin-block[]
 gradlePlugin {
     plugins {
         simplePlugin {
@@ -29,4 +29,4 @@ gradlePlugin {
         }
     }
 }
-// END SNIPPET gradle-plugin-block
+// end::gradle-plugin-block[]

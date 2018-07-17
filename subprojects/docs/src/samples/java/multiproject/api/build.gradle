@@ -12,20 +12,20 @@ configurations {
    spi
 }
 
-// START SNIPPET dependencies
-// START SNIPPET project-dependencies
+// tag::dependencies[]
+// tag::project-dependencies[]
 dependencies {
     compile project(':shared')
-// END SNIPPET project-dependencies
-// END SNIPPET dependencies
+// end::project-dependencies[]
+// end::dependencies[]
     compile module("org.apache.commons:commons-lang3:3.7") {
         dependency("commons-io:commons-io:2.6")
     }
-// START SNIPPET dependencies
-// START SNIPPET project-dependencies
+// tag::dependencies[]
+// tag::project-dependencies[]
 }
-// END SNIPPET dependencies
-// END SNIPPET project-dependencies
+// end::dependencies[]
+// end::project-dependencies[]
 
 // Just a smoke test that using this option does not lead to any exception
 compileJava.options.compilerArgs = ['-Xlint:unchecked']
@@ -40,7 +40,7 @@ artifacts {
   spi spiJar
 }
 
-// START SNIPPET dists
+// tag::dists[]
 task dist(type: Zip) {
     dependsOn spiJar
     from 'src/dist'
@@ -53,7 +53,7 @@ task dist(type: Zip) {
 artifacts {
    archives dist
 }
-// END SNIPPET dists
+// end::dists[]
 
 // We want to test if commons-math was properly added to the build script classpath
 org.apache.commons.math3.fraction.Fraction lhs = new org.apache.commons.math3.fraction.Fraction(1, 3);

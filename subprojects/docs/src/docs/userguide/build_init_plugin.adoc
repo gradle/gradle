@@ -13,50 +13,38 @@
 // limitations under the License.
 
 [[build_init_plugin]]
-== Build Init Plugin
+= Build Init Plugin
 
 
 [NOTE]
 ====
 
-The Build Init plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The Build Init plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
 The Gradle Build Init plugin can be used to bootstrap the process of creating a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
 
-Gradle plugins typically need to be _applied_ to a project before they can be used (see <<sec:using_plugins>>). The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly. To use the plugin, simply execute the task named `init` where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
+Gradle plugins typically need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly. To use the plugin, simply execute the task named `init` where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
 
-It also leverages the `wrapper` task to <<sec:adding_wrapper,generate the Gradle Wrapper files>> for the project.
+It also leverages the `wrapper` task to <<gradle_wrapper.adoc#sec:adding_wrapper,generate the Gradle Wrapper files>> for the project.
 
 
 [[sec:build_init_tasks]]
-=== Tasks
+== Tasks
 
 The plugin adds the following tasks to the project:
 
-.Build Init plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
+_Depends on_: `wrapper`
++
+Generates a Gradle project.
 
-| `init`
-| `wrapper`
-| api:org.gradle.buildinit.tasks.InitBuild[]
-| Generates a Gradle project.
-
-| `wrapper`
-| -
-| api:org.gradle.api.tasks.wrapper.Wrapper[]
-| Generates Gradle wrapper files.
-|===
-
+`wrapper` — link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]::
+Generates Gradle wrapper files.
 
 [[sec:what_to_set_up]]
-=== What to set up
+== What to set up
 
 The `init` supports different build setup _types_. The type is specified by supplying a `--type` argument value. For example, to create a Java library project simply execute: `gradle init --type java-library`.
 
@@ -71,19 +59,19 @@ All build setup types include the setup of the Gradle Wrapper.
 Note that the migration from Maven builds only supports the Groovy DSL for generated build scripts.
 
 [[sec:build_init_types]]
-=== Build init types
+== Build init types
 
 
 [NOTE]
 ====
-As this plugin is currently <<feature_lifecycle,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
+As this plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
 ====
 
 
 [[sec:pom_maven_conversion_]]
-==== “`pom`” (Maven conversion)
+=== `pom` (Maven conversion)
 
-The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<gradle_command_line,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
+The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface.adoc#command_line_interface,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
 
@@ -104,7 +92,7 @@ The conversion process has the following features:
 
 
 [[sec:javaapplication_]]
-==== “`java-application`”
+=== `java-application`
 
 The “`java-application`” build init type is not inferable. It must be explicitly specified.
 
@@ -123,7 +111,7 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 
 
 [[sec:javalibrary_]]
-==== “`java-library`”
+=== `java-library`
 
 The “`java-library`” build init type is not inferable. It must be explicitly specified.
 
@@ -142,7 +130,7 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 
 
 [[sec:scalalibrary_]]
-==== “`scala-library`”
+=== `scala-library`
 
 The “`scala-library`” build init type is not inferable. It must be explicitly specified.
 
@@ -158,7 +146,7 @@ It has the following features:
 
 
 [[sec:groovylibrary_]]
-==== “`groovy-library`”
+=== `groovy-library`
 
 The “`groovy-library`” build init type is not inferable. It must be explicitly specified.
 
@@ -173,7 +161,7 @@ It has the following features:
 
 
 [[sec:groovyapplication_]]
-==== “`groovy-application`”
+=== `groovy-application`
 
 The “`groovy-application`” build init type is not inferable. It must be explicitly specified.
 
@@ -189,7 +177,7 @@ It has the following features:
 
 
 [[sec:basic]]
-==== “basic”
+=== `basic`
 
 The “`basic`” build init type is useful for creating a fresh new Gradle project. It creates a sample `build.gradle` file, with comments and links to help get started.
 

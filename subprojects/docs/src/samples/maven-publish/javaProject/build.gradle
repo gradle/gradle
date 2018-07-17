@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET publish-custom-artifact
+// tag::publish-custom-artifact[]
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allJava
@@ -35,23 +35,23 @@ publishing {
         }
     }
 }
-// END SNIPPET publish-custom-artifact
+// end::publish-custom-artifact[]
 
-// START SNIPPET repo-url-from-variable
-// START SNIPPET repo-url-from-project-property
+// tag::repo-url-from-variable[]
+// tag::repo-url-from-project-property[]
 publishing {
     repositories {
         maven {
             def releasesRepoUrl = "$buildDir/repos/releases"
             def snapshotsRepoUrl = "$buildDir/repos/snapshots"
-// END SNIPPET repo-url-from-variable
+// end::repo-url-from-variable[]
             url = project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
-// END SNIPPET repo-url-from-project-property
-// START SNIPPET repo-url-from-variable
+// end::repo-url-from-project-property[]
+// tag::repo-url-from-variable[]
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-// START SNIPPET repo-url-from-project-property
+// tag::repo-url-from-project-property[]
         }
     }
 }
-// END SNIPPET repo-url-from-project-property
-// END SNIPPET repo-url-from-variable
+// end::repo-url-from-project-property[]
+// end::repo-url-from-variable[]

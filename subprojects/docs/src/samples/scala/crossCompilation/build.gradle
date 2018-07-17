@@ -12,7 +12,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET scala-cross-compilation
+// tag::scala-cross-compilation[]
 sourceCompatibility = 1.6
 
 assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
@@ -38,4 +38,4 @@ tasks.withType(JavaExec) {
 tasks.withType(Javadoc) {
     executable = javaExecutables.javadoc
 }
-// END SNIPPET scala-cross-compilation
+// end::scala-cross-compilation[]

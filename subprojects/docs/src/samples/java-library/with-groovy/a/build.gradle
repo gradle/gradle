@@ -23,7 +23,7 @@ dependencies {
     compile localGroovy()
 }
 
-// START SNIPPET configure-groovy
+// tag::configure-groovy[]
 configurations {
     apiElements {
         outgoing.variants.getByName('classes').artifact(
@@ -32,4 +32,4 @@ configurations {
             builtBy: compileGroovy)
     }
 }
-// END SNIPPET configure-groovy
+// end::configure-groovy[]

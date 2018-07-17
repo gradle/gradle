@@ -13,249 +13,285 @@
 // limitations under the License.
 
 [[more_about_tasks]]
-== Authoring Tasks
+= Authoring Tasks
 
-In the introductory tutorial (<<tutorial_using_tasks>>) you learned how to create simple tasks. You also learned how to add additional behavior to these tasks later on, and you learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept of tasks further. Gradle supports _enhanced tasks_, which are tasks that have their own properties and methods. This is really different from what you are used to with Ant targets. Such enhanced tasks are either provided by you or built into Gradle.
+In the <<tutorial_using_tasks.adoc#tutorial_using_tasks,introductory tutorial>> you learned how to create simple tasks. You also learned how to add additional behavior to these tasks later on, and you learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept of tasks further. Gradle supports _enhanced tasks_, which are tasks that have their own properties and methods. This is really different from what you are used to with Ant targets. Such enhanced tasks are either provided by you or built into Gradle.
 
 
 [[sec:task_outcomes]]
-=== Task outcomes
+== Task outcomes
 
-When Gradle executes a task, it can label the task with different outcomes in the console UI and via the Tooling API (see <<embedding>>). These labels are based on if a task has actions to execute, if it should execute those actions, if it did execute those actions and if those actions made any changes.
+When Gradle executes a task, it can label the task with different outcomes in the console UI and via the <<embedding.adoc#embedding,Tooling API>>. These labels are based on if a task has actions to execute, if it should execute those actions, if it did execute those actions and if those actions made any changes.
 
-.Details about task outcomes
-[cols="a,a,a", options="header"]
-|===
-| Outcome label
-| Description of outcome
-| Situations that have this outcome
+`(no label)` or `EXECUTED`::
+Task executed its actions.
++
+* Task has actions and Gradle has determined they should be executed as part of a build.
+* Task has no actions and some dependencies, and any of the dependencies are executed. See also <<#sec:lifecycle_tasks,Lifecycle Tasks>>.
 
-| `(no label)` or `EXECUTED`
-| Task executed its actions.
-|
+`UP-TO-DATE`::
+Task's outputs did not change.
++
+* Task has outputs and inputs and they have not changed. See <<#sec:up_to_date_checks,Incremental Builds>>.
+* Task has actions, but the task tells Gradle it did not change its outputs.
+* Task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <<#sec:lifecycle_tasks,Lifecycle Tasks>>.
+* Task has no actions and no dependencies.
 
-* Used whenever a task has actions and Gradle has determined they should be executed as part of a build.
-* Used whenever a task has no actions and some dependencies, and any of the dependencies are executed. See also <<sec:lifecycle_tasks>>.
+`FROM-CACHE`::
+Task's outputs could be found from a previous execution.
++
+* Task has outputs restored from the build cache. See <<build_cache.adoc#build_cache,Build Cache>>.
 
+`SKIPPED`::
+Task did not execute its actions.
++
+* Task has been explicitly excluded from the command-line. See <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,Excluding tasks from execution>>.
+* Task has an `onlyIf` predicate return false. See <<#sec:using_a_predicate,Using a predicate>>.
 
-| `UP-TO-DATE`
-| Task's outputs did not change.
-|
-
-* Used when a task has outputs and inputs and they have not changed. See <<sec:up_to_date_checks>>.
-* Used when a task has actions, but the task tells Gradle it did not change its outputs.
-* Used when a task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <<sec:lifecycle_tasks>>.
-* Used when a task has no actions and no dependencies.
-
-
-| `FROM-CACHE`
-| Task's outputs could be found from a previous execution.
-|
-
-* Used when a task has outputs restored from the build cache. See <<build_cache>>.
-
-
-| `SKIPPED`
-| Task did not execute its actions.
-|
-
-* Used when a task has been explicitly excluded from the command-line. See <<sec:excluding_tasks_from_the_command_line>>.
-* Used when a task has an `onlyIf` predicate return false. See <<sec:using_a_predicate>>.
-
-
-| `NO-SOURCE`
-| Task did not need to execute its actions.
-|
-
-* Used when a task has inputs and outputs, but <<skip-when-empty,no sources>>. For example, source files are `.java` files for api:org.gradle.api.tasks.compile.JavaCompile[].
-
-|===
+`NO-SOURCE`::
+Task did not need to execute its actions.
++
+* Task has inputs and outputs, but <<#skip-when-empty,no sources>>. For example, source files are `.java` files for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile].
 
 
 [[sec:defining_tasks]]
-=== Defining tasks
+== Defining tasks
 
-We have already seen how to define tasks using a keyword style in <<tutorial_using_tasks>>. There are a few variations on this style, which you may need to use in certain situations. For example, the keyword style does not work in expressions.
+We have already seen how to define tasks using a keyword style in <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations. For example, the keyword style does not work in expressions.
 
-++++
-<sample id="defineAsExpression" dir="userguide/tasks/defineAsExpression" title="Defining tasks">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Defining tasks
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/defineAsExpression/build.gradle[]
+----
 
 You can also use strings for the task names:
 
-++++
-<sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings for task names">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Defining tasks - using strings for task names
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/defineUsingStringTaskNames/build.gradle[]
+----
 
 There is an alternative syntax for defining tasks, which you may prefer to use:
 
-++++
-<sample id="addToTaskContainer" dir="userguide/tasks/addToTaskContainer" title="Defining tasks with alternative syntax">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Defining tasks with alternative syntax
 
-Here we add tasks to the `tasks` collection. Have a look at api:org.gradle.api.tasks.TaskContainer[] for more variations of the `create()` method.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/addToTaskContainer/build.gradle[]
+----
+
+Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `create()` method.
 
 [[sec:locating_tasks]]
-=== Locating tasks
+== Locating tasks
 
 You often need to locate the tasks that you have defined in the build file, for example, to configure them or use them for dependencies. There are a number of ways of doing this. Firstly, each task is available as a property of the project, using the task name as the property name:
 
-++++
-<sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty" title="Accessing tasks as properties">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Accessing tasks as properties
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/accessAsProperty/build.gradle[]
+----
 
 Tasks are also available through the `tasks` collection.
 
-++++
-<sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer" title="Accessing tasks via tasks collection">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Accessing tasks via tasks collection
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/accessFromTaskContainer/build.gradle[]
+----
 
 You can access tasks from any project using the task's path using the `tasks.getByPath()` method. You can call the `getByPath()` method with a task name, or a relative path, or an absolute path.
 
-++++
-<sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath" title="Accessing tasks by path">
-            <sourcefile file="build.gradle"/>
-            <output args="-q hello"/>
-        </sample>
-++++
+=== Example: Accessing tasks by path
 
-Have a look at api:org.gradle.api.tasks.TaskContainer[] for more options for locating tasks.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/accessUsingPath/build.gradle[]
+----
+
+.Output of **`gradle -q hello`**
+----
+> gradle -q hello
+include::{samplesPath}/userguide/tasks/accessUsingPath/accessUsingPath.out[]
+----
+
+Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for locating tasks.
 
 [[sec:configuring_tasks]]
-=== Configuring tasks
+== Configuring tasks
 
 As an example, let's look at the `Copy` task provided by Gradle. To create a `Copy` task for your build, you can declare in your build script:
 
-++++
-<sample id="declareTask" dir="userguide/tasks/configureUsingClosure" title="Creating a copy task">
-            <sourcefile file="build.gradle" snippet="declare-task"/>
-        </sample>
-++++
+=== Example: Creating a copy task
 
-This creates a copy task with no default behavior. The task can be configured using its API (see api:org.gradle.api.tasks.Copy[]). The following examples show several different ways to achieve the same configuration.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/configureUsingClosure/build.gradle[tag=declare-task]
+----
+
+This creates a copy task with no default behavior. The task can be configured using its API (see link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]). The following examples show several different ways to achieve the same configuration.
 
 Just to be clear, realize that the name of this task is “`myCopy`”, but it is of _type_ “`Copy`”. You can have multiple tasks of the same _type_, but with different names. You'll find this gives you a lot of power to implement cross-cutting concerns across all tasks of a particular type.
 
-++++
-<sample id="configureUsingVar" dir="userguide/tasks/configureUsingVar" title="Configuring a task - various ways">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Configuring a task - various ways
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/configureUsingVar/build.gradle[]
+----
 
 This is similar to the way we would configure objects in Java. You have to repeat the context (`myCopy`) in the configuration statement every time. This is a redundancy and not very nice to read.
 
 There is another way of configuring a task. It also preserves the context and it is arguably the most readable. It is usually our favorite.
 
-++++
-<sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure" title="Configuring a task - with closure">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Configuring a task - with closure
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/configureUsingClosure/build.gradle[tag=all]
+----
 
 This works for _any_ task. Line 3 of the example is just a shortcut for the `tasks.getByName()` method. It is important to note that if you pass a closure to the `getByName()` method, this closure is applied to _configure_ the task, not when the task executes.
 
 You can also use a configuration closure when you define a task.
 
-++++
-<sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure" title="Defining a task with closure">
-            <sourcefile file="build.gradle" snippet="no-description"/>
-        </sample>
-++++
+=== Example: Defining a task with closure
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/defineAndConfigure/build.gradle[tag=no-description]
+----
 
 [TIP]
 .Don't forget about the build phases
 ====
-A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle>> for more details about the build lifecycle.
+A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> for more details about the build lifecycle.
 ====
 
 [[sec:passing_arguments_to_a_task_constructor]]
-=== Passing arguments to a task constructor
+== Passing arguments to a task constructor
 
 As opposed to configuring the mutable properties of a `Task` after creation, you can pass argument values to the `Task` class's constructor.
 In order to pass values to the `Task` constructor, you must annotate the relevant constructor with `@javax.inject.Inject`.
 
-++++
-<sample id="taskConstructorArgs" dir="userguide/tasks/taskConstructorArgs/groovyMap" title="Task class with @Inject constructor">
-            <sourcefile file="build.gradle" snippet="inject-task-constructor"/>
-        </sample>
-++++
+=== Example: Task class with @Inject constructor
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/taskConstructorArgs/groovyMap/build.gradle[tag=inject-task-constructor]
+----
 
 You can then create a task, passing the constructor arguments at the end of the parameter list.
 
-++++
-<sample id="taskConstructorArgsTaskContainer" dir="userguide/tasks/taskConstructorArgs/groovyTaskContainer" title="Creating a task with constructor arguments using TaskContainer">
-            <sourcefile file="build.gradle" snippet="task-container"/>
-        </sample>
-++++
+=== Example: Creating a task with constructor arguments using TaskContainer
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/taskConstructorArgs/groovyTaskContainer/build.gradle[tag=task-container]
+----
 
 In a Groovy build script, you can create the task using `constructorArgs`.
 
-++++
-<sample id="taskConstructorArgsMap" dir="userguide/tasks/taskConstructorArgs/groovyMap" title="Creating a task with constructor arguments using Map">
-            <sourcefile file="build.gradle" snippet="groovy-map"/>
-        </sample>
-++++
+=== Example: Creating a task with constructor arguments using Map
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/taskConstructorArgs/groovyMap/build.gradle[tag=groovy-map]
+----
 
 In a Kotlin build script, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
 
-++++
-<sample id="taskConstructorArgsKotlinDsl" dir="userguide/tasks/taskConstructorArgs/kotlinDsl" title="Creating a task with constructor arguments using Kotlin DSL">
-            <sourcefile file="build.gradle.kts" snippet="kotlin-dsl"/>
-        </sample>
-++++
+=== Example: Creating a task with constructor arguments using Kotlin DSL
+
+[source.multi-language-sample,groovy]
+.build.gradle.kts
+----
+include::{samplesPath}/userguide/tasks/taskConstructorArgs/kotlinDsl/build.gradle.kts[tag=kotlin-dsl]
+----
 
 In all circumstances, the values passed as constructor arguments must be non-null.
 If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.
 
 [[sec:adding_dependencies_to_tasks]]
-=== Adding dependencies to a task
+== Adding dependencies to a task
 
-There are several ways you can define the dependencies of a task. In <<sec:task_dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `projectA:taskX` to `projectB:taskY`:
+There are several ways you can define the dependencies of a task. In <<tutorial_using_tasks.adoc#sec:task_dependencies,Task dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `projectA:taskX` to `projectB:taskY`:
 
-++++
-<sample id="addDependencyUsingPath" dir="userguide/tasks/addDependencyUsingPath" title="Adding dependency on task from another project">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskX"/>
-        </sample>
-++++
+=== Example: Adding dependency on task from another project
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/addDependencyUsingPath/build.gradle[]
+----
+
+.Output of **`gradle -q taskX`**
+----
+> gradle -q taskX
+include::{samplesPath}/userguide/tasks/addDependencyUsingPath/addDependencyUsingPath.out[]
+----
 
 Instead of using a task name, you can define a dependency using a `Task` object, as shown in this example:
 
-++++
-<sample id="addDependencyUsingTask" dir="userguide/tasks/addDependencyUsingTask" title="Adding dependency using task object">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskX"/>
-        </sample>
-++++
+=== Example: Adding dependency using task object
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/addDependencyUsingTask/build.gradle[]
+----
+
+.Output of **`gradle -q taskX`**
+----
+> gradle -q taskX
+include::{samplesPath}/userguide/tasks/addDependencyUsingTask/addDependencyUsingTask.out[]
+----
 
 For more advanced uses, you can define a task dependency using a closure. When evaluated, the closure is passed the task whose dependencies are being calculated. The closure should return a single `Task` or collection of `Task` objects, which are then treated as dependencies of the task. The following example adds a dependency from `taskX` to all the tasks in the project whose name starts with `lib`:
 
-++++
-<sample id="addDependencyUsingClosure" dir="userguide/tasks/addDependencyUsingClosure" title="Adding dependency using closure">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskX"/>
-        </sample>
-++++
+=== Example: Adding dependency using closure
 
-For more information about task dependencies, see the api:org.gradle.api.Task[] API.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/addDependencyUsingClosure/build.gradle[]
+----
+
+.Output of **`gradle -q taskX`**
+----
+> gradle -q taskX
+include::{samplesPath}/userguide/tasks/addDependencyUsingClosure/addDependencyUsingClosure.out[]
+----
+
+For more information about task dependencies, see the link:{groovyDslPath}/org.gradle.api.Task.html[Task] API.
 
 [[sec:ordering_tasks]]
-=== Ordering tasks
+== Ordering tasks
 
 
 [NOTE]
 ====
-Task ordering is an <<feature_lifecycle,incubating>> feature. Please be aware that this feature may change in later Gradle versions.
+Task ordering is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. Please be aware that this feature may change in later Gradle versions.
 ====
 
 In some cases it is useful to control the _order_ in which 2 tasks will execute, without introducing an explicit dependency between those tasks. The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
@@ -273,29 +309,46 @@ When you use the “must run after” ordering rule you specify that `taskB` mus
 
 With these rules present it is still possible to execute `taskA` without `taskB` and vice-versa.
 
-++++
-<sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding a 'must run after' task ordering">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskY taskX"/>
-        </sample>
-++++
+=== Example: Adding a 'must run after' task ordering
 
-++++
-<sample id="shouldRunAfter" dir="userguide/tasks/shouldRunAfter" title="Adding a 'should run after' task ordering">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskY taskX"/>
-        </sample>
-++++
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/mustRunAfter/build.gradle[]
+----
+
+.Output of **`gradle -q taskY taskX`**
+----
+> gradle -q taskY taskX
+include::{samplesPath}/userguide/tasks/mustRunAfter/mustRunAfter.out[]
+----
+
+=== Example: Adding a 'should run after' task ordering
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/shouldRunAfter/build.gradle[]
+----
+
+.Output of **`gradle -q taskY taskX`**
+----
+> gradle -q taskY taskX
+include::{samplesPath}/userguide/tasks/shouldRunAfter/shouldRunAfter.out[]
+----
 
 In the examples above, it is still possible to execute `taskY` without causing `taskX` to run:
 
-++++
-<sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Task ordering does not imply task execution">
-            <output args="-q taskY"/>
-        </sample>
-++++
+=== Example: Task ordering does not imply task execution
 
-To specify a “must run after” or “should run after” ordering between 2 tasks, you use the api:org.gradle.api.Task#mustRunAfter[] and api:org.gradle.api.Task#shouldRunAfter[] methods. These methods accept a task instance, a task name or any other input accepted by api:org.gradle.api.Task#dependsOn[].
+.Output of **`gradle -q taskY`**
+----
+> gradle -q taskY
+include::{samplesPath}/userguide/tasks/mustRunAfter/mustRunAfterSingleTask.out[]
+----
+
+To specify a “must run after” or “should run after” ordering between 2 tasks, you use the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter(java.lang.Object++...++)] and link:{javadocPath}/org/gradle/api/Task.html#shouldRunAfter-java.lang.Object++...++-[Task.shouldRunAfter(java.lang.Object++...++)] methods.
+These methods accept a task instance, a task name or any other input accepted by link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object++...++)].
 
 Note that “`B.mustRunAfter(A)`” or “`B.shouldRunAfter(A)`” does not imply any execution dependency between the tasks:
 
@@ -304,108 +357,139 @@ Note that “`B.mustRunAfter(A)`” or “`B.shouldRunAfter(A)`” does not impl
 
 As mentioned before, the “should run after” ordering rule will be ignored if it introduces an ordering cycle:
 
-++++
-<sample id="shouldRunAfterWithCycle" dir="userguide/tasks/shouldRunAfterWithCycle" title="A 'should run after' task ordering is ignored if it introduces an ordering cycle">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskX"/>
-        </sample>
-++++
+=== Example: A 'should run after' task ordering is ignored if it introduces an ordering cycle
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/shouldRunAfterWithCycle/build.gradle[]
+----
+
+.Output of **`gradle -q taskX`**
+----
+> gradle -q taskX
+include::{samplesPath}/userguide/tasks/shouldRunAfterWithCycle/shouldRunAfterWithCycle.out[]
+----
 
 
 [[sec:adding_a_description_to_a_task]]
-=== Adding a description to a task
+== Adding a description to a task
 
 You can add a description to your task. This description is displayed when executing `gradle tasks`.
 
-++++
-<sample id="describeTask" dir="userguide/tasks/defineAndConfigure" title="Adding a description to a task">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Adding a description to a task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/defineAndConfigure/build.gradle[tag=all]
+----
 
 
 [[sec:replacing_tasks]]
-=== Replacing tasks
+== Replacing tasks
 
 Sometimes you want to replace a task. For example, if you want to exchange a task added by the Java plugin with a custom task of a different type. You can achieve this with:
 
-++++
-<sample id="replaceTask" dir="userguide/tutorial/replaceTask" title="Overwriting a task">
-            <sourcefile file="build.gradle"/>
-            <output args="-q copy"/>
-        </sample>
-++++
+=== Example: Overwriting a task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/replaceTask/build.gradle[]
+----
+
+.Output of **`gradle -q copy`**
+----
+> gradle -q copy
+include::{samplesPath}/userguide/tutorial/replaceTask/replaceTask.out[]
+----
 
 This will replace a task of type `Copy` with the task you've defined, because it uses the same name. When you define the new task, you have to set the `overwrite` property to true. Otherwise Gradle throws an exception, saying that a task with that name already exists.
 
 [[sec:skipping_tasks]]
-=== Skipping tasks
+== Skipping tasks
 
 Gradle offers multiple ways to skip the execution of a task.
 
 
 [[sec:using_a_predicate]]
-==== Using a predicate
+=== Using a predicate
 
 You can use the `onlyIf()` method to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. You implement the predicate as a closure. The closure is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is due to be executed.
 
-++++
-<sample id="taskOnlyIf" dir="userguide/tutorial/taskOnlyIf" title="Skipping a task using a predicate">
-                <sourcefile file="build.gradle"/>
-                <output args="hello -PskipHello"/>
-            </sample>
-++++
+=== Example: Skipping a task using a predicate
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/taskOnlyIf/build.gradle[]
+----
+
+.Output of **`gradle hello -PskipHello`**
+----
+> gradle hello -PskipHello
+include::{samplesPath}/userguide/tutorial/taskOnlyIf/taskOnlyIf.out[]
+----
 
 
 [[sec:using_stopexecutionexception]]
-==== Using StopExecutionException
+=== Using StopExecutionException
 
-If the logic for skipping a task can't be expressed with a predicate, you can use the api:org.gradle.api.tasks.StopExecutionException[]. If this exception is thrown by an action, the further execution of this action as well as the execution of any following action of this task is skipped. The build continues with executing the next task.
+If the logic for skipping a task can't be expressed with a predicate, you can use the link:{javadocPath}/org/gradle/api/tasks/StopExecutionException.html[StopExecutionException]. If this exception is thrown by an action, the further execution of this action as well as the execution of any following action of this task is skipped. The build continues with executing the next task.
 
-++++
-<sample id="stopExecutionException" dir="userguide/tutorial/stopExecutionException" title="Skipping tasks with StopExecutionException">
-            <sourcefile file="build.gradle"/>
-            <output args="-q myTask"/>
-        </sample>
-++++
+=== Example: Skipping tasks with StopExecutionException
 
-This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<script-default-imports>>).]
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/stopExecutionException/build.gradle[]
+----
+
+.Output of **`gradle -q myTask`**
+----
+> gradle -q myTask
+include::{samplesPath}/userguide/tutorial/stopExecutionException/stopExecutionException.out[]
+----
+
+This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).]
 
 [[sec:enabling_and_disabling_tasks]]
-==== Enabling and disabling tasks
+=== Enabling and disabling tasks
 
 Every task has an `enabled` flag which defaults to `true`. Setting it to `false` prevents the execution of any of the task's actions. A disabled task will be labelled SKIPPED.
 
-++++
-<sample id="disableTask" dir="userguide/tutorial/disableTask" title="Enabling and disabling tasks">
-            <sourcefile file="build.gradle"/>
-            <output args="disableMe"/>
-        </sample>
-++++
+=== Example: Enabling and disabling tasks
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/disableTask/build.gradle[]
+----
+
+.Output of **`gradle disableMe`**
+----
+> gradle disableMe
+include::{samplesPath}/userguide/tutorial/disableTask/disableTask.out[]
+----
 
 [[sec:up_to_date_checks]]
-=== Up-to-date checks (AKA Incremental Build)
+== Up-to-date checks (AKA Incremental Build)
 
 An important part of any build tool is the ability to avoid doing work that has already been done. Consider the process of compilation. Once your source files have been compiled, there should be no need to recompile them unless something has changed that affects the output, such as the modification of a source file or the removal of an output file. And compilation can take a significant amount of time, so skipping the step when it’s not needed saves a lot of time.
 
-Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<sec:task_outcomes>>.
+Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<#sec:task_outcomes,Task outcomes>>.
 
 How does incremental build work? And what does it take to make use of it in your own tasks? Let’s take a look.
 
 
 [[sec:task_inputs_outputs]]
-==== Task inputs and outputs
+=== Task inputs and outputs
 
 In the most common case, a task takes some inputs and generates some outputs. If we use the compilation example from earlier, we can see that the source files are the inputs and, in the case of Java, the generated class files are the outputs. Other inputs might include things like whether debug information should be included.
 
-++++
-<figure>
-                <title>Example task inputs and outputs</title>
-                <imageobject>
-                    <imagedata fileref="img/taskInputsOutputs.png" width="160mm"/>
-                </imageobject>
-            </figure>
-++++
+.Example task inputs and outputs
+image::taskInputsOutputs.png[]
 
 An important characteristic of an input is that it affects one or more outputs, as you can see from the previous figure. Different bytecode is generated depending on the content of the source files and the minimum version of the Java runtime you want to run the code on. That makes them task inputs. But whether compilation has 500MB or 600MB of maximum memory available, determined by the `memoryMaximumSize` property, has no impact on what bytecode gets generated. In Gradle terminology, `memoryMaximumSize` is just an internal task property.
 
@@ -417,7 +501,7 @@ Let’s now look at how you can register task properties as inputs and outputs.
 
 
 [[sec:task_input_output_annotations]]
-===== Custom task types
+==== Custom task types
 
 If you’re implementing a custom task as a class, then it takes just two steps to make it work with incremental build:
 
@@ -437,7 +521,7 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s api:org.gradle.api.file.FileCollection[] type and anything else that can be passed to either the api:org.gradle.api.Project#file(java.lang.Object)[] method - for single file/directory properties - or the api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[] methods.
+These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method - for single file/directory properties - or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)], and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object...)] methods.
 
 * Nested values
 +
@@ -454,14 +538,31 @@ This task will have three inputs and one output:
 
 When you’re writing a custom task class, it’s easy to register properties as inputs or outputs via annotations. To demonstrate, here is a skeleton task implementation with some suitable inputs and outputs, along with their annotations:
 
-++++
-<sample id="customTaskClassWithInputOutputAnnotations" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Custom task class">
-                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="custom-task-class"/>
-                    <sourcefile file="buildSrc/src/main/java/org/example/TemplateData.java"/>
-                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true" outputFile="customTaskClassWithInputOutputAnnotationsUpToDate.out"/>
-                </sample>
-++++
+===== Example: Custom task class
+
+[source,java]
+.buildSrc/src/main/java/org/example/ProcessTemplates.java
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+----
+
+[source,java]
+.buildSrc/src/main/java/org/example/TemplateData.java
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/TemplateData.java[]
+----
+
+.Output of `gradle processTemplates`
+----
+> gradle processTemplates
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/customTaskClassWithInputOutputAnnotations.out[]
+----
+
+.Output of `gradle processTemplates` (run again)
+----
+> gradle processTemplates
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+----
 
 There’s plenty to talk about in this example, so let’s work through each of the input and output properties in turn:
 
@@ -481,9 +582,9 @@ For this example, we’re using a custom class to represent the model data. Howe
 +
 The directory where the generated files go. As with input files, there are several annotations for output files and directories. A property representing a single directory requires `@OutputDirectory`. You’ll learn about the others soon.
 
-These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<sec:how_does_it_work,changes later>>.
+These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<#sec:how_does_it_work,changes later>>.
 
-This example is particularly interesting because it works with collections of source files. What happens if only one source file changes? Does the task process all the source files again or just the modified one? That depends on the task implementation. If the latter, then the task itself is incremental, but that’s a different feature to the one we’re discussing here. Gradle does help task implementers with this via its <<incremental_tasks,incremental task inputs>> feature.
+This example is particularly interesting because it works with collections of source files. What happens if only one source file changes? Does the task process all the source files again or just the modified one? That depends on the task implementation. If the latter, then the task itself is incremental, but that’s a different feature to the one we’re discussing here. Gradle does help task implementers with this via its <<custom_tasks.adoc#incremental_tasks,incremental task inputs>> feature.
 
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
@@ -494,34 +595,31 @@ Now that you have seen some of the input and output annotations in practice, let
 | Expected property type
 | Description
 
-| `@api:org.gradle.api.tasks.Input[]`
-| Any serializable type
+| `@link:{javadocPath}/org/gradle/api/tasks/Input.html[Input]`
+| Any `Serializable` type
 | A simple input value
 
-| `@api:org.gradle.api.tasks.InputFile[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/InputFile.html[InputFile]`
 | `File`*
 | A single input file (not directory)
 
-| `@api:org.gradle.api.tasks.InputDirectory[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]`
 | `File`*
 | A single input directory (not file)
 
-| `@api:org.gradle.api.tasks.InputFiles[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[InputFiles]`
 | `Iterable&lt;File&gt;`*
 | An iterable of input files and directories
 
-| `@api:org.gradle.api.tasks.Classpath[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<sec:task_input_using_classpath_annotations>>.
+| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 
-[NOTE]
-====
-The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible with earlier Gradle versions, classpath properties should also be annotated with `@InputFiles`.
-====
+**Note:** The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible with earlier Gradle versions, classpath properties should also be annotated with `@InputFiles`.
 
-| `@api:org.gradle.api.tasks.CompileClasspath[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]`
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<sec:task_input_using_classpath_annotations>>.
+| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 
 The following kinds of changes to the classpath will be ignored:
 
@@ -538,114 +636,114 @@ The following kinds of changes to the classpath will be ignored:
 The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
 ====
 
-| `@api:org.gradle.api.tasks.OutputFile[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputFile.html[OutputFile]`
 | `File`*
 | A single output file (not directory)
 
-| `@api:org.gradle.api.tasks.OutputDirectory[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputDirectory.html[OutputDirectory]`
 | `File`*
 | A single output directory (not file)
 
-| `@api:org.gradle.api.tasks.OutputFiles[]`
-| `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
-| An iterable of output files (no directories). The task outputs can only be <<sec:task_output_caching, cached>> if a `Map` is provided.
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputFiles.html[OutputFiles]`
+| `Map&lt;String, File&gt;`+++**+++ or `Iterable&lt;File&gt;`+++*+++
+| An iterable of output files (no directories). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
 
-| `@api:org.gradle.api.tasks.OutputDirectories[]`
-| `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
-| An iterable of output directories (no files). The task outputs can only be <<sec:task_output_caching, cached>> if a `Map` is provided.
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputDirectories.html[OutputDirectories]`
+| `Map&lt;String, File&gt;`+++**+++ or `Iterable&lt;File&gt;`+++*+++
+| An iterable of output directories (no files). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
 
-| `@api:org.gradle.api.tasks.Destroys[]`
-| `File` or `Iterable&lt;File&gt;`*
+| `@link:{javadocPath}/org/gradle/api/tasks/Destroys.html[Destroys]`
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | Specifies one or more files that are removed by this task.  Note that a task can define either inputs/outputs or destroyables, but not both.
 
-| `@api:org.gradle.api.tasks.LocalState[]`
-| `File` or `Iterable&lt;File&gt;`*
-| Specifies one or more files that represent the <<sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
+| `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]`
+| `File` or `Iterable&lt;File&gt;`+++*+++
+| Specifies one or more files that represent the <<custom_tasks.adoc#sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
 
-| `@api:org.gradle.api.tasks.Nested[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`
 | Any custom type
 | A custom type that may not implement `Serializable` but does have at least one field or property marked with one of the annotations in this table. It could even be another `@Nested`.
 
-| `@api:org.gradle.api.tasks.Console[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/Console.html[Console]`
 | Any type
 | Indicates that the property is neither an input nor an output. It simply affects the console output of the task in some way, such as increasing or decreasing the verbosity of the task.
 
-| `@api:org.gradle.api.tasks.Internal[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal]`
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
-|===
 
-*::
-In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], or api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[].
-This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
-Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
-
-**::
-Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
-
-.Additional annotations used to further qualifying property type annotations
-[cols="a,a", options="header"]
-|===
-| Annotation
-| Description
-
-| anchor:skip-when-empty[]`@api:org.gradle.api.tasks.SkipWhenEmpty[]`
+| [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
+| `File`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
-| `@api:org.gradle.api.tasks.Optional[]`
-| Used with any of the property type annotations listed in the api:org.gradle.api.tasks.Optional[] API documentation. This annotation disables validation checks on the corresponding property. See <<sec:task_input_output_validation,the section on validation>> for more details.
+| `@link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional]`
+| Any type
+| Used with any of the property type annotations listed in the link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
 
-| `@api:org.gradle.api.tasks.PathSensitive[]`
+| `@link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]`
+| `File`+++*+++
 | [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
 |===
+
+[NOTE]
+====
+[horizontal]
++++*+++::
+In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)], or link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object++...++)].
+This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
+Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
++++**+++::
+Similar to the above, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
+====
 
 Annotations are inherited from all parent types including implemented interfaces. Property type annotations override any other property type annotation declared in a parent type. This way an `@InputFile` property can be turned into an `@InputDirectory` property in a child task type.
 
 Annotations on a property declared in a type override similar annotations declared by the superclass and in any implemented interfaces. Superclass annotations take precedence over annotations declared in implemented interfaces.
 
-The api:org.gradle.api.tasks.Console[] and api:org.gradle.api.tasks.Internal[] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
+The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
 
 [[sec:task_input_using_classpath_annotations]]
-====== Using the classpath annotations
+===== Using the classpath annotations
 
 Besides `@InputFiles`, for JVM-related tasks Gradle understands the concept of classpath inputs. Both runtime and compile classpaths are treated differently when Gradle is looking for changes.
 
-As opposed to input properties annotated with `@api:org.gradle.api.tasks.InputFiles[]`, for classpath properties the order of the entries in the file collection matter.
+As opposed to input properties annotated with `@link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[InputFiles]`, for classpath properties the order of the entries in the file collection matter.
 On the other hand, the names and paths of the directories and jar files on the classpath itself are ignored.
 Timestamps and the order of class files and resources inside jar files on a classpath are ignored, too, thus recreating a jar file with different file dates will not make the task out of date.
 
-Runtime classpaths are marked with `@api:org.gradle.api.tasks.Classpath[]`, and they offer further customization via <<sec:configure_input_normalization,classpath normalization>>.
+Runtime classpaths are marked with `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`, and they offer further customization via <<#sec:configure_input_normalization,classpath normalization>>.
 
-Input properties annotated with `@api:org.gradle.api.tasks.CompileClasspath[]` are considered Java compile classpaths.
-Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<sec:java_compile_avoidance>> to further filter changes that don't affect the class' ABIs.
+Input properties annotated with `@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]` are considered Java compile classpaths.
+Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> to further filter changes that don't affect the class' ABIs.
 This means that changes which only touch the implementation of classes do not make the task out of date.
 
 [[sec:task_input_nested_inputs]]
-====== Nested inputs
+===== Nested inputs
 
-When analyzing `@api:org.gradle.api.tasks.Nested[]` task properties for declared input and output sub-properties Gradle uses the type of the actual value.
+When analyzing `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` task properties for declared input and output sub-properties Gradle uses the type of the actual value.
 Hence it can discover all sub-properties declared by a runtime sub-type.
 
-When adding `@api:org.gradle.api.tasks.Nested[]` to a `@api:org.gradle.api.provider.Provider[]`, the value of the `Provider` is treated as a nested input.
+When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a `@link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]`, the value of the `Provider` is treated as a nested input.
 
-When adding `@api:org.gradle.api.tasks.Nested[]` to an iterable, each element is treated as a separate nested input.
+When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to an iterable, each element is treated as a separate nested input.
 Each nested input in the iterable is assigned a name, which by default is the dollar sign followed by the index in the iterable, e.g. `$2`.
-If an element of the iterable implements `api:org.gradle.api.Named[]`, then the name is used as property name.
-The ordering of the elements in the iterable is crucial for for reliable up-to-date checks and caching if not all of the elements implement `api:org.gradle.api.Named[]`.
+If an element of the iterable implements `link:{javadocPath}/org/gradle/api/Named.html[Named]`, then the name is used as property name.
+The ordering of the elements in the iterable is crucial for for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
 Multiple elements which have the same name are not allowed.
 
-When adding `@api:org.gradle.api.tasks.Nested[]` to a map, then for each value a nested input is added, using the key as name.
+When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a map, then for each value a nested input is added, using the key as name.
 
 The type and classpath of nested inputs is tracked, too.
 This ensures that changes to the implementation of a nested input causes the build to be out of date.
-By this it is also possible to add user provided code as an input, e.g. by annotating an `@api:org.gradle.api.Action[]` property with `@api:org.gradle.api.tasks.Nested[]`.
+By this it is also possible to add user provided code as an input, e.g. by annotating an `@link:{javadocPath}/org/gradle/api/Action.html[Action]` property with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 Note that any inputs to such actions should be tracked, either by annotated properties on the action or by manually registering them with the task.
 
-Using nested inputs allows richer modeling and extensibility for tasks, as e.g. shown by `api:org.gradle.api.tasks.testing.Test#getJvmArgumentProviders[]`.
+Using nested inputs allows richer modeling and extensibility for tasks, as e.g. shown by link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders[Test.getJvmArgumentProviders()].
 
-This allows us to https://github.com/gradle/gradle/blob/7b047c7cbb4932743243a76123f5347be6d07856/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L138-L157[model the JaCoCo Java agent], thus declaring the necessary JVM arguments and providing the inputs and outputs to Gradle:
+This allows us to link:https://github.com/gradle/gradle/blob/7b047c7cbb4932743243a76123f5347be6d07856/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L138-L157[model the JaCoCo Java agent], thus declaring the necessary JVM arguments and providing the inputs and outputs to Gradle:
 
-[source,groovy]
+[source,java]
+.JacocoAgent.java
 ----
 class JacocoAgent implements CommandLineArgumentProvider {
     private final JacocoTaskExtension jacoco;
@@ -666,24 +764,24 @@ class JacocoAgent implements CommandLineArgumentProvider {
     }
 }
 
-test.getJvmArgumentProviders().add(new JacocoAgent(extension))
+test.getJvmArgumentProviders().add(new JacocoAgent(extension));
 ----
 
-For this to work, `api:org.gradle.testing.jacoco.plugins.JacocoTaskExtension[]` needs to have the correct input and output annotations.
+For this to work, `link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html[JacocoTaskExtension]` needs to have the correct input and output annotations.
 
-The approach works for Test JVM arguments, since `api:org.gradle.api.tasks.testing.Test#getJvmArgumentProviders[]` is an `Iterable` annotated with `@api:org.gradle.api.tasks.Nested[]`.
+The approach works for Test JVM arguments, since `link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:jvmArgumentProviders[Test.getJvmArgumentProviders()]` is an `Iterable` annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 
 There are other task types where this kind of nested inputs are available:
 
-* `api:org.gradle.api.tasks.JavaExec#getArgumentProviders[]` - model e.g. custom tools
-* `api:org.gradle.api.tasks.JavaExec#getJvmArgumentProviders[]` - used for Jacoco Java agent
-* `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]` - model e.g annotation processors
-* `api:org.gradle.api.tasks.Exec#getArgumentProviders[]` - model e.g custom tools
+* link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:argumentProviders[JavaExec.getArgumentProviders()] - model e.g. custom tools
+* link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:jvmArgumentProviders[JavaExec.getJvmArgumentProviders()] - used for Jacoco Java agent
+* link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders[CompileOptions.getCompilerArgumentProviders()] - model e.g annotation processors
+* link:{groovyDslPath}/org.gradle.api.tasks.Exec.html#org.gradle.api.tasks.Exec:argumentProviders[Exec.getArgumentProviders()] - model e.g custom tools
 
 In the same way, this kind of modelling is available to custom tasks.
 
 [[sec:task_input_output_runtime_api]]
-===== Runtime API
+==== Runtime API
 
 Custom task classes are an easy way to bring your own build logic into the arena of incremental build, but you don’t always have that option. That's why Gradle also provides an alternative API that can be used with any tasks, which we look at next.
 
@@ -691,24 +789,31 @@ When you don’t have access to the source for a custom task class, there is no 
 
 
 [[sec:runtime_api_for_adhoc]]
-====== Using it for ad-hoc tasks
+===== Using it for ad-hoc tasks
 
 This runtime API is provided through a couple of aptly named properties that are available on every Gradle task:
 
-* api:org.gradle.api.Task#getInputs()[] of type api:org.gradle.api.tasks.TaskInputs[]
-* api:org.gradle.api.Task#getOutputs()[] of type api:org.gradle.api.tasks.TaskOutputs[]
-* api:org.gradle.api.Task#getDestroyables()[] of type api:org.gradle.api.tasks.TaskDestroyables[]
+* link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:inputs[Task.getInputs()] of type link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html[TaskInputs]
+* link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:outputs[Task.getOutputs()] of type link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html[TaskOutputs]
+* link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:destroyables[Task.getDestroyables()] of type link:{javadocPath}/org/gradle/api/tasks/TaskDestroyables.html[TaskDestroyables]
 
 These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs. In fact, the runtime API has almost feature parity with the annotations. All it lacks is validation of whether declared files are actually files and declared directories are directories. Nor will it create output directories if they don't exist. But that's it.
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 
-++++
-<sample id="incrementalAdHocTask" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Ad-hoc task">
-                        <sourcefile file="build.gradle" snippet="ad-hoc-task"/>
-                        <output args="processTemplatesAdHoc" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+===== Example: Ad-hoc task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=ad-hoc-task]
+----
+
+.Output of **`gradle processTemplatesAdHoc`**
+----
+> gradle processTemplatesAdHoc
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/incrementalAdHocTask.out[]
+----
 
 As before, there’s much to talk about. To begin with, you should really write a custom task class for this as it’s a non-trivial implementation that has several configuration options. In this case, there are no task properties to store the root source folder, the location of the output directory or any of the other settings. That’s deliberate to highlight the fact that the runtime API doesn’t require the task to have any state. In terms of incremental build, the above ad-hoc task will behave the same as the custom task class.
 
@@ -716,53 +821,74 @@ All the input and output definitions are done through the methods on `inputs` an
 
 The files that a task removes can be specified through `destroyables.register()`.
 
-++++
-<sample id="destroyableAdHocTask" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Ad-hoc task declaring a destroyable">
-    <sourcefile file="build.gradle" snippet="adhoc-destroyable-task"/>
-</sample>
-++++
+===== Example: Ad-hoc task declaring a destroyable
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=adhoc-destroyable-task]
+----
 
 One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.  Any given task can either declare destroyables or inputs/outputs, but cannot declare both.
 
 [[sec:runtime_api_for_custom_tasks]]
-====== Using it for custom task types
+===== Using it for custom task types
 
 Another type of example involves adding input and output definitions to instances of a custom task class that lacks the requisite annotations. For example, imagine that the `ProcessTemplates` task is provided by a plugin and that it’s missing the incremental build annotations. In order to make up for that deficiency, you can use the runtime API:
 
-++++
-<sample id="runtimeIncrementalApi" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Using runtime API with custom task type">
-                        <sourcefile file="build.gradle" snippet="custom-class-runtime-api"/>
-                        <output args="processTemplatesRuntime" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                        <output args="processTemplatesRuntime" ignoreExtraLines="true" ignoreLineOrder="true" outputFile="runtimeIncrementalApiUpToDate.out"/>
-                    </sample>
-++++
+===== Example: Using runtime API with custom task type
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=custom-class-runtime-api]
+----
+
+.Output of `gradle processTemplatesRuntime`
+----
+> gradle processTemplatesRuntime
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApi.out[]
+----
+
+.Output of `gradle processTemplatesRuntime` (run again)
+----
+> gradle processTemplatesRuntime
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiUpToDate.out[]
+----
 
 As you can see, we can both configure the tasks properties and use those properties as arguments to the incremental build runtime API. Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs. Note that if the task type is already using the incremental build annotations, the runtime API will add inputs and outputs rather than replace them.
 
 [[sec:runtime_api_configuration]]
-====== Fine-grained configuration
+===== Fine-grained configuration
 
-The runtime API methods only allow you to declare your inputs and outputs in themselves. However, the file-oriented ones return a builder - of type api:org.gradle.api.tasks.TaskInputFilePropertyBuilder[] - that lets you provide additional information about those inputs and outputs.
+The runtime API methods only allow you to declare your inputs and outputs in themselves. However, the file-oriented ones return a builder - of type link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html[TaskInputFilePropertyBuilder] - that lets you provide additional information about those inputs and outputs.
 
 You can learn about all the options provided by the builder in its API documentation, but we’ll show you a simple example here to give you an idea of what you can do.
 
 Let’s say we don’t want to run the `processTemplates` task if there are no source files, regardless of whether it’s a clean build or not. After all, if there are no source files, there’s nothing for the task to do. The builder allows us to configure this like so:
 
-++++
-<sample id="runtimeIncrementalApiConfiguration" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Using skipWhenEmpty() via the runtime API">
-                        <sourcefile file="build.gradle" snippet="runtime-api-conf"/>
-                        <output args="clean processTemplatesRuntimeConf" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+===== Example: Using skipWhenEmpty() via the runtime API
 
-The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<skip-when-empty,`@SkipWhenEmpty`>>.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=runtime-api-conf]
+----
+
+.Output of **`gradle clean processTemplatesRuntimeConf`**
+----
+> gradle clean processTemplatesRuntimeConf
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiConfiguration.out[]
+----
+
+The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<#skip-when-empty,`@SkipWhenEmpty`>>.
 
 Prior to Gradle 3.0, you had to use the `TaskInputs.source()` and `TaskInputs.sourceDir()` methods to get the same behavior as with `skipWhenEmpty()`. These methods are now deprecated and should not be used with Gradle 3.0 and above.
 
 Now that you have seen both the annotations and the runtime API, you may be wondering which API you should be using. Our recommendation is to use the annotations wherever possible, and it’s sometimes worth creating a custom task class just so that you can make use of them. The runtime API is more for situations in which you can’t use the annotations.
 
 [[sec:task_input_output_side_effects]]
-===== Important beneficial side effects
+==== Important beneficial side effects
 
 Once you declare a task’s formal inputs and outputs, Gradle can then infer things about those properties. For example, if an input of one task is set to the output of another, that means the first task depends on the second, right? Gradle knows this and can act upon it.
 
@@ -770,32 +896,46 @@ We’ll look at this feature next and also some other features that come from Gr
 
 
 [[sec:inferred_task_dependencies]]
-====== Inferred task dependencies
+===== Inferred task dependencies
 
 Consider an archive task that packages the output of the `processTemplates` task. A build author will see that the archive task obviously requires `processTemplates` to run first and so may add an explicit `dependsOn`. However, if you define the archive task like so:
 
-++++
-<sample id="inferredTaskDep" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Inferred task dependency via task outputs">
-                        <sourcefile file="build.gradle" snippet="inferred-task-dep-via-outputs"/>
-                        <output args="clean packageFiles" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+===== Example: Inferred task dependency via task outputs
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=inferred-task-dep-via-outputs]
+----
+
+.Output of **`gradle clean packageFiles`**
+----
+> gradle clean packageFiles
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/inferredTaskDep.out[]
+----
 
 Gradle will automatically make `packageFiles` depend on `processTemplates`. It can do this because it’s aware that one of the inputs of packageFiles requires the output of the processTemplates task. We call this an inferred task dependency.
 
 The above example can also be written as
 
-++++
-<sample id="inferredTaskDep2" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Inferred task dependency via a task argument">
-                        <sourcefile file="build.gradle" snippet="inferred-task-dep-via-task"/>
-                        <output args="clean packageFiles2" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    </sample>
-++++
+===== Example: Inferred task dependency via a task argument
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=inferred-task-dep-via-task]
+----
+
+.Output of **`gradle clean packageFiles2`**
+----
+> gradle clean packageFiles2
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/inferredTaskDep2.out[]
+----
 
 This is because the `from()` method can accept a task object as an argument. Behind the scenes, `from()` uses the `project.files()` method to wrap the argument, which in turn exposes the task’s formal outputs as a file collection. In other words, it’s a special case!
 
 [[sec:task_input_output_validation]]
-====== Input and output validation
+===== Input and output validation
 
 The incremental build annotations provide enough information for Gradle to perform some basic validation on the annotated properties. In particular, it does the following for each property before the task executes:
 
@@ -808,20 +948,20 @@ Such validation improves the robustness of the build, allowing you to identify i
 You will occasionally want to disable some of this validation, specifically when an input file may validly not exist. That’s why Gradle provides the `@Optional` annotation: you use it to tell Gradle that a particular input is optional and therefore the build should not fail if the corresponding file or directory doesn’t exist.
 
 [[sec:task_input_output_continuous_build]]
-====== Continuous build
+===== Continuous build
 
 Another benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle - through the `--continuous` or `-t` options - you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
 
-You can find out more about this feature in <<sec:continuous_build>>.
+You can find out more about this feature in <<command_line_interface.adoc#sec:continuous_build,Continuous build>>.
 
 
 [[sec:task_input_output_parallelism]]
-====== Task parallelism
+===== Task parallelism
 
 One last benefit of defining task inputs and outputs is that Gradle can use this information to make decisions about how to run tasks when the "--parallel" option is used.  For instance, Gradle will inspect the outputs of tasks when selecting the  next task to run and will avoid concurrent execution of tasks that write to the same output directory.  Similarly, Gradle will use the information about what files a task destroys (e.g. specified by the `Destroys` annotation) and avoid running a task that removes a set of files while another task is running that consumes or creates those same files (and vice versa).  It can also determine that a task that creates a set of files has already run and that a task that consumes those files has yet to run and will avoid running a task that removes those files in between.  By providing task input and output information in this way, Gradle can infer creation/consumption/destruction relationships between tasks and can ensure that task execution does not violate those relationships.
 
 [[sec:how_does_it_work]]
-==== How does it work?
+=== How does it work?
 
 Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a snapshot of the outputs. This snapshot contains the set of output files and a hash of the contents of each file. Gradle persists both snapshots for the next time the task is executed.
 
@@ -831,50 +971,74 @@ Gradle also considers the _code_ of the task as part of the inputs to the task. 
 
 Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing the snapshot of such a property, even a change in the order of the files will result in the task becoming out-of-date.
 
-Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[]
+Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen(groovy.lang.Closure)]
 
-The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching>>.
+The inputs for the task are also used to calculate the <<build_cache.adoc#build_cache,build cache>> key used to load task outputs when enabled. For more details see <<build_cache.adoc#sec:task_output_caching,Task output caching>>.
 
 [[sec:advanced_inc_build]]
-==== Advanced techniques
+=== Advanced techniques
 
 Everything you’ve seen so far in this section will cover most of the use cases you’ll encounter, but there are some scenarios that need special treatment. We’ll present a few of those next with the appropriate solutions.
 
 
 [[sec:add_cached_input_output_methods]]
-===== Adding your own cached input/output methods
+==== Adding your own cached input/output methods
 
 Have you ever wondered how the `from()` method of the `Copy` task works? It’s not annotated with `@InputFiles` and yet any files passed to it are treated as formal inputs of the task. What’s happening?
 
 The implementation is quite simple and you can use the same technique for your own tasks to improve their APIs. Write your methods so that they add files directly to the appropriate annotated property. As an example, here’s how to add a `sources()` method to the custom `ProcessTemplates` class we introduced earlier:
 
-++++
-<sample id="incrementalBuildCustomMethods" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add task inputs">
-                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="custom-task-class"/>
-                    <sourcefile file="build.gradle" snippet="custom-task-class"/>
-                    <output args="processTemplates" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+===== Example: Declaring a method to add task inputs
+
+.ProcessTemplates.java
+[source,java]
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=custom-task-class]
+----
+
+.Output of `gradle processTemplates`
+----
+> gradle processTemplates
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethods.out[]
+----
 
 In other words, as long as you add values and files to formal task inputs and outputs during the configuration phase, they will be treated as such regardless from where in the build you add them.
 
 If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `project.layout.files()` method like so:
 
-++++
-<sample id="incrementalBuildCustomMethodsWithTaskArg" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add a task as an input">
-                    <sourcefile file="buildSrc/src/main/java/org/example/ProcessTemplates.java" snippet="task-arg-method"/>
-                    <sourcefile file="build.gradle" snippet="task-arg-method"/>
-                    <output args="processTemplates2" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+===== Example: Declaring a method to add a task as an input
+
+.ProcessTemplates.java
+[source,java]
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=task-arg-method]
+----
+
+.Output of `gradle processTemplates2`
+----
+> gradle processTemplates2
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethodsWithTaskArg.out[]
+----
 
 This technique can make your custom task easier to use and result in cleaner build files.
 As an added benefit, our use of `getProject().getLayout().files()` means that our custom method can set up an inferred task dependency.
 
-One last thing to note: if you are developing a task that takes collections of source files as inputs, like this example, consider using the built-in api:org.gradle.api.tasks.SourceTask[]. It will save you having to implement some of the plumbing that we put into `ProcessTemplates`.
+One last thing to note: if you are developing a task that takes collections of source files as inputs, like this example, consider using the built-in link:{groovyDslPath}/org.gradle.api.tasks.SourceTask.html[SourceTask]. It will save you having to implement some of the plumbing that we put into `ProcessTemplates`.
 
 [[sec:link_output_dir_to_input_files]]
-===== Linking an `@OutputDirectory` to an `@InputFiles`
+==== Linking an `@OutputDirectory` to an `@InputFiles`
 
 When you want to link the output of one task to the input of another, the types often match and a simple property assignment will provide that link. For example, a `File` output property can be assigned to a `File` input.
 
@@ -882,61 +1046,100 @@ Unfortunately, this approach breaks down when you want the files in a task’s `
 
 As an example, imagine you want to use the output of a Java compilation task - via the `destinationDir` property - as the input of a custom task that instruments a set of files containing Java bytecode. This custom task, which we’ll call `Instrument`, has a `classFiles` property annotated with `@InputFiles`. You might initially try to configure the task like so:
 
-++++
-<sample id="incrementalBuildBadInputFilesConfig" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Failed attempt at setting up an inferred task dependency">
-                    <sourcefile file="build.gradle" snippet="failed-inferred-task-dep"/>
-                    <output args="clean badInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Failed attempt at setting up an inferred task dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=failed-inferred-task-dep]
+----
+
+.Output of **`gradle clean badInstrumentClasses`**
+----
+> gradle clean badInstrumentClasses
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildBadInputFilesConfig.out[]
+----
 
 There’s nothing obviously wrong with this code, but you can see from the console output that the compilation task is missing. In this case you would need to add an explicit task dependency between `instrumentClasses` and `compileJava` via `dependsOn`. The use of `fileTree()` means that Gradle can’t infer the task dependency itself.
 
 One solution is to use the `TaskOutputs.files` property, as demonstrated by the following example:
 
-++++
-<sample id="incrementalBuildInputFilesConfig" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency between output dir and input files">
-                    <sourcefile file="build.gradle" snippet="inferred-task-dep"/>
-                    <output args="clean instrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Setting up an inferred task dependency between output dir and input files
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=inferred-task-dep]
+----
+
+.Output of **`gradle clean instrumentClasses`**
+----
+> gradle clean instrumentClasses
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildInputFilesConfig.out[]
+----
 
 Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.layout.configurableFiles()` in place of `project.fileTree()`:
 
-++++
-<sample id="incrementalBuildInputFilesConfigUsingTask" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency with filesFor()">
-                    <sourcefile file="build.gradle" snippet="inferred-task-dep-with-files"/>
-                    <output args="clean instrumentClasses2" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Setting up an inferred task dependency with filesFor()
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=inferred-task-dep-with-files]
+----
+
+.Output of **`gradle clean instrumentClasses2`**
+----
+> gradle clean instrumentClasses2
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildInputFilesConfigUsingTask.out[]
+----
 
 Remember that `files()`, `layout.files()` and `layout.configurableFiles()` can take tasks as arguments, whereas `fileTree()` cannot.
 
 The downside of this approach is that all file outputs of the source task become the input files of the target - `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
 
-++++
-<sample id="inferredTaskDependencyWithBuiltBy" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency with builtBy()">
-                    <sourcefile file="build.gradle" snippet="inferred-task-dep-with-builtby"/>
-                    <output args="clean instrumentClassesBuiltBy" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                </sample>
-++++
+=== Example: Setting up an inferred task dependency with builtBy()
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=inferred-task-dep-with-builtby]
+----
+
+.Output of **`gradle clean instrumentClassesBuiltBy`**
+----
+> gradle clean instrumentClassesBuiltBy
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/inferredTaskDependencyWithBuiltBy.out[]
+----
 
 You can of course just add an explicit task dependency via `dependsOn`, but the above approach provides more semantic meaning, explaining why `compileJava` has to run beforehand.
 
 [[sec:custom_up_to_date_logic]]
-===== Providing custom up-to-date logic
+==== Providing custom up-to-date logic
 
 Gradle automatically handles up-to-date checks for output files and directories, but what if the task output is something else entirely? Perhaps it’s an update to a web service or a database table. Gradle has no way of knowing how to check whether the task is up to date in such cases.
 
 That’s where the `upToDateWhen()` method on `TaskOutputs` comes in. This takes a predicate function that is used to determine whether a task is up to date or not. One use case is to disable up-to-date checks completely for a task, like so:
 
-++++
-<sample id="incrementalBuildUpToDateWhen" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Ignoring up-to-date checks">
-                    <sourcefile file="build.gradle" snippet="up-to-date-when"/>
-                    <test args="clean"/>
-                    <output args="clean alwaysInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                    <output args="alwaysInstrumentClasses" ignoreExtraLines="true" ignoreLineOrder="true" outputFile="incrementalBuildUpToDateWhenAgain.out"/>
-                </sample>
-++++
+=== Example: Ignoring up-to-date checks
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=up-to-date-when]
+----
+
+.Output of `gradle clean alwaysInstrumentClasses`
+----
+> gradle clean alwaysInstrumentClasses
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhen.out[]
+----
+
+.Output of `gradle alwaysInstrumentClasses`
+----
+> gradle alwaysInstrumentClasses
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhenAgain.out[]
+----
 
 The `{ false }` closure ensures that `copyResources` will always perform the copy, irrespective of whether there is no change in the inputs or outputs.
 
@@ -945,32 +1148,34 @@ You can of course put more complex logic into the closure. You could check wheth
 One common mistake is to use `upToDateWhen()` instead of `Task.onlyIf()`. If you want to skip a task on the basis of some condition unrelated to the task inputs and outputs, then you should use `onlyIf()`. For example, in cases where you want to skip a task when a particular property is set or not set.
 
 [[sec:configure_input_normalization]]
-===== Configure input normalization
+==== Configure input normalization
 
-For up to date checks and the <<build_cache,build cache>> Gradle needs to determine if two task input properties have the same value.
+For up to date checks and the <<build_cache.adoc#build_cache,build cache>> Gradle needs to determine if two task input properties have the same value.
 In order to do so, Gradle first normalizes both inputs and then compares the result.
-For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<sec:java_compile_avoidance>>.
+For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>>.
 
 It is possible to customize Gradle's built-in strategy for runtime classpath normalization.
-All inputs annotated with `@api:org.gradle.api.tasks.Classpath[]` are considered to be runtime classpaths.
+All inputs annotated with `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]` are considered to be runtime classpaths.
 
 Let's say you want to add a file `build-info.properties` to all your produced jar files which contains information about the build, e.g. the timestamp when the build started or some ID to identify the CI job that published the artifact.
 This file is only for auditing purposes, and has no effect on the outcome of running tests.
 Nonetheless, this file is part of the runtime classpath for the `test` task and changes on every build invocation.
 Therefore, the `test` would be never up-to-date or pulled from the build cache.
-In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using api:org.gradle.api.Project#normalization(org.gradle.api.Action)[]:
+In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)]:
 
-++++
-<sample id="runtimeClasspathNormalization" dir="userguide/tasks/inputNormalization" title="Runtime classpath normalization">
-    <sourcefile file="build.gradle" snippet="ignore-build-info-properties"/>
-</sample>
-++++
+=== Example: Runtime classpath normalization
 
-The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache,build cache>> key calculations.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/inputNormalization/build.gradle[tag=ignore-build-info-properties]
+----
+
+The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task - i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
 
 [[sec:stale_task_outputs]]
-==== Stale task outputs
+=== Stale task outputs
 
 When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known clean state.
 
@@ -980,65 +1185,93 @@ Automatic clean-up of stale output directories has only been implemented for the
 ====
 
 [[sec:task_rules]]
-=== Task rules
+== Task rules
 
 Sometimes you want to have a task whose behavior depends on a large or infinite number value range of parameters. A very nice and expressive way to provide such tasks are task rules:
 
-++++
-<sample id="taskRule" dir="userguide/tasks/addRules" title="Task rule">
-            <sourcefile file="build.gradle" snippet="task-rule"/>
-            <output args="-q pingServer1"/>
-        </sample>
-++++
+=== Example: Task rule
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/addRules/build.gradle[tag=task-rule]
+----
+
+.Output of **`gradle -q pingServer1`**
+----
+> gradle -q pingServer1
+include::{samplesPath}/userguide/tasks/addRules/taskRule.out[]
+----
 
 The String parameter is used as a description for the rule, which is shown with `gradle tasks`.
 
 Rules are not only used when calling tasks from the command line. You can also create dependsOn relations on rule based tasks:
 
-++++
-<sample id="taskRuleDependsOn" dir="userguide/tasks/addRules" title="Dependency on rule based tasks">
-            <sourcefile file="build.gradle"/>
-            <output args="-q groupPing"/>
-        </sample>
-++++
+=== Example: Dependency on rule based tasks
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/addRules/build.gradle[tag=all]
+----
+
+.Output of **`gradle -q groupPing`**
+----
+> gradle -q groupPing
+include::{samplesPath}/userguide/tasks/addRules/taskRuleDependsOn.out[]
+----
 
 If you run “`gradle -q tasks`” you won't find a task named “`pingServer1`” or “`pingServer2`”, but this script is executing logic based on the request to run those tasks.
 
 [[sec:finalizer_tasks]]
-=== Finalizer tasks
+== Finalizer tasks
 
 
 [NOTE]
 ====
-Finalizers tasks are an _incubating_ feature (see <<sec:incubating_state>>).
+Finalizers tasks are an _incubating_ feature (see <<feature_lifecycle.adoc#sec:incubating_state,more about the Gradle feature lifecycle>>).
 ====
 
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
 
-++++
-<sample id="taskFinalizers" dir="userguide/tasks/finalizers" title="Adding a task finalizer">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskX"/>
-        </sample>
-++++
+=== Example: Adding a task finalizer
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/finalizers/build.gradle[]
+----
+
+.Output of **`gradle -q taskX`**
+----
+> gradle -q taskX
+include::{samplesPath}/userguide/tasks/finalizers/taskFinalizers.out[]
+----
 
 Finalizer tasks will be executed even if the finalized task fails.
 
-++++
-<sample id="taskFinalizersWithFailure" dir="userguide/tasks/finalizersWithFailure" title="Task finalizer for a failing task">
-            <sourcefile file="build.gradle"/>
-            <output args="-q taskX"/>
-        </sample>
-++++
+=== Example: Task finalizer for a failing task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tasks/finalizersWithFailure/build.gradle[]
+----
+
+.Output of **`gradle -q taskX`**
+----
+> gradle -q taskX
+include::{samplesPath}/userguide/tasks/finalizersWithFailure/taskFinalizersWithFailure.out[]
+----
 
 On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example if it is considered up to date or if a dependent task fails.
 
 Finalizer tasks are useful in situations where the build creates a resource that has to be cleaned up regardless of the build failing or succeeding. An example of such a resource is a web container that is started before an integration test task and which should be always shut down, even if some of the tests fail.
 
-To specify a finalizer task you use the api:org.gradle.api.Task#finalizedBy[] method. This method accepts a task instance, a task name, or any other input accepted by api:org.gradle.api.Task#dependsOn[].
+To specify a finalizer task you use the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:finalizedBy(java.lang.Object++[]++)[Task.finalizedBy(java.lang.Object...)] method. This method accepts a task instance, a task name, or any other input accepted by link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object...)].
 
 [[sec:lifecycle_tasks]]
-=== Lifecycle tasks
+== Lifecycle tasks
 
 Lifecycle tasks are tasks that do not do work themselves. They typically do not have any task actions. Lifecycle tasks can represent several concepts:
 
@@ -1046,11 +1279,11 @@ Lifecycle tasks are tasks that do not do work themselves. They typically do not 
 * a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
 * a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
 
-Many Gradle plug-ins define their own lifecycle tasks to make it convenient to do specific things. When developing your own plugins, you should consider using your own lifecycle tasks or hooking into some of the tasks already provided by Gradle. See the Java plugin <<sec:java_tasks>> for an example.
+Many Gradle plug-ins define their own lifecycle tasks to make it convenient to do specific things. When developing your own plugins, you should consider using your own lifecycle tasks or hooking into some of the tasks already provided by Gradle. See the Java plugin <<java_plugin.adoc#sec:java_tasks,tasks>> for an example.
 
 Unless a lifecycle task has actions, its outcome is determined by its dependencies. If any of the task's dependencies are executed, the lifecycle task will be considered executed. If all of the task's dependencies are up-to-date, skipped or from cache, the lifecycle task will be considered up-to-date.
 
 [[sec:the_idea_behind_gradle_tasks]]
-=== Summary
+== Summary
 
 If you are coming from Ant, an enhanced Gradle task like _Copy_ seems like a cross between an Ant target and an Ant task. Although Ant's tasks and targets are really different entities, Gradle combines these notions into a single entity. Simple Gradle tasks are like Ant's targets, but enhanced Gradle tasks also include aspects of Ant tasks. All of Gradle's tasks share a common API and you can create dependencies between them. These tasks are much easier to configure than an Ant task. They make full use of the type system, and are more expressive and easier to maintain.

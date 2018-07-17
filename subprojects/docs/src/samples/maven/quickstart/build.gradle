@@ -1,8 +1,8 @@
 
 apply plugin: 'java'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'maven'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 group = 'gradle'
 version = '1.0'

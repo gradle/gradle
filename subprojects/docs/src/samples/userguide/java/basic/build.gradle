@@ -1,4 +1,4 @@
-// START SNIPPET apply-java-plugin
+// tag::apply-java-plugin[]
 plugins {
     id 'java'
 }
@@ -6,9 +6,9 @@ plugins {
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 version = '1.2.1'
-// END SNIPPET apply-java-plugin
+// end::apply-java-plugin[]
 
-// START SNIPPET java-dependency-mgmt
+// tag::java-dependency-mgmt[]
 repositories {
     mavenCentral()
 }
@@ -16,9 +16,9 @@ repositories {
 dependencies {
     implementation 'org.hibernate:hibernate-core:3.6.7.Final'
 }
-// END SNIPPET java-dependency-mgmt
+// end::java-dependency-mgmt[]
 
-// START SNIPPET java-basic-test-config
+// tag::java-basic-test-config[]
 dependencies {
     testImplementation 'junit:junit:4.12'
 }
@@ -28,9 +28,9 @@ test {
 
     maxHeapSize = '1G'
 }
-// END SNIPPET java-basic-test-config
+// end::java-basic-test-config[]
 
-// START SNIPPET practical-integ-test-source-set
+// tag::practical-integ-test-source-set[]
 sourceSets {
     intTest {
         compileClasspath += sourceSets.main.output
@@ -46,9 +46,9 @@ configurations {
 dependencies {
     intTestImplementation 'junit:junit:4.12'
 }
-// END SNIPPET practical-integ-test-source-set
+// end::practical-integ-test-source-set[]
 
-// START SNIPPET using-custom-doclet
+// tag::using-custom-doclet[]
 configurations {
     asciidoclet
 }
@@ -61,21 +61,22 @@ javadoc {
     options.docletpath = configurations.asciidoclet.files.toList()
     options.doclet = 'org.asciidoctor.Asciidoclet'
 }
-// END SNIPPET using-custom-doclet
+// end::using-custom-doclet[]
 
 
-// START SNIPPET skip-tests-condition
+// tag::skip-tests-condition[]
 test.onlyIf { !project.hasProperty('mySkipTests') }
-// END SNIPPET skip-tests-condition
+// end::skip-tests-condition[]
 
-// START SNIPPET java-compiler-options
+// tag::java-compiler-options[]
 compileJava {
+    options.incremental = true
     options.fork = true
     options.failOnError = false
 }
-// END SNIPPET java-compiler-options
+// end::java-compiler-options[]
 
-// START SNIPPET integ-test-task
+// tag::integ-test-task[]
 task integrationTest(type: Test) {
     description = 'Runs integration tests.'
     group = 'verification'
@@ -86,18 +87,18 @@ task integrationTest(type: Test) {
 }
 
 check.dependsOn integrationTest
-// END SNIPPET integ-test-task
+// end::integ-test-task[]
 
-// START SNIPPET defining-sources-jar-task
+// tag::defining-sources-jar-task[]
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allJava
 }
-// END SNIPPET defining-sources-jar-task
+// end::defining-sources-jar-task[]
 
 
-// START SNIPPET defining-custom-javadoc-task
+// tag::defining-custom-javadoc-task[]
 task testJavadoc(type: Javadoc) {
     source = sourceSets.test.allJava
 }
-// END SNIPPET defining-custom-javadoc-task
+// end::defining-custom-javadoc-task[]

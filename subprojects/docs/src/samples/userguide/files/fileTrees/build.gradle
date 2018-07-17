@@ -1,4 +1,4 @@
-// START SNIPPET define
+// tag::define[]
 // Create a file tree with a base directory
 FileTree tree = fileTree(dir: 'src/main')
 
@@ -18,9 +18,9 @@ tree = fileTree('src') {
 tree = fileTree(dir: 'src', include: '**/*.java')
 tree = fileTree(dir: 'src', includes: ['**/*.java', '**/*.xml'])
 tree = fileTree(dir: 'src', include: '**/*.java', exclude: '**/*test*/**')
-// END SNIPPET define
+// end::define[]
 
-// START SNIPPET use
+// tag::use[]
 // Iterate over the contents of a tree
 tree.each {File file ->
     println file
@@ -38,9 +38,9 @@ FileTree sum = tree + fileTree(dir: 'src/test')
 tree.visit {element ->
     println "$element.relativePath => $element.file"
 }
-// END SNIPPET use
+// end::use[]
 
-// START SNIPPET archive-trees
+// tag::archive-trees[]
 // Create a ZIP file tree using path
 FileTree zip = zipTree('someFile.zip')
 
@@ -51,4 +51,4 @@ FileTree tar = tarTree('someFile.tar')
 //however if you must specify the compression explicitly you can:
 FileTree someTar = tarTree(resources.gzip('someTar.ext'))
 
-// END SNIPPET archive-trees
+// end::archive-trees[]

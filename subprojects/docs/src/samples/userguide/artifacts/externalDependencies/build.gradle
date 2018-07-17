@@ -7,21 +7,21 @@ configurations {
     runtime
 }
 
-//START SNIPPET define-dependency
+// tag::define-dependency[]
 dependencies {
     implementation 'org.hibernate:hibernate-core:3.6.7.Final'
 }
-//END SNIPPET define-dependency
+// end::define-dependency[]
 
-//START SNIPPET use-configuration
+// tag::use-configuration[]
 task listJars {
     doLast {
         configurations.compile.each { File file -> println file.name }
     }
 }
-//END SNIPPET use-configuration
+// end::use-configuration[]
 
-//START SNIPPET module-dependencies
+// tag::module-dependencies[]
 dependencies {
     runtime group: 'org.springframework', name: 'spring-core', version: '2.5'
     runtime 'org.springframework:spring-core:2.5',
@@ -38,15 +38,15 @@ dependencies {
         transitive = true
     }
 }
-//END SNIPPET module-dependencies
+// end::module-dependencies[]
 
-//START SNIPPET dependency-configurations
+// tag::dependency-configurations[]
 dependencies {
     runtime group: 'org.somegroup', name: 'somedependency', version: '1.0', configuration: 'someConfiguration'
 }
-//END SNIPPET dependency-configurations
+// end::dependency-configurations[]
 
-//START SNIPPET client-modules
+// tag::client-modules[]
 dependencies {
     runtime module("org.codehaus.groovy:groovy:2.4.15") {
         dependency("commons-cli:commons-cli:1.0") {
@@ -58,11 +58,11 @@ dependencies {
         }
     }
 }
-//END SNIPPET client-modules
+// end::client-modules[]
 
-//START SNIPPET file-dependencies
+// tag::file-dependencies[]
 dependencies {
     runtime files('libs/a.jar', 'libs/b.jar')
     runtime fileTree(dir: 'libs', include: '*.jar')
 }
-//END SNIPPET file-dependencies
+// end::file-dependencies[]

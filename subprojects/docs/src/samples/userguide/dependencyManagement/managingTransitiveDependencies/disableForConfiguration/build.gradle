@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET transitive-per-configuration
+// tag::transitive-per-configuration[]
 configurations.all {
     transitive = false
 }
@@ -12,7 +12,7 @@ configurations.all {
 dependencies {
     implementation 'com.google.guava:guava:23.0'
 }
-//END SNIPPET transitive-per-configuration
+// end::transitive-per-configuration[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

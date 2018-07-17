@@ -16,7 +16,7 @@ distributions {
     }
 }
 
-// START SNIPPET publishing
+// tag::publishing[]
 apply plugin: 'maven-publish'
 
 publishing {
@@ -27,7 +27,7 @@ publishing {
         }
     }
 }
-// END SNIPPET publishing
+// end::publishing[]
 
 publishing {
     repositories {

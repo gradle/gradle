@@ -13,91 +13,91 @@
 // limitations under the License.
 
 [[inspecting_dependencies]]
-== Inspecting Dependencies
+= Inspecting Dependencies
 
 Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities through visual representation via build scans and as command line tooling.
 
 [[sec:listing_dependencies]]
-=== Listing dependencies in a project
+== Listing dependencies in a project
 
-A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<sub:what_is_a_configuration,configuration>> available in the project.
+A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<managing_dependency_configurations.adoc#sub:what_is_a_configuration,configuration>> available in the project.
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
 
-Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
+Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations.adoc#managing_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
 
-++++
-<sample id="jgit-dependency" dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport" title="Declaring the JGit dependency with a custom configuration">
-    <sourcefile file="build.gradle" snippet="dependency-declaration" />
-</sample>
-++++
+=== Example: Declaring the JGit dependency with a custom configuration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/build.gradle[tag=dependency-declaration]
+----
 
 A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependency tree in a build scan</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dependencies-report-build-scan.png" width="180mm" />
-    </imageobject>
-</figure>
-+++++
+.Dependency tree in a build scan
+image::dependency-management-dependencies-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencies` to render the so-called _dependency report_ from the command line. By default the dependency report renders dependencies for all configurations. To pair down on the information provide the optional parameter `--configuration`.
 
-++++
-<sample id="dependencyReport" dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
-    <output args="-q dependencies --configuration scm"/>
-</sample>
-++++
+=== Example: Rendering the dependency report for a custom configuration
+
+.Output of **`gradle -q dependencies --configuration scm`**
+----
+> gradle -q dependencies --configuration scm
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
+----
 
 The dependencies report provides detailed information about the dependencies available in the graph. Any dependency that could not be resolved is marked with `FAILED` in red color. Dependencies with the same coordinates that can occur multiple times in the graph are omitted and indicated by an asterisk. Dependencies that had to undergo conflict resolution render the requested and selected version separated by a right arrow character.
 
 [[sec:identifying_reason_dependency_selection]]
-=== Identifying which dependency version was selected and why
+== Identifying which dependency version was selected and why
 
-Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
+Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<#sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
 
 Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. In this example the conflicting dependency is represented by `commons-codec:commons-codec`.
 
-++++
-<sample id="jgit-dependency-with-conflict" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" title="Declaring the JGit dependency and a conflicting dependency">
-    <sourcefile file="build.gradle" snippet="dependency-declaration" />
-</sample>
-++++
+=== Example: Declaring the JGit dependency and a conflicting dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/build.gradle[tag=dependency-declaration]
+----
 
 The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependency insight capabilities in a build scan</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dependency-insight-report-build-scan.png" />
-    </imageobject>
-</figure>
-+++++
+.Dependency insight capabilities in a build scan
+image::dependency-management-dependency-insight-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameters `--configuration` and `--singlepath` are optional but help with filtering the output.
 
-++++
-<sample id="dependencyInsightReport" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
-    <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
-</sample>
-++++
+=== Example: Using the dependency insight report for a given dependency
+
+.Output of **`gradle -q dependencyInsight --dependency commons-codec --configuration scm`**
+----
+> gradle -q dependencyInsight --dependency commons-codec --configuration scm
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
+----
 
 [[sec:dependency_declaration_reasons]]
-=== Justifying dependency declarations with custom reasons
+== Justifying dependency declarations with custom reasons
 
-When you declare a <<declaring_dependencies,dependency>> or a <<sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
+When you declare a <<declaring_dependencies.adoc#declaring_dependencies,dependency>> or a <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
-++++
-<sample id="dependencyReason" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" title="Giving a reason for choosing a certain module version in a dependency declaration">
-    <sourcefile file="build.gradle" snippet="dependency-reason" />
-</sample>
-++++
+=== Example: Giving a reason for choosing a certain module version in a dependency declaration
 
-++++
-<sample id="dependencyReasonReport" dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason" title="Using the dependency insight report with custom reasons">
-    <output args="-q dependencyInsight --dependency asm"/>
-</sample>
-++++
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyReason/build.gradle[tag=dependency-reason]
+----
+
+=== Example: Using the dependency insight report with custom reasons
+
+.Output of **`gradle -q dependencyInsight --dependency asm`**
+----
+> gradle -q dependencyInsight --dependency asm
+include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyReason/dependencyReasonReport.out[]
+----

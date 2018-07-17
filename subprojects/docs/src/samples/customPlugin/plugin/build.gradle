@@ -1,24 +1,24 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 plugins {
     id 'groovy'
-// END SNIPPET use-plugin
+// end::use-plugin[]
     id 'maven-publish'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 }
 
-// START SNIPPET gradle-api-dependencies
-// START SNIPPET local-groovy-dependencies
+// tag::gradle-api-dependencies[]
+// tag::local-groovy-dependencies[]
 dependencies {
-// END SNIPPET local-groovy-dependencies
+// end::local-groovy-dependencies[]
     compile gradleApi()
-// END SNIPPET gradle-api-dependencies
-// START SNIPPET local-groovy-dependencies
+// end::gradle-api-dependencies[]
+// tag::local-groovy-dependencies[]
     compile localGroovy()
-// START SNIPPET gradle-api-dependencies
+// tag::gradle-api-dependencies[]
 }
-// END SNIPPET gradle-api-dependencies
-// END SNIPPET local-groovy-dependencies
-// END SNIPPET use-plugin
+// end::gradle-api-dependencies[]
+// end::local-groovy-dependencies[]
+// end::use-plugin[]
 
 repositories {
     mavenCentral()

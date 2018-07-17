@@ -1,18 +1,18 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'java-library-distribution'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 version = '1.0.0'
 
-// START SNIPPET name-conf
+// tag::name-conf[]
 distributions {
     main{
         baseName = 'my-name'
     }
 }
-// END SNIPPET name-conf
+// end::name-conf[]
 
-// START SNIPPET custom-distribution
+// tag::custom-distribution[]
 distributions {
     main {
         baseName = 'my-name'
@@ -21,7 +21,7 @@ distributions {
         }
     }
 }
-// END SNIPPET custom-distribution
+// end::custom-distribution[]
 
 repositories {
     mavenCentral()

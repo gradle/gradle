@@ -1,4 +1,4 @@
-// START SNIPPET taskProperties
+// tag::taskProperties[]
 task myTask {
     ext.myProperty = "myValue"
 }
@@ -8,9 +8,9 @@ task printTaskProperties {
         println myTask.myProperty
     }
 }
-// END SNIPPET taskProperties
+// end::taskProperties[]
 
-// START SNIPPET extraProperties
+// tag::extraProperties[]
 apply plugin: "java"
 
 ext {
@@ -39,4 +39,4 @@ task printProperties {
         sourceSets.matching { it.purpose == "production" }.each { println it.name }
     }
 }
-// END SNIPPET extraProperties
+// end::extraProperties[]

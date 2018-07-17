@@ -1,4 +1,4 @@
-//START SNIPPET file-dependencies
+// tag::file-dependencies[]
 configurations {
     antContrib
     externalLibs
@@ -10,7 +10,7 @@ dependencies {
     externalLibs files('libs/commons-lang.jar', 'libs/log4j.jar')
     deploymentTools fileTree(dir: 'tools', include: '*.exe')
 }
-//END SNIPPET file-dependencies
+// end::file-dependencies[]
 
 task createLibs {
     doLast {

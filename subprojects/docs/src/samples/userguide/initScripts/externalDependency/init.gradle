@@ -1,6 +1,7 @@
+// tag::all[]
 import org.apache.commons.math.fraction.Fraction
 
-// START SNIPPET declare-classpath
+// tag::declare-classpath[]
 initscript {
     repositories {
         mavenCentral()
@@ -9,6 +10,7 @@ initscript {
         classpath group: 'org.apache.commons', name: 'commons-math', version: '2.0'
     }
 }
-// END SNIPPET declare-classpath
+// end::declare-classpath[]
 
 println Fraction.ONE_FIFTH.multiply(2)
+// end::all[]
