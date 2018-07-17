@@ -321,6 +321,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenRepo() {
         [
+            id: 'maven',
             name: 'maven',
             type: 'MAVEN',
             properties: [
@@ -337,6 +338,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedIvyRepo() {
         [
+            id: 'ivy',
             name: 'ivy',
             type: 'IVY',
             properties: [
@@ -356,6 +358,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedFlatDirRepo() {
         [
+            id: 'flatDir',
             name: 'flatDir',
             type: 'FLAT_DIR',
             properties: [
@@ -370,6 +373,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenLocalRepo() {
         [
+            id: 'MavenLocal',
             name: 'MavenLocal',
             type: 'MAVEN',
             properties: [
@@ -386,6 +390,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenCentralRepo() {
         [
+            id: 'MavenRepo',
             name: 'MavenRepo',
             type: 'MAVEN',
             properties: [
@@ -402,6 +407,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedJcenterRepo() {
         [
+            id: 'BintrayJCenter',
             name: 'BintrayJCenter',
             type: 'MAVEN',
             properties: [
@@ -418,6 +424,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedGoogleRepo() {
         [
+            id: 'Google',
             name: 'Google',
             type: 'MAVEN',
             properties: [
@@ -434,6 +441,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedGradlePluginPortalRepo() {
         [
+            id: 'Gradle Central Plugin Repository',
             name: 'Gradle Central Plugin Repository',
             type: 'MAVEN',
             properties: [
