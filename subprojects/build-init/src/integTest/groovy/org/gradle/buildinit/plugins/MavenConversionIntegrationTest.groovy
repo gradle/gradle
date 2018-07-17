@@ -29,6 +29,7 @@ import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
@@ -273,6 +274,7 @@ it.exclude group: '*', module: 'badArtifact'
 
     @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     @Issue("GRADLE-2872")
+    @Ignore
     def "expandProperties"() {
         setup:
         withSharedResources()
