@@ -192,7 +192,6 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  *
  * @see [ObjectFactory.property]
  */
-@Incubating
 inline fun <reified T> ObjectFactory.property(): Property<T> =
     property(T::class.java)
 
@@ -202,7 +201,6 @@ inline fun <reified T> ObjectFactory.property(): Property<T> =
  *
  * @see [ObjectFactory.setProperty]
  */
-@Incubating
 inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
     setProperty(T::class.java)
 
@@ -212,7 +210,6 @@ inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
  *
  * @see [ObjectFactory.listProperty]
  */
-@Incubating
 inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
     listProperty(T::class.java)
 
