@@ -19,24 +19,29 @@ package org.gradle.kotlin.dsl.codegen
 import org.gradle.kotlin.dsl.provider.gradleApiMetadataModuleName
 
 import java.io.File
+
 import java.util.Properties
 import java.util.jar.JarFile
 
 
 internal
-fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>) =
-    (gradleApiJarsFrom(gradleJars) to gradleApiMetadataFrom(gradleJars)).let { (gradleApiJars, gradleApiMetadata) ->
-        generateKotlinDslApiExtensionsSourceTo(
-            outputDirectory,
-            "org.gradle.kotlin.dsl",
-            "GradleApiKotlinDslExtensions",
-            gradleApiJars,
-            gradleJars - gradleApiJars,
-            gradleApiMetadata.includes,
-            gradleApiMetadata.excludes,
-            gradleApiMetadata.parameterNamesSupplier
-        )
-    }
+fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>): List<File> {
+
+    val gradleApiJars = gradleApiJarsFrom(gradleJars)
+
+    val gradleApiMetadata = gradleApiMetadataFrom(gradleJars)
+
+    return generateKotlinDslApiExtensionsSourceTo(
+        outputDirectory,
+        "org.gradle.kotlin.dsl",
+        "GradleApiKotlinDslExtensions",
+        gradleApiJars,
+        gradleJars - gradleApiJars,
+        gradleApiMetadata.includes,
+        gradleApiMetadata.excludes,
+        gradleApiMetadata.parameterNamesSupplier
+    )
+}
 
 
 private
@@ -45,17 +50,25 @@ fun gradleApiJarsFrom(gradleJars: Collection<File>) =
 
 
 private
-fun gradleApiMetadataFrom(gradleJars: Collection<File>) =
-    JarFile(gradleJars.single { it.name.startsWith(gradleApiMetadataModuleName) }).use { jar ->
-        jar.loadProperties(gradleApiDeclarationPropertiesName) to jar.loadProperties(gradleApiParameterNamesPropertiesName)
-    }.let { (apiDeclaration, parameterNames) ->
+fun gradleApiMetadataFrom(gradleJars: Collection<File>): GradleApiMetadata =
+    JarFile(gradleApiMetadataJarFrom(gradleJars)).use { jar ->
+        val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
+        val parameterNames = jar.loadProperties(gradleApiParameterNamesPropertiesName)
         GradleApiMetadata(
             apiDeclaration.getProperty("includes").split(":"),
-            apiDeclaration.getProperty("excludes").split(":")
-        ) { key: String ->
-            parameterNames.getProperty(key, null)?.split(",")
-        }
+            apiDeclaration.getProperty("excludes").split(":"),
+            parameterNamesSupplierFrom(parameterNames))
     }
+
+
+private
+fun parameterNamesSupplierFrom(parameterNames: Properties): ParameterNamesSupplier =
+    { key: String -> parameterNames.getProperty(key, null)?.split(",") }
+
+
+private
+fun gradleApiMetadataJarFrom(gradleJars: Collection<File>) =
+    gradleJars.single { it.name.startsWith(gradleApiMetadataModuleName) }
 
 
 private
