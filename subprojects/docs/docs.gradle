@@ -219,6 +219,8 @@ def samples = tasks.register("samples", ExtractSnippetsTask) {
     destDir = samplesDir
     excludes = ['**/readme.xml',
                 '**/build/**',
+                '**/*.sample.conf*',
+                '**/*.out',
                 '**/.gradle/**']
     nonFiltered = [ 'userguide/tutorial/antLoadfileResources/**',
                     'native-binaries/cunit/libs/**',
