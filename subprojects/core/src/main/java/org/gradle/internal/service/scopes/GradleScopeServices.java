@@ -64,7 +64,6 @@ import org.gradle.execution.taskgraph.WorkInfoExecutor;
 import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -94,8 +93,6 @@ import static java.util.Arrays.asList;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 public class GradleScopeServices extends DefaultServiceRegistry {
-
-    private final CompositeStoppable registries = new CompositeStoppable();
 
     public GradleScopeServices(final ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
@@ -185,18 +182,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
-    ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        final Factory<LoggingManagerInternal> loggingManagerInternalFactory = getFactory(LoggingManagerInternal.class);
-        return new ServiceRegistryFactory() {
-            public ServiceRegistry createFor(Object domainObject) {
-                if (domainObject instanceof ProjectInternal) {
-                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject, loggingManagerInternalFactory);
-                    registries.add(projectScopeServices);
-                    return projectScopeServices;
-                }
-                throw new UnsupportedOperationException();
-            }
-        };
+    ServiceRegistryFactory createServiceRegistryFactory(ServiceRegistry services) {
+        return new GradleScopeServiceRegistryFactory(services, getFactory(LoggingManagerInternal.class));
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
@@ -234,11 +221,4 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     protected BuildScanScopeIds createBuildScanScopeIds(BuildInvocationScopeId buildInvocationScopeId, WorkspaceScopeId workspaceScopeId, UserScopeId userScopeId) {
         return new DefaultBuildScanScopeIds(buildInvocationScopeId, workspaceScopeId, userScopeId);
     }
-
-    @Override
-    public void close() {
-        registries.stop();
-        super.close();
-    }
-
 }
