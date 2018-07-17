@@ -24,19 +24,30 @@ import java.io.File
 
 
 internal
-fun generateApiExtensionsJar(outputFile: File, gradleJars: Collection<File>, onProgress: () -> Unit) {
-    ApiExtensionsJarGenerator(onProgress = onProgress).generate(outputFile, gradleJars)
+fun generateApiExtensionsJar(
+    outputFile: File,
+    gradleJars: Collection<File>,
+    gradleApiMetadataJar: File,
+    onProgress: () -> Unit
+) {
+    ApiExtensionsJarGenerator(
+        gradleJars,
+        gradleApiMetadataJar,
+        onProgress
+    ).generate(outputFile)
 }
 
 
 private
 class ApiExtensionsJarGenerator(
+    val gradleJars: Collection<File>,
+    val gradleApiMetadataJar: File,
     val onProgress: () -> Unit = {}
 ) {
 
-    fun generate(outputFile: File, gradleJars: Collection<File> = emptyList()) {
+    fun generate(outputFile: File) {
         val tempDir = tempDirFor(outputFile)
-        compileExtensionsTo(tempDir, gradleJars)
+        compileExtensionsTo(tempDir)
         zipTo(outputFile, tempDir)
     }
 
@@ -47,28 +58,28 @@ class ApiExtensionsJarGenerator(
         }
 
     private
-    fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
+    fun compileExtensionsTo(outputDir: File) {
         compileKotlinApiExtensionsTo(
             outputDir,
-            sourceFilesFor(gradleJars, outputDir),
+            sourceFilesFor(outputDir),
             classPath = gradleJars
         )
         onProgress()
     }
 
     private
-    fun sourceFilesFor(gradleJars: Collection<File>, outputDir: File) =
-        (gradleApiExtensionsSourceFilesFor(gradleJars, outputDir)
-            + builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir))
+    fun sourceFilesFor(outputDir: File) =
+        (gradleApiExtensionsSourceFilesFor(outputDir)
+            + builtinPluginIdExtensionsSourceFileFor(outputDir))
 
     private
-    fun gradleApiExtensionsSourceFilesFor(gradleJars: Collection<File>, outputDir: File) =
-        writeGradleApiKotlinDslExtensionsTo(outputDir, gradleJars).also {
+    fun gradleApiExtensionsSourceFilesFor(outputDir: File) =
+        writeGradleApiKotlinDslExtensionsTo(outputDir, gradleJars, gradleApiMetadataJar).also {
             onProgress()
         }
 
     private
-    fun builtinPluginIdExtensionsSourceFileFor(gradleJars: Iterable<File>, outputDir: File) =
+    fun builtinPluginIdExtensionsSourceFileFor(outputDir: File) =
         generatedSourceFile(outputDir, "BuiltinPluginIdExtensions.kt").apply {
             writeBuiltinPluginIdExtensionsTo(this, gradleJars)
             onProgress()

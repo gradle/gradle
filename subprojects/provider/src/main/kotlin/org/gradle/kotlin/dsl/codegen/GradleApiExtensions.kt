@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.codegen
 
-import org.gradle.kotlin.dsl.provider.gradleApiMetadataModuleName
-
 import java.io.File
 
 import java.util.Properties
@@ -25,11 +23,11 @@ import java.util.jar.JarFile
 
 
 internal
-fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>): List<File> {
+fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>, gradleApiMetadataJar: File): List<File> {
 
     val gradleApiJars = gradleApiJarsFrom(gradleJars)
 
-    val gradleApiMetadata = gradleApiMetadataFrom(gradleJars)
+    val gradleApiMetadata = gradleApiMetadataFrom(gradleApiMetadataJar)
 
     return generateKotlinDslApiExtensionsSourceTo(
         outputDirectory,
@@ -50,8 +48,8 @@ fun gradleApiJarsFrom(gradleJars: Collection<File>) =
 
 
 private
-fun gradleApiMetadataFrom(gradleJars: Collection<File>): GradleApiMetadata =
-    JarFile(gradleApiMetadataJarFrom(gradleJars)).use { jar ->
+fun gradleApiMetadataFrom(gradleApiMetadataJar: File): GradleApiMetadata =
+    JarFile(gradleApiMetadataJar).use { jar ->
         val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
         val parameterNames = jar.loadProperties(gradleApiParameterNamesPropertiesName)
         GradleApiMetadata(
@@ -64,11 +62,6 @@ fun gradleApiMetadataFrom(gradleJars: Collection<File>): GradleApiMetadata =
 private
 fun parameterNamesSupplierFrom(parameterNames: Properties): ParameterNamesSupplier =
     { key: String -> parameterNames.getProperty(key, null)?.split(",") }
-
-
-private
-fun gradleApiMetadataJarFrom(gradleJars: Collection<File>) =
-    gradleJars.single { it.name.startsWith(gradleApiMetadataModuleName) }
 
 
 private

@@ -132,7 +132,7 @@ class KotlinScriptClassPathProvider(
     private
     fun gradleKotlinDslExtensions(): File =
         produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(outputFile, gradleJars + gradleApiMetadataJar, onProgress)
+            generateApiExtensionsJar(outputFile, gradleJars, gradleApiMetadataJar, onProgress)
         }
 
     private
