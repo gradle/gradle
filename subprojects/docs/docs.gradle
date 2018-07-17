@@ -449,7 +449,7 @@ tasks.register("checkstyleApi", Checkstyle) {
 
 def distDocs = tasks.register("distDocs", Docbook2Xhtml) {
     dependsOn userguideAsciidoc
-    source new File(asciidocOutputDir, 'gettingStarted.xml')
+    source new File(asciidocOutputDir, 'getting_started.xml')
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
 }
