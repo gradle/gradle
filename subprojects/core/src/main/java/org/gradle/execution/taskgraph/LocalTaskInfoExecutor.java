@@ -21,14 +21,13 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
-import org.gradle.internal.Factory;
 
 public class LocalTaskInfoExecutor implements WorkInfoExecutor {
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
-    private final Factory<? extends TaskExecuter> taskExecuterFactory;
+    private final TaskExecuter taskExecuter;
 
-    public LocalTaskInfoExecutor(Factory<? extends TaskExecuter> taskExecuterFactory) {
-        this.taskExecuterFactory = taskExecuterFactory;
+    public LocalTaskInfoExecutor(TaskExecuter taskExecuter) {
+        this.taskExecuter = taskExecuter;
     }
 
     @Override
@@ -37,8 +36,6 @@ public class LocalTaskInfoExecutor implements WorkInfoExecutor {
             TaskInternal task = ((LocalTaskInfo) work).getTask();
             TaskStateInternal state = task.getState();
             TaskExecutionContext ctx = new DefaultTaskExecutionContext();
-            TaskExecuter taskExecuter = taskExecuterFactory.create();
-            assert taskExecuter != null;
             taskExecuter.execute(task, state, ctx);
             return true;
         } else {

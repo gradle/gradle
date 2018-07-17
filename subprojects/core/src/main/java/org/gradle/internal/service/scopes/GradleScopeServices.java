@@ -62,7 +62,6 @@ import org.gradle.execution.taskgraph.TaskInfoWorkDependencyResolver;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
 import org.gradle.execution.taskgraph.WorkInfoExecutor;
-import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -170,14 +169,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskDependencyResolver(workResolvers);
     }
 
-    LocalTaskInfoExecutor createLocalTaskInfoExecutor() {
-        Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
-            @Override
-            public TaskExecuter create() {
-                return get(TaskExecuter.class);
-            }
-        };
-        return new LocalTaskInfoExecutor(taskExecuterFactory);
+    LocalTaskInfoExecutor createLocalTaskInfoExecutor(TaskExecuter taskExecuter) {
+        return new LocalTaskInfoExecutor(taskExecuter);
     }
 
     ListenerBroadcast<TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
