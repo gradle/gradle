@@ -77,52 +77,13 @@ Please https://github.com/gradle/gradle/issues/5664[contact us] if you find tric
 [[sec:how_do_i_know_its_working]]
 ==== How do I know if it's working?
 
-We provide a couple of internal flags to print out information after a build.  This will eventually be captured and displayed in an easier to digest form.
+https://scans.gradle.com/[Build scan] features specific information around task configuration avoidance.
+Navigating to the https://scans.gradle.com/s/yfkcpk4sflk32/performance/configuration[configuration tab under the performance card] gives https://scans.gradle.com/s/yfkcpk4sflk32/performance/configuration#summary-task-totals[task creation metrics].
+As you are migrating to the lazy task APIs, these metrics should evolve toward more task created during task graph calculation as well as an increase in the number of tasks not created.
+If you aren't seeing any improvement, have a look at the troubleshooting section <<task_configuration_avoidance_troubleshooting_where_resolved, Where a task was resolved?>>
 
-.gradle -Dorg.gradle.internal.tasks.stats help
-----
-Task counts: Old API 188, New API 587, total 775 # 1
-Task counts: created 613, avoided 162, %-lazy 21 # 2
-
-Task types that were created with the old API # 3
-class org.gradle.api.DefaultTask 31
-class org.jetbrains.kotlin.gradle.tasks.KotlinCompile 28
-class org.gradle.api.tasks.JavaExec 24
-class org.jlleitschuh.gradle.ktlint.KtlintCheck 24
-class org.gradle.api.tasks.bundling.Jar 16
-class org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors 16
-class org.gradle.plugin.devel.tasks.ValidateTaskProperties 15
-class org.gradle.another.CoolTask 13
-class org.gradle.plugin.devel.tasks.GeneratePluginDescriptors 10
-class org.gradle.plugin.devel.tasks.PluginUnderTestMetadata 10
-class org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema 1
-
-Task types that were registered with the new API but were created anyways # 4
-class org.gradle.api.DefaultTask 142
-class org.gradle.api.tasks.Delete 106
-class org.gradle.api.tasks.compile.JavaCompile 32
-class org.gradle.language.jvm.tasks.ProcessResources 32
-class org.gradle.api.tasks.testing.Test 16
-class org.gradle.api.tasks.javadoc.Javadoc 16
-class org.gradle.plugins.ide.idea.GenerateIdeaModule 15
-class org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath 15
-class org.gradle.plugins.ide.eclipse.GenerateEclipseJdt 15
-class org.gradle.plugins.ide.eclipse.GenerateEclipseProject 15
-class org.gradle.api.tasks.compile.GroovyCompile 10
-class org.gradle.api.tasks.javadoc.Groovydoc 5
-class org.gradle.api.plugins.quality.Checkstyle 4
-class org.gradle.api.plugins.quality.CodeNarc 2
-----
-1. 188 tasks are created with the old API and 587 tasks are registered with the new API for a total of 775 tasks.
-2. 613 tasks were created and configured and only 162 tasks were avoided (never created or configured). 21% of all tasks were avoided (higher is better).
-3. Lists of the type of tasks that were created with the old API. This is a good list to work down to increase the amount of possible avoidable task configuration.
-4. Lists of the type of tasks that were created with the new API but were created/configured anyways. This is a good list to work down to increase the amount of task configuration that is avoided.
-
-These statistics are printed out once per build. Projects with buildSrc and composite builds will display this information multiple times. In a build that uses the new APIs perfectly, we should see 0 tasks created with the old API and only 1 created/configured task because we are only executing the `help` task. If you run other tasks (like `build`), you should expect many more tasks to be created and configured.
-
-You can use the list of task types to guide which tasks would provide the biggest bang for your buck when you migrate to the new API.
-
-To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`. Please use the Gradle Profiler to measure your build as described in <<sec:new_task_gradle_profiler_scenario>>.
+To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`.
+Please use the Gradle Profiler to measure your build as described in <<sec:new_task_gradle_profiler_scenario>>.
 
 [[sec:task_configuration_avoidance_migration_guidelines]]
 === Migration Guide
@@ -189,7 +150,7 @@ It will cause your build to create fewer tasks in general.
 Be aware of the <<sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
 
 At this point, we should see a decent improvement regarding build configuration.
-We recommend <<sec:how_do_i_know_its_working, profiling your build and note the improvement>>.
+We recommend <<sec:new_task_gradle_profiler_scenario, profiling your build and note the improvement>>.
 Under some circumstance, you may <<task_configuration_avoidance_troubleshooting_no_improvement, notice no improvement>>.
 It’s unfortunate, and we feel your frustration. Keep reading onto the next section.
 
@@ -208,7 +169,7 @@ Follow these next steps to find out the issue:
   For example, https://github.com/gradle/gradle-native/issues/737[the issue of `FileCollection` using `TaskProvider` was a real discrepancy] found while migrating a build to lazy task API.
   As a rule of thumb, a `TaskProvider` should be accepted everywhere a `Task` instance is accepted.
 
-* **Where a task was resolved?**
+* [[task_configuration_avoidance_troubleshooting_where_resolved]] **Where a task was resolved?**
 As we keep developing the feature, more reporting, and troubleshooting information will be made available to answer this question.
 In the meantime, https://gradle.com/enterprise/releases/2018.3#reduce-configuration-time-by-leveraging-task-creation-avoidance[build scan is the best way to answer this question].
 Follow these steps:
