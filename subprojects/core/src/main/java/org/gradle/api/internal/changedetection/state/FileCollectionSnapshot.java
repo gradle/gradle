@@ -18,15 +18,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 
 import java.util.Map;
 
 /**
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
-public interface FileCollectionSnapshot extends Snapshot {
+public interface FileCollectionSnapshot {
 
     /**
      * Visits the changes to file contents since the given snapshot, subject to the given filters.
@@ -36,21 +35,12 @@ public interface FileCollectionSnapshot extends Snapshot {
     boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
-     * Returns the combined hash of the contents of this {@link FileCollectionSnapshot}.
-     */
-    HashCode getHash();
-
-    /**
      * The underlying snapshots.
      */
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
     /**
-     * Visits the roots of this file collection snapshot.
-     *
-     * {@link FileCollectionSnapshot}s loaded from the task history don't have the roots available.
-     *
-     * @throws UnsupportedOperationException if the roots are not available.
+     * Converts the {@link FileCollectionSnapshot} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
      */
-    void visitRoots(PhysicalSnapshotVisitor visitor);
+    HistoricalFileCollectionFingerprint archive();
 }

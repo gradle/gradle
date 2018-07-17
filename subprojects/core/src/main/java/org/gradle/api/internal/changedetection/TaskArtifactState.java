@@ -79,7 +79,5 @@ public interface TaskArtifactState {
     /**
      * Returns the current output file snapshots indexed by property name.
      */
-    Map<String, FileCollectionSnapshot> getOutputSnapshots();
-
-
+    Map<String, ? extends FileCollectionSnapshot> getOutputSnapshots();
 }

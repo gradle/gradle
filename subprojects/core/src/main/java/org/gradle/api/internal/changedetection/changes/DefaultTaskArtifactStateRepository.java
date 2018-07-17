@@ -36,6 +36,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
+import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -129,7 +130,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
-            ImmutableCollection<FileCollectionSnapshot> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
+            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionSnapshot fileCollectionSnapshot : outputFilesSnapshot) {
                 for (String absolutePath : fileCollectionSnapshot.getSnapshots().keySet()) {
@@ -140,7 +141,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Map<String, FileCollectionSnapshot> getOutputSnapshots() {
+        public Map<String, ? extends FileCollectionSnapshot> getOutputSnapshots() {
             return history.getCurrentExecution().getOutputFilesSnapshot();
         }
 

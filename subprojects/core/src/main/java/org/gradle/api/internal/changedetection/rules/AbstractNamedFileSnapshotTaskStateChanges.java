@@ -33,15 +33,15 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         this.title = title;
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
+    private ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getPrevious() {
         return getSnapshot(previous);
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
+    private ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getCurrent() {
         return getSnapshot(current);
     }
 
-    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
+    protected abstract ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getSnapshot(TaskExecution execution);
 
     protected boolean accept(final TaskStateChangeVisitor visitor, final boolean includeAdded) {
         return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
@@ -32,10 +33,10 @@ import java.util.Map;
 
 public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
-    private final Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer;
+    private final Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer;
 
-    TaskExecutionSnapshotSerializer(Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer) {
-        this.fileCollectionSnapshotSerializer = fileCollectionSnapshotSerializer;
+    TaskExecutionSnapshotSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
+        this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
     }
 
@@ -47,8 +48,8 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
             decoder.readLong()
         );
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = readSnapshots(decoder);
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshots = readSnapshots(decoder);
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesSnapshots = readSnapshots(decoder);
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesSnapshots = readSnapshots(decoder);
 
         ImplementationSnapshot taskImplementation = readImplementation(decoder);
 
@@ -116,22 +117,22 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         }
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> readSnapshots(Decoder decoder) throws Exception {
+    private ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> readSnapshots(Decoder decoder) throws Exception {
         int count = decoder.readSmallInt();
-        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, HistoricalFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (int snapshotIdx = 0; snapshotIdx < count; snapshotIdx++) {
             String property = decoder.readString();
-            FileCollectionSnapshot snapshot = fileCollectionSnapshotSerializer.read(decoder);
+            HistoricalFileCollectionFingerprint snapshot = fileCollectionFingerprintSerializer.read(decoder);
             builder.put(property, snapshot);
         }
         return builder.build();
     }
 
-    private void writeSnapshots(Encoder encoder, Map<String, FileCollectionSnapshot> ids) throws Exception {
-        encoder.writeSmallInt(ids.size());
-        for (Map.Entry<String, FileCollectionSnapshot> entry : ids.entrySet()) {
+    private void writeSnapshots(Encoder encoder, Map<String, HistoricalFileCollectionFingerprint> fingerprints) throws Exception {
+        encoder.writeSmallInt(fingerprints.size());
+        for (Map.Entry<String, HistoricalFileCollectionFingerprint> entry : fingerprints.entrySet()) {
             encoder.writeString(entry.getKey());
-            fileCollectionSnapshotSerializer.write(encoder, entry.getValue());
+            fileCollectionFingerprintSerializer.write(encoder, entry.getValue());
         }
     }
 }

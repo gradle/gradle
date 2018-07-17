@@ -30,8 +30,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
+import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultHistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -73,7 +75,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     public CacheBackedTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer,
+        Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
@@ -83,7 +85,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.snapshotterRegistry = snapshotterRegistry;
-        TaskExecutionSnapshotSerializer serializer = new TaskExecutionSnapshotSerializer(fileCollectionSnapshotSerializer);
+        TaskExecutionSnapshotSerializer serializer = new TaskExecutionSnapshotSerializer(fileCollectionFingerprintSerializer);
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
@@ -148,9 +150,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(taskProperties);
         ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(taskProperties, stringInterner);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input", normalizationStrategy, taskProperties.getInputFileProperties(), snapshotterRegistry);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = snapshotTaskFiles(task, "Input", normalizationStrategy, taskProperties.getInputFileProperties(), snapshotterRegistry);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), snapshotterRegistry);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = snapshotTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), snapshotterRegistry);
 
         OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
 
@@ -167,9 +169,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private void updateExecution(@Nullable final HistoricalTaskExecution previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, TaskProperties taskProperties, InputNormalizationStrategy normalizationStrategy) {
-        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), snapshotterRegistry);
+        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), snapshotterRegistry);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
+        ImmutableSortedMap<String, ? extends FileCollectionSnapshot> newOutputSnapshot;
         if (currentExecution.getDetectedOverlappingOutputs() == null) {
             newOutputSnapshot = outputFilesAfter;
         } else {
@@ -177,16 +179,16 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 @Override
                 @SuppressWarnings("NullableProblems")
                 public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
-                    FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
-                    FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
-                    return filterOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
+                    CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
+                    HistoricalFileCollectionFingerprint afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
+                    return filterOutputSnapshot(afterPreviousExecution, (CurrentFileCollectionFingerprint) beforeExecution, afterExecution);
                 }
             }));
         }
         updateExecution(currentExecution, task, newOutputSnapshot);
     }
 
-    private void updateExecution(CurrentTaskExecution currentExecution, TaskInternal task, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+    private void updateExecution(CurrentTaskExecution currentExecution, TaskInternal task, ImmutableSortedMap<String, ? extends FileCollectionSnapshot> newOutputSnapshot) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
         currentExecution.setOutputFilesSnapshot(newOutputSnapshot);
     }
@@ -195,9 +197,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */
     private static FileCollectionSnapshot filterOutputSnapshot(
-        @Nullable FileCollectionSnapshot afterPreviousExecution,
-        FileCollectionSnapshot beforeExecution,
-        FileCollectionSnapshot afterExecution
+        @Nullable HistoricalFileCollectionFingerprint afterPreviousExecution,
+        CurrentFileCollectionFingerprint beforeExecution,
+        CurrentFileCollectionFingerprint afterExecution
     ) {
         FileCollectionSnapshot filesSnapshot;
         Map<String, PhysicalSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
@@ -219,7 +221,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             } else if (newEntryCount == 0) {
                 filesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
             } else {
-                filesSnapshot = new DefaultFileCollectionFingerprint(outputEntries.build(), FingerprintCompareStrategy.ABSOLUTE, null);
+                filesSnapshot = new DefaultHistoricalFileCollectionFingerprint(outputEntries.build(), FingerprintCompareStrategy.ABSOLUTE);
             }
         } else {
             filesSnapshot = afterExecution;
@@ -227,7 +229,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return filesSnapshot;
     }
 
-    private static Map<String, PhysicalSnapshot> getAllSnapshots(FileCollectionSnapshot fingerprint) {
+    private static Map<String, PhysicalSnapshot> getAllSnapshots(CurrentFileCollectionFingerprint fingerprint) {
         GetAllSnapshotsVisitor afterExecutionVisitor = new GetAllSnapshotsVisitor();
         fingerprint.visitRoots(afterExecutionVisitor);
         return afterExecutionVisitor.getSnapshots();
@@ -294,10 +296,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @VisibleForTesting
-    static ImmutableSortedMap<String, FileCollectionSnapshot> snapshotTaskFiles(TaskInternal task, String title, InputNormalizationStrategy normalizationStrategy, SortedSet<? extends TaskFilePropertySpec> fileProperties, FileCollectionSnapshotterRegistry snapshotterRegistry) {
-        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
+    static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotTaskFiles(TaskInternal task, String title, InputNormalizationStrategy normalizationStrategy, SortedSet<? extends TaskFilePropertySpec> fileProperties, FileCollectionSnapshotterRegistry snapshotterRegistry) {
+        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
-            FileCollectionSnapshot result;
+            CurrentFileCollectionFingerprint result;
             try {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getNormalizer());
                 LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
@@ -311,11 +313,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @Nullable
-    private static OverlappingOutputs detectOverlappingOutputs(ImmutableSortedMap<String, FileCollectionSnapshot> taskOutputs, @Nullable HistoricalTaskExecution previousExecution) {
-        for (Map.Entry<String, FileCollectionSnapshot> entry : taskOutputs.entrySet()) {
+    private static OverlappingOutputs detectOverlappingOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> taskOutputs, @Nullable HistoricalTaskExecution previousExecution) {
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : taskOutputs.entrySet()) {
             String propertyName = entry.getKey();
             FileCollectionSnapshot beforeExecution = entry.getValue();
-            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
+            HistoricalFileCollectionFingerprint afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
             OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
             if (overlappingOutputs != null) {
                 return overlappingOutputs;
@@ -324,10 +326,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return null;
     }
 
-    private static FileCollectionSnapshot getSnapshotAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
+    private static HistoricalFileCollectionFingerprint getSnapshotAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
-            Map<String, FileCollectionSnapshot> previousSnapshots = previousExecution.getOutputFilesSnapshot();
-            FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
+            Map<String, HistoricalFileCollectionFingerprint> previousSnapshots = previousExecution.getOutputFilesSnapshot();
+            HistoricalFileCollectionFingerprint afterPreviousExecution = previousSnapshots.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
             }

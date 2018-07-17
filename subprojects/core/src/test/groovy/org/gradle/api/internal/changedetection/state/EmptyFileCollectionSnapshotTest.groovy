@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
-import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultHistoricalFileCollectionFingerprint
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -27,10 +27,10 @@ import spock.lang.Specification
 
 class EmptyFileCollectionSnapshotTest extends Specification {
     def "comparing empty snapshot to regular snapshot shows entries added"() {
-        def snapshot = new DefaultFileCollectionFingerprint([
+        def snapshot = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE, null)
+        ], FingerprintCompareStrategy.ABSOLUTE)
         expect:
         getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, false).empty
         getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, true) == [
@@ -40,10 +40,10 @@ class EmptyFileCollectionSnapshotTest extends Specification {
     }
 
     def "comparing regular snapshot to empty snapshot shows entries removed"() {
-        def snapshot = new DefaultFileCollectionFingerprint([
+        def snapshot = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE, null)
+        ], FingerprintCompareStrategy.ABSOLUTE)
         expect:
         getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),

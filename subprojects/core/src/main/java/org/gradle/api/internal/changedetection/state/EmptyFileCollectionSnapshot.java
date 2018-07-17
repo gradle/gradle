@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
+import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -26,7 +28,7 @@ import org.gradle.internal.hash.Hashing;
 import java.util.Collections;
 import java.util.Map;
 
-public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
+public class EmptyFileCollectionSnapshot implements CurrentFileCollectionFingerprint, HistoricalFileCollectionFingerprint {
     public static final EmptyFileCollectionSnapshot INSTANCE = new EmptyFileCollectionSnapshot();
 
     private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyFileCollectionSnapshot.class.getName());
@@ -56,6 +58,11 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    }
+
+    @Override
+    public HistoricalFileCollectionFingerprint archive() {
+        return this;
     }
 
     @Override

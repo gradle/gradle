@@ -21,7 +21,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
+import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultHistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
@@ -51,11 +53,11 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        registry.register(DefaultFileCollectionFingerprint.class, new DefaultFileCollectionFingerprint.SerializerImpl(stringInterner));
+        registry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner));
         registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection input, FingerprintingStrategy strategy) {
+    public CurrentFileCollectionFingerprint snapshot(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);

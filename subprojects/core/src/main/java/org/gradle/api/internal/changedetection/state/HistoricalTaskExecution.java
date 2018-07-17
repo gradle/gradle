@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 
 import javax.annotation.Nonnull;
@@ -32,16 +33,16 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
 
     private final boolean successful;
     private final OriginTaskExecutionMetadata originExecutionMetadata;
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesSnapshot;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesSnapshot;
 
     public HistoricalTaskExecution(
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesSnapshot,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesSnapshot,
         boolean successful,
         OriginTaskExecutionMetadata originExecutionMetadata
     ) {
@@ -64,12 +65,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFilesSnapshot() {
         return inputFilesSnapshot;
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFilesSnapshot() {
         return outputFilesSnapshot;
     }
 }

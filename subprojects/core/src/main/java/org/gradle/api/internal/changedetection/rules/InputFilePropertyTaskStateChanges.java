@@ -31,7 +31,7 @@ public class InputFilePropertyTaskStateChanges extends AbstractPropertyTaskState
     }
 
     @Override
-    protected SortedMap<String, FileCollectionSnapshot> getProperties(TaskExecution execution) {
+    protected SortedMap<String, ? extends FileCollectionSnapshot> getProperties(TaskExecution execution) {
         return execution.getInputFilesSnapshot();
     }
 }

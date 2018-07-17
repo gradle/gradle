@@ -37,7 +37,7 @@ public abstract class AbstractPropertyTaskStateChanges<V> implements TaskStateCh
         this.task = task;
     }
 
-    protected abstract SortedMap<String, V> getProperties(TaskExecution execution);
+    protected abstract SortedMap<String, ? extends V> getProperties(TaskExecution execution);
 
     @Override
     public boolean accept(final TaskStateChangeVisitor visitor) {

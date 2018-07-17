@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.Snapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.hash.HashCode;
 
-import java.util.SortedMap;
+public interface CurrentFileCollectionFingerprint extends FileCollectionSnapshot, Snapshot {
+    /**
+     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
+     */
+    HashCode getHash();
 
-@NonNullApi
-public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges<FileCollectionSnapshot> {
-
-    public OutputPropertyTaskChanges(TaskExecution previous, TaskExecution current, Task task) {
-        super(previous, current, "Output", task);
-    }
-
-    @Override
-    protected SortedMap<String, ? extends FileCollectionSnapshot> getProperties(TaskExecution execution) {
-        return execution.getOutputFilesSnapshot();
-    }
+    /**
+     * Visits the roots of this file collection fingerprint.
+     */
+    void visitRoots(PhysicalSnapshotVisitor visitor);
 }

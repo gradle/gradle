@@ -14,24 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.api.internal.changedetection.state.mirror.logical;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.SortedMap;
-
-@NonNullApi
-public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges<FileCollectionSnapshot> {
-
-    public OutputPropertyTaskChanges(TaskExecution previous, TaskExecution current, Task task) {
-        super(previous, current, "Output", task);
-    }
-
-    @Override
-    protected SortedMap<String, ? extends FileCollectionSnapshot> getProperties(TaskExecution execution) {
-        return execution.getOutputFilesSnapshot();
-    }
+public interface HistoricalFileCollectionFingerprint extends FileCollectionSnapshot {
 }

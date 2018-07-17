@@ -44,9 +44,9 @@ public interface TaskExecution {
 
     ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
 
-    ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
+    ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getOutputFilesSnapshot();
 
-    ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
+    ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getInputFilesSnapshot();
 
     boolean isSuccessful();
 

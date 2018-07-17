@@ -28,7 +28,7 @@ public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStat
     }
 
     @Override
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
+    protected ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
         return execution.getInputFilesSnapshot();
     }
 

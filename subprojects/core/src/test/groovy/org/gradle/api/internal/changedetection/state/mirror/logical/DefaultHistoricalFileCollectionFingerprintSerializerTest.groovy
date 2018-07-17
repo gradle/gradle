@@ -25,27 +25,24 @@ import org.gradle.internal.fingerprint.IgnoredPathFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
 
-class DefaultFileCollectionFingerprintSerializerTest extends SerializerSpec {
+class DefaultHistoricalFileCollectionFingerprintSerializerTest extends SerializerSpec {
 
     def stringInterner = new StringInterner()
-    def serializer = new DefaultFileCollectionFingerprint.SerializerImpl(stringInterner)
+    def serializer = new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner)
 
     def "reads and writes the fingerprints"(FingerprintCompareStrategy strategy) {
         def hash = HashCode.fromInt(1234)
-        def combinedHash = HashCode.fromInt(5678)
 
         when:
-        def out = serialize(new DefaultFileCollectionFingerprint(
+        def out = serialize(new DefaultHistoricalFileCollectionFingerprint(
             '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
             '/2': IgnoredPathFingerprint.create(FileType.RegularFile, hash),
             '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            strategy,
-            combinedHash
+            strategy
         ), serializer)
 
         then:
         out.snapshots.size() == 3
-        out.hash == combinedHash
         out.snapshots['/1'].with {
             type == FileType.Directory
             normalizedPath == "1"
@@ -61,7 +58,7 @@ class DefaultFileCollectionFingerprintSerializerTest extends SerializerSpec {
             normalizedPath == "/3"
             normalizedContentHash == PhysicalMissingSnapshot.SIGNATURE
         }
-        out.strategy == strategy
+        out.compareStrategy == strategy
 
         where:
         strategy << FingerprintCompareStrategy.values()
@@ -69,12 +66,11 @@ class DefaultFileCollectionFingerprintSerializerTest extends SerializerSpec {
 
     def "should retain order in serialization"() {
         when:
-        DefaultFileCollectionFingerprint out = serialize(new DefaultFileCollectionFingerprint(
+        DefaultHistoricalFileCollectionFingerprint out = serialize(new DefaultHistoricalFileCollectionFingerprint(
             "/3": new DefaultNormalizedFileSnapshot('3', FileType.RegularFile, HashCode.fromInt(1234)),
             "/2": new DefaultNormalizedFileSnapshot('/2', FileType.RegularFile, HashCode.fromInt(5678)),
             "/1": new DefaultNormalizedFileSnapshot('1', FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            FingerprintCompareStrategy.ABSOLUTE,
-            null
+            FingerprintCompareStrategy.ABSOLUTE
         ), serializer)
 
         then:

@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
@@ -396,7 +396,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def snapshot(HashCode hashCode) {
-        FileCollectionSnapshot snapshot = Stub(FileCollectionSnapshot)
+        CurrentFileCollectionFingerprint snapshot = Stub(CurrentFileCollectionFingerprint)
         snapshot.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putHash(hashCode) }
         snapshot
     }

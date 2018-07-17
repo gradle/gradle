@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
@@ -72,7 +73,7 @@ public class TaskOutputCacheCommandFactory {
         return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskArtifactState);
     }
 
-    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, FileCollectionSnapshot> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, TaskInternal task, long taskExecutionTime) {
         return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, taskExecutionTime);
     }
 
@@ -214,11 +215,11 @@ public class TaskOutputCacheCommandFactory {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
-        private final Map<String, FileCollectionSnapshot> outputSnapshots;
+        private final Map<String, CurrentFileCollectionFingerprint> outputSnapshots;
         private final TaskInternal task;
         private final long taskExecutionTime;
 
-        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, FileCollectionSnapshot> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, TaskInternal task, long taskExecutionTime) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.outputSnapshots = outputSnapshots;

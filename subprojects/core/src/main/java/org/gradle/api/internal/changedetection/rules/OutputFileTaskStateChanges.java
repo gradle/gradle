@@ -29,7 +29,7 @@ public class OutputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     @Override
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
+    protected ImmutableSortedMap<String, ? extends FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
         return execution.getOutputFilesSnapshot();
     }
 

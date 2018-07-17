@@ -17,9 +17,9 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 
@@ -35,7 +35,7 @@ public class TaskCacheKeyCalculator {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
-    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
+    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, CurrentTaskExecution execution) {
         TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         if (buildCacheDebugLogging) {
             builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);
@@ -55,9 +55,9 @@ public class TaskCacheKeyCalculator {
             }
         }
 
-        SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();
-        for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshots.entrySet()) {
-            FileCollectionSnapshot snapshot = entry.getValue();
+        SortedMap<String, CurrentFileCollectionFingerprint> inputFilesSnapshots = execution.getInputFilesSnapshot();
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFilesSnapshots.entrySet()) {
+            CurrentFileCollectionFingerprint snapshot = entry.getValue();
             builder.appendInputPropertyHash(entry.getKey(), snapshot.getHash());
         }
 

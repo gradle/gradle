@@ -112,7 +112,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public Map<String, FileCollectionSnapshot> getOutputSnapshots() {
+        public Map<String, ? extends FileCollectionSnapshot> getOutputSnapshots() {
             return delegate.getOutputSnapshots();
         }
 
