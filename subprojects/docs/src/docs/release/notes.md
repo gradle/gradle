@@ -14,6 +14,10 @@ Add-->
 
 Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
 
+### Authorization for Maven repositories with custom HTTP headers
+
+Now it is possible to define a custom HTTP header to authorize access to a Maven repository. This enables Gradle to access private Gitlab and TFS repositories
+used as Maven repositories or any OAuth2 protected Maven repositories.
 
 ## Promoted features
 
@@ -60,6 +64,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
 - [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
 - [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
+- [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
 
 ## Known issues
 
