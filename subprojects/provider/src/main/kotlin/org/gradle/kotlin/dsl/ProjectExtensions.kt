@@ -40,6 +40,7 @@ import org.gradle.api.plugins.PluginAware
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.PropertyState
+import org.gradle.api.provider.SetProperty
 
 import org.gradle.api.tasks.TaskContainer
 
@@ -191,9 +192,17 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  *
  * @see [ObjectFactory.property]
  */
-@Incubating
 inline fun <reified T> ObjectFactory.property(): Property<T> =
     property(T::class.java)
+
+
+/**
+ * Creates a [SetProperty] that holds values of the given type [T].
+ *
+ * @see [ObjectFactory.setProperty]
+ */
+inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
+    setProperty(T::class.java)
 
 
 /**
@@ -201,7 +210,6 @@ inline fun <reified T> ObjectFactory.property(): Property<T> =
  *
  * @see [ObjectFactory.listProperty]
  */
-@Incubating
 inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
     listProperty(T::class.java)
 

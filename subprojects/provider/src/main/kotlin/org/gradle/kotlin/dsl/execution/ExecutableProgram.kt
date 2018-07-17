@@ -70,8 +70,7 @@ abstract class ExecutableProgram {
         )
 
         fun compileSecondStageScript(
-            scriptPath: String,
-            originalScriptPath: String,
+            scriptText: String,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,

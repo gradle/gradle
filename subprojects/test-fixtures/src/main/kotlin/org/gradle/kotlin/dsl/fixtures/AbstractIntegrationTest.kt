@@ -9,8 +9,8 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
 import org.hamcrest.CoreMatchers.allOf
-import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeTrue
@@ -39,7 +39,7 @@ open class AbstractIntegrationTest {
         withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
-    val defaultSettingsScript
+    open val defaultSettingsScript
         get() = ""
 
     protected
