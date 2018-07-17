@@ -43,7 +43,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.RegularFile
-        snapshot.isContentAndMetadataUpToDate(new PhysicalFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), f.lastModified()))
+        snapshot.isContentAndMetadataUpToDate(new PhysicalFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), TestFiles.fileSystem().stat(f).lastModified))
 
         def snapshot2 = snapshotter.snapshotSelf(f)
         snapshot2.is(snapshot)
