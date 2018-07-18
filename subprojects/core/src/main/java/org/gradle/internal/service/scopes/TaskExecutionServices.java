@@ -167,13 +167,12 @@ public class TaskExecutionServices {
 
     TaskHistoryRepository createTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionSnapshotterRegistry snapshotterRegistry) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
+        for (FileCollectionSnapshotter snapshotter : snapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
         }
 
