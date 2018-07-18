@@ -32,25 +32,25 @@ public class GradleSystem {
     /**
      * Gets the value of the specified environment variable in current build.
      *
-     * @param  name the name of the environment variable
+     * @param name the name of the environment variable
      * @return the string value of the variable, or <code>null</code>
-     *         if the variable is not defined in the system environment
-     * @see    #getenv()
+     * if the variable is not defined in the system environment
+     * @see #getenv()
      */
     @Incubating
     @Nullable
     public static String getenv(String name) {
-        return GradleProcessEnvironment.getenv(name);
+        return GradleProcessEnvironment.INSTANCE.getenv(name);
     }
 
     /**
-     *
      * Returns an unmodifiable string map view of the current system environment in current build.
+     *
      * @return the environment as a map of variable names to values
-     * @see    #getenv(String)
+     * @see #getenv(String)
      */
     @Incubating
     public static Map<String, String> getenv() {
-        return GradleProcessEnvironment.getenv();
+        return GradleProcessEnvironment.INSTANCE.getenv();
     }
 }

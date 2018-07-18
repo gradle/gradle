@@ -23,12 +23,12 @@ public enum GradleEnvVariableHandler implements EnvVariableHandler {
 
     @Override
     public void unsetenv(String name) {
-        GradleProcessEnvironment.unsetenv(name);
+        GradleProcessEnvironment.INSTANCE.unsetenv(name);
     }
 
     @Override
     public void setenv(String name, String value) {
-        GradleProcessEnvironment.setenv(name, value);
+        GradleProcessEnvironment.INSTANCE.setenv(name, value);
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.ProcessLauncher;
-import org.gradle.api.GradleSystem;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
@@ -33,7 +32,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -165,9 +163,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     public Map<String, String> getEnvironment() {
-        Map<String, String> currentProcessEnvironments = new HashMap<String, String>(GradleSystem.getenv());
-        currentProcessEnvironments.putAll(environment);
-        return Collections.unmodifiableMap(currentProcessEnvironments);
+        return Collections.unmodifiableMap(environment);
     }
 
     public ExecHandleState getState() {
@@ -245,7 +241,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     public ExecHandle start() {
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",
-                displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+            displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Environment for process '{}': {}", displayName, environment);
         }
