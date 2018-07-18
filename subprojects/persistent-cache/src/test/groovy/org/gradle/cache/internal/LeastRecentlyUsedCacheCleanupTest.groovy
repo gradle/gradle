@@ -49,7 +49,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
         ]
 
         when:
-        cleanupAction.clean(cleanableStore, timer)
+        cleanupAction.clean(cleanableStore)
 
         then:
         cacheEntries[0].assertExists()
@@ -69,7 +69,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
         ]
 
         when:
-        cleanupAction.clean(cleanableStore, timer)
+        cleanupAction.clean(cleanableStore)
 
         then:
         cacheEntries[0].assertExists()

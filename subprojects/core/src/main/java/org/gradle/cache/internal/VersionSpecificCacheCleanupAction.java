@@ -24,8 +24,8 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
@@ -41,7 +41,6 @@ public class VersionSpecificCacheCleanupAction {
     @VisibleForTesting static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";
     private static final Logger LOGGER = Logging.getLogger(VersionSpecificCacheCleanupAction.class);
     private static final long CLEANUP_INTERVAL_IN_HOURS = 24;
-    private static final long CLEANUP_TIMEOUT_MILLIS = 10000;
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
     private final long maxUnusedDaysForReleases;
@@ -61,8 +60,8 @@ public class VersionSpecificCacheCleanupAction {
 
     public void execute() {
         if (requiresCleanup()) {
-            CountdownTimer timer = Time.startCountdownTimer(CLEANUP_TIMEOUT_MILLIS);
-            performCleanup(timer);
+            Timer timer = Time.startTimer();
+            performCleanup();
             LOGGER.debug("Processed version-specific caches for cleanup in {}", timer.getElapsed());
         }
     }
@@ -86,13 +85,12 @@ public class VersionSpecificCacheCleanupAction {
         return new File(currentVersionCacheDir, "gc.properties");
     }
 
-    @VisibleForTesting
-    protected void performCleanup(CountdownTimer timer) {
+    private void performCleanup() {
         MinimumTimestampProvider minimumTimestampProvider = new MinimumTimestampProvider();
         SortedSetMultimap<GradleVersion, VersionSpecificCacheDirectory> cacheDirsByBaseVersion = scanForVersionSpecificCacheDirs();
         boolean completelyCleanedUp = true;
         for (GradleVersion baseVersion : cacheDirsByBaseVersion.keySet()) {
-            completelyCleanedUp = performCleanup(cacheDirsByBaseVersion.get(baseVersion), timer, minimumTimestampProvider);
+            completelyCleanedUp = performCleanup(cacheDirsByBaseVersion.get(baseVersion), minimumTimestampProvider);
             if (!completelyCleanedUp) {
                 break;
             }
@@ -110,12 +108,9 @@ public class VersionSpecificCacheCleanupAction {
         return cacheDirsByBaseVersion;
     }
 
-    private boolean performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, CountdownTimer timer, MinimumTimestampProvider minimumTimestampProvider) {
+    private boolean performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, MinimumTimestampProvider minimumTimestampProvider) {
         Spec<VersionSpecificCacheDirectory> cleanupCondition = new CleanupCondition(cacheDirsWithSameBaseVersion, minimumTimestampProvider);
         for (VersionSpecificCacheDirectory cacheDir : cacheDirsWithSameBaseVersion) {
-            if (timer.hasExpired()) {
-                return false;
-            }
             if (cleanupCondition.isSatisfiedBy(cacheDir)) {
                 try {
                     deleteCacheDir(cacheDir.getDir());

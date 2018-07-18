@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CleanableStore
-import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -53,7 +52,7 @@ class UnusedVersionsCacheCleanupTest extends Specification {
 
         when:
         UnusedVersionsCacheCleanup.create(CACHE_NAME, cacheVersionMapping, usedGradleVersions)
-            .clean(cleanableStore, Stub(CountdownTimer))
+            .clean(cleanableStore)
 
         then:
         usedGradleVersions.getUsedGradleVersions() >> (gradleVersions.collect { GradleVersion.version(it) } as SortedSet)

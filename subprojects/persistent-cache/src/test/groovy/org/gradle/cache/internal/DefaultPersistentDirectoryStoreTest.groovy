@@ -148,7 +148,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
         then:
         gcFile.lastModified() > modificationTimeBefore
-        1 * cleanupAction.clean(store, _)
+        1 * cleanupAction.clean(store)
         0 * _
     }
 
@@ -167,7 +167,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.close()
 
         then:
-        1 * cleanupAction.clean(store, _) >> {
+        1 * cleanupAction.clean(store) >> {
             throw new RuntimeException("Boom")
         }
         noExceptionThrown()

@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -158,25 +157,6 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         then:
         snapshot.assertExists()
         latestSnapshot.assertExists()
-    }
-
-    def "aborts cleanup when timeout has expired"() {
-        given:
-        def oldestCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.2.3"), NOT_USED_WITHIN_30_DAYS)
-        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_30_DAYS)
-        def timer = Mock(CountdownTimer)
-
-        when:
-        cleanupAction.performCleanup(timer)
-
-        then:
-        1 * timer.hasExpired() >> false
-        1 * timer.hasExpired() >> true
-
-        and:
-        getGcFile(currentCacheDir).assertDoesNotExist()
-        oldestCacheDir.assertDoesNotExist()
-        oldCacheDir.assertExists()
     }
 
     @Override
