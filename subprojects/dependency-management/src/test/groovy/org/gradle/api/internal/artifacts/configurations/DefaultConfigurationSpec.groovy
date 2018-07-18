@@ -87,6 +87,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
+        _ * resolver.getRepositories() >> []
     }
 
     void defaultValues() {
@@ -460,6 +461,7 @@ class DefaultConfigurationSpec extends Specification {
             resolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactSet)
             resolverResults.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifactSet)
         }
+        _ * resolver.getRepositories() >> []
     }
 
     private ResolutionResult stubResolutionResults() {
@@ -907,7 +909,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         interaction { resolveConfig(config) }
-        1 * resolver.getRepositories()
+        1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
@@ -1095,7 +1097,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         }
-        1 * resolver.getRepositories()
+        1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
@@ -1136,7 +1138,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         }
-        1 * resolver.getRepositories()
+        1 * resolver.getRepositories() >> []
         0 * resolver._
 
         when:
@@ -1186,7 +1188,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifacts())
         }
-        1 * resolver.getRepositories()
+        1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
@@ -1210,7 +1212,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifacts())
         }
-        1 * resolver.getRepositories()
+        1 * resolver.getRepositories() >> []
         0 * resolver._
 
         when:

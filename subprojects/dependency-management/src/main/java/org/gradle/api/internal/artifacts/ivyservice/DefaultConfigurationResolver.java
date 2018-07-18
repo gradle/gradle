@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -33,7 +31,6 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -56,8 +53,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDep
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -73,10 +68,7 @@ import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
@@ -99,8 +91,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final BuildIdentifier currentBuild;
-
-    private List<Repository> resolvedRepositories;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
@@ -139,7 +129,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
-        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+        List<ResolutionAwareRepository> resolutionAwareRepositories = getRepositories();
         StoreSet stores = storeFactory.createStoreSet();
 
         BinaryStore oldModelStore = stores.nextBinaryStore();
@@ -189,6 +179,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
     }
 
+    public List<ResolutionAwareRepository> getRepositories() {
+        return CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+    }
+
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) {
         ArtifactResolveState resolveState = (ArtifactResolveState) results.getArtifactResolveState();
         ResolvedGraphResults graphResults = resolveState.graphResults;
@@ -200,73 +194,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor);
         results.artifactsResolved(new DefaultResolvedConfiguration(result), result);
     }
-
-    @Override
-    public List<Repository> getRepositories() {
-        if (resolvedRepositories == null) {
-            resolvedRepositories = computeResolvedRepositories();
-        }
-        return resolvedRepositories;
-    }
-
-    private List<Repository> computeResolvedRepositories() {
-        List<Repository> result = new ArrayList<Repository>();
-        for (ArtifactRepository repository : repositories) {
-            if (repository instanceof ResolutionAwareRepository) {
-                ResolutionAwareRepository resolutionAwareRepository = (ResolutionAwareRepository) repository;
-                result.add(RepositoryImpl.from(resolutionAwareRepository.getDetails()));
-            }
-        }
-        return result;
-    }
-
-    private static class RepositoryImpl implements Repository {
-
-        private final String type;
-        private final String name;
-        private final Map<String, ?> properties;
-
-        private RepositoryImpl(String type, String name, Map<String, ?> properties) {
-            this.type = type;
-            this.name = name;
-            this.properties = ImmutableMap.copyOf(properties);
-        }
-
-        private static RepositoryImpl from(RepositoryDetails repositoryDetails) {
-            Map<String, Object> props = new HashMap<String, Object>(repositoryDetails.properties.size());
-            for (Map.Entry<RepositoryPropertyType, ?> entry : repositoryDetails.properties.entrySet()) {
-                props.put(entry.getKey().name(), entry.getValue());
-            }
-            return new RepositoryImpl(
-                repositoryDetails.type.name(),
-                repositoryDetails.name,
-                props
-            );
-        }
-
-        @Override
-        public String getId() {
-            // Using the name of the repository as unique identifier.
-            // The name is guaranteed to be unique within a single repository container.
-            return name;
-        }
-
-        @Override
-        public String getType() {
-            return type;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public Map<String, ?> getProperties() {
-            return properties;
-        }
-    }
-
 
     private static class ArtifactResolveState {
         final ResolvedGraphResults graphResults;
