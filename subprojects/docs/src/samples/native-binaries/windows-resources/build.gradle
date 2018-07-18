@@ -1,7 +1,7 @@
 apply plugin: 'cpp'
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'windows-resources'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
 model {
     components {

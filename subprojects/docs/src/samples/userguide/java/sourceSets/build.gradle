@@ -2,7 +2,7 @@ apply plugin: 'java'
 
 if (hasProperty('showOutput')) {
 
-// START SNIPPET access-source-set
+// tag::access-source-set[]
 // Various ways to access the main source set
 println sourceSets.main.output.classesDirs
 println sourceSets['main'].output.classesDirs
@@ -19,21 +19,21 @@ sourceSets {
 sourceSets.all {
     logger.quiet name
 }
-// END SNIPPET access-source-set
+// end::access-source-set[]
 
 }
 
-// START SNIPPET define-source-set
+// tag::define-source-set[]
 sourceSets {
     intTest
 }
-// END SNIPPET define-source-set
+// end::define-source-set[]
 
 repositories {
     mavenCentral()
 }
 
-// START SNIPPET source-set-dependencies
+// tag::source-set-dependencies[]
 sourceSets {
     intTest
 }
@@ -42,23 +42,23 @@ dependencies {
     intTestCompile 'junit:junit:4.12'
     intTestRuntime 'org.ow2.asm:asm-all:4.0'
 }
-// END SNIPPET source-set-dependencies
+// end::source-set-dependencies[]
 
-// START SNIPPET jar
+// tag::jar[]
 task intTestJar(type: Jar) {
     from sourceSets.intTest.output
 }
-// END SNIPPET jar
+// end::jar[]
 
-// START SNIPPET javadoc
+// tag::javadoc[]
 task intTestJavadoc(type: Javadoc) {
     source sourceSets.intTest.allJava
 }
-// END SNIPPET javadoc
+// end::javadoc[]
 
-// START SNIPPET test
+// tag::test[]
 task intTest(type: Test) {
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
 }
-// END SNIPPET test
+// end::test[]

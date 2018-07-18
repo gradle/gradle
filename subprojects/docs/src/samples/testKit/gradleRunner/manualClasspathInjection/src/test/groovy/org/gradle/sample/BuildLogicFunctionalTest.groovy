@@ -27,8 +27,8 @@ class BuildLogicFunctionalTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
-    // START SNIPPET functional-test-classpath-setup
-    // START SNIPPET functional-test-classpath-setup-older-gradle
+    // tag::functional-test-classpath-setup[]
+    // tag::functional-test-classpath-setup-older-gradle[]
     List<File> pluginClasspath
 
     def setup() {
@@ -41,7 +41,7 @@ class BuildLogicFunctionalTest extends Specification {
 
         pluginClasspath = pluginClasspathResource.readLines().collect { new File(it) }
     }
-    // END SNIPPET functional-test-classpath-setup-older-gradle
+    // end::functional-test-classpath-setup-older-gradle[]
 
     def "hello world task prints hello world"() {
         given:
@@ -62,8 +62,8 @@ class BuildLogicFunctionalTest extends Specification {
         result.output.contains('Hello world!')
         result.task(":helloWorld").outcome == SUCCESS
     }
-    // END SNIPPET functional-test-classpath-setup
-    // START SNIPPET functional-test-classpath-setup-older-gradle
+    // end::functional-test-classpath-setup[]
+    // tag::functional-test-classpath-setup-older-gradle[]
 
     def "hello world task prints hello world with pre Gradle 2.8"() {
         given:
@@ -92,5 +92,5 @@ class BuildLogicFunctionalTest extends Specification {
         result.output.contains('Hello world!')
         result.task(":helloWorld").outcome == SUCCESS
     }
-    // END SNIPPET functional-test-classpath-setup-older-gradle
+    // end::functional-test-classpath-setup-older-gradle[]
 }

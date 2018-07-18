@@ -1,4 +1,4 @@
-// START SNIPPET unit-of-work
+// tag::unit-of-work[]
 
 import org.gradle.workers.WorkerExecutor
 
@@ -20,9 +20,9 @@ class ReverseFile implements Runnable {
         destinationFile.text = fileToReverse.text.reverse()
     }
 }
-// END SNIPPET unit-of-work
+// end::unit-of-work[]
 
-// START SNIPPET task-implementation
+// tag::task-implementation[]
 class ReverseFiles extends SourceTask {
     final WorkerExecutor workerExecutor
 
@@ -49,7 +49,7 @@ class ReverseFiles extends SourceTask {
         }
     }
 }
-// END SNIPPET task-implementation
+// end::task-implementation[]
 
 task reverseFiles(type: ReverseFiles) {
     outputDir = file("${buildDir}/reversed")

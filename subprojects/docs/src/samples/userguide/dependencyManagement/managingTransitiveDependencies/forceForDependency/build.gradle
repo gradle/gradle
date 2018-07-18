@@ -4,14 +4,14 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET force-per-dependency
+// tag::force-per-dependency[]
 dependencies {
     implementation 'org.apache.httpcomponents:httpclient:4.5.4'
     implementation('commons-codec:commons-codec:1.9') {
         force = true
     }
 }
-//END SNIPPET force-per-dependency
+// end::force-per-dependency[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

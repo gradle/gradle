@@ -12,7 +12,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
-// START SNIPPET java-cross-compilation
+// tag::java-cross-compilation[]
 assert hasProperty('javaHome'): "Set the property 'javaHome' in your your gradle.properties pointing to a Java 6 or 7 installation"
 assert hasProperty('targetJavaVersion'): "Set the property 'targetJavaVersion' in your your gradle.properties to '1.6' or '1.7'"
 
@@ -39,7 +39,7 @@ tasks.withType(Test) {
 tasks.withType(JavaExec) {
     executable = javaExecutables.java
 }
-// END SNIPPET java-cross-compilation
+// end::java-cross-compilation[]
 
 tasks.withType(Test) {
     systemProperty 'targetJavaVersion', targetJavaVersion

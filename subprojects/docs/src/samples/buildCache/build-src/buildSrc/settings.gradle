@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-// START SNIPPET configure-build-src-build-cache
+// tag::configure-build-src-build-cache[]
 apply from: new File(settingsDir, '../gradle/buildCacheSettings.gradle')
-// END SNIPPET configure-build-src-build-cache
+// end::configure-build-src-build-cache[]

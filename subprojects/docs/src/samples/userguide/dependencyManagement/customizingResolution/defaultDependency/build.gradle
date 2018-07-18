@@ -1,4 +1,4 @@
-//START SNIPPET configuration-default-dependencies
+// tag::configuration-default-dependencies[]
 configurations {
     pluginTool {
         defaultDependencies { dependencies ->
@@ -6,4 +6,4 @@ configurations {
         }
     }
 }
-//END SNIPPET configuration-default-dependencies
+// end::configuration-default-dependencies[]

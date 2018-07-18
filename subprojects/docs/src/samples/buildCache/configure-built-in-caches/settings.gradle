@@ -16,16 +16,16 @@ import org.gradle.caching.local.DirectoryBuildCache
  * limitations under the License.
  */
 
-// START SNIPPET configure-directory-build-cache
+// tag::configure-directory-build-cache[]
 buildCache {
     local(DirectoryBuildCache) {
         directory = new File(rootDir, 'build-cache')
         removeUnusedEntriesAfterDays = 30
     }
 }
-// END SNIPPET configure-directory-build-cache
+// end::configure-directory-build-cache[]
 
-// START SNIPPET configure-http-build-cache
+// tag::configure-http-build-cache[]
 buildCache {
     remote(HttpBuildCache) {
         url = 'http://example.com:8123/cache/'
@@ -35,4 +35,4 @@ buildCache {
         }
     }
 }
-// END SNIPPET configure-http-build-cache
+// end::configure-http-build-cache[]

@@ -1,6 +1,6 @@
-// START SNIPPET using-root-dir-property
+// tag::using-root-dir-property[]
 File configFile = file("${rootDir}/shared/config.xml")
-// END SNIPPET using-root-dir-property
+// end::using-root-dir-property[]
 
 task checkConfigFile {
     doLast {

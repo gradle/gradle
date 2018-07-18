@@ -4,8 +4,8 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET zinc-dependency
+// tag::zinc-dependency[]
 dependencies {
     zinc 'com.typesafe.zinc:zinc:0.3.9'
 }
-// END SNIPPET zinc-dependency
+// end::zinc-dependency[]

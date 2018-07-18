@@ -1,4 +1,4 @@
-// START SNIPPET complete-plugin-publishing
+// tag::complete-plugin-publishing[]
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
@@ -31,4 +31,4 @@ publishing {
     }
   }
 }
-// END SNIPPET complete-plugin-publishing
+// end::complete-plugin-publishing[]

@@ -1,82 +1,82 @@
-// START SNIPPET managed-type-plugin-and-dsl
-// START SNIPPET managed-type-and-plugin
-// START SNIPPET managed-type
+// tag::managed-type-plugin-and-dsl[]
+// tag::managed-type-and-plugin[]
+// tag::managed-type[]
 @Managed
 interface Person {
-// START SNIPPET property-type-string
+// tag::property-type-string[]
   void setFirstName(String name)
   String getFirstName()
-// END SNIPPET property-type-string
+// end::property-type-string[]
 
   void setLastName(String name)
   String getLastName()
-// END SNIPPET managed-type
-// END SNIPPET managed-type-and-plugin
-// END SNIPPET managed-type-plugin-and-dsl
+// end::managed-type[]
+// end::managed-type-and-plugin[]
+// end::managed-type-plugin-and-dsl[]
 
-// START SNIPPET property-type-int
+// tag::property-type-int[]
   void setAge(int age)
   int getAge()
-// END SNIPPET property-type-int
+// end::property-type-int[]
 
-// START SNIPPET property-type-boolean
+// tag::property-type-boolean[]
   void setEmployed(boolean isEmployed)
   boolean isEmployed()
-// END SNIPPET property-type-boolean
+// end::property-type-boolean[]
 
-// START SNIPPET property-type-managed
+// tag::property-type-managed[]
   void setMother(Person mother)
   Person getMother()
-// END SNIPPET property-type-managed
+// end::property-type-managed[]
 
   void setFather(Person father)
   Person getFather()
 
-// START SNIPPET property-type-managedset
+// tag::property-type-managedset[]
   ModelSet<Person> getChildren()
-// END SNIPPET property-type-managedset
+// end::property-type-managedset[]
 
-// START SNIPPET property-type-file
+// tag::property-type-file[]
   void setHomeDirectory(File homeDir)
   File getHomeDirectory()
-// END SNIPPET property-type-file
+// end::property-type-file[]
 
-// START SNIPPET property-type-long
+// tag::property-type-long[]
   void setId(Long id)
   Long getId()
-// END SNIPPET property-type-long
+// end::property-type-long[]
 
-// START SNIPPET property-type-enum
+// tag::property-type-enum[]
   void setMaritalStatus(MaritalStatus status)
   MaritalStatus getMaritalStatus()
-// END SNIPPET property-type-enum
+// end::property-type-enum[]
 
-// START SNIPPET property-type-collection-scalar
+// tag::property-type-collection-scalar[]
    void setUserGroups(List<String> groups)
    List<String> getUserGroups()
-// END SNIPPET property-type-collection-scalar
+// end::property-type-collection-scalar[]
 
 
-// START SNIPPET managed-type-plugin-and-dsl
-// START SNIPPET managed-type-and-plugin
-// START SNIPPET managed-type
+// tag::managed-type-plugin-and-dsl[]
+// tag::managed-type-and-plugin[]
+// tag::managed-type[]
 }
-// END SNIPPET managed-type
+// end::managed-type[]
 
-// START SNIPPET rule-source-plugin
+// tag::rule-source-plugin[]
 class PersonRules extends RuleSource {
-// START SNIPPET create-rule
+// tag::create-rule[]
   @Model void person(Person p) {}
-// END SNIPPET create-rule
+// end::create-rule[]
 
-// START SNIPPET plugin-mutate-rule
+// tag::plugin-mutate-rule[]
   //Create a rule that modifies a Person and takes no other inputs
   @Mutate void setFirstName(Person p) {
     p.firstName = "John"
   }
-// END SNIPPET plugin-mutate-rule
+// end::plugin-mutate-rule[]
 
-// START SNIPPET task-create-rule
+// tag::task-create-rule[]
   //Create a rule that modifies a ModelMap<Task> and takes as input a Person
   @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
     tasks.create("hello") {
@@ -85,21 +85,21 @@ class PersonRules extends RuleSource {
       }
     }
   }
-// END SNIPPET task-create-rule
+// end::task-create-rule[]
 }
 
 apply plugin: PersonRules
-// END SNIPPET rule-source-plugin
-// END SNIPPET managed-type-and-plugin
+// end::rule-source-plugin[]
+// end::managed-type-and-plugin[]
 
-// START SNIPPET dsl
+// tag::dsl[]
 model {
   person {
     lastName = "Smith"
   }
 }
-// END SNIPPET dsl
-// END SNIPPET managed-type-plugin-and-dsl
+// end::dsl[]
+// end::managed-type-plugin-and-dsl[]
 
 enum MaritalStatus {
     SINGLE,

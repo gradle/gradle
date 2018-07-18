@@ -1,15 +1,15 @@
-// START SNIPPET use-war-plugin
-// START SNIPPET use-gretty-plugin
+// tag::use-war-plugin[]
+// tag::use-gretty-plugin[]
 plugins {
-// END SNIPPET use-gretty-plugin
+// end::use-gretty-plugin[]
     id 'war'
-// END SNIPPET use-war-plugin
-// START SNIPPET use-gretty-plugin
+// end::use-war-plugin[]
+// tag::use-gretty-plugin[]
     id "org.gretty" version "2.2.0"
-// START SNIPPET use-war-plugin
+// tag::use-war-plugin[]
 }
-// END SNIPPET use-war-plugin
-// END SNIPPET use-gretty-plugin
+// end::use-war-plugin[]
+// end::use-gretty-plugin[]
 
 repositories {
     jcenter()

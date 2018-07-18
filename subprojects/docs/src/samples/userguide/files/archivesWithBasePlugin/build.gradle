@@ -1,4 +1,4 @@
-// START SNIPPET create-archive-with-base-plugin-example
+// tag::create-archive-with-base-plugin-example[]
 plugins {
     id 'base'
 }
@@ -15,4 +15,4 @@ task packageDistribution(type: Zip) {
         into "docs"
     }
 }
-// END SNIPPET create-archive-with-base-plugin-example
+// end::create-archive-with-base-plugin-example[]

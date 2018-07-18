@@ -24,7 +24,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-// START SNIPPET test-filtering
+// tag::test-filtering[]
 test {
     filter {
         //include specific method in any of the tests
@@ -37,4 +37,4 @@ test {
         includeTestsMatching "*IntegTest"
     }
 }
-// END SNIPPET test-filtering
+// end::test-filtering[]

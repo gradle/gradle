@@ -1,16 +1,16 @@
 apply plugin: 'java'
 version = '1.0'
 
-// START SNIPPET add-to-manifest
+// tag::add-to-manifest[]
 jar {
     manifest {
         attributes("Implementation-Title": "Gradle",
                    "Implementation-Version": version)
     }
 }
-// END SNIPPET add-to-manifest
+// end::add-to-manifest[]
 
-// START SNIPPET custom-manifest
+// tag::custom-manifest[]
 ext.sharedManifest = manifest {
     attributes("Implementation-Title": "Gradle",
                "Implementation-Version": version)
@@ -20,9 +20,9 @@ task fooJar(type: Jar) {
         from sharedManifest
     }
 }
-// END SNIPPET custom-manifest
+// end::custom-manifest[]
 
-// START SNIPPET merge
+// tag::merge[]
 task barJar(type: Jar) {
     manifest {
         attributes key1: 'value1'
@@ -40,8 +40,8 @@ task barJar(type: Jar) {
         }
     }
 }
-// END SNIPPET merge
+// end::merge[]
 
-// START SNIPPET write
+// tag::write[]
 jar.manifest.writeTo("$buildDir/mymanifest.mf")
-// END SNIPPET write
+// end::write[]

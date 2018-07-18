@@ -1,6 +1,6 @@
 import java.nio.file.Paths
 
-// START SNIPPET simple-params
+// tag::simple-params[]
 // Using a relative path
 File configFile = file('src/config.xml')
 
@@ -15,4 +15,4 @@ configFile = file(Paths.get('src', 'config.xml'))
 
 // Using an absolute java.nio.file.Path object
 configFile = file(Paths.get(System.getProperty('user.home')).resolve('global-config.xml'))
-// END SNIPPET simple-params
+// end::simple-params[]

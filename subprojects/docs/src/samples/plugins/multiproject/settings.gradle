@@ -22,10 +22,10 @@ pluginManagement {
   }
 }
 
-// START SNIPPET include-subprojects
+// tag::include-subprojects[]
 include 'helloA'
 include 'helloB'
 include 'goodbyeC'
-// END SNIPPET include-subprojects
+// end::include-subprojects[]
 
 rootProject.name = 'multiproject'

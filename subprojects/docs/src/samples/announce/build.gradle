@@ -1,28 +1,27 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'announce'
-// END SNIPPET use-plugin
-// START SNIPPET use-build-announcements-plugin
+// end::use-plugin[]
+// tag::use-build-announcements-plugin[]
 apply plugin: 'build-announcements'
-// END SNIPPET use-build-announcements-plugin
+// end::use-build-announcements-plugin[]
 
-//START SNIPPET announce-plugin-conf
-announce {  
+// tag::announce-plugin-conf[]
+announce {
   username = 'myId'
   password = 'myPassword'
 }
-//END SNIPPET announce-plugin-conf
+// end::announce-plugin-conf[]
 
 
-//START SNIPPET announce-usage
+// tag::announce-usage[]
 task helloWorld {
     doLast {
         println "Hello, world!"
     }
-}  
+}
 
-helloWorld.doLast {  
+helloWorld.doLast {
     announce.announce("helloWorld completed!", "twitter")
     announce.announce("helloWorld completed!", "local")
 }
-//END SNIPPET announce-usage
-
+// end::announce-usage[]
