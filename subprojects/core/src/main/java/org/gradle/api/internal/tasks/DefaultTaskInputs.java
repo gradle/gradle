@@ -89,7 +89,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
-                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, ValidationActions.NO_OP);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(value, RUNTIME_INPUT_FILES_VALIDATOR);
                 registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -212,14 +212,16 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     private static final ValidationAction RUNTIME_INPUT_FILE_VALIDATOR = wrapRuntimeApiValidator("file", ValidationActions.INPUT_FILE_VALIDATOR);
 
+    private static final ValidationAction RUNTIME_INPUT_FILES_VALIDATOR = wrapRuntimeApiValidator("files", ValidationActions.INPUT_FILES_VALIDATOR);
+
     private static final ValidationAction RUNTIME_INPUT_DIRECTORY_VALIDATOR = wrapRuntimeApiValidator("dir", ValidationActions.INPUT_DIRECTORY_VALIDATOR);
 
     private static ValidationAction wrapRuntimeApiValidator(final String method, final ValidationAction validator) {
         return new ValidationAction() {
             @Override
-            public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
                 try {
-                    validator.validate(propertyName, value, context, severity);
+                    validator.validate(propertyName, optional, value, context, severity);
                 } catch (UnsupportedNotationException ex) {
                     DeprecationLogger.nagUserOfDeprecated("Using TaskInputs." + method + "() with something that doesn't resolve to a File object", "Use TaskInputs.files() instead.");
                 }

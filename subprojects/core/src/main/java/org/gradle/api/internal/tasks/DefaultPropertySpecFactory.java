@@ -33,14 +33,19 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue path, ValidationAction validator) {
+        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, path, validator);
+    }
+
+    @Override
+    public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validator) {
+        FileTreeInternal fileTree = resolver.resolveFilesAsTree(paths);
+        return createInputFileSpec(new FileTreeValue(paths, fileTree), validator);
     }
 
     @Override
     public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath, ValidationAction validator) {
-        FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return createInputFileSpec(new FileTreeValue(dirPath, fileTree), validator);
+        return createInputFilesSpec(dirPath, validator);
     }
 
     @Override
@@ -54,8 +59,8 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue path) {
-        return createOutputFilePropertySpec(path, OutputType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR);
+    public DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue dirPath) {
+        return createOutputFilePropertySpec(dirPath, OutputType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR);
     }
 
     @Override
@@ -64,8 +69,8 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
+    public DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue dirPaths) {
+        return new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, dirPaths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
     }
 
     private DefaultCacheableTaskOutputFilePropertySpec createOutputFilePropertySpec(ValidatingValue path, OutputType file, ValidationAction outputFileValidator) {

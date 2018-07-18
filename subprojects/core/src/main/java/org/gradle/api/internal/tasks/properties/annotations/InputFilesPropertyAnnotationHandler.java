@@ -30,7 +30,6 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputPropertyAn
 
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
-        return specFactory.createInputFileSpec(propertyValue, ValidationActions.NO_OP);
+        return specFactory.createInputFilesSpec(propertyValue, ValidationActions.INPUT_FILES_VALIDATOR);
     }
-
 }

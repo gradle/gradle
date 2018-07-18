@@ -28,12 +28,12 @@ import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -242,7 +242,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskInternal inputFilesRemoved = builder.withInputFiles(file: [inputFile], dir: [], missingFile: [missingInputFile]).task()
 
         then:
-        inputsOutOfDate(inputFilesRemoved).withRemovedFiles(inputDir, inputDirFile)
+        inputsOutOfDate(inputFilesRemoved).withRemovedFile(inputDirFile)
     }
 
     def "artifacts are not up to date when any input file has changed hash"() {
@@ -265,7 +265,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createDir()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withRemovedFile(inputFile)
     }
 
     def "artifacts are not up to date when any input file no longer exists"() {
@@ -276,7 +276,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.delete()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withRemovedFile(inputFile)
     }
 
     def "artifacts are not up to date when any input file did not exist and now does"() {
@@ -288,7 +288,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createNewFile()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withAddedFile(inputFile)
     }
 
     def "artifacts are not up to date when any file created in input dir"() {

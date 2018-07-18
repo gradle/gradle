@@ -92,19 +92,20 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input files"() {
-        when: inputs.files("a", "b")
+        when:
+        inputs.files("a")
         then:
-        inputFiles() == [new File("a"), new File("b")]
+        inputFiles() == [treeFile]
         inputFileProperties().propertyName == ['$1']
-        inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
     }
 
     def "can register input files with property name"() {
         when: inputs.files("a", "b").withPropertyName("prop")
         then:
-        inputFiles() == [new File("a"), new File("b")]
+        inputFiles() == [treeFile]
         inputFileProperties().propertyName == ['prop']
-        inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
     }
 
     def "can register input dir"() {
@@ -201,10 +202,10 @@ class DefaultTaskInputsTest extends Specification {
         when: inputs.files(["s1", "s2"]).skipWhenEmpty()
         then:
         inputs.hasSourceFiles
-        inputFiles() == [new File("a"), new File("b"), new File("s1"), new File("s2")]
-        inputs.sourceFiles.files.toList() == [new File("s1"), new File("s2")]
+        inputFiles() == [treeFile, treeFile]
+        inputs.sourceFiles.files == [treeFile] as Set
         inputFileProperties().propertyName == ['$1', 'prop']
-        inputFileProperties().propertyFiles*.toList() == [[new File("s1"), new File("s2")], [new File("a"), new File("b")]]
+        inputFileProperties().propertyFiles*.files.flatten() == [treeFile, treeFile]
     }
 
     def canRegisterSourceFile() {
@@ -220,7 +221,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.files('file', 'file2').skipWhenEmpty()
 
         then:
-        inputs.sourceFiles.files == ([new File('file'), new File('file2')] as Set)
+        inputs.sourceFiles.files == [treeFile] as Set
     }
 
     def canRegisterSourceDir() {

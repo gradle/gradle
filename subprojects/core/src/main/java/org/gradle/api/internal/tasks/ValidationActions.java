@@ -25,12 +25,12 @@ import java.util.Map;
 public enum ValidationActions implements ValidationAction {
     NO_OP {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
         }
     },
     INPUT_FILE_VALIDATOR {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File file = toFile(context, value);
             if (!file.exists()) {
                 context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
@@ -39,9 +39,20 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
+    INPUT_FILES_VALIDATOR {
+        @Override
+        public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            Iterable<? extends File> files = toFiles(context, value);
+            for (File file : files) {
+                if (!optional && !file.exists()) {
+                    context.recordValidationMessage(severity, String.format("File or directory '%s' specified for property '%s' does not exist.", file, propertyName));
+                }
+            }
+        }
+    },
     INPUT_DIRECTORY_VALIDATOR {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
                 context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
@@ -52,7 +63,7 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_DIRECTORY_VALIDATOR {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File directory = toFile(context, value);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
@@ -70,15 +81,15 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_DIRECTORIES_VALIDATOR {
         @Override
-        public void validate(String propertyName, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
             for (File directory : toFiles(context, values)) {
-                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context, severity);
+                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, optional, directory, context, severity);
             }
         }
     },
     OUTPUT_FILE_VALIDATOR {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File file = toFile(context, value);
             if (file.exists()) {
                 if (file.isDirectory()) {
@@ -97,9 +108,9 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_FILES_VALIDATOR {
         @Override
-        public void validate(String propertyName, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        public void validate(String propertyName, boolean optional, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
             for (File file : toFiles(context, values)) {
-                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context, severity);
+                OUTPUT_FILE_VALIDATOR.validate(propertyName, optional, file, context, severity);
             }
         }
     };
