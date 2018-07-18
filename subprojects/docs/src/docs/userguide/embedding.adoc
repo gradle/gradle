@@ -13,21 +13,21 @@
 // limitations under the License.
 
 [[embedding]]
-== Embedding Gradle using the Tooling API
+= Embedding Gradle using the Tooling API
 
 
 [[sec:embedding_introduction]]
-=== Introduction to the Tooling API
+== Introduction to the Tooling API
 
 Gradle provides a programmatic API called the Tooling API, which you can use for embedding Gradle into your own software. This API allows you to execute and monitor builds and to query Gradle about the details of a build. The main audience for this API is IDE, CI server, other UI authors; however, the API is open for anyone who needs to embed Gradle in their application.
 
-* <<test_kit,Gradle TestKit>> uses the Tooling API for functional testing of your Gradle plugins.
+* <<test_kit.adoc#test_kit,Gradle TestKit>> uses the Tooling API for functional testing of your Gradle plugins.
 * http://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship] uses the Tooling API for importing your Gradle project and running tasks.
 * https://www.jetbrains.com/idea/[IntelliJ IDEA] uses the Tooling API for importing your Gradle project and running tasks.
 
 
 [[sec:embedding_features]]
-=== Tooling API Features
+== Tooling API Features
 
 A fundamental characteristic of the Tooling API is that it operates in a version independent way. This means that you can use the same API to work with builds that use different versions of Gradle, including versions that are newer or older than the version of the Tooling API that you are using. The Tooling API is Gradle wrapper aware and, by default, uses the same Gradle version as that used by the wrapper-powered build.
 
@@ -44,38 +44,40 @@ Some features that the Tooling API provides:
 
 
 [[sec:embedding_daemon]]
-=== Tooling API and the Gradle Build Daemon
+== Tooling API and the Gradle Build Daemon
 
-The Tooling API always uses the Gradle daemon. This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process. <<gradle_daemon>> contains more details about the daemon, specifically information on situations when new daemons are forked.
+The Tooling API always uses the Gradle daemon. This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process. <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> contains more details about the daemon, specifically information on situations when new daemons are forked.
 
 [[sec:embedding_quickstart]]
-=== Quickstart
+== Quickstart
 
 As the Tooling API is an interface for developers, the Javadoc is the main documentation for it. We provide several _samples_ that live in `samples/toolingApi` in your Gradle distribution. These samples specify all of the required dependencies for the Tooling API with examples for querying information from Gradle builds and executing tasks from the Tooling API.
 
 To use the Tooling API, add the following repository and dependency declarations to your build script:
 
-++++
-<sample id="useToolingApi" dir="toolingApi/runBuild" title="Using the tooling API">
-            <sourcefile file="build.gradle" snippet="use-tooling-api"/>
-        </sample>
-++++
+=== Example: Using the tooling API
 
-The main entry point to the Tooling API is the api:org.gradle.tooling.GradleConnector[]. You can navigate from there to find code samples and explore the available Tooling API models. You can use api:org.gradle.tooling.GradleConnector#connect()[] to create a api:org.gradle.tooling.ProjectConnection[]. A `ProjectConnection` connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/toolingApi/runBuild/build.gradle[tag=use-tooling-api]
+----
+
+The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector]. You can navigate from there to find code samples and explore the available Tooling API models. You can use link:https://docs.gradle.org/nightly/javadoc/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection]. A `ProjectConnection` connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
 [[sec:embedding_compatibility]]
-=== Gradle version and Java version compatibility
+== Gradle version and Java version compatibility
 
-==== Provider side
+=== Provider side
 
 The current version of Tooling API supports running builds using Gradle versions 1.2 and later. However, support for running builds with Gradle versions older than 2.6 is deprecated and will be removed in Tooling API version 5.0.
 
-==== Consumer side
+=== Consumer side
 
 The current version of Gradle supports running builds via Tooling API versions 2.0 and later. However, support for running builds via Tooling API versions older than 3.0 is deprecated and will be removed in Gradle 5.0.
 
 You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available when a build uses Gradle 2.1 and later. Refer to the documentation for each class and method for more details.
 
-=== Java version
+== Java version
 
 The Tooling API requires Java 8 or later. Java 7 is currently still supported but will be removed in Gradle 5.0. The Gradle version used by builds may have additional Java version requirements.
