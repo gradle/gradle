@@ -55,7 +55,9 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        return new LogContent(toLines(stripJavaIllegalAccessWarnings(stripWorkInProgressArea(chars))), false, null);
+        String stripped = stripWorkInProgressArea(chars);
+        LogContent raw = new LogContent(toLines(stripped), false, null);
+        return new LogContent(toLines(stripJavaIllegalAccessWarnings(stripped)), false, raw);
     }
 
     private static ImmutableList<String> toLines(String chars) {
