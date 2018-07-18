@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CleanableStore
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,6 +34,7 @@ class UnusedVersionsCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def usedGradleVersions = Stub(UsedGradleVersions)
+    def progressMonitor = Mock(CleanupProgressMonitor)
 
     @Unroll
     def "deletes unused cache directories for mapping #mapping, Gradle versions #gradleVersions and existing cache versions #existingCacheVersions"() {
@@ -49,14 +51,19 @@ class UnusedVersionsCacheCleanupTest extends Specification {
             getReservedCacheFiles() >> []
             getDisplayName() >> CACHE_NAME
         }
+        def expectedRemainingVersions = existingCacheVersions - expectedDeletedVersions
+        def numSkipped = Math.max(0, expectedRemainingVersions.size() - 1) // -1 because current version is not checked
+        def numDeleted = expectedDeletedVersions.size()
 
         when:
         UnusedVersionsCacheCleanup.create(CACHE_NAME, cacheVersionMapping, usedGradleVersions)
-            .clean(cleanableStore)
+            .clean(cleanableStore, progressMonitor)
 
         then:
         usedGradleVersions.getUsedGradleVersions() >> (gradleVersions.collect { GradleVersion.version(it) } as SortedSet)
-        for (version in (existingCacheVersions - expectedDeletedVersions)) {
+        numSkipped * progressMonitor.incrementSkipped()
+        numDeleted * progressMonitor.incrementDeleted()
+        for (version in expectedRemainingVersions) {
             versionDir(parentCacheVersion.append(version)).assertExists()
         }
         for (version in expectedDeletedVersions) {

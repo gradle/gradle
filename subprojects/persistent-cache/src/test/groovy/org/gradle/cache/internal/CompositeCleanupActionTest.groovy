@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupAction
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,6 +30,7 @@ class CompositeCleanupActionTest extends Specification {
         getBaseDir() >> temporaryFolder.getTestDirectory()
         getDisplayName() >> "My Cache"
     }
+    def progressMonitor = Stub(CleanupProgressMonitor)
 
     def "calls configured cleanup actions for correct dirs"() {
         given:
@@ -41,13 +43,13 @@ class CompositeCleanupActionTest extends Specification {
             .add(firstCleanupAction)
             .add(subDir, secondCleanupAction)
             .build()
-            .clean(cleanableStore)
+            .clean(cleanableStore, progressMonitor)
 
         then:
-        1 * firstCleanupAction.clean(_) >> { CleanableStore store ->
+        1 * firstCleanupAction.clean(_, progressMonitor) >> { store, m ->
             assert store.getBaseDir() == temporaryFolder.getTestDirectory()
         }
-        1 * secondCleanupAction.clean(_) >> { CleanableStore store ->
+        1 * secondCleanupAction.clean(_, progressMonitor) >> { store, m ->
             assert store.getBaseDir() == subDir
         }
     }

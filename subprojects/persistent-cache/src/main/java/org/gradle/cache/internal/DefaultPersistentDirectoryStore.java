@@ -208,7 +208,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
                 ProgressLogger progressLogger = progressLoggerFactory.newOperation(CacheCleanupAction.class).start(description, description);
                 Timer timer = Time.startTimer();
                 try {
-                    cleanupAction.clean(DefaultPersistentDirectoryStore.this);
+                    cleanupAction.clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(progressLogger));
                     GFileUtils.touch(gcFile);
                 } finally {
                     LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());

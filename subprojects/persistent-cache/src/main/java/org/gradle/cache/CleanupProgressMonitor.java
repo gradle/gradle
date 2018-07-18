@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package org.gradle.cache;
 
-/**
- * An action that cleans up a {@link CleanableStore}.
- *
- * @see org.gradle.cache.internal.CompositeCleanupAction
- * @see CacheBuilder#withCleanup(CleanupAction)
- */
-public interface CleanupAction {
+public interface CleanupProgressMonitor {
 
-    void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor);
+    void incrementDeleted();
 
-    CleanupAction NO_OP = new CleanupAction() {
+    void incrementSkipped();
+
+    CleanupProgressMonitor NO_OP = new CleanupProgressMonitor() {
         @Override
-        public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
-            // no-op
+        public void incrementDeleted() {
+        }
+
+        @Override
+        public void incrementSkipped() {
         }
     };
 
