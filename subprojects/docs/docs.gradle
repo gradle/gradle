@@ -142,9 +142,9 @@ ext.cssFiles = fileTree(css.map { it.destinationDir }) {
 }
 
 def imageFiles = fileTree(userguideSrcDir) {
-    include 'images/*.png'
-    include 'images/*.gif'
-    include 'images/*.jpg'
+    include 'img/*.png'
+    include 'img/*.gif'
+    include 'img/*.jpg'
 }
 def resourceFiles = imageFiles + cssFiles
 
@@ -173,73 +173,7 @@ tasks.register("userguideStyleSheets", Copy) {
     }
 }
 
-tasks.remove(asciidoctor)
-
 def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
-asciidoctorj {
-    noDefaultRepositories = true
-    version = '1.5.7'
-}
-
-tasks.withType(AsciidoctorTask).configureEach {
-    dependsOn css, samples, defaultImports
-
-    // Verbose mode reports broken links. See asciidoctor/asciidoctor-gradle-plugin#233
-    requires file('src/docs/ruby/verbose-mode.rb')
-    separateOutputDirs = false
-    options doctype: 'book'
-
-    inputs.file "$srcDocsDir/css/manual.css"
-    inputs.dir file("src/main/resources")
-    inputs.dir samplesSrcDir
-
-    attributes \
-        stylesdir           : '../css/',
-        stylesheet          : 'manual.css',
-        imagesdir           : 'images',
-        nofooter            : true,
-        sectanchors         : true,
-        sectlinks           : true,
-        linkattrs           : true,
-        reproducible        : '',
-        lang                : 'en-US',
-        encoding            : 'utf-8',
-        idprefix            : '',
-        website             : 'https://gradle.org',
-        javaApi             : 'https://docs.oracle.com/javase/7/docs/api',
-        antManual           : 'https://ant.apache.org/manual',
-        guidesUrl           : 'https://guides.gradle.org',
-        gradleVersion       : version,
-        groovyDslPath       : "../dsl",
-        javadocPath         : "../javadoc",
-        samplesPath         : "../../samples"
-}
-
-def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
-    sourceDir = userguideSrcDir
-
-    sources {
-        include '*.adoc'
-        exclude 'javaProject*Layout.adoc'
-        exclude 'userguide_single.adoc'
-    }
-    outputDir = userguideIntermediateOutputDir
-
-    backends = ['html5']
-
-    attributes \
-        icons               : null,
-        'note-caption'      : '&#10024;',
-        'tip-caption'       : '&#128161;',
-        'important-caption' : '&#10071;️',
-        'caution-caption'   : '&#9888;',
-        'warning-caption'   : '&#9888;',
-        'source-highlighter': 'prettify',
-        toc                 : 'auto',
-        toclevels           : 1,
-        'toc-title'         : 'Contents'
-}
 
 def dslMetaData = tasks.register("dslMetaData", ExtractDslMetaDataTask) {
     source { javadocAll.source }
@@ -304,7 +238,6 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
 }
 
 def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask) {
-    dependsOn defaultImports
     sourceDir = userguideSrcDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
@@ -312,7 +245,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
 
     attributes \
         toc                 : 'macro',
-        toclevels           : 3,
+        toclevels           : 2,
         'source-highlighter': 'coderay'
 }
 
@@ -357,6 +290,70 @@ def distDocs = tasks.register("distDocs", AsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include 'getting-started.adoc' }
     backends = ['html5']
+}
+
+asciidoctorj {
+    noDefaultRepositories = true
+    version = '1.5.7'
+}
+
+tasks.withType(AsciidoctorTask).configureEach {
+    dependsOn css, samples, defaultImports
+
+    separateOutputDirs = false
+    options doctype: 'book'
+
+    inputs.file "$srcDocsDir/css/manual.css"
+    inputs.dir file("src/main/resources")
+    inputs.dir samplesSrcDir
+
+    attributes \
+        stylesdir           : '../css/',
+        stylesheet          : 'manual.css',
+        imagesdir           : 'img',
+        nofooter            : true,
+        sectanchors         : true,
+        sectlinks           : true,
+        linkattrs           : true,
+        reproducible        : '',
+        lang                : 'en-US',
+        encoding            : 'utf-8',
+        idprefix            : '',
+        website             : 'https://gradle.org',
+        javaApi             : 'https://docs.oracle.com/javase/7/docs/api',
+        antManual           : 'https://ant.apache.org/manual',
+        guidesUrl           : 'https://guides.gradle.org',
+        gradleVersion       : version,
+        groovyDslPath       : "../dsl",
+        javadocPath         : "../javadoc",
+        samplesPath         : "../../samples"
+}
+
+def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
+    sourceDir = userguideSrcDir
+
+    sources {
+        include '*.adoc'
+        exclude 'javaProject*Layout.adoc'
+        exclude 'userguide_single.adoc'
+    }
+    outputDir = userguideIntermediateOutputDir
+    // Verbose mode reports broken links. See asciidoctor/asciidoctor-gradle-plugin#233
+    requires file('src/docs/ruby/verbose-mode.rb')
+
+    backends = ['html5']
+
+    attributes \
+        icons               : null,
+        'note-caption'      : '&#10024;',
+        'tip-caption'       : '&#128161;',
+        'important-caption' : '&#10071;️',
+        'caution-caption'   : '&#9888;',
+        'warning-caption'   : '&#9888;',
+        'source-highlighter': 'prettify',
+        toc                 : 'auto',
+        toclevels           : 1,
+        'toc-title'         : 'Contents'
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
