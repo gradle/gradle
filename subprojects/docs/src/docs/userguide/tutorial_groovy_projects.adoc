@@ -13,45 +13,52 @@
 // limitations under the License.
 
 [[tutorial_groovy_projects]]
-== Groovy Quickstart
+= Groovy Quickstart
 
-To build a Groovy project, you use the _Groovy plugin_. This plugin extends the Java plugin to add Groovy compilation capabilities to your project. Your project can contain Groovy source code, Java source code, or a mix of the two. In every other respect, a Groovy project is identical to a Java project, which we have already seen in <<tutorial_java_projects>>.
+To build a Groovy project, you use the _Groovy plugin_. This plugin extends the Java plugin to add Groovy compilation capabilities to your project. Your project can contain Groovy source code, Java source code, or a mix of the two. In every other respect, a Groovy project is identical to a Java project, which we have already seen in <<tutorial_java_projects.adoc#tutorial_java_projects,the Java projects tutorial>>.
 
 
 [[sec:a_basic_groovy_project]]
-=== A basic Groovy project
+== A basic Groovy project
 
 Let's look at an example. To use the Groovy plugin, add the following to your build file:
 
-++++
-<sample id="groovyQuickstart" dir="groovy/quickstart" includeLocation="true" title="Groovy plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Groovy plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/quickstart/build.gradle[tag=use-plugin]
+----
+NOTE: The code for this example can be found at **`samples/groovy/quickstart`** in the ‘-all’ distribution of Gradle.
 
 This will also apply the Java plugin to the project, if it has not already been applied. The Groovy plugin extends the `compile` task to look for source files in directory `src/main/groovy`, and the `compileTest` task to look for test source files in directory `src/test/groovy`. The compile tasks use joint compilation for these directories, which means they can contain a mixture of Java and Groovy source files.
 
 To use the Groovy compilation tasks, you must also declare the Groovy version to use and where to find the Groovy libraries. You do this by adding a dependency to the `groovy` configuration. The `compile` configuration inherits this dependency, so the Groovy libraries will be included in classpath when compiling Groovy and Java source. For our sample, we will use Groovy 2.2.0 from the public Maven repository:
 
-++++
-<sample id="groovyQuickstart" dir="groovy/quickstart" title="Dependency on Groovy">
-            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
-        </sample>
-++++
+=== Example: Dependency on Groovy
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/quickstart/build.gradle[tag=groovy-dependency]
+----
 
 Here is our complete build file:
 
-++++
-<sample id="groovyQuickstart" dir="groovy/quickstart" title="Groovy example - complete build file">
-            <sourcefile file="build.gradle"/>
-        </sample>
-++++
+=== Example: Groovy example - complete build file
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/quickstart/build.gradle[tags='use-plugin,groovy-dependency']
+----
 
 Running `gradle build` will compile, test and JAR your project.
 
 [[sec:groovy_tutorial_summary]]
-=== Summary
+== Summary
 
 This chapter describes a very simple Groovy project. Usually, a real project will require more than this. Because a Groovy project _is_ a Java project, whatever you can do with a Java project, you can also do with a Groovy project.
 
-You can find out more about the Groovy plugin in <<groovy_plugin>>, and you can find more sample Groovy projects in the `samples/groovy` directory in the Gradle distribution.
+You can find out more about the <<groovy_plugin.adoc#groovy_plugin,Groovy plugin>>, and you can find more sample Groovy projects in the `samples/groovy` directory in the Gradle distribution.
