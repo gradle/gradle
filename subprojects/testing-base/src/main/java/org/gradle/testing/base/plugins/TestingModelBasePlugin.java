@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -93,7 +94,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
             for (BinarySpec binary : binaries) {
                 Task checkTask = binary.getCheckTask();
                 if (checkTask != null) {
-                    tasks.add(checkTask);
+                    ((TaskContainerInternal)tasks).addInternal(checkTask);
                 }
             }
         }

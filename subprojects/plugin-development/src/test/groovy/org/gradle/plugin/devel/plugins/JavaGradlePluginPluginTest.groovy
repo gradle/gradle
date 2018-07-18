@@ -224,7 +224,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
             _ * getConventionMapping() >> { Stub(ConventionMapping) }
         }
         project.tasks.remove(project.tasks.getByName(JavaGradlePluginPlugin.JAR_TASK))
-        project.tasks.add(mockJar)
+        project.tasks.addInternal(mockJar)
         return mockJar
     }
 

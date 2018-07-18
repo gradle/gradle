@@ -478,4 +478,34 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.output.contains("got it 15")
     }
+
+    def "cannot add a pre-created task to the task container"() {
+        given:
+        buildFile << """
+            Task foo = tasks.create("foo")
+            
+            tasks.add(foo)
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Adding tasks directly to the task container is not supported.")
+    }
+
+    def "cannot add a pre-created task provider to the task container"() {
+        given:
+        buildFile << """
+            Task foo = tasks.create("foo")
+            
+            tasks.addLater(provider { foo })
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
+    }
 }

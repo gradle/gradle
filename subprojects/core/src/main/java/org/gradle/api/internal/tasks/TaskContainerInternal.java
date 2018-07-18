@@ -23,6 +23,8 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collection;
+
 public interface TaskContainerInternal extends TaskContainer, TaskResolver, PolymorphicDomainObjectContainerInternal<Task> {
 
     // The path to the project's task container in the model registry
@@ -51,4 +53,14 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      * Ensures that all configuration has been applied to the given task, and the task is ready to be added to the task graph.
      */
     void prepareForExecution(Task task);
+
+    /**
+     * Adds a previously constructed task into the container.  For internal use with software model bridging.
+     */
+    boolean addInternal(Task task);
+
+    /**
+     * Adds a previously constructed task into the container.  For internal use with software model bridging.
+     */
+    boolean addAllInternal(Collection<? extends Task> task);
 }
