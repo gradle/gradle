@@ -41,12 +41,11 @@ class ScriptCache(
     fun cacheDirFor(
         keySpec: CacheKeySpec,
         properties: Map<String, Any?>? = null,
-        scope: Any? = null,
         initializer: PersistentCache.() -> Unit
     ): File =
 
         cacheRepository
-            .cache(scope, cacheKeyFor(keySpec))
+            .cache(cacheKeyFor(keySpec))
             .apply { properties?.let { withProperties(it) } }
             .apply { if (recompileScripts) withValidator { false } }
             .withInitializer(initializer)
