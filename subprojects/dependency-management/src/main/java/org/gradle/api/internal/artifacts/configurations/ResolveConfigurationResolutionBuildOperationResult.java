@@ -59,8 +59,10 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         incoming.getResolutionResult(FAIL_SAFE).allComponents(new Action<ResolvedComponentResult>() {
             @Override
             public void execute(ResolvedComponentResult component) {
-                components.put(component.getId().getDisplayName(),
-                    Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName()));
+                components.put(
+                    component.getId().getDisplayName(),
+                    Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName())
+                );
             }
         });
         model.put("components", components);
