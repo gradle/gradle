@@ -17,7 +17,8 @@
 package org.gradle.initialization.layout
 
 import org.gradle.cache.internal.VersionSpecificCacheCleanupFixture
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -34,9 +35,10 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def cacheDir = temporaryFolder.createDir(".gradle")
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def progressLoggerFactory = Mock(ProgressLoggerFactory)
+    def progressLogger = Mock(ProgressLogger)
 
-    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, buildOperationExecutor)
+    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, progressLoggerFactory)
 
     def "cleans up unused version-specific cache directories"() {
         given:
@@ -51,16 +53,15 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
         projectCacheDir.stop()
 
         then:
+        1 * progressLoggerFactory.newOperation(ProjectCacheDir.class) >> progressLogger
+        1 * progressLogger.start(_, _) >> progressLogger
+        1 * progressLogger.completed()
         ancientVersionWithoutMarkerFile.assertExists()
         oldestCacheDir.assertDoesNotExist()
         oldButRecentlyUsedCacheDir.assertExists()
         oldCacheDir.assertDoesNotExist()
         currentCacheDir.assertExists()
         newerCacheDir.assertExists()
-
-        and:
-        buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations[0].displayName.startsWith("Delete unused version-specific caches")
     }
 
     @Override
