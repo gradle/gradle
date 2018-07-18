@@ -488,15 +488,13 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         mavenHttpRepo.module('org.foo', 'child-transitive1').publish().allowAll()
 
         // 'direct2' 'transitive2', and 'child-transitive2' are found in 'maven2' (unpublished in 'maven1')
-        mavenHttpRepo.module('org.foo', 'transitive2').allowAll()
-        secondMavenHttpRepo.module('org.foo', 'transitive2').publish().allowAll()
-
         mavenHttpRepo.module('org.foo', 'direct2').allowAll()
         secondMavenHttpRepo.module('org.foo', 'direct2')
             .dependsOn('org.foo', 'transitive1', '1.0')
             .dependsOn('org.foo', 'transitive2', '1.0')
             .publish().allowAll()
-
+        mavenHttpRepo.module('org.foo', 'transitive2').allowAll()
+        secondMavenHttpRepo.module('org.foo', 'transitive2').publish().allowAll()
         mavenHttpRepo.module('org.foo', 'child-transitive2').allowAll()
         secondMavenHttpRepo.module('org.foo', 'child-transitive2').publish().allowAll()
 
@@ -552,7 +550,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         succeeds 'resolve'
 
         then:
-        true
         verifyExpectedOperation()
 
         when:
@@ -652,7 +649,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         server.resetExpectations()
-        and:
         succeeds 'resolve'
 
         then:
