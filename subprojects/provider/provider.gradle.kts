@@ -65,6 +65,10 @@ val processResources by tasks.getting(ProcessResources::class) {
 }
 
 // -- Testing ----------------------------------------------------------
+tasks.withType(JavaCompile::class.java).named("compileTestJava").configure {
+    options.isIncremental = false
+}
+
 val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
 
