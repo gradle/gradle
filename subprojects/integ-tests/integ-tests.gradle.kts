@@ -24,15 +24,18 @@ val futurePluginVersionsTasks =
 
 val customInstallation by rootProject.tasks
 
-tasks {
+tasks.apply {
 
-    "test" {
+    val testEnvironment = register("testEnvironment") {
         dependsOn(customInstallation)
         pluginBundles.forEach {
             dependsOn(":$it:publishPluginsToTestRepository")
         }
     }
 
+    withType<Test> {
+        dependsOn(testEnvironment)
+    }
 
     val processTestResources by getting(ProcessResources::class)
 
