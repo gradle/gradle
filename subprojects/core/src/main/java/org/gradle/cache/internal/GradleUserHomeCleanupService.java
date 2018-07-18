@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -39,7 +40,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     @Override
     public void stop() {
         File cacheBaseDir = cacheScopeMapping.getRootDirectory(null);
-        new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS).execute();
+        new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS).execute(CleanupProgressMonitor.NO_OP);
         File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
         new WrapperDistributionCleanupAction(gradleUserHomeDirectory, usedGradleVersions).execute();
     }

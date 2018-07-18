@@ -55,6 +55,7 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
         then:
         1 * progressLoggerFactory.newOperation(ProjectCacheDir.class) >> progressLogger
         1 * progressLogger.start(_, _) >> progressLogger
+        6 * progressLogger.progress(_)
         1 * progressLogger.completed()
         ancientVersionWithoutMarkerFile.assertExists()
         oldestCacheDir.assertDoesNotExist()

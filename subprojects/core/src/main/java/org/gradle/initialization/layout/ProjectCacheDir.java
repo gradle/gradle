@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.layout;
 
+import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -44,7 +45,7 @@ public class ProjectCacheDir implements Stoppable {
         String description = "Deleting unused version-specific caches in " + dir;
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProjectCacheDir.class).start(description, description);
         try {
-            new VersionSpecificCacheCleanupAction(dir, MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS).execute();
+            new VersionSpecificCacheCleanupAction(dir, MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS).execute(new DefaultCleanupProgressMonitor(progressLogger));
         } finally {
             progressLogger.completed();
         }
