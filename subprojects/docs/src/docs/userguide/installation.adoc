@@ -143,7 +143,7 @@ Gradle {gradleVersion}
 Build time:   2018-02-21 15:28:42 UTC
 Revision:     819e0059da49f469d3e9b2896dc4e72537c4847d
 
-Groovy:       2.4.12
+Groovy:       2.4.15
 Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
 JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
 OS:           Mac OS X 10.13.3 x86_64

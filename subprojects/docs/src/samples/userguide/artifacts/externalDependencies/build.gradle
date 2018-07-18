@@ -48,7 +48,7 @@ dependencies {
 
 //START SNIPPET client-modules
 dependencies {
-    runtime module("org.codehaus.groovy:groovy:2.4.10") {
+    runtime module("org.codehaus.groovy:groovy:2.4.15") {
         dependency("commons-cli:commons-cli:1.0") {
             transitive = false
         }

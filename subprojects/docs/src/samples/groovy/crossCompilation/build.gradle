@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.Javadoc
+
 apply plugin: 'groovy'
 version = 1.0
 
@@ -6,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.10'
+    compile 'org.codehaus.groovy:groovy-all:2.4.15'
     testCompile 'junit:junit:4.12'
 }
 
