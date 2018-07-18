@@ -9,6 +9,7 @@ import org.gradle.testkit.runner.TaskOutcome
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -229,16 +230,96 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `enables SAM conversion for Kotlin functions`() {
+    fun `by default SAM conversion for Kotlin functions is enabled and a warning is issued`() {
+
+        withBuildExercisingSamConversionForKotlinFunctions()
+
+        build("test").apply {
+
+            assertThat(
+                output.also(::println),
+                containsMultiLineString("""
+                    STRING
+                    foo
+                    bar
+                """)
+            )
+
+            assertThat(
+                output,
+                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+            )
+
+            assertThat(
+                output,
+                containsString(kotlinDslPluginProgressiveWarning)
+            )
+        }
+    }
+
+    @Test
+    fun `can explicitly disable SAM conversion for Kotlin functions and get no warning`() {
+
+        withBuildExercisingSamConversionForKotlinFunctions(
+            "kotlinDslPluginOptions.progressive.set(ProgressiveModeState.DISABLED)"
+        )
+
+        buildAndFail("test").apply {
+
+            assertThat(
+                output,
+                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+            )
+            assertThat(
+                output,
+                not(containsString(kotlinDslPluginProgressiveWarning))
+            )
+        }
+    }
+
+    @Test
+    fun `can explicitly enable SAM conversion for Kotlin functions and get no warning`() {
+
+        withBuildExercisingSamConversionForKotlinFunctions(
+            "kotlinDslPluginOptions.progressive.set(ProgressiveModeState.ENABLED)"
+        )
+
+        build("test").apply {
+
+            assertThat(
+                output.also(::println),
+                containsMultiLineString("""
+                    STRING
+                    foo
+                    bar
+                """)
+            )
+
+            assertThat(
+                output,
+                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
+            )
+
+            assertThat(
+                output,
+                not(containsString(kotlinDslPluginProgressiveWarning))
+            )
+        }
+    }
+
+    private
+    fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
 
         withSettingsIn("buildSrc", pluginManagementBlock)
 
         withBuildScriptIn("buildSrc", """
+            import org.gradle.kotlin.dsl.plugins.dsl.*
 
             plugins {
                 `kotlin-dsl`
             }
 
+            $buildSrcScript
         """)
 
         withFile("buildSrc/src/main/kotlin/my.kt", """
@@ -272,15 +353,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             }
 
          """)
-
-        assertThat(
-            build("test", "-q").output.also(::println),
-            containsMultiLineString("""
-                STRING
-                foo
-                bar
-            """)
-        )
     }
 
     private
