@@ -27,6 +27,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.AbstractCopyTask
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.codegen.GenericsVariance
 import org.gradle.kotlin.dsl.support.canonicalNameOf
 
 import org.hamcrest.CoreMatchers.equalTo

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen;
+package org.gradle.kotlin.dsl.fixtures.codegen;
 
 import java.util.Collection;
 

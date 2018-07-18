@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen;
+package org.gradle.kotlin.dsl.fixtures.codegen;
 
 import java.util.Map;
 import java.util.function.Consumer;
 
 
-public interface ClassAndGroovyNamedArguments {
+public interface GroovyNamedArguments {
 
-    <T> void mapAndClass(Map<String, ?> args, Class<? extends T> type);
+    void rawMap(Map args);
 
-    <T> void mapAndClassAndVarargs(Map<String, ?> args, Class<? extends T> type, String... options);
+    void stringUnknownMap(Map<String, ?> args);
 
-    <T> void mapAndClassAndSAM(Map<String, ?> args, Class<? extends T> type, Consumer<? super T> action);
+    void stringObjectMap(Map<String, Object> args);
+
+    void mapWithOtherParameters(Map<String, ?> args, String foo, int bar);
+
+    void mapWithLastSamAndOtherParameters(Map<String, ?> args, String foo, Consumer<String> bar);
 }

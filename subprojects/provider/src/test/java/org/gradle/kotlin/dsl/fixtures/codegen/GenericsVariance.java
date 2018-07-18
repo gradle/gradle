@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen;
+package org.gradle.kotlin.dsl.fixtures.codegen;
 
-import java.util.Map;
-import java.util.function.Consumer;
+public interface GenericsVariance {
 
+    void invariant(Class<Number> type);
 
-public interface GroovyNamedArguments {
+    void covariant(Class<? extends Number> type);
 
-    void rawMap(Map args);
-
-    void stringUnknownMap(Map<String, ?> args);
-
-    void stringObjectMap(Map<String, Object> args);
-
-    void mapWithOtherParameters(Map<String, ?> args, String foo, int bar);
-
-    void mapWithLastSamAndOtherParameters(Map<String, ?> args, String foo, Consumer<String> bar);
+    void contravariant(Class<? super Number> type);
 }

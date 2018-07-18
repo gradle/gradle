@@ -18,6 +18,10 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 
+import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
+import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
+import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
+import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.junit.Assert.assertThat
@@ -38,59 +42,59 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`rawClass`(`type`: kotlin.reflect.KClass<*>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`rawClass`(`type`: kotlin.reflect.KClass<*>): Unit =
                     `rawClass`(`type`.java)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`unknownClass`(`type`: kotlin.reflect.KClass<*>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`unknownClass`(`type`: kotlin.reflect.KClass<*>): Unit =
                     `unknownClass`(`type`.java)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`invariantClass`(`type`: kotlin.reflect.KClass<kotlin.Number>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`invariantClass`(`type`: kotlin.reflect.KClass<kotlin.Number>): Unit =
                     `invariantClass`(`type`.java)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantClass`(`type`: kotlin.reflect.KClass<out kotlin.Number>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantClass`(`type`: kotlin.reflect.KClass<out kotlin.Number>): Unit =
                     `covariantClass`(`type`.java)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`contravariantClass`(`type`: kotlin.reflect.KClass<in Int>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`contravariantClass`(`type`: kotlin.reflect.KClass<in Int>): Unit =
                     `contravariantClass`(`type`.java)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`varargOfClasses`(vararg `types`: kotlin.reflect.KClass<*>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`varargOfClasses`(vararg `types`: kotlin.reflect.KClass<*>): Unit =
                     `varargOfClasses`(*`types`.map { it.java }.toTypedArray())
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`arrayOfClasses`(`types`: kotlin.Array<kotlin.reflect.KClass<*>>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`arrayOfClasses`(`types`: kotlin.Array<kotlin.reflect.KClass<*>>): Unit =
                     `arrayOfClasses`(`types`.map { it.java }.toTypedArray())
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.ClassToKClass.`collectionOfClasses`(`types`: kotlin.collections.Collection<kotlin.reflect.KClass<out kotlin.Number>>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`collectionOfClasses`(`types`: kotlin.collections.Collection<kotlin.reflect.KClass<out kotlin.Number>>): Unit =
                     `collectionOfClasses`(`types`.map { it.java })
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassToKClass.`methodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
                     `methodParameterizedClass`(`type`.java)
                 """,
                 """
-                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantMethodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
                     `covariantMethodParameterizedClass`(`type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassToKClass.`methodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
                     `methodParameterizedCovariantClass`(`type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassToKClass.`methodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
                     `methodParameterizedContravariantClass`(`type`.java)
                 """,
                 """
-                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
                     `covariantMethodParameterizedCovariantClass`(`type`.java)
                 """,
                 """
-                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.codegen.ClassToKClass.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
                     `covariantMethodParameterizedContravariantClass`(`type`.java)
                 """
             )
@@ -130,23 +134,23 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any?>): Unit =
                     `rawMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any?>): Unit =
                     `stringUnknownMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any?>): Unit =
                     `stringObjectMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any?>): Unit =
                     `mapWithOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any?>, `bar`: java.util.function.Consumer<String>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any?>, `bar`: java.util.function.Consumer<String>): Unit =
                     `mapWithLastSamAndOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """
             )
@@ -182,15 +186,15 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>): Unit =
                     `mapAndClass`(mapOf(*`args`), `type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any?>): Unit =
                     `mapAndClassAndVarargs`(mapOf(*`args`), `type`.java, *`options`)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>, `action`: java.util.function.Consumer<in T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>, `action`: java.util.function.Consumer<in T>): Unit =
                     `mapAndClassAndSAM`(mapOf(*`args`), `type`.java, `action`)
                 """
             )
@@ -219,27 +223,27 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`invariantClass`(`type`: kotlin.reflect.KClass<T>, `list`: kotlin.collections.List<T>): T =
+                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType<T>.`invariantClass`(`type`: kotlin.reflect.KClass<T>, `list`: kotlin.collections.List<T>): T =
                     `invariantClass`(`type`.java, `list`)
                 """,
                 """
-                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantClass`(`type`: kotlin.reflect.KClass<out T>, `list`: kotlin.collections.List<T>): T =
+                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType<T>.`covariantClass`(`type`: kotlin.reflect.KClass<out T>, `list`: kotlin.collections.List<T>): T =
                     `covariantClass`(`type`.java, `list`)
                 """,
                 """
-                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`contravariantClass`(`type`: kotlin.reflect.KClass<in T>, `list`: kotlin.collections.List<T>): T =
+                inline fun <T : java.io.Serializable> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType<T>.`contravariantClass`(`type`: kotlin.reflect.KClass<in T>, `list`: kotlin.collections.List<T>): T =
                     `contravariantClass`(`type`.java, `list`)
                 """,
                 """
-                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedInvariantClass`(`type`: kotlin.reflect.KClass<V>, `list`: kotlin.collections.List<V>): V =
+                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedInvariantClass`(`type`: kotlin.reflect.KClass<V>, `list`: kotlin.collections.List<V>): V =
                     `covariantMethodParameterizedInvariantClass`(`type`.java, `list`)
                 """,
                 """
-                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out V>, `list`: kotlin.collections.List<out V>): V =
+                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out V>, `list`: kotlin.collections.List<out V>): V =
                     `covariantMethodParameterizedCovariantClass`(`type`.java, `list`)
                 """,
                 """
-                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in V>, `list`: kotlin.collections.List<out V>): V =
+                inline fun <V : T, T : java.io.Serializable> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType<T>.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in V>, `list`: kotlin.collections.List<out V>): V =
                     `covariantMethodParameterizedContravariantClass`(`type`.java, `list`)
                 """
             )
@@ -304,7 +308,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         val usageFiles = extensionsUsages.mapIndexed { idx, usage ->
             useDir.resolve("usage$idx.kt").also {
                 it.writeText("""
-                import org.gradle.kotlin.dsl.codegen.*
+                import org.gradle.kotlin.dsl.fixtures.codegen.*
                 import org.gradle.kotlin.dsl.*
 
                 $usage
