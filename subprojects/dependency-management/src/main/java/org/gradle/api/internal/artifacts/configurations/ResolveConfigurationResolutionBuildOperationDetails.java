@@ -17,12 +17,13 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +44,10 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         boolean isScriptConfiguration,
         String configurationDescription,
         String buildPath,
-        String projectPath, boolean isConfigurationVisible,
+        String projectPath,
+        boolean isConfigurationVisible,
         boolean isConfigurationTransitive,
-        List<ResolutionAwareRepository> artifactRepositories
+        List<ResolutionAwareRepository> repositories
     ) {
         this.configurationName = configurationName;
         this.isScriptConfiguration = isScriptConfiguration;
@@ -54,7 +56,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         this.projectPath = projectPath;
         this.isConfigurationVisible = isConfigurationVisible;
         this.isConfigurationTransitive = isConfigurationTransitive;
-        this.repositories = computeResolvedRepositories(artifactRepositories);
+        this.repositories = computeResolvedRepositories(repositories);
     }
 
     @Override
@@ -100,11 +102,12 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
 
     private static List<Repository> computeResolvedRepositories(List<ResolutionAwareRepository> repositories) {
-        List<Repository> result = new ArrayList<Repository>();
-        for (ResolutionAwareRepository repository : repositories) {
-            result.add(RepositoryImpl.from(repository.getDetails()));
-        }
-        return result;
+        return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
+            @Override
+            public Repository transform(ResolutionAwareRepository repository) {
+                return RepositoryImpl.from(repository.getDetails());
+            }
+        });
     }
 
     private static class RepositoryImpl implements Repository {
