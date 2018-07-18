@@ -199,7 +199,7 @@ class ApiType(
         val stack = ArrayDeque<String>().apply {
             addSuperTypesOf(delegate)
         }
-        val visited = mutableListOf<String>()
+        val visited = mutableSetOf<String>()
 
         val predicate = { candidate: MethodNode ->
             candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
@@ -208,8 +208,7 @@ class ApiType(
         while (stack.isNotEmpty()) {
             val next = stack.pop()
 
-            if (next in visited) continue
-            visited.add(next)
+            if (!visited.add(next)) continue
 
             val nextSourceName = sourceNameOfBinaryName(binaryNameOfInternalName(next))
             val nextApiType = context.type(nextSourceName) ?: continue
