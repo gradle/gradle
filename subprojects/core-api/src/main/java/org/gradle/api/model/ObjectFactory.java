@@ -78,8 +78,9 @@ public interface ObjectFactory {
     /**
      * Creates a {@link Property} implementation to hold values of the given type.
      *
-     * <p>The property will have a value equal to the default value of that type as defined by the Java language specification.
+     * <p>The property will have a value equal to the default value of that type as defined by the Java language specification (JLS).
      * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
+     * Boxed primitive types have the default value of the primitive type as defined by the JLS.
      * <p>
      * Any other data type than the standard Java data types returns a property with no value defined.
      *
