@@ -1148,8 +1148,13 @@ div.screenshot {
     margin-top: 0;
 }
 
-#toctitle {
+#header #toctitle {
     margin-bottom: 0.625rem;
+}
+
+#toc,
+#content #toc {
+    border: 0 none;
 }
 
 #toc > ul {
@@ -1157,17 +1162,18 @@ div.screenshot {
     font-family: inherit;
 }
 
-#toc li {
+#toc > ul > li {
     line-height: 1.0;
     margin-top: 0;
-    padding-bottom: 0.625rem;
+    padding-bottom: 0.425rem;
 }
-#toc li:last-of-type {
+#toc > ul > li:last-of-type {
     padding-bottom: 0;
 }
 
 #toc a {
     color: #02303A;
+    font-style: normal;
 }
 
 #toc a:hover,
@@ -1180,9 +1186,9 @@ div.screenshot {
 #toc a:active {
     text-decoration: none;
 }
+
 @media screen and (min-width: 75rem) and (min-height: 48rem) {
-    #toc {
-        border: 0 none;
+    #header #toc {
         font-size: 1rem;
         background: #f7f7f8;
         border-radius: 0;
@@ -1190,7 +1196,7 @@ div.screenshot {
         padding: 15px 0 0;
     }
 
-    #toctitle {
+    #header #toctitle {
         font-size: 1rem;
         font-weight: 700;
         margin: 0.4rem 0 0.625rem 0;
@@ -1582,9 +1588,9 @@ div.screenshot {
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 75rem) and (min-height: 48rem) {
-    .appendix #toc,
-    .book #toc,
-    .chapter #toc {
+    .appendix #header #toc,
+    .book #header #toc,
+    .chapter #header #toc {
         position: fixed;
         left: calc(50% + 380px);
         top: 50px;
@@ -1598,6 +1604,8 @@ div.screenshot {
     .book #toc a,
     .chapter #toc a {
         color: #02303A;
+        display: inline-block;
+        margin-bottom: 0.2rem;
     }
 
     .appendix #toc a.active,
@@ -1617,17 +1625,17 @@ div.screenshot {
 }
 
 @media screen and (min-width: 84.375rem) and (min-height: 48rem) {
-    .appendix #toc,
-    .book #toc,
-    .chapter #toc {
+    .appendix #header #toc,
+    .book #header #toc,
+    .chapter #header #toc {
         left: calc(50% + 26.25rem);
     }
 }
 
 @media screen and (min-width: 93.75rem) and (min-height: 48rem) {
-    .appendix #toc,
-    .book #toc,
-    .chapter #toc {
+    .appendix #header #toc,
+    .book #header #toc,
+    .chapter #header #toc {
         left: calc(50% + 31.25rem);
     }
 }

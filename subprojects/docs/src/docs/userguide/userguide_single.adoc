@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-= Gradle User Manual: Version {gradle-version}
+= Gradle User Manual: Version {gradleVersion}
 
-include::licenses.adoc[leveloffset=+1]
+toc::[]
 
 == About Gradle
 
@@ -81,117 +81,124 @@ include::custom_tasks.adoc[leveloffset=+2]
 
 include::base_plugin.adoc[leveloffset=+2]
 
-=== Dependency Management
 
-include::introduction_dependency_management.adoc[leveloffset=+3]
+== Dependency Management
 
-include::dependency_management_terminology.adoc[leveloffset=+3]
+include::introduction_dependency_management.adoc[leveloffset=+2]
 
-include::dependency_types.adoc[leveloffset=+3]
+include::dependency_management_terminology.adoc[leveloffset=+2]
 
-include::repository_types.adoc[leveloffset=+3]
+include::dependency_types.adoc[leveloffset=+2]
 
-include::declaring_dependencies.adoc[leveloffset=+3]
+include::repository_types.adoc[leveloffset=+2]
 
-include::declaring_repositories.adoc[leveloffset=+3]
+include::declaring_dependencies.adoc[leveloffset=+2]
 
-include::inspecting_dependencies.adoc[leveloffset=+3]
+include::declaring_repositories.adoc[leveloffset=+2]
 
-include::managing_dependency_configurations.adoc[leveloffset=+3]
+include::inspecting_dependencies.adoc[leveloffset=+2]
 
-include::managing_transitive_dependencies.adoc[leveloffset=+3]
+include::managing_dependency_configurations.adoc[leveloffset=+2]
 
-include::dependency_locking.adoc[leveloffset=+3]
+include::managing_transitive_dependencies.adoc[leveloffset=+2]
 
-include::troubleshooting_dependency_resolution.adoc[leveloffset=+3]
+include::dependency_locking.adoc[leveloffset=+2]
 
-include::customizing_dependency_resolution_behavior.adoc[leveloffset=+3]
+include::troubleshooting_dependency_resolution.adoc[leveloffset=+2]
 
-include::dependency_cache.adoc[leveloffset=+3]
+include::customizing_dependency_resolution_behavior.adoc[leveloffset=+2]
 
-include::working_with_dependencies.adoc[leveloffset=+3]
+include::dependency_cache.adoc[leveloffset=+2]
 
-=== Publishing Artifacts
+include::working_with_dependencies.adoc[leveloffset=+2]
 
-include::publishing_overview.adoc[leveloffset=+3]
 
-include::publishing_maven.adoc[leveloffset=+3]
+== Publishing Artifacts
 
-include::publishing_ivy.adoc[leveloffset=+3]
+include::publishing_overview.adoc[leveloffset=+2]
 
-include::artifact_management.adoc[leveloffset=+3]
+include::publishing_maven.adoc[leveloffset=+2]
 
-include::maven_plugin.adoc[leveloffset=+3]
+include::publishing_ivy.adoc[leveloffset=+2]
 
-include::signing_plugin.adoc[leveloffset=+3]
+include::artifact_management.adoc[leveloffset=+2]
 
-include::distribution_plugin.adoc[leveloffset=+3]
+include::maven_plugin.adoc[leveloffset=+2]
 
-=== Native Projects
+include::signing_plugin.adoc[leveloffset=+2]
 
-include::native_software.adoc[leveloffset=+3]
+include::distribution_plugin.adoc[leveloffset=+2]
 
-include::software_model_concepts.adoc[leveloffset=+3]
 
-include::software_model.adoc[leveloffset=+3]
+== Native Projects
 
-include::rule_source.adoc[leveloffset=+3]
+include::native_software.adoc[leveloffset=+2]
 
-include::software_model_extend.adoc[leveloffset=+3]
+include::software_model_concepts.adoc[leveloffset=+2]
 
-=== Groovy Projects
+include::software_model.adoc[leveloffset=+2]
 
-include::tutorial_groovy_projects.adoc[leveloffset=+3]
+include::rule_source.adoc[leveloffset=+2]
 
-include::groovy_plugin.adoc[leveloffset=+3]
+include::software_model_extend.adoc[leveloffset=+2]
 
-include::codenarc_plugin.adoc[leveloffset=+3]
 
-=== Java Projects
+== Groovy Projects
 
-include::tutorial_java_projects.adoc[leveloffset=+3]
+include::tutorial_groovy_projects.adoc[leveloffset=+2]
 
-include::building_java_projects.adoc[leveloffset=+3]
+include::groovy_plugin.adoc[leveloffset=+2]
 
-include::java_testing.adoc[leveloffset=+3]
+include::codenarc_plugin.adoc[leveloffset=+2]
 
-include::java_plugin.adoc[leveloffset=+3]
 
-include::java_library_plugin.adoc[leveloffset=+3]
+== Java Projects
 
-include::java_library_distribution_plugin.adoc[leveloffset=+3]
+include::tutorial_java_projects.adoc[leveloffset=+2]
 
-include::dependency_management_for_java_projects.adoc[leveloffset=+3]
+include::building_java_projects.adoc[leveloffset=+2]
 
-include::ant.adoc[leveloffset=+3]
+include::java_testing.adoc[leveloffset=+2]
 
-include::antlr_plugin.adoc[leveloffset=+3]
+include::java_plugin.adoc[leveloffset=+2]
 
-include::application_plugin.adoc[leveloffset=+3]
+include::java_library_plugin.adoc[leveloffset=+2]
 
-include::checkstyle_plugin.adoc[leveloffset=+3]
+include::java_library_distribution_plugin.adoc[leveloffset=+2]
 
-include::findbugs_plugin.adoc[leveloffset=+3]
+include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 
-include::jacoco_plugin.adoc[leveloffset=+3]
+include::ant.adoc[leveloffset=+2]
 
-include::jdepend_plugin.adoc[leveloffset=+3]
+include::antlr_plugin.adoc[leveloffset=+2]
 
-include::osgi_plugin.adoc[leveloffset=+3]
+include::application_plugin.adoc[leveloffset=+2]
 
-include::pmd_plugin.adoc[leveloffset=+3]
+include::checkstyle_plugin.adoc[leveloffset=+2]
 
-=== Java Web Projects
+include::findbugs_plugin.adoc[leveloffset=+2]
 
-include::ear_plugin.adoc[leveloffset=+3]
+include::jacoco_plugin.adoc[leveloffset=+2]
 
-include::play_plugin.adoc[leveloffset=+3]
+include::jdepend_plugin.adoc[leveloffset=+2]
 
-include::war_plugin.adoc[leveloffset=+3]
+include::osgi_plugin.adoc[leveloffset=+2]
 
-=== Scala Projects
+include::pmd_plugin.adoc[leveloffset=+2]
 
-include::scala_plugin.adoc[leveloffset=+3]
+
+== Java Web Projects
+
+include::ear_plugin.adoc[leveloffset=+2]
+
+include::play_plugin.adoc[leveloffset=+2]
+
+include::war_plugin.adoc[leveloffset=+2]
+
+
+== Scala Projects
+
+include::scala_plugin.adoc[leveloffset=+2]
 
 
 == Integrating Gradle
@@ -211,3 +218,7 @@ include::java_gradle_plugin.adoc[leveloffset=+2]
 
 include::lazy_configuration.adoc[leveloffset=+2]
 
+
+== Licenses
+
+include::licenses.adoc[leveloffset=+1]
