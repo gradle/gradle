@@ -32,22 +32,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class ClassSetAnalysisData {
-    final Map<String, String> filePathToClassName;
     final Map<String, DependentsSet> dependents;
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
     final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
-        this.filePathToClassName = filePathToClassName;
+    public ClassSetAnalysisData(Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
         this.fullRebuildCause = fullRebuildCause;
-    }
-
-    public String getClassNameForFile(String filePath) {
-        return filePathToClassName.get(filePath);
     }
 
     public DependentsSet getDependents(String className) {
@@ -75,18 +69,9 @@ public class ClassSetAnalysisData {
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
-            // Class names are de-duplicated when encoded
             Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
             int count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, String> filePathToClassNameBuilder = ImmutableMap.builder();
-            for (int i = 0; i < count; i++) {
-                String filePath = decoder.readString();
-                String className = readClassName(decoder, classNameMap);
-                filePathToClassNameBuilder.put(filePath, className);
-            }
-
-            count = decoder.readSmallInt();
             ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builder();
             for (int i = 0; i < count; i++) {
                 String className = readClassName(decoder, classNameMap);
@@ -116,20 +101,12 @@ public class ClassSetAnalysisData {
 
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
+            return new ClassSetAnalysisData(dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
         }
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
-            // Deduplicate class names when encoding.
-            // This would be more efficient with a better data structure in ClassSetAnalysisData
             Map<String, Integer> classNameMap = new HashMap<String, Integer>();
-
-            encoder.writeSmallInt(value.filePathToClassName.size());
-            for (Map.Entry<String, String> entry : value.filePathToClassName.entrySet()) {
-                encoder.writeString(entry.getKey());
-                writeClassName(entry.getValue(), classNameMap, encoder);
-            }
 
             encoder.writeSmallInt(value.dependents.size());
             for (Map.Entry<String, DependentsSet> entry : value.dependents.entrySet()) {

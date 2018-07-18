@@ -49,10 +49,6 @@ public class PreviousCompilation {
         return getClassAnalysis().getRelevantDependents(allClasses, constants);
     }
 
-    public String getClassName(String path) {
-        return getClassAnalysis().getClassNameForFile(path);
-    }
-
     private ClassSetAnalysis getClassAnalysis() {
         if (classAnalysis == null) {
             classAnalysis = previousCompilationOutputAnalyzer.getAnalysis(data.getDestinationDir()).withAnnotationProcessingData(data.getAnnotationProcessingData());

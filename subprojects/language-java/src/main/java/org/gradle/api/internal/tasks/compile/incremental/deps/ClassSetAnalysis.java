@@ -138,8 +138,4 @@ public class ClassSetAnalysis {
     public IntSet getConstants(String className) {
         return classAnalysis.getConstants(className);
     }
-
-    public String getClassNameForFile(String path) {
-        return classAnalysis.getClassNameForFile(path);
-    }
 }
