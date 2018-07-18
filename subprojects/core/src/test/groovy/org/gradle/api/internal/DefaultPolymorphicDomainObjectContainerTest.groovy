@@ -263,4 +263,34 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         def e = thrown(GradleException)
         e.message == "Cannot register a factory for type Person because a factory for this type is already registered."
     }
+
+    def "can register objects"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+        when:
+        def fred = container.register("fred", Person)
+        def bob = container.register("bob", AgeAwarePerson) {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().age == 50
+    }
+
+    def "can look up objects by name"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        when:
+        container.register("fred", Person)
+        container.create("bob", Person)
+        def fred = container.named("fred")
+        def bob = container.named("bob")
+
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().name == "bob"
+    }
 }

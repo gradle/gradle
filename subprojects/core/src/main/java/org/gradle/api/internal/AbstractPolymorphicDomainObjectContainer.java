@@ -103,6 +103,12 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
             }
         }
 
+        @Nullable
+        @Override
+        public Class<I> getType() {
+            return type;
+        }
+
         @Override
         public boolean isPresent() {
             return findDomainObject(getName()) != null;
