@@ -82,9 +82,18 @@ public class ClasspathEntrySnapshot {
             HashCode otherClassBytes = otherClass.getValue();
             HashCode thisClsBytes = getHashes().get(otherClassName);
             if (thisClsBytes == null || !thisClsBytes.equals(otherClassBytes)) {
-                //removed since or changed since
                 affected.add(otherClassName);
                 DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
+                if (dependents.isDependencyToAll()) {
+                    return dependents;
+                }
+                affected.addAll(dependents.getDependentClasses());
+            }
+        }
+        for (String added : addedSince(other)) {
+            if (added.endsWith("package-info")) {
+                affected.add(added);
+                DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(added, IntSets.EMPTY_SET);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }

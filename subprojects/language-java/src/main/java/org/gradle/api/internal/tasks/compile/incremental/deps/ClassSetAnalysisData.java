@@ -18,8 +18,10 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -32,12 +34,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class ClassSetAnalysisData {
-    final Map<String, DependentsSet> dependents;
-    final Map<String, IntSet> classesToConstants;
-    final Map<String, Set<String>> classesToChildren;
-    final String fullRebuildCause;
+    private static final String PACKAGE_INFO = "package-info";
 
-    public ClassSetAnalysisData(Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
+    private final Set<String> classes;
+    private final Map<String, DependentsSet> dependents;
+    private final Map<String, IntSet> classesToConstants;
+    private final Map<String, Set<String>> classesToChildren;
+    private final String fullRebuildCause;
+
+    public ClassSetAnalysisData(Set<String> classes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
+        this.classes = classes;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
@@ -47,6 +53,17 @@ public class ClassSetAnalysisData {
     public DependentsSet getDependents(String className) {
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);
+        }
+        if (className.endsWith(PACKAGE_INFO)) {
+            Set<String> typesInPackage = Sets.newHashSet();
+            String packageName = className.equals(PACKAGE_INFO) ? null : StringUtils.removeEnd(className, "." + PACKAGE_INFO);
+            for (String type : classes) {
+                int i = type.lastIndexOf(".");
+                if (i < 0 && packageName == null || i > 0 && type.substring(0, i).equals(packageName)) {
+                    typesInPackage.add(type);
+                }
+            }
+            return DependentsSet.dependents(typesInPackage);
         }
         DependentsSet dependentsSet = dependents.get(className);
         return dependentsSet == null ? DependentsSet.empty() : dependentsSet;
@@ -72,6 +89,12 @@ public class ClassSetAnalysisData {
             Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
             int count = decoder.readSmallInt();
+            ImmutableSet.Builder<String> classes = ImmutableSet.builder();
+            for (int i = 0; i < count; i++) {
+                classes.add(readClassName(decoder, classNameMap));
+            }
+
+            count = decoder.readSmallInt();
             ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builder();
             for (int i = 0; i < count; i++) {
                 String className = readClassName(decoder, classNameMap);
@@ -101,12 +124,16 @@ public class ClassSetAnalysisData {
 
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
+            return new ClassSetAnalysisData(classes.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
         }
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
             Map<String, Integer> classNameMap = new HashMap<String, Integer>();
+            encoder.writeSmallInt(value.classes.size());
+            for (String clazz : value.classes) {
+                writeClassName(clazz, classNameMap, encoder);
+            }
 
             encoder.writeSmallInt(value.dependents.size());
             for (Map.Entry<String, DependentsSet> entry : value.dependents.entrySet()) {

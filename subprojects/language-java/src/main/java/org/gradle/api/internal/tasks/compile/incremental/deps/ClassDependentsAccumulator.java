@@ -105,7 +105,7 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), fullRebuildCause);
+        return new ClassSetAnalysisData(ImmutableSet.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), fullRebuildCause);
     }
 
     private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {

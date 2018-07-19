@@ -936,4 +936,24 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         fails'compileJava'
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
+
+    def "recompiles all classes in a package if the package-info file changes"() {
+        given:
+        def packageFile = file("src/main/java/foo/package-info.java")
+        packageFile.text = """package foo;"""
+        file("src/main/java/foo/A.java").text = "package foo; class A {}"
+        file("src/main/java/foo/B.java").text = "package foo; public class B {}"
+        file("src/main/java/foo/bar/C.java").text = "package foo.bar; class C {}"
+        file("src/main/java/baz/D.java").text = "package baz; class D {}"
+        file("src/main/java/baz/E.java").text = "package baz; import foo.B; class E extends B {}"
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        packageFile.text = """@Deprecated package foo;"""
+        succeeds 'compileJava'
+
+        then:
+        outputs.recompiledClasses("A", "B", "E", "package-info")
+    }
 }
