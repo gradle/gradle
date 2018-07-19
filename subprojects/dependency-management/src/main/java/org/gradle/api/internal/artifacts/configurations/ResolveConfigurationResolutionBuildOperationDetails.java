@@ -16,17 +16,23 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
+class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final String configurationName;
     private final boolean isScriptConfiguration;
@@ -96,6 +102,54 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     @Override
     public List<Repository> getRepositories() {
         return repositories;
+    }
+
+    @Override
+    public Object getCustomOperationTraceSerializableModel() {
+        Map<String, Object> model = new HashMap<String, Object>();
+        model.put("configurationName", configurationName);
+        model.put("isScriptConfiguration", isScriptConfiguration);
+        model.put("configurationDescription", configurationDescription);
+        model.put("buildPath", buildPath);
+        model.put("projectPath", projectPath);
+        model.put("isConfigurationVisible", isConfigurationVisible);
+        model.put("isConfigurationTransitive", isConfigurationTransitive);
+        ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<Object>();
+        for (Repository repository : repositories) {
+            ImmutableMap.Builder<String, Object> repoMapBuilder = new ImmutableMap.Builder<String, Object>();
+            repoMapBuilder.put("id", repository.getId());
+            repoMapBuilder.put("name", repository.getName());
+            repoMapBuilder.put("type", repository.getType());
+            ImmutableMap.Builder<String, Object> propertiesMapBuilder = new ImmutableMap.Builder<String, Object>();
+            for (Map.Entry<String, ?> property : repository.getProperties().entrySet()) {
+                Object propertyValue;
+                if (property.getValue() instanceof Collection) {
+                    ImmutableList.Builder<Object> listBuilder = new ImmutableList.Builder<Object>();
+                    for (Object inner : (Collection<?>) property.getValue()) {
+                        doSerialize(inner, listBuilder);
+                    }
+                    propertyValue = listBuilder.build();
+                } else if (property.getValue() instanceof File) {
+                    propertyValue = ((File) property.getValue()).getAbsolutePath();
+                } else {
+                    propertyValue = property.getValue();
+                }
+
+                propertiesMapBuilder.put(property.getKey(), propertyValue);
+            }
+            repoMapBuilder.put("properties", propertiesMapBuilder.build());
+            repoBuilder.add(repoMapBuilder.build());
+        }
+        model.put("repositories", repoBuilder.build());
+        return model;
+    }
+
+    private void doSerialize(Object value, ImmutableList.Builder<Object> listBuilder) {
+        if (value instanceof File) {
+            listBuilder.add(((File) value).getAbsolutePath());
+        } else {
+            listBuilder.add(value);
+        }
     }
 
     private static class RepositoryImpl implements Repository {

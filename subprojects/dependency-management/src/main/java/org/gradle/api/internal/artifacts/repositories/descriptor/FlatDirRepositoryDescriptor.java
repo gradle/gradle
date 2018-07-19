@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Transformer;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
@@ -46,11 +44,6 @@ public final class FlatDirRepositoryDescriptor extends RepositoryDescriptor {
 
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
-        builder.put(Property.DIRS.name(), CollectionUtils.collect(dirs, new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath();
-            }
-        }));
+        builder.put(Property.DIRS.name(), dirs);
     }
 }
