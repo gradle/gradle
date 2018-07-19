@@ -17,8 +17,8 @@
 
 The Gradle announce plugin allows you to send custom announcements during a build. The following notification systems are supported:
 
-* http://twitter.com[Twitter]
-* http://manpages.ubuntu.com/manpages/zesty/en/man1/notify-send.1.html[notify-send] (Ubuntu)
+* https://twitter.com[Twitter]
+* http://manpages.ubuntu.com/manpages/xenial/man1/notify-send.1.html[notify-send] (Ubuntu)
 * https://sites.google.com/site/snarlapp/home[Snarl] (Windows)
 * http://growl.info/[Growl] (macOS)
 
@@ -26,6 +26,8 @@ The Gradle announce plugin allows you to send custom announcements during a buil
 == Usage
 
 To use the announce plugin, apply it to your build script:
+
+=== Example: Applying the announce plugin
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -40,6 +42,8 @@ NOTE: See also the link:{groovyDslPath}/org.gradle.api.plugins.announce.Announce
 
 Configure your notification service(s) of choice (see table below for which configuration properties are available):
 
+=== Example: Configure the announce plugin
+
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
@@ -47,6 +51,8 @@ include::{samplesPath}/announce/build.gradle[tag=announce-plugin-conf]
 ----
 
 Finally, send announcements with the `announce` method:
+
+=== Example: Using the announce plugin
 
 [source.multi-language-sample,groovy]
 .build.gradle
