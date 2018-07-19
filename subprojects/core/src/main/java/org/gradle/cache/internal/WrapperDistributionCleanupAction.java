@@ -56,6 +56,8 @@ public class WrapperDistributionCleanupAction {
     private static final Logger LOGGER = Logging.getLogger(WrapperDistributionCleanupAction.class);
 
     private static final ImmutableMap<String, Pattern> JAR_FILE_PATTERNS_BY_PREFIX;
+    public static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/");
+
     static {
         Set<String> prefixes = ImmutableSet.of(
             "gradle-base-services", // 4.x
@@ -115,8 +117,7 @@ public class WrapperDistributionCleanupAction {
                     GradleVersion gradleVersion = determineGradleVersionFromBuildReceipt(checksumDir);
                     result.put(gradleVersion, checksumDir);
                 } catch (Exception e) {
-                    // TODO see https://github.com/gradle/gradle-private/issues/1379
-                    // LOGGER.debug("Could not determine Gradle version for {}", checksumDir, e);
+                    LOGGER.debug("Could not determine Gradle version for {}: {} ({})", checksumDir, e.getMessage(), e.getClass().getName());
                 }
             }
         }
@@ -158,7 +159,7 @@ public class WrapperDistributionCleanupAction {
     }
 
     private GradleVersion readGradleVersionFromBuildReceipt(ZipFile zipFile) throws Exception {
-        ZipEntry zipEntry = zipFile.getEntry(StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/"));
+        ZipEntry zipEntry = zipFile.getEntry(BUILD_RECEIPT_ZIP_ENTRY_PATH);
         if (zipEntry == null) {
             return null;
         }

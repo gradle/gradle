@@ -125,16 +125,46 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         distributionWithoutBuildReceiptInJar.assertExists()
     }
 
-    def "ignores distributions with invalid gradle version"() {
+    def "ignores distributions with missing gradle version"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
+        def distributionWithMissingVersion = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
 
         when:
         cleanupAction.execute()
 
         then:
-        distributionWithInvalidVersionInDirName.assertExists()
+        distributionWithMissingVersion.assertExists()
+    }
+
+    def "ignores distributions with invalid gradle version"() {
+        given:
+        def versionToCleanUp = GradleVersion.version("2.3.4")
+        def distributionWithInvalidVersion = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis()) { version, jarFile ->
+            jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: foo")
+        }
+
+        when:
+        cleanupAction.execute()
+
+        then:
+        distributionWithInvalidVersion.assertExists()
+    }
+
+    def "ignores distributions with unreadable JAR files"() {
+        given:
+        def versionToCleanUp = GradleVersion.version("2.3.4")
+        def distributionWithUnreadableJarFile = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp)
+        def distDir = distributionWithUnreadableJarFile.listFiles()[0]
+        def libDir = distDir.listFiles()[0]
+        def jarFile = libDir.listFiles()[0]
+        jarFile.text = "not a JAR"
+
+        when:
+        cleanupAction.execute()
+
+        then:
+        distributionWithUnreadableJarFile.assertExists()
     }
 
     def "checks for gradle-core-*.jar"() {
