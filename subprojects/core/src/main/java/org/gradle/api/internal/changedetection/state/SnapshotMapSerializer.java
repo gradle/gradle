@@ -53,13 +53,13 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<String, NormalizedFileSnapshot>(snapshotsCount);
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
-            NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder);
+            NormalizedFileSnapshot snapshot = readSnapshot(decoder);
             snapshots.put(absolutePath, snapshot);
         }
         return snapshots;
     }
 
-    private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder) throws IOException {
+    private NormalizedFileSnapshot readSnapshot(Decoder decoder) throws IOException {
         FileType fileType = readFileType(decoder);
         HashCode contentHash = readContentHash(fileType, decoder);
 
