@@ -127,6 +127,9 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         taskDoLastDeprecation.details.contextualAdvice == "Task ':t' should not have custom actions attached."
         taskDoLastDeprecation.details.type == 'USER_CODE_DIRECT'
         taskDoLastDeprecation.details.stackTrace.size > 0
+        taskDoLastDeprecation.details.stackTrace.each {
+            println "doLast{} " + it.toString();
+        }
         taskDoLastDeprecation.details.stackTrace[0].fileName.endsWith('build.gradle')
         taskDoLastDeprecation.details.stackTrace[0].lineNumber == 13
 
