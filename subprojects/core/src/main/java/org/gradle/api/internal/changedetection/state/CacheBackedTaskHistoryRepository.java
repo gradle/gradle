@@ -358,7 +358,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void visitTree(FileTreeInternal fileTree) {
-                DeprecationLogger.nagUserOfDeprecated("The ability to add non-directory-based file trees as declared outputs");
+                DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("The ability to add non-directory-based file trees as declared outputs");
                 addAllPaths(fileTree, declaredOutputFilePaths, stringInterner);
             }
 

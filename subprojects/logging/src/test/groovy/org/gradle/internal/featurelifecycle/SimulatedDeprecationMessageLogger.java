@@ -30,6 +30,6 @@ public class SimulatedDeprecationMessageLogger {
     }
 
     public static FeatureUsage nagUserWith(String message) {
-        return new FeatureUsage(message, null, null, SimulatedDeprecationMessageLogger.class);
+        return new FeatureUsage(message, null, null, null, FeatureUsage.FeatureUsageType.USER_CODE_INDIRECT, SimulatedDeprecationMessageLogger.class);
     }
 }

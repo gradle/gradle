@@ -26,17 +26,19 @@ import org.gradle.util.DeprecationLogger;
 import java.util.List;
 
 public interface TaskValidationContext {
+
+    String DEPRECATION_SUMMARY = "Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated.";
+
     enum Severity {
         WARNING() {
             @Override
             public boolean report(Task task, List<String> messages, TaskStateInternal state) {
-                String deprecationMessage = String.format("%s Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated.", getMainMessage(task, messages));
-                StringBuilder builder = new StringBuilder();
+                StringBuilder contextualAdviceBuilder = new StringBuilder(getMainMessage(task, messages));
                 for (String message : messages) {
-                    builder.append("\n - ");
-                    builder.append(message);
+                    contextualAdviceBuilder.append("\n - ");
+                    contextualAdviceBuilder.append(message);
                 }
-                DeprecationLogger.nagUserWith(deprecationMessage, builder.toString());
+                DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(DEPRECATION_SUMMARY, null, null, contextualAdviceBuilder.toString());
                 return true;
             }
         },

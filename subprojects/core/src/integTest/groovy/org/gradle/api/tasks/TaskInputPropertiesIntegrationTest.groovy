@@ -502,7 +502,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
+        output.contains """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. A problem was found with the configuration of task ':test'.
  - No value has been specified for property 'input'."""
     }
 
@@ -528,7 +528,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
+        output.contains """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. A problem was found with the configuration of task ':test'.
  - No value has been specified for property 'input'."""
 
         where:
@@ -561,7 +561,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
+        output.contains """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. A problem was found with the configuration of task ':test'.
  - No value has been specified for property 'output'."""
 
         where:
@@ -595,8 +595,9 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
+        def expectedString = """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. A problem was found with the configuration of task ':test'.
  - $type '${file("missing")}' specified for property 'input' does not exist."""
+        output.contains expectedString
 
         where:
         method | type
@@ -618,7 +619,7 @@ task someTask(type: SomeTask) {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds "test"
-        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. 
+        output.contains """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. A problem was found with the configuration of task ':test'.
  - ${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type."""
 
         where:

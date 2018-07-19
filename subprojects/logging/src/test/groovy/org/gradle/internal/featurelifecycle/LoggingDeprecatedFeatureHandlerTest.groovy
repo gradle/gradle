@@ -277,7 +277,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', null, null, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', null, null, null, FeatureUsage.FeatureUsageType.USER_CODE_DIRECT, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -303,7 +303,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.featureUsed(new FeatureUsage('fake', null, null, FeatureUsageTest))
+        handler.featureUsed(new FeatureUsage('fake', null, null, null, null, FeatureUsageTest))
         def events = outputEventListener.events
 
         then:
@@ -397,13 +397,13 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
     }
 
-    private void progressFired(OperationProgressEvent progressEvent, String message) {
+    private void progressFired(OperationProgressEvent progressEvent, String summary) {
         assert progressEvent.details instanceof DeprecatedUsageProgressDetails
-        progressEvent.details.message == message
+        progressEvent.details.summary == summary
         progressEvent.details.stackTrace.size() > 0
     }
 
-    private static FeatureUsage deprecatedFeatureUsage(String message, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new FeatureUsage(message, null, null, calledFrom)
+    private static FeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
+        new FeatureUsage(summary, null, null, null, FeatureUsage.FeatureUsageType.USER_CODE_DIRECT, calledFrom)
     }
 }

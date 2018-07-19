@@ -67,50 +67,55 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         then:
         def initDeprecation = operations.only("Apply script init.gradle to build").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        initDeprecation.details.message == 'Init script has been deprecated.'
-        initDeprecation.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        initDeprecation.details.summary == 'Init script has been deprecated.'
+        initDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         initDeprecation.details.advice == null
+        initDeprecation.details.contextualAdvice == null
         initDeprecation.details.stackTrace.size > 0
         initDeprecation.details.stackTrace[0].fileName.endsWith('init.gradle')
         initDeprecation.details.stackTrace[0].lineNumber == 2
 
         def pluginDeprecation = operations.only("Apply plugin SomePlugin to root project 'root'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        pluginDeprecation.details.message == 'Plugin has been deprecated.'
-        pluginDeprecation.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        pluginDeprecation.details.summary == 'Plugin has been deprecated.'
+        pluginDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         pluginDeprecation.details.advice == null
+        pluginDeprecation.details.contextualAdvice == null
         pluginDeprecation.details.stackTrace.size > 0
         pluginDeprecation.details.stackTrace[0].fileName.endsWith('build.gradle')
         pluginDeprecation.details.stackTrace[0].lineNumber == 15
 
         def scriptPluginDeprecation = operations.only("Apply script script.gradle to root project 'root'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        scriptPluginDeprecation.details.message == 'Plugin script has been deprecated.'
-        scriptPluginDeprecation.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        scriptPluginDeprecation.details.summary == 'Plugin script has been deprecated.'
+        scriptPluginDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         scriptPluginDeprecation.details.advice == null
         scriptPluginDeprecation.details.stackTrace.size > 0
         scriptPluginDeprecation.details.stackTrace[0].fileName.endsWith('script.gradle')
         scriptPluginDeprecation.details.stackTrace[0].lineNumber == 2
 
         def taskDoLastDeprecation = operations.only("Execute doLast {} action for :t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        taskDoLastDeprecation.details.message == 'Task t has been deprecated.'
-        taskDoLastDeprecation.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        taskDoLastDeprecation.details.summary == 'Task t has been deprecated.'
+        taskDoLastDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         taskDoLastDeprecation.details.advice == 'Use task t2 instead.'
+        taskDoLastDeprecation.details.contextualAdvice == null
         taskDoLastDeprecation.details.stackTrace.size > 0
         taskDoLastDeprecation.details.stackTrace[0].fileName.endsWith('build.gradle')
         taskDoLastDeprecation.details.stackTrace[0].lineNumber == 7
 
         def typedTaskDeprecation = operations.only("Execute someAction for :t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        typedTaskDeprecation.details.message == 'Typed task has been deprecated.'
-        typedTaskDeprecation.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        typedTaskDeprecation.details.summary == 'Typed task has been deprecated.'
+        typedTaskDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         typedTaskDeprecation.details.advice == null
+        typedTaskDeprecation.details.contextualAdvice == null
         typedTaskDeprecation.details.stackTrace.size > 0
         typedTaskDeprecation.details.stackTrace[0].fileName.endsWith('build.gradle')
         typedTaskDeprecation.details.stackTrace[0].lineNumber == 22
         typedTaskDeprecation.details.stackTrace[0].methodName == 'someAction'
 
         def typedTaskDeprecation2 = operations.only("Execute someAction for :t2").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        typedTaskDeprecation2.details.message == 'Typed task has been deprecated.'
-        typedTaskDeprecation2.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        typedTaskDeprecation2.details.summary == 'Typed task has been deprecated.'
+        typedTaskDeprecation2.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         typedTaskDeprecation2.details.advice == null
+        typedTaskDeprecation2.details.contextualAdvice == null
         typedTaskDeprecation2.details.stackTrace.size > 0
         typedTaskDeprecation2.details.stackTrace[0].fileName.endsWith('build.gradle')
         typedTaskDeprecation2.details.stackTrace[0].lineNumber == 22
@@ -129,9 +134,10 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         then:
         def buildSrcDeprecations = operations.only("Apply script build.gradle to project ':buildSrc'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        buildSrcDeprecations.details.message.contains('BuildSrc script has been deprecated.')
-        buildSrcDeprecations.details.details.contains('This is scheduled to be removed in Gradle 5.0.')
+        buildSrcDeprecations.details.summary.contains('BuildSrc script has been deprecated.')
+        buildSrcDeprecations.details.removalDetails.contains('This is scheduled to be removed in Gradle 5.0.')
         buildSrcDeprecations.details.advice == null
+        buildSrcDeprecations.details.contextualAdvice == null
         buildSrcDeprecations.details.stackTrace.size > 0
         buildSrcDeprecations.details.stackTrace[0].fileName.endsWith("buildSrc${File.separator}build.gradle")
         buildSrcDeprecations.details.stackTrace[0].lineNumber == 2
@@ -164,17 +170,19 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         then:
         def includedBuildScriptDeprecations = operations.only("Apply script build.gradle to project ':included'").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        includedBuildScriptDeprecations.details.message == 'Included build script has been deprecated.'
-        includedBuildScriptDeprecations.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        includedBuildScriptDeprecations.details.summary == 'Included build script has been deprecated.'
+        includedBuildScriptDeprecations.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         includedBuildScriptDeprecations.details.advice == null
+        includedBuildScriptDeprecations.details.contextualAdvice == null
         includedBuildScriptDeprecations.details.stackTrace.size > 0
         includedBuildScriptDeprecations.details.stackTrace[0].fileName.endsWith("included${File.separator}build.gradle")
         includedBuildScriptDeprecations.details.stackTrace[0].lineNumber == 2
 
         def includedBuildTaskDeprecations = operations.only("Execute doLast {} action for :included:t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
-        includedBuildTaskDeprecations.details.message == 'Included build task has been deprecated.'
-        includedBuildTaskDeprecations.details.details == 'This is scheduled to be removed in Gradle 5.0.'
+        includedBuildTaskDeprecations.details.summary == 'Included build task has been deprecated.'
+        includedBuildTaskDeprecations.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         includedBuildTaskDeprecations.details.advice == null
+        includedBuildTaskDeprecations.details.contextualAdvice == null
         includedBuildTaskDeprecations.details.stackTrace.size > 0
         includedBuildTaskDeprecations.details.stackTrace[0].fileName.endsWith("included${File.separator}build.gradle")
         includedBuildTaskDeprecations.details.stackTrace[0].lineNumber == 6

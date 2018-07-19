@@ -30,8 +30,8 @@ public class LoggingIncubatingFeatureHandler implements FeatureHandler {
 
     @Override
     public void featureUsed(FeatureUsage usage) {
-        if (features.add(usage.getMessage())) {
-            LOGGER.warn(String.format(INCUBATION_MESSAGE, usage.getMessage()));
+        if (features.add(usage.getSummary())) {
+            LOGGER.warn(String.format(INCUBATION_MESSAGE, usage.getSummary()));
         }
     }
 

@@ -224,7 +224,7 @@ public class JavaCompilerArgumentsBuilder {
             String current = argIterator.next();
             if (current.equals("-sourcepath") || current.equals("--source-path")) {
                 if (!silently) {
-                    DeprecationLogger.nagUserOfDeprecated(
+                    DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
                         "Specifying the source path in the CompilerOptions compilerArgs property",
                         "Instead, use the CompilerOptions sourcepath property directly");
                 }

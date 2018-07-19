@@ -1118,7 +1118,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private String getPrefixedProperty(String propertyName, String replacement) {
         String value = System.getProperty(propertyName);
         if (value != null) {
-            SingleMessageLogger.nagUserOfDeprecated("System property '" + propertyName + "'", replacement);
+            SingleMessageLogger.nagUserWithDeprecatedInvocationFeature("System property '" + propertyName + "'", replacement);
         }
         return value;
     }

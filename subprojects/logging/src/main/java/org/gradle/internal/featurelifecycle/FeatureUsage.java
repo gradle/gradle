@@ -27,37 +27,49 @@ import java.util.List;
  * An immutable description of the usage of a deprecated feature.
  */
 public class FeatureUsage {
-    private final String message;
-    private final String details;
+    private final String summary;
+    private final String removalDetails;
     private final String advice;
+    private final FeatureUsageType usageType;
     private final Class<?> calledFrom;
     private final Exception traceException;
+    private final String contextualAdvice;
 
     private List<StackTraceElement> stack;
 
-    public FeatureUsage(String message, String details, String advice, Class<?> calledFrom) {
-        this.message = message;
-        this.details = details;
+    public enum FeatureUsageType {
+        USER_CODE_DIRECT,
+        USER_CODE_INDIRECT,
+        INVOCATION
+    }
+
+    public FeatureUsage(String summary, String removalDetails, String advice, String contextualAdvice, FeatureUsageType usageType, Class<?> calledFrom) {
+        this.summary = summary;
+        this.removalDetails = removalDetails;
         this.advice = advice;
+        this.contextualAdvice = contextualAdvice;
+        this.usageType = usageType;
         this.calledFrom = calledFrom;
         this.traceException = new Exception();
     }
 
     @VisibleForTesting
     FeatureUsage(FeatureUsage usage, Exception traceException) {
-        this.message = usage.message;
-        this.details = usage.details;
+        this.summary = usage.summary;
+        this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
+        this.contextualAdvice = usage.contextualAdvice;
+        this.usageType = usage.usageType;
         this.calledFrom = usage.calledFrom;
         this.traceException = Preconditions.checkNotNull(traceException);
     }
 
-    public String getMessage() {
-        return message;
+    public String getSummary() {
+        return summary;
     }
 
-    public String getDetails() {
-        return details;
+    public String getRemovalDetails() {
+        return removalDetails;
     }
 
     public String getAdvice() {
@@ -113,13 +125,17 @@ public class FeatureUsage {
     }
 
     public String formattedMessage() {
-        StringBuilder outputBuilder = new StringBuilder(message);
-        if (!StringUtils.isEmpty(details)) {
-            outputBuilder.append(" ").append(details);
+        StringBuilder outputBuilder = new StringBuilder(summary);
+        if (!StringUtils.isEmpty(removalDetails)) {
+            outputBuilder.append(" ").append(removalDetails);
+        }
+        if (!StringUtils.isEmpty(contextualAdvice)) {
+            outputBuilder.append(" ").append(contextualAdvice);
         }
         if (!StringUtils.isEmpty(advice)) {
             outputBuilder.append(" ").append(advice);
         }
         return outputBuilder.toString();
     }
+
 }
