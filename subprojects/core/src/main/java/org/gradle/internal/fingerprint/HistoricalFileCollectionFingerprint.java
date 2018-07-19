@@ -16,10 +16,8 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-
 /**
  * A file collection fingerprint loaded from the task history.
  */
-public interface HistoricalFileCollectionFingerprint extends FileCollectionSnapshot {
+public interface HistoricalFileCollectionFingerprint extends FileCollectionFingerprint {
 }

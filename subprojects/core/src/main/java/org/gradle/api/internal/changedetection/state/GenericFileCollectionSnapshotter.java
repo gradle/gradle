@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+
 /**
- * Responsible for calculating a {@link FileCollectionSnapshot} for a generic {@link FileCollection}.
+ * Responsible for calculating a {@link FileCollectionFingerprint} for a generic {@link org.gradle.api.file.FileCollection}.
  */
 public interface GenericFileCollectionSnapshotter extends FileCollectionSnapshotter {
 }

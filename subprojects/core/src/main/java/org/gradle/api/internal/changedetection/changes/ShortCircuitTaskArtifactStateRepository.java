@@ -21,13 +21,14 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -112,7 +113,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public Map<String, ? extends FileCollectionSnapshot> getOutputSnapshots() {
+        public Map<String, ? extends FileCollectionFingerprint> getOutputSnapshots() {
             return delegate.getOutputSnapshots();
         }
 
@@ -133,8 +134,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
-            delegate.snapshotAfterLoadedFromCache(newOutputSnapshot, originMetadata);
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprint, OriginTaskExecutionMetadata originMetadata) {
+            delegate.snapshotAfterLoadedFromCache(newOutputFingerprint, originMetadata);
         }
     }
 }

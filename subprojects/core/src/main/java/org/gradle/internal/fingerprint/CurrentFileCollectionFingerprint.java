@@ -16,14 +16,13 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.hash.HashCode;
 
 /**
  * A file collection fingerprint taken during this build.
  */
-public interface CurrentFileCollectionFingerprint extends FileCollectionSnapshot {
+public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint {
     /**
      * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
      */

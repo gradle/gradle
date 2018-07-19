@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 
 import java.util.Map;
 
 /**
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
-public interface FileCollectionSnapshot {
+public interface FileCollectionFingerprint {
 
     /**
-     * Visits the changes to file contents since the given snapshot, subject to the given filters.
+     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
      *
      * @return Whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
      */
-    boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
+    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
      * The underlying snapshots.
@@ -40,7 +40,7 @@ public interface FileCollectionSnapshot {
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
     /**
-     * Converts the {@link FileCollectionSnapshot} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
+     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
      */
     HistoricalFileCollectionFingerprint archive();
 }

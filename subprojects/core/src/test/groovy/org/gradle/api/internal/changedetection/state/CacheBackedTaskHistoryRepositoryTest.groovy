@@ -35,7 +35,7 @@ class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest 
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        CacheBackedTaskHistoryRepository.snapshotTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
+        CacheBackedTaskHistoryRepository.fingerprintTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
 
         then:
         1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileNormalizer) >> mockInputFileSnapshotter

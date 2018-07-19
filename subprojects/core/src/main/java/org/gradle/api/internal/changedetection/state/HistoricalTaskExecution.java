@@ -33,22 +33,22 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
 
     private final boolean successful;
     private final OriginTaskExecutionMetadata originExecutionMetadata;
-    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesSnapshot;
-    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesSnapshot;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesFingerprint;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesFingerprint;
 
     public HistoricalTaskExecution(
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesSnapshot,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesSnapshot,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesFingerprint,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesFingerprint,
         boolean successful,
         OriginTaskExecutionMetadata originExecutionMetadata
     ) {
         super(taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
-        this.inputFilesSnapshot = inputFilesSnapshot;
-        this.outputFilesSnapshot = outputFilesSnapshot;
+        this.inputFilesFingerprint = inputFilesFingerprint;
+        this.outputFilesFingerprint = outputFilesFingerprint;
         this.successful = successful;
         this.originExecutionMetadata = originExecutionMetadata;
     }
@@ -65,12 +65,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFilesSnapshot() {
-        return inputFilesSnapshot;
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFilesFingerprint() {
+        return inputFilesFingerprint;
     }
 
     @Override
-    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFilesSnapshot() {
-        return outputFilesSnapshot;
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFilesFingerprint() {
+        return outputFilesFingerprint;
     }
 }

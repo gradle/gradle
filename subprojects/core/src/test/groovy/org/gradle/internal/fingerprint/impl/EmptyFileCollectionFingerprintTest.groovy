@@ -14,42 +14,43 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
+import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy
 import org.gradle.internal.file.FileType
-import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-class EmptyFileCollectionSnapshotTest extends Specification {
+class EmptyFileCollectionFingerprintTest extends Specification {
     def "comparing empty snapshot to regular snapshot shows entries added"() {
-        def snapshot = new DefaultHistoricalFileCollectionFingerprint([
+        def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
         ], FingerprintCompareStrategy.ABSOLUTE)
         expect:
-        getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, false).empty
-        getChanges(snapshot, EmptyFileCollectionSnapshot.INSTANCE, true) == [
+        getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, false).empty
+        getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, true) == [
             FileChange.added("file1.txt", "test", FileType.RegularFile),
             FileChange.added("file2.txt", "test", FileType.RegularFile)
         ]
     }
 
     def "comparing regular snapshot to empty snapshot shows entries removed"() {
-        def snapshot = new DefaultHistoricalFileCollectionFingerprint([
+        def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
         ], FingerprintCompareStrategy.ABSOLUTE)
         expect:
-        getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, false).toList() == [
+        getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
-        getChanges(EmptyFileCollectionSnapshot.INSTANCE, snapshot, true).toList() == [
+        getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, true).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
@@ -57,11 +58,11 @@ class EmptyFileCollectionSnapshotTest extends Specification {
 
     def "comparing to itself works"() {
         expect:
-        getChanges(EmptyFileCollectionSnapshot.INSTANCE, EmptyFileCollectionSnapshot.INSTANCE, false).toList() == []
-        getChanges(EmptyFileCollectionSnapshot.INSTANCE, EmptyFileCollectionSnapshot.INSTANCE, true).toList() == []
+        getChanges(EmptyFileCollectionFingerprint.INSTANCE, EmptyFileCollectionFingerprint.INSTANCE, false).toList() == []
+        getChanges(EmptyFileCollectionFingerprint.INSTANCE, EmptyFileCollectionFingerprint.INSTANCE, true).toList() == []
     }
 
-    private static Collection<TaskStateChange> getChanges(FileCollectionSnapshot current, FileCollectionSnapshot previous, boolean includeAdded) {
+    private static Collection<TaskStateChange> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {
         def visitor = new CollectingTaskStateChangeVisitor()
         current.visitChangesSince(previous, "test", includeAdded, visitor)
         visitor.changes

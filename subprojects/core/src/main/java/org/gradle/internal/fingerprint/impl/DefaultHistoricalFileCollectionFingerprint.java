@@ -20,10 +20,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -43,8 +43,8 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldSnapshot.getSnapshots(), title, includeAdded);
+    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldFingerprint.getSnapshots(), title, includeAdded);
     }
 
     @VisibleForTesting

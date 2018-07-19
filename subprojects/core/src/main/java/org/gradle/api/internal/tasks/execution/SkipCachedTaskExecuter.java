@@ -110,7 +110,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (state.getFailure() == null) {
                     try {
                         TaskArtifactState taskState = context.getTaskArtifactState();
-                        // No overlapping outputs -> all the output snapshots are CurrentFileCollectionFingerprints
+                        // No overlapping outputs -> all the output fingerprints are CurrentFileCollectionFingerprints
                         Map<String, CurrentFileCollectionFingerprint> outputSnapshots = Cast.uncheckedCast(taskState.getOutputSnapshots());
                         buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
                     } catch (Exception e) {

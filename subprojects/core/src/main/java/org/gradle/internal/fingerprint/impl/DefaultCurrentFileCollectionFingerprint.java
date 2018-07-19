@@ -17,8 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -26,6 +24,7 @@ import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintC
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
@@ -42,7 +41,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     public static CurrentFileCollectionFingerprint from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
         Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
         if (snapshots.isEmpty()) {
-            return EmptyFileCollectionSnapshot.INSTANCE;
+            return EmptyFileCollectionFingerprint.INSTANCE;
         }
         return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
     }
@@ -54,8 +53,8 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldSnapshot.getSnapshots(), title, includeAdded);
+    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldFingerprint.getSnapshots(), title, includeAdded);
     }
 
     @Override

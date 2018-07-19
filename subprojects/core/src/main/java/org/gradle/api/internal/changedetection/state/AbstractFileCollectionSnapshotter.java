@@ -28,8 +28,10 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.Serializers;
 
@@ -38,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
+ * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
  */
 @NonNullApi
 public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
@@ -54,7 +56,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     public void registerSerializers(SerializerRegistry registry) {
         registry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner));
-        registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
+        registry.register(EmptyFileCollectionFingerprint.class, Serializers.constant(EmptyFileCollectionFingerprint.INSTANCE));
     }
 
     public CurrentFileCollectionFingerprint snapshot(FileCollection input, FingerprintingStrategy strategy) {
@@ -63,7 +65,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         fileCollection.visitRootElements(visitor);
         List<FileSystemSnapshot> roots = visitor.getRoots();
         if (roots.isEmpty()) {
-            return EmptyFileCollectionSnapshot.INSTANCE;
+            return EmptyFileCollectionFingerprint.INSTANCE;
         }
         return DefaultCurrentFileCollectionFingerprint.from(roots, strategy);
     }

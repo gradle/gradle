@@ -31,11 +31,11 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricalTaskExecution> {
+public class TaskExecutionFingerprintSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
     private final Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer;
 
-    TaskExecutionSnapshotSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
+    TaskExecutionFingerprintSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
     }
@@ -48,8 +48,8 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
             decoder.readLong()
         );
 
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesSnapshots = readSnapshots(decoder);
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesSnapshots = readSnapshots(decoder);
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesFingerprints = readFingerprints(decoder);
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesFingerprints = readFingerprints(decoder);
 
         ImplementationSnapshot taskImplementation = readImplementation(decoder);
 
@@ -76,8 +76,8 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
             taskActionImplementations,
             inputProperties,
             cacheableOutputProperties,
-            inputFilesSnapshots,
-            outputFilesSnapshots,
+            inputFilesFingerprints,
+            outputFilesFingerprints,
             successful,
             originExecutionMetadata
         );
@@ -87,8 +87,8 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         encoder.writeBoolean(execution.isSuccessful());
         encoder.writeString(execution.getOriginExecutionMetadata().getBuildInvocationId().asString());
         encoder.writeLong(execution.getOriginExecutionMetadata().getExecutionTime());
-        writeSnapshots(encoder, execution.getInputFilesSnapshot());
-        writeSnapshots(encoder, execution.getOutputFilesSnapshot());
+        writeFingerprints(encoder, execution.getInputFilesFingerprint());
+        writeFingerprints(encoder, execution.getOutputFilesFingerprint());
         writeImplementation(encoder, execution.getTaskImplementation());
         encoder.writeSmallInt(execution.getTaskActionImplementations().size());
         for (ImplementationSnapshot actionImpl : execution.getTaskActionImplementations()) {
@@ -117,18 +117,18 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         }
     }
 
-    private ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> readSnapshots(Decoder decoder) throws Exception {
+    private ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> readFingerprints(Decoder decoder) throws Exception {
         int count = decoder.readSmallInt();
         ImmutableSortedMap.Builder<String, HistoricalFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-        for (int snapshotIdx = 0; snapshotIdx < count; snapshotIdx++) {
+        for (int fingerprintIdx = 0; fingerprintIdx < count; fingerprintIdx++) {
             String property = decoder.readString();
-            HistoricalFileCollectionFingerprint snapshot = fileCollectionFingerprintSerializer.read(decoder);
-            builder.put(property, snapshot);
+            HistoricalFileCollectionFingerprint fingerprint = fileCollectionFingerprintSerializer.read(decoder);
+            builder.put(property, fingerprint);
         }
         return builder.build();
     }
 
-    private void writeSnapshots(Encoder encoder, Map<String, HistoricalFileCollectionFingerprint> fingerprints) throws Exception {
+    private void writeFingerprints(Encoder encoder, Map<String, HistoricalFileCollectionFingerprint> fingerprints) throws Exception {
         encoder.writeSmallInt(fingerprints.size());
         for (Map.Entry<String, HistoricalFileCollectionFingerprint> entry : fingerprints.entrySet()) {
             encoder.writeString(entry.getKey());

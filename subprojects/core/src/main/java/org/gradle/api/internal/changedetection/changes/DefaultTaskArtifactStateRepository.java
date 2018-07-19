@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
@@ -42,6 +41,8 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
@@ -130,10 +131,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
-            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
+            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFilesSnapshot = previousExecution.getOutputFilesFingerprint().values();
             Set<File> outputs = new HashSet<File>();
-            for (FileCollectionSnapshot fileCollectionSnapshot : outputFilesSnapshot) {
-                for (String absolutePath : fileCollectionSnapshot.getSnapshots().keySet()) {
+            for (FileCollectionFingerprint fileCollectionFingerprint : outputFilesSnapshot) {
+                for (String absolutePath : fileCollectionFingerprint.getSnapshots().keySet()) {
                     outputs.add(new File(absolutePath));
                 }
             }
@@ -141,8 +142,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Map<String, ? extends FileCollectionSnapshot> getOutputSnapshots() {
-            return history.getCurrentExecution().getOutputFilesSnapshot();
+        public Map<String, ? extends FileCollectionFingerprint> getOutputSnapshots() {
+            return history.getCurrentExecution().getOutputFilesFingerprint();
         }
 
         @Override
@@ -176,8 +177,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
-            history.updateCurrentExecutionWithOutputs(newOutputSnapshot);
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprint, OriginTaskExecutionMetadata originMetadata) {
+            history.updateCurrentExecutionWithOutputs(newOutputFingerprint);
             snapshotAfterOutputsWereGenerated(history, null, originMetadata);
         }
 

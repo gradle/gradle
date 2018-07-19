@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -29,7 +30,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Strategy to compare two {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s.
+ * Strategy to compare two {@link FileCollectionFingerprint}s.
  *
  * The strategy first tries to do a trivial comparison and delegates the more complex cases to a separate implementation.
  */
@@ -63,7 +64,7 @@ public enum FingerprintCompareStrategy {
     }
 
     /**
-     * @see org.gradle.api.internal.changedetection.state.FileCollectionSnapshot#visitChangesSince(org.gradle.api.internal.changedetection.state.FileCollectionSnapshot, String, boolean, TaskStateChangeVisitor)
+     * @see FileCollectionFingerprint#visitChangesSince(FileCollectionFingerprint, String, boolean, TaskStateChangeVisitor)
      */
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous

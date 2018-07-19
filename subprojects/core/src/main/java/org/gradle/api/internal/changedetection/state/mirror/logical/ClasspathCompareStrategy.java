@@ -20,13 +20,14 @@ import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Compares two {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s representing classpaths.
+ * Compares two {@link FileCollectionFingerprint}s representing classpaths.
  *
  * That means that the comparison happens in-order with relative path sensitivity.
  */

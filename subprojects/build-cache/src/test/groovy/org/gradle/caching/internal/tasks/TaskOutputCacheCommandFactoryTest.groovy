@@ -23,7 +23,6 @@ import com.google.common.collect.Iterables
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
@@ -35,6 +34,7 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -106,7 +106,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.contentHash == outputFileSnapshot.contentHash
         }
-        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots, OriginTaskExecutionMetadata metadata ->
+        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertySnapshots, OriginTaskExecutionMetadata metadata ->
             assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
             assert propertySnapshots["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
             assert propertySnapshots["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set

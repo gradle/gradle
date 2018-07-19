@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.IgnoredPathFingerprint
 import org.gradle.internal.hash.TestFileHasher
@@ -31,7 +31,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     private StringInterner stringInterner = new StringInterner()
 
     public static final String IGNORED = "IGNORED"
-    List<PhysicalSnapshot> roots
+    List<FileSystemSnapshot> roots
     TestFile jarFile1
     TestFile jarFile2
     TestFile resources
@@ -74,61 +74,61 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
 
 
     def "sensitivity NONE"() {
-        def snapshots = collectSnapshots(new IgnoredPathFingerprintingStrategy())
+        def fingerprints = collectFingerprints(IgnoredPathFingerprintingStrategy.INSTANCE)
         expect:
-        allFilesToSnapshot.each { file ->
+        allFilesToFingerprint.each { file ->
             if (file.isFile() || !file.exists()) {
-                assert snapshots[file] == IGNORED
+                assert fingerprints[file] == IGNORED
             } else {
-                assert snapshots[file] == null
+                assert fingerprints[file] == null
             }
         }
     }
 
     def "sensitivity NAME_ONLY"() {
-        def snapshots = collectSnapshots(new NameOnlyFingerprintingStrategy())
+        def fingerprints = collectFingerprints(NameOnlyFingerprintingStrategy.INSTANCE)
         expect:
-        (allFilesToSnapshot - emptyDir - resources).each { file ->
-            assert snapshots[file] == file.name
+        (allFilesToFingerprint - emptyDir - resources).each { file ->
+            assert fingerprints[file] == file.name
         }
-        snapshots[emptyDir] == IGNORED
-        snapshots[resources] == IGNORED
+        fingerprints[emptyDir] == IGNORED
+        fingerprints[resources] == IGNORED
     }
 
     def "sensitivity RELATIVE"() {
-        def snapshots = collectSnapshots(new RelativePathFingerprintingStrategy(stringInterner))
+        def fingerprints = collectFingerprints(new RelativePathFingerprintingStrategy(stringInterner))
         expect:
-        snapshots[jarFile1]                      == jarFile1.name
-        snapshots[jarFile2]                      == jarFile2.name
-        snapshots[resources]                     == IGNORED
-        snapshots[resources.file(fileInRoot)]    == fileInRoot
-        snapshots[resources.file(subDirA)]       == subDirA
-        snapshots[resources.file(fileInSubdirA)] == fileInSubdirA
-        snapshots[resources.file(subDirB)]       == subDirB
-        snapshots[resources.file(fileInSubdirB)] == fileInSubdirB
-        snapshots[emptyDir]                      == IGNORED
-        snapshots[missingFile]                   == missingFile.name
+        fingerprints[jarFile1]                      == jarFile1.name
+        fingerprints[jarFile2]                      == jarFile2.name
+        fingerprints[resources]                     == IGNORED
+        fingerprints[resources.file(fileInRoot)]    == fileInRoot
+        fingerprints[resources.file(subDirA)]       == subDirA
+        fingerprints[resources.file(fileInSubdirA)] == fileInSubdirA
+        fingerprints[resources.file(subDirB)]       == subDirB
+        fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
+        fingerprints[emptyDir]                      == IGNORED
+        fingerprints[missingFile]                   == missingFile.name
     }
 
     def "sensitivity ABSOLUTE (include missing = true)"() {
-        def snapshots = collectSnapshots(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
+        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
         expect:
-        allFilesToSnapshot.each { file ->
-            assert snapshots[file] == file.absolutePath
+        allFilesToFingerprint.each { file ->
+            assert fingerprints[file] == file.absolutePath
         }
-        snapshots.size() == allFilesToSnapshot.size()
+        fingerprints.size() == allFilesToFingerprint.size()
     }
 
     def "sensitivity ABSOLUTE (include missing = false)"() {
-        def snapshots = collectSnapshots(AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+        def fingerprints = collectFingerprints(AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
         expect:
-        (allFilesToSnapshot - missingFile).each { file ->
-            assert snapshots[file] == file.absolutePath
+        (allFilesToFingerprint - missingFile).each { file ->
+            assert fingerprints[file] == file.absolutePath
         }
-        snapshots.size() == allFilesToSnapshot.size() - 1
+        fingerprints.size() == allFilesToFingerprint.size() - 1
     }
 
-    List<File> getAllFilesToSnapshot() {
+    List<File> getAllFilesToFingerprint() {
         [jarFile1, jarFile2, resources, emptyDir, missingFile] + [fileInRoot, subDirA, fileInSubdirA, subDirB, fileInSubdirB].collect { resources.file(it) }
     }
 
@@ -136,19 +136,19 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         new TestFile(project.file(path))
     }
 
-    protected def collectSnapshots(FingerprintingStrategy strategy) {
+    protected def collectFingerprints(FingerprintingStrategy strategy) {
         strategy.collectSnapshots(roots)
-        Map<File, String> snapshots = [:]
-        strategy.collectSnapshots(roots).each { path, normalizedSnapshot ->
+        Map<File, String> fingerprints = [:]
+        strategy.collectSnapshots(roots).each { path, normalizedFingerprint ->
             String normalizedPath
-            if (normalizedSnapshot instanceof IgnoredPathFingerprint) {
+            if (normalizedFingerprint instanceof IgnoredPathFingerprint) {
                 normalizedPath = IGNORED
             } else {
-                normalizedPath = normalizedSnapshot.normalizedPath
+                normalizedPath = normalizedFingerprint.normalizedPath
             }
-            snapshots.put(new File(path), normalizedPath)
+            fingerprints.put(new File(path), normalizedPath)
         }
-        return snapshots
+        return fingerprints
 
     }
 }
