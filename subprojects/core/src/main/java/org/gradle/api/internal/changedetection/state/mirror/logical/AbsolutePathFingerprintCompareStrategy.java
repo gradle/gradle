@@ -18,15 +18,18 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Compares by absolute paths and file contents. Order does not matter.
+ */
 public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override
@@ -36,25 +39,25 @@ public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompar
         for (Map.Entry<String, NormalizedFileSnapshot> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();
             NormalizedFileSnapshot currentNormalizedSnapshot = currentEntry.getValue();
-            FileContentSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
+            HashCode currentContentHash = currentNormalizedSnapshot.getNormalizedContentHash();
             if (unaccountedForPreviousSnapshots.remove(currentAbsolutePath)) {
                 NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
-                FileContentSnapshot previousSnapshot = previousNormalizedSnapshot.getSnapshot();
-                if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
-                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousSnapshot.getType(), currentSnapshot.getType()))) {
+                HashCode previousContentHash = previousNormalizedSnapshot.getNormalizedContentHash();
+                if (!currentContentHash.equals(previousContentHash)) {
+                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousNormalizedSnapshot.getType(), currentNormalizedSnapshot.getType()))) {
                         return false;
                     }
                 }
                 // else, unchanged; check next file
             } else if (includeAdded) {
-                if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentSnapshot.getType()))) {
+                if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentNormalizedSnapshot.getType()))) {
                     return false;
                 }
             }
         }
 
         for (String previousAbsolutePath : unaccountedForPreviousSnapshots) {
-            if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath).getSnapshot().getType()))) {
+            if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath).getType()))) {
                 return false;
             }
         }

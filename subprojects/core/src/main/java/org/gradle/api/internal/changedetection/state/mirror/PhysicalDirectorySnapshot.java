@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror;
 
-public class NonNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
-    private final String absolutePath;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 
-    public NonNormalizedFileSnapshot(String absolutePath, FileContentSnapshot snapshot) {
-        super(snapshot);
-        this.absolutePath = absolutePath;
-    }
-
-    @Override
-    public String getNormalizedPath() {
-        return absolutePath;
-    }
+public interface PhysicalDirectorySnapshot extends PhysicalSnapshot {
+    HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
 }

@@ -17,10 +17,9 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.NonNormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.file.FileType;
@@ -28,36 +27,43 @@ import org.gradle.internal.file.FileType;
 import java.util.HashSet;
 import java.util.Map;
 
-public class AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
+/**
+ * Fingerprint files without path or content normalization.
+ */
+public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
+    INCLUDE_MISSING(true),
+    IGNORE_MISSING(false);
 
     private final boolean includeMissing;
 
-    public AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+    AbsolutePathFingerprintingStrategy(boolean includeMissing) {
         this.includeMissing = includeMissing;
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
-        for (PhysicalSnapshot root : roots) {
+        for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
-                public boolean preVisitDirectory(String absolutePath, String name) {
+                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                    String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new NonNormalizedFileSnapshot(absolutePath, DirContentSnapshot.INSTANCE));
+                        builder.put(absolutePath, new DefaultNormalizedFileSnapshot(directorySnapshot.getAbsolutePath(), directorySnapshot));
                     }
                     return true;
                 }
 
                 @Override
-                public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                    if (!includeMissing && content.getType() == FileType.Missing) {
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }
+                    String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new NonNormalizedFileSnapshot(absolutePath, content));
+                        builder.put(absolutePath, new DefaultNormalizedFileSnapshot(fileSnapshot.getAbsolutePath(), fileSnapshot));
                     }
                 }
 

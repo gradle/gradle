@@ -20,9 +20,9 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -111,7 +111,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity ABSOLUTE (include missing = true)"() {
-        def snapshots = collectSnapshots(new AbsolutePathFingerprintingStrategy(true))
+        def snapshots = collectSnapshots(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
         expect:
         allFilesToSnapshot.each { file ->
             assert snapshots[file] == file.absolutePath
@@ -120,7 +120,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity ABSOLUTE (include missing = false)"() {
-        def snapshots = collectSnapshots(new AbsolutePathFingerprintingStrategy(false))
+        def snapshots = collectSnapshots(AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
         expect:
         (allFilesToSnapshot - missingFile).each { file ->
             assert snapshots[file] == file.absolutePath
@@ -141,7 +141,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         Map<File, String> snapshots = [:]
         strategy.collectSnapshots(roots).each { path, normalizedSnapshot ->
             String normalizedPath
-            if (normalizedSnapshot instanceof FileContentSnapshot) {
+            if (normalizedSnapshot instanceof IgnoredPathFingerprint) {
                 normalizedPath = IGNORED
             } else {
                 normalizedPath = normalizedSnapshot.normalizedPath

@@ -29,11 +29,11 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
-    private final StringInterner stringInterner;
+    private final RelativePathFingerprintingStrategy relativePathFingerprintingStrategy;
 
     public DefaultGenericFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.stringInterner = stringInterner;
+        relativePathFingerprintingStrategy = new RelativePathFingerprintingStrategy(stringInterner);
     }
 
     @Override
@@ -50,15 +50,15 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     private FingerprintingStrategy determineFingerprintStrategy(PathNormalizationStrategy pathNormalizationStrategy) {
         switch (pathNormalizationStrategy) {
             case ABSOLUTE:
-                return new AbsolutePathFingerprintingStrategy(true);
+                return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING;
             case OUTPUT:
-                return new AbsolutePathFingerprintingStrategy(false);
+                return AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             case RELATIVE:
-                return new RelativePathFingerprintingStrategy(stringInterner);
+                return relativePathFingerprintingStrategy;
             case NAME_ONLY:
-                return new NameOnlyFingerprintingStrategy();
+                return NameOnlyFingerprintingStrategy.INSTANCE;
             case NONE:
-                return new IgnoredPathFingerprintingStrategy();
+                return IgnoredPathFingerprintingStrategy.INSTANCE;
             default:
                 throw new IllegalArgumentException("Unknown normalization strategy " + pathNormalizationStrategy);
         }

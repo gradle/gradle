@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.cache.CacheRepository;
@@ -119,11 +118,11 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
                 PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
                 FileType fileType = fileSnapshot.getType();
                 if (fileType == FileType.RegularFile) {
-                    HashCode hashCode = ((PhysicalFileSnapshot) fileSnapshot).getContent().getContentMd5();
-                    value = contentCache.get(hashCode);
+                    HashCode contentHash = fileSnapshot.getContentHash();
+                    value = contentCache.get(contentHash);
                     if (value == null) {
                         value = calculator.calculate(file, fileType);
-                        contentCache.put(hashCode, value);
+                        contentCache.put(contentHash, value);
                     }
                 } else {
                     value = calculator.calculate(file, fileType);

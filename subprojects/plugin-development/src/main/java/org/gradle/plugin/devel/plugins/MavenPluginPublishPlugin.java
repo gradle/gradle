@@ -67,13 +67,13 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
                     return;
                 }
                 SoftwareComponent mainComponent = project.getComponents().getByName("java");
-                MavenPublication mainPublication = addMainPublication(publishing, pluginDevelopment, mainComponent);
+                MavenPublication mainPublication = addMainPublication(publishing, mainComponent);
                 addMarkerPublications(mainPublication, publishing, pluginDevelopment);
             }
         });
     }
 
-    private MavenPublication addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, SoftwareComponent mainComponent) {
+    private MavenPublication addMainPublication(PublishingExtension publishing, SoftwareComponent mainComponent) {
         MavenPublication publication = publishing.getPublications().maybeCreate("pluginMaven", MavenPublication.class);
         publication.from(mainComponent);
         return publication;
@@ -106,5 +106,7 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
                 version.setTextContent(coordinates.getVersion());
             }
         });
+        publication.getPom().getName().set(declaration.getDisplayName());
+        publication.getPom().getDescription().set(declaration.getDescription());
     }
 }

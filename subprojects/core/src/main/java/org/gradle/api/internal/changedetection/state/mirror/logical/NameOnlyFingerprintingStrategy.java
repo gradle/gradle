@@ -18,29 +18,40 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Fingerprint files normalizing the path to the file name.
+ *
+ * File names for root directories are ignored.
+ */
 public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
+    public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+
+    private NameOnlyFingerprintingStrategy() {
+    }
+
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
-        for (PhysicalSnapshot root : roots) {
+        for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
                 private boolean root = true;
 
                 @Override
-                public boolean preVisitDirectory(String absolutePath, String name) {
+                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                    String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? DirContentSnapshot.INSTANCE : new DefaultNormalizedFileSnapshot(name, DirContentSnapshot.INSTANCE);
+                        NormalizedFileSnapshot snapshot = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(directorySnapshot.getName(), directorySnapshot);
                         builder.put(absolutePath, snapshot);
                     }
                     root = false;
@@ -48,11 +59,12 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 }
 
                 @Override
-                public void visit(String absolutePath, String name, FileContentSnapshot content) {
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(
                             absolutePath,
-                            new DefaultNormalizedFileSnapshot(name, content));
+                            new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot));
                     }
                 }
 

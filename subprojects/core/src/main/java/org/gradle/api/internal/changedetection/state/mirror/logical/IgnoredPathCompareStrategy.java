@@ -21,9 +21,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,42 +31,56 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Compares {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s ignoring the path.
+ */
 public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Impl {
-    private static final Comparator<Map.Entry<FileContentSnapshot, String>> ENTRY_COMPARATOR = new Comparator<Map.Entry<FileContentSnapshot, String>>() {
+    private static final Comparator<Map.Entry<HashCode, FilePathWithType>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FilePathWithType>>() {
         @Override
-        public int compare(Map.Entry<FileContentSnapshot, String> o1, Map.Entry<FileContentSnapshot, String> o2) {
-            return o1.getKey().getContentMd5().compareTo(o2.getKey().getContentMd5());
+        public int compare(Map.Entry<HashCode, FilePathWithType> o1, Map.Entry<HashCode, FilePathWithType> o2) {
+            return o1.getKey().compareTo(o2.getKey());
         }
     };
 
+    /**
+     * Determines changes by:
+     *
+     * <ul>
+     *     <li>Determining which content fingerprints are only in the previous or current fingerprint collection.</li>
+     *     <li>Those only in the previous fingerprint collection are reported as removed.</li>
+     *     <li>If {@code includeAdded} is {@code true}, the files with content fingerprints which are only in the current collection are reported as added.</li>
+     * </ul>
+     */
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
-        ListMultimap<FileContentSnapshot, String> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
+        ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
-            FileContentSnapshot previousSnapshot = entry.getValue().getSnapshot();
-            unaccountedForPreviousSnapshots.put(previousSnapshot, absolutePath);
+            NormalizedFileSnapshot previousSnapshot = entry.getValue();
+            unaccountedForPreviousFiles.put(previousSnapshot.getNormalizedContentHash(), new FilePathWithType(absolutePath, previousSnapshot.getType()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
-            FileContentSnapshot currentSnapshot = entry.getValue().getSnapshot();
-            List<String> previousSnapshotsForContent = unaccountedForPreviousSnapshots.get(currentSnapshot);
-            if (previousSnapshotsForContent.isEmpty()) {
+            NormalizedFileSnapshot currentSnapshot = entry.getValue();
+            HashCode normalizedContentHash = currentSnapshot.getNormalizedContentHash();
+            List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
+            if (previousFilesForContent.isEmpty()) {
                 if (includeAdded) {
                     if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentSnapshot.getType()))) {
                         return false;
                     }
                 }
             } else {
-                previousSnapshotsForContent.remove(0);
+                previousFilesForContent.remove(0);
             }
         }
 
-        List<Map.Entry<FileContentSnapshot, String>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
+        List<Map.Entry<HashCode, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (Map.Entry<FileContentSnapshot, String> unaccountedForPreviousSnapshotEntry : unaccountedForPreviousEntries) {
-            if (!visitor.visitChange(FileChange.removed(unaccountedForPreviousSnapshotEntry.getValue(), propertyTitle, unaccountedForPreviousSnapshotEntry.getKey().getType()))) {
+        for (Map.Entry<HashCode, FilePathWithType> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
+            FilePathWithType removedFile = unaccountedForPreviousEntry.getValue();
+            if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
                 return false;
             }
         }

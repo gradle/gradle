@@ -31,15 +31,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathHolder;
+import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.OutputType;
@@ -274,7 +272,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             } finally {
                 IOUtils.closeQuietly(output);
             }
-            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, new FileHashSnapshot(hash, outputFile.lastModified()));
+            PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(outputPath, outputFileName, hash, outputFile.lastModified());
             if (root) {
                 snapshots.put(propertyName, fileSnapshot);
             } else {
@@ -302,7 +300,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     private static class PackingVisitor implements PhysicalSnapshotVisitor {
-        private final RelativePathHolder relativePathHolder;
+        private final RelativePathStringTracker relativePathStringTracker;
         private final TarArchiveOutputStream tarOutput;
         private final String propertyPath;
         private final String propertyRoot;
@@ -317,41 +315,41 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             this.propertyRoot = propertyPath + "/";
             this.outputType = outputType;
             this.fileSystem = fileSystem;
-            this.relativePathHolder = new RelativePathHolder();
+            this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
         @Override
-        public boolean preVisitDirectory(String absolutePath, String name) {
-            boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(name);
-            assertCorrectType(root, absolutePath, DirContentSnapshot.INSTANCE);
+        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+            boolean root = relativePathStringTracker.isRoot();
+            relativePathStringTracker.enter(directorySnapshot);
+            assertCorrectType(root, directorySnapshot);
             String targetPath = getTargetPath(root);
-            int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(absolutePath));
+            int mode = root ? UnixStat.DEFAULT_DIR_PERM : fileSystem.getUnixMode(new File(directorySnapshot.getAbsolutePath()));
             storeDirectoryEntry(targetPath, mode, tarOutput);
             entries++;
             return true;
         }
 
         @Override
-        public void visit(String absolutePath, String name, FileContentSnapshot content) {
-            boolean root = relativePathHolder.isRoot();
-            relativePathHolder.enter(name);
+        public void visit(PhysicalSnapshot fileSnapshot) {
+            boolean root = relativePathStringTracker.isRoot();
+            relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(root);
-            if (content.getType() == FileType.Missing) {
+            if (fileSnapshot.getType() == FileType.Missing) {
                 storeMissingProperty(targetPath, tarOutput);
             } else {
-                assertCorrectType(root, absolutePath, content);
-                File file = new File(absolutePath);
+                assertCorrectType(root, fileSnapshot);
+                File file = new File(fileSnapshot.getAbsolutePath());
                 int mode = fileSystem.getUnixMode(file);
                 storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
             }
-            relativePathHolder.leave();
+            relativePathStringTracker.leave();
             entries++;
         }
 
         @Override
         public void postVisitDirectory() {
-            relativePathHolder.leave();
+            relativePathStringTracker.leave();
         }
 
         public long finish() {
@@ -362,17 +360,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             return entries;
         }
 
-        private void assertCorrectType(boolean root, String absolutePath, FileContentSnapshot content) {
+        private void assertCorrectType(boolean root, PhysicalSnapshot snapshot) {
             if (root) {
                 switch (outputType) {
                     case DIRECTORY:
-                        if (content.getType() != FileType.Directory) {
-                            throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", absolutePath));
+                        if (snapshot.getType() != FileType.Directory) {
+                            throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", snapshot.getAbsolutePath()));
                         }
                         break;
                     case FILE:
-                        if (content.getType() != FileType.RegularFile) {
-                            throw new IllegalArgumentException(String.format("Expected '%s' to be a file", absolutePath));
+                        if (snapshot.getType() != FileType.RegularFile) {
+                            throw new IllegalArgumentException(String.format("Expected '%s' to be a file", snapshot.getAbsolutePath()));
                         }
                         break;
                     default:
@@ -385,7 +383,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             if (root) {
                 return propertyPath;
             }
-            String relativePath = relativePathHolder.getRelativePathString();
+            String relativePath = relativePathStringTracker.getRelativePathString();
             return propertyRoot + relativePath;
         }
 

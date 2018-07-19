@@ -17,9 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -40,26 +37,26 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
         root.add(["one", "two", "some.txt"] as String[], 0, fileSnapshot('one/two', 'some.txt'))
         def subdir = root.add(["three"] as String[], 0, new MutablePhysicalDirectorySnapshot("${basePath}/three", "three", stringInterner))
         subdir.add(["three", "four.txt"] as String[], 1, fileSnapshot("three", "four.txt"))
-        Map<String, FileContentSnapshot> files = [:]
+        Map<String, HashCode> files = [:]
         Set<String> relativePaths = [] as Set
         root.accept(new PhysicalSnapshotVisitor() {
-            private final relativePathTracker = new RelativePathTracker()
+            private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 def isRoot = relativePathTracker.root
-                relativePathTracker.enter(name)
+                relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
-                    files[absolutePath] = DirContentSnapshot.INSTANCE
+                    files[directorySnapshot.absolutePath] = PhysicalDirectorySnapshot.SIGNATURE
                     relativePaths.add(relativePathTracker.relativePath.join("/"))
                 }
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                files[absolutePath] = content
-                relativePathTracker.enter(name)
+            void visit(PhysicalSnapshot fileSnapshot) {
+                files[fileSnapshot.absolutePath] = fileSnapshot.contentHash
+                relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()
             }
@@ -106,6 +103,6 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
     }
 
     private PhysicalFileSnapshot fileSnapshot(String relativePath, String name) {
-        new PhysicalFileSnapshot("${basePath}/${relativePath.empty ? "" : (relativePath + '/')}${name}", name, new FileHashSnapshot(HashCode.fromInt(1234)))
+        new PhysicalFileSnapshot("${basePath}/${relativePath.empty ? "" : (relativePath + '/')}${name}", name, HashCode.fromInt(1234), 1234)
     }
 }

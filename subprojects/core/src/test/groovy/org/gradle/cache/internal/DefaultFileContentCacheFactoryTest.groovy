@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
@@ -49,7 +48,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
             return new CacheDecorator() {
                 @Override
-                def <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+                <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
                     return persistentCache
                 }
             }
@@ -72,7 +71,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -123,7 +122,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -136,7 +135,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         0 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         0 * _
     }
 
@@ -154,7 +153,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -168,7 +167,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         0 * _
     }
 
@@ -186,7 +185,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -200,7 +199,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         0 * _
     }
 
@@ -249,7 +248,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -263,7 +262,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(321), 123)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(321)
         1 * calculator.calculate(file, FileType.RegularFile) >> 10
         0 * _
     }

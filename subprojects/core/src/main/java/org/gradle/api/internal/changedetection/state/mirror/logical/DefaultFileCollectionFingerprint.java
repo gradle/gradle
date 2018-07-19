@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -38,24 +40,28 @@ import java.util.Map;
 
 public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot {
 
-    private final FingerprintCompareStrategy strategy;
     private final Map<String, NormalizedFileSnapshot> snapshots;
-    private final Iterable<PhysicalSnapshot> roots;
+    private final FingerprintCompareStrategy strategy;
+    private final Iterable<FileSystemSnapshot> roots;
     private HashCode hash;
 
-    public DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash) {
-        this(strategy, snapshots, hash, null);
+    public static FileCollectionSnapshot from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
+        Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
+        if (snapshots.isEmpty()) {
+            return EmptyFileCollectionSnapshot.INSTANCE;
+        }
+        return new DefaultFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots, null);
     }
 
-    public DefaultFileCollectionFingerprint(FingerprintingStrategy strategy, Iterable<PhysicalSnapshot> roots) {
-        this(strategy.getCompareStrategy(), strategy.collectSnapshots(roots), null, roots);
+    public DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable HashCode hash) {
+        this(snapshots, strategy, null, hash);
     }
 
-    private DefaultFileCollectionFingerprint(FingerprintCompareStrategy strategy, Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hash, @Nullable Iterable<PhysicalSnapshot> roots) {
-        this.strategy = strategy;
+    private DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy strategy, @Nullable Iterable<FileSystemSnapshot> roots, @Nullable HashCode hash) {
         this.snapshots = snapshots;
-        this.hash = hash;
+        this.strategy = strategy;
         this.roots = roots;
+        this.hash = hash;
     }
 
     @Override
@@ -83,7 +89,7 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }
-        for (PhysicalSnapshot root : roots) {
+        for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
         }
     }
@@ -91,6 +97,11 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putHash(getHash());
+    }
+
+    @VisibleForTesting
+    FingerprintCompareStrategy getStrategy() {
+        return strategy;
     }
 
     public static class SerializerImpl implements Serializer<DefaultFileCollectionFingerprint> {
@@ -110,7 +121,7 @@ public class DefaultFileCollectionFingerprint implements FileCollectionSnapshot 
             boolean hasHash = decoder.readBoolean();
             HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new DefaultFileCollectionFingerprint(compareStrategy, snapshots, hash);
+            return new DefaultFileCollectionFingerprint(snapshots, compareStrategy, hash);
         }
 
         @Override

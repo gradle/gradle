@@ -24,7 +24,7 @@ digraph javaPluginConfigurations {
     runtime -> compile
     runtimeClasspath -> {runtimeOnly runtime implementation}
     testCompile -> compile
-    testImplementaion -> {testCompile implementation}
+    testImplementation -> {testCompile implementation}
     testCompileClasspath -> {testCompile testCompileOnly testImplementation}
     testRuntime -> {runtime testCompile}
     testRuntimeOnly -> runtimeOnly

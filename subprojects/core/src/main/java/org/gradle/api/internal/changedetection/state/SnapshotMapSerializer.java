@@ -18,7 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.logical.ContentSnapshotSerializer;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -29,12 +33,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SnapshotMapSerializer extends AbstractSerializer<Map<String, NormalizedFileSnapshot>> {
-    private static final byte NO_NORMALIZATION = 1;
-    private static final byte DEFAULT_NORMALIZATION = 2;
-    private static final byte IGNORED_PATH_NORMALIZATION = 3;
+    private static final byte DEFAULT_NORMALIZATION = 1;
+    private static final byte IGNORED_PATH_NORMALIZATION = 2;
+
+    private static final byte DIR_SNAPSHOT = 1;
+    private static final byte MISSING_FILE_SNAPSHOT = 2;
+    private static final byte REGULAR_FILE_SNAPSHOT = 3;
 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
-    private final ContentSnapshotSerializer contentSnapshotSerializer = new ContentSnapshotSerializer();
     private final StringInterner stringInterner;
 
     public SnapshotMapSerializer(StringInterner stringInterner) {
@@ -47,24 +53,50 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<String, NormalizedFileSnapshot>(snapshotsCount);
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
-            NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder);
+            NormalizedFileSnapshot snapshot = readSnapshot(decoder);
             snapshots.put(absolutePath, snapshot);
         }
         return snapshots;
     }
 
-    private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder) throws IOException {
-        FileContentSnapshot snapshot = contentSnapshotSerializer.read(decoder);
+    private NormalizedFileSnapshot readSnapshot(Decoder decoder) throws IOException {
+        FileType fileType = readFileType(decoder);
+        HashCode contentHash = readContentHash(fileType, decoder);
 
-        int normalizedSnapshotKind = decoder.readByte();
+        byte normalizedSnapshotKind = decoder.readByte();
         switch (normalizedSnapshotKind) {
-            case NO_NORMALIZATION:
-                return new NonNormalizedFileSnapshot(absolutePath, snapshot);
             case DEFAULT_NORMALIZATION:
                 String normalizedPath = decoder.readString();
-                return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), snapshot);
+                return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), fileType, contentHash);
             case IGNORED_PATH_NORMALIZATION:
-                return snapshot;
+                return IgnoredPathFingerprint.create(fileType, contentHash);
+            default:
+                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+        }
+    }
+
+    private HashCode readContentHash(FileType fileType, Decoder decoder) throws IOException {
+        switch (fileType) {
+            case Directory:
+                return PhysicalDirectorySnapshot.SIGNATURE;
+            case Missing:
+                return PhysicalMissingSnapshot.SIGNATURE;
+            case RegularFile:
+                return hashCodeSerializer.read(decoder);
+            default:
+                throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
+        }
+    }
+
+    private FileType readFileType(Decoder decoder) throws IOException {
+        byte fileSnapshotKind = decoder.readByte();
+        switch (fileSnapshotKind) {
+            case DIR_SNAPSHOT:
+                return FileType.Directory;
+            case MISSING_FILE_SNAPSHOT:
+                return FileType.Missing;
+            case REGULAR_FILE_SNAPSHOT:
+                return FileType.RegularFile;
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
@@ -96,14 +128,25 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     private void writeSnapshot(Encoder encoder, NormalizedFileSnapshot value) throws IOException {
-        contentSnapshotSerializer.write(encoder, value.getSnapshot());
+        switch (value.getType()) {
+            case Directory:
+                encoder.writeByte(DIR_SNAPSHOT);
+                break;
+            case Missing:
+                encoder.writeByte(MISSING_FILE_SNAPSHOT);
+                break;
+            case RegularFile:
+                encoder.writeByte(REGULAR_FILE_SNAPSHOT);
+                hashCodeSerializer.write(encoder, value.getNormalizedContentHash());
+                break;
+            default:
+                throw new AssertionError();
+        }
 
-        if (value instanceof NonNormalizedFileSnapshot) {
-            encoder.writeByte(NO_NORMALIZATION);
-        } else if (value instanceof DefaultNormalizedFileSnapshot) {
+        if (value instanceof DefaultNormalizedFileSnapshot) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
             encoder.writeString(value.getNormalizedPath());
-        } else if (value instanceof FileContentSnapshot) {
+        } else if (value instanceof IgnoredPathFingerprint) {
             encoder.writeByte(IGNORED_PATH_NORMALIZATION);
         } else {
             throw new AssertionError();

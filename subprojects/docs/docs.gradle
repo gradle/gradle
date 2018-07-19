@@ -219,6 +219,8 @@ def samples = tasks.register("samples", ExtractSnippetsTask) {
     destDir = samplesDir
     excludes = ['**/readme.xml',
                 '**/build/**',
+                '**/*.sample.conf*',
+                '**/*.out',
                 '**/.gradle/**']
     nonFiltered = [ 'userguide/tutorial/antLoadfileResources/**',
                     'native-binaries/cunit/libs/**',
@@ -447,7 +449,7 @@ tasks.register("checkstyleApi", Checkstyle) {
 
 def distDocs = tasks.register("distDocs", Docbook2Xhtml) {
     dependsOn userguideAsciidoc
-    source new File(asciidocOutputDir, 'gettingStarted.xml')
+    source new File(asciidocOutputDir, 'getting_started.xml')
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
 }

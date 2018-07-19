@@ -484,6 +484,59 @@ task listJars {
             .assertThatCause(Matchers.containsString('Could not find group:projectA:1.2'))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/6014")
+    def "repository credentials should be considered when retrieving modules from dependency cache"() {
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+
+        settingsFile << 'rootProject.name = "publish"'
+        def baseBuild = """
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task resolve {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
+}
+"""
+
+        when:
+        buildFile.text = baseBuild + """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+        credentials {
+            username = 'username'
+            password = 'password'
+        }
+    }
+}
+"""
+
+        serverAuthScheme = BASIC
+        module.pom.allowGetOrHead('username', 'password')
+        module.artifact.allowGetOrHead('username', 'password')
+
+        then:
+        succeeds 'resolve'
+
+        when:
+        server.resetExpectations()
+
+        buildFile.text = baseBuild + """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+    }
+}
+"""
+        then:
+        // Resolution should not succeed without resolving from the remote repository
+        succeeds 'resolve'
+    }
+
     void setServerAuthScheme(AuthScheme authScheme) {
         server.authenticationScheme = authScheme
     }

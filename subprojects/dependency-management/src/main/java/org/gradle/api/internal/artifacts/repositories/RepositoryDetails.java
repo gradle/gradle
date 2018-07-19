@@ -20,8 +20,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.Map;
 
 /**
- * Details about a repository.
- * See {@link ResolutionAwareRepository} and {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository}
+ * Details about a {@link ResolutionAwareRepository}. Used for reporting.
  */
 public class RepositoryDetails {
 
