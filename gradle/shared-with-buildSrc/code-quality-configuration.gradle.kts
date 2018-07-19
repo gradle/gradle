@@ -111,8 +111,7 @@ open class CodeNarcRule : ComponentMetadataRule {
             withDependencies {
                 removeAll { it.group == "org.codehaus.groovy" }
                 add("org.codehaus.groovy:groovy-all") {
-                    // This must match the Groovy version bundled with the Gradle wrapper used to build the project
-                    version { prefer("2.4.12") }
+                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
                     because("We use groovy-all everywhere")
                 }
             }
