@@ -48,7 +48,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
                     org.gradle.util.DeprecationLogger.nagUserWith('Custom Task action will be deprecated.', 
                         'Custom actions will not be supported in 2 weeks from now.',
                         'Use task type X instead.', 
-                        "Task '\${getPath()}' should not have custom actions attached."
+                        "Task ':t' should not have custom actions attached."
                     );
                 }
             }
@@ -127,11 +127,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         taskDoLastDeprecation.details.contextualAdvice == "Task ':t' should not have custom actions attached."
         taskDoLastDeprecation.details.type == 'USER_CODE_DIRECT'
         taskDoLastDeprecation.details.stackTrace.size > 0
-        taskDoLastDeprecation.details.stackTrace.each {
-            println "doLast{} " + it.toString();
-        }
         taskDoLastDeprecation.details.stackTrace[0].fileName.endsWith('build.gradle')
-        taskDoLastDeprecation.details.stackTrace[0].lineNumber == 13
+        taskDoLastDeprecation.details.stackTrace[0].lineNumber == 10
 
         def typedTaskDeprecation = operations.only("Execute someAction for :t").progress.find {it.hasDetailsOfType(DeprecatedUsageProgressDetails)}
         typedTaskDeprecation.details.summary == 'Typed task has been deprecated.'
