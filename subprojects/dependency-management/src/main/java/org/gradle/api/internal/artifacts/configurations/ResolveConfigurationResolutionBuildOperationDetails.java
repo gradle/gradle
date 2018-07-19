@@ -108,12 +108,12 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("configurationName", configurationName);
-        model.put("isScriptConfiguration", isScriptConfiguration);
+        model.put("scriptConfiguration", isScriptConfiguration);
         model.put("configurationDescription", configurationDescription);
         model.put("buildPath", buildPath);
         model.put("projectPath", projectPath);
-        model.put("isConfigurationVisible", isConfigurationVisible);
-        model.put("isConfigurationTransitive", isConfigurationTransitive);
+        model.put("configurationVisible", isConfigurationVisible);
+        model.put("configurationTransitive", isConfigurationTransitive);
         ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<Object>();
         for (Repository repository : repositories) {
             ImmutableMap.Builder<String, Object> repoMapBuilder = new ImmutableMap.Builder<String, Object>();
