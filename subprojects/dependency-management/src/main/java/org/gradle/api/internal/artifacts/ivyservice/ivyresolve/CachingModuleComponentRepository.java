@@ -473,10 +473,5 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         public ModuleSource getDelegate() {
             return delegate;
         }
-
-        @Override
-        public String getRepositoryName() {
-            return delegate == null ? null : delegate.getRepositoryName();
-        }
     }
 }
