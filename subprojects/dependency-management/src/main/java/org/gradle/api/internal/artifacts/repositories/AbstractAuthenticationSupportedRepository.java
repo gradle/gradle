@@ -16,16 +16,21 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
+import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
@@ -79,5 +84,14 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {
         return delegate.getConfiguredAuthentication();
+    }
+
+    List<String> getAuthenticationSchemes() {
+        return CollectionUtils.collect(getConfiguredAuthentication(), new Transformer<String, Authentication>() {
+            @Override
+            public String transform(Authentication authentication) {
+                return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
+            }
+        });
     }
 }
