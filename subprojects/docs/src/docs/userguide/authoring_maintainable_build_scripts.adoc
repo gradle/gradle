@@ -34,11 +34,11 @@ Let's talk about some concrete examples.
 
 The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain.
 Imperative logic should live in binary plugins and which in turn is applied to the build script.
-As a side product, you automatically enable your team to link:{guides-url}/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
+As a side product, you automatically enable your team to link:{guidesUrl}/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
 
 The following sample build shows a negative example of using conditional logic directly in the build script.
 While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it would have on readability and maintainability.
-By moving the code into a class link:{guides-url}/testing-gradle-plugins/[testability] also becomes a valid option.
+By moving the code into a class link:{guidesUrl}/testing-gradle-plugins/[testability] also becomes a valid option.
 
 === Example: A build script using conditional logic to create a task
 
@@ -121,13 +121,13 @@ It may also be helpful to read <<lazy_configuration.adoc#lazy_configuration,the 
 
 Don't use `org.gradle.api.internal.ConventionMapping`.
 Use link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and/or link:{javadocPath}/org/gradle/api/provider/Property.html[Property].
-You can find an example for capturing user input to configure runtime behavior in the link:{guides-url}/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
+You can find an example for capturing user input to configure runtime behavior in the link:{guidesUrl}/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
 
 Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
 
 Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUtils`, `org.gradle.util.GFileUtils`, and other classes under `org.gradle.util.*`.
 
-Gradle plugin authors may find the Designing Gradle Plugins subsection on link:{guides-url}/designing-gradle-plugins/#restricting_the_plugin_implementation_to_gradle_s_public_api[restricting the plugin implementation to Gradle's public API] helpful.
+Gradle plugin authors may find the Designing Gradle Plugins subsection on link:{guidesUrl}/designing-gradle-plugins/#restricting_the_plugin_implementation_to_gradle_s_public_api[restricting the plugin implementation to Gradle's public API] helpful.
 
 [[sec:declaring_tasks]]
 == Declaring tasks in a build script
@@ -136,7 +136,7 @@ The task API gives a build author a lot of flexibility to declare tasks in a bui
 For optimal readability and maintainability follow these rules:
 
 * The task type should be the only key-value pair that belongs within the parentheses after the task name.
-* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)] if possible.
+* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,%20groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)] if possible.
 * <<tutorial_using_tasks.adoc#sec:hello_world,Task actions>> should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
 * link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] should be used if the task only defines a single action.
 * A task should <<#sec:improving_task_discoverability,define a group and description>>.
@@ -153,7 +153,7 @@ include::{samplesPath}/userguide/bestPractices/taskDefinition/build.gradle[]
 == Improving task discoverability
 
 Even new users to a build should to be able to find crucial information quickly and effortlessly.
-In Gradle you can declare a link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:setGroup(java.lang.String)[group] and a link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:setDescription(java.lang.String)[description] for any task of the build.
+In Gradle you can declare a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[group] and a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:description[description] for any task of the build.
 The <<command_line_interface.adoc#sec:listing_tasks,tasks report>> uses the assigned values to organize and render the task for easy discoverability.
 Assigning a group and description is most helpful for any task that you expect build users to invoke.
 
@@ -214,7 +214,7 @@ include::{samplesPath}/userguide/bestPractices/logicDuringConfiguration/do/build
 [[sec:avoiding_use_of_gradlebuild]]
 == Avoiding the use of `GradleBuild`
 
-The link:{groovyDslPath}/org.gradle.api.tasks.tasks.GradleBuild.html[GradleBuild] task type allows a build script to define a task that invokes another Gradle build.
+The link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task type allows a build script to define a task that invokes another Gradle build.
 The use of this type is generally discouraged.
 There are some corner cases where the invoked build doesn't expose the same runtime behavior as from the command line or through the Tooling API leading to unexpected results.
 
@@ -232,7 +232,7 @@ Strongly-coupled projects hurts <<multi_project_builds.adoc#sec:parallel_executi
 
 The following practices should be avoided:
 
-* Explicitly depending on a task from another project via link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object[])[Task.dependsOn(java.lang.Object...)].
+* Explicitly depending on a task from another project via link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object++...++)].
 * Setting property values or calling methods on domain objects from another project.
 * Executing another portion of the build with <<#sec:avoiding_use_of_gradlebuild,GradleBuild>>.
 * Declaring unnecessary <<declaring_dependencies.adoc#sec:declaring_project_dependency,project dependencies>>.
