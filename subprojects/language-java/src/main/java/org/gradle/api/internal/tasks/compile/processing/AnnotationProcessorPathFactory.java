@@ -147,7 +147,7 @@ public class AnnotationProcessorPathFactory {
                     Map<String, AnnotationProcessorDeclaration> processors = annotationProcessorDetector.detectProcessors(compileClasspath);
                     if (!processors.isEmpty()) {
                         DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
-                            "Detecting annotation processors on the compile classpath is deprecated.",
+                            "Detecting annotation processors on the compile classpath",
                             "Gradle 5.0 will ignore annotation processors on the compile classpath.",
                             "Please add them to the annotation processor path instead. " +
                             "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them.",

@@ -27,7 +27,7 @@ import java.util.List;
 
 public interface TaskValidationContext {
 
-    String DEPRECATION_SUMMARY = "Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated.";
+    String DEPRECATION_SUMMARY = "Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods";
 
     enum Severity {
         WARNING() {
@@ -38,7 +38,7 @@ public interface TaskValidationContext {
                     contextualAdviceBuilder.append("\n - ");
                     contextualAdviceBuilder.append(message);
                 }
-                DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(DEPRECATION_SUMMARY, null, null, contextualAdviceBuilder.toString());
+                DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(DEPRECATION_SUMMARY, null, contextualAdviceBuilder.toString());
                 return true;
             }
         },

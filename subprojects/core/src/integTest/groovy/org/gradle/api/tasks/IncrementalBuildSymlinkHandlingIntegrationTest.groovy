@@ -131,7 +131,7 @@ task work {
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         succeeds("work")
-        output.contains """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. A problem was found with the configuration of task ':work'.
+        output.contains """Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated. This is scheduled to be removed in Gradle 5.0. A problem was found with the configuration of task ':work'.
  - File '$link' specified for property '\$1' does not exist."""
     }
 

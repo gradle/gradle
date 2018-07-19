@@ -217,7 +217,7 @@ public class SingleMessageLogger {
 
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String removalDetails, String advice, String contextualAdvice) {
         if (isEnabled()) {
-            nagUserWith(summary, removalDetails, advice, contextualAdvice, FeatureUsage.FeatureUsageType.USER_CODE_INDIRECT);
+            nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, contextualAdvice, FeatureUsage.FeatureUsageType.USER_CODE_INDIRECT);
         }
     }
 
