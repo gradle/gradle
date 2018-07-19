@@ -160,12 +160,12 @@ The result is that the following artifacts will be published for each project:
 
 When `project1` is published, the module descriptor (i.e. the `ivy.xml` file) that is produced will look like:
 
-=== Example: Example generated ivy.xml
+=== Example: Generated ivy.xml
 
 [source,xml]
 .output-ivy.xml
 ----
-include::{samplesPath}/ivy-publish/java-multi-project/output-ivy.xml[tag=content]
+include::{samplesPath}/ivy-publish/java-multi-project/output-ivy.xml[]
 ----
 
 [TIP]
