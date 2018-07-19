@@ -288,6 +288,7 @@ tasks.register("checkstyleApi", Checkstyle) {
 
 def distDocs = tasks.register("distDocs", AsciidoctorTask) {
     sourceDir = userguideSrcDir
+    outputDir = distDocsDir
     sources { include 'getting-started.adoc' }
     backends = ['html5']
 }
