@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.classpath;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class ClasspathEntryChangeProcessor {
 
-    private final FileOperations fileOperations;
     private final ClasspathChangeDependentsFinder dependentsFinder;
 
-    public ClasspathEntryChangeProcessor(FileOperations fileOperations, ClasspathSnapshot classpathSnapshot, PreviousCompilation previousCompilation) {
-        this.fileOperations = fileOperations;
+    public ClasspathEntryChangeProcessor(ClasspathSnapshot classpathSnapshot, PreviousCompilation previousCompilation) {
         this.dependentsFinder = new ClasspathChangeDependentsFinder(classpathSnapshot, previousCompilation);
     }
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
-        ClasspathEntry classpathEntry = new ClasspathEntry(input.getFile(), fileOperations.zipTree(input.getFile()));
-        DependentsSet actualDependents = dependentsFinder.getActualDependents(input, classpathEntry);
+        DependentsSet actualDependents = dependentsFinder.getActualDependents(input, input.getFile());
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
             return;

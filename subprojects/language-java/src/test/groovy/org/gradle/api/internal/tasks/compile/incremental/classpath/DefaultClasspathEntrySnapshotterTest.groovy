@@ -18,13 +18,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath
 
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.DefaultFileVisitDetails
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
-import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,43 +38,46 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def hasher = Mock(StreamHasher)
+    def fileHasher = Mock(FileHasher)
+    def streamHasher = Mock(StreamHasher)
     def classDependenciesAnalyzer = Mock(ClassDependenciesAnalyzer)
-    @Subject snapshotter = new DefaultClasspathEntrySnapshotter(hasher, classDependenciesAnalyzer)
+    def fileOperations = Mock(FileOperations)
+    @Subject snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, classDependenciesAnalyzer, fileOperations)
 
-    def "creates snapshot for an empty jar"() {
+    def "creates snapshot for an empty entry"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new ClasspathEntry(new File("a.jar"), new FileTreeAdapter(new DefaultDirectoryFileTreeFactory().create(new File("missing")))))
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), temp.file("foo"))
         snapshot.hashes.isEmpty()
-        snapshot.analysis
+        snapshot.classAnalysis
     }
 
-    def "creates snapshot of a jar with classes"() {
+    def "creates snapshot of an entry with classes"() {
         def f1 = temp.createFile("foo/Foo.class")
         def f2 = temp.createFile("foo/com/Foo2.class")
         def f3 = temp.createFile("foo/com/app.properties")
-        def jarFile = temp.file("foo")
+        def entry = temp.file("foo")
         def f1Hash = HashCode.fromInt(1)
         def f2Hash = HashCode.fromInt(2)
         def f1Details = new DefaultFileVisitDetails(f1, null, null)
         def f2Details = new DefaultFileVisitDetails(f2, null, null)
-
-        def jarFileTree = Mock(FileTree)
+        def fileTree = Mock(ConfigurableFileTree)
 
         when:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new ClasspathEntry(jarFile, jarFileTree))
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), entry)
 
         then:
-        1 * jarFileTree.visit(_) >> { FileVisitor visitor ->
+        1 * fileOperations.fileTree(entry) >> fileTree
+
+        1 * fileTree.visit(_) >> { FileVisitor visitor ->
             visitor.visitFile(f1Details)
             visitor.visitFile(f2Details)
             visitor.visitFile(new DefaultFileVisitDetails(f3, null, null))
         }
-        1 * hasher.hash(_) >> f1Hash
+        1 * fileHasher.hash(_) >> f1Hash
         1 * classDependenciesAnalyzer.getClassAnalysis(f1Hash, f1Details) >> Stub(ClassAnalysis) {
             getClassName() >> "Foo"
         }
-        1 * hasher.hash(_) >> f2Hash
+        1 * fileHasher.hash(_) >> f2Hash
         1 * classDependenciesAnalyzer.getClassAnalysis(f2Hash, f2Details) >> Stub(ClassAnalysis) {
             getClassName() >> "com.Foo2"
         }
@@ -82,6 +85,6 @@ class DefaultClasspathEntrySnapshotterTest extends Specification {
 
         and:
         snapshot.hashes == ["Foo": f1Hash, "com.Foo2": f2Hash]
-        snapshot.analysis
+        snapshot.classAnalysis
     }
 }

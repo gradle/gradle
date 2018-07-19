@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntryChangeProcessor;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.PreviousCompilation;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.util.Alignment;
 
@@ -34,23 +30,21 @@ import java.util.Set;
 public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
-    private final FileOperations fileOperations;
 
-    RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, FileOperations fileOperations) {
+    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter) {
         this.sourceToNameConverter = sourceToNameConverter;
-        this.fileOperations = fileOperations;
     }
 
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
         processClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec);
-        spec.getClassesToProcess().addAll(previous.getAggregatedTypes().getDependentClasses());
+        spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
         return spec;
     }
 
     private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(fileOperations, current.getClasspathSnapshot(), previous);
+        ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(current.getClasspathSnapshot(), previous);
         Map<File, ClasspathEntrySnapshot> previousCompilationSnapshots = previous.getSnapshots();
         ClasspathSnapshot currentSnapshots = current.getClasspathSnapshot();
 

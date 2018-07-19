@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import static org.gradle.internal.FileUtils.hasExtension;

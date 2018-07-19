@@ -32,26 +32,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class ClassSetAnalysisData {
-    final Map<String, String> filePathToClassName;
     final Map<String, DependentsSet> dependents;
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
-    private final DependentsSet aggregatedTypes;
-    final DependentsSet dependentsOnAll;
     final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, DependentsSet aggregatedTypes, DependentsSet dependentsOnAll, String fullRebuildCause) {
-        this.filePathToClassName = filePathToClassName;
+    public ClassSetAnalysisData(Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
-        this.aggregatedTypes = aggregatedTypes;
-        this.dependentsOnAll = dependentsOnAll;
         this.fullRebuildCause = fullRebuildCause;
-    }
-
-    public String getClassNameForFile(String filePath) {
-        return filePathToClassName.get(filePath);
     }
 
     public DependentsSet getDependents(String className) {
@@ -59,15 +49,7 @@ public class ClassSetAnalysisData {
             return DependentsSet.dependencyToAll(fullRebuildCause);
         }
         DependentsSet dependentsSet = dependents.get(className);
-        return dependentsSet == null ? DependentsSet.empty(): dependentsSet;
-    }
-
-    public DependentsSet getDependentsOnAll() {
-        return dependentsOnAll;
-    }
-
-    public DependentsSet getAggregatedTypes() {
-        return aggregatedTypes;
+        return dependentsSet == null ? DependentsSet.empty() : dependentsSet;
     }
 
     public IntSet getConstants(String className) {
@@ -87,18 +69,9 @@ public class ClassSetAnalysisData {
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
-            // Class names are de-duplicated when encoded
             Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
             int count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, String> filePathToClassNameBuilder = ImmutableMap.builder();
-            for (int i = 0; i < count; i++) {
-                String filePath = decoder.readString();
-                String className = readClassName(decoder, classNameMap);
-                filePathToClassNameBuilder.put(filePath, className);
-            }
-
-            count = decoder.readSmallInt();
             ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builder();
             for (int i = 0; i < count; i++) {
                 String className = readClassName(decoder, classNameMap);
@@ -126,26 +99,14 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
-            DependentsSet aggregatedTypes = readDependentsSet(decoder, classNameMap);
-
-            DependentsSet dependentsOnAll = readDependentsSet(decoder, classNameMap);
-
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), aggregatedTypes, dependentsOnAll, fullRebuildCause);
+            return new ClassSetAnalysisData(dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
         }
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
-            // Deduplicate class names when encoding.
-            // This would be more efficient with a better data structure in ClassSetAnalysisData
             Map<String, Integer> classNameMap = new HashMap<String, Integer>();
-
-            encoder.writeSmallInt(value.filePathToClassName.size());
-            for (Map.Entry<String, String> entry : value.filePathToClassName.entrySet()) {
-                encoder.writeString(entry.getKey());
-                writeClassName(entry.getValue(), classNameMap, encoder);
-            }
 
             encoder.writeSmallInt(value.dependents.size());
             for (Map.Entry<String, DependentsSet> entry : value.dependents.entrySet()) {
@@ -167,10 +128,6 @@ public class ClassSetAnalysisData {
                     writeClassName(className, classNameMap, encoder);
                 }
             }
-
-            writeDependentSet(value.aggregatedTypes, classNameMap, encoder);
-
-            writeDependentSet(value.dependentsOnAll, classNameMap, encoder);
 
             encoder.writeNullableString(value.fullRebuildCause);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.PreviousCompilation;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
-import org.gradle.api.tasks.incremental.InputFileDetails;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 
 class JavaChangeProcessor {
 

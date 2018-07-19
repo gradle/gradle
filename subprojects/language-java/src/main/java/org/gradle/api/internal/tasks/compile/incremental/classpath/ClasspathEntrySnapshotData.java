@@ -23,22 +23,34 @@ import java.util.Map;
 
 public class ClasspathEntrySnapshotData {
 
-    final Map<String, HashCode> hashes;
-    final ClassSetAnalysisData data;
-    final HashCode hash;
+    private final Map<String, HashCode> hashes;
+    private final ClassSetAnalysisData classAnalyisis;
+    private final HashCode hash;
 
     /**
      * @param hash of this entry
      * @param hashes hashes of all classes from the entry
-     * @param data of classes analysis in this entry
+     * @param classAnalysis of classes analysis in this entry
      */
-    public ClasspathEntrySnapshotData(HashCode hash, Map<String, HashCode> hashes, ClassSetAnalysisData data) {
+    public ClasspathEntrySnapshotData(HashCode hash, Map<String, HashCode> hashes, ClassSetAnalysisData classAnalysis) {
         assert hash != null;
         assert hashes != null;
-        assert data != null;
+        assert classAnalysis != null;
 
         this.hash = hash;
         this.hashes = hashes;
-        this.data = data;
+        this.classAnalyisis = classAnalysis;
+    }
+
+    public Map<String, HashCode> getHashes() {
+        return hashes;
+    }
+
+    public ClassSetAnalysisData getClassAnalysis() {
+        return classAnalyisis;
+    }
+
+    public HashCode getHash() {
+        return hash;
     }
 }

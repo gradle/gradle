@@ -52,9 +52,9 @@ public class ClasspathEntrySnapshotDataSerializer extends AbstractSerializer<Cla
 
     @Override
     public void write(Encoder encoder, ClasspathEntrySnapshotData value) throws Exception {
-        hashCodeSerializer.write(encoder, value.hash);
-        mapSerializer.write(encoder, value.hashes);
-        analysisSerializer.write(encoder, value.data);
+        hashCodeSerializer.write(encoder, value.getHash());
+        mapSerializer.write(encoder, value.getHashes());
+        analysisSerializer.write(encoder, value.getClassAnalysis());
     }
 
     @Override
