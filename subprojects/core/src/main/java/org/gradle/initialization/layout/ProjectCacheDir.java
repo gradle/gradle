@@ -42,10 +42,11 @@ public class ProjectCacheDir implements Stoppable {
 
     @Override
     public void stop() {
-        String description = "Deleting unused version-specific caches in " + dir;
+        VersionSpecificCacheCleanupAction cleanupAction = new VersionSpecificCacheCleanupAction(dir, MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS);
+        String description = cleanupAction.getDisplayName();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProjectCacheDir.class).start(description, description);
         try {
-            new VersionSpecificCacheCleanupAction(dir, MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS).execute(new DefaultCleanupProgressMonitor(progressLogger));
+            cleanupAction.execute(new DefaultCleanupProgressMonitor(progressLogger));
         } finally {
             progressLogger.completed();
         }

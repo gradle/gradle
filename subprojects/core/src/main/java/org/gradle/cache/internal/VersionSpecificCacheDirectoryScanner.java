@@ -38,6 +38,10 @@ public class VersionSpecificCacheDirectoryScanner {
         this.baseDir = baseDir;
     }
 
+    public File getBaseDir() {
+        return baseDir;
+    }
+
     public File getDirectory(GradleVersion gradleVersion) {
         return new File(baseDir, gradleVersion.getVersion());
     }

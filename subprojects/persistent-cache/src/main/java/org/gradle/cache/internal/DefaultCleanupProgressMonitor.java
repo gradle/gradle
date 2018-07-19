@@ -38,7 +38,12 @@ public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
 
     @Override
     public void incrementSkipped() {
-        skipped++;
+        incrementSkipped(1);
+    }
+
+    @Override
+    public void incrementSkipped(long amount) {
+        skipped += amount;
         updateProgress();
     }
 

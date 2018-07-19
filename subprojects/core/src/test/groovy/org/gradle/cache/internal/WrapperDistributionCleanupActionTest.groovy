@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -32,6 +33,7 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
     def usedGradleVersions = Mock(UsedGradleVersions) {
         getUsedGradleVersions() >> ([] as SortedSet)
     }
+    def progressMonitor = Mock(CleanupProgressMonitor)
 
     @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir, usedGradleVersions)
 
@@ -44,10 +46,12 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def unusedFutureDist = createDistributionChecksumDir(currentVersion.nextMajor)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
         1 * usedGradleVersions.getUsedGradleVersions() >> ([usedVersion] as SortedSet)
+        3 * progressMonitor.incrementSkipped(1)
+        1 * progressMonitor.incrementDeleted()
         unusedDist.parentFile.assertDoesNotExist()
         stillUsedDist.assertExists()
         currentDist.assertExists()
@@ -63,9 +67,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def currentBinDist = createCustomDistributionChecksumDir("my-bin-dist-${currentVersion.version}", currentVersion)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped(2)
+        2 * progressMonitor.incrementDeleted()
         oldAllDist.parentFile.assertDoesNotExist()
         oldBinDist.parentFile.assertDoesNotExist()
         currentAllDist.assertExists()
@@ -79,9 +85,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def currentDist = createCustomDistributionChecksumDir("my-dist", currentVersion)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped(1)
+        1 * progressMonitor.incrementDeleted()
         oldDist.assertDoesNotExist()
         currentDist.assertExists()
     }
@@ -93,9 +101,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         distributionWithMultipleSubDirectories.createDir("foo")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithMultipleSubDirectories.assertExists()
     }
 
@@ -105,9 +114,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithoutJar.assertExists()
     }
 
@@ -119,9 +129,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         }
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithoutBuildReceiptInJar.assertExists()
     }
 
@@ -131,9 +142,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distributionWithMissingVersion = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithMissingVersion.assertExists()
     }
 
@@ -145,9 +157,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         }
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithInvalidVersion.assertExists()
     }
 
@@ -161,9 +174,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         jarFile.text = "not a JAR"
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithUnreadableJarFile.assertExists()
     }
 
@@ -173,9 +187,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "gradle-core")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementDeleted()
+        0 * progressMonitor._
         distribution.assertDoesNotExist()
     }
 
@@ -185,9 +201,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "gradle-version-info")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementDeleted()
+        0 * progressMonitor._
         distribution.assertDoesNotExist()
     }
 
@@ -197,9 +215,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "some-other-jar")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distribution.assertExists()
     }
 
@@ -208,9 +227,10 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def justDownloadedButUnusedDist = createDistributionChecksumDir(GradleVersion.version("2.3.4"), DEFAULT_JAR_PREFIX, System.currentTimeMillis())
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped()
         justDownloadedButUnusedDist.assertExists()
     }
 
