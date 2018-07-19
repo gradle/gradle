@@ -105,7 +105,7 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         public IvyRepositoryDescriptor create() {
             return new IvyRepositoryDescriptor(
                 checkNotNull(name),
-                checkNotNull(url),
+                url,
                 checkNotNull(metadataSources),
                 checkNotNull(authenticated),
                 checkNotNull(authenticationSchemes),

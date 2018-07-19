@@ -72,7 +72,7 @@ public final class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
         public MavenRepositoryDescriptor create() {
             return new MavenRepositoryDescriptor(
                 checkNotNull(name),
-                checkNotNull(url),
+                url,
                 checkNotNull(metadataSources),
                 checkNotNull(authenticated),
                 checkNotNull(authenticationSchemes),

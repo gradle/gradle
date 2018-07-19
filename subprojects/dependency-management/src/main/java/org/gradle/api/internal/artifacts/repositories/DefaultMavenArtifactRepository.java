@@ -194,7 +194,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public RepositoryDescriptor getDescriptor() {
-        return new MavenRepositoryDescriptor.Builder(getName(), getUrl().toASCIIString())
+        URI url = getUrl();
+        return new MavenRepositoryDescriptor.Builder(getName(), url == null ? null : url.toASCIIString())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
