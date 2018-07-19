@@ -27,7 +27,7 @@ public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirector
     }
 
     @Override
-    protected List<PhysicalSnapshot> getChildren() {
+    public List<PhysicalSnapshot> getChildren() {
         return children;
     }
 }

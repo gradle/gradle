@@ -20,9 +20,18 @@ import com.google.common.collect.Lists;
 
 import java.util.Deque;
 
-public class RelativePathHolder {
+/**
+ * Holds a reference to a relative path {@link String} when visiting a {@link PhysicalSnapshot}.
+ *
+ * If you need to keep track of individual path segments use {@link RelativePathSegmentsTracker} instead.
+ */
+public class RelativePathStringTracker {
     private final Deque<String> relativePathStrings = Lists.newLinkedList();
     private boolean root = true;
+
+    public void enter(PhysicalSnapshot snapshot) {
+        enter(snapshot.getName());
+    }
 
     public void enter(String name) {
         if (!root) {

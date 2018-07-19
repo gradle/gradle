@@ -17,28 +17,20 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.Factory;
 
-public abstract class AbstractFileContentSnapshot implements FileContentSnapshot {
-    @Override
-    public String getNormalizedPath() {
-        return "";
-    }
-
-    @Override
-    public FileContentSnapshot getSnapshot() {
-        return this;
-    }
-
-    @Override
-    public int compareTo(NormalizedFileSnapshot o) {
-        if (!(o instanceof FileContentSnapshot)) {
-            return -1;
+public interface ResourceFilter extends ConfigurableNormalizer {
+    ResourceFilter FILTER_NOTHING = new ResourceFilter() {
+        @Override
+        public boolean shouldBeIgnored(Factory<String[]> relativePathFactory) {
+            return false;
         }
-        return getContentMd5().compareTo(((FileContentSnapshot) o).getContentMd5());
-    }
 
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putHash(getContentMd5());
-    }
+        @Override
+        public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+            hasher.putString(getClass().getName());
+        }
+    };
+
+    boolean shouldBeIgnored(Factory<String[]> relativePathFactory);
 }

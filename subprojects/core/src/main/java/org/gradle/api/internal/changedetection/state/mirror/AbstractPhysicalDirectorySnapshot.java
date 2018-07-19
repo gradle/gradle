@@ -17,11 +17,12 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * A file snapshot which can have children (i.e. a directory).
  */
-public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysicalSnapshot {
+public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysicalSnapshot implements PhysicalDirectorySnapshot {
 
     public AbstractPhysicalDirectorySnapshot(String absolutePath, String name) {
         super(absolutePath, name);
@@ -32,11 +33,21 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
         return FileType.Directory;
     }
 
-    protected abstract Iterable<? extends PhysicalSnapshot> getChildren();
+    @Override
+    public HashCode getContentHash() {
+        return SIGNATURE;
+    }
+
+    @Override
+    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+        return other instanceof AbstractPhysicalDirectorySnapshot;
+    }
+
+    abstract Iterable<? extends PhysicalSnapshot> getChildren();
 
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
-        if (!visitor.preVisitDirectory(getAbsolutePath(), getName())) {
+        if (!visitor.preVisitDirectory(this)) {
             return;
         }
         for (PhysicalSnapshot child : getChildren()) {

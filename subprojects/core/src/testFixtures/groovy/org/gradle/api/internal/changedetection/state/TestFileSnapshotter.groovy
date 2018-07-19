@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
@@ -32,9 +34,12 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     @Override
     PhysicalSnapshot snapshotSelf(File file) {
         if (file.isFile()) {
-            return new PhysicalFileSnapshot(file.getAbsolutePath(), file.getName(), new FileHashSnapshot(Hashing.sha1().hashBytes(file.bytes)))
+            return new PhysicalFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }
-        return new PhysicalMissingSnapshot(null, null)
+        if (file.isDirectory()) {
+            return new ImmutablePhysicalDirectorySnapshot(file.absolutePath, file.name, [])
+        }
+        return new PhysicalMissingSnapshot(file.absolutePath, file.name)
     }
 
     @Override
@@ -44,12 +49,12 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
 
 
     @Override
-    PhysicalSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree) {
+    FileSystemSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree) {
         throw new UnsupportedOperationException()
     }
 
     @Override
-    PhysicalSnapshot snapshotTree(FileTreeInternal tree) {
+    FileSystemSnapshot snapshotTree(FileTreeInternal tree) {
         throw new UnsupportedOperationException()
     }
 }

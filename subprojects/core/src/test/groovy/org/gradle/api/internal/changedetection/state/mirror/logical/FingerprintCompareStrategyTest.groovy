@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror.logical
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -30,7 +29,7 @@ import static FingerprintCompareStrategy.ABSOLUTE
 import static FingerprintCompareStrategy.CLASSPATH
 import static FingerprintCompareStrategy.IGNORED_PATH
 import static FingerprintCompareStrategy.NORMALIZED
-import static FingerprintCompareStrategy.compareTrivialSnapshots
+import static org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy.compareTrivialSnapshots
 
 class FingerprintCompareStrategyTest extends Specification {
 
@@ -289,13 +288,13 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
-        compareTrivialSnapshots(current, previous, "test", true) == null
-        compareTrivialSnapshots(current, previous, "test", false) == null
+        compareTrivialSnapshots(new CollectingTaskStateChangeVisitor(), current, previous, "test", true) == null
+        compareTrivialSnapshots(new CollectingTaskStateChangeVisitor(), current, previous, "test", false) == null
 
         where:
         current                                          | previous
-        [:]                                              | ["one": snapshot("one"), "two": snapshot("two")]
-        ["one": snapshot("one"), "two": snapshot("two")] | [:]
+        ["one": snapshot("one")]                         | ["one": snapshot("one"), "two": snapshot("two")]
+        ["one": snapshot("one"), "two": snapshot("two")] | ["one": snapshot("one")]
     }
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
@@ -311,7 +310,7 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def snapshot(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromInt((int) hashCode)))
+        return new DefaultNormalizedFileSnapshot(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def added(String path) {

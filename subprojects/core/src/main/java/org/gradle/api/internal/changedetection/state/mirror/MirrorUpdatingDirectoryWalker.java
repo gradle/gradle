@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableReference;
@@ -64,14 +63,14 @@ public class MirrorUpdatingDirectoryWalker {
         this.stringInterner = stringInterner;
     }
 
-    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot) {
+    public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot) {
         return walk(fileSnapshot, null);
     }
 
-    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
+    public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
         if (fileSnapshot.getType() == FileType.Missing) {
             // The root missing file should not be tracked for trees.
-            return PhysicalSnapshot.EMPTY;
+            return FileSystemSnapshot.EMPTY;
         }
         if (fileSnapshot.getType() == FileType.RegularFile) {
             return fileSnapshot;
@@ -86,7 +85,7 @@ public class MirrorUpdatingDirectoryWalker {
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
-                private final RelativePathTracker relativePath = new RelativePathTracker();
+                private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
                 private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
 
                 @Override
@@ -156,7 +155,7 @@ public class MirrorUpdatingDirectoryWalker {
                     Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
-                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, new FileHashSnapshot(hash, metadata.getLastModified()));
+                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
                     levelHolder.peekLast().add(fileSnapshot);
                 }
 
@@ -164,7 +163,7 @@ public class MirrorUpdatingDirectoryWalker {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathTracker relativePath) {
+                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathSegmentsTracker relativePath) {
                     if (spec == null) {
                         return true;
                     }

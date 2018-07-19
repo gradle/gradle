@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource;
-
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
+package org.gradle.api.internal.changedetection.state.mirror;
 
 /**
- * An immutable snapshot of the type and content of a resource. Does not include any information about the identity of the resource. The resource may not exist.
+ * A snapshot of a part of the file system.
  */
-public interface ResourceContentMetadataSnapshot {
-    FileType getType();
+public interface FileSystemSnapshot {
+    /**
+     * An empty snapshot.
+     */
+    FileSystemSnapshot EMPTY = new FileSystemSnapshot() {
+        @Override
+        public void accept(PhysicalSnapshotVisitor visitor) {
+        }
+    };
 
-    HashCode getContentMd5();
+    /**
+     * Walks the whole hierarchy represented by this snapshot.
+     *
+     * The walk is depth first.
+     */
+    void accept(PhysicalSnapshotVisitor visitor);
 }

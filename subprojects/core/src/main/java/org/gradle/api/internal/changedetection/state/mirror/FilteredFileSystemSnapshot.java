@@ -19,8 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.file.FileType;
@@ -30,13 +28,13 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.InputStream;
 
-public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
+public class FilteredFileSystemSnapshot implements FileSystemSnapshot {
 
     private final Spec<FileTreeElement> spec;
-    private final PhysicalSnapshot delegate;
+    private final FileSystemSnapshot delegate;
     private final FileSystem fileSystem;
 
-    public FilteredPhysicalSnapshot(Spec<FileTreeElement> spec, PhysicalSnapshot delegate, FileSystem fileSystem) {
+    public FilteredFileSystemSnapshot(Spec<FileTreeElement> spec, FileSystemSnapshot delegate, FileSystem fileSystem) {
         this.spec = spec;
         this.delegate = delegate;
         this.fileSystem = fileSystem;
@@ -45,13 +43,13 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
     @Override
     public void accept(final PhysicalSnapshotVisitor visitor) {
         delegate.accept(new PhysicalSnapshotVisitor() {
-            private final RelativePathTracker relativePath = new RelativePathTracker();
+            private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
 
             @Override
-            public boolean preVisitDirectory(String absolutePath, String name) {
-                relativePath.enter(name);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(absolutePath, relativePath.getRelativePath(), DirContentSnapshot.INSTANCE, fileSystem))) {
-                    visitor.preVisitDirectory(absolutePath, name);
+            public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                relativePath.enter(directorySnapshot);
+                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePath.getRelativePath(), fileSystem))) {
+                    visitor.preVisitDirectory(directorySnapshot);
                     return true;
                 }
                 relativePath.leave();
@@ -59,10 +57,10 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
             }
 
             @Override
-            public void visit(String absolutePath, String name, FileContentSnapshot content) {
-                relativePath.enter(name);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(absolutePath, relativePath.getRelativePath(), content, fileSystem))) {
-                    visitor.visit(absolutePath, name, content);
+            public void visit(PhysicalSnapshot fileSnapshot) {
+                relativePath.enter(fileSnapshot);
+                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePath.getRelativePath(), fileSystem))) {
+                    visitor.visit(fileSnapshot);
                 }
                 relativePath.leave();
             }
@@ -75,41 +73,24 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
         });
     }
 
-    @Override
-    public FileType getType() {
-        return delegate.getType();
-    }
-
-    @Override
-    public String getName() {
-        return delegate.getName();
-    }
-
-    @Override
-    public String getAbsolutePath() {
-        return delegate.getAbsolutePath();
-    }
-
     /**
-     * Adapts a logical file snapshot to the {@link FileTreeElement} interface, e.g. to allow
+     * Adapts a {@link PhysicalSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
      *
      * The fields on this class are prefixed with _ to avoid users from accidentally referencing them
      * in dynamic Groovy code.
      */
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
-        private final String _absolutePath;
         private final Iterable<String> _relativePathIterable;
-        private final FileContentSnapshot _content;
         private final FileSystem _fileSystem;
+        private final PhysicalSnapshot _snapshot;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(String absolutePath, Iterable<String> relativePathIterable, FileContentSnapshot content, FileSystem fileSystem) {
+        public LogicalFileTreeElement(PhysicalSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
             super(fileSystem);
-            this._absolutePath = absolutePath;
+            this._snapshot = snapshot;
             this._relativePathIterable = relativePathIterable;
-            this._content = content;
             this._fileSystem = fileSystem;
         }
 
@@ -121,14 +102,14 @@ public class FilteredPhysicalSnapshot implements PhysicalSnapshot {
         @Override
         public File getFile() {
             if (_file == null) {
-                _file = new File(_absolutePath);
+                _file = new File(_snapshot.getAbsolutePath());
             }
             return _file;
         }
 
         @Override
         public boolean isDirectory() {
-            return _content.getType() == FileType.Directory;
+            return _snapshot.getType() == FileType.Directory;
         }
 
         @Override

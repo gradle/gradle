@@ -50,7 +50,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         given:
 
         _ * fileSnapshot.absolutePath >> file.path
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(25), 37)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(25)
         _ * fileTreeSnapshot.absolutePath >> file.path
 
         expect:
@@ -62,7 +62,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.putDirectory(file.path, fileTreeSnapshot)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path).content == fileSnapshot.content
+        mirror.getFile(file.path) == fileSnapshot
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 
@@ -83,7 +83,7 @@ class DefaultFileSystemMirrorTest extends Specification {
 
         given:
         _ * fileSnapshot.absolutePath >> file.path
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(37), 346)
+        _ * fileSnapshot.contentHash >> HashCode.fromInt(37)
         _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
@@ -97,7 +97,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.putDirectory(file.path, fileTreeSnapshot)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path).content == fileSnapshot.content
+        mirror.getFile(file.path) == fileSnapshot
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 

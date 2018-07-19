@@ -14,27 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror;
+@NonNullApi
+package org.gradle.internal.fingerprint;
 
-/**
- * Visitor for {@link PhysicalSnapshot}.
- */
-public interface PhysicalSnapshotVisitor {
-
-    /**
-     * Called before visiting the contents of a directory.
-     *
-     * @return Whether the subtree should be visited.
-     */
-    boolean preVisitDirectory(PhysicalSnapshot directorySnapshot);
-
-    /**
-     * Called for each regular/missing file.
-     */
-    void visit(PhysicalSnapshot fileSnapshot);
-
-    /**
-     * Called when leaving a directory.
-     */
-    void postVisitDirectory();
-}
+import org.gradle.api.NonNullApi;

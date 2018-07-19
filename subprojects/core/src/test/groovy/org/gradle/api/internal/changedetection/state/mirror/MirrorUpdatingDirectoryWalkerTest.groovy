@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.hash.TestFileHasher
@@ -133,16 +132,16 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(String absolutePath, String name) {
-        relativePath.addLast(name)
-        visit(absolutePath, relativePath)
+    boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+        relativePath.addLast(directorySnapshot.name)
+        visit(directorySnapshot.absolutePath, relativePath)
         return true
     }
 
     @Override
-    void visit(String absolutePath, String name, FileContentSnapshot content) {
-        relativePath.addLast(name)
-        visit(absolutePath, relativePath)
+    void visit(PhysicalSnapshot fileSnapshot) {
+        relativePath.addLast(fileSnapshot.name)
+        visit(fileSnapshot.absolutePath, relativePath)
         relativePath.removeLast()
     }
 

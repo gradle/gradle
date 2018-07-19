@@ -20,7 +20,6 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -29,7 +28,7 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class FilteredPhysicalSnapshotTest extends AbstractProjectBuilderSpec {
+class FilteredFileSystemSnapshotTest extends AbstractProjectBuilderSpec {
 
     FileSystemSnapshotter snapshotter
     DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
@@ -64,18 +63,18 @@ class FilteredPhysicalSnapshotTest extends AbstractProjectBuilderSpec {
         filteredPaths(unfiltered, include("dir1/dirFile1")) == [root, dir1, dirFile1] as Set
     }
 
-    private Set<File> filteredPaths(PhysicalSnapshot unfiltered, PatternSet patterns) {
+    private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        new FilteredPhysicalSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
+        new FilteredFileSystemSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
-                result << new File(absolutePath)
+            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                result << new File(directorySnapshot.absolutePath)
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                result << new File(absolutePath)
+            void visit(PhysicalSnapshot fileSnapshot) {
+                result << new File(fileSnapshot.absolutePath)
             }
 
             @Override

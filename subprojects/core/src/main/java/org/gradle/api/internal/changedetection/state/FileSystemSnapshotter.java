@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -58,11 +59,11 @@ public interface FileSystemSnapshotter {
     /**
      * Returns the current snapshot of the contents and meta-data of the given directory tree.
      */
-    PhysicalSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree);
+    FileSystemSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree);
 
     /**
      * Returns the current snapshot of the contents and meta-data of the given file tree.
      * Note: currently does not include the root elements, if any.
      */
-    PhysicalSnapshot snapshotTree(FileTreeInternal tree);
+    FileSystemSnapshot snapshotTree(FileTreeInternal tree);
 }

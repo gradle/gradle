@@ -17,32 +17,44 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Fingerprint files ignoring the path.
+ *
+ * Ignores directories.
+ */
 public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy {
 
+    public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
+
+    private IgnoredPathFingerprintingStrategy() {
+    }
+
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
-        for (PhysicalSnapshot root : roots) {
+        for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
-                public boolean preVisitDirectory(String absolutePath, String name) {
+                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                     return true;
                 }
 
                 @Override
-                public void visit(String absolutePath, String name, FileContentSnapshot content) {
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, content);
+                        builder.put(absolutePath, IgnoredPathFingerprint.create(fileSnapshot.getType(), fileSnapshot.getContentHash()));
                     }
                 }
 

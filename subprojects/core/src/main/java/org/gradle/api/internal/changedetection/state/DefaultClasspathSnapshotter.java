@@ -29,11 +29,13 @@ import static org.gradle.api.internal.changedetection.state.mirror.logical.Class
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final ResourceSnapshotterCacheService cacheService;
     private final StringInterner stringInterner;
+    private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
 
     public DefaultClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
+        this.runtimeClasspathResourceHasher = new RuntimeClasspathResourceHasher();
     }
 
     @Override
@@ -43,7 +45,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
-        ResourceHasher classpathResourceHasher = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceHasher();
-        return super.snapshot(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, classpathResourceHasher, cacheService, stringInterner));
+        ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
+        return super.snapshot(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
     }
 }
