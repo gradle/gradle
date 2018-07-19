@@ -16,13 +16,11 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
@@ -40,6 +38,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.DefaultIvyPatternRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.GradleRepositoryLayout;
@@ -61,10 +61,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.authentication.Authentication;
-import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
@@ -72,15 +69,12 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
@@ -104,7 +98,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
-    private Map<RepositoryDescriptor.Property, ?> properties;
     private String id;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -160,11 +153,34 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public RepositoryDescriptor getDescriptor() {
-        return new RepositoryDescriptor(
-            getName(),
-            getType(),
-            getProperties()
-        );
+        String layoutType;
+        boolean m2Compatible;
+        if (layout instanceof GradleRepositoryLayout) {
+            layoutType = "Gradle";
+            m2Compatible = false;
+        } else if (layout instanceof MavenRepositoryLayout) {
+            layoutType = "Maven";
+            m2Compatible = true;
+        } else if (layout instanceof IvyRepositoryLayout) {
+            layoutType = "Ivy";
+            m2Compatible = false;
+        } else if (layout instanceof DefaultIvyPatternRepositoryLayout) {
+            layoutType = "Pattern";
+            m2Compatible = ((DefaultIvyPatternRepositoryLayout) layout).getM2Compatible();
+        } else {
+            layoutType = "Unknown";
+            m2Compatible = false;
+        }
+
+        return new IvyRepositoryDescriptor.Builder(getName(), getUrl().toASCIIString())
+            .setAuthenticated(getConfiguredCredentials() != null)
+            .setAuthenticationSchemes(getAuthenticationSchemes())
+            .setMetadataSources(metadataSources.asList())
+            .setLayoutType(layoutType)
+            .setM2Compatible(m2Compatible)
+            .setIvyPatterns(Sets.union(layout.getIvyPatterns(), additionalPatternsLayout.ivyPatterns))
+            .setArtifactPatterns(Sets.union(layout.getArtifactPatterns(), additionalPatternsLayout.artifactPatterns))
+            .create();
     }
 
     private IvyResolver createRealResolver() {
@@ -264,89 +280,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
-    }
-
-    private Map<RepositoryDescriptor.Property, ?> getProperties() {
-        if (properties == null) {
-            properties = computeProperties();
-        }
-        return properties;
-    }
-
-    private Map<RepositoryDescriptor.Property, ?> computeProperties() {
-        ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder = ImmutableMap.builder();
-
-        computeUrlProperty(builder);
-        computeLayoutBasedProperties(builder);
-        computeMetadataSourcesProperty(builder);
-        computeaAuthenticatedProperties(builder);
-        computeAuthenticationSchemesProperty(builder);
-
-        return builder.build();
-    }
-
-    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
-        Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
-        if (!configuredAuthentication.isEmpty()) {
-            List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
-                @Override
-                public String transform(Authentication authentication) {
-                    return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
-                }
-            });
-            builder.put(RepositoryDescriptor.Property.AUTHENTICATION_SCHEMES, authenticationTypes);
-        }
-    }
-
-    private void computeaAuthenticatedProperties(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
-        if (getConfiguredCredentials() != null) {
-            builder.put(RepositoryDescriptor.Property.AUTHENTICATED, true);
-        }
-    }
-
-    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
-        List<String> metadataSourcesList = metadataSources.asList();
-        if (!metadataSourcesList.isEmpty()) {
-            builder.put(RepositoryDescriptor.Property.METADATA_SOURCES, metadataSourcesList);
-        }
-    }
-
-    private void computeLayoutBasedProperties(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
-        String layoutType;
-        boolean m2Compatible;
-        if (layout instanceof GradleRepositoryLayout) {
-            layoutType = "Gradle";
-            m2Compatible = false;
-        } else if (layout instanceof MavenRepositoryLayout) {
-            layoutType = "Maven";
-            m2Compatible = true;
-        } else if (layout instanceof IvyRepositoryLayout) {
-            layoutType = "Ivy";
-            m2Compatible = false;
-        } else if (layout instanceof DefaultIvyPatternRepositoryLayout) {
-            layoutType = "Pattern";
-            m2Compatible = ((DefaultIvyPatternRepositoryLayout) layout).getM2Compatible();
-        } else {
-            layoutType = "Unknown";
-            m2Compatible = false;
-        }
-        builder.put(RepositoryDescriptor.Property.LAYOUT_TYPE, layoutType);
-        builder.put(RepositoryDescriptor.Property.M2_COMPATIBLE, m2Compatible);
-        Collection<String> ivyPatterns = Sets.union(layout.getIvyPatterns(), additionalPatternsLayout.ivyPatterns);
-        Collection<String> artifactPatterns = Sets.union(layout.getArtifactPatterns(), additionalPatternsLayout.artifactPatterns);
-        builder.put(RepositoryDescriptor.Property.IVY_PATTERNS, ivyPatterns);
-        builder.put(RepositoryDescriptor.Property.ARTIFACT_PATTERNS, artifactPatterns);
-    }
-
-    private void computeUrlProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
-        URI uri = getUrl();
-        if (uri != null) {
-            builder.put(RepositoryDescriptor.Property.URL, uri.toASCIIString());
-        }
-    }
-
-    RepositoryDescriptor.Type getType() {
-        return RepositoryDescriptor.Type.IVY;
     }
 
     /**

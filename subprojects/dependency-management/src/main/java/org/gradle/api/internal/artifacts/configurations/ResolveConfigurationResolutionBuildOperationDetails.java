@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +54,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         this.projectPath = projectPath;
         this.isConfigurationVisible = isConfigurationVisible;
         this.isConfigurationTransitive = isConfigurationTransitive;
-        this.repositories = computeResolvedRepositories(repositories);
+        this.repositories = RepositoryImpl.transform(repositories);
     }
 
     @Override
@@ -100,60 +98,41 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         return repositories;
     }
 
-
-    private static List<Repository> computeResolvedRepositories(List<ResolutionAwareRepository> repositories) {
-        return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
-            @Override
-            public Repository transform(ResolutionAwareRepository repository) {
-                return RepositoryImpl.from(repository.getDescriptor());
-            }
-        });
-    }
-
     private static class RepositoryImpl implements Repository {
 
-        private final String type;
-        private final String name;
-        private final Map<String, ?> properties;
+        private final RepositoryDescriptor descriptor;
 
-        private RepositoryImpl(String type, String name, Map<String, ?> properties) {
-            this.type = type;
-            this.name = name;
-            this.properties = ImmutableMap.copyOf(properties);
+        private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
+            return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
+                @Override
+                public Repository transform(ResolutionAwareRepository repository) {
+                    return new RepositoryImpl(repository.getDescriptor());
+                }
+            });
         }
 
-        private static RepositoryImpl from(RepositoryDescriptor repositoryDescriptor) {
-            Map<String, Object> props = new HashMap<String, Object>(repositoryDescriptor.properties.size());
-            for (Map.Entry<RepositoryDescriptor.Property, ?> entry : repositoryDescriptor.properties.entrySet()) {
-                props.put(entry.getKey().name(), entry.getValue());
-            }
-            return new RepositoryImpl(
-                repositoryDescriptor.type.name(),
-                repositoryDescriptor.name,
-                props
-            );
+        private RepositoryImpl(RepositoryDescriptor descriptor) {
+            this.descriptor = descriptor;
         }
 
         @Override
         public String getId() {
-            // Using the name of the repository as unique identifier.
-            // The name is guaranteed to be unique within a single repository container.
-            return name;
+            return descriptor.name;
         }
 
         @Override
         public String getType() {
-            return type;
+            return descriptor.getType().name();
         }
 
         @Override
         public String getName() {
-            return name;
+            return descriptor.name;
         }
 
         @Override
         public Map<String, ?> getProperties() {
-            return properties;
+            return descriptor.getProperties();
         }
     }
 

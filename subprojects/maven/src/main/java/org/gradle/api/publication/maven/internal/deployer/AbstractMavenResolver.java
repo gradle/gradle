@@ -35,8 +35,8 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 
 public interface ResolutionAwareRepository {
     /**
