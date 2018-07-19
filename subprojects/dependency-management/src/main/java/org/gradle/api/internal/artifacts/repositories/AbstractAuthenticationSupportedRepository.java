@@ -86,7 +86,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         return delegate.getConfiguredAuthentication();
     }
 
-    protected List<String> getAuthenticationSchemes() {
+    List<String> getAuthenticationSchemes() {
         return CollectionUtils.collect(getConfiguredAuthentication(), new Transformer<String, Authentication>() {
             @Override
             public String transform(Authentication authentication) {
