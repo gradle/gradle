@@ -24,7 +24,7 @@ import org.gradle.internal.hash.HashCode;
  *
  * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
-public interface PhysicalSnapshot extends PhysicalTreeSnapshot {
+public interface PhysicalSnapshot extends FileSystemSnapshot {
 
     /**
      * The type of the file.

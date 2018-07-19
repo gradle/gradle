@@ -19,9 +19,9 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
 
 import java.util.HashSet;
@@ -40,10 +40,10 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalTreeSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
-        for (PhysicalTreeSnapshot root : roots) {
+        for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
                 private boolean root = true;
 

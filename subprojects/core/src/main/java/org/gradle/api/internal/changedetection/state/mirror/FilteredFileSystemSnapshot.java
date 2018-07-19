@@ -28,13 +28,13 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.InputStream;
 
-public class FilteredPhysicalTreeSnapshot implements PhysicalTreeSnapshot {
+public class FilteredFileSystemSnapshot implements FileSystemSnapshot {
 
     private final Spec<FileTreeElement> spec;
-    private final PhysicalTreeSnapshot delegate;
+    private final FileSystemSnapshot delegate;
     private final FileSystem fileSystem;
 
-    public FilteredPhysicalTreeSnapshot(Spec<FileTreeElement> spec, PhysicalTreeSnapshot delegate, FileSystem fileSystem) {
+    public FilteredFileSystemSnapshot(Spec<FileTreeElement> spec, FileSystemSnapshot delegate, FileSystem fileSystem) {
         this.spec = spec;
         this.delegate = delegate;
         this.fileSystem = fileSystem;

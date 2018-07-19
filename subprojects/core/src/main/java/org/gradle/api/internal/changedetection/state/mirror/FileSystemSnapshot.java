@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-public interface PhysicalTreeSnapshot {
+/**
+ * A snapshot of a part of the file system.
+ */
+public interface FileSystemSnapshot {
     /**
-     * An empty tree.
-     *
-     * Path and name are not available, since we don't know where the root is.
+     * An empty snapshot.
      */
-    PhysicalTreeSnapshot EMPTY = new PhysicalTreeSnapshot() {
+    FileSystemSnapshot EMPTY = new FileSystemSnapshot() {
         @Override
         public void accept(PhysicalSnapshotVisitor visitor) {
         }

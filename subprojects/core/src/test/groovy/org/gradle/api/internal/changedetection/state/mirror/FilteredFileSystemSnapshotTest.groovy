@@ -28,7 +28,7 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class FilteredPhysicalTreeSnapshotTest extends AbstractProjectBuilderSpec {
+class FilteredFileSystemSnapshotTest extends AbstractProjectBuilderSpec {
 
     FileSystemSnapshotter snapshotter
     DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
@@ -63,9 +63,9 @@ class FilteredPhysicalTreeSnapshotTest extends AbstractProjectBuilderSpec {
         filteredPaths(unfiltered, include("dir1/dirFile1")) == [root, dir1, dirFile1] as Set
     }
 
-    private Set<File> filteredPaths(PhysicalTreeSnapshot unfiltered, PatternSet patterns) {
+    private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        new FilteredPhysicalTreeSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
+        new FilteredFileSystemSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)

@@ -26,10 +26,10 @@ import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalTreeSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathSegmentsTracker;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -78,10 +78,10 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<PhysicalTreeSnapshot> roots) {
+    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
         ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<String>();
-        for (PhysicalTreeSnapshot root : roots) {
+        for (FileSystemSnapshot root : roots) {
             ClasspathSnapshotVisitor snapshotVisitor = new ClasspathSnapshotVisitor(processedEntries);
             root.accept(new ClasspathContentSnapshottingVisitor(snapshotVisitor));
             builder.putAll(snapshotVisitor.getResult());
