@@ -40,8 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.DefaultIvyPatternRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.GradleRepositoryLayout;
@@ -106,7 +104,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
-    private Map<RepositoryPropertyType, ?> properties;
+    private Map<RepositoryDescriptor.Property, ?> properties;
     private String id;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -161,8 +159,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public RepositoryDetails getDetails() {
-        return new RepositoryDetails(
+    public RepositoryDescriptor getDescriptor() {
+        return new RepositoryDescriptor(
             getName(),
             getType(),
             getProperties()
@@ -268,15 +266,15 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return metaDataProvider;
     }
 
-    private Map<RepositoryPropertyType, ?> getProperties() {
+    private Map<RepositoryDescriptor.Property, ?> getProperties() {
         if (properties == null) {
             properties = computeProperties();
         }
         return properties;
     }
 
-    private Map<RepositoryPropertyType, ?> computeProperties() {
-        ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
+    private Map<RepositoryDescriptor.Property, ?> computeProperties() {
+        ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder = ImmutableMap.builder();
 
         computeUrlProperty(builder);
         computeLayoutBasedProperties(builder);
@@ -287,7 +285,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return builder.build();
     }
 
-    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
         if (!configuredAuthentication.isEmpty()) {
             List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
@@ -296,24 +294,24 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                     return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
                 }
             });
-            builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
+            builder.put(RepositoryDescriptor.Property.AUTHENTICATION_SCHEMES, authenticationTypes);
         }
     }
 
-    private void computeaAuthenticatedProperties(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeaAuthenticatedProperties(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         if (getConfiguredCredentials() != null) {
-            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
+            builder.put(RepositoryDescriptor.Property.AUTHENTICATED, true);
         }
     }
 
-    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         List<String> metadataSourcesList = metadataSources.asList();
         if (!metadataSourcesList.isEmpty()) {
-            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
+            builder.put(RepositoryDescriptor.Property.METADATA_SOURCES, metadataSourcesList);
         }
     }
 
-    private void computeLayoutBasedProperties(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeLayoutBasedProperties(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         String layoutType;
         boolean m2Compatible;
         if (layout instanceof GradleRepositoryLayout) {
@@ -332,23 +330,23 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             layoutType = "Unknown";
             m2Compatible = false;
         }
-        builder.put(RepositoryPropertyType.LAYOUT_TYPE, layoutType);
-        builder.put(RepositoryPropertyType.M2_COMPATIBLE, m2Compatible);
+        builder.put(RepositoryDescriptor.Property.LAYOUT_TYPE, layoutType);
+        builder.put(RepositoryDescriptor.Property.M2_COMPATIBLE, m2Compatible);
         Collection<String> ivyPatterns = Sets.union(layout.getIvyPatterns(), additionalPatternsLayout.ivyPatterns);
         Collection<String> artifactPatterns = Sets.union(layout.getArtifactPatterns(), additionalPatternsLayout.artifactPatterns);
-        builder.put(RepositoryPropertyType.IVY_PATTERNS, ivyPatterns);
-        builder.put(RepositoryPropertyType.ARTIFACT_PATTERNS, artifactPatterns);
+        builder.put(RepositoryDescriptor.Property.IVY_PATTERNS, ivyPatterns);
+        builder.put(RepositoryDescriptor.Property.ARTIFACT_PATTERNS, artifactPatterns);
     }
 
-    private void computeUrlProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeUrlProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         URI uri = getUrl();
         if (uri != null) {
-            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
+            builder.put(RepositoryDescriptor.Property.URL, uri.toASCIIString());
         }
     }
 
-    RepositoryType getType() {
-        return RepositoryType.IVY;
+    RepositoryDescriptor.Type getType() {
+        return RepositoryDescriptor.Type.IVY;
     }
 
     /**

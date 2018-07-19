@@ -27,8 +27,6 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -70,7 +68,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
-    private Map<RepositoryPropertyType, ?> properties;
+    private Map<RepositoryDescriptor.Property, ?> properties;
     private String id;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
@@ -129,23 +127,23 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     @Override
-    public RepositoryDetails getDetails() {
-        return new RepositoryDetails(
+    public RepositoryDescriptor getDescriptor() {
+        return new RepositoryDescriptor(
             getName(),
             getType(),
             getProperties()
         );
     }
 
-    private Map<RepositoryPropertyType, ?> getProperties() {
+    private Map<RepositoryDescriptor.Property, ?> getProperties() {
         if (properties == null) {
             properties = computeProperties();
         }
         return properties;
     }
 
-    private Map<RepositoryPropertyType, ?> computeProperties() {
-        return ImmutableMap.of(RepositoryPropertyType.DIRS, CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
+    private Map<RepositoryDescriptor.Property, ?> computeProperties() {
+        return ImmutableMap.of(RepositoryDescriptor.Property.DIRS, CollectionUtils.collect(getDirs(), new Transformer<String, File>() {
             @Override
             public String transform(File file) {
                 return file.getAbsolutePath();
@@ -153,8 +151,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         }));
     }
 
-    private RepositoryType getType() {
-        return RepositoryType.FLAT_DIR;
+    private RepositoryDescriptor.Type getType() {
+        return RepositoryDescriptor.Type.FLAT_DIR;
     }
 
     @Override

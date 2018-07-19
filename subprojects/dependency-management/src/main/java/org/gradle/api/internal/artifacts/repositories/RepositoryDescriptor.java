@@ -20,22 +20,22 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.Map;
 
 /**
- * Details about a {@link ResolutionAwareRepository}. Used for reporting.
+ * A non functional description of a {@link ResolutionAwareRepository}, used for reporting.
  */
-public class RepositoryDetails {
+public class RepositoryDescriptor {
 
     public final String name;
-    public final RepositoryType type;
-    public final Map<RepositoryPropertyType, ?> properties;
+    public final Type type;
+    public final Map<Property, ?> properties;
 
-    RepositoryDetails(String name, RepositoryType type, Map<RepositoryPropertyType, ?> properties) {
+    RepositoryDescriptor(String name, Type type, Map<Property, ?> properties) {
         this.name = name;
         this.type = type;
         this.properties = properties;
     }
 
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    public enum RepositoryPropertyType {
+    public enum Property {
 
         URL,
         DIRS,
@@ -51,7 +51,7 @@ public class RepositoryDetails {
     }
 
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    public enum RepositoryType {
+    public enum Type {
 
         MAVEN,
         IVY,

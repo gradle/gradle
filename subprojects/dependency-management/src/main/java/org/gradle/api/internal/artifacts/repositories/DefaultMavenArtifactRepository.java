@@ -32,8 +32,6 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultGradleModuleMetadataSource;
@@ -99,7 +97,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final InstantiatorFactory instantiatorFactory;
 
     private String id;
-    private Map<RepositoryPropertyType, ?> properties;
+    private Map<RepositoryDescriptor.Property, ?> properties;
 
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -200,8 +198,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public RepositoryDetails getDetails() {
-        return new RepositoryDetails(
+    public RepositoryDescriptor getDescriptor() {
+        return new RepositoryDescriptor(
             getName(),
             getType(),
             getProperties()
@@ -286,15 +284,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return instantiatorFactory;
     }
 
-    private Map<RepositoryPropertyType, ?> getProperties() {
+    private Map<RepositoryDescriptor.Property, ?> getProperties() {
         if (properties == null) {
             properties = computeProperties();
         }
         return properties;
     }
 
-    private Map<RepositoryPropertyType, ?> computeProperties() {
-        ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
+    private Map<RepositoryDescriptor.Property, ?> computeProperties() {
+        ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder = ImmutableMap.builder();
 
         computeUrlProperty(builder);
         computeArtifactUrlsProperty(builder);
@@ -305,7 +303,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return builder.build();
     }
 
-    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
         if (!configuredAuthentication.isEmpty()) {
             List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
@@ -314,25 +312,25 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                     return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
                 }
             });
-            builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
+            builder.put(RepositoryDescriptor.Property.AUTHENTICATION_SCHEMES, authenticationTypes);
         }
     }
 
-    private void computeAuthenticatedProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeAuthenticatedProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         if (getConfiguredCredentials() != null) {
-            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
+            builder.put(RepositoryDescriptor.Property.AUTHENTICATED, true);
         }
     }
 
-    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         List<String> metadataSourcesList = metadataSources.asList();
         if (!metadataSourcesList.isEmpty()) {
-            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
+            builder.put(RepositoryDescriptor.Property.METADATA_SOURCES, metadataSourcesList);
         }
     }
 
-    private void computeArtifactUrlsProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
-        builder.put(RepositoryPropertyType.ARTIFACT_URLS, CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
+    private void computeArtifactUrlsProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
+        builder.put(RepositoryDescriptor.Property.ARTIFACT_URLS, CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
             @Override
             public String transform(URI uri) {
                 return uri.toASCIIString();
@@ -340,15 +338,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }));
     }
 
-    private void computeUrlProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
+    private void computeUrlProperty(ImmutableMap.Builder<RepositoryDescriptor.Property, Object> builder) {
         URI uri = getUrl();
         if (uri != null) {
-            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
+            builder.put(RepositoryDescriptor.Property.URL, uri.toASCIIString());
         }
     }
 
-    RepositoryType getType() {
-        return RepositoryType.MAVEN;
+    RepositoryDescriptor.Type getType() {
+        return RepositoryDescriptor.Type.MAVEN;
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

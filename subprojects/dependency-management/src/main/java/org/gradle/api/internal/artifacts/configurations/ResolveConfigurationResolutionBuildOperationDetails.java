@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails;
+import org.gradle.api.internal.artifacts.repositories.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.util.CollectionUtils;
 
@@ -105,7 +105,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
             @Override
             public Repository transform(ResolutionAwareRepository repository) {
-                return RepositoryImpl.from(repository.getDetails());
+                return RepositoryImpl.from(repository.getDescriptor());
             }
         });
     }
@@ -122,14 +122,14 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
             this.properties = ImmutableMap.copyOf(properties);
         }
 
-        private static RepositoryImpl from(RepositoryDetails repositoryDetails) {
-            Map<String, Object> props = new HashMap<String, Object>(repositoryDetails.properties.size());
-            for (Map.Entry<RepositoryDetails.RepositoryPropertyType, ?> entry : repositoryDetails.properties.entrySet()) {
+        private static RepositoryImpl from(RepositoryDescriptor repositoryDescriptor) {
+            Map<String, Object> props = new HashMap<String, Object>(repositoryDescriptor.properties.size());
+            for (Map.Entry<RepositoryDescriptor.Property, ?> entry : repositoryDescriptor.properties.entrySet()) {
                 props.put(entry.getKey().name(), entry.getValue());
             }
             return new RepositoryImpl(
-                repositoryDetails.type.name(),
-                repositoryDetails.name,
+                repositoryDescriptor.type.name(),
+                repositoryDescriptor.name,
                 props
             );
         }
