@@ -35,9 +35,9 @@ import java.util.Map;
  * Compares {@link org.gradle.api.internal.changedetection.state.FileCollectionSnapshot}s ignoring the path.
  */
 public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Impl {
-    private static final Comparator<Map.Entry<HashCode, FileChangeInformation>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FileChangeInformation>>() {
+    private static final Comparator<Map.Entry<HashCode, FilePathWithType>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FilePathWithType>>() {
         @Override
-        public int compare(Map.Entry<HashCode, FileChangeInformation> o1, Map.Entry<HashCode, FileChangeInformation> o2) {
+        public int compare(Map.Entry<HashCode, FilePathWithType> o1, Map.Entry<HashCode, FilePathWithType> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }
     };
@@ -53,18 +53,18 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
      */
     @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
-        ListMultimap<HashCode, FileChangeInformation> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
+        ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
-            unaccountedForPreviousFiles.put(previousSnapshot.getNormalizedContentHash(), new FileChangeInformation(absolutePath, previousSnapshot.getType()));
+            unaccountedForPreviousFiles.put(previousSnapshot.getNormalizedContentHash(), new FilePathWithType(absolutePath, previousSnapshot.getType()));
         }
 
         for (Map.Entry<String, NormalizedFileSnapshot> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
             NormalizedFileSnapshot currentSnapshot = entry.getValue();
             HashCode normalizedContentHash = currentSnapshot.getNormalizedContentHash();
-            List<FileChangeInformation> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
+            List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
             if (previousFilesForContent.isEmpty()) {
                 if (includeAdded) {
                     if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentSnapshot.getType()))) {
@@ -76,10 +76,10 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
             }
         }
 
-        List<Map.Entry<HashCode, FileChangeInformation>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
+        List<Map.Entry<HashCode, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (Map.Entry<HashCode, FileChangeInformation> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
-            FileChangeInformation removedFile = unaccountedForPreviousEntry.getValue();
+        for (Map.Entry<HashCode, FilePathWithType> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
+            FilePathWithType removedFile = unaccountedForPreviousEntry.getValue();
             if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
                 return false;
             }

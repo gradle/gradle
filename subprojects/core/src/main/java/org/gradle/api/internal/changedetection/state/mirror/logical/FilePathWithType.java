@@ -19,13 +19,15 @@ package org.gradle.api.internal.changedetection.state.mirror.logical;
 import org.gradle.internal.file.FileType;
 
 /**
- * The information about a file which is necessary to create a {@link org.gradle.api.internal.changedetection.rules.FileChange} from it.
+ * The absolute path and the type of a file.
+ *
+ * Used to construct {@link org.gradle.api.internal.changedetection.rules.FileChange}s.
  */
-public class FileChangeInformation {
+public class FilePathWithType {
     private final String absolutePath;
     private final FileType fileType;
 
-    public FileChangeInformation(String absolutePath, FileType fileType) {
+    public FilePathWithType(String absolutePath, FileType fileType) {
         this.absolutePath = absolutePath;
         this.fileType = fileType;
     }
