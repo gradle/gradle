@@ -44,10 +44,10 @@ import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Fingerprints classpath like {@link org.gradle.api.file.FileCollection}s.
+ * Fingerprints classpath-like {@link org.gradle.api.file.FileCollection}s.
  *
  * <p>
- *     This strategy uses a {@link ResourceHasher} to normalize the contents of files and a {@link ResourceFilter} to ignore resources in classpath entries. {@code .jar} files a treated as if the contents would be expanded on disk.
+ *     This strategy uses a {@link ResourceHasher} to normalize the contents of files and a {@link ResourceFilter} to ignore resources in classpath entries. {@code .jar} files are treated as if the contents would be expanded on disk.
  * </p>
  *
  * <p>
