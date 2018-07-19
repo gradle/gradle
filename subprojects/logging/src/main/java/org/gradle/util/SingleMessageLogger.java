@@ -189,25 +189,6 @@ public class SingleMessageLogger {
     /**
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
-    @VisibleForTesting
-    static void nagUserWith(String summary) {
-        if (isEnabled()) {
-            nagUserWith(summary, null);
-        }
-    }
-
-    /**
-     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
-     */
-    public static void nagUserWith(String message, String advice) {
-        if (isEnabled()) {
-            nagUserWith(message, thisWillBeRemovedMessage(), advice, null, FeatureUsage.FeatureUsageType.USER_CODE_DIRECT);
-        }
-    }
-
-    /**
-     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
-     */
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary) {
         if (isEnabled()) {
             nagUserWithDeprecatedIndirectUserCodeCause(summary, null);
@@ -237,6 +218,25 @@ public class SingleMessageLogger {
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String removalDetails, String advice, String contextualAdvice) {
         if (isEnabled()) {
             nagUserWith(summary, removalDetails, advice, contextualAdvice, FeatureUsage.FeatureUsageType.USER_CODE_INDIRECT);
+        }
+    }
+
+    /**
+     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
+     */
+    @VisibleForTesting
+    static void nagUserWith(String summary) {
+        if (isEnabled()) {
+            nagUserWith(summary, null);
+        }
+    }
+
+    /**
+     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
+     */
+    public static void nagUserWith(String message, String advice) {
+        if (isEnabled()) {
+            nagUserWith(message, thisWillBeRemovedMessage(), advice, null, FeatureUsage.FeatureUsageType.USER_CODE_DIRECT);
         }
     }
 

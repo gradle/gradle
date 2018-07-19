@@ -41,12 +41,12 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public String getContextualAdvice() {
-        return null;
+        return featureUsage.getContextualAdvice();
     }
 
     @Override
     public String getType() {
-        return null;
+        return featureUsage.getType().name();
     }
 
     @Override

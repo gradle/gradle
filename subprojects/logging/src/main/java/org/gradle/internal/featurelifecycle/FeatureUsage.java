@@ -30,7 +30,7 @@ public class FeatureUsage {
     private final String summary;
     private final String removalDetails;
     private final String advice;
-    private final FeatureUsageType usageType;
+    private final FeatureUsageType type;
     private final Class<?> calledFrom;
     private final Exception traceException;
     private final String contextualAdvice;
@@ -48,7 +48,7 @@ public class FeatureUsage {
         this.removalDetails = removalDetails;
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
-        this.usageType = usageType;
+        this.type = usageType;
         this.calledFrom = calledFrom;
         this.traceException = new Exception();
     }
@@ -59,7 +59,7 @@ public class FeatureUsage {
         this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
         this.contextualAdvice = usage.contextualAdvice;
-        this.usageType = usage.usageType;
+        this.type = usage.type;
         this.calledFrom = usage.calledFrom;
         this.traceException = Preconditions.checkNotNull(traceException);
     }
@@ -74,6 +74,14 @@ public class FeatureUsage {
 
     public String getAdvice() {
         return advice;
+    }
+
+    public String getContextualAdvice() {
+        return contextualAdvice;
+    }
+
+    public FeatureUsageType getType() {
+        return type;
     }
 
     public List<StackTraceElement> getStack() {
