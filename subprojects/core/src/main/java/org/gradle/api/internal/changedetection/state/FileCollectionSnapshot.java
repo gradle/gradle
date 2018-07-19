@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 
 import java.util.Map;
 

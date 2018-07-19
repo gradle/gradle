@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+@NonNullApi
+package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-
-public interface HistoricalFileCollectionFingerprint extends FileCollectionSnapshot {
-}
+import org.gradle.api.NonNullApi;

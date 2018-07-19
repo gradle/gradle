@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
+import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -27,7 +32,7 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class DefaultHistoricalFileCollectionFingerprint extends AbstractFileCollectionFingerprint implements HistoricalFileCollectionFingerprint {
+public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFileCollectionFingerprint {
 
     private final Map<String, NormalizedFileSnapshot> fingerprints;
     private final FingerprintCompareStrategy compareStrategy;
@@ -38,7 +43,12 @@ public class DefaultHistoricalFileCollectionFingerprint extends AbstractFileColl
     }
 
     @Override
-    protected FingerprintCompareStrategy getCompareStrategy() {
+    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldSnapshot.getSnapshots(), title, includeAdded);
+    }
+
+    @VisibleForTesting
+    FingerprintCompareStrategy getCompareStrategy() {
         return compareStrategy;
     }
 

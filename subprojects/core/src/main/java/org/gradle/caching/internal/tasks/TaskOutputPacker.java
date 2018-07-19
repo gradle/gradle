@@ -17,11 +17,11 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.io.IOException;
 import java.io.InputStream;

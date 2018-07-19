@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.hash.HashCode;
 
-public abstract class AbstractFileCollectionFingerprint implements FileCollectionSnapshot {
+/**
+ * A file collection fingerprint taken during this build.
+ */
+public interface CurrentFileCollectionFingerprint extends FileCollectionSnapshot {
+    /**
+     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
+     */
+    HashCode getHash();
 
-    @Override
-    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        return getCompareStrategy().visitChangesSince(visitor, getSnapshots(), oldSnapshot.getSnapshots(), title, includeAdded);
-    }
-
-    protected abstract FingerprintCompareStrategy getCompareStrategy();
+    /**
+     * Visits the roots of this file collection fingerprint.
+     */
+    void visitRoots(PhysicalSnapshotVisitor visitor);
 }

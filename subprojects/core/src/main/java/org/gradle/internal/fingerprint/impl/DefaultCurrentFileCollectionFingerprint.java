@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
+import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public class DefaultFileCollectionFingerprint extends AbstractFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
+public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final FingerprintCompareStrategy compareStrategy;
@@ -38,13 +44,18 @@ public class DefaultFileCollectionFingerprint extends AbstractFileCollectionFing
         if (snapshots.isEmpty()) {
             return EmptyFileCollectionSnapshot.INSTANCE;
         }
-        return new DefaultFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
+        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
     }
 
-    private DefaultFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, @Nullable Iterable<FileSystemSnapshot> roots) {
+    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, @Nullable Iterable<FileSystemSnapshot> roots) {
         this.snapshots = snapshots;
         this.compareStrategy = compareStrategy;
         this.roots = roots;
+    }
+
+    @Override
+    public boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldSnapshot.getSnapshots(), title, includeAdded);
     }
 
     @Override
@@ -70,10 +81,6 @@ public class DefaultFileCollectionFingerprint extends AbstractFileCollectionFing
         for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
         }
-    }
-
-    protected FingerprintCompareStrategy getCompareStrategy() {
-        return compareStrategy;
     }
 
     @Override

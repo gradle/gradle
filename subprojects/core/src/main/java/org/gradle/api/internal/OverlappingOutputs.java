@@ -18,8 +18,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;

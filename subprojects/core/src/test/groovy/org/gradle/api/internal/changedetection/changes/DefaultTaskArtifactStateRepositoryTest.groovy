@@ -33,7 +33,6 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -52,6 +51,7 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId

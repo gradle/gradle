@@ -24,9 +24,9 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
-import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 

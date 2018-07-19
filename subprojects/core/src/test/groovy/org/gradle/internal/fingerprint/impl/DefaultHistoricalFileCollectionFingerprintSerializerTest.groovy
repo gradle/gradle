@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical
+package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.IgnoredPathFingerprint
 import org.gradle.internal.hash.HashCode

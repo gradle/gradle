@@ -30,8 +30,6 @@ import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
-import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
-import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -43,6 +41,8 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 
 import java.io.File;
 import java.io.IOException;
@@ -170,7 +170,7 @@ public class TaskOutputCacheCommandFactory {
                     default:
                         throw new AssertionError();
                 }
-                propertySnapshotsBuilder.put(propertyName, DefaultFileCollectionFingerprint.from(roots, fingerprintingStrategy));
+                propertySnapshotsBuilder.put(propertyName, DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy));
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
         }

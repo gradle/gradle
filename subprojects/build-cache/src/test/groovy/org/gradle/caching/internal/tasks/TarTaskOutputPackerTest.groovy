@@ -23,12 +23,12 @@ import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy
-import org.gradle.api.internal.changedetection.state.mirror.logical.DefaultFileCollectionFingerprint
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestFileHasher
@@ -358,14 +358,14 @@ class TarTaskOutputPackerTest extends Specification {
                     if (output == null) {
                         return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    return DefaultFileCollectionFingerprint.from([snapshotter.snapshotSelf(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotSelf(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
                         return EmptyFileCollectionSnapshot.INSTANCE
                     }
-                    return DefaultFileCollectionFingerprint.from([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             default:
                 throw new AssertionError()

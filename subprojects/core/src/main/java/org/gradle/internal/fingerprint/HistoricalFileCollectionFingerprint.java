@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.internal.hash.HashCode;
 
-public interface CurrentFileCollectionFingerprint extends FileCollectionSnapshot {
-    /**
-     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
-     */
-    HashCode getHash();
-
-    /**
-     * Visits the roots of this file collection fingerprint.
-     */
-    void visitRoots(PhysicalSnapshotVisitor visitor);
+/**
+ * A file collection fingerprint loaded from the task history.
+ */
+public interface HistoricalFileCollectionFingerprint extends FileCollectionSnapshot {
 }

@@ -16,8 +16,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 

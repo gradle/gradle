@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 
 import javax.annotation.Nonnull;
 

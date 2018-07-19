@@ -19,8 +19,8 @@ package org.gradle.caching.internal.tasks;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
