@@ -60,7 +60,7 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     @Override
     public Set<File> getFiles() {
         if (!taskIsExecuting) {
-            throw new IllegalStateException("Can only query " + calculatedFiles.getDisplayName() + " while task " + taskPath + " is running");
+            return calculatedFiles.getFiles();
         }
         if (cachedFiles == null) {
             cachedFiles = calculatedFiles.getFiles();
