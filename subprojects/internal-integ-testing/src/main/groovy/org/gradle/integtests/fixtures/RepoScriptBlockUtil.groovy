@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.MirroredRepository.GOOGLE
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.MirroredRepository.JCENTER
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.MirroredRepository.MAVEN_CENTRAL
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
@@ -154,6 +157,26 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
     }
 
+    static void replaceExternalRepos(File rootDir) {
+        if (rootDir != null && rootDir.isDirectory()) {
+            rootDir.eachFileRecurse { file ->
+                if (file.name == 'build.gradle') {
+                    replaceRepositoriesInBuildFile(file, GROOVY)
+                } else if (file.name == 'build.gradle.kts') {
+                    replaceRepositoriesInBuildFile(file, KOTLIN)
+                }
+            }
+        }
+    }
+
+    static replaceRepositoriesInBuildFile(File file, GradleDsl dsl) {
+        String text = file.text
+        [JCENTER, MAVEN_CENTRAL, GOOGLE].each {
+            text = text.replace(it.declaration, it.getRepositoryDefinition(dsl))
+        }
+        file.text = text
+    }
+
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
@@ -169,7 +192,11 @@ class RepoScriptBlockUtil {
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
             
-            apply plugin: MirrorPlugin
+            // Sometimes, applying this init script in a composite build will result in
+            // java.lang.IllegalStateException: Root project has not been attached
+            if(gradle.findIdentityPath()!=null) {
+                gradle.pluginManager.apply(MirrorPlugin)
+            }
 
             @CompileStatic
             class MirrorPlugin implements Plugin<Gradle> {

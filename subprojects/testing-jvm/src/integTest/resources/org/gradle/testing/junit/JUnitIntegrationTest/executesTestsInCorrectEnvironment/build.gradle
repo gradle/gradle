@@ -2,8 +2,10 @@ apply plugin: 'java'
 repositories { mavenCentral() }
 dependencies { testCompile 'junit:junit:4.12', 'ant:ant:1.6.1', 'ant:ant-launcher:1.6.1' }
 test {
-    systemProperties.testSysProperty = 'value'
-    systemProperties.projectDir = projectDir
-    systemProperties.expectedClassPath = sourceSets.test.runtimeClasspath.asPath
-    environment.TEST_ENV_VAR = 'value'
+    doFirst {
+        systemProperties.testSysProperty = 'value'
+        systemProperties.projectDir = projectDir
+        systemProperties.expectedClassPath = sourceSets.test.runtimeClasspath.asPath
+        environment.TEST_ENV_VAR = 'value'
+    }
 }

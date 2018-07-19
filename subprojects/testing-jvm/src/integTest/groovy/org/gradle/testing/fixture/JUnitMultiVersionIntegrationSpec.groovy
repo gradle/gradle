@@ -17,6 +17,7 @@
 package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Assume
@@ -39,6 +40,12 @@ import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
 abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
     // JUnit 5's test case name contains parentheses which might break test assertion, e.g. testMethod() PASSED -> testMethod PASSED
     private static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
+
+    def setup() {
+        executer.beforeExecute {
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        }
+    }
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {

@@ -17,7 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -25,7 +25,7 @@ import org.junit.Rule
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertJunit
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertTestNg
 
-class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+class TestExecutionBuildOperationsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)

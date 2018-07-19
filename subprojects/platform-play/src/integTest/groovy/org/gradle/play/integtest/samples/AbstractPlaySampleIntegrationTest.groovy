@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -30,7 +30,7 @@ import static org.gradle.integtests.fixtures.UrlValidator.*
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.*
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
-abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrationTest {
     File initScript
     RunningPlayApp runningPlayApp = new RunningPlayApp(testDirectory)
 

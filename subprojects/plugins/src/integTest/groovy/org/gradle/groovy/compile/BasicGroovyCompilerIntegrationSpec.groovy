@@ -19,6 +19,7 @@ import com.google.common.collect.Ordering
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -46,6 +47,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
+        executer.beforeExecute {
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        }
     }
 
     def "compileGoodCode"() {
