@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIntegrationTest {
@@ -53,6 +54,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
+    @Ignore
     def "can execute logic during #lifecyclePhase"() {
         executer.inDirectory(new File(sample.dir, subDirName))
 

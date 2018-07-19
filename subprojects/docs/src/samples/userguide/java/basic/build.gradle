@@ -58,8 +58,10 @@ dependencies {
 }
 
 javadoc {
-    options.docletpath = configurations.asciidoclet.files.toList()
-    options.doclet = 'org.asciidoctor.Asciidoclet'
+    doFirst {
+        options.docletpath = configurations.asciidoclet.files.toList()
+        options.doclet = 'org.asciidoctor.Asciidoclet'
+    }
 }
 // END SNIPPET using-custom-doclet
 
