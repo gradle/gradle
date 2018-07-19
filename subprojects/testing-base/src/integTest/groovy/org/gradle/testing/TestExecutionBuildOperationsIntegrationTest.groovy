@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertJunit
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertTestNg
@@ -83,6 +84,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractSampleIntegrat
         assertJunit(rootTestOp, this.operations)
     }
 
+    @Ignore
     def "emits test operations as expected for composite builds"() {
         given:
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest')
