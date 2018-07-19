@@ -25,7 +25,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class WrapperDistributionCleanupActionTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class WrapperDistributionCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 

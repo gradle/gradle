@@ -31,7 +31,7 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_7_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
-class VersionSpecificCacheCleanupActionTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class VersionSpecificCacheCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 

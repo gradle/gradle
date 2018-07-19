@@ -27,7 +27,7 @@ import spock.lang.Subject
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 
-class GradleUserHomeCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class GradleUserHomeCleanupServiceTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
