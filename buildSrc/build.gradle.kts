@@ -154,6 +154,7 @@ fun Project.applyGroovyProjectConventions() {
         testCompile("cglib:cglib:3.2.6")
         testCompile("org.objenesis:objenesis:2.4")
         constraints {
+            // This must match the Groovy version bundled with the Gradle wrapper used to build the project
             compile("org.codehaus.groovy:groovy-all:2.4.12")
         }
     }
