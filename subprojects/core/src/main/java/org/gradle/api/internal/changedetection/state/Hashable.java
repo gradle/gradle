@@ -21,7 +21,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 /**
  * A snapshot of the state of some thing.
  */
-public interface Snapshot {
+public interface Hashable {
     /**
      * Appends the snapshot to the given hasher.
      */

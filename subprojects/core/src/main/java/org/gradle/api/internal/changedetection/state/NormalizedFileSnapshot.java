@@ -27,7 +27,7 @@ import org.gradle.internal.hash.HashCode;
  *
  * File snapshots are cached between builds, so their memory footprint should be kept to a minimum.
  */
-public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
+public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Hashable {
     String getNormalizedPath();
     HashCode getNormalizedContentHash();
     FileType getType();

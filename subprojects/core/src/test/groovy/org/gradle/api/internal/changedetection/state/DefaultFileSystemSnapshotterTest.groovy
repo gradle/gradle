@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -253,7 +252,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         f << "some other content"
 
         def snapshot2 = snapshotter.snapshotAll(f)
-        hash(snapshot) != hash(snapshot2)
+        snapshot != snapshot2
     }
 
     def "snapshots a missing file and caches the result"() {
@@ -267,7 +266,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         f.createDir()
 
         def snapshot2 = snapshotter.snapshotAll(f)
-        hash(snapshot) != hash(snapshot2)
+        snapshot != snapshot2
     }
 
     def "snapshots a directory tree and caches the result"() {
@@ -283,7 +282,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         f.createFile("newFile")
 
         def snapshot2 = snapshotter.snapshotAll(f)
-        hash(snapshot) != hash(snapshot2)
+        snapshot != snapshot2
     }
 
     def "determines whether file exists when snapshot is cached"() {
@@ -311,12 +310,6 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshotter.exists(f)
         snapshotter.exists(d)
         !snapshotter.exists(m)
-    }
-
-    def hash(Snapshot snapshot) {
-        def builder = new DefaultBuildCacheHasher()
-        snapshot.appendToHasher(builder)
-        return builder.hash()
     }
 
     private static DirectoryFileTree dirTree(File dir) {

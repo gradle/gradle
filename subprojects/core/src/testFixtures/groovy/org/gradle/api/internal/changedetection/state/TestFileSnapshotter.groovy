@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnaps
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 
 class TestFileSnapshotter implements FileSystemSnapshotter {
@@ -43,7 +44,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    Snapshot snapshotAll(File file) {
+    HashCode snapshotAll(File file) {
         throw new UnsupportedOperationException()
     }
 
