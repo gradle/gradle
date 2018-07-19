@@ -56,6 +56,11 @@ import spock.lang.Specification
 abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     @Shared DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
         .parent(NativeServicesTestFixture.getInstance())
+        .provider(new Object() {
+            OutputEventListener createOutputEventListener() {
+                return OutputEventListener.NO_OP
+            }
+        })
         .provider(new GlobalScopeServices(false))
         .build()
     final MessagingServer server = services.get(MessagingServer.class)
