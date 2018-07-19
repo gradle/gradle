@@ -121,7 +121,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 if (snapshot == null) {
                     CurrentFileCollectionFingerprint fileCollectionFingerprint = snapshotter.snapshot(ImmutableFileCollection.of(file), PathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
                     DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-                    fileCollectionFingerprint.appendToHasher(hasher);
+                    hasher.putHash(fileCollectionFingerprint.getHash());
                     HashCode hashCode = hasher.hash();
                     snapshot = new HashBackedSnapshot(hashCode);
                     String internedPath = internPath(file);

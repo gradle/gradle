@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 
@@ -71,11 +70,6 @@ public class DefaultFileCollectionFingerprint extends AbstractFileCollectionFing
         for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
         }
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putHash(getHash());
     }
 
     protected FingerprintCompareStrategy getCompareStrategy() {

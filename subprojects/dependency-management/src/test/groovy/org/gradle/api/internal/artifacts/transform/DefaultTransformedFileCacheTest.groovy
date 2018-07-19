@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import groovy.transform.EqualsAndHashCode
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint
+import org.gradle.api.internal.changedetection.state.Snapshot
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
@@ -94,7 +95,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         and:
         1 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * fileAccessTimeJournal.setLastAccessTime(_, _)
+        0 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * snapshotter._
         0 * transform._
     }
@@ -285,7 +286,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         cache.getResult(inputFile, HashCode.fromInt(123), transform1)
 
         when:
-        def result = cache.getResult(inputFile, HashCode.fromInt(123), transform2)
+        def result = cache.getResult(inputFile, HashCode.fromInt(345), transform2)
 
         then:
         result*.name == ["a.2"]
@@ -299,7 +300,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         when:
         def result2 = cache.getResult(inputFile, HashCode.fromInt(123), transform1)
-        def result3 = cache.getResult(inputFile, HashCode.fromInt(123), transform2)
+        def result3 = cache.getResult(inputFile, HashCode.fromInt(345), transform2)
 
         then:
         result2*.name == ["a.1"]
@@ -307,7 +308,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         and:
         2 * snapshotter.snapshotAll(inputFile) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
-        2 * fileAccessTimeJournal.setLastAccessTime(_, _)
+        0 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform1._
         0 * transform2._
     }
@@ -396,8 +397,21 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def snapshot(HashCode hashCode) {
-        CurrentFileCollectionFingerprint snapshot = Stub(CurrentFileCollectionFingerprint)
-        snapshot.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putHash(hashCode) }
-        snapshot
+        new HashSnapshot(hashCode)
+    }
+}
+
+@EqualsAndHashCode
+class HashSnapshot implements Snapshot {
+
+    private final HashCode hashCode
+
+    HashSnapshot(HashCode hashCode) {
+        this.hashCode = hashCode
+    }
+
+    @Override
+    void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putHash(hashCode)
     }
 }

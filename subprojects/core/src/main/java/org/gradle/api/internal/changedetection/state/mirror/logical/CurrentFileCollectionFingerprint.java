@@ -17,11 +17,10 @@
 package org.gradle.api.internal.changedetection.state.mirror.logical;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.hash.HashCode;
 
-public interface CurrentFileCollectionFingerprint extends FileCollectionSnapshot, Snapshot {
+public interface CurrentFileCollectionFingerprint extends FileCollectionSnapshot {
     /**
      * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
      */

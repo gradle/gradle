@@ -21,7 +21,6 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.logical.CurrentFileCollectionFingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.logical.HistoricalFileCollectionFingerprint;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
@@ -63,11 +62,6 @@ public class EmptyFileCollectionSnapshot implements CurrentFileCollectionFingerp
     @Override
     public HistoricalFileCollectionFingerprint archive() {
         return this;
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putHash(SIGNATURE);
     }
 
     @Override
