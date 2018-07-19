@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 
 public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
 
-
     /**
      * <p>Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
      */

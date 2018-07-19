@@ -63,6 +63,12 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         ResolvedComponentResult getRootComponent();
 
+        /**
+         * If the component was resolved from a repository, its {@link Repository#getId()}.
+         */
+        @Nullable
+        String getRepositoryId(ResolvedComponentResult resolvedComponentResult);
+
     }
 
     /**
