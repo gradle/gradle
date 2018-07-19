@@ -295,10 +295,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     if (phase == Phases.CANONICALIZATION) {
                         Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
                         if (!deprecatedImports.isEmpty()) {
-                            DeprecationLogger.nagUserWith("The support for implicit import of internal classes is deprecated.",
-                                "The support for implicit import of internal classes is deprecated and will be removed in Gradle 5.0.",
-                                "Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file.",
-                                StringUtils.capitalize(script.getDisplayName()) + " is using " + Joiner.on(" and ").join(deprecatedImports) + ".");
+                            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("The support for implicit import of internal classes",
+                                "Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.",
+                                StringUtils.capitalize(script.getDisplayName()) + " is using " + Joiner.on(" and ").join(deprecatedImports) + " from the private org.gradle.util package.");
                         }
                     }
                 }

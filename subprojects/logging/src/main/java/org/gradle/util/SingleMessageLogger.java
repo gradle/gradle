@@ -215,11 +215,11 @@ public class SingleMessageLogger {
     }
 
     public static void nagUserWithDeprecatedInvocationFeature(String summary, String advice) {
-        nagUserWith(summary, thisWillBeRemovedMessage(), advice, null, FeatureUsage.FeatureUsageType.INVOCATION);
+        nagUserWithDeprecatedInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
     }
 
     public static void nagUserWithDeprecatedInvocationFeature(String summary, String removalDetails, String advice) {
-        nagUserWith(summary, thisWillBeRemovedMessage(), advice, null, FeatureUsage.FeatureUsageType.INVOCATION);
+        nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, null, FeatureUsage.FeatureUsageType.INVOCATION);
     }
 
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String advice) {
