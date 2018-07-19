@@ -175,13 +175,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (currentExecution.getDetectedOverlappingOutputs() == null) {
             newOutputSnapshot = outputFilesAfter;
         } else {
-            newOutputSnapshot = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+            newOutputSnapshot = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesFingerprintBeforeExecution(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, FileCollectionSnapshot>() {
                 @Override
                 @SuppressWarnings("NullableProblems")
-                public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
+                public FileCollectionSnapshot transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
                     CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
                     HistoricalFileCollectionFingerprint afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
-                    return filterOutputSnapshot(afterPreviousExecution, (CurrentFileCollectionFingerprint) beforeExecution, afterExecution);
+                    return filterOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
                 }
             }));
         }
@@ -190,7 +190,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private void updateExecution(CurrentTaskExecution currentExecution, TaskInternal task, ImmutableSortedMap<String, ? extends FileCollectionSnapshot> newOutputSnapshot) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
-        currentExecution.setOutputFilesSnapshot(newOutputSnapshot);
+        currentExecution.setOutputFilesFingerprintAfterExecution(newOutputSnapshot);
     }
 
     /**
