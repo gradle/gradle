@@ -45,7 +45,7 @@ The only mandatory configuration for the plugin is the specification of the main
 include::{samplesPath}/application/build.gradle[tag=mainClassName-conf]
 ----
 
-You can run the application by executing the `run` task (type: link:{javadocPath}/org.gradle.api.tasks.tasks.JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
+You can run the application by executing the `run` task (type: link:{javadocPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
 
 Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args 'foo --bar'` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setArgsString-java.lang.String-[JavaExec.setArgsString(java.lang.String)].
 
@@ -103,7 +103,7 @@ By specifying that the distribution should include the task's output files (see 
 
 === Example: Automatically creating files for distribution
 
-.Output of`gradle distZip`
+.Output of `gradle distZip`
 ----
 > gradle distZip
 include::{samplesPath}/application/dependentTaskForApplicationDistributionOutput.out[]
@@ -123,7 +123,7 @@ The start scripts are completely customizable. Please refer to the documentation
 
 The Application plugin adds the following tasks to the project.
 
-`run` — type: link:{groovyDslPath}/org.gradle.api.tasks.tasks.JavaExec.html[JavaExec]::
+`run` — type: link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]::
 _Depends on_: `classes`
 +
 Starts the application.
@@ -133,7 +133,7 @@ _Depends on_: `jar`
 +
 Creates OS specific scripts to run the project as a JVM application.
 
-`installDist` — type: link:{groovyDslPath}/org.gradle.api.tasks.tasks.Sync.html[Sync]::
+`installDist` — type: link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
 _Depends on_: `jar`, `startScripts`
 +
 Installs the application into a specified directory.
