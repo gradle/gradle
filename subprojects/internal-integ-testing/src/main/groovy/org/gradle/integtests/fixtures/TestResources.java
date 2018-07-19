@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.gradle.integtests.fixtures.ReplaceExternalRepos.*;
-
 /**
  * Provides access to test resources for integration testing. Looks for the following directory in the test classpath:
  * <ul> <li>${testClass}/shared</li> <li>${testClass}/${testName}</li> </ul>
@@ -75,7 +73,6 @@ public class TestResources implements MethodRule {
         if (dir != null) {
             logger.debug("Copying test resource '{}' from {} to test directory.", resource, dir);
             dir.copyTo(getDir());
-            replaceExternalRepos(getDir());
         } else {
             logger.debug("Test resource '{}' not found, skipping.", resource);
         }

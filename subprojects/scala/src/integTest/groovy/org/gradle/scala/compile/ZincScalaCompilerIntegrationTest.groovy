@@ -17,6 +17,7 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
@@ -37,6 +38,9 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         args("-PscalaVersion=$version")
         buildFile << buildScript()
+        executer.beforeExecute {
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        }
     }
 
     def compileGoodCode() {

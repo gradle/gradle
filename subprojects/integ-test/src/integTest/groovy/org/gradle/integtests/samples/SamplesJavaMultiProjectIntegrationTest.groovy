@@ -45,9 +45,11 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
         javaprojectDir = sample.dir
         projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
+        executer.beforeExecute {
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        }
     }
 
     @Test

@@ -159,9 +159,10 @@ class RepoScriptBlockUtil {
         mirrors.deleteOnExit()
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
-                if (repo.url.toString() == '${mirror.originalUrl}') {
+                if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
                     repo.url = '${mirror.mirrorUrl}'
                 }
+                
             """
         }.join("")
         mirrors << """
@@ -209,6 +210,13 @@ class RepoScriptBlockUtil {
 
                 void mirror(IvyArtifactRepository repo) {
                     ${mirrorConditions}
+                }
+                
+                // We see them as equal:
+                // https://repo.maven.apache.org/maven2/ and http://repo.maven.apache.org/maven2
+                String normalizeUrl(Object url) {
+                    String result = url.toString().replace('https://', 'http://')
+                    return result.endsWith("/") ? result : result + "/"
                 }
             }
         """

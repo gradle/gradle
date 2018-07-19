@@ -15,10 +15,11 @@
  */
 
 package org.gradle.buildinit.plugins
+
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ReplaceExternalRepos
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -51,7 +52,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
         executer.beforeExecute {
-            ReplaceExternalRepos.replaceExternalRepos(testDirectory)
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
         }
     }
 

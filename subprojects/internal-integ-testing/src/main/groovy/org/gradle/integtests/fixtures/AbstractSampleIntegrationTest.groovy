@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins
+package org.gradle.integtests.fixtures
 
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-
-class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
-
+abstract class AbstractSampleIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
         executer.beforeExecute {
             executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
         }
-    }
-
-    protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
-        ScriptDslFixture.of(dsl, testDirectory)
     }
 }

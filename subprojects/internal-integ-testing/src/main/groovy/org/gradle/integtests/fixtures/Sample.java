@@ -65,7 +65,6 @@ public class Sample implements MethodRule {
                     TestFile srcDir = new IntegrationTestBuildContext().getSamplesDir().file(sampleName).assertIsDir(hintForMissingSample);
                     logger.debug("Copying sample '{}' to test directory.", sampleName);
                     srcDir.copyTo(getDir());
-                    ReplaceExternalRepos.replaceExternalRepos(getDir());
                 } else {
                     logger.debug("No sample specified for this test, skipping.");
                 }
