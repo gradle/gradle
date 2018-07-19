@@ -484,7 +484,23 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             Task foo = tasks.create("foo")
             
-            tasks.add(foo)
+            tasks.add(new Bar("bar", foo))
+            
+            class Bar implements Task {
+                String name
+                
+                @Delegate
+                Task delegate
+                
+                Bar(String name, Task delegate) {
+                    this.name = name
+                    this.delegate = delegate
+                }
+                
+                String getName() {
+                    return name
+                }
+            }
         """
 
         when:
