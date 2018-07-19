@@ -19,6 +19,8 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -904,5 +906,34 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 
         then:
         skipped(':compileJava')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "recompiles when module info changes"() {
+        given:
+        java("""
+            import java.util.logging.Logger;
+            class Foo {
+                Logger logger;
+            }
+        """)
+        def moduleInfo = file("src/main/java/module-info.java")
+        moduleInfo.text = """
+            module foo {
+                requires java.logging;
+            }
+        """
+
+        succeeds'compileJava'
+
+        when:
+        moduleInfo.text = """
+            module foo {
+            }
+        """
+
+        then:
+        fails'compileJava'
+        result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 }

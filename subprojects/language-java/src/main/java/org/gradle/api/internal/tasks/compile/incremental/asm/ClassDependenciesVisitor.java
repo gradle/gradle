@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
@@ -99,6 +100,12 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             maybeAddSuperType(interfaceType);
         }
 
+    }
+
+    @Override
+    public ModuleVisitor visitModule(String name, int access, String version) {
+        dependencyToAll = true;
+        return null;
     }
 
     // performs a fast analysis of classes referenced in bytecode (method bodies)
