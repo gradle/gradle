@@ -33,7 +33,7 @@ include::{samplesPath}/userguide/basePlugin/build.gradle[tag=apply-base-plugin]
 == Task
 
 `clean` — type: `Delete`::
-Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:getBuildDir()[Project.getBuildDir()] project property.
+Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] project property.
 
 `check` — _lifecycle task_::
 Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
