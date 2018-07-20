@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
+import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor
