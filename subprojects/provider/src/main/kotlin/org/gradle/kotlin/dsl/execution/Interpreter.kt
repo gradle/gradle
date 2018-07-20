@@ -82,6 +82,7 @@ class Interpreter(val host: Host) {
         )
 
         fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
@@ -236,6 +237,7 @@ class Interpreter(val host: Host) {
 
         val cachedDir =
             host.cachedDirFor(
+                scriptHost,
                 templateId,
                 sourceHash,
                 parentClassLoader,
@@ -438,6 +440,7 @@ class Interpreter(val host: Host) {
 
             val cacheDir =
                 host.cachedDirFor(
+                    scriptHost,
                     scriptTemplateId,
                     sourceHash,
                     parentClassLoader,

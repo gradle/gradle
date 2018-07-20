@@ -24,8 +24,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.cache.CacheOpenException
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder
+import org.gradle.caching.internal.controller.BuildCacheController
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -36,7 +36,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
+import org.gradle.kotlin.dsl.cache.LoadDirectory
+import org.gradle.kotlin.dsl.cache.ScriptBuildCacheKey
 import org.gradle.kotlin.dsl.cache.ScriptCache
+import org.gradle.kotlin.dsl.cache.StoreDirectory
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
@@ -50,10 +53,12 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
+
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import java.io.File
@@ -195,6 +200,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
@@ -209,19 +215,46 @@ class StandardKotlinScriptEvaluator(
                 accessorsClassPath?.let { baseCacheKey + it }
                     ?: baseCacheKey
 
-            cacheDirFor(effectiveCacheKey) {
-                initializer(baseDir)
-            }
+            cacheDirFor(scriptHost, effectiveCacheKey, initializer)
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
 
         private
-        fun cacheDirFor(cacheKeySpec: CacheKeyBuilder.CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
-            scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
+        fun cacheDirFor(
+            scriptHost: KotlinScriptHost<*>,
+            cacheKeySpec: CacheKeyBuilder.CacheKeySpec,
+            initializer: (File) -> Unit
+        ): File =
+            scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties) { baseDir, cacheKey ->
+
+                val cacheDir =
+                    File(baseDir, "cache").apply { require(mkdir()) }
+
+                // TODO: Move BuildCacheController integration to ScriptCache
+                val cacheController =
+                    if (scriptCache.hasBuildCacheIntegration) buildCacheControllerOf(scriptHost) else null
+
+                if (cacheController != null) {
+                    val buildCacheKey = ScriptBuildCacheKey(scriptHost.scriptSource.displayName, cacheKey)
+                    val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey))
+                    if (existing == null) {
+                        initializer(cacheDir)
+                        cacheController.store(StoreDirectory(cacheDir, buildCacheKey))
+                    }
+                } else {
+                    initializer(cacheDir)
+                }
+            }.resolve("cache")
 
         private
-        val cacheProperties = mapOf("version" to "11")
+        fun buildCacheControllerOf(scriptHost: KotlinScriptHost<*>) =
+            (scriptHost.target as? Project)
+                ?.serviceOf<BuildCacheController>()
+                ?.takeIf { it.isEnabled }
+
+        private
+        val cacheProperties = mapOf("version" to "12")
 
         private
         val cacheKeyPrefix =
