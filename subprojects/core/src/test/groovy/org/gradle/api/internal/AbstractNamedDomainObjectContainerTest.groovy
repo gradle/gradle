@@ -112,6 +112,19 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         otherObj.get().prop == 'value'
     }
 
+    def "can find registered objects"() {
+        when:
+        container.register("someObj")
+        container.register("otherObj") {
+            prop = 'value'
+        }
+        def someObj = container.named("someObj")
+        def otherObj = container.named("otherObj")
+        then:
+        someObj.present
+        otherObj.get().prop == 'value'
+    }
+
     def "propagates nested MissingMethodException"() {
         container.create('someObj')
 
