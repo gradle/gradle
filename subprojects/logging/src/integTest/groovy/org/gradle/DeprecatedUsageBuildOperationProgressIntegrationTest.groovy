@@ -97,7 +97,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         invocationDeprecation.details.summary == 'Some invocation feature has been deprecated.'
         invocationDeprecation.details.removalDetails == 'This is scheduled to be removed in Gradle 5.0.'
         invocationDeprecation.details.advice == "Don't do custom invocation."
-        invocationDeprecation.details.type == "INVOCATION"
+        invocationDeprecation.details.type == "BUILD_INVOCATION"
         invocationDeprecation.details.stackTrace.size > 0
         invocationDeprecation.details.stackTrace[0].fileName.endsWith('build.gradle')
         invocationDeprecation.details.stackTrace[0].lineNumber == 5
