@@ -18,8 +18,9 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.gradleKotlinDsl
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+
+import org.gradle.kotlin.dsl.*
 
 
 /**
@@ -29,14 +30,18 @@ import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations
  * - Configures the Kotlin DSL compiler plugins
  *
+ * You can use the `kotlinDslPluginOptions` extension of type [KotlinDslPluginOptions] to configure the plugin.
+ *
+ * @see KotlinDslPluginOptions
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
-open class KotlinDslPlugin : Plugin<Project> {
+class KotlinDslPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {
 
             applyEmbeddedKotlinPlugin()
+            createOptionsExtension()
             applyKotlinDslCompilerPlugins()
             addGradleKotlinDslDependencyTo("compileOnly", "testImplementation")
         }
@@ -45,6 +50,11 @@ open class KotlinDslPlugin : Plugin<Project> {
     private
     fun Project.applyEmbeddedKotlinPlugin() {
         plugins.apply(EmbeddedKotlinPlugin::class.java)
+    }
+
+    private
+    fun Project.createOptionsExtension() {
+        extensions.add("kotlinDslPluginOptions", KotlinDslPluginOptions(objects))
     }
 
     private
