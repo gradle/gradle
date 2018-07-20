@@ -18,10 +18,10 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.model.ObjectFactory
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -37,10 +37,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
 
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.PropertyState
-import org.gradle.api.provider.SetProperty
 
 import org.gradle.api.tasks.TaskContainer
 
@@ -188,30 +185,38 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
 
 
 /**
- * Creates a [Property] that holds values of the given type [T].
+ * Creates a container for managing named objects of the specified type.
  *
- * @see [ObjectFactory.property]
+ * The specified type must have a public constructor which takes the name as a [String] parameter.
+ *
+ * All objects **MUST** expose their name as a bean property named `name`.
+ * The name must be constant for the life of the object.
+ *
+ * @param T The type of objects for the container to contain.
+ * @return The container.
+ *
+ * @see [Project.container]
  */
-inline fun <reified T> ObjectFactory.property(): Property<T> =
-    property(T::class.java)
+inline fun <reified T> Project.container(): NamedDomainObjectContainer<T> =
+    container(T::class.java)
 
 
 /**
- * Creates a [SetProperty] that holds values of the given type [T].
+ * Creates a container for managing named objects of the specified type.
  *
- * @see [ObjectFactory.setProperty]
- */
-inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
-    setProperty(T::class.java)
-
-
-/**
- * Creates a [ListProperty] that holds values of the given type [T].
+ * The given factory is used to create object instances.
  *
- * @see [ObjectFactory.listProperty]
+ * All objects **MUST** expose their name as a bean property named `name`.
+ * The name must be constant for the life of the object.
+ *
+ * @param T The type of objects for the container to contain.
+ * @param factory The factory to use to create object instances.
+ * @return The container.
+ *
+ * @see [Project.container]
  */
-inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
-    listProperty(T::class.java)
+inline fun <reified T> Project.container(noinline factory: (String) -> T): NamedDomainObjectContainer<T> =
+    container(T::class.java, factory)
 
 
 /**
