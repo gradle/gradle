@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.PersistentCache
 
 import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
@@ -35,27 +34,29 @@ class ScriptCache(
     val cacheKeyBuilder: CacheKeyBuilder,
 
     private
-    val recompileScripts: Boolean
+    val recompileScripts: Boolean,
+
+    val hasBuildCacheIntegration: Boolean
 ) {
 
     fun cacheDirFor(
         keySpec: CacheKeySpec,
         properties: Map<String, Any?>? = null,
-        initializer: PersistentCache.() -> Unit
-    ): File =
-
-        cacheRepository
-            .cache(cacheKeyFor(keySpec))
+        initializer: (File, String) -> Unit
+    ): File {
+        val cacheKey = cacheKeyFor(keySpec)
+        return cacheRepository.cache(cacheKey)
             .apply { properties?.let { withProperties(it) } }
             .apply { if (recompileScripts) withValidator { false } }
-            .withInitializer(initializer)
+            .withInitializer { initializer(it.baseDir, cacheKey) }
             .open().run {
                 close()
                 baseDir
             }
+    }
 
     private
-    fun cacheKeyFor(spec: CacheKeySpec) = cacheKeyBuilder.build(spec)
+    fun cacheKeyFor(spec: CacheKeySpec): String = cacheKeyBuilder.build(spec)
 }
 
 
