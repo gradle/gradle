@@ -38,7 +38,7 @@ fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
 }
 
 
-internal
+private
 fun fileEntriesRelativeTo(baseDir: File, files: Sequence<File>): Sequence<Pair<String, ByteArray>> =
     files.filter { it.isFile }.map { file ->
         val path = file.normalisedPathRelativeTo(baseDir)
