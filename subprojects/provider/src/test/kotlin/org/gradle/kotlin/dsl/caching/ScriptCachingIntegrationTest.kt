@@ -250,8 +250,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     fun withMultiProjectBuild(settings: String = "", root: String = "", left: String = "", right: String = "") =
         MultiProjectCachedScripts(
             cachedSettingsFile(
-                withSettings(
-                    """
+                withSettings("""
                     $settings
                     rootProject.name = "${projectRoot.name}" // distinguish settings files
                     include("right", "left")
