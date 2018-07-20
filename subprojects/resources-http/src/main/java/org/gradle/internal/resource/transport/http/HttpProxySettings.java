@@ -17,7 +17,7 @@ package org.gradle.internal.resource.transport.http;
 
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
+import org.gradle.internal.credentials.DefaultPasswordCredentials;
 
 public interface HttpProxySettings {
 

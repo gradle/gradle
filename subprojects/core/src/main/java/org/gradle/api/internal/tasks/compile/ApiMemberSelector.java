@@ -20,6 +20,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.ModuleVisitor;
 
 import java.util.Set;
 import java.util.SortedSet;
@@ -63,6 +64,11 @@ public class ApiMemberSelector extends ClassVisitor {
         super.visit(version, access, name, signature, superName, interfaces);
         classMember = new ClassMember(version, access, name, signature, superName, interfaces);
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
+    }
+
+    @Override
+    public ModuleVisitor visitModule(String name, int access, String version) {
+        return apiMemberAdapter.visitModule(name, access, version);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
@@ -39,7 +40,7 @@ public class CurrentCompilation {
     }
 
     public ClasspathSnapshot getClasspathSnapshot() {
-        return classpathSnapshotProvider.getClasspathSnapshot(spec.getCompileClasspath());
+        return classpathSnapshotProvider.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath()));
     }
 
     public Collection<File> getAnnotationProcessorPath() {
