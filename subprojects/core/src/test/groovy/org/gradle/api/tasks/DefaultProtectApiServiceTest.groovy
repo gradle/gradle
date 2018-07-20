@@ -40,7 +40,7 @@ class DefaultProtectApiServiceTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "someMethod() cannot be executed while configuring a lazy task"
+        ex.message == "someProtectedMethod() cannot be executed while configuring a lazy task"
     }
 
     def "doesn't throw exception when calling protected method when allowed"() {

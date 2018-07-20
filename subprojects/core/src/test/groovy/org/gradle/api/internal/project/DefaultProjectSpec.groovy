@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.tasks.ProtectApiService
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.groovy.scripts.ScriptSource
@@ -158,6 +159,7 @@ class DefaultProjectSpec extends Specification {
         _ * serviceRegistry.get(Instantiator) >> instantiator
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
+        _ * serviceRegistry.get(ProtectApiService) >> Stub(ProtectApiService)
 
         def fileResolver = Mock(FileResolver) { getPatternSetFactory() >> TestFiles.getPatternSetFactory() }
         def taskResolver = Mock(TaskResolver)
