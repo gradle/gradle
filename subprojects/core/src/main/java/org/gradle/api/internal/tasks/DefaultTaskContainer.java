@@ -55,6 +55,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -564,6 +565,68 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        warnAboutRemoveMethodDeprecation("remove(Object)");
+        return super.remove(o);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        warnAboutRemoveMethodDeprecation("removeAll(Collection)");
+        return super.removeAll(c);
+    }
+
+    @Override
+    public void clear() {
+        warnAboutRemoveMethodDeprecation("clear()");
+        super.clear();
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> target) {
+        warnAboutRemoveMethodDeprecation("retainAll(Collection)");
+        return super.retainAll(target);
+    }
+
+    @Override
+    public Iterator<Task> iterator() {
+        final Iterator<Task> delegate = super.iterator();
+        return new Iterator<Task>() {
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public Task next() {
+                return delegate.next();
+            }
+
+            @Override
+            public void remove() {
+                warnAboutRemoveMethodDeprecation("iterator()#remove()");
+                delegate.remove();
+            }
+        };
+    }
+
+    @Override
+    public Action<? super Task> whenObjectRemoved(Action<? super Task> action) {
+        warnAboutRemoveMethodDeprecation("whenObjectRemoved(Action)");
+        return super.whenObjectRemoved(action);
+    }
+
+    @Override
+    public void whenObjectRemoved(Closure action) {
+        warnAboutRemoveMethodDeprecation("whenObjectRemoved(Closure)");
+        super.whenObjectRemoved(action);
+    }
+
+    private void warnAboutRemoveMethodDeprecation(String methodName) {
+        DeprecationLogger.nagUserWith(String.format("The TaskContainer.%s method has been deprecated.", methodName), "This is scheduled to become an error in Gradle 6.0.", "Prefer disabling the task instead, see Task.setEnabled(boolean).", "");
     }
 
     // Cannot be private due to reflective instantiation
