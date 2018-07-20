@@ -32,7 +32,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
     @Subject serializer = new ClassSetAnalysisData.Serializer()
 
     def "serializes"() {
-        def data = new ClassSetAnalysisData(
+        def data = new ClassSetAnalysisData(["A", "B", "C", "D"] as Set,
             ["A": dependents("B", "C"), "B": dependents("C"), "C": dependents(), "D": dependencyToAll(),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,

@@ -851,4 +851,23 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         fails "impl:compileJava"
         result.hasErrorOutput("package a is not visible")
     }
+
+    def "recompiles downstream dependents of classes whose package-info changed"() {
+        given:
+        def packageFile = file("api/src/main/java/foo/package-info.java")
+        packageFile.text = """package foo;"""
+        file("api/src/main/java/foo/A.java").text = "package foo; public class A {}"
+        file("api/src/main/java/bar/B.java").text = "package bar; public class B {}"
+        file("impl/src/main/java/baz/C.java").text = "package baz; import foo.A; class C extends A {}"
+        file("impl/src/main/java/baz/D.java").text = "package baz; import bar.B; class D extends B {}"
+
+        impl.snapshot { succeeds 'impl:compileJava' }
+
+        when:
+        packageFile.text = """@Deprecated package foo;"""
+        succeeds 'impl:compileJava'
+
+        then:
+        impl.recompiledClasses("C")
+    }
 }

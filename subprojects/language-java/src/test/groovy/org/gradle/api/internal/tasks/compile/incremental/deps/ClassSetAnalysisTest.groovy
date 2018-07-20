@@ -29,7 +29,7 @@ class ClassSetAnalysisTest extends Specification {
                               Map<String, IntSet> classToConstants = [:],
                               Map<String, Set<String>> classesToChildren = [:], DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
         new ClassSetAnalysis(
-            new ClassSetAnalysisData(dependents, classToConstants, classesToChildren, fullRebuildCause),
+            new ClassSetAnalysisData(dependents.keySet(), dependents, classToConstants, classesToChildren, fullRebuildCause),
             new AnnotationProcessingData([:], aggregatedTypes.dependentClasses, dependentsOnAll.dependentClasses, null)
         )
     }
