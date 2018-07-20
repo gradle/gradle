@@ -21,7 +21,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.model.ObjectFactory
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -37,10 +36,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
 
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.PropertyState
-import org.gradle.api.provider.SetProperty
 
 import org.gradle.api.tasks.TaskContainer
 
@@ -185,33 +181,6 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
  */
 operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
     propertyDelegateFor(this, property)
-
-
-/**
- * Creates a [Property] that holds values of the given type [T].
- *
- * @see [ObjectFactory.property]
- */
-inline fun <reified T> ObjectFactory.property(): Property<T> =
-    property(T::class.java)
-
-
-/**
- * Creates a [SetProperty] that holds values of the given type [T].
- *
- * @see [ObjectFactory.setProperty]
- */
-inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
-    setProperty(T::class.java)
-
-
-/**
- * Creates a [ListProperty] that holds values of the given type [T].
- *
- * @see [ObjectFactory.listProperty]
- */
-inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
-    listProperty(T::class.java)
 
 
 /**
