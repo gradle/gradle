@@ -52,6 +52,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     "can run build with build scan plugin #version"() {
         when:
         usePluginVersion version
+        useRepoMirror = (version != '1.9.1') // https://github.com/gradle/dotcom/issues/1213
+
 
         then:
         build().output.contains("Build scan written to")
@@ -85,7 +87,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     GradleRunner scanRunner(String... args) {
-        runner("build", *args).forwardOutput()
+        runner("build", "-Dscan.dump", *args).forwardOutput()
     }
 
     void usePluginVersion(String version) {
