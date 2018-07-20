@@ -195,6 +195,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
