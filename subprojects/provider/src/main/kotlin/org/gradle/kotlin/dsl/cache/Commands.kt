@@ -37,7 +37,7 @@ class ScriptBuildCacheKey(
 
 
 /**
- * Loads a directory from the build cache.
+ * Loads a directory previously stored by [StoreDirectory] from the build cache.
  */
 class LoadDirectory(
     private val directory: File,
