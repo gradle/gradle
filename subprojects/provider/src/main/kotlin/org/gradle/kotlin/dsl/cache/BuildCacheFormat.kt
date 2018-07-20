@@ -33,9 +33,7 @@ fun pack(inputDir: File, outputStream: OutputStream): Long {
 
     var entryCount = 0L
 
-    val gzipOutputStream = GZIPOutputStream(outputStream)
-
-    DataOutputStream(gzipOutputStream).run {
+    DataOutputStream(GZIPOutputStream(outputStream)).useToRun {
 
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
 
@@ -58,8 +56,6 @@ fun pack(inputDir: File, outputStream: OutputStream): Long {
         writeUTF("")
     }
 
-    gzipOutputStream.finish()
-
     return entryCount
 }
 
@@ -67,7 +63,7 @@ fun pack(inputDir: File, outputStream: OutputStream): Long {
 internal
 fun unpack(inputStream: InputStream, outputDir: File): Long =
 
-    DataInputStream(GZIPInputStream(inputStream)).run {
+    DataInputStream(GZIPInputStream(inputStream)).useToRun {
 
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
 
@@ -93,6 +89,11 @@ fun unpack(inputStream: InputStream, outputDir: File): Long =
 
         entryCount
     }
+
+
+private
+inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
+    use { run(action) }
 
 
 private
