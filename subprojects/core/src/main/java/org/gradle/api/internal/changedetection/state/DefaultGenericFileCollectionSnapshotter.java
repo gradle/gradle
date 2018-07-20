@@ -26,6 +26,7 @@ import org.gradle.api.internal.changedetection.state.mirror.logical.RelativePath
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.tasks.GenericFileNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
@@ -42,7 +43,7 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
+    public CurrentFileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         FingerprintingStrategy strategy = determineFingerprintStrategy(pathNormalizationStrategy);
         return super.snapshot(files, strategy);
     }

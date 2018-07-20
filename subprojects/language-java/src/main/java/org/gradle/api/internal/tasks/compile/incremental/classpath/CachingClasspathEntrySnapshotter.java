@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -51,9 +49,6 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     }
 
     private HashCode getHash(File classpathEntry) {
-        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(classpathEntry);
-        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        fileSnapshot.appendToHasher(hasher);
-        return hasher.hash();
+        return fileSystemSnapshotter.snapshotAll(classpathEntry);
     }
 }

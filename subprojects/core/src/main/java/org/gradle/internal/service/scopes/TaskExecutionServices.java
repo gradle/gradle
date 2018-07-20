@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepos
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
@@ -75,6 +74,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -178,7 +178,7 @@ public class TaskExecutionServices {
 
         return new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            serializerRegistry.build(FileCollectionSnapshot.class),
+            serializerRegistry.build(HistoricalFileCollectionFingerprint.class),
             stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,

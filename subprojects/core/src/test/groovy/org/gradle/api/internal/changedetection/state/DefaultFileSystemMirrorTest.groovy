@@ -45,7 +45,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
-        def snapshot = Stub(Snapshot)
+        def contentHash = HashCode.fromInt(1234)
 
         given:
 
@@ -60,11 +60,11 @@ class DefaultFileSystemMirrorTest extends Specification {
 
         mirror.putFile(fileSnapshot)
         mirror.putDirectory(file.path, fileTreeSnapshot)
-        mirror.putContent(file.path, snapshot)
+        mirror.putContent(file.path, contentHash)
 
         mirror.getFile(file.path) == fileSnapshot
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
-        mirror.getContent(file.path) == snapshot
+        mirror.getContent(file.path) == contentHash
 
         mirror.beforeTaskOutputChanged()
 
@@ -77,7 +77,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
-        def snapshot = Stub(Snapshot)
+        def contentHash = HashCode.fromInt(1234)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
@@ -95,11 +95,11 @@ class DefaultFileSystemMirrorTest extends Specification {
 
         mirror.putFile(fileSnapshot)
         mirror.putDirectory(file.path, fileTreeSnapshot)
-        mirror.putContent(file.path, snapshot)
+        mirror.putContent(file.path, contentHash)
 
         mirror.getFile(file.path) == fileSnapshot
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
-        mirror.getContent(file.path) == snapshot
+        mirror.getContent(file.path) == contentHash
 
         mirror.beforeComplete()
 
@@ -112,7 +112,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         def file = cacheDir.file("some/dir/a")
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
-        def snapshot = Stub(Snapshot)
+        def contentHash = HashCode.fromInt(1234)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
@@ -129,17 +129,17 @@ class DefaultFileSystemMirrorTest extends Specification {
 
         mirror.putFile(fileSnapshot)
         mirror.putDirectory(file.path, fileTreeSnapshot)
-        mirror.putContent(file.path, snapshot)
+        mirror.putContent(file.path, contentHash)
 
         mirror.getFile(file.path) == fileSnapshot
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
-        mirror.getContent(file.path) == snapshot
+        mirror.getContent(file.path) == contentHash
 
         mirror.beforeTaskOutputChanged()
 
         mirror.getFile(file.path) == fileSnapshot
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
-        mirror.getContent(file.path) == snapshot
+        mirror.getContent(file.path) == contentHash
 
         mirror.beforeComplete()
 

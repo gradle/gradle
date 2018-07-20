@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 
 import java.util.Map;
 
 /**
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
-public interface FileCollectionSnapshot extends Snapshot {
+public interface FileCollectionFingerprint {
 
     /**
-     * Visits the changes to file contents since the given snapshot, subject to the given filters.
+     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
      *
      * @return Whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
      */
-    boolean visitChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
-
-    /**
-     * Returns the combined hash of the contents of this {@link FileCollectionSnapshot}.
-     */
-    HashCode getHash();
+    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
      * The underlying snapshots.
@@ -46,11 +40,7 @@ public interface FileCollectionSnapshot extends Snapshot {
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
     /**
-     * Visits the roots of this file collection snapshot.
-     *
-     * {@link FileCollectionSnapshot}s loaded from the task history don't have the roots available.
-     *
-     * @throws UnsupportedOperationException if the roots are not available.
+     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
      */
-    void visitRoots(PhysicalSnapshotVisitor visitor);
+    HistoricalFileCollectionFingerprint archive();
 }

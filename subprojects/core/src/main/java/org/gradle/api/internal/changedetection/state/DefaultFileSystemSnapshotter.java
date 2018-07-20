@@ -38,12 +38,11 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -110,23 +109,20 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public Snapshot snapshotAll(final File file) {
+    public HashCode snapshotAll(final File file) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = file.getAbsolutePath();
-        return producingAllSnapshots.guardByKey(path, new Factory<Snapshot>() {
+        return producingAllSnapshots.guardByKey(path, new Factory<HashCode>() {
             @Override
-            public Snapshot create() {
-                Snapshot snapshot = fileSystemMirror.getContent(path);
-                if (snapshot == null) {
-                    FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(ImmutableFileCollection.of(file), PathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
-                    DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-                    fileCollectionSnapshot.appendToHasher(hasher);
-                    HashCode hashCode = hasher.hash();
-                    snapshot = new HashBackedSnapshot(hashCode);
+            public HashCode create() {
+                HashCode fileContentHash = fileSystemMirror.getContent(path);
+                if (fileContentHash == null) {
+                    CurrentFileCollectionFingerprint fileCollectionFingerprint = snapshotter.snapshot(ImmutableFileCollection.of(file), PathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
+                    fileContentHash = fileCollectionFingerprint.getHash();
                     String internedPath = internPath(file);
-                    fileSystemMirror.putContent(internedPath, snapshot);
+                    fileSystemMirror.putContent(internedPath, fileContentHash);
                 }
-                return snapshot;
+                return fileContentHash;
             }
         });
     }
@@ -251,38 +247,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 return new PhysicalFileSnapshot(path, name, hasher.hash(file, stat), stat.getLastModified());
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
-        }
-    }
-
-    private static class HashBackedSnapshot implements Snapshot {
-        private final HashCode hashCode;
-
-        HashBackedSnapshot(HashCode hashCode) {
-            this.hashCode = hashCode;
-        }
-
-        @Override
-        public void appendToHasher(BuildCacheHasher hasher) {
-            hasher.putHash(hashCode);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            HashBackedSnapshot that = (HashBackedSnapshot) o;
-
-            return hashCode.equals(that.hashCode);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode.hashCode();
         }
     }
 }

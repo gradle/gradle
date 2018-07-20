@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 
 import javax.annotation.Nonnull;
 
@@ -32,22 +33,22 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
 
     private final boolean successful;
     private final OriginTaskExecutionMetadata originExecutionMetadata;
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints;
 
     public HistoricalTaskExecution(
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints,
         boolean successful,
         OriginTaskExecutionMetadata originExecutionMetadata
     ) {
         super(taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
-        this.inputFilesSnapshot = inputFilesSnapshot;
-        this.outputFilesSnapshot = outputFilesSnapshot;
+        this.inputFingerprints = inputFingerprints;
+        this.outputFingerprints = outputFingerprints;
         this.successful = successful;
         this.originExecutionMetadata = originExecutionMetadata;
     }
@@ -64,12 +65,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
-        return inputFilesSnapshot;
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFingerprints() {
+        return inputFingerprints;
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
-        return outputFilesSnapshot;
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFingerprints() {
+        return outputFingerprints;
     }
 }

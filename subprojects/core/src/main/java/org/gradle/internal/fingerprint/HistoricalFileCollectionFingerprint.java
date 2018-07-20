@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
-
-import org.gradle.caching.internal.BuildCacheHasher;
+package org.gradle.internal.fingerprint;
 
 /**
- * A snapshot of the state of some thing.
+ * A file collection fingerprint loaded from the task history.
  */
-public interface Snapshot {
-    /**
-     * Appends the snapshot to the given hasher.
-     */
-    void appendToHasher(BuildCacheHasher hasher);
+public interface HistoricalFileCollectionFingerprint extends FileCollectionFingerprint {
 }

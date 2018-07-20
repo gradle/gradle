@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFin
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import static org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
@@ -44,7 +45,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
+    public CurrentFileCollectionFingerprint snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
         ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
         return super.snapshot(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
     }

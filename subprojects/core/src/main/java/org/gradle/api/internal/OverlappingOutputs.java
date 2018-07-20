@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -34,7 +35,7 @@ public class OverlappingOutputs {
     }
 
     @Nullable
-    public static OverlappingOutputs detect(String propertyName, FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
+    public static OverlappingOutputs detect(String propertyName, HistoricalFileCollectionFingerprint previousExecution, FileCollectionFingerprint beforeExecution) {
         Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
         Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
 

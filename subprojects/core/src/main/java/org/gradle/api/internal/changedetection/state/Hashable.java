@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 /**
- * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java
- * compile classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
- *
- * @see org.gradle.api.tasks.CompileClasspath
+ * A snapshot of the state of some thing.
  */
-public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
+public interface Hashable {
+    /**
+     * Appends the snapshot to the given hasher.
+     */
+    void appendToHasher(BuildCacheHasher hasher);
 }

@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
 
-public interface Snapshottable<T extends Hashable> {
-    T snapshot();
+package org.gradle.internal.fingerprint;
+
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.hash.HashCode;
+
+/**
+ * A file collection fingerprint taken during this build.
+ */
+public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint {
+    /**
+     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
+     */
+    HashCode getHash();
+
+    /**
+     * Visits the roots of this file collection fingerprint.
+     */
+    void visitRoots(PhysicalSnapshotVisitor visitor);
 }
