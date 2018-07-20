@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.caching
 
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.integration.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
@@ -28,6 +29,7 @@ import java.io.File
 
 class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
+    @LeaksFileHandles("on the separate Gradle homes")
     @Test
     fun `build cache integration is enabled via project property`() {
 
