@@ -177,8 +177,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprint, OriginTaskExecutionMetadata originMetadata) {
-            history.updateCurrentExecutionWithOutputs(newOutputFingerprint);
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata) {
+            history.updateCurrentExecutionWithOutputs(newOutputFingerprints);
             snapshotAfterOutputsWereGenerated(history, null, originMetadata);
         }
 
