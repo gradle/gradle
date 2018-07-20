@@ -857,7 +857,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private I object;
         private RuntimeException failure;
-        private ImmutableActionSet<I> onCreate;
+        protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
 
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
@@ -874,6 +874,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return findDomainObject(getName()) != null;
         }
 
+        @Override
         public void configure(final Action<? super I> action) {
             Action<? super I> wrappedAction = wrap(action);
             if (object != null) {
@@ -883,6 +884,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
             // Collect any container level add actions then add the object specific action
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
+        }
+
+        public ImmutableActionSet<I> getOnCreateActions() {
+            return onCreate;
         }
 
         protected Action<? super I> wrap(Action<? super I> action) {
@@ -943,7 +948,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected boolean wasElementRemoved() {
-            return wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized();
+            // Check for presence as the task may have been replaced
+            return (wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized()) && !isPresent();
         }
 
         private boolean wasElementRemovedBeforeRealized() {
