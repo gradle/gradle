@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -66,5 +68,19 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setClasses(Set<String> classes) {
         this.classes = classes;
+    }
+
+    @Override
+    public List<File> getModulePath() {
+        int i = compileOptions.getCompilerArgs().indexOf("--module-path");
+        if (i < 0) {
+            return Collections.emptyList();
+        }
+        String[] modules = compileOptions.getCompilerArgs().get(i + 1).split(File.pathSeparator);
+        List<File> result = Lists.newArrayListWithCapacity(modules.length);
+        for (String module : modules) {
+            result.add(new File(module));
+        }
+        return result;
     }
 }

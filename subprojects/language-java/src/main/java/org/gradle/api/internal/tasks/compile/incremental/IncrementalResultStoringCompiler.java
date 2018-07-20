@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
@@ -58,7 +59,7 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
     }
 
     private void storeResult(JavaCompileSpec spec, WorkResult result) {
-        ClasspathSnapshotData classpathSnapshot = classpathSnapshotProvider.getClasspathSnapshot(spec.getCompileClasspath()).getData();
+        ClasspathSnapshotData classpathSnapshot = classpathSnapshotProvider.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())).getData();
         AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
         PreviousCompilationData data = new PreviousCompilationData(spec.getDestinationDir(), annotationProcessingData, classpathSnapshot, spec.getAnnotationProcessorPath());
         stash.put(data);
