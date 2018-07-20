@@ -354,7 +354,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
                     .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configurationAction, constructorArgs)
                 );
-                DefaultTaskContainer.super.addLater(provider);
+                addLaterInternal(provider);
                 context.setResult(REGISTER_RESULT);
                 return provider;
             }
@@ -655,19 +655,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public boolean add(Task o) {
-        // Only fail if the task is not already in the container.  This is a workaround to a problem in kotlin 1.2.41 where
-        // tasks.add(tasks.create()) is being used.  This problem is fixed in 1.2.60, which will be used in gradle/kotlin-dsl 0.19.x.
-        // We can remove this conditional and always throw an exception once gradle/gradle uses the 0.19.x version of kotlin-dsl.
-        if (addInternal(o)) {
-            throw new UnsupportedOperationException("Adding tasks directly to the task container is not supported.  Use the create() method instead.");
-        } else {
-            return false;
-        }
+        DeprecationLogger.nagUserOfReplacedMethod("add()", "create() or register()");
+        return addInternal(o);
     }
 
     @Override
     public boolean addAll(Collection<? extends Task> c) {
-        throw new UnsupportedOperationException("Adding tasks directly to the task container is not supported.  Use the create() method instead.");
+        DeprecationLogger.nagUserOfReplacedMethod("addAll()", "create() or register()");
+        return addAllInternal(c);
     }
 
     @Override
@@ -683,6 +678,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean addAllInternal(Collection<? extends Task> task) {
         return super.addAll(task);
+    }
+
+    private void addLaterInternal(Provider<? extends Task> provider) {
+        super.addLater(provider);
     }
 
     private static final RegisterTaskBuildOperationType.Result REGISTER_RESULT = new RegisterTaskBuildOperationType.Result() {

@@ -1419,22 +1419,6 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == null
     }
 
-    def "cannot add a task directly to the task container"() {
-        when:
-        container.add(task("foo"))
-
-        then:
-        thrown(UnsupportedOperationException)
-    }
-
-    def "cannot add a collection of tasks directly to the task container"() {
-        when:
-        container.addAll([task("foo"), task("bar")])
-
-        then:
-        thrown(UnsupportedOperationException)
-    }
-
     def "cannot add a provider directly to the task container"() {
         given:
         def provider = Mock(Provider) {

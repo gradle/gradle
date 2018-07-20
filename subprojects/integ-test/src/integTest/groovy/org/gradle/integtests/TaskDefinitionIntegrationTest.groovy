@@ -479,7 +479,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains("got it 15")
     }
 
-    def "cannot add a pre-created task to the task container"() {
+    def "renders deprecation warning when adding a pre-created task to the task container"() {
         given:
         buildFile << """
             Task foo = tasks.create("foo")
@@ -504,10 +504,11 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("help")
+        executer.expectDeprecationWarning()
+        succeeds("help")
 
         then:
-        failure.assertHasCause("Adding tasks directly to the task container is not supported.")
+        outputContains("The add() method has been deprecated.")
     }
 
     def "cannot add a pre-created task provider to the task container"() {
