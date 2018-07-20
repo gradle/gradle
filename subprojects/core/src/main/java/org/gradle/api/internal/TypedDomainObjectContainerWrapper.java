@@ -107,6 +107,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         delegate.addLater(provider);
     }
 
+    @Override
+    public void addAllLater(Provider<Set<U>> provider) {
+        delegate.addAllLater(provider);
+    }
+
     public boolean addAll(Collection<? extends U> c) {
         return delegate.addAll(c);
     }

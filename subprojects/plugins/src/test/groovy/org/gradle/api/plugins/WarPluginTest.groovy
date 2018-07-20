@@ -78,7 +78,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(WarPlugin)
 
         then:
-        def task = project.tasks[WarPlugin.WAR_TASK_NAME]
+        def task = project.tasks.getByName(WarPlugin.WAR_TASK_NAME)
         task instanceof War
         dependsOn(JavaPlugin.CLASSES_TASK_NAME).matches(task)
         task.destinationDir == project.libsDir

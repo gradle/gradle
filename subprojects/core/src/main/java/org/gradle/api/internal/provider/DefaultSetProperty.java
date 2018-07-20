@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.SetProperty;
 
@@ -30,5 +31,36 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     @Override
     protected Set<T> fromValue(Collection<T> values) {
         return ImmutableSet.copyOf(values);
+    }
+
+    public static <T> DefaultSetProperty<T> from(ProviderInternal<T> provider) {
+        return new SingleElementSetProvider<T>(provider);
+    }
+
+    public static class SingleElementSetProvider<T> extends DefaultSetProperty<T> {
+        private final ProviderInternal<T> providerInternal;
+
+        public SingleElementSetProvider(ProviderInternal<T> providerInternal) {
+            super(providerInternal.getType());
+            this.providerInternal = providerInternal;
+            this.add(providerInternal);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            SingleElementSetProvider that = (SingleElementSetProvider) o;
+            return Objects.equal(providerInternal, that.providerInternal);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(providerInternal);
+        }
     }
 }

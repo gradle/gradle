@@ -17,7 +17,10 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+
+import java.util.Set;
 
 public interface PendingSource<T> {
     void realizePending();
@@ -26,9 +29,13 @@ public interface PendingSource<T> {
 
     void addPending(ProviderInternal<? extends T> provider);
 
+    void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider);
+
     void removePending(ProviderInternal<? extends T> provider);
 
-    void onRealize(Action<ProviderInternal<? extends T>> action);
+    void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider);
+
+    void onRealize(Action<CollectionProviderInternal<T, Set<T>>> action);
 
     boolean isEmpty();
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 public class ListElementSource<T> implements IndexedElementSource<T> {
     private final List<T> values = new ArrayList<T>();
@@ -154,7 +156,17 @@ public class ListElementSource<T> implements IndexedElementSource<T> {
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+    public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+        pending.addPendingCollection(provider);
+    }
+
+    @Override
+    public void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+        pending.removePendingCollection(provider);
+    }
+
+    @Override
+    public void onRealize(Action<CollectionProviderInternal<T, Set<T>>> action) {
         pending.onRealize(action);
     }
 }

@@ -17,13 +17,16 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 
+// TODO - Let this class handle changing values
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
     private final PendingSource<T> pending = new DefaultPendingSource<T>();
@@ -112,7 +115,17 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+    public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+        pending.addPendingCollection(provider);
+    }
+
+    @Override
+    public void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+        pending.removePendingCollection(provider);
+    }
+
+    @Override
+    public void onRealize(Action<CollectionProviderInternal<T, Set<T>>> action) {
         pending.onRealize(action);
     }
 }

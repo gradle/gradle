@@ -18,18 +18,22 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.internal.Cast;
 
 import java.util.List;
+import java.util.Set;
 
 public class DefaultPendingSource<T> implements PendingSource<T> {
-    private final List<ProviderInternal<? extends T>> pending = Lists.newArrayList();
-    private Action<ProviderInternal<? extends T>> flushAction;
+    private final List<CollectionProviderInternal<T, Set<T>>> pending = Lists.newArrayList();
+    private Action<CollectionProviderInternal<T, Set<T>>> flushAction;
 
     @Override
     public void realizePending() {
         if (!pending.isEmpty()) {
-            List<ProviderInternal<? extends T>> copied = Lists.newArrayList(pending);
+            List<CollectionProviderInternal<T, Set<T>>> copied = Lists.newArrayList(pending);
             realize(copied);
         }
     }
@@ -37,9 +41,9 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     @Override
     public void realizePending(Class<?> type) {
         if (!pending.isEmpty()) {
-            List<ProviderInternal<? extends T>> copied = Lists.newArrayList();
-            for (ProviderInternal<? extends T> provider : pending) {
-                if (provider.getType() == null || type.isAssignableFrom(provider.getType())) {
+            List<CollectionProviderInternal<T, Set<T>>> copied = Lists.newArrayList();
+            for (CollectionProviderInternal<T, Set<T>> provider : pending) {
+                if (provider.getElementType() == null || type.isAssignableFrom(provider.getElementType())) {
                     copied.add(provider);
                 }
             }
@@ -47,30 +51,44 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
         }
     }
 
-    private void realize(Iterable<ProviderInternal<? extends T>> elements) {
-        for (ProviderInternal<? extends T> provider : elements) {
-            if (flushAction != null) {
-                pending.remove(provider);
-                flushAction.execute(provider);
-            } else {
-                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
-            }
+    private void realize(Iterable<CollectionProviderInternal<T, Set<T>>> providers) {
+        for (CollectionProviderInternal<T, Set<T>> collection : providers) {
+            realize(collection);
+        }
+    }
+
+    private void realize(CollectionProviderInternal<T, Set<T>> provider) {
+        if (flushAction != null) {
+            pending.remove(provider);
+            flushAction.execute(provider);
+        } else {
+            throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
         }
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
+    public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
         pending.add(provider);
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
+    public void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
         pending.remove(provider);
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
-        this.flushAction = action;
+    public void onRealize(Action<CollectionProviderInternal<T, Set<T>>> action) {
+        flushAction = action;
+    }
+
+    @Override
+    public void addPending(ProviderInternal<? extends T> provider) {
+        pending.add(singleElementProvider(provider));
+    }
+
+    @Override
+    public void removePending(ProviderInternal<? extends T> provider) {
+        pending.remove(singleElementProvider(provider));
     }
 
     @Override
@@ -86,5 +104,10 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     @Override
     public void clear() {
         pending.clear();
+    }
+
+    private CollectionProviderInternal<T, Set<T>> singleElementProvider(ProviderInternal<? extends T> provider) {
+        ProviderInternal<T> providerInternal = Cast.uncheckedCast(provider);
+        return DefaultSetProperty.from(providerInternal);
     }
 }

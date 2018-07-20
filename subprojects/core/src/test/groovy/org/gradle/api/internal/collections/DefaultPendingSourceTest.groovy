@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
+import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
 
@@ -25,10 +26,16 @@ class DefaultPendingSourceTest extends Specification {
     def provider1 = Mock(ProviderInternal)
     def provider2 = Mock(ProviderInternal)
     def provider3 = Mock(ProviderInternal)
-    def realize = Mock(Action)
+    def setProvider1 = Mock(CollectionProviderInternal)
+    def setProvider2 = Mock(CollectionProviderInternal)
 
     def setup() {
-        pending.onRealize(realize)
+        pending.onRealize(new Action<CollectionProviderInternal>() {
+            @Override
+            void execute(CollectionProviderInternal provider) {
+                provider.get()
+            }
+        })
     }
 
     def "realizes pending elements on flush"() {
@@ -36,12 +43,16 @@ class DefaultPendingSourceTest extends Specification {
         pending.addPending(provider1)
         pending.addPending(provider2)
         pending.addPending(provider3)
+        pending.addPendingCollection(setProvider1)
+        pending.addPendingCollection(setProvider2)
         pending.realizePending()
 
         then:
-        1 * realize.execute(provider1)
-        1 * realize.execute(provider2)
-        1 * realize.execute(provider3)
+        1 * provider1.get() >> 1
+        1 * provider2.get() >> 2
+        1 * provider3.get() >> 3
+        1 * setProvider1.get() >> [4, 5]
+        1 * setProvider2.get() >> [6, 7]
 
         and:
         pending.isEmpty()
@@ -51,20 +62,24 @@ class DefaultPendingSourceTest extends Specification {
         _ * provider1.getType() >> SomeType.class
         _ * provider2.getType() >> SomeOtherType.class
         _ * provider3.getType() >> SomeType.class
+        _ * setProvider1.getElementType() >> SomeOtherType.class
+        _ * setProvider2.getElementType() >> SomeType.class
 
         when:
         pending.addPending(provider1)
         pending.addPending(provider2)
         pending.addPending(provider3)
+        pending.addPendingCollection(setProvider1)
+        pending.addPendingCollection(setProvider2)
         pending.realizePending(SomeType.class)
 
         then:
-        1 * realize.execute(provider1)
-        0 * realize.execute(provider2)
-        1 * realize.execute(provider3)
+        1 * provider1.get() >> 1
+        1 * provider3.get() >> 3
+        1 * setProvider2.get() >> [4, 5]
 
         and:
-        pending.size() == 1
+        pending.size() == 2
     }
 
     def "cannot realize pending elements when realize action is not set"() {
@@ -86,18 +101,23 @@ class DefaultPendingSourceTest extends Specification {
         pending.addPending(provider1)
         pending.addPending(provider2)
         pending.addPending(provider3)
+        pending.addPendingCollection(setProvider1)
+        pending.addPendingCollection(setProvider2)
         pending.removePending(provider1)
+        pending.removePendingCollection(setProvider2)
 
         then:
-        pending.size() == 2
+        pending.size() == 3
 
         when:
         pending.realizePending()
 
         then:
-        0 * realize.execute(provider1)
-        1 * realize.execute(provider2)
-        1 * realize.execute(provider3)
+        0 * provider1.get()
+        1 * provider2.get() >> 2
+        1 * provider3.get() >> 3
+        1 * setProvider1.get() >> [4, 5]
+        0 * setProvider2.get()
 
         and:
         pending.isEmpty()
@@ -108,6 +128,8 @@ class DefaultPendingSourceTest extends Specification {
         pending.addPending(provider1)
         pending.addPending(provider2)
         pending.addPending(provider3)
+        pending.addPendingCollection(setProvider1)
+        pending.addPendingCollection(setProvider2)
         pending.clear()
 
         then:
@@ -117,7 +139,7 @@ class DefaultPendingSourceTest extends Specification {
         pending.realizePending()
 
         then:
-        0 * realize.execute()
+        0 * _
     }
 
     def "can handle realizing elements that modify the list of pending elements"() {

@@ -16,75 +16,154 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
-    private final Set<T> values = new LinkedHashSet<T>();
+    // This set represents the elements which have been realized and "added" to the store.  This may
+    // or may not be in the order that elements are inserted.  We track this to know which realized
+    // elements have already had rules fired against them.
+    private final Set<T> added = new HashSet<T>();
+
+    // This set represents the order in which elements are inserted to the store, either actual
+    // or provided.  We construct a correct iteration order from this set.
+    private final Set<SetElement> inserted = new LinkedHashSet<SetElement>();
+
+    // Represents the pending elements that have not yet been realized.
     private final PendingSource<T> pending = new DefaultPendingSource<T>();
+
+    // Cache the ordered set of values so that we don't have to construct the list every time we need to iterate
+    private final Set<T> orderedValuesCache = new LinkedHashSet<T>();
+    private boolean allElementsRealized;
 
     @Override
     public boolean isEmpty() {
-        return values.isEmpty() && pending.isEmpty();
+        return inserted.isEmpty();
     }
 
     @Override
     public boolean constantTimeIsEmpty() {
-        return values.isEmpty() && pending.isEmpty();
+        return inserted.isEmpty();
     }
 
     @Override
     public int size() {
-        return values.size() + pending.size();
+        int count = 0;
+        for (SetElement element : inserted) {
+            count += element.size();
+        }
+        return count;
     }
 
     @Override
     public int estimatedSize() {
-        return values.size() + pending.size();
+        return size();
     }
 
     @Override
     public Iterator<T> iterator() {
         pending.realizePending();
-        return values.iterator();
+        if (!allElementsRealized) {
+            for (SetElement element : inserted) {
+                orderedValuesCache.addAll(element.getValues());
+            }
+            allElementsRealized = true;
+        }
+        return orderedValuesCache.iterator();
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return values.iterator();
+        return allRealizedValues().iterator();
+    }
+
+    private Set<T> allRealizedValues() {
+        if (orderedValuesCache.isEmpty()) {
+            for (SetElement element : inserted) {
+                if (element.realized) {
+                    orderedValuesCache.addAll(element.getValues());
+                }
+            }
+        }
+        return orderedValuesCache;
+    }
+
+    private void clearCachedValues() {
+        orderedValuesCache.clear();
+        allElementsRealized = false;
     }
 
     @Override
     public boolean contains(Object element) {
         pending.realizePending();
-        return values.contains(element);
+        return allRealizedValues().contains(element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
         pending.realizePending();
-        return values.containsAll(elements);
+        return allRealizedValues().containsAll(elements);
     }
 
     @Override
     public boolean add(T element) {
-        return values.add(element);
+        if (allRealizedValues().contains(element)) {
+            // Represents an already inserted value (such as a just-realized provider value)
+            // that may or may not have already been "added".
+            clearCachedValues();
+            return added.add(element);
+        } else {
+            // A realized element that has not been inserted before.
+            if (added.add(element) && inserted.add(new SetElement(element))) {
+                clearCachedValues();
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     @Override
     public boolean remove(Object o) {
-        return values.remove(o);
+        Iterator<SetElement> iterator = inserted.iterator();
+        while (iterator.hasNext()) {
+            SetElement element = iterator.next();
+            if (element.realized) {
+                Set<T> values = element.getValues();
+                if (values.contains(o)) {
+                    element.removed.add((T)o);
+                    if (values.size() == 1) {
+                        iterator.remove();
+                    }
+                    clearCachedValues();
+                    return added.remove(o);
+                }
+            }
+        }
+        return false;
     }
 
     @Override
     public void clear() {
+        inserted.clear();
+        added.clear();
         pending.clear();
-        values.clear();
+        clearCachedValues();
     }
 
     @Override
@@ -100,15 +179,138 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     @Override
     public void addPending(ProviderInternal<? extends T> provider) {
         pending.addPending(provider);
+        inserted.add(new SetElement(provider));
+        clearCachedValues();
     }
 
     @Override
     public void removePending(ProviderInternal<? extends T> provider) {
+        Iterator<SetElement> iterator = inserted.iterator();
+        while(iterator.hasNext()) {
+            SetElement element = iterator.next();
+            if (element.equals(new SetElement(provider))) {
+                iterator.remove();
+            }
+        }
         pending.removePending(provider);
+        clearCachedValues();
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
-        pending.onRealize(action);
+    public void addPendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+        pending.addPendingCollection(provider);
+        inserted.add(new SetElement(provider));
+        clearCachedValues();
+    }
+
+    @Override
+    public void removePendingCollection(CollectionProviderInternal<T, Set<T>> provider) {
+        Iterator<SetElement> iterator = inserted.iterator();
+        while(iterator.hasNext()) {
+            SetElement element = iterator.next();
+            if (element.provider.equals(provider)) {
+                iterator.remove();
+            }
+        }
+        pending.removePendingCollection(provider);
+        clearCachedValues();
+    }
+
+    @Override
+    public void onRealize(final Action<CollectionProviderInternal<T, Set<T>>> action) {
+        pending.onRealize(new Action<CollectionProviderInternal<T, Set<T>>>() {
+            @Override
+            public void execute(CollectionProviderInternal<T, Set<T>> provider) {
+                for (final SetElement element : inserted) {
+                    if (element.provider.equals(provider)) {
+                        // Use the set element here so that we call provider.get() once and cache the value
+                        DefaultSetProperty<T> setProperty = new DefaultSetProperty<T>(null);
+                        setProperty.set(element.getValues());
+                        clearCachedValues();
+                        action.execute(setProperty);
+                    }
+                }
+            }
+        });
+    }
+
+    private class SetElement {
+        private CollectionProviderInternal<T, Set<T>> provider;
+        private Set<T> removed = Sets.newHashSet();
+        private Set<T> value;
+        private boolean realized;
+
+        SetElement(CollectionProviderInternal<T, Set<T>> provider) {
+            this.provider = provider;
+            if (provider instanceof ChangingValue) {
+                ((ChangingValue<Set<T>>)provider).onValueChange(getValueChangeAction());
+            }
+        }
+
+        SetElement(ProviderInternal<? extends T> provider) {
+            ProviderInternal<T> providerInternal = Cast.uncheckedCast(provider);
+            this.provider = DefaultSetProperty.from(providerInternal);
+            if (provider instanceof ChangingValue) {
+                ((ChangingValue<Set<T>>)provider).onValueChange(getValueChangeAction());
+            }
+        }
+
+        SetElement(final T value) {
+            this.provider = DefaultSetProperty.from(new DefaultProvider<T>(new Callable<T>() {
+                @Override
+                public T call() throws Exception {
+                    return value;
+                }
+            }));
+            this.realized = true;
+        }
+
+        public int size() {
+            return provider.size() - removed.size();
+        }
+
+        public Set<T> getValues() {
+            if (value == null) {
+                value = provider.get();
+                realized = true;
+            }
+            if (!removed.isEmpty()) {
+                value = Sets.newLinkedHashSet(value);
+                value.removeAll(removed);
+            }
+            return value;
+        }
+
+        private Action<Provider<Set<T>>> getValueChangeAction() {
+            return new Action<Provider<Set<T>>>() {
+                @Override
+                public void execute(Provider<Set<T>> setProvider) {
+                    if (realized) {
+                        CollectionProviderInternal<T, Set<T>> collectionProviderInternal = Cast.uncheckedCast(setProvider);
+                        pending.addPendingCollection(collectionProviderInternal);
+                        value = null;
+                        realized = false;
+                        clearCachedValues();
+                    }
+                }
+            };
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            SetElement that = (SetElement) o;
+            return Objects.equal(provider, that.provider);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(provider);
+        }
     }
 }

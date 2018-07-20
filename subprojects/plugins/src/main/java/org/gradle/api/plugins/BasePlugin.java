@@ -171,7 +171,7 @@ public class BasePlugin implements Plugin<Project> {
 
         configurations.all(new Action<Configuration>() {
             public void execute(Configuration configuration) {
-                configuration.getArtifacts().all(new Action<PublishArtifact>() {
+                configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
                     public void execute(PublishArtifact artifact) {
                         defaultArtifacts.addCandidate(artifact);
                     }
