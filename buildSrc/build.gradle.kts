@@ -154,7 +154,7 @@ fun Project.applyGroovyProjectConventions() {
         testCompile("cglib:cglib:3.2.6")
         testCompile("org.objenesis:objenesis:2.4")
         constraints {
-            compile("org.codehaus.groovy:groovy-all:2.4.12")
+            compile("org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.getVersion()}")
         }
     }
 

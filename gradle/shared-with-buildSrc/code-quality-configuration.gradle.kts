@@ -111,7 +111,7 @@ open class CodeNarcRule : ComponentMetadataRule {
             withDependencies {
                 removeAll { it.group == "org.codehaus.groovy" }
                 add("org.codehaus.groovy:groovy-all") {
-                    version { prefer("2.4.12") }
+                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
                     because("We use groovy-all everywhere")
                 }
             }
