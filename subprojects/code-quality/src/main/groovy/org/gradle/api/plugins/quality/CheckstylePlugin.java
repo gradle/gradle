@@ -70,10 +70,9 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             @Override
             public Directory call() {
                 if (usesSubprojectCheckstyleConfiguration()) {
-                    DeprecationLogger.nagUserOfDeprecated("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead.");
+                    DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead.");
                     return project.getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
                 }
-
                 return project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
             }
         });

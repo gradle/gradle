@@ -36,6 +36,7 @@ import java.util.Set;
 
 
 public class AnnotationProcessorPathFactory {
+    public static final String COMPILE_CLASSPATH_DEPRECATION_SUMMARY = "Annotation processors were detected on the compile classpath.";
     public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "The following annotation processors were detected on the compile classpath:";
     public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
 
@@ -112,7 +113,7 @@ public class AnnotationProcessorPathFactory {
     }
 
     private static Set<File> extractProcessorPath(String processorpath) {
-        DeprecationLogger.nagUserOfDeprecated(
+        DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
             PROCESSOR_PATH_DEPRECATION_MESSAGE,
             "Instead, use the CompilerOptions.annotationProcessorPath property directly");
         LinkedHashSet<File> files = new LinkedHashSet<File>();
@@ -145,13 +146,12 @@ public class AnnotationProcessorPathFactory {
                     }
                     Map<String, AnnotationProcessorDeclaration> processors = annotationProcessorDetector.detectProcessors(compileClasspath);
                     if (!processors.isEmpty()) {
-                        DeprecationLogger.nagUserWith(
-                            COMPILE_CLASSPATH_DEPRECATION_MESSAGE +
-                            " '" + Joiner.on("' and '").join(processors.keySet()) + "'. " +
-                            "Detecting annotation processors on the compile classpath is deprecated.",
+                        DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
+                            "Detecting annotation processors on the compile classpath",
                             "Gradle 5.0 will ignore annotation processors on the compile classpath.",
                             "Please add them to the annotation processor path instead. " +
-                            "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them."
+                            "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them.",
+                            COMPILE_CLASSPATH_DEPRECATION_MESSAGE + " '" + Joiner.on("' and '").join(processors.keySet()) + "'. "
                         );
                         return compileClasspath.getFiles();
                     }

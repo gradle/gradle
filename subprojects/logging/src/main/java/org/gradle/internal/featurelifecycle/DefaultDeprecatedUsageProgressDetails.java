@@ -27,16 +27,26 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
     }
 
     @Override
-    public String getMessage() {
-        return featureUsage.getMessage();
+    public String getSummary() {
+        return featureUsage.getSummary();
     }
 
-    public String getDetails() {
-        return featureUsage.getDetails();
+    public String getRemovalDetails() {
+        return featureUsage.getRemovalDetails();
     }
 
     public String getAdvice() {
         return featureUsage.getAdvice();
+    }
+
+    @Override
+    public String getContextualAdvice() {
+        return featureUsage.getContextualAdvice();
+    }
+
+    @Override
+    public String getType() {
+        return featureUsage.getType().name();
     }
 
     @Override

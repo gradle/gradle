@@ -27,41 +27,78 @@ import java.util.List;
  * An immutable description of the usage of a deprecated feature.
  */
 public class FeatureUsage {
-    private final String message;
-    private final String details;
+    private final String summary;
+    private final String removalDetails;
     private final String advice;
+    private final FeatureUsageType type;
     private final Class<?> calledFrom;
     private final Exception traceException;
+    private final String contextualAdvice;
 
     private List<StackTraceElement> stack;
 
-    public FeatureUsage(String message, String details, String advice, Class<?> calledFrom) {
-        this.message = message;
-        this.details = details;
+    public enum FeatureUsageType {
+        /**
+         * The feature usage in user code directly leads to a deprecation warning.
+         * The stacktrace in that feature usage directly points to the user code
+         * using the feature.
+         */
+        USER_CODE_DIRECT,
+
+        /**
+         * The feature usage in user code indirectly leads to a deprecation warning as
+         * the usage was detect later in the build.  The stacktrace in that
+         * feature usage does not directly point to the user code using the feature.
+         */
+        USER_CODE_INDIRECT,
+
+        /**
+         * A feature / functionality on how gradle is invoked is used.
+         * This can be typically a no longer supported java version or the use of
+         * a deprecated or incubating command line flag.
+         */
+        BUILD_INVOCATION
+    }
+
+    public FeatureUsage(String summary, String removalDetails, String advice, String contextualAdvice, FeatureUsageType usageType, Class<?> calledFrom) {
+        this.summary = summary;
+        this.removalDetails = removalDetails;
         this.advice = advice;
+        this.contextualAdvice = contextualAdvice;
+        this.type = usageType;
         this.calledFrom = calledFrom;
         this.traceException = new Exception();
     }
 
     @VisibleForTesting
     FeatureUsage(FeatureUsage usage, Exception traceException) {
-        this.message = usage.message;
-        this.details = usage.details;
+        this.summary = usage.summary;
+        this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
+        this.contextualAdvice = usage.contextualAdvice;
+        this.type = usage.type;
         this.calledFrom = usage.calledFrom;
         this.traceException = Preconditions.checkNotNull(traceException);
     }
 
-    public String getMessage() {
-        return message;
+    public String getSummary() {
+        return summary;
     }
 
-    public String getDetails() {
-        return details;
+    public String getRemovalDetails() {
+        return removalDetails;
     }
 
     public String getAdvice() {
         return advice;
+    }
+
+    public String getContextualAdvice() {
+        return contextualAdvice;
+    }
+
+    public FeatureUsageType getType() {
+        return type;
     }
 
     public List<StackTraceElement> getStack() {
@@ -113,13 +150,17 @@ public class FeatureUsage {
     }
 
     public String formattedMessage() {
-        StringBuilder outputBuilder = new StringBuilder(message);
-        if (!StringUtils.isEmpty(details)) {
-            outputBuilder.append(" ").append(details);
-        }
-        if (!StringUtils.isEmpty(advice)) {
-            outputBuilder.append(" ").append(advice);
-        }
+        StringBuilder outputBuilder = new StringBuilder(summary);
+        append(outputBuilder, removalDetails);
+        append(outputBuilder, contextualAdvice);
+        append(outputBuilder, advice);
         return outputBuilder.toString();
     }
+
+    private void append(StringBuilder outputBuilder, String removalDetails) {
+        if (!StringUtils.isEmpty(removalDetails)) {
+            outputBuilder.append(" ").append(removalDetails);
+        }
+    }
+
 }

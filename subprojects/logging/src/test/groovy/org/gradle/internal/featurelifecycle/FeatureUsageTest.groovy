@@ -31,14 +31,14 @@ class FeatureUsageTest extends Specification {
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {
         expect:
         !usage.stack.empty
-        usage.message == expectedMessage
+        usage.summary == expectedSummary
 
         def stackTraceRoot = usage.stack[0]
         stackTraceRoot.className == callLocationClass.name
         stackTraceRoot.methodName == expectedMethod
 
         where:
-        callLocationClass           | expectedMessage | expectedMethod | usage
+        callLocationClass           | expectedSummary | expectedMethod | usage
         SimulatedJavaCallLocation   | DIRECT_CALL     | 'create'       | SimulatedJavaCallLocation.create()
         SimulatedJavaCallLocation   | INDIRECT_CALL   | 'indirectly'   | SimulatedJavaCallLocation.indirectly()
         SimulatedJavaCallLocation   | INDIRECT_CALL_2 | 'indirectly2'  | SimulatedJavaCallLocation.indirectly2()
@@ -49,12 +49,13 @@ class FeatureUsageTest extends Specification {
 
     def "formats messages"() {
         expect:
-        new FeatureUsage(message, warning, advice, getClass()).formattedMessage() == expected
+        new FeatureUsage(summary, removalDetails, advice, contextualAdvice, FeatureUsage.FeatureUsageType.USER_CODE_DIRECT, getClass()).formattedMessage() == expected
 
         where:
-        expected                 | message   | warning   | advice
-        "message"                | "message" | null      | null
-        "message warning"        | "message" | "warning" | null
-        "message warning advice" | "message" | "warning" | "advice"
+        expected                         | summary   | removalDetails | advice   | contextualAdvice
+        "summary"                        | "summary" | null           | null     | null
+        "summary warning"                | "summary" | "warning"      | null     | null
+        "summary warning advice"         | "summary" | "warning"      | "advice" | null
+        "summary warning context advice" | "summary" | "warning"      | "advice" | "context"
     }
 }
