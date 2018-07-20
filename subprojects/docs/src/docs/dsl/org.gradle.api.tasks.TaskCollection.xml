@@ -34,9 +34,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>getByName</td>
-            </tr>
-            <tr>
                 <td>named</td>
             </tr>
         </table>

@@ -34,10 +34,19 @@
                 </tr>
             </thead>
             <tr>
-                <td>getByName</td>
+                <td>getByPath</td>
             </tr>
             <tr>
-                <td>named</td>
+                <td>findByPath</td>
+            </tr>
+            <tr>
+                <td>replace</td>
+            </tr>
+            <tr>
+                <td>register</td>
+            </tr>
+            <tr>
+                <td>create</td>
             </tr>
         </table>
     </section>
