@@ -22,6 +22,7 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
     String b = "b"
     String c = "c"
     StringBuilder d = new StringBuilder("d")
+    boolean insertionOrderExpected = true
 
     def "findAll() filters elements and retains iteration order"() {
         set.add("a")

@@ -33,6 +33,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     final String b = "b"
     final String c = "c"
     final StringBuilder d = new StringBuilder("d")
+    boolean insertionOrderExpected = false
 
     def "can add element at given index"() {
         given:

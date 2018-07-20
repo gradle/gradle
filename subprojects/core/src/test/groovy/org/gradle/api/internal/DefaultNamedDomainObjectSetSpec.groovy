@@ -33,6 +33,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
+    boolean insertionOrderExpected = false
 
     @Override
     List<Bean> iterationOrder(Bean... elements) {
