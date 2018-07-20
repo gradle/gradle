@@ -31,7 +31,9 @@ class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        executer.beforeExecute {
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        }
     }
 
     /**

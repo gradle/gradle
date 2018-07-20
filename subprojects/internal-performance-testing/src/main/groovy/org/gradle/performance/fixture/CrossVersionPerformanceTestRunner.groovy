@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -241,7 +242,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
                 cleanTasks(this.cleanTasks as String[])
-                args(this.args as String[])
+                args((this.args + ['-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath]) as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }

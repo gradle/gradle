@@ -24,11 +24,13 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
+@Ignore
 class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'java/multiproject'

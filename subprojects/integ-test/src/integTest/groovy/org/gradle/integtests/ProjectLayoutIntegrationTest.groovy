@@ -17,10 +17,12 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,6 +33,13 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
+
+    @Before
+    void setUp() {
+        executer.beforeExecute {
+            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        }
+    }
 
     @Test
     void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {

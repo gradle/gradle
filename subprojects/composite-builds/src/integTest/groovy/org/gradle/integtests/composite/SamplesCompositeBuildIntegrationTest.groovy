@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)

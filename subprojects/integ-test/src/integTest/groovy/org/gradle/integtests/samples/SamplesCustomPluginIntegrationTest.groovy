@@ -15,12 +15,12 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
-class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
+class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'customPlugin')
 
     def getProducerDir() {

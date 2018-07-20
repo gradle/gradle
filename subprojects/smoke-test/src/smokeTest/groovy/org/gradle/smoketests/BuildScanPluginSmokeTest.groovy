@@ -85,7 +85,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     GradleRunner scanRunner(String... args) {
-        runner("build", "-Dscan.dump", *args).forwardOutput()
+        runner("build", *args).forwardOutput()
     }
 
     void usePluginVersion(String version) {
