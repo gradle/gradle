@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
+import org.gradle.authentication.http.HttpHeaderAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -33,6 +34,7 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
     private final static Set<Class<? extends Authentication>> SUPPORTED_AUTHENTICATION = ImmutableSet.of(
         BasicAuthentication.class,
         DigestAuthentication.class,
+        HttpHeaderAuthentication.class,
         AllSchemesAuthentication.class
     );
 

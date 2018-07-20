@@ -25,6 +25,7 @@ import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
 import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
+import static org.gradle.test.fixtures.server.http.AuthScheme.HEADER
 import static org.gradle.test.fixtures.server.http.AuthScheme.HIDE_UNAUTHORIZED
 import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
@@ -161,6 +162,47 @@ task listJars {
         'default'          | ''                                                                            | NTLM              | ['None', 'NTLM']
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
+    }
+
+    @Unroll
+    @Issue("gradle/gradle#5571")
+    public void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header"() {
+        given:
+        def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+        credentials(org.gradle.api.credentials.HttpHeaderCredentials) {
+            name = "TestHttpHeaderName"
+            value = "TestHttpHeaderValue"
+        }
+        authentication { header(HttpHeaderAuthentication) }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
+}
+"""
+
+        when:
+        serverAuthScheme = HEADER
+
+        and:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGet()
+
+        then:
+        succeeds('listJars')
+        and:
+        server.allHeaders.every { it.get("TestHttpHeaderName") == "TestHttpHeaderValue" }
     }
 
     @Unroll

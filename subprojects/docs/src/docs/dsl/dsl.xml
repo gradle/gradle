@@ -325,6 +325,9 @@
                 <td>org.gradle.api.credentials.AwsCredentials</td>
             </tr>
             <tr>
+                <td>org.gradle.api.credentials.HttpHeaderCredentials</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.repositories.AuthenticationContainer</td>
             </tr>
             <tr>
@@ -332,6 +335,9 @@
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.BasicAuthentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.HttpHeaderAuthentication</td>
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.DigestAuthentication</td>
