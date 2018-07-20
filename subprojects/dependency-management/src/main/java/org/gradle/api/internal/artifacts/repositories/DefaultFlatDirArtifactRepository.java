@@ -66,7 +66,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
-    private String id;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,

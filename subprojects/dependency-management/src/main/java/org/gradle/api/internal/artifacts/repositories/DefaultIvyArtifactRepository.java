@@ -98,7 +98,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
-    private String id;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,

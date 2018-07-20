@@ -92,9 +92,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
 
-    private String id;
-
-
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
