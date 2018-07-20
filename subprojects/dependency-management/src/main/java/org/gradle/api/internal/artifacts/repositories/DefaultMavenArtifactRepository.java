@@ -92,9 +92,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
 
-    private String id;
-
-
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
@@ -156,10 +153,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public void setUrl(URI url) {
+        invalidateDescriptor();
         this.url = url;
     }
 
     public void setUrl(Object url) {
+        invalidateDescriptor();
         this.url = url;
     }
 
@@ -172,15 +171,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public void artifactUrls(Object... urls) {
+        invalidateDescriptor();
         additionalUrls.addAll(Lists.newArrayList(urls));
     }
 
     @Override
     public void setArtifactUrls(Set<URI> urls) {
+        invalidateDescriptor();
         setArtifactUrls((Iterable<?>) urls);
     }
 
     public void setArtifactUrls(Iterable<?> urls) {
+        invalidateDescriptor();
         additionalUrls = Lists.newArrayList(urls);
     }
 
@@ -193,7 +195,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public RepositoryDescriptor getDescriptor() {
+    protected RepositoryDescriptor createDescriptor() {
         URI url = getUrl();
         return new MavenRepositoryDescriptor.Builder(getName(), url == null ? null : url.toASCIIString())
             .setAuthenticated(getConfiguredCredentials() != null)
@@ -234,6 +236,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public void metadataSources(Action<? super MetadataSources> configureAction) {
+        invalidateDescriptor();
         metadataSources.reset();
         configureAction.execute(metadataSources);
     }

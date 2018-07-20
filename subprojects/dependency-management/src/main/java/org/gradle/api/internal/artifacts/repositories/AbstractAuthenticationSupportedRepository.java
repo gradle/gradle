@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
+public abstract class AbstractAuthenticationSupportedRepository extends AbstractResolutionAwareArtifactRepository implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
 
     AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory) {
@@ -42,11 +42,13 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     @Override
     public PasswordCredentials getCredentials() {
+        invalidateDescriptor();
         return delegate.getCredentials();
     }
 
     @Override
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
+        invalidateDescriptor();
         return delegate.getCredentials(credentialsType);
     }
 
@@ -58,26 +60,31 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
+        invalidateDescriptor();
         delegate.setConfiguredCredentials(credentials);
     }
 
     @Override
     public void credentials(Action<? super PasswordCredentials> action) {
+        invalidateDescriptor();
         delegate.credentials(action);
     }
 
     @Override
     public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
+        invalidateDescriptor();
         delegate.credentials(credentialsType, action);
     }
 
     @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
+        invalidateDescriptor();
         delegate.authentication(action);
     }
 
     @Override
     public AuthenticationContainer getAuthentication() {
+        invalidateDescriptor();
         return delegate.getAuthentication();
     }
 

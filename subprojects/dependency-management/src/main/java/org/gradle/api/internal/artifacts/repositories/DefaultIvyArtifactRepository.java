@@ -98,7 +98,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
-    private String id;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -152,7 +151,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public RepositoryDescriptor getDescriptor() {
+    protected RepositoryDescriptor createDescriptor() {
         String layoutType;
         boolean m2Compatible;
         if (layout instanceof GradleRepositoryLayout) {
@@ -215,6 +214,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public void metadataSources(Action<? super MetadataSources> configureAction) {
+        invalidateDescriptor();
         metadataSources.reset();
         configureAction.execute(metadataSources);
     }
@@ -243,22 +243,31 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public void setUrl(URI url) {
+        invalidateDescriptor();
         baseUrl = url;
     }
 
+    @Override
     public void setUrl(Object url) {
+        invalidateDescriptor();
         baseUrl = url;
     }
 
+    @Override
     public void artifactPattern(String pattern) {
+        invalidateDescriptor();
         additionalPatternsLayout.artifactPatterns.add(pattern);
     }
 
+    @Override
     public void ivyPattern(String pattern) {
+        invalidateDescriptor();
         additionalPatternsLayout.ivyPatterns.add(pattern);
     }
 
+    @Override
     public void layout(String layoutName) {
+        invalidateDescriptor();
         if ("ivy".equals(layoutName)) {
             layout = instantiator.newInstance(IvyRepositoryLayout.class);
         } else if ("maven".equals(layoutName)) {
@@ -270,10 +279,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
     }
 
+    @Override
     public void layout(String layoutName, Closure config) {
         layout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
     }
 
+    @Override
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
         layout(layoutName);
         ((Action) config).execute(layout);

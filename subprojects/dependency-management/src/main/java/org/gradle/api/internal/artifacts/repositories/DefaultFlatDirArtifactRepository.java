@@ -57,7 +57,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
@@ -66,7 +66,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
-    private String id;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
@@ -95,36 +94,45 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         return super.getDisplayName() + '(' + Joiner.on(", ").join(dirs) + ')';
     }
 
+    @Override
     public Set<File> getDirs() {
         return fileResolver.resolveFiles(dirs).getFiles();
     }
 
+    @Override
     public void setDirs(Set<File> dirs) {
         setDirs((Iterable<?>) dirs);
     }
 
+    @Override
     public void setDirs(Iterable<?> dirs) {
+        invalidateDescriptor();
         this.dirs = Lists.newArrayList(dirs);
     }
 
+    @Override
     public void dir(Object dir) {
         dirs(dir);
     }
 
+    @Override
     public void dirs(Object... dirs) {
+        invalidateDescriptor();
         this.dirs.addAll(Arrays.asList(dirs));
     }
 
+    @Override
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }
 
+    @Override
     public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
     }
 
     @Override
-    public RepositoryDescriptor getDescriptor() {
+    protected RepositoryDescriptor createDescriptor() {
         return new FlatDirRepositoryDescriptor(
             getName(),
             getDirs()

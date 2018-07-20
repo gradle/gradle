@@ -60,6 +60,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         isPartOfContainer = true;
     }
 
+
     public String getName() {
         return name;
     }
@@ -119,8 +120,6 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * Creates a service registry giving access to the services we want to expose to rules and returns an instantiator that uses this service registry.
      *
      * @param transport the transport used to create the repository accessor
-     * @param rootUri
-     * @param externalResourcesFileStore
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
     ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
