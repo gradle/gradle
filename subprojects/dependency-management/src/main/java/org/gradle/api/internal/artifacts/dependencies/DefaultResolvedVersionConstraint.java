@@ -23,23 +23,23 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 
 import java.util.List;
 
-public class DefaultResolvedVersionConstraint extends DefaultImmutableVersionConstraint implements ResolvedVersionConstraint {
+public class DefaultResolvedVersionConstraint implements ResolvedVersionConstraint {
     private final VersionSelector preferredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
+    private final boolean rejectAll;
 
     public DefaultResolvedVersionConstraint(VersionSelector preferredVersionSelector, VersionSelector rejectedVersionsSelector) {
-        super(preferredVersionSelector.getSelector());
         this.preferredVersionSelector = preferredVersionSelector;
         this.rejectedVersionsSelector = rejectedVersionsSelector;
+        rejectAll = false;
     }
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
-        super(parent.getPreferredVersion(), parent.getRejectedVersions());
-
         String preferredVersion = parent.getPreferredVersion();
         List<String> rejectedVersions = parent.getRejectedVersions();
         this.preferredVersionSelector = scheme.parseSelector(preferredVersion);
         this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
+        rejectAll = isRejectAll(preferredVersion, rejectedVersions);
     }
 
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
@@ -61,8 +61,12 @@ public class DefaultResolvedVersionConstraint extends DefaultImmutableVersionCon
 
     @Override
     public boolean isRejectAll() {
-        return "".equals(getPreferredVersion())
-            && hasMatchAllSelector(getRejectedVersions());
+        return rejectAll;
+    }
+
+    private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
+        return "".equals(preferredVersion)
+            && hasMatchAllSelector(rejectedVersions);
     }
 
     private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
