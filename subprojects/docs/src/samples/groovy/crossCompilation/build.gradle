@@ -1,5 +1,3 @@
-import org.apache.tools.ant.taskdefs.Javadoc
-
 apply plugin: 'groovy'
 version = 1.0
 
