@@ -33,7 +33,7 @@ public class UnsupportedJavaRuntimeException extends GradleException {
 
     public static void javaDeprecationWarning() {
         if (!JavaVersion.current().isJava8Compatible()) {
-            DeprecationLogger.nagUserWithDeprecatedInvocationFeature(JAVA7_DEPRECATION_WARNING, JAVA7_DEPRECATION_WARNING_DOC);
+            DeprecationLogger.nagUserWithDeprecatedBuildInvocationFeature(JAVA7_DEPRECATION_WARNING, JAVA7_DEPRECATION_WARNING_DOC);
         }
     }
 

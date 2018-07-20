@@ -40,24 +40,24 @@ public class FeatureUsage {
     public enum FeatureUsageType {
         /**
          * The feature usage in user code directly leads to a deprecation warning.
-         *  The stacktrace in that feature usage directly points to the user code
-         *  using the feature.
-         * */
+         * The stacktrace in that feature usage directly points to the user code
+         * using the feature.
+         */
         USER_CODE_DIRECT,
 
         /**
          * The feature usage in user code indirectly leads to a deprecation warning as
          * the usage was detect later in the build.  The stacktrace in that
          * feature usage does not directly point to the user code using the feature.
-         * */
+         */
         USER_CODE_INDIRECT,
 
         /**
          * A feature / functionality on how gradle is invoked is used.
          * This can be typically a no longer supported java version or the use of
          * a deprecated or incubating command line flag.
-         * */
-        INVOCATION
+         */
+        BUILD_INVOCATION
     }
 
     public FeatureUsage(String summary, String removalDetails, String advice, String contextualAdvice, FeatureUsageType usageType, Class<?> calledFrom) {

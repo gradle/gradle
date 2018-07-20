@@ -195,12 +195,12 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserWithDeprecatedInvocationFeature(String summary, String advice) {
-        nagUserWithDeprecatedInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
+    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String advice) {
+        nagUserWithDeprecatedBuildInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
     }
 
-    public static void nagUserWithDeprecatedInvocationFeature(String summary, String removalDetails, String advice) {
-        nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, null, FeatureUsage.FeatureUsageType.INVOCATION);
+    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String removalDetails, String advice) {
+        nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, null, FeatureUsage.FeatureUsageType.BUILD_INVOCATION);
     }
 
     public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String advice) {

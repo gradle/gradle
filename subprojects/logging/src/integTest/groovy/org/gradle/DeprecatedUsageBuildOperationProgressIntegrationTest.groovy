@@ -40,7 +40,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             apply from: 'script.gradle'
             apply plugin: SomePlugin
             
-            org.gradle.util.DeprecationLogger.nagUserWithDeprecatedInvocationFeature('Some invocation feature', "Don't do custom invocation.")
+            org.gradle.util.DeprecationLogger.nagUserWithDeprecatedBuildInvocationFeature('Some invocation feature', "Don't do custom invocation.")
             org.gradle.util.DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause('Some indirect deprecation', 'Some advice.')
             
             task t(type:SomeTask) {
