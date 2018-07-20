@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
@@ -91,7 +92,7 @@ public class ClasspathEntrySnapshot {
             }
         }
         for (String added : addedSince(other)) {
-            if (added.endsWith("package-info")) {
+            if (added.endsWith(ClassSetAnalysisData.PACKAGE_INFO)) {
                 affected.add(added);
                 DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(added, IntSets.EMPTY_SET);
                 if (dependents.isDependencyToAll()) {
