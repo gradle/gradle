@@ -20,10 +20,12 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.authentication.Authentication
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor
+import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.DefaultAuthenticationContainer
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.reflect.DirectInstantiator
@@ -222,6 +224,16 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
         AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
             super(instantiator, authenticationContainer, null)
+        }
+
+        @Override
+        protected RepositoryDescriptor createDescriptor() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ConfiguredModuleComponentRepository createResolver() {
+            throw new UnsupportedOperationException()
         }
     }
 
