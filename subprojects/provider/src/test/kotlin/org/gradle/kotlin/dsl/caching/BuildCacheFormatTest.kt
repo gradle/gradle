@@ -77,7 +77,7 @@ class BuildCacheFormatTest : TestWithTempFiles() {
 
     private
     fun filesIn(inputDir: File) =
-        inputDir.walkTopDown().map { descriptorFor(it, inputDir) }.toList()
+        inputDir.walkTopDown().map { descriptorFor(it, inputDir) }.sorted().toList()
 
     private
     fun descriptorFor(f: File, baseDir: File) =
