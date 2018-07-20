@@ -231,7 +231,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         // expect:
         for (run in 1..4) {
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
-            buildWithDaemonHeapSize(256, "MyTask").apply {
+            buildWithDaemonHeapSize(256, "myTask").apply {
                 compilationCache {
                     misses(settingsFile.stage1)
                     hits(settingsFile.stage2)
