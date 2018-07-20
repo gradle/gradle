@@ -1,7 +1,13 @@
 buildscript {
+
+    def mavenCentralUrl = project.rootProject.ext.repositoryMirrors?.get("mavencentral")
+
     repositories {
-        mavenCentral()
+        maven {
+            url mavenCentralUrl ?: ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
+        }
     }
+
     dependencies {
         classpath('com.uwyn:jhighlight:1.0') {
             exclude module: "servlet-api"
