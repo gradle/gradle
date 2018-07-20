@@ -67,7 +67,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def localStateFile = temporaryFolder.file("local-state.txt").createFile()
     def localStateFiles = ImmutableFileCollection.of(localStateFile)
 
-    def "load invokes unpacker and snapshots outputs"() {
+    def "load invokes unpacker and fingerprints outputs"() {
         def outputFile = temporaryFolder.file("output.txt")
         def outputDir = temporaryFolder.file("outputDir")
         def outputDirFile = outputDir.file("file.txt")
@@ -106,10 +106,10 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.contentHash == outputFileSnapshot.contentHash
         }
-        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertySnapshots, OriginTaskExecutionMetadata metadata ->
-            assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
-            assert propertySnapshots["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
-            assert propertySnapshots["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertyFingerprints, OriginTaskExecutionMetadata metadata ->
+            assert propertyFingerprints.keySet() as List == ["outputDir", "outputFile"]
+            assert propertyFingerprints["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
+            assert propertyFingerprints["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:
@@ -195,8 +195,8 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "store invokes packer"() {
         def output = Mock(OutputStream)
         def outputProperties = props("output")
-        def outputSnapshots = Mock(Map)
-        def command = commandFactory.createStore(key, outputProperties, outputSnapshots, task, 1)
+        def outputFingerprints = Mock(Map)
+        def command = commandFactory.createStore(key, outputProperties, outputFingerprints, task, 1)
 
         when:
         def result = command.store(output)
@@ -205,7 +205,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * originFactory.createWriter(task, _)
 
         then:
-        1 * packer.pack(outputProperties, outputSnapshots, output, _) >> new TaskOutputPacker.PackResult(123)
+        1 * packer.pack(outputProperties, outputFingerprints, output, _) >> new TaskOutputPacker.PackResult(123)
 
         then:
         result.artifactEntryCount == 123

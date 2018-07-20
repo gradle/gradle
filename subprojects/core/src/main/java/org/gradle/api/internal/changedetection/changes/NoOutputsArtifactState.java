@@ -138,7 +138,7 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public Map<String, FileCollectionFingerprint> getOutputSnapshots() {
+    public Map<String, FileCollectionFingerprint> getOutputFingerprints() {
         return Collections.emptyMap();
     }
 

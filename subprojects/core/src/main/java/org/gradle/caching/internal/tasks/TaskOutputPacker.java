@@ -38,7 +38,7 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
+    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;

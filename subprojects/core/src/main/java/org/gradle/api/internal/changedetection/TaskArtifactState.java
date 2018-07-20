@@ -78,7 +78,7 @@ public interface TaskArtifactState {
     TaskExecutionHistory getExecutionHistory();
 
     /**
-     * Returns the current output file snapshots indexed by property name.
+     * Returns the current output file fingerprints indexed by property name.
      */
-    Map<String, ? extends FileCollectionFingerprint> getOutputSnapshots();
+    Map<String, ? extends FileCollectionFingerprint> getOutputFingerprints();
 }

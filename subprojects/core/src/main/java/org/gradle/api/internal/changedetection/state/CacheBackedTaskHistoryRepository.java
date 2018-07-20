@@ -177,7 +177,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (currentExecution.getDetectedOverlappingOutputs() == null) {
             newOutputFingerprint = outputFilesAfter;
         } else {
-            newOutputFingerprint = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesFingerprintBeforeExecution(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, FileCollectionFingerprint>() {
+            newOutputFingerprint = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFingerprintsBeforeExecution(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, FileCollectionFingerprint>() {
                 @Override
                 @SuppressWarnings("NullableProblems")
                 public FileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
@@ -192,7 +192,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private void updateExecution(CurrentTaskExecution currentExecution, TaskInternal task, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> newOutputFingerprint) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
-        currentExecution.setOutputFilesFingerprintAfterExecution(newOutputFingerprint);
+        currentExecution.setOutputFingerprintsAfterExecution(newOutputFingerprint);
     }
 
     /**
@@ -330,7 +330,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static HistoricalFileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
-            Map<String, HistoricalFileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFilesFingerprint();
+            Map<String, HistoricalFileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFingerprints();
             HistoricalFileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;

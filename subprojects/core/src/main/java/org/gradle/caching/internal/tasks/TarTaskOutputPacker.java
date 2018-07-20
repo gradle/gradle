@@ -99,7 +99,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -112,7 +112,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
             packMetadata(writeOrigin, tarOutput);
-            long entryCount = pack(propertySpecs, outputSnapshots, tarOutput);
+            long entryCount = pack(propertySpecs, outputFingerprints, tarOutput);
             return new PackResult(entryCount + 1);
         } finally {
             IOUtils.closeQuietly(tarOutput);
@@ -127,13 +127,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, TarArchiveOutputStream tarOutput) {
+    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, TarArchiveOutputStream tarOutput) {
         long entries = 0;
         for (ResolvedTaskOutputFilePropertySpec propertySpec : propertySpecs) {
             String propertyName = propertySpec.getPropertyName();
-            CurrentFileCollectionFingerprint outputSnapshot = outputSnapshots.get(propertyName);
+            CurrentFileCollectionFingerprint outputFingerprint = outputFingerprints.get(propertyName);
             try {
-                entries += packProperty(propertySpec, outputSnapshot, tarOutput);
+                entries += packProperty(propertySpec, outputFingerprint, tarOutput);
             } catch (Exception ex) {
                 throw new GradleException(String.format("Could not pack property '%s': %s", propertyName, ex.getMessage()), ex);
             }
@@ -141,14 +141,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         return entries;
     }
 
-    private long packProperty(final CacheableTaskOutputFilePropertySpec propertySpec, CurrentFileCollectionFingerprint outputSnapshot, TarArchiveOutputStream tarOutput) {
+    private long packProperty(final CacheableTaskOutputFilePropertySpec propertySpec, CurrentFileCollectionFingerprint outputFingerprint, TarArchiveOutputStream tarOutput) {
         String propertyName = propertySpec.getPropertyName();
         File root = propertySpec.getOutputFile();
         if (root == null) {
             return 0;
         }
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, propertyName, propertySpec.getOutputType(), fileSystem);
-        outputSnapshot.visitRoots(packingVisitor);
+        outputFingerprint.visitRoots(packingVisitor);
         return packingVisitor.finish();
     }
 

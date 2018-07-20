@@ -34,14 +34,14 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
     }
 
     private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getPrevious() {
-        return getSnapshot(previous);
+        return getFingerprints(previous);
     }
 
     private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getCurrent() {
-        return getSnapshot(current);
+        return getFingerprints(current);
     }
 
-    protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getSnapshot(TaskExecution execution);
+    protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution);
 
     protected boolean accept(final TaskStateChangeVisitor visitor, final boolean includeAdded) {
         return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionFingerprint>() {

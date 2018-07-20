@@ -55,10 +55,10 @@ public class TaskCacheKeyCalculator {
             }
         }
 
-        SortedMap<String, CurrentFileCollectionFingerprint> inputFilesFingerprints = execution.getInputFilesFingerprint();
-        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFilesFingerprints.entrySet()) {
-            CurrentFileCollectionFingerprint snapshot = entry.getValue();
-            builder.appendInputPropertyHash(entry.getKey(), snapshot.getHash());
+        SortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints = execution.getInputFingerprints();
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFingerprints.entrySet()) {
+            CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+            builder.appendInputPropertyHash(entry.getKey(), fingerprint.getHash());
         }
 
         SortedSet<String> outputPropertyNamesForCacheKey = execution.getOutputPropertyNamesForCacheKey();

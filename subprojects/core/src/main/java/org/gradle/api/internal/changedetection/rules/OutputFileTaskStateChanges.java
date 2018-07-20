@@ -29,8 +29,8 @@ public class OutputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     @Override
-    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getSnapshot(TaskExecution execution) {
-        return execution.getOutputFilesFingerprint();
+    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution) {
+        return execution.getOutputFingerprints();
     }
 
     public boolean hasAnyChanges() {

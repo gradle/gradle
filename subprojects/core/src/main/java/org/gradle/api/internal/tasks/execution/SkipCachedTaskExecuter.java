@@ -111,8 +111,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     try {
                         TaskArtifactState taskState = context.getTaskArtifactState();
                         // No overlapping outputs -> all the output fingerprints are CurrentFileCollectionFingerprints
-                        Map<String, CurrentFileCollectionFingerprint> outputSnapshots = Cast.uncheckedCast(taskState.getOutputSnapshots());
-                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
+                        Map<String, CurrentFileCollectionFingerprint> outputFingerprints = Cast.uncheckedCast(taskState.getOutputFingerprints());
+                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputFingerprints, task, context.getExecutionTime()));
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
                     }

@@ -72,8 +72,8 @@ public class TaskOutputCacheCommandFactory {
         return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskArtifactState);
     }
 
-    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, TaskInternal task, long taskExecutionTime) {
-        return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, taskExecutionTime);
+    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, TaskInternal task, long taskExecutionTime) {
+        return new StoreCommand(cacheKey, outputProperties, outputFingerprints, task, taskExecutionTime);
     }
 
     private class LoadCommand implements BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
@@ -214,14 +214,14 @@ public class TaskOutputCacheCommandFactory {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
-        private final Map<String, CurrentFileCollectionFingerprint> outputSnapshots;
+        private final Map<String, CurrentFileCollectionFingerprint> outputFingerprints;
         private final TaskInternal task;
         private final long taskExecutionTime;
 
-        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, TaskInternal task, long taskExecutionTime) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
-            this.outputSnapshots = outputSnapshots;
+            this.outputFingerprints = outputFingerprints;
             this.task = task;
             this.taskExecutionTime = taskExecutionTime;
         }
@@ -234,7 +234,7 @@ public class TaskOutputCacheCommandFactory {
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             LOGGER.info("Packing {}", task);
-            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, outputSnapshots, output, taskOutputOriginFactory.createWriter(task, taskExecutionTime));
+            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, outputFingerprints, output, taskOutputOriginFactory.createWriter(task, taskExecutionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override
                 public long getArtifactEntryCount() {

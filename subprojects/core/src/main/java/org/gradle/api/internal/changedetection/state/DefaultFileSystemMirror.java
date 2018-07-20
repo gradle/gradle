@@ -36,7 +36,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     // Maps from interned absolute path for a directory to known details for the directory.
     private final Map<String, FileSystemSnapshot> trees = new ConcurrentHashMap<String, FileSystemSnapshot>();
     private final Map<String, FileSystemSnapshot> cacheTrees = new ConcurrentHashMap<String, FileSystemSnapshot>();
-    // Maps from interned absolute path to a snapshot
+    // Maps from interned absolute path to a hash of the contents of the file/directory
     private final Map<String, HashCode> snapshots = new ConcurrentHashMap<String, HashCode>();
     private final Map<String, HashCode> cacheSnapshots = new ConcurrentHashMap<String, HashCode>();
     private final WellKnownFileLocations wellKnownFileLocations;

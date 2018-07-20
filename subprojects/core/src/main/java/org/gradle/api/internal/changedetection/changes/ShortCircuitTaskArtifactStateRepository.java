@@ -113,8 +113,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public Map<String, ? extends FileCollectionFingerprint> getOutputSnapshots() {
-            return delegate.getOutputSnapshots();
+        public Map<String, ? extends FileCollectionFingerprint> getOutputFingerprints() {
+            return delegate.getOutputFingerprints();
         }
 
         @Override

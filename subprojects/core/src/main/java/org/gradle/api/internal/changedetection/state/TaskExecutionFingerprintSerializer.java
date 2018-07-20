@@ -87,8 +87,8 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
         encoder.writeBoolean(execution.isSuccessful());
         encoder.writeString(execution.getOriginExecutionMetadata().getBuildInvocationId().asString());
         encoder.writeLong(execution.getOriginExecutionMetadata().getExecutionTime());
-        writeFingerprints(encoder, execution.getInputFilesFingerprint());
-        writeFingerprints(encoder, execution.getOutputFilesFingerprint());
+        writeFingerprints(encoder, execution.getInputFingerprints());
+        writeFingerprints(encoder, execution.getOutputFingerprints());
         writeImplementation(encoder, execution.getTaskImplementation());
         encoder.writeSmallInt(execution.getTaskActionImplementations().size());
         for (ImplementationSnapshot actionImpl : execution.getTaskActionImplementations()) {

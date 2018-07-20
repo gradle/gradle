@@ -45,9 +45,9 @@ public interface TaskExecution {
 
     ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
 
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFilesFingerprint();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFingerprints();
 
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFilesFingerprint();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFingerprints();
 
     boolean isSuccessful();
 

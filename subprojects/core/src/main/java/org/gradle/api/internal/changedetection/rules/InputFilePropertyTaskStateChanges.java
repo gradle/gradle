@@ -32,6 +32,6 @@ public class InputFilePropertyTaskStateChanges extends AbstractPropertyTaskState
 
     @Override
     protected SortedMap<String, ? extends FileCollectionFingerprint> getProperties(TaskExecution execution) {
-        return execution.getInputFilesFingerprint();
+        return execution.getInputFingerprints();
     }
 }

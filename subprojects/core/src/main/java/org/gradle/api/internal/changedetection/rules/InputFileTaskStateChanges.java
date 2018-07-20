@@ -28,8 +28,8 @@ public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStat
     }
 
     @Override
-    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getSnapshot(TaskExecution execution) {
-        return execution.getInputFilesFingerprint();
+    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution) {
+        return execution.getInputFingerprints();
     }
 
     @Override

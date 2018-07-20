@@ -131,9 +131,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
-            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFilesSnapshot = previousExecution.getOutputFilesFingerprint().values();
+            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFingerprints().values();
             Set<File> outputs = new HashSet<File>();
-            for (FileCollectionFingerprint fileCollectionFingerprint : outputFilesSnapshot) {
+            for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
                 for (String absolutePath : fileCollectionFingerprint.getSnapshots().keySet()) {
                     outputs.add(new File(absolutePath));
                 }
@@ -142,8 +142,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Map<String, ? extends FileCollectionFingerprint> getOutputSnapshots() {
-            return history.getCurrentExecution().getOutputFilesFingerprint();
+        public Map<String, ? extends FileCollectionFingerprint> getOutputFingerprints() {
+            return history.getCurrentExecution().getOutputFingerprints();
         }
 
         @Override

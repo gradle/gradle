@@ -32,6 +32,6 @@ public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges<
 
     @Override
     protected SortedMap<String, ? extends FileCollectionFingerprint> getProperties(TaskExecution execution) {
-        return execution.getOutputFilesFingerprint();
+        return execution.getOutputFingerprints();
     }
 }
