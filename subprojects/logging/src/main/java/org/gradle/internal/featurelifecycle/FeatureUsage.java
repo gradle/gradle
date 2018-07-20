@@ -38,8 +38,25 @@ public class FeatureUsage {
     private List<StackTraceElement> stack;
 
     public enum FeatureUsageType {
+        /**
+         * The feature usage in user code directly leads to a deprecation warning.
+         *  The stacktrace in that feature usage directly points to the user code
+         *  using the feature.
+         * */
         USER_CODE_DIRECT,
+
+        /**
+         * The feature usage in user code indirectly leads to a deprecation warning as
+         * the usage was detect later in the build.  The stacktrace in that
+         * feature usage does not directly point to the user code using the feature.
+         * */
         USER_CODE_INDIRECT,
+
+        /**
+         * A feature / functionality on how gradle is invoked is used.
+         * This can be typically a no longer supported java version or the use of
+         * a deprecated or incubating command line flag.
+         * */
         INVOCATION
     }
 
@@ -134,16 +151,16 @@ public class FeatureUsage {
 
     public String formattedMessage() {
         StringBuilder outputBuilder = new StringBuilder(summary);
+        append(outputBuilder, removalDetails);
+        append(outputBuilder, contextualAdvice);
+        append(outputBuilder, advice);
+        return outputBuilder.toString();
+    }
+
+    private void append(StringBuilder outputBuilder, String removalDetails) {
         if (!StringUtils.isEmpty(removalDetails)) {
             outputBuilder.append(" ").append(removalDetails);
         }
-        if (!StringUtils.isEmpty(contextualAdvice)) {
-            outputBuilder.append(" ").append(contextualAdvice);
-        }
-        if (!StringUtils.isEmpty(advice)) {
-            outputBuilder.append(" ").append(advice);
-        }
-        return outputBuilder.toString();
     }
 
 }
