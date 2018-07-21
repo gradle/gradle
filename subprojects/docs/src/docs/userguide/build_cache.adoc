@@ -286,22 +286,22 @@ This can be achieved by applying the same script to `buildSrc/settings.gradle` a
 === Example: Consistent setup for buildSrc and main build
 
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/buildCache/build-src/settings.gradle[tag=configure-build-src-build-cache]
 ----
 
-[source.multi-language-sample,groovy]
 .gradle/buildCacheSettings.gradle
 ----
 include::{samplesPath}/buildCache/build-src/gradle/buildCacheSettings.gradle[tag=configure-build-src-build-cache]
 ----
 
-[source.multi-language-sample,groovy]
 .buildSrc/settings.gradle
 ----
 include::{samplesPath}/buildCache/build-src/buildSrc/settings.gradle[tag=configure-build-src-build-cache]
 ----
+====
 
 It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
 
