@@ -34,7 +34,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 '17'()
             }
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: ['(15,)'], reason: 'what not')
+                dependsOn(group: 'org', artifact: 'foo', version: '15', strictly: '15', reason: 'what not')
             }
         }
 
@@ -73,7 +73,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 '1.3'()
             }
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '[1.1,1.3]', rejects: [']1.3,)'])
+                dependsOn(group: 'org', artifact: 'foo', version: '[1.1,1.3]', strictly: '[1.1,1.3]')
             }
         }
 
@@ -170,7 +170,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
             'org:foo:15'()
             'org:foo:17'()
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: ['(15,)'])
+                dependsOn(group: 'org', artifact: 'foo', version: '15', strictly: '15')
             }
         }
 
@@ -324,7 +324,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         repository {
             'org' {
                 'a:1.0' {
-                    dependsOn (group: 'org', artifact: 'b', version: '1.0', rejects: ['(1.0,)'], reason: 'Not following semantic versioning')
+                    dependsOn (group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
                 }
                 'b' {
                     '1.0'()
@@ -382,7 +382,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         repository {
             'org' {
                 'a:1.0' {
-                    dependsOn (group: 'org', artifact: 'b', version: '1.0', rejects: ['(1.0,)'], reason: 'Not following semantic versioning')
+                    dependsOn (group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
                 }
                 'b' {
                     '1.0'()
