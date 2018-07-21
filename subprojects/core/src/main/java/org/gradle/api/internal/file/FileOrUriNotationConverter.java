@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 public class FileOrUriNotationConverter implements NotationConverter<Object, Object> {
 
-    private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
+    private static final Pattern URI_SCHEME = Pattern.compile("([a-zA-Z][a-zA-Z0-9+-\\.]*:).+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
     private final FileSystem fileSystem;
 
@@ -98,18 +98,12 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                 result.converted(new File(uriDecode(notationString.substring(5))));
                 return;
             }
-            if (URI_SCHEME.matcher(notationString).matches()) {
-                for (File file : File.listRoots()) {
-                    String rootPath = file.getAbsolutePath();
-                    String normalisedStr = notationString;
-                    if (!fileSystem.isCaseSensitive()) {
-                        rootPath = rootPath.toLowerCase();
-                        normalisedStr = normalisedStr.toLowerCase();
-                    }
-                    if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
-                        result.converted(new File(notationString));
-                        return;
-                    }
+            Matcher schemeMatcher = URI_SCHEME.matcher(notationString);
+            if (schemeMatcher.matches()) {
+                String scheme = schemeMatcher.group(1);
+                if (new File(scheme).isDirectory()) {
+                    result.converted(new File(notationString));
+                    return;
                 }
                 try {
                     result.converted(new URI(notationString));
