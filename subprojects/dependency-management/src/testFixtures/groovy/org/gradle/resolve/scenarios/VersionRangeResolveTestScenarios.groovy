@@ -363,7 +363,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultImmutableVersionConstraint.of("", [version])
+            DefaultImmutableVersionConstraint.of("", "", [version])
         }
 
         @Override

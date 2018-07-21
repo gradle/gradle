@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -35,12 +37,29 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
-        String preferredVersion = parent.getPreferredVersion();
-        List<String> rejectedVersions = parent.getRejectedVersions();
-        this.preferredVersionSelector = scheme.parseSelector(preferredVersion);
-        this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
-        rejectAll = isRejectAll(preferredVersion, rejectedVersions);
+        this(parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
     }
+
+    @VisibleForTesting
+    public DefaultResolvedVersionConstraint(String preferredVersion, String strictVersion, List<String> rejected, VersionSelectorScheme scheme) {
+        boolean strict = !strictVersion.isEmpty();
+        String version = strict ? strictVersion : preferredVersion;
+        this.preferredVersionSelector = scheme.parseSelector(version);
+
+        List<String> rejectedVersions = rejected;
+        if (strict) {
+            rejectedVersions = Lists.newArrayList(rejectedVersions);
+            rejectedVersions.add(getRejectionForStrict(version, scheme));
+        }
+        this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
+        rejectAll = isRejectAll(version, rejectedVersions);
+    }
+
+    private String getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
+        VersionSelector preferredSelector = versionSelectorScheme.parseSelector(version);
+        return versionSelectorScheme.complementForRejection(preferredSelector).getSelector();
+    }
+
 
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
         if (rejectedVersions.size()>1) {

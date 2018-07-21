@@ -26,6 +26,7 @@ import java.util.List;
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
     private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
     private final String preferredVersion;
+    private final String strictVersion;
     private final ImmutableList<String> rejectedVersions;
     @Nullable
     private final String requiredBranch;
@@ -33,16 +34,21 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     private final int hashCode;
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
+                                             String strictVersion,
                                              List<String> rejectedVersions) {
-        this(preferredVersion, rejectedVersions, null);
+        this(preferredVersion, strictVersion, rejectedVersions, null);
     }
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
+                                             String strictVersion,
                                              List<String> rejectedVersions,
                                              @Nullable
                                              String requiredBranch) {
         if (preferredVersion == null) {
             throw new IllegalArgumentException("Preferred version must not be null");
+        }
+        if (strictVersion == null) {
+            throw new IllegalArgumentException("Strict version must not be null");
         }
         if (rejectedVersions == null) {
             throw new IllegalArgumentException("Rejected versions must not be null");
@@ -53,6 +59,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
             }
         }
         this.preferredVersion = preferredVersion;
+        this.strictVersion = strictVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
         this.requiredBranch = requiredBranch;
         this.hashCode = super.hashCode();
@@ -63,6 +70,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
             throw new IllegalArgumentException("Preferred version must not be null");
         }
         this.preferredVersion = preferredVersion;
+        this.strictVersion = "";
         this.rejectedVersions = ImmutableList.of();
         this.requiredBranch = null;
         this.hashCode = super.hashCode();
@@ -85,6 +93,11 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     }
 
     @Override
+    public String getStrictVersion() {
+        return strictVersion;
+    }
+
+    @Override
     public List<String> getRejectedVersions() {
         return rejectedVersions;
     }
@@ -93,7 +106,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         if (versionConstraint instanceof ImmutableVersionConstraint) {
             return (ImmutableVersionConstraint) versionConstraint;
         }
-        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRejectedVersions());
+        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
     }
 
     public static ImmutableVersionConstraint of(String preferredVersion) {
@@ -103,8 +116,8 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         return new DefaultImmutableVersionConstraint(preferredVersion);
     }
 
-    public static ImmutableVersionConstraint of(String preferredVersion, List<String> rejects) {
-        return new DefaultImmutableVersionConstraint(preferredVersion, rejects);
+    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, List<String> rejects) {
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, rejects);
     }
 
     public static ImmutableVersionConstraint of() {

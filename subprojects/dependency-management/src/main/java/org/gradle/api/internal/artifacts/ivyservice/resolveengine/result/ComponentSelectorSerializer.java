@@ -82,12 +82,13 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
 
     ImmutableVersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
         String prefers = decoder.readString();
+        String strictly = decoder.readString();
         int rejectCount = decoder.readSmallInt();
         List<String> rejects = Lists.newArrayListWithCapacity(rejectCount);
         for (int i = 0; i < rejectCount; i++) {
             rejects.add(decoder.readString());
         }
-        return new DefaultImmutableVersionConstraint(prefers, rejects);
+        return new DefaultImmutableVersionConstraint(prefers, strictly, rejects);
     }
 
     public void write(Encoder encoder, ComponentSelector value) throws IOException {
@@ -143,6 +144,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
 
     private void writeVersionConstraint(Encoder encoder, VersionConstraint versionConstraint) throws IOException {
         encoder.writeString(versionConstraint.getPreferredVersion());
+        encoder.writeString(versionConstraint.getStrictVersion());
         List<String> rejectedVersions = versionConstraint.getRejectedVersions();
         encoder.writeSmallInt(rejectedVersions.size());
         for (String rejectedVersion : rejectedVersions) {

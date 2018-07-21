@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultMutableVersionConstraintTest extends Specification {
     def "defaults to an empty reject list"() {
@@ -27,38 +26,8 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         e.preferredVersion == '1.0'
+        e.strictVersion == ''
         e.rejectedVersions == []
-    }
-
-    @Unroll
-    def "computes the complement of preferred version #preferred"() {
-        when:
-        def e = new DefaultMutableVersionConstraint(preferred, true)
-
-        then:
-        e.preferredVersion == preferred
-        e.rejectedVersions == [complement]
-
-        where:
-        preferred    | complement
-        '1.0'        | '(1.0,)'
-        '[1.0, 2.0]' | '(2.0,)'
-        '[1.0, 2.0)' | '[2.0,)'
-        '(, 2.0)'    | '[2.0,)'
-        '(, 2.0]'    | '(2.0,)'
-    }
-
-    @Unroll
-    def "fails converting version #preferred to a strict dependency"() {
-        when:
-        def e = new DefaultMutableVersionConstraint(preferred, true)
-
-        then:
-        IllegalArgumentException ex = thrown()
-        ex.message == "Version '$preferred' cannot be converted to a strict version constraint."
-
-        where:
-        preferred << ['[1.0,)', '1.+', '1+']
     }
 
     def "can override preferred version with another preferred version"() {
@@ -70,6 +39,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '2.0'
+        version.strictVersion == ''
         version.rejectedVersions == []
     }
 
@@ -82,6 +52,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '2.0'
+        version.strictVersion == ''
         version.rejectedVersions == []
     }
 
@@ -94,7 +65,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '2.0'
-        version.rejectedVersions == ['(2.0,)']
+        version.strictVersion == '2.0'
     }
 
     def "can declare rejected versions"() {
@@ -126,6 +97,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '1.1'
+        version.strictVersion == ''
         version.rejectedVersions == []
     }
 
@@ -139,7 +111,8 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.preferredVersion == '1.1'
-        version.rejectedVersions == ['(1.1,)']
+        version.strictVersion == '1.1'
+        version.rejectedVersions == []
     }
 
     def "cannot use an empty list of rejections"() {

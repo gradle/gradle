@@ -101,6 +101,7 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
             DefaultImmutableVersionConstraint transformedConstraint =
                 new DefaultImmutableVersionConstraint(
                     VERSION_TRANSFORMER.transform(versionConstraint.getPreferredVersion()),
+                    VERSION_TRANSFORMER.transform(versionConstraint.getStrictVersion()),
                     CollectionUtils.collect(versionConstraint.getRejectedVersions(), VERSION_TRANSFORMER));
             ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), transformedConstraint, selector.getAttributes());
             return dependency.withTarget(newSelector);

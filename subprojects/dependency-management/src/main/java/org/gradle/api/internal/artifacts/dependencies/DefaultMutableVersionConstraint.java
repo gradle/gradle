@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -33,45 +28,36 @@ import java.util.List;
 import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
-    private String prefer;
+    private String preferredVersion;
+    private String strictVersion;
     private String branch;
-    private final List<String> rejects = Lists.newArrayListWithExpectedSize(1);
+    private final List<String> rejectedVersions = Lists.newArrayListWithExpectedSize(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
-        this(versionConstraint.getPreferredVersion(), versionConstraint.getRejectedVersions());
+        this.preferredVersion = nullToEmpty(versionConstraint.getPreferredVersion());
+        this.strictVersion = nullToEmpty(versionConstraint.getStrictVersion());
+        this.rejectedVersions.addAll(versionConstraint.getRejectedVersions());
+    }
+
+    public DefaultMutableVersionConstraint(String version) {
+        prefer(version);
     }
 
     public DefaultMutableVersionConstraint(String version, boolean strict) {
-        this.prefer = nullToEmpty(version);
+        prefer(version);
         if (strict) {
-            doStrict();
+            strictly(version);
         }
     }
 
     public DefaultMutableVersionConstraint(String version, List<String> rejects) {
-        this.prefer = nullToEmpty(version);
-        this.rejects.addAll(rejects);
-    }
-
-    private void doStrict() {
-        // When strict version is used, we need to parse the preferred selector early, in order to compute its complement.
-        // Hopefully this shouldn't happen too often. If it happens to become a performance problem, we need to reconsider
-        // how we compute the "reject" clause
-        DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser());
-        VersionSelector preferredSelector = versionSelectorScheme.parseSelector(prefer);
-        VersionSelector rejectedSelector = versionSelectorScheme.complementForRejection(preferredSelector);
-        this.rejects.clear();
-        this.rejects.add(rejectedSelector.getSelector());
-    }
-
-    public DefaultMutableVersionConstraint(String version) {
-        this(version, false);
+        prefer(version);
+        this.rejectedVersions.addAll(rejects);
     }
 
     @Override
     public ImmutableVersionConstraint asImmutable() {
-        String v = prefer == null ? "" : prefer;
-        return new DefaultImmutableVersionConstraint(v, rejects, branch);
+        return new DefaultImmutableVersionConstraint(preferredVersion, strictVersion, rejectedVersions, branch);
     }
 
     @Nullable
@@ -87,19 +73,25 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public String getPreferredVersion() {
-        return prefer;
+        return preferredVersion;
     }
 
     @Override
     public void prefer(String version) {
-        this.prefer = Strings.nullToEmpty(version);
-        this.rejects.clear();
+        this.preferredVersion = nullToEmpty(version);
+        this.strictVersion = "";
+        this.rejectedVersions.clear();
+    }
+
+    @Override
+    public String getStrictVersion() {
+        return strictVersion;
     }
 
     @Override
     public void strictly(String version) {
         prefer(version);
-        doStrict();
+        this.strictVersion = nullToEmpty(version);
     }
 
     @Override
@@ -107,18 +99,18 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         if (versions.length==0) {
             throw new InvalidUserDataException("The 'reject' clause requires at least one rejected version");
         }
-        Collections.addAll(rejects, versions);
+        Collections.addAll(rejectedVersions, versions);
     }
 
     @Override
     public void rejectAll() {
-        this.prefer = "";
-        this.rejects.clear();
-        this.rejects.add("+");
+        this.preferredVersion = "";
+        this.rejectedVersions.clear();
+        this.rejectedVersions.add("+");
     }
 
     @Override
     public List<String> getRejectedVersions() {
-       return rejects;
+       return rejectedVersions;
     }
 }
