@@ -62,16 +62,17 @@ You can use an init script to configure the projects in the build. This works in
 === Example: Using init script to perform extra configuration before projects are evaluated
 
 [source.multi-language-sample,groovy]
+====
 .build.gradle
 ----
 include::{samplesPath}/userguide/initScripts/configurationInjection/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .init.gradle
 ----
 include::{samplesPath}/userguide/initScripts/configurationInjection/init.gradle[]
 ----
+====
 
 .Output of`gradle --init-script init.gradle -q showRepos`
 ----
@@ -120,12 +121,12 @@ Similar to a Gradle build script or a Gradle settings file, plugins can be appli
 === Example: Using plugins in init scripts
 
 [source.multi-language-sample,groovy]
+====
 .init.gradle
 ----
 include::{samplesPath}/userguide/initScripts/plugins/init.gradle[tag=init-script-plugin]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/initScripts/plugins/build.gradle[tag=show-repos-task]
@@ -136,6 +137,7 @@ include::{samplesPath}/userguide/initScripts/plugins/build.gradle[tag=show-repos
 > gradle --init-script init.gradle -q showRepositories
 include::{samplesPath}/userguide/initScripts/plugins/usePluginsInInitScripts.out[]
 ----
+====
 
 The plugin in the init script ensures that only a specified repository is used when running the build.
 
