@@ -172,16 +172,17 @@ If you have a <<multi_project_builds.adoc#multi_project_builds,multi-project bui
 === Example: Applying plugins only on certain subprojects.
 
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/plugins/multiproject/settings.gradle[tag=include-subprojects]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/plugins/multiproject/build.gradle[tag=plugins-on-subprojects]
 ----
+====
 
 If you then run `gradle hello` you'll see that only the helloA and helloB subprojects had the hello plugin applied.
 
@@ -211,16 +212,17 @@ The `pluginManagement {}` block may only appear in either the `settings.gradle` 
 ===== Example: Configuring pluginManagement per-project and globally
 
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/plugins/pluginManagement/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .init.gradle
 ----
 include::{samplesPath}/plugins/pluginManagement/init.gradle[]
 ----
+====
 
 
 [[sec:custom_plugin_repositories]]
