@@ -20,6 +20,8 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest.*
 
 abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersionIntegrationTest {
@@ -32,6 +34,9 @@ abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersi
         settingsFile << """
             rootProject.name = '${playApp.name}'
         """
+        executer.beforeExecute {
+            executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
+        }
     }
 
     static String playPlatformConfiguration(String version) {

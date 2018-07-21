@@ -137,18 +137,5 @@ class DistributionTestingPlugin : Plugin<Project> {
 
         systemProperties["org.gradle.integtest.multiversion"] =
             ifProperty("testAllVersions", "all") ?: "default"
-
-        val mirrorUrls = collectMirrorUrls()
-        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google", "springreleases", "springsnapshots", "restlet", "gradle", "jboss", "gradleplugins")
-        mirrors.forEach { mirror ->
-            systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
-        }
     }
-
-    fun collectMirrorUrls(): Map<String, String> =
-    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
-            val (name, url) = nameToUrl.split(':', limit = 2)
-            name to url
-        } ?: emptyMap()
 }

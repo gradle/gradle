@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
 class AbstractPluginIntegrationTest extends AbstractIntegrationSpec {
     boolean usePluginRepoMirror = true
@@ -24,7 +25,7 @@ class AbstractPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.beforeExecute {
             if (usePluginRepoMirror) {
-                executer.withArgument("-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}")
+                executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             }
         }
     }

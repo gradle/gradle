@@ -23,6 +23,9 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.junit.runner.RunWith
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 @RunWith(MultiVersionSpecRunner)
 @TargetCoverage({ PlayCoverage.DEFAULT })
 @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -35,5 +38,8 @@ abstract class AbstractMultiVersionPlayContinuousBuildIntegrationTest extends Ab
 
     def setup() {
         buildFile << PlayMultiVersionApplicationIntegrationTest.playPlatformConfiguration(version.toString())
+        executer.beforeExecute {
+            executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
+        }
     }
 }

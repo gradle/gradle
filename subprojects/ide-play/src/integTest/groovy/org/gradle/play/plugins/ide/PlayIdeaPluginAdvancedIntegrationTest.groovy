@@ -19,7 +19,9 @@ package org.gradle.play.plugins.ide
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.internal.platform.PlayMajorVersion
+import spock.lang.Ignore
 
+@Ignore('contains javascript repository')
 class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTest {
     static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_4_X): 108,
                                                        (PlayMajorVersion.PLAY_2_5_X): 121,

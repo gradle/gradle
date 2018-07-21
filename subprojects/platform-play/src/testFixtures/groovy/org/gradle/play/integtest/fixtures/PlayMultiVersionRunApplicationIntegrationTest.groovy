@@ -20,12 +20,18 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.VersionNumber
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
     RunningPlayApp runningApp
     GradleHandle build
 
     def setup() {
         runningApp = new RunningPlayApp(testDirectory)
+        executer.beforeExecute {
+            executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
+        }
     }
 
     def startBuild(tasks) {
