@@ -41,7 +41,7 @@ public class CachingFileHasher implements FileHasher {
     public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
-        this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer(), 400000, true);
+        this.cache = store.createCache(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer(), 400000, true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
     }
@@ -141,6 +141,24 @@ public class CachingFileHasher implements FileHasher {
         @Override
         public int hashCode() {
             return Objects.hashCode(super.hashCode(), hashCodeSerializer);
+        }
+    }
+
+    private static final class InterningStringSerializer extends AbstractSerializer<String> {
+        private final StringInterner stringInterner;
+
+        private InterningStringSerializer(StringInterner stringInterner) {
+            this.stringInterner = stringInterner;
+        }
+
+        @Override
+        public String read(Decoder decoder) throws Exception {
+            return stringInterner.intern(decoder.readString());
+        }
+
+        @Override
+        public void write(Encoder encoder, String value) throws Exception {
+            encoder.writeString(value);
         }
     }
 }

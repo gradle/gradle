@@ -54,6 +54,13 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
     }
 
     @Override
+    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer)
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
+        return cache.createCache(parameters);
+    }
+
+    @Override
     public void close() throws IOException {
         cache.close();
     }
