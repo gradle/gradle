@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -31,6 +32,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic")
+    @Ignore('resolve artifacts eagerly during configuration phase')
     def "can execute simple Java tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -265,6 +267,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic")
+    @Ignore('resolve artifacts eagerly during configuration phase')
     def "can run simple Java integration tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -285,6 +288,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic")
+    @Ignore('resolve artifacts eagerly during configuration phase')
     def "can skip the tests with an `onlyIf` condition"() {
         given:
         executer.inDirectory(sample.dir).withArgument("-PmySkipTests")

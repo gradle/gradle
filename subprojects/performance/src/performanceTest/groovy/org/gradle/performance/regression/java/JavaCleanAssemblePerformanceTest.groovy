@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.*
 
-@Ignore
+@Ignore('MEDIUM_JAVA_COMPOSITE_BUILD contains buildSrc')
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll

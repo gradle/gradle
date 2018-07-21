@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Ignore
 
-@Ignore
+@Ignore("can't replace a included gradle build's repo in composite build")
 class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)

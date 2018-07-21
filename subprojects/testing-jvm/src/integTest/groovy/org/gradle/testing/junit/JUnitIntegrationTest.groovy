@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -44,6 +45,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         executer.noExtraLogging()
     }
 
+    @Ignore('eagerly resolve artifacts during configuration phase')
     def executesTestsInCorrectEnvironment() {
         given:
         buildFile << """

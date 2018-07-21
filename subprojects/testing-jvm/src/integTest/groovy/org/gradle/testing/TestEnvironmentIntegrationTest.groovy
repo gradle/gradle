@@ -23,6 +23,7 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
@@ -63,6 +64,7 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Requires(TestPrecondition.JDK7_OR_EARLIER)
+    @Ignore('resolve artifacts eagerly during configuration phase')
     def canRunTestsWithJMockitLoadedWithJavaAgent() {
         when:
         run 'test'

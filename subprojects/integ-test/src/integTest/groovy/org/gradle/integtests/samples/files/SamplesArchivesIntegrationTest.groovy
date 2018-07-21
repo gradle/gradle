@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.junit.Rule
+import spock.lang.Ignore
 
 class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -90,6 +91,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("userguide/files/archivesWithJavaPlugin")
+    @Ignore('resolve artifacts eagerly during configuration phase')
     def "can create an uber JAR"() {
         given:
         executer.inDirectory(sample.dir)

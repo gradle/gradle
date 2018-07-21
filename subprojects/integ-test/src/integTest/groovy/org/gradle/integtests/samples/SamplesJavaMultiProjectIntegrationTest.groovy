@@ -30,7 +30,7 @@ import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-@Ignore
+@Ignore("contains buildSrc")
 class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'java/multiproject'

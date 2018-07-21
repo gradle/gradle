@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.MirroredRepository.GOOGLE
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.MirroredRepository.JCENTER
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.MirroredRepository.MAVEN_CENTRAL
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
@@ -32,34 +29,29 @@ import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
-    static enum MirroredRepository {
-        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven", "jcenter()"),
-        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven", "mavenCentral()"),
-        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven", "google()"),
+    private static enum MirroredRepository {
+        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
+        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
+        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
         LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
         LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
         SPRING_RELEASES('https://maven.springframework.org/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
         SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
         RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven'),
         GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven')
+        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven'),
+        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradleplugins'), 'maven')
 
         String originalUrl
         String mirrorUrl
         String name
         String type
-        String declaration
 
         private MirroredRepository(String originalUrl, String mirrorUrl, String type) {
-            this(originalUrl, mirrorUrl, type, null)
-        }
-
-        private MirroredRepository(String originalUrl, String mirrorUrl, String type, String declaration) {
             this.originalUrl = originalUrl
             this.mirrorUrl = mirrorUrl ?: originalUrl
             this.name = mirrorUrl ? name() + "_MIRROR" : name()
             this.type = type
-            this.declaration = declaration
         }
 
         String getRepositoryDefinition(GradleDsl dsl = GROOVY) {
@@ -157,26 +149,6 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
     }
 
-    static void replaceExternalRepos(File rootDir) {
-        if (rootDir != null && rootDir.isDirectory()) {
-            rootDir.eachFileRecurse { file ->
-                if (file.name == 'build.gradle') {
-                    replaceRepositoriesInBuildFile(file, GROOVY)
-                } else if (file.name == 'build.gradle.kts') {
-                    replaceRepositoriesInBuildFile(file, KOTLIN)
-                }
-            }
-        }
-    }
-
-    static replaceRepositoriesInBuildFile(File file, GradleDsl dsl) {
-        String text = file.text
-        [JCENTER, MAVEN_CENTRAL, GOOGLE].each {
-            text = text.replace(it.declaration, it.getRepositoryDefinition(dsl))
-        }
-        file.text = text
-    }
-
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
@@ -192,11 +164,7 @@ class RepoScriptBlockUtil {
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
             
-            // Sometimes, applying this init script in a composite build will result in
-            // java.lang.IllegalStateException: Root project has not been attached
-            if(gradle.findIdentityPath()!=null) {
-                gradle.pluginManager.apply(MirrorPlugin)
-            }
+            apply plugin: MirrorPlugin
 
             @CompileStatic
             class MirrorPlugin implements Plugin<Gradle> {

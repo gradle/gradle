@@ -54,7 +54,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
-    @Ignore
+    @Ignore('Eagerly resolve artifacts during configuration phase')
     def "can execute logic during #lifecyclePhase"() {
         executer.inDirectory(new File(sample.dir, subDirName))
 

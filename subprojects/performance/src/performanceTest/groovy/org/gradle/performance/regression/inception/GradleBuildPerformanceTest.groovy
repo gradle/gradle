@@ -50,7 +50,7 @@ import spock.lang.Specification
  * - be careful when rebasing/squashing/merging
  */
 @Category(PerformanceRegressionTest)
-@Ignore
+@Ignore('release-note.gradle is using mavenCentral() https://github.com/gradle/gradle/pull/6047')
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule

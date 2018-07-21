@@ -54,7 +54,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
         useRepoMirror = (version != '1.9.1') // https://github.com/gradle/dotcom/issues/1213
 
-
         then:
         build().output.contains("Build scan written to")
 

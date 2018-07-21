@@ -127,6 +127,8 @@ public class HttpClientHelper implements Closeable {
                 || request.getURI().toString().contains("repo.lightbend.com")
                 || request.getURI().toString().contains("repo.maven.apache.org")
                 || request.getURI().toString().contains("repo.jfrog.org")
+                || request.getURI().toString().contains("repo.gradle.org")
+                || request.getURI().toString().contains("plugins.gradle.org")
                 || request.getURI().toString().contains("dl.google.com")
             ) {
             throw new AssertionError("");

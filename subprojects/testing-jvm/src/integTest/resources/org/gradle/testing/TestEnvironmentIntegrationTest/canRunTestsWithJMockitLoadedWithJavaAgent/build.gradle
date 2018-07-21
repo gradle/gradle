@@ -15,7 +15,5 @@ dependencies {
 }
 
 test {
-    doFirst {
-        jvmArgs "-javaagent:${configurations.jmockit.singleFile.absolutePath}"
-    }
+    jvmArgs "-javaagent:${configurations.jmockit.singleFile.absolutePath}"
 }
