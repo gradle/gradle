@@ -967,16 +967,17 @@ The implementation is quite simple and you can use the same technique for your o
 === Example: Declaring a method to add task inputs
 
 [source.multi-language-sample,java]
-.build.gradle
+====
+.ProcessTemplates.java
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=custom-task-class]
 ----
+====
 
 .Output of`gradle processTemplates`
 ----
@@ -991,16 +992,17 @@ If we want to support tasks as arguments as well and treat their outputs as the 
 === Example: Declaring a method to add a task as an input
 
 [source.multi-language-sample,java]
-.build.gradle
+====
+.ProcessTemplates.java
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=task-arg-method]
 ----
+====
 
 .Output of`gradle processTemplates2`
 ----
