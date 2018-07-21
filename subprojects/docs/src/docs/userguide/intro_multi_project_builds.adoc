@@ -31,6 +31,7 @@ Such builds come in all shapes and sizes, but they do have some common character
 
 
 The `settings.gradle` file tells Gradle how the project and subprojects are structured. Fortunately, you don’t have to read this file simply to learn what the project structure is as you can run the command `gradle projects`. Here's the output from using that command on the Java _multiproject_ build in the Gradle samples:
+
 === Example: Listing the projects in a build
 
 .Output of **`gradle -q projects`**
