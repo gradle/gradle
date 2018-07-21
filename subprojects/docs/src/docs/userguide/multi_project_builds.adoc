@@ -65,6 +65,8 @@ Let's look at some examples with the following project tree. This is a multi-pro
 └── settings.gradle
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/firstExample/water`** in the ‘-all’ distribution of Gradle.
+
 [source.multi-language-sample,groovy]
 .settings.gradle
 ----
@@ -101,6 +103,8 @@ We are not that happy with the build script of the `water` project. It is inconv
 ├── krill/
 └── settings.gradle
 ----
+
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/addKrill/water`** in the ‘-all’ distribution of Gradle.
 
 [source.multi-language-sample,groovy]
 .settings.gradle
@@ -190,36 +194,36 @@ As we have said, we usually prefer to put project specific behavior into the bui
 └── settings.gradle
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/spreadSpecifics/water`** in the ‘-all’ distribution of Gradle.
+
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .bluewhale/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .krill/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/krill/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/build.gradle[]
 ----
+====
 
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/multiprojectSpreadSpecifics.out[]
 ----
-
 
 [[sub:project_filtering]]
 === Project filtering
@@ -244,17 +248,20 @@ To show more of the power of configuration injection, let's add another project 
 └── tropicalFish/
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/addTropical/water`** in the ‘-all’ distribution of Gradle.
+
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/addTropical/water/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/addTropical/water/build.gradle[]
 ----
+====
 
 .Output of `gradle -q hello`
 ----
@@ -284,35 +291,35 @@ Using the project name for filtering is one option. Using <<writing_build_script
     └── build.gradle
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/tropicalWithProperties/water`** in the ‘-all’ distribution of Gradle.
+
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .bluewhale/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .krill/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/krill/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .tropicalFish/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle[]
 ----
+====
 
 .Output of`gradle -q hello`
 ----
@@ -340,16 +347,17 @@ The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarc
 === Example: Evaluation and execution of projects
 
 [source.multi-language-sample,groovy]
+====
 .bluewhale/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/partialTasks/water/bluewhale/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .krill/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/partialTasks/water/krill/build.gradle[]
 ----
+====
 
 .Output of `gradle -q distanceToIceberg`
 ----
@@ -400,13 +408,10 @@ The examples from the last section were special, as the projects had no _Executi
 [[sub:execution_time_dependencies]]
 === Execution dependencies
 
-
 [[ssub:dependencies_and_execution_order]]
 ==== Dependencies and execution order
 
-
-=== Example: Dependencies and execution order
-
+===== Example: Dependencies and execution order
 
 .Project layout
 ----
@@ -419,29 +424,30 @@ The examples from the last section were special, as the projects had no _Executi
 └── settings.gradle
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/firstMessages/messages`** in the ‘-all’ distribution of Gradle.
+
 [source.multi-language-sample,groovy]
+====
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .consumer/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .producer/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle[]
 ----
+====
 
 .Output of`gradle -q action`
 ----
@@ -451,7 +457,7 @@ include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/message
 
 This didn't quite do what we want. If nothing else is defined, Gradle executes the task in alphanumeric order. Therefore, Gradle will execute “`:consumer:action`” before “`:producer:action`”. Let's try to solve this with a hack and rename the producer project to “`aProducer`”.
 
-=== Example: Dependencies and execution order
+===== Example: Dependencies and execution order
 
 .Project layout
 ----
@@ -465,28 +471,27 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 ----
 
 [source.multi-language-sample,groovy]
+====
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .aProducer/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .consumer/build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle[]
 ----
+====
 
 .Output of`gradle -q action`
 ----
@@ -541,17 +546,20 @@ Gradle's multi-project features are driven by real life use cases. One good exam
 └── settings.gradle
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/webDist`** in the ‘-all’ distribution of Gradle.
+
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/webDist/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/webDist/build.gradle[]
 ----
+====
 
 We have an interesting set of dependencies. Obviously the `date` and `hello` projects have a _configuration_ dependency on `webDist`, as all the build logic for the webapp projects is injected by `webDist`. The _execution_ dependency is in the other direction, as `webDist` depends on the build artifacts of `date` and `hello`. There is even a third dependency. `webDist` has a _configuration_ dependency on `date` and `hello` because it needs to know the `archivePath`. But it asks for this information at _execution time_. Therefore we have no circular dependency.
 
@@ -611,6 +619,7 @@ What if one project needs the jar produced by another project in its compile pat
                                 └── Helper.java
 ----
 
+NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/java`** in the ‘-all’ distribution of Gradle.
 
 We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
 “`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
@@ -619,16 +628,17 @@ We have the projects “`shared`”, “`api`” and “`personService`”. The 
 === Example: Project lib dependencies
 
 [source.multi-language-sample,groovy]
+====
 .settings.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/java/settings.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/java/build.gradle[]
 ----
+====
 
 All the build logic is in the “`build.gradle`” file of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
 
