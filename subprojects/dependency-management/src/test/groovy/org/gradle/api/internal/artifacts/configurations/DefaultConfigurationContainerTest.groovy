@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -62,11 +63,12 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
+    private variantTransformsRegistry = Mock(VariantTransformRegistry)
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-            resolver, instantiator, new RootScriptDomainObjectContext(),
+            resolver, instantiator, RootScriptDomainObjectContext.INSTANCE,
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider)
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, variantTransformsRegistry)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

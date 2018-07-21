@@ -19,17 +19,31 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
+import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.featurelifecycle.FeatureUsage
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
+import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,7 +58,27 @@ class NameValidatorTest extends Specification {
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, TestUtil.attributesFactory())],
-        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, TestUtil.attributesFactory(), null, null, null)],
+        ["configurations", new DefaultConfigurationContainer(
+            Mock(ConfigurationResolver),
+            DirectInstantiator.INSTANCE,
+            domainObjectContext(),
+            Mock(ListenerManager),
+            Mock(DependencyMetaDataProvider),
+            Mock(ProjectAccessListener),
+            Mock(ProjectFinder),
+            Mock(LocalComponentMetadataBuilder),
+            Mock(FileCollectionFactory),
+            Mock(DependencySubstitutionRules),
+            Mock(VcsMappingsStore),
+            Mock(ComponentIdentifierFactory),
+            Mock(BuildOperationExecutor),
+            Mock(TaskResolver),
+            TestUtil.attributesFactory(),
+            Mock(ImmutableModuleIdentifierFactory),
+            Mock(ComponentSelectorConverter),
+            Mock(DependencyLockingProvider),
+            Mock(VariantTransformRegistry)
+        )],
         ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
     ]
 

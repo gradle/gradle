@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
@@ -74,11 +75,17 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         transforms.add(registration);
     }
 
+    @Override
     public Iterable<Registration> getTransforms() {
         return transforms;
     }
 
-    private Object[] getTransformParameters(Action<? super ActionConfiguration> configAction) {
+    @Override
+    public boolean hasTransforms() {
+        return !transforms.isEmpty();
+    }
+
+    private Object[] getTransformParameters(@Nullable Action<? super ActionConfiguration> configAction) {
         if (configAction == null) {
             return NO_PARAMETERS;
         }
