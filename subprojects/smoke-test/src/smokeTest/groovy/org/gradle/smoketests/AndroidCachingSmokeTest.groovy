@@ -20,7 +20,7 @@ import org.eclipse.jgit.api.Git
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import spock.lang.Ignore
 
-@Ignore
+@Ignore('contains cloning of other project')
 class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Santa Tracker Android application"() {

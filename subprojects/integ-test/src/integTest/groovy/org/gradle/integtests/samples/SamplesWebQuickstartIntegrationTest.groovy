@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 
-class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
+class SamplesWebQuickstartIntegrationTest extends AbstractPluginIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
     @Rule ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 

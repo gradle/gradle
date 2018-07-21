@@ -37,7 +37,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     def setup() {
         executer.beforeExecute {
             executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-
         }
     }
 

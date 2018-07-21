@@ -29,6 +29,8 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
+
 @Unroll
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -57,7 +59,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
             buildscript {
                 repositories {
-                    gradlePluginPortal()
+                    ${gradlePluginRepositoryDefintion()}
                 }
                 dependencies {
                     classpath "${AutoAppliedBuildScanPlugin.GROUP}:${AutoAppliedBuildScanPlugin.NAME}:${AutoAppliedBuildScanPlugin.VERSION}"

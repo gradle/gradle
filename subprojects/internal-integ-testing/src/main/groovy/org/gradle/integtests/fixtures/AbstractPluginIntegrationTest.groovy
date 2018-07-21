@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,20 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 
-abstract class AbstractDependencyResolutionTest extends AbstractPluginIntegrationTest {
+class AbstractPluginIntegrationTest extends AbstractIntegrationSpec {
+    boolean usePluginRepoMirror = true
+
     def setup() {
-        requireOwnGradleUserHomeDir()
+        executer.beforeExecute {
+            if (usePluginRepoMirror) {
+                executer.withArgument("-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}")
+            }
+        }
     }
 
-    IvyFileRepository ivyRepo(def dir = 'ivy-repo') {
-        return ivy(dir)
-    }
-
-    MavenFileRepository mavenRepo(String name = "repo") {
-        return maven(name)
+    def disablePluginRepoMirror() {
+        usePluginRepoMirror = false
     }
 }

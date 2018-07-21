@@ -149,6 +149,14 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
     }
 
+    static String gradlePluginRepositoryMirrorUrl() {
+        MirroredRepository.GRADLE_PLUGIN.mirrorUrl
+    }
+
+    static String gradlePluginRepositoryDefintion(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
+    }
+
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()

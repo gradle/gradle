@@ -18,7 +18,7 @@ task uberJar(type: Jar) {
 
     from sourceSets.main.output
     from configurations.runtimeClasspath.
-        findAll { it.name.endsWith('jar') }.
-        collect { zipTree(it) }
+                                         findAll { it.name.endsWith('jar') }.
+                                         collect { zipTree(it) }
 }
 // END SNIPPET create-uber-jar-example
