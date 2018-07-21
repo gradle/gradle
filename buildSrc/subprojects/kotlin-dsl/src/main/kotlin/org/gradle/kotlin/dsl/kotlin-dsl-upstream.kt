@@ -82,7 +82,7 @@ fun <reified T : Any> TaskContainer.getByName(name: String, configure: T.() -> U
 @Suppress("extension_shadowed_by_member")
 inline
 fun <reified T : Task> TaskContainer.register(name: String, noinline configurationAction: T.() -> Unit) =
-    register(name, T::class.java) { configurationAction(it) }
+    register(name, T::class.java) { configurationAction() }
 
 
 inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
@@ -92,7 +92,7 @@ inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
 inline fun <reified T : Any> TaskProvider<out Task>.configureAs(noinline configurationAction: T.() -> Unit) =
     configure {
         configurationAction(
-            it as? T
+            this as? T
                 ?: throw IllegalArgumentException(
-                    "Task of type '${it.javaClass.name}' cannot be cast to '${T::class.qualifiedName}'."))
+                    "Task of type '${javaClass.name}' cannot be cast to '${T::class.qualifiedName}'."))
     }
