@@ -166,7 +166,7 @@ So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin
 
 === Example: Wiring for a custom plugin
 
-[source.multi-language-sample,groovy]
+[source,properties]
 .src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties
 ----
 include::{samplesPath}/customPlugin/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
