@@ -181,16 +181,17 @@ You can also configure arbitrary objects using an external script.
 === Example: Configuring arbitrary objects using a script
 
 [source.multi-language-sample,groovy]
+====
 .build.gradle
 ----
 include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/build.gradle[]
 ----
 
-[source.multi-language-sample,groovy]
 .other.gradle
 ----
 include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/other.gradle[]
 ----
+====
 
 .Output of`gradle -q configure`
 ----
