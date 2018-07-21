@@ -25,10 +25,13 @@ import org.gradle.api.internal.changedetection.state.SnapshotMapSerializer;
 import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Map;
 
@@ -36,10 +39,16 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
 
     private final Map<String, NormalizedFileSnapshot> fingerprints;
     private final FingerprintCompareStrategy compareStrategy;
+    private final HashCode hashCode;
 
     public DefaultHistoricalFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> fingerprints, FingerprintCompareStrategy compareStrategy) {
+        this(fingerprints, compareStrategy, null);
+    }
+
+    public DefaultHistoricalFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> fingerprints, FingerprintCompareStrategy compareStrategy, @Nullable HashCode hashCode) {
         this.fingerprints = fingerprints;
         this.compareStrategy = compareStrategy;
+        this.hashCode = hashCode;
     }
 
     @Override
@@ -58,6 +67,11 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     }
 
     @Override
+    public HashCode getHash() {
+        return hashCode;
+    }
+
+    @Override
     public HistoricalFileCollectionFingerprint archive() {
         return this;
     }
@@ -65,22 +79,31 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     public static class SerializerImpl implements Serializer<DefaultHistoricalFileCollectionFingerprint> {
 
         private final SnapshotMapSerializer snapshotMapSerializer;
+        private final HashCodeSerializer hashCodeSerializer;
 
         public SerializerImpl(StringInterner stringInterner) {
             this.snapshotMapSerializer = new SnapshotMapSerializer(stringInterner);
+            this.hashCodeSerializer = new HashCodeSerializer();
         }
 
         @Override
         public DefaultHistoricalFileCollectionFingerprint read(Decoder decoder) throws IOException {
             int type = decoder.readSmallInt();
             FingerprintCompareStrategy compareStrategy = FingerprintCompareStrategy.values()[type];
+            boolean hasHash = decoder.readBoolean();
+            HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy);
+            return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy, hash);
         }
 
         @Override
         public void write(Encoder encoder, DefaultHistoricalFileCollectionFingerprint value) throws Exception {
             encoder.writeSmallInt(value.compareStrategy.ordinal());
+            HashCode hash = value.getHash();
+            encoder.writeBoolean(hash != null);
+            if (hash != null) {
+                hashCodeSerializer.write(encoder, hash);
+            }
             snapshotMapSerializer.write(encoder, value.getSnapshots());
         }
 

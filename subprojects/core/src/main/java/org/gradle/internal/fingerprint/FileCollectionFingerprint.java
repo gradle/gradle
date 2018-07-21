@@ -19,7 +19,9 @@ package org.gradle.internal.fingerprint;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
+import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -38,6 +40,12 @@ public interface FileCollectionFingerprint {
      * The underlying snapshots.
      */
     Map<String, NormalizedFileSnapshot> getSnapshots();
+
+    /**
+     * The hash of the fingerprint, if available.
+     */
+    @Nullable
+    HashCode getHash();
 
     /**
      * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
