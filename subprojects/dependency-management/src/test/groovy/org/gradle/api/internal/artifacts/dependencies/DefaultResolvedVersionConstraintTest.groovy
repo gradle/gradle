@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.InverseVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -33,16 +34,17 @@ class DefaultResolvedVersionConstraintTest extends Specification {
 
         then:
         e.preferredSelector.selector == strictVersion
+        e.rejectedSelector instanceof InverseVersionSelector
         e.rejectedSelector.selector == complement
         !e.rejectAll
 
         where:
         strictVersion | complement
-        '1.0'         | '(1.0,)'
-        '[1.0, 2.0]'  | '(2.0,)'
-        '[1.0, 2.0)'  | '[2.0,)'
-        '(, 2.0)'     | '[2.0,)'
-        '(, 2.0]'     | '(2.0,)'
+        '1.0'         | '!(1.0)'
+        '[1.0, 2.0]'  | '!([1.0, 2.0])'
+        '[1.0, 2.0)'  | '!([1.0, 2.0))'
+        '(, 2.0)'     | '!((, 2.0))'
+        '(, 2.0]'     | '!((, 2.0])'
     }
 
     @Unroll

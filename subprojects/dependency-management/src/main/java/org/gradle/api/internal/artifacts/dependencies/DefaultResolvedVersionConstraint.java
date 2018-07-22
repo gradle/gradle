@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -41,23 +40,26 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     @VisibleForTesting
-    public DefaultResolvedVersionConstraint(String preferredVersion, String strictVersion, List<String> rejected, VersionSelectorScheme scheme) {
+    public DefaultResolvedVersionConstraint(String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
         boolean strict = !strictVersion.isEmpty();
         String version = strict ? strictVersion : preferredVersion;
         this.preferredVersionSelector = scheme.parseSelector(version);
 
-        List<String> rejectedVersions = rejected;
         if (strict) {
-            rejectedVersions = Lists.newArrayList(rejectedVersions);
-            rejectedVersions.add(getRejectionForStrict(version, scheme));
+            if (!rejectedVersions.isEmpty()) {
+                throw new IllegalArgumentException("Cannot combine 'strict' and'reject' in a single version constraint.");
+            }
+            this.rejectedVersionsSelector = getRejectionForStrict(version, scheme);
+            rejectAll = false;
+        } else {
+            this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
+            rejectAll = isRejectAll(version, rejectedVersions);
         }
-        this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
-        rejectAll = isRejectAll(version, rejectedVersions);
     }
 
-    private String getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
+    private VersionSelector getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
         VersionSelector preferredSelector = versionSelectorScheme.parseSelector(version);
-        return versionSelectorScheme.complementForRejection(preferredSelector).getSelector();
+        return versionSelectorScheme.complementForRejection(preferredSelector);
     }
 
 
