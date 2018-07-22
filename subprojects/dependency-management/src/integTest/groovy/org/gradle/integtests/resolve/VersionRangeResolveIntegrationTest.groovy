@@ -331,45 +331,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
     }
 
-    @Unroll
-    def "resolve three #permutation"() {
-        given:
-        def candidates = permutation.candidates
-        def expected = permutation.expected
-
-        expect:
-        checkScenarioResolution(expected, candidates)
-
-        where:
-        permutation << VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
-    }
-
-    @Unroll
-    def "resolve deps with reject #permutation"() {
-        given:
-        def candidates = permutation.candidates
-        def expected = permutation.expected
-
-        expect:
-        checkScenarioResolution(expected, candidates)
-
-        where:
-        permutation << VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
-    }
-
-    @Unroll
-    def "resolve four #permutation"() {
-        given:
-        def candidates = permutation.candidates
-        def expected = permutation.expected
-
-        expect:
-        checkScenarioResolution(expected, candidates)
-
-        where:
-        permutation << VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
-    }
-
     void checkScenarioResolution(String expected, VersionRangeResolveTestScenarios.RenderableVersion... versions) {
         checkScenarioResolution(expected, versions as List)
     }
