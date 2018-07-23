@@ -318,7 +318,11 @@ data class KotlinScriptTargetModelBuilder(
     private
     fun gradleSource() =
         SourcePathProvider.sourcePathFor(
-            scriptClassPath, rootDir, gradleHomeDir, SourceDistributionResolver(project))
+            scriptClassPath,
+            rootDir,
+            gradleHomeDir,
+            SourceDistributionResolver(project)
+        )
 
     val gradleHomeDir
         get() = project.gradle.gradleHomeDir
