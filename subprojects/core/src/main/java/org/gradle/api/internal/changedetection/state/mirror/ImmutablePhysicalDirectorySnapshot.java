@@ -18,17 +18,16 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot {
     private final List<PhysicalSnapshot> children;
-    private final HashCode treeHash;
+    private final HashCode contentHash;
 
-    public ImmutablePhysicalDirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children, @Nullable HashCode treeHash) {
+    public ImmutablePhysicalDirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children, HashCode contentHash) {
         super(absolutePath, name);
         this.children = children;
-        this.treeHash = treeHash;
+        this.contentHash = contentHash;
     }
 
     @Override
@@ -37,7 +36,7 @@ public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirector
     }
 
     @Override
-    public HashCode getTreeHash() {
-        return treeHash;
+    public HashCode getContentHash() {
+        return contentHash;
     }
 }

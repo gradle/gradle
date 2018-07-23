@@ -29,6 +29,7 @@ import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnaps
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
@@ -239,7 +240,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case Missing:
                 return new PhysicalMissingSnapshot(path, name);
             case Directory:
-                return new ImmutablePhysicalDirectorySnapshot(path, name, ImmutableList.<PhysicalSnapshot>of(), null);
+                return new ImmutablePhysicalDirectorySnapshot(path, name, ImmutableList.<PhysicalSnapshot>of(), PhysicalDirectorySnapshot.SIGNATURE);
             case RegularFile:
                 return new PhysicalFileSnapshot(path, name, hasher.hash(file, stat), stat.getLastModified());
             default:

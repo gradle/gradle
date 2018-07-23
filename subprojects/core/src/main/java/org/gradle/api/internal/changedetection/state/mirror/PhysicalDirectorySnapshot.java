@@ -19,14 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-import javax.annotation.Nullable;
-
 public interface PhysicalDirectorySnapshot extends PhysicalSnapshot {
     HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
-
-    /**
-     * The tree hash of a directory is the combined hash of all its children.
-     */
-    @Nullable
-    HashCode getTreeHash();
 }

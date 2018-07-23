@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
 
 /**
  * A file snapshot which can have children (i.e. a directory).
@@ -31,11 +30,6 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
     @Override
     public FileType getType() {
         return FileType.Directory;
-    }
-
-    @Override
-    public HashCode getContentHash() {
-        return SIGNATURE;
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
@@ -38,7 +39,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
             return new PhysicalFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }
         if (file.isDirectory()) {
-            return new ImmutablePhysicalDirectorySnapshot(file.absolutePath, file.name, [], null)
+            return new ImmutablePhysicalDirectorySnapshot(file.absolutePath, file.name, [], PhysicalDirectorySnapshot.SIGNATURE)
         }
         return new PhysicalMissingSnapshot(file.absolutePath, file.name)
     }
