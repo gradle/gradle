@@ -38,7 +38,8 @@ But it is easy for transitive dependency resolution to violate this contract. Fo
 A build depending on both `module-a` and `module-b` will obtain different versions of libraries within the releasable unit.
 
 Dependency resolve rules give you the power to enforce releasable units in your build. Imagine a releasable unit defined by all libraries that have `org.gradle` group. We can force all of these libraries to use a consistent version:
-=== Example: Forcing a consistent version for a group of libraries
+
+==== Example: Forcing a consistent version for a group of libraries
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -55,7 +56,8 @@ In some corporate environments, the list of module versions that can be declared
 * The `default` version is resolved to a specific version via a dependency resolve rule, which looks up the version in a corporate catalog of approved modules.
 
 This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
-=== Example: Using a custom versioning scheme
+
+==== Example: Using a custom versioning scheme
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -70,7 +72,7 @@ Dependency resolve rules provide a mechanism for blacklisting a particular versi
 
 In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`. The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`. Note that this is different from a forced version as described above, in that any other versions of this module would not be affected. This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
 
-=== Example: Blacklisting a version with a replacement
+==== Example: Blacklisting a version with a replacement
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -83,7 +85,7 @@ include::{samplesPath}/userguide/dependencyManagement/customizingResolution/reso
 
 At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `groovy` in place of `groovy-all`, or using `log4j-over-slf4j` instead of `log4j`. You can perform these substitutions using dependency resolve rules:
 
-=== Example: Changing dependency group and/or name during resolution
+==== Example: Changing dependency group and/or name during resolution
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -114,7 +116,7 @@ One use case for dependency substitution is to use a locally developed version o
 
 The module to be replaced can be declared with or without a version specified.
 
-=== Example: Substituting a module with a project
+==== Example: Substituting a module with a project
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -131,7 +133,7 @@ Another way to use substitution rules is to replace a project dependency with a 
 
 The module to be used as a replacement must be declared with a version specified.
 
-=== Example: Substituting a project with a module
+==== Example: Substituting a project with a module
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -148,7 +150,7 @@ A common use case for dependency substitution is to allow more flexible assembly
 
 The following example uses a dependency substitution rule to replace any module dependency with the group `org.example`, but only if a local project matching the dependency name can be located.
 
-=== Example: Conditionally substituting a dependency
+==== Example: Conditionally substituting a dependency
 
 [source.multi-language-sample,groovy]
 .build.gradle
