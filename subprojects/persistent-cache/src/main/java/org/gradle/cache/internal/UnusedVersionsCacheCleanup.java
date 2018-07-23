@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.cache.CleanableStore;
-import org.gradle.internal.time.CountdownTimer;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,9 +69,9 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     }
 
     @Override
-    public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
+    public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
         determineUsedVersions();
-        super.clean(cleanableStore, timer);
+        super.clean(cleanableStore, progressMonitor);
     }
 
     private void determineUsedVersions() {

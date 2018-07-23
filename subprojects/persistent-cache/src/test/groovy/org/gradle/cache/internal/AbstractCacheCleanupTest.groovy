@@ -18,7 +18,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.specs.Spec
 import org.gradle.cache.CleanableStore
-import org.gradle.internal.time.CountdownTimer
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,8 +30,8 @@ class AbstractCacheCleanupTest extends Specification {
         getBaseDir() >> cacheDir
         getReservedCacheFiles() >> []
     }
-    def deletedFiles = [];
-    def timer = Mock(CountdownTimer)
+    def progressMonitor = Mock(CleanupProgressMonitor)
+    def deletedFiles = []
 
     def "deletes non-reserved matching files"() {
         def cacheEntries = [
@@ -42,11 +42,12 @@ class AbstractCacheCleanupTest extends Specification {
 
         when:
         cleanupAction(finder(cacheEntries), { it != cacheEntries[2] })
-            .clean(cleanableStore, timer)
+            .clean(cleanableStore, progressMonitor)
 
         then:
         1 * cleanableStore.getReservedCacheFiles() >> [cacheEntries[0]]
-        2 * timer.hasExpired()
+        1 * progressMonitor.incrementDeleted()
+        1 * progressMonitor.incrementSkipped()
         cacheEntries[0].assertExists()
         cacheEntries[1].assertDoesNotExist()
         cacheEntries[2].assertExists()
@@ -60,27 +61,13 @@ class AbstractCacheCleanupTest extends Specification {
 
         when:
         cleanupAction(finder([cacheEntry.parentFile]), { true })
-            .clean(cleanableStore, timer)
+            .clean(cleanableStore, progressMonitor)
 
         then:
-        1 * timer.hasExpired()
+        1 * progressMonitor.incrementDeleted()
         cacheEntry.assertDoesNotExist()
         cacheEntry.parentFile.assertDoesNotExist()
         deletedFiles == [cacheEntry.parentFile]
-    }
-
-    def "aborts cleanup when timer has expired"() {
-        given:
-        def cacheEntry = cacheDir.createFile("somefile")
-
-        when:
-        cleanupAction(finder([cacheEntry]), { true })
-            .clean(cleanableStore, timer)
-
-        then:
-        1 * timer.hasExpired() >> true
-        cacheEntry.assertExists()
-        deletedFiles == []
     }
 
     def "deletes empty parent directories"() {
@@ -91,10 +78,10 @@ class AbstractCacheCleanupTest extends Specification {
 
         when:
         cleanupAction(finder([file]), { true })
-            .clean(cleanableStore, timer)
+            .clean(cleanableStore, progressMonitor)
 
         then:
-        1 * timer.hasExpired()
+        1 * progressMonitor.incrementDeleted()
         file.assertDoesNotExist()
         parent.assertDoesNotExist()
         grandparent.assertDoesNotExist()
@@ -111,10 +98,10 @@ class AbstractCacheCleanupTest extends Specification {
 
         when:
         cleanupAction(finder([file]), { true })
-            .clean(cleanableStore, timer)
+            .clean(cleanableStore, progressMonitor)
 
         then:
-        1 * timer.hasExpired()
+        1 * progressMonitor.incrementDeleted()
         file.assertDoesNotExist()
         parent.assertDoesNotExist()
         grandparent.assertExists()

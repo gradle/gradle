@@ -29,6 +29,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
@@ -46,11 +47,13 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private final Lock lock = new ReentrantLock();
 
-    public DefaultCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+    public DefaultCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     void onOpen(Object cache) {
@@ -85,9 +88,9 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || validator != null || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockTarget, lockOptions, initializer, cleanup, lockManager, executorFactory);
+                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockTarget, lockOptions, initializer, cleanup, lockManager, executorFactory, progressLoggerFactory);
             } else {
-                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockTarget, lockOptions, cleanup, lockManager, executorFactory);
+                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockTarget, lockOptions, cleanup, lockManager, executorFactory, progressLoggerFactory);
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockTarget, lockOptions);

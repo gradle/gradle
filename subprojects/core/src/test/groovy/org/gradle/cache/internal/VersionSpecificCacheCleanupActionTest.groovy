@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.internal.time.CountdownTimer
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -31,12 +31,13 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_7_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
-class VersionSpecificCacheCleanupActionTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class VersionSpecificCacheCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
+    def progressMonitor = Mock(CleanupProgressMonitor)
 
     @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, 30, 7)
 
@@ -49,9 +50,11 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def newerCacheDir = createVersionSpecificCacheDir(currentVersion.getNextMajor(), NOT_USED_WITHIN_30_DAYS)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        4 * progressMonitor.incrementSkipped()
+        2 * progressMonitor.incrementDeleted()
         ancientVersionWithoutMarkerFile.assertExists()
         oldestCacheDir.assertDoesNotExist()
         oldButRecentlyUsedCacheDir.assertExists()
@@ -66,16 +69,18 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def dirWithUnparsableVersion = createCacheSubDir("42 foo")
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped()
+        0 * progressMonitor.incrementDeleted()
         sharedCacheDir.assertExists()
         dirWithUnparsableVersion.assertExists()
     }
 
     def "creates gc.properties file when it is missing"() {
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
         getGcFile(currentCacheDir).assertExists()
@@ -88,9 +93,10 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def originalLastModified = gcFile.lastModified()
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         oldCacheDir.assertExists()
         gcFile.lastModified() == originalLastModified
     }
@@ -103,9 +109,11 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         gcFile.lastModified = originalLastModified
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped()
+        1 * progressMonitor.incrementDeleted()
         oldCacheDir.assertDoesNotExist()
         gcFile.lastModified() > originalLastModified
     }
@@ -116,9 +124,11 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def release = createVersionSpecificCacheDir(GradleVersion.version("4.8"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        2 * progressMonitor.incrementSkipped()
+        1 * progressMonitor.incrementDeleted()
         snapshot.assertDoesNotExist()
         release.assertExists()
     }
@@ -129,9 +139,11 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def latestSnapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180507235951+0000"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        2 * progressMonitor.incrementSkipped()
+        1 * progressMonitor.incrementDeleted()
         snapshot.assertDoesNotExist()
         latestSnapshot.assertExists()
     }
@@ -141,9 +153,11 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        2 * progressMonitor.incrementSkipped()
+        0 * progressMonitor.incrementDeleted()
         snapshot.assertExists()
     }
 
@@ -153,30 +167,13 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Ver
         def latestSnapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180507235951+0000"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        cleanupAction.execute()
+        cleanupAction.execute(progressMonitor)
 
         then:
+        3 * progressMonitor.incrementSkipped()
+        0 * progressMonitor.incrementDeleted()
         snapshot.assertExists()
         latestSnapshot.assertExists()
-    }
-
-    def "aborts cleanup when timeout has expired"() {
-        given:
-        def oldestCacheDir = createVersionSpecificCacheDir(GradleVersion.version("1.2.3"), NOT_USED_WITHIN_30_DAYS)
-        def oldCacheDir = createVersionSpecificCacheDir(GradleVersion.version("2.3.4"), NOT_USED_WITHIN_30_DAYS)
-        def timer = Mock(CountdownTimer)
-
-        when:
-        cleanupAction.performCleanup(timer)
-
-        then:
-        1 * timer.hasExpired() >> false
-        1 * timer.hasExpired() >> true
-
-        and:
-        getGcFile(currentCacheDir).assertDoesNotExist()
-        oldestCacheDir.assertDoesNotExist()
-        oldCacheDir.assertExists()
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events;
+package org.gradle.cache;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
+public interface CleanupProgressMonitor {
 
-@UsedByScanPlugin
-public interface OutputEventListener {
-    void onOutput(OutputEvent event);
+    void incrementDeleted();
 
-    OutputEventListener NO_OP = new OutputEventListener() {
+    void incrementSkipped();
+
+    void incrementSkipped(long amount);
+
+    CleanupProgressMonitor NO_OP = new CleanupProgressMonitor() {
         @Override
-        public void onOutput(OutputEvent event) {
+        public void incrementDeleted() {
+        }
+
+        @Override
+        public void incrementSkipped() {
+        }
+
+        @Override
+        public void incrementSkipped(long amount) {
         }
     };
+
 }

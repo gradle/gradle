@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -26,7 +27,7 @@ import spock.lang.Subject
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 
-class GradleUserHomeCleanupServiceTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class GradleUserHomeCleanupServiceTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -40,8 +41,9 @@ class GradleUserHomeCleanupServiceTest extends Specification implements VersionS
     def usedGradleVersions = Stub(UsedGradleVersions) {
         getUsedGradleVersions() >> ([] as SortedSet)
     }
+    def progressLoggerFactory = Stub(ProgressLoggerFactory)
 
-    @Subject def cleanupService = new GradleUserHomeCleanupService(userHomeDirProvider, cacheScopeMapping, usedGradleVersions)
+    @Subject def cleanupService = new GradleUserHomeCleanupService(userHomeDirProvider, cacheScopeMapping, usedGradleVersions, progressLoggerFactory)
 
     def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
         given:
