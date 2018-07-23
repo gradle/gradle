@@ -33,13 +33,15 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
 
     def "reads and writes the fingerprints"(FingerprintCompareStrategy strategy) {
         def hash = HashCode.fromInt(1234)
+        def combinedHash = HashCode.fromInt(5678)
 
         when:
         def out = serialize(new DefaultHistoricalFileCollectionFingerprint(
             '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
             '/2': IgnoredPathFingerprint.create(FileType.RegularFile, hash),
             '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            strategy
+            strategy,
+            combinedHash
         ), serializer)
 
         then:
@@ -60,9 +62,22 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             normalizedContentHash == PhysicalMissingSnapshot.SIGNATURE
         }
         out.compareStrategy == strategy
+        out.hash == combinedHash
 
         where:
         strategy << FingerprintCompareStrategy.values()
+    }
+
+    def "can serialize null hash"() {
+        when:
+        DefaultHistoricalFileCollectionFingerprint out = serialize(new DefaultHistoricalFileCollectionFingerprint(
+            '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
+            '/2': IgnoredPathFingerprint.create(FileType.RegularFile, HashCode.fromInt(1234)),
+            FingerprintCompareStrategy.ABSOLUTE
+        ), serializer)
+
+        then:
+        out.hash == null
     }
 
     def "should retain order in serialization"() {

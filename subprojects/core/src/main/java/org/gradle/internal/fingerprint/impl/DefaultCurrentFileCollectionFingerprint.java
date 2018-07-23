@@ -54,6 +54,9 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        if (hash != null && hash.equals(oldFingerprint.getHash())) {
+            return true;
+        }
         return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldFingerprint.getSnapshots(), title, includeAdded);
     }
 
@@ -84,6 +87,6 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     @Override
     public HistoricalFileCollectionFingerprint archive() {
-        return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy);
+        return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy, hash);
     }
 }
