@@ -25,7 +25,7 @@ In Gradle, that process looks like this:
 
 Each of the these steps is dependent on the type of repository to which you want to publish artifacts. The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
 
-NOTE: Looking for information on upload tasks and the `archives` configuration? See the <<artifact_management.adoc#artifact_management,Artifact Management>> chapter.
+NOTE: Looking for information on upload tasks and the `archives` configuration? See the <<artifact_management.adoc#artifact_management,Legacy Publishing>> chapter.
 
 Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>. These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
 
