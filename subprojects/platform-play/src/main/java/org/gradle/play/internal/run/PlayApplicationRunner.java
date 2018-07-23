@@ -105,7 +105,7 @@ public class PlayApplicationRunner {
 
         private boolean applicationClasspathChanged() {
             HashCode oldClasspathHash = classpathHash;
-            classpathHash = snapshotter.snapshot(applicationClasspath, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
+            classpathHash = snapshotter.snapshot(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
             return !classpathHash.equals(oldClasspathHash);
         }
     }

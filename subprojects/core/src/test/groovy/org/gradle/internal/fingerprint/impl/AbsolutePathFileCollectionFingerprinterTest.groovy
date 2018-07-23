@@ -39,7 +39,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def snapshotter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
-    def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
+    def normalizationStrategy = InputNormalizationStrategy.NO_NORMALIZATION
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 

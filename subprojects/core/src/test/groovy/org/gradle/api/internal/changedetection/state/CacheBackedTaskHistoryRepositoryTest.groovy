@@ -23,7 +23,7 @@ import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 
 class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest {
-    static final NORMALIZATION_STRATEGY = InputNormalizationStrategy.NOT_CONFIGURED
+    static final NORMALIZATION_STRATEGY = InputNormalizationStrategy.NO_NORMALIZATION
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "adds context when input snapshot throws UncheckedIOException" () {

@@ -206,7 +206,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
     def fingerprint(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
-        def fileCollectionFingerprint = snapshotter.snapshot(files(classpath), InputNormalizationStrategy.NOT_CONFIGURED)
+        def fileCollectionFingerprint = snapshotter.snapshot(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
         return fileCollectionFingerprint.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.normalizedContentHash.toString()]
         }

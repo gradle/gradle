@@ -36,7 +36,7 @@ public class DefaultClasspathHasher implements ClasspathHasher {
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        CurrentFileCollectionFingerprint fingerprint = snapshotter.snapshot(ImmutableFileCollection.of(classpath.getAsFiles()), InputNormalizationStrategy.NOT_CONFIGURED);
+        CurrentFileCollectionFingerprint fingerprint = snapshotter.snapshot(ImmutableFileCollection.of(classpath.getAsFiles()), InputNormalizationStrategy.NO_NORMALIZATION);
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putHash(fingerprint.getHash());
         return hasher.hash();
