@@ -818,6 +818,12 @@ a:focus {
     font-style: italic;
 }
 
+#content a.link,
+#content a.anchor,
+#content a[href^='http'] {
+    font-style: normal;
+}
+
 #content a[href^='../dsl/'],
 #content a[href^='../javadoc/'] {
     font-family: monospace;
@@ -830,13 +836,6 @@ a:focus {
 #content a[href^='../javadoc/']:hover,
 #content a[href^='../javadoc/']:focus {
     text-decoration: none;
-}
-
-#content a.link,
-#content a.anchor,
-#content a[href^='http']
-#content a[href^='#'] {
-    font-style: normal;
 }
 
 /* Copy */
@@ -876,6 +875,10 @@ h5, h6 {
 
 b, strong {
     font-weight: 500;
+}
+
+dl dt {
+    font-weight: normal;
 }
 
 /* Layout */
@@ -1172,7 +1175,6 @@ div.screenshot {
 }
 
 #toc a {
-    color: #02303A;
     font-style: normal;
 }
 
