@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.Incubating
 
+import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.classPathBytesRepositoryFor
@@ -585,24 +586,24 @@ val mappedTypeStrings =
 
 private
 inline val Int.isStatic: Boolean
-    get() = (ACC_STATIC and this) > 0
+    get() = ACC_STATIC in this
 
 
 private
 inline val Int.isPublic: Boolean
-    get() = (ACC_PUBLIC and this) > 0
+    get() = ACC_PUBLIC in this
 
 
 private
 inline val Int.isAbstract: Boolean
-    get() = (ACC_ABSTRACT and this) > 0
+    get() = ACC_ABSTRACT in this
 
 
 private
 inline val Int.isVarargs: Boolean
-    get() = (ACC_VARARGS and this) > 0
+    get() = ACC_VARARGS in this
 
 
 private
 inline val Int.isSynthetic: Boolean
-    get() = (ACC_SYNTHETIC and this) > 0
+    get() = ACC_SYNTHETIC in this

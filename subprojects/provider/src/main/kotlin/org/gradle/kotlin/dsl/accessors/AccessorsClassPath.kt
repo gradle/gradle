@@ -434,7 +434,7 @@ class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisito
 }
 
 
-private
+internal
 operator fun Int.contains(flag: Int) =
     and(flag) == flag
 
