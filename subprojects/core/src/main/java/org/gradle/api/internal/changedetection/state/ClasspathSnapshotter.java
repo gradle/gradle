@@ -17,9 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 
 /**
- * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java classpath. Compared to {@link org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter} this fingerprinter orders files within any sub-tree.
+ * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java classpath. Compared to {@link RelativePathFileCollectionFingerprinter} this fingerprinter orders files within any sub-tree.
  *
  * @see org.gradle.api.tasks.Classpath
  */

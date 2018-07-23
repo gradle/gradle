@@ -44,7 +44,6 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultAbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -80,7 +79,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.fingerprinter = new DefaultAbsolutePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, this);
+        this.fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, this);
         this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem, stringInterner);
     }
 

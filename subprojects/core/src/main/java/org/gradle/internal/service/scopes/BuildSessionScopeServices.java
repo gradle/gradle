@@ -66,11 +66,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultAbsolutePathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultIgnoredPathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultNameOnlyFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultOutputFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultRelativePathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
@@ -176,23 +171,23 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultAbsolutePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        return new AbsolutePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultRelativePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        return new RelativePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultNameOnlyFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        return new NameOnlyFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultIgnoredPathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        return new IgnoredPathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultOutputFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        return new OutputFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, TaskHistoryStore store, WellKnownFileLocations wellKnownFileLocations) {

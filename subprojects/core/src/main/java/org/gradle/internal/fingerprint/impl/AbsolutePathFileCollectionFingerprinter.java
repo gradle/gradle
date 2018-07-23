@@ -16,7 +16,21 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 
-public interface AbsolutePathFileCollectionFingerprinter extends FileCollectionSnapshotter {
+public class AbsolutePathFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter {
+
+    public AbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING, stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    }
+
+    @Override
+    public Class<? extends FileNormalizer> getRegisteredType() {
+        return AbsolutePathInputNormalizer.class;
+    }
 }

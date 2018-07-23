@@ -16,7 +16,21 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.mirror.logical.IgnoredPathFingerprintingStrategy;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 
-public interface IgnoredPathFileCollectionFingerprinter extends FileCollectionSnapshotter {
+public class IgnoredPathFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter {
+
+    public IgnoredPathFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(IgnoredPathFingerprintingStrategy.INSTANCE, stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    }
+
+    @Override
+    public Class<? extends FileNormalizer> getRegisteredType() {
+        return IgnoredPathInputNormalizer.class;
+    }
 }
