@@ -43,6 +43,30 @@ class GradleSystemIntegrationTest extends AbstractIntegrationSpec {
         outputContains('anotherEnv: null')
     }
 
+    def 'can set system properties via ORG_GRADLE_PROJECT_ between daemons'() {
+        given:
+        buildFile << '''
+            println "myProperty: ${project.findProperty('myProperty')}"
+            println "anotherProperty: ${project.findProperty('anotherProperty')}"
+        '''
+
+        when:
+        executer.withEnvironmentVars([ORG_GRADLE_PROJECT_myProperty: 'myValue1', ORG_GRADLE_PROJECT_anotherProperty: 'anotherValue'])
+        succeeds('help')
+
+        then:
+        outputContains('myProperty: myValue1')
+        outputContains('anotherProperty: anotherValue')
+
+        when:
+        executer.withEnvironmentVars([ORG_GRADLE_PROJECT_myProperty: 'myValue2'])
+        succeeds('help')
+
+        then:
+        outputContains('myProperty: myValue2')
+        outputContains('anotherProperty: null')
+    }
+
     def 'forked workers can read the env variables'() {
         given:
         buildFile << """ 
