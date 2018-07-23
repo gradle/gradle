@@ -177,6 +177,11 @@ val kotlinDslProjectSchema: ProjectSchema<String> =
 
                 ProjectSchemaEntry(
                     "org.gradle.api.Project",
+                    "kotlinDslPluginOptions",
+                    "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions"),
+
+                ProjectSchemaEntry(
+                    "org.gradle.api.Project",
                     "samWithReceiver",
                     "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension"),
                 ProjectSchemaEntry(
