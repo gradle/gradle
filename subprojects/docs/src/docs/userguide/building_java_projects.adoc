@@ -202,7 +202,7 @@ You can see all the properties and methods available on source sets in the DSL r
 
 Most of the compiler options are accessible through the corresponding task, such as `compileJava` and `compileTestJava`. These tasks are of type link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile], so read the task reference for an up-to-date and comprehensive list of the options.
 
-For example, if you want to use <<java_plugin.adoc#sec:incremental_compile,incremental compilation>>, use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
+For example, if you want to use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
 === Example: Setting Java compiler options
 
