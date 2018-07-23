@@ -49,39 +49,24 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final RetentionPolicyVisitor retentionPolicyVisitor;
     private final AnnotationVisitor annotationVisitor;
 
-    private ClassDependenciesVisitor(IntSet constantsCollector) {
-        this(constantsCollector, null, null, null, null);
-    }
-
-    private ClassDependenciesVisitor(IntSet constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
+    private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
-        this.constants = constantsCollector;
-        this.types = types;
-        this.superTypes = types == null ? null : Sets.<String>newHashSet();
-        this.methodVisitor = types == null ? null : new MethodVisitor();
-        this.fieldVisitor = types == null ? null : new FieldVisitor();
-        this.retentionPolicyVisitor = types == null ? null : new RetentionPolicyVisitor();
-        this.annotationVisitor = types == null ? null : new AnnotationVisitor();
+        this.constants = new IntOpenHashSet(2);
+        this.types = Sets.newHashSet();
+        this.superTypes = Sets.newHashSet();
+        this.methodVisitor = new MethodVisitor();
+        this.fieldVisitor = new FieldVisitor();
+        this.retentionPolicyVisitor = new RetentionPolicyVisitor();
+        this.annotationVisitor = new AnnotationVisitor();
         this.typeFilter = typeFilter;
-        if (reader != null) {
-            collectClassDependencies(reader);
-        }
         this.interner = interner;
+        collectClassDependencies(reader);
     }
 
     public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
-        IntSet constants = new IntOpenHashSet(2);
-        Set<String> classDependencies = Sets.newHashSet();
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, classDependencies, new ClassRelevancyFilter(className), reader, interner);
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return new ClassAnalysis(interner.intern(className), classDependencies, visitor.isDependencyToAll(), constants, visitor.getSuperTypes());
-    }
-
-    public static IntSet retrieveConstants(ClassReader reader) {
-        IntSet constants = new IntOpenHashSet(2);
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
-        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return constants;
+        return new ClassAnalysis(interner.intern(className), visitor.getClassDependencies(), visitor.isDependencyToAll(), visitor.getConstants(), visitor.getSuperTypes());
     }
 
     @Override
@@ -132,19 +117,19 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     protected void maybeAddSuperType(String type) {
-        if (superTypes != null && typeFilter.apply(type)) {
+        if (typeFilter.apply(type)) {
             superTypes.add(intern(type));
         }
     }
 
     protected void maybeAddDependentType(String type) {
-        if (types != null && typeFilter.apply(type)) {
+        if (typeFilter.apply(type)) {
             types.add(intern(type));
         }
     }
 
     private String intern(String type) {
-        return interner != null ? interner.intern(type) : type;
+        return interner.intern(type);
     }
 
     protected String typeOfFromSlashyString(String slashyStyleDesc) {
@@ -155,6 +140,14 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return superTypes;
     }
 
+    public Set<String> getClassDependencies() {
+        return types;
+    }
+
+    public IntSet getConstants() {
+        return constants;
+    }
+
     private boolean isAnnotationType(String[] interfaces) {
         return interfaces.length == 1 && interfaces[0].equals("java/lang/annotation/Annotation");
     }
@@ -162,7 +155,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         maybeAddDependentType(descTypeOf(desc));
-        if (isAccessibleConstant(access, value) && constants != null) {
+        if (isAccessibleConstant(access, value)) {
             // we need to compute a hash for a constant, which is based on the name of the constant + its value
             // otherwise we miss the case where a class defines several constants with the same value, or when
             // two values are switched
