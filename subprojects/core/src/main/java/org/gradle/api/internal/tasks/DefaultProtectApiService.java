@@ -20,18 +20,27 @@ import org.gradle.api.Action;
 import org.gradle.internal.exceptions.Contextual;
 
 public class DefaultProtectApiService implements ProtectApiService {
-    private int nestedActionExecutionCount = 0;
+    private transient ThreadLocal<Integer> nestedActionExecutionCount = threadLocal();
+
+    private ThreadLocal<Integer> threadLocal() {
+        return new ThreadLocal<Integer>() {
+            @Override
+            protected Integer initialValue() {
+                return 0;
+            }
+        };
+    }
 
     @Override
     public <T> Action<T> wrap(final Action<? super T> delegate) {
         return new Action<T>() {
             @Override
             public void execute(T t) {
-                nestedActionExecutionCount++;
+                nestedActionExecutionCount.set(nestedActionExecutionCount.get().intValue() + 1);
                 try {
                     delegate.execute(t);
                 } finally {
-                    nestedActionExecutionCount--;
+                    nestedActionExecutionCount.set(nestedActionExecutionCount.get().intValue() - 1);
                 }
             }
         };
@@ -49,7 +58,7 @@ public class DefaultProtectApiService implements ProtectApiService {
     }
 
     private boolean isUnderProtection() {
-        return nestedActionExecutionCount != 0;
+        return nestedActionExecutionCount.get() != 0;
     }
 
     @Contextual

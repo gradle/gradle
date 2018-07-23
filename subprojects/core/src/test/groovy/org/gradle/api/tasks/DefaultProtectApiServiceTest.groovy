@@ -45,6 +45,35 @@ class DefaultProtectApiServiceTest extends Specification {
         noExceptionThrown()
     }
 
+    def "doesn't protect across thread boundaries"() {
+        given:
+        Throwable exceptionThrownInThread = null
+        def action = service.wrap(new Action<Object>() {
+            @Override
+            void execute(Object o) {
+                def thread = new Thread(new Runnable() {
+                    @Override
+                    void run() {
+                        try {
+                            callSomeProtectedMethod()
+                        } catch (Throwable ex) {
+                            exceptionThrownInThread = ex
+                        }
+                    }
+                })
+                thread.start()
+                thread.join()
+            }
+        })
+
+        when:
+        action.execute(new Object())
+
+        then:
+        noExceptionThrown()
+        exceptionThrownInThread == null
+    }
+
     private Action<Object> newActionThatCallSomeProtectedMethod() {
         return new Action<Object>() {
             @Override
