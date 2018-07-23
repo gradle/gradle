@@ -964,20 +964,19 @@ Have you ever wondered how the `from()` method of the `Copy` task works? It’s 
 
 The implementation is quite simple and you can use the same technique for your own tasks to improve their APIs. Write your methods so that they add files directly to the appropriate annotated property. As an example, here’s how to add a `sources()` method to the custom `ProcessTemplates` class we introduced earlier:
 
-=== Example: Declaring a method to add task inputs
+===== Example: Declaring a method to add task inputs
 
-[source.multi-language-sample,java]
-====
 .ProcessTemplates.java
+[source,java]
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
 
+[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=custom-task-class]
 ----
-====
 
 .Output of`gradle processTemplates`
 ----
@@ -989,20 +988,19 @@ In other words, as long as you add values and files to formal task inputs and ou
 
 If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `project.layout.files()` method like so:
 
-=== Example: Declaring a method to add a task as an input
+===== Example: Declaring a method to add a task as an input
 
-[source.multi-language-sample,java]
-====
 .ProcessTemplates.java
+[source,java]
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
 
+[source.multi-language-sample,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=task-arg-method]
 ----
-====
 
 .Output of`gradle processTemplates2`
 ----

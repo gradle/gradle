@@ -41,14 +41,16 @@ The settings file is executed during the initialization phase. A multi-project b
 
 === Example: Single project build
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/buildlifecycle/basic/settings.gradle[]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/buildlifecycle/basic/build.gradle[]
 ----
@@ -172,14 +174,16 @@ Below is an example which adds a `test` task to each project which has a `hasTes
 
 === Example: Adding of test task to each project which has certain property set
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/buildlifecycle/projectEvaluateEvents/build.gradle[tag=after-evaluate]
 ----
 
 .projectA.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/buildlifecycle/projectEvaluateEvents/projectA.gradle[]
 ----

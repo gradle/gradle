@@ -61,14 +61,16 @@ You can use an init script to configure the projects in the build. This works in
 
 === Example: Using init script to perform extra configuration before projects are evaluated
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/initScripts/configurationInjection/build.gradle[]
 ----
 
 .init.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/initScripts/configurationInjection/init.gradle[]
 ----
@@ -120,14 +122,16 @@ Similar to a Gradle build script or a Gradle settings file, plugins can be appli
 
 === Example: Using plugins in init scripts
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .init.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/initScripts/plugins/init.gradle[tag=init-script-plugin]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/initScripts/plugins/build.gradle[tag=show-repos-task]
 ----

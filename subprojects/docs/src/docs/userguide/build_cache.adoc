@@ -285,19 +285,22 @@ This can be achieved by applying the same script to `buildSrc/settings.gradle` a
 
 === Example: Consistent setup for buildSrc and main build
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/buildCache/build-src/settings.gradle[tag=configure-build-src-build-cache]
 ----
 
 .gradle/buildCacheSettings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/buildCache/build-src/gradle/buildCacheSettings.gradle[tag=configure-build-src-build-cache]
 ----
 
 .buildSrc/settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/buildCache/build-src/buildSrc/settings.gradle[tag=configure-build-src-build-cache]
 ----

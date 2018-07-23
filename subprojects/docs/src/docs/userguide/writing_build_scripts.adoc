@@ -180,14 +180,16 @@ You can also configure arbitrary objects using an external script.
 
 === Example: Configuring arbitrary objects using a script
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/build.gradle[]
 ----
 
 .other.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/other.gradle[]
 ----

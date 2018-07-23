@@ -196,24 +196,28 @@ As we have said, we usually prefer to put project specific behavior into the bui
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/spreadSpecifics/water`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/settings.gradle[]
 ----
 
 .bluewhale/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle[]
 ----
 
 .krill/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/krill/build.gradle[]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/build.gradle[]
 ----
@@ -250,14 +254,16 @@ To show more of the power of configuration injection, let's add another project 
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/addTropical/water`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/addTropical/water/settings.gradle[]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/addTropical/water/build.gradle[]
 ----
@@ -293,29 +299,34 @@ Using the project name for filtering is one option. Using <<writing_build_script
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/tropicalWithProperties/water`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/settings.gradle[]
 ----
 
 .bluewhale/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle[]
 ----
 
 .krill/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/krill/build.gradle[]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/build.gradle[]
 ----
 
 .tropicalFish/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle[]
 ----
@@ -346,14 +357,16 @@ The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarc
 
 === Example: Evaluation and execution of projects
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .bluewhale/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/partialTasks/water/bluewhale/build.gradle[]
 ----
 
 .krill/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/partialTasks/water/krill/build.gradle[]
 ----
@@ -426,24 +439,28 @@ The examples from the last section were special, as the projects had no _Executi
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/firstMessages/messages`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/build.gradle[]
 ----
 
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/settings.gradle[]
 ----
 
 .consumer/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle[]
 ----
 
 .producer/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle[]
 ----
@@ -470,24 +487,28 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 └── settings.gradle
 ----
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/build.gradle[]
 ----
 
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/settings.gradle[]
 ----
 
 .aProducer/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle[]
 ----
 
 .consumer/build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle[]
 ----
@@ -548,14 +569,16 @@ Gradle's multi-project features are driven by real life use cases. One good exam
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/webDist`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/webDist/settings.gradle[]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/webDist/build.gradle[]
 ----
@@ -627,14 +650,16 @@ We have the projects “`shared`”, “`api`” and “`personService`”. The 
 [[javadependencies_2]]
 === Example: Project lib dependencies
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample,groovy]
 ====
 .settings.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/java/settings.gradle[]
 ----
 
 .build.gradle
+[source,groovy]
 ----
 include::{samplesPath}/userguide/multiproject/dependencies/java/build.gradle[]
 ----
