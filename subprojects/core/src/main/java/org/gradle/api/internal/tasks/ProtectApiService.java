@@ -36,5 +36,5 @@ public interface ProtectApiService {
      *
      * @param methodName a string representing the protected method
      */
-    void assertMethodExecutionAllowed(String methodName);
+    void assertMethodExecutionAllowed(String methodName, Object target);
 }

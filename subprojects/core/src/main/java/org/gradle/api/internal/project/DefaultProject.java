@@ -1419,6 +1419,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private void assertMethodExecutionAllowed(String methodName) {
-        protectApiService.assertMethodExecutionAllowed("Project#" + methodName);
+        protectApiService.assertMethodExecutionAllowed("Project#" + methodName, this);
     }
 }

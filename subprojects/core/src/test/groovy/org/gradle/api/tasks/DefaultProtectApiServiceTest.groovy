@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.Action
-import org.gradle.api.Task
 import org.gradle.api.internal.tasks.DefaultProtectApiService
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Subject
@@ -28,19 +27,14 @@ class DefaultProtectApiServiceTest extends Specification {
 
     def "throws IllegalStateException when calling protected method when disallowed"() {
         given:
-        def action = service.wrap(new Action<Task>() {
-            @Override
-            void execute(Task task) {
-                callSomeProtectedMethod()
-            }
-        })
+        def action = service.wrap(newActionThatCallSomeProtectedMethod())
 
         when:
-        action.execute(Mock(Task))
+        action.execute(new Object())
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "someProtectedMethod() cannot be executed while configuring a lazy task"
+        ex.message == "someProtectedMethod() on someObject is protected and cannot be executed under the current context"
     }
 
     def "doesn't throw exception when calling protected method when allowed"() {
@@ -51,7 +45,16 @@ class DefaultProtectApiServiceTest extends Specification {
         noExceptionThrown()
     }
 
+    private Action<Object> newActionThatCallSomeProtectedMethod() {
+        return new Action<Object>() {
+            @Override
+            void execute(Object o) {
+                callSomeProtectedMethod()
+            }
+        }
+    }
+
     private void callSomeProtectedMethod() {
-        service.assertMethodExecutionAllowed("someProtectedMethod()")
+        service.assertMethodExecutionAllowed("someProtectedMethod()", "someObject")
     }
 }

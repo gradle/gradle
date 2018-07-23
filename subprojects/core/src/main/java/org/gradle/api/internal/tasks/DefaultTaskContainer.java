@@ -39,6 +39,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -566,10 +567,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
-    public void assertMethodExecutionAllowed(String methodName) {
-        protectApiService.assertMethodExecutionAllowed("TaskContainer#" + methodName);
-    }
-
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends DefaultTaskProvider<I> {
         private Object[] constructorArgs;
@@ -643,7 +640,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         private IllegalStateException createIllegalStateException() {
-            return new IllegalStateException(String.format("Could not create task '%s' (%s)", getName(), getType().getSimpleName()), cause);
+            return new IllegalTaskProviderStateException(String.format("Could not create task '%s' (%s)", getName(), getType().getSimpleName()), cause);
+        }
+    }
+
+    @Contextual
+    private static class IllegalTaskProviderStateException extends IllegalStateException {
+        public IllegalTaskProviderStateException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 

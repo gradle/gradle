@@ -851,7 +851,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "foo"
-        failure.assertHasCause("$description cannot be executed while configuring a lazy task")
+        failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
+        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -886,7 +887,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "foo"
-        failure.assertHasCause("$description cannot be executed while configuring a lazy task")
+        failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
+        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -924,7 +926,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "foo"
-        failure.assertHasCause("$description cannot be executed while configuring a lazy task")
+        failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
+        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -963,7 +966,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "foo"
-        failure.assertHasCause("$description cannot be executed while configuring a lazy task")
+        failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
+        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION

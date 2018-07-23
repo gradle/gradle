@@ -38,20 +38,19 @@ public class DefaultProtectApiService implements ProtectApiService {
     }
 
     @Override
-    public void assertMethodExecutionAllowed(String methodName) {
+    public void assertMethodExecutionAllowed(String methodName, Object target) {
         if (isUnderProtection()) {
-            throw createIllegalStateException(methodName);
+            throw createIllegalStateException(methodName, target);
         }
     }
 
-    private IllegalStateException createIllegalStateException(String methodName) {
-        return new IllegalConfigurationStateException(methodName + " cannot be executed while configuring a lazy task");
+    private IllegalStateException createIllegalStateException(String methodName, Object target) {
+        return new IllegalConfigurationStateException(String.format("%s on %s is protected and cannot be executed under the current context", methodName, target));
     }
 
     private boolean isUnderProtection() {
         return nestedActionExecutionCount != 0;
     }
-
 
     @Contextual
     private static class IllegalConfigurationStateException extends IllegalStateException {
