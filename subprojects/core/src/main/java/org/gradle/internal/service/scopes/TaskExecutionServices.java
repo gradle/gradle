@@ -74,11 +74,11 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
-import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.fingerprint.OutputNormalizer;
-import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -98,7 +98,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
 
-    private static final ImmutableList<? extends Class<? extends FileCollectionSnapshotter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(AbsolutePathInputNormalizer.class, RelativePathInputNormalizer.class, NameOnlyInputNormalizer.class, IgnoredPathInputNormalizer.class, OutputNormalizer.class);
+    private static final ImmutableList<? extends Class<? extends FileCollectionSnapshotter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
+        AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,

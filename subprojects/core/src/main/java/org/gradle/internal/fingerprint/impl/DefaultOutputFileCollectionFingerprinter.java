@@ -21,16 +21,16 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFingerprintingStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.OutputNormalizer;
 
-public class DefaultAbsolutePathInputNormalizer extends AbstractPathOnlyFileCollectionFingerprinter implements AbsolutePathInputNormalizer {
+public class DefaultOutputFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter implements OutputFileCollectionFingerprinter {
 
-    public DefaultAbsolutePathInputNormalizer(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING, stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    public DefaultOutputFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(AbsolutePathFingerprintingStrategy.IGNORE_MISSING, stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     @Override
     public Class<? extends FileNormalizer> getRegisteredType() {
-        return AbsolutePathInputNormalizer.class;
+        return OutputNormalizer.class;
     }
 }

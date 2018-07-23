@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.tasks.FileNormalizer;
 
 /**
@@ -24,5 +23,5 @@ import org.gradle.api.tasks.FileNormalizer;
  *
  * Like {@link AbsolutePathInputNormalizer}, but ignoring missing files.
  */
-public interface OutputNormalizer extends FileCollectionSnapshotter, FileNormalizer {
+public interface OutputNormalizer extends FileNormalizer {
 }

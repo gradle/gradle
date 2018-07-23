@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 
-/**
- * {@link FileNormalizer} that uses absolute paths for input files. The default.
- */
-public interface AbsolutePathInputNormalizer extends FileNormalizer {
+public interface OutputFileCollectionFingerprinter extends FileCollectionSnapshotter {
 }

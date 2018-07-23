@@ -16,11 +16,10 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.tasks.FileNormalizer;
 
 /**
  * {@link FileNormalizer} that uses the location of files in a hierarchy as normalized paths.
  */
-public interface RelativePathInputNormalizer extends FileCollectionSnapshotter, FileNormalizer {
+public interface RelativePathInputNormalizer extends FileNormalizer {
 }

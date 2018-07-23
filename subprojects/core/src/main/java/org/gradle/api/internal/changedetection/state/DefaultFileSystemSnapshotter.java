@@ -43,8 +43,8 @@ import org.gradle.internal.MutableReference;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.impl.DefaultAbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.DefaultAbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -72,7 +72,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.striped();
     private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
     private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
-    private final AbsolutePathInputNormalizer fingerprinter;
+    private final AbsolutePathFileCollectionFingerprinter fingerprinter;
     private final MirrorUpdatingDirectoryWalker mirrorUpdatingDirectoryWalker;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
@@ -80,7 +80,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.fingerprinter = new DefaultAbsolutePathInputNormalizer(stringInterner, directoryFileTreeFactory, this);
+        this.fingerprinter = new DefaultAbsolutePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, this);
         this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem, stringInterner);
     }
 

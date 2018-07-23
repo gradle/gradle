@@ -34,10 +34,10 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultAbsolutePathInputNormalizerTest extends Specification {
+class DefaultAbsolutePathFileCollectionFingerprinterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultAbsolutePathInputNormalizer(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+    def snapshotter = new DefaultAbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
     def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
     @Rule

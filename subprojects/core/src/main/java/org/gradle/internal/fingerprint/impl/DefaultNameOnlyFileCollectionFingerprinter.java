@@ -23,9 +23,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 
-public class DefaultNameOnlyInputNormalizer extends AbstractPathOnlyFileCollectionFingerprinter implements NameOnlyInputNormalizer {
+public class DefaultNameOnlyFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter implements NameOnlyFileCollectionFingerprinter {
 
-    public DefaultNameOnlyInputNormalizer(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+    public DefaultNameOnlyFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         super(NameOnlyFingerprintingStrategy.INSTANCE, stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 

@@ -18,19 +18,19 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.mirror.logical.IgnoredPathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.logical.RelativePathFingerprintingStrategy;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
+import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
-public class DefaultIgnoredPathInputNormalizer extends AbstractPathOnlyFileCollectionFingerprinter implements IgnoredPathInputNormalizer {
+public class DefaultRelativePathFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter implements RelativePathFileCollectionFingerprinter {
 
-    public DefaultIgnoredPathInputNormalizer(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        super(IgnoredPathFingerprintingStrategy.INSTANCE, stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    public DefaultRelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(new RelativePathFingerprintingStrategy(stringInterner), stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
     @Override
     public Class<? extends FileNormalizer> getRegisteredType() {
-        return IgnoredPathInputNormalizer.class;
+        return RelativePathInputNormalizer.class;
     }
 }

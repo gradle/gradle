@@ -16,11 +16,10 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.tasks.FileNormalizer;
 
 /**
  * {@link FileNormalizer} that ignores the path completely.
  */
-public interface IgnoredPathInputNormalizer extends FileCollectionSnapshotter, FileNormalizer {
+public interface IgnoredPathInputNormalizer extends FileNormalizer {
 }
