@@ -162,8 +162,8 @@ class KotlinScriptClassPathProvider(
 
     private
     fun gradleKotlinDslJars(): List<File> =
-        gradleJars.filter {
-            it.name.let { isKotlinJar(it) || isGradleKotlinDslJarName(it) }
+        gradleJars.filter { file ->
+            file.name.let { isKotlinJar(it) || isGradleKotlinDslJarName(it) }
         }
 
     private
