@@ -16,10 +16,7 @@
 
 
 val repositoryMirrors = findMirrorUrls()
-
-rootProject.extensions["ext"].withGroovyBuilder {
-    setProperty("repositoryMirrors", repositoryMirrors)
-}
+rootProject.extensions.extraProperties.set("repositoryMirrors", repositoryMirrors)
 
 val gradleMirrorUrl = repositoryMirrors["gradle"]
 if (gradleMirrorUrl != null) {
