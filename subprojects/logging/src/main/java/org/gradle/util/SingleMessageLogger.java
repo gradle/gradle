@@ -119,6 +119,16 @@ public class SingleMessageLogger {
         }
     }
 
+    public static void nagUserOfReplacedMethodWithoutRemoval(String methodName, String replacement) {
+        if (isEnabled()) {
+            nagUserWith(
+                String.format("The %s method has been deprecated.", methodName), null,
+                String.format("Please use the %s method instead.", replacement),
+                null,
+                FeatureUsage.FeatureUsageType.USER_CODE_DIRECT);
+        }
+    }
+
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(

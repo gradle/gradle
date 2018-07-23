@@ -653,15 +653,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             .details(new RegisterDetails(identity));
     }
 
+    @Deprecated
     @Override
     public boolean add(Task o) {
-        DeprecationLogger.nagUserOfReplacedMethod("add()", "create() or register()");
+        DeprecationLogger.nagUserOfReplacedMethodWithoutRemoval("add()", "create() or register()");
         return addInternal(o);
     }
 
+    @Deprecated
     @Override
     public boolean addAll(Collection<? extends Task> c) {
-        DeprecationLogger.nagUserOfReplacedMethod("addAll()", "create() or register()");
+        DeprecationLogger.nagUserOfReplacedMethodWithoutRemoval("addAll()", "create() or register()");
         return addAllInternal(c);
     }
 
