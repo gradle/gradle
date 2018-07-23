@@ -3,7 +3,13 @@
 buildscript {
     repositories {
         maven {
-            url uri('../plugin/build/repo')
+// END SNIPPET use-plugin
+// END SNIPPET use-task
+            def producerName = findProperty('producerName') ?: 'plugin'
+            def repoLocation = "../$producerName/build/repo"
+// START SNIPPET use-plugin
+// START SNIPPET use-task
+            url = uri(repoLocation)
         }
     }
     dependencies {

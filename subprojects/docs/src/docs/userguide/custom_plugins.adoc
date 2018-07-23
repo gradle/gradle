@@ -154,9 +154,9 @@ Although there are conventional similarities between plugin ids and package name
 [[sec:publishing_your_plugin]]
 ==== Publishing your plugin
 
-If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact. See the <<publishing_ivy,ivy>> and <<publishing_maven,maven>> chapters on publishing artifacts.
+If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact. See the <<publishing_ivy,Ivy>> and <<publishing_maven,Maven>> chapters on publishing artifacts.
 
-If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle plugin portal]. This site provides the ability to search for and gather information about plugins contributed by the Gradle community. See the instructions http://plugins.gradle.org/docs/submit[here] on how to make your plugin available on this site.
+If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal]. This site provides the ability to search for and gather information about plugins contributed by the Gradle community. Please refer to the corresponding https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/[guide] on how to make your plugin available on this site.
 
 [[sec:using_your_plugin_in_another_project]]
 ==== Using your plugin in another project
@@ -193,17 +193,17 @@ You can use the api:org.gradle.testfixtures.ProjectBuilder[] class to create api
 
 
 [[sec:using_the_java_gradle_plugin_development_plugin]]
-==== Using the Java Gradle Plugin development plugin
+==== Using the Java Gradle Plugin Development Plugin
 
-You can use the incubating <<java_gradle_plugin,Java Gradle Plugin development plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin,Java plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution.
+You can use the incubating <<java_gradle_plugin,Java Gradle Plugin Development Plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the compile configuration, perform plugin metadata validations as part of the `jar` task execution, and generate plugin descriptors in the resulting JAR's `META-INF` directory.
 
 ++++
-<sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
-                <sourcefile file="build.gradle" snippet="use-java-gradle-plugin-plugin"/>
+<sample id="useJavaGradlePluginPlugin" dir="customPlugin/javaGradlePlugin" title="Using the Java Gradle Plugin Development Plugin">
+                <sourcefile file="build.gradle" snippet="use-and-configure-plugin"/>
             </sample>
 ++++
 
-When publishing plugins to custom plugin repositories using the <<publishing_ivy,ivy>> or <<publishing_maven,maven>> publish plugins, the <<java_gradle_plugin,Java Gradle Plugin development plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
+When publishing plugins to custom plugin repositories using the <<publishing_ivy,Ivy>> or <<publishing_maven,Maven Publish Plugins>>, the <<java_gradle_plugin,Java Gradle Plugin Development Plugin>> will also generate <<sec:plugin_markers,plugin marker artifacts>> named based on the plugin id which depend on the plugin's implementation artifact.
 
 [[sec:implementing_a_dsl]]
 === Providing a configuration DSL for the plugin

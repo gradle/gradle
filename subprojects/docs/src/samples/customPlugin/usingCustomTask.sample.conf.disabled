@@ -1,15 +1,10 @@
 commands: [{
     executable: gradle
     execution-subdirectory: consumer
-    args: uploadArchives
+    args: publish
     flags: -p ../plugin
 }, {
     executable: gradle
     execution-subdirectory: consumer
     args: greeting
-}, {
-    executable: gradle
-    execution-subdirectory: consumer
-    args: cleanCustomPluginFromMavenLocal
-    flags: -p ../plugin
 }]
