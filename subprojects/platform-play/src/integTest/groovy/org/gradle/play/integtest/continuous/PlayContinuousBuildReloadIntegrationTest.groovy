@@ -18,10 +18,12 @@ package org.gradle.play.integtest.continuous
 
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import spock.lang.Ignore
 
 /**
  * Test Play reload with `--continuous`
  */
+@Ignore('contains javascript repository')
 class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegrationTest {
 
     protected static final String PENDING_DETECTED_MESSAGE = 'Pending changes detected'

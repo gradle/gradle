@@ -20,7 +20,9 @@ import org.gradle.play.integtest.PlayDistributionApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
+import spock.lang.Ignore
 
+@Ignore('contains javascript repository')
 class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplicationIntegrationTest {
     def setup() {
         runningApp = new AdvancedRunningPlayApp(testDirectory)

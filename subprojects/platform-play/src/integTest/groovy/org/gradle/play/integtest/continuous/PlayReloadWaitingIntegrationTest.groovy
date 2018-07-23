@@ -19,9 +19,11 @@ package org.gradle.play.integtest.continuous
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.TestParticipant
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.util.concurrent.TimeUnit
 
+@Ignore('contains javascript repository')
 class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
     @Rule
     public ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
@@ -67,7 +69,7 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         // Request should be complete soon after build completes
         routeChecker.completesWithin(1, TimeUnit.SECONDS)
     }
-    
+
     def "wait for changes to be built when a change occurs during a build"() {
         given:
         appRunning()

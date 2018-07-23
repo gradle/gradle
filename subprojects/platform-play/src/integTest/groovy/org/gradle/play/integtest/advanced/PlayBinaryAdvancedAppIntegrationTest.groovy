@@ -20,7 +20,9 @@ import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
+import spock.lang.Ignore
 
+@Ignore('contains javascript repository')
 class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
     def setup() {
         runningApp = new AdvancedRunningPlayApp(testDirectory)
