@@ -1,0 +1,31 @@
+// START SNIPPET use-and-configure-plugin
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+// END SNIPPET use-and-configure-plugin
+    id 'maven-publish'
+// START SNIPPET use-and-configure-plugin
+}
+
+// END SNIPPET use-and-configure-plugin
+group = 'org.gradle'
+version = '1.0-SNAPSHOT'
+
+// START SNIPPET use-and-configure-plugin
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'org.samples.greeting'
+            implementationClass = 'org.gradle.GreetingPlugin'
+        }
+    }
+}
+// END SNIPPET use-and-configure-plugin
+
+publishing {
+    repositories {
+        maven {
+            url = uri("$buildDir/repo")
+        }
+    }
+}
