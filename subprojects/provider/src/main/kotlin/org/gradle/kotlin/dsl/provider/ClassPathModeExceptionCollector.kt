@@ -34,3 +34,12 @@ open class ClassPathModeExceptionCollector : Stoppable {
         collection.clear()
     }
 }
+
+
+inline fun <T> ClassPathModeExceptionCollector.ignoringErrors(f: () -> T): T? =
+    try {
+        f()
+    } catch (e: Exception) {
+        collect(e)
+        null
+    }

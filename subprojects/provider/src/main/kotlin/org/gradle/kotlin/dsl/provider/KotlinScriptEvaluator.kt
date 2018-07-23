@@ -310,12 +310,3 @@ private
 val embeddedKotlinModules by lazy {
     transitiveClosureOf("stdlib-jdk8", "reflect")
 }
-
-
-private
-inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) =
-    try {
-        action()
-    } catch (e: Exception) {
-        collect(e)
-    }

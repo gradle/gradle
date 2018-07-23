@@ -33,6 +33,18 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     @Test
+    fun `can fetch buildSrc classpath in face of buildscript exceptions`() {
+
+        withBuildSrc()
+
+        withBuildScript("""
+            buildscript { TODO() }
+        """)
+
+        assertContainsBuildSrc(canonicalClassPath())
+    }
+
+    @Test
     fun `can fetch buildscript classpath in face of compilation errors`() {
 
         withFile("classes.jar")
