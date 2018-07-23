@@ -85,7 +85,8 @@ For this, you have two options:
 This will effectively lock all resolvable configurations that have locking enabled.
 Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
 * Declare a custom task that will resolve all configurations
-=== Example: Resolving all configurations
+
+==== Example: Resolving all configurations
 
 [source.multi-language-sample,groovy]
 .build.gradle
