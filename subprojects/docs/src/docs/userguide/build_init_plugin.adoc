@@ -69,7 +69,7 @@ As this plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubatin
 
 
 [[sec:pom_maven_conversion_]]
-=== “`pom`” (Maven conversion)
+=== `pom` (Maven conversion)
 
 The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface.adoc#command_line_interface,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
 
@@ -92,7 +92,7 @@ The conversion process has the following features:
 
 
 [[sec:javaapplication_]]
-=== “`java-application`”
+=== `java-application`
 
 The “`java-application`” build init type is not inferable. It must be explicitly specified.
 
@@ -111,7 +111,7 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 
 
 [[sec:javalibrary_]]
-=== “`java-library`”
+=== `java-library`
 
 The “`java-library`” build init type is not inferable. It must be explicitly specified.
 
@@ -130,7 +130,7 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 
 
 [[sec:scalalibrary_]]
-=== “`scala-library`”
+=== `scala-library`
 
 The “`scala-library`” build init type is not inferable. It must be explicitly specified.
 
@@ -146,7 +146,7 @@ It has the following features:
 
 
 [[sec:groovylibrary_]]
-=== “`groovy-library`”
+=== `groovy-library`
 
 The “`groovy-library`” build init type is not inferable. It must be explicitly specified.
 
@@ -161,7 +161,7 @@ It has the following features:
 
 
 [[sec:groovyapplication_]]
-=== “`groovy-application`”
+=== `groovy-application`
 
 The “`groovy-application`” build init type is not inferable. It must be explicitly specified.
 
