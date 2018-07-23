@@ -85,6 +85,17 @@ Instances of this class are intended to be created only by the `project-reports`
 
 - `project.java.sourceSets` is now `project.sourceSets`
 
+### Disallow hooks from lazy task configuration
+
+The following hooks are now disallowed from lazy task configuration.
+Calling any of them will result in an exception been thrown.
+
+- `project.afterEvaluate(Action)` and `project.afterEvaluate(Closure)`
+- `project.beforeEvaluate(Action)` and `project.beforeEvaluate(Closure)`
+- `project.subprojects(Action)` and `project.subprojects(Closure)`
+- `project.allprojects(Action)` and `project.allprojects(Closure)`
+- `project.project(String, Action)` and `project.project(String, Closure)`
+
 ## External contributions
 
 
