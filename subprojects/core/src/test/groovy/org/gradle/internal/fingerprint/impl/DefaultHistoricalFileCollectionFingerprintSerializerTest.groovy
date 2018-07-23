@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
@@ -32,12 +33,16 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
     def "reads and writes the fingerprints"(FingerprintCompareStrategy strategy) {
         def hash = HashCode.fromInt(1234)
 
+        def rootHashes = ImmutableMultimap.of(
+        "/1", PhysicalMissingSnapshot.SIGNATURE,
+        "/2", HashCode.fromInt(5678),
+        "/3", HashCode.fromInt(1234))
         when:
         def out = serialize(new DefaultHistoricalFileCollectionFingerprint(
             '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
             '/2': IgnoredPathFingerprint.create(FileType.RegularFile, hash),
             '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            strategy
+            strategy, rootHashes
         ), serializer)
 
         then:
@@ -58,6 +63,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             normalizedContentHash == PhysicalMissingSnapshot.SIGNATURE
         }
         out.compareStrategy == strategy
+        out.rootHashes == rootHashes
 
         where:
         strategy << FingerprintCompareStrategy.values()
@@ -69,10 +75,14 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             "/3": new DefaultNormalizedFileSnapshot('3', FileType.RegularFile, HashCode.fromInt(1234)),
             "/2": new DefaultNormalizedFileSnapshot('/2', FileType.RegularFile, HashCode.fromInt(5678)),
             "/1": new DefaultNormalizedFileSnapshot('1', FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            FingerprintCompareStrategy.ABSOLUTE
+            FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of(
+            "/3", HashCode.fromInt(1234),
+            "/2", HashCode.fromInt(5678),
+            "/1", PhysicalMissingSnapshot.SIGNATURE)
         ), serializer)
 
         then:
         out.snapshots.keySet() as List == ["/3", "/2", "/1"]
+        out.rootHashes.keySet() as List == ["/3", "/2", "/1"]
     }
 }

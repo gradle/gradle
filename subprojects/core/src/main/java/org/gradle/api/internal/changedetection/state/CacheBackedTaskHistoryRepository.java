@@ -227,7 +227,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             } else if (newEntryCount == 0) {
                 filesFingerprint = EmptyFileCollectionFingerprint.INSTANCE;
             } else {
-                filesFingerprint = new DefaultHistoricalFileCollectionFingerprint(outputEntries.build(), FingerprintCompareStrategy.ABSOLUTE);
+                filesFingerprint = new DefaultHistoricalFileCollectionFingerprint(outputEntries.build(), FingerprintCompareStrategy.ABSOLUTE, null);
             }
         } else {
             filesFingerprint = afterExecution;

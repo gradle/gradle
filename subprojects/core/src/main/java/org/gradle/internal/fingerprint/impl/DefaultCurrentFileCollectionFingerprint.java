@@ -16,8 +16,13 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -27,7 +32,7 @@ import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
@@ -35,6 +40,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final FingerprintCompareStrategy compareStrategy;
     private final Iterable<FileSystemSnapshot> roots;
+    private final ImmutableMultimap<String, HashCode> rootHashes;
     private HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
@@ -45,15 +51,46 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, @Nullable Iterable<FileSystemSnapshot> roots) {
+    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, Iterable<FileSystemSnapshot> roots) {
         this.snapshots = snapshots;
         this.compareStrategy = compareStrategy;
         this.roots = roots;
+
+        final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
+        visitRoots(new PhysicalSnapshotVisitor() {
+            @Override
+            public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getContentHash());
+                return false;
+            }
+
+            @Override
+            public void visit(PhysicalSnapshot fileSnapshot) {
+                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getContentHash());
+            }
+
+            @Override
+            public void postVisitDirectory() {
+            }
+        });
+        this.rootHashes = builder.build();
     }
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+        if (hasSameRootHashes(oldFingerprint)) {
+            return true;
+        }
         return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldFingerprint.getSnapshots(), title, includeAdded);
+    }
+
+    private boolean hasSameRootHashes(FileCollectionFingerprint oldFingerprint) {
+        if (oldFingerprint.getRootHashes() != null) {
+            List<String> currentRootPaths = Lists.newArrayList(rootHashes.keys());
+            List<String> oldRootPaths = Lists.newArrayList(oldFingerprint.getRootHashes().keys());
+            return currentRootPaths.equals(oldRootPaths) && rootHashes.equals(oldFingerprint.getRootHashes());
+        }
+        return false;
     }
 
     @Override
@@ -72,6 +109,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
+    public Multimap<String, HashCode> getRootHashes() {
+        return rootHashes;
+    }
+
+    @Override
     public void visitRoots(PhysicalSnapshotVisitor visitor) {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
@@ -83,6 +125,6 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     @Override
     public HistoricalFileCollectionFingerprint archive() {
-        return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy);
+        return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy, rootHashes);
     }
 }
