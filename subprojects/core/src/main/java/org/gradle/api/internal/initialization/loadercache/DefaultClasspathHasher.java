@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -28,15 +28,15 @@ import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultClasspathHasher implements ClasspathHasher {
 
-    private final ClasspathSnapshotter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public DefaultClasspathHasher(ClasspathSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
+    public DefaultClasspathHasher(ClasspathFingerprinter fingerprinter) {
+        this.fingerprinter = fingerprinter;
     }
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        CurrentFileCollectionFingerprint fingerprint = snapshotter.snapshot(ImmutableFileCollection.of(classpath.getAsFiles()), InputNormalizationStrategy.NO_NORMALIZATION);
+        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(ImmutableFileCollection.of(classpath.getAsFiles()), InputNormalizationStrategy.NO_NORMALIZATION);
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putHash(fingerprint.getHash());
         return hasher.hash();

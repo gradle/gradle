@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
@@ -43,8 +43,8 @@ class DefaultPlayToolChainTest extends Specification {
     PlayPlatform playPlatform = Stub(PlayPlatform)
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     WorkerDirectoryProvider workerDirectoryProvider = Mock()
-    ClasspathSnapshotter snapshotter = Mock()
-    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, snapshotter)
+    ClasspathFingerprinter fingerprinter = Mock()
+    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

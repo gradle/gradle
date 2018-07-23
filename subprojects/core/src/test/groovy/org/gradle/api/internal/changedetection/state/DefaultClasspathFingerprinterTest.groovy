@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 @CleanupTestDirectory(fieldName = "tmpDir")
 @UsesNativeServices
-class DefaultClasspathSnapshotterTest extends Specification {
+class DefaultClasspathFingerprinterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -47,7 +47,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
-    def snapshotter = new DefaultClasspathSnapshotter(
+    def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         directoryFileTreeFactory,
         fileSystemSnapshotter,
@@ -206,7 +206,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
     def fingerprint(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
-        def fileCollectionFingerprint = snapshotter.snapshot(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
+        def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
         return fileCollectionFingerprint.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.normalizedContentHash.toString()]
         }

@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 
-import java.util.Collection;
-
-public interface FileCollectionSnapshotterRegistry {
-    Collection<FileCollectionSnapshotter> getAllSnapshotters();
-    FileCollectionSnapshotter getSnapshotter(Class<? extends FileNormalizer> type);
+/**
+ * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java
+ * compile classpath. Compared to {@link RelativePathFileCollectionFingerprinter} this fingerprinter orders files within any sub-tree.
+ *
+ * @see org.gradle.api.tasks.CompileClasspath
+ */
+public interface CompileClasspathFingerprinter extends FileCollectionFingerprinter {
 }

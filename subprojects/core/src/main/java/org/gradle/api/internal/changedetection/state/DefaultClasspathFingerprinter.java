@@ -27,12 +27,12 @@ import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import static org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
 
-public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
+public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     private final ResourceSnapshotterCacheService cacheService;
     private final StringInterner stringInterner;
     private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
 
-    public DefaultClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
@@ -45,8 +45,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public CurrentFileCollectionFingerprint snapshot(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
         ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
-        return super.snapshot(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
+        return super.fingerprint(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
     }
 }

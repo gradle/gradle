@@ -23,11 +23,11 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
+import org.gradle.api.internal.changedetection.state.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.FileCollectionFingerprinter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
@@ -107,21 +107,21 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-        FileCollectionSnapshotter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
-        FileCollectionSnapshotter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        FileCollectionFingerprinter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        FileCollectionFingerprinter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
         inputFileCollectionFingerprinter.registerSerializers(serializerRegistry)
-        def snapshotterRegistry = new DefaultFileCollectionSnapshotterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
+        def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
             serializerRegistry.build(HistoricalFileCollectionFingerprint),
             stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
-            snapshotterRegistry
+            fingerprinterRegistry
         )
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
     }

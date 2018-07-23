@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.CompileClasspathFingerprinter;
+import org.gradle.api.internal.changedetection.state.FileCollectionFingerprinter;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidationActions;
@@ -42,8 +42,8 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
-        return CompileClasspathSnapshotter.class;
+    public Class<? extends FileCollectionFingerprinter> getFingerprinterImplementationType() {
+        return CompileClasspathFingerprinter.class;
     }
 
     @Override

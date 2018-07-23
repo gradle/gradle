@@ -43,12 +43,12 @@ import java.util.List;
  * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
  */
 @NonNullApi
-public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
+public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
     private final StringInterner stringInterner;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    public AbstractFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+    public AbstractFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         this.stringInterner = stringInterner;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
@@ -59,7 +59,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(EmptyFileCollectionFingerprint.class, Serializers.constant(EmptyFileCollectionFingerprint.INSTANCE));
     }
 
-    public CurrentFileCollectionFingerprint snapshot(FileCollection input, FingerprintingStrategy strategy) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);

@@ -22,19 +22,19 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
-public interface FileCollectionSnapshotter {
+public interface FileCollectionFingerprinter {
     /**
-     * The type used to refer to this snapshotter in the {@link FileCollectionSnapshotterRegistry}.
+     * The type used to refer to this fingerprinter in the {@link FileCollectionFingerprinterRegistry}.
      */
     Class<? extends FileNormalizer> getRegisteredType();
 
     /**
-     * Registers the serializer(s) that can be used to serialize the {@link FileCollectionFingerprint} implementations produced by this snapshotter.
+     * Registers the serializer(s) that can be used to serialize the {@link FileCollectionFingerprint} implementations produced by this fingerprinter.
      */
     void registerSerializers(SerializerRegistry registry);
 
     /**
-     * Creates a snapshot of the contents of the given collection.
+     * Creates a fingerprint of the contents of the given collection.
      */
-    CurrentFileCollectionFingerprint snapshot(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy);
+    CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy);
 }

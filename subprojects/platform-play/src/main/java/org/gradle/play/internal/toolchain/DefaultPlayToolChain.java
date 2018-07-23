@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -48,16 +48,16 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final WorkerDirectoryProvider workerDirectoryProvider;
-    private final ClasspathSnapshotter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public DefaultPlayToolChain(PathToFileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathSnapshotter snapshotter) {
+    public DefaultPlayToolChain(PathToFileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter) {
         this.fileResolver = fileResolver;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.workerDirectoryProvider = workerDirectoryProvider;
-        this.snapshotter = snapshotter;
+        this.fingerprinter = fingerprinter;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(fileResolver, workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, snapshotter);
+            return new DefaultPlayToolProvider(fileResolver, workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }

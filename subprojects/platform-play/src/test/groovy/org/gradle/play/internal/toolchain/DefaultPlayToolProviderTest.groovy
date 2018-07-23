@@ -19,7 +19,7 @@ package org.gradle.play.internal.toolchain
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
@@ -44,7 +44,7 @@ class DefaultPlayToolProviderTest extends Specification {
     PlayPlatform playPlatform = Mock()
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     File daemonWorkingDir = Mock()
-    ClasspathSnapshotter snapshotter = Mock()
+    ClasspathFingerprinter fingerprinter = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -52,7 +52,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DefaultPlayToolProvider playToolProvider
 
     private DefaultPlayToolProvider createProvider() {
-        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, snapshotter)
+        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter)
     }
 
     @Unroll

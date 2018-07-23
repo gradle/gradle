@@ -24,11 +24,11 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.FileCollectionFingerprinter;
+import org.gradle.api.internal.changedetection.state.FileCollectionFingerprinterRegistry;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -98,7 +98,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
 
-    private static final ImmutableList<? extends Class<? extends FileCollectionSnapshotter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
+    private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
         AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
@@ -161,28 +161,28 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(ServiceRegistry serviceRegistry) {
         List<FileSnapshottingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileSnapshottingPropertyAnnotationHandler.class);
-        ImmutableList.Builder<FileCollectionSnapshotter> snapshotterImplementations = ImmutableList.builder();
-        for (Class<? extends FileCollectionSnapshotter> builtInFingerprinterType : BUILT_IN_FINGERPRINTER_TYPES) {
-            snapshotterImplementations.add(serviceRegistry.get(builtInFingerprinterType));
+        ImmutableList.Builder<FileCollectionFingerprinter> fingerprinterImplementations = ImmutableList.builder();
+        for (Class<? extends FileCollectionFingerprinter> builtInFingerprinterType : BUILT_IN_FINGERPRINTER_TYPES) {
+            fingerprinterImplementations.add(serviceRegistry.get(builtInFingerprinterType));
         }
         for (FileSnapshottingPropertyAnnotationHandler handler : handlers) {
-            snapshotterImplementations.add(serviceRegistry.get(handler.getSnapshotterImplementationType()));
+            fingerprinterImplementations.add(serviceRegistry.get(handler.getFingerprinterImplementationType()));
         }
-        return new DefaultFileCollectionSnapshotterRegistry(snapshotterImplementations.build());
+        return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
     }
 
     TaskHistoryRepository createTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
+        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
-        FileCollectionSnapshotterRegistry snapshotterRegistry) {
+        FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
-            snapshotter.registerSerializers(serializerRegistry);
+        for (FileCollectionFingerprinter fingerprinter : fileCollectionFingerprinterRegistry.getAllFingerprinters()) {
+            fingerprinter.registerSerializers(serializerRegistry);
         }
 
         return new CacheBackedTaskHistoryRepository(
@@ -191,7 +191,7 @@ public class TaskExecutionServices {
             stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,
-            snapshotterRegistry
+            fingerprinterRegistry
         );
     }
 

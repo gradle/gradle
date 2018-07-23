@@ -18,7 +18,7 @@ package org.gradle.play.internal.run;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.internal.hash.HashCode;
@@ -33,12 +33,12 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
-    private final ClasspathSnapshotter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathSnapshotter snapshotter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter fingerprinter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
-        this.snapshotter = snapshotter;
+        this.fingerprinter = fingerprinter;
     }
 
     public PlayApplication start(PlayRunSpec spec, Deployment deployment) {
@@ -105,7 +105,7 @@ public class PlayApplicationRunner {
 
         private boolean applicationClasspathChanged() {
             HashCode oldClasspathHash = classpathHash;
-            classpathHash = snapshotter.snapshot(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
+            classpathHash = fingerprinter.fingerprint(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
             return !classpathHash.equals(oldClasspathHash);
         }
     }

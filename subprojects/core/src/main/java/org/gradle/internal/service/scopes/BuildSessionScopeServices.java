@@ -23,11 +23,11 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
+import org.gradle.api.internal.changedetection.state.CompileClasspathFingerprinter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathFingerprinter;
+import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathFingerprinter;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
@@ -197,12 +197,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new SplitResourceSnapshotterCacheService(globalCache, localCache, wellKnownFileLocations);
     }
 
-    CompileClasspathSnapshotter createCompileClasspathSnapshotter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
-        return new DefaultCompileClasspathSnapshotter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+    CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
+        return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
-        return new DefaultClasspathSnapshotter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
+        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
     }
 
     DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {

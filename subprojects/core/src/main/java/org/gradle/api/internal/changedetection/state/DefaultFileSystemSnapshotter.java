@@ -118,7 +118,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public HashCode create() {
                 HashCode fileContentHash = fileSystemMirror.getContent(path);
                 if (fileContentHash == null) {
-                    CurrentFileCollectionFingerprint fileCollectionFingerprint = fingerprinter.snapshot(ImmutableFileCollection.of(file), InputNormalizationStrategy.NO_NORMALIZATION);
+                    CurrentFileCollectionFingerprint fileCollectionFingerprint = fingerprinter.fingerprint(ImmutableFileCollection.of(file), InputNormalizationStrategy.NO_NORMALIZATION);
                     fileContentHash = fileCollectionFingerprint.getHash();
                     String internedPath = internPath(file);
                     fileSystemMirror.putContent(internedPath, fileContentHash);

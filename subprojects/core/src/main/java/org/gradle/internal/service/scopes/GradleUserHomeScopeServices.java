@@ -21,9 +21,9 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathFingerprinter;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
@@ -169,12 +169,12 @@ public class GradleUserHomeScopeServices {
         return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
-        return new DefaultClasspathSnapshotter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
+        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
     }
 
-    ClasspathHasher createClasspathHasher(ClasspathSnapshotter snapshotter) {
-        return new DefaultClasspathHasher(snapshotter);
+    ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter) {
+        return new DefaultClasspathHasher(fingerprinter);
     }
 
     HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher classpathHasher) {
