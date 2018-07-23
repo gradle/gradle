@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class AbstractNamedDomainObjectContainerTest extends Specification {
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
-    AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)
+    AbstractNamedDomainObjectContainer<TestObject> container = instantiator.newInstance(TestContainer.class, instantiator)
 
     def "is dynamic object aware"() {
         expect:
@@ -99,6 +99,30 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         then:
         container.someObj.prop == 'value'
+    }
+
+    def "can register objects"() {
+        when:
+        def someObj = container.register("someObj")
+        def otherObj = container.register("otherObj") {
+            prop = 'value'
+        }
+        then:
+        someObj.present
+        otherObj.get().prop == 'value'
+    }
+
+    def "can find registered objects"() {
+        when:
+        container.register("someObj")
+        container.register("otherObj") {
+            prop = 'value'
+        }
+        def someObj = container.named("someObj")
+        def otherObj = container.named("otherObj")
+        then:
+        someObj.present
+        otherObj.get().prop == 'value'
     }
 
     def "propagates nested MissingMethodException"() {

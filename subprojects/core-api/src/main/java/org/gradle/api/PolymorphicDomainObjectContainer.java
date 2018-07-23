@@ -15,6 +15,7 @@
  */
 package org.gradle.api;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -82,4 +83,35 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @return a {@link NamedDomainObjectContainer} providing access to elements of type U.
      */
     <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type);
+
+    /**
+     * Defines a new object, which will be created and configured when it is required. A object is 'required' when the object is located using query methods such as {@link #getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     *
+     * @param name The name of the object.
+     * @param type The object type.
+     * @param configurationAction The action to run to configure the object. This action runs when the object is required.
+     * @param <U> The object type
+     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @throws InvalidUserDataException If a object with the given name already exists in this project.
+     * @since 4.10
+     */
+    @Incubating
+    <U extends T> Provider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException;
+
+    /**
+     * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link #getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     *
+     * @param name The name of the object.
+     * @param type The object type.
+     * @param <U> The object type
+     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @throws InvalidUserDataException If a object with the given name already exists in this project.
+     * @since 4.10
+     */
+    @Incubating
+    <U extends T> Provider<U> register(String name, Class<U> type) throws InvalidUserDataException;
 }

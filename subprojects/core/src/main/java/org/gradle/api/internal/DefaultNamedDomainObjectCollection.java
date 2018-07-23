@@ -24,10 +24,12 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -330,6 +332,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     public T getAt(String name) throws UnknownDomainObjectException {
         return getByName(name);
+    }
+
+    @Override
+    public Provider<T> named(String name) throws UnknownTaskException {
+        Provider<? extends T> provider = findDomainObject(name);
+        if (provider == null) {
+            throw createNotFoundException(name);
+        }
+        return Cast.uncheckedCast(provider);
     }
 
     @Override
@@ -681,6 +692,67 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public Class<?> getType() {
             return ((ProviderInternal<?>) provider).getType();
+        }
+    }
+
+    @Nullable
+    protected Provider<? extends T> findDomainObject(String name) {
+        T object = findByNameWithoutRules(name);
+        if (object == null) {
+            return findByNameLaterWithoutRules(name);
+        }
+
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, object, name));
+    }
+
+    protected abstract class AbstractDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named {
+        private final String name;
+
+        protected AbstractDomainObjectProvider(String name) {
+            this.name = name;
+        }
+
+        @Nullable
+        @Override
+        public Class<I> getType() {
+            return (Class<I>) DefaultNamedDomainObjectCollection.this.getType();
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findDomainObject(name) != null;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("provider(%s %s, %s)", getTypeDisplayName(), getName(), getType());
+        }
+    }
+
+    protected class ExistingDomainObjectProvider<I extends T> extends AbstractDomainObjectProvider<I> {
+        private final I object;
+
+        public ExistingDomainObjectProvider(I object, String name) {
+            super(name);
+            this.object = object;
+        }
+
+        public void configure(Action<? super I> action) {
+            action.execute(object);
+        }
+
+        @Override
+        public boolean isPresent() {
+            return true;
+        }
+
+        public I getOrNull() {
+            return object;
         }
     }
 }
