@@ -80,10 +80,9 @@ class DistributionTestingPlugin : Plugin<Project> {
     fun DistributionTest.setDedicatedTestOutputDirectoryPerTask(java: JavaPluginConvention, reporting: ReportingExtension) {
         reports.junitXml.destination = File(java.testResultsDir, name)
         val htmlDirectory = reporting.baseDirectory.dir(this.name)
-        project.afterEvaluate {
-            // TODO: Replace this with a Provider
-            reports.html.destination = htmlDirectory.get().asFile
-        }
+
+        // TODO: Replace this with a Provider
+        reports.html.destination = htmlDirectory.get().asFile
     }
 
     private
