@@ -89,8 +89,7 @@ This will terminate all Daemon processes that were started with the same version
 [[sec:set_env_variables_for_daemon]]
 === Set environment variables for the Daemon
 
-In a JVM process, all environment variables are stored in an `UnmodifiableMap`, which can't be modified after the JVM starts up. To overcome this limitation, we recommend to use api:org.gradle.api.GradleSystem#getenv()[] instead of `java.lang.System.getenv()` in your build logic.
-
+See <<gradle_environment_variables_for_build>> for more details.
 
 [[daemon_faq]]
 === FAQ

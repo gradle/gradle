@@ -24,6 +24,7 @@ When configuring Gradle behavior you can use these methods, listed in order of h
 * <<sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file.
 * <<sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `GRADLE_USER_HOME` environment variable.
 * <<sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
+* <<sec:gradle_environment_variables_for_build, Environment variables for build>> such as `M2_HOME` that is used in your build.
 
 Aside from configuring the build environment, you can configure a given project build using <<sec:project_properties, Project properties>> such as `-PreleaseType=final`.
 
@@ -115,6 +116,27 @@ Specifies <<command_line_interface, command-line arguments>> to use when startin
 Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
 `JAVA_HOME`::
 Specifies the JDK installation directory to use.
+
+[[sec:gradle_environment_variables_for_build]]
+=== Environment variables for build
+
+To leverage <<gradle_daemon,Gradle Daemon>>, Gradle has to reset environment variables of daemon process between builds. On Java 7/8, this kind of modification was done via
+reflection, which is severely restricted since Java 9. To overcome this restriction, Gradle 4.10 introduces api:org.gradle.api.GradleSystem#getenv()[] to make
+changed environment variables visible to the build. We recommend to use api:org.gradle.api.GradleSystem#getenv()[] instead of `System.getenv()` in your build logic.
+
+.Reading environment variables in the build
+====
+[source,groovy]
+----
+println GradleSystem.getenv('MY_ENV_VARIABLE')
+----
+====
+
+[NOTE]
+====
+On Java 9+, once daemon process starts up, its environment variables won't change any more. To make the changed environment variables visible to your build,
+you have to either disable Gradle daemon (not recommended) or use api:org.gradle.api.GradleSystem#getenv()[] (recommended, but only after Gradle 4.10).
+====
 
 [[sec:project_properties]]
 === Project properties
