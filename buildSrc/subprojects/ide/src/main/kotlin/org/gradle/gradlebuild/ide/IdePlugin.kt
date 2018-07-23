@@ -100,7 +100,6 @@ open class IdePlugin : Plugin<Project> {
         idea {
             module {
                 configureLanguageLevel(this)
-                jdkName = "9.0"
                 iml {
                     whenMerged(Action<Module> {
                         removeGradleBuildOutputDirectories(this)
@@ -123,6 +122,7 @@ open class IdePlugin : Plugin<Project> {
             }
 
             project {
+                jdkName = "9.0"
                 wildcards.add("?*.gradle")
                 vcs = "Git"
                 ipr {
