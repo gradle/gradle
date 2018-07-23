@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
@@ -23,7 +24,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.FilteredFileSystemSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshotFilterer;
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
@@ -205,7 +206,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (rootSnapshot != null) {
             MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
             rootSnapshot.accept(builder);
-            return builder.getResult();
+            return Preconditions.checkNotNull(builder.getResult());
         }
         return FileSystemSnapshot.EMPTY;
     }
@@ -225,7 +226,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             return snapshot;
         }
         Spec<FileTreeElement> spec = patterns.getAsSpec();
-        return new FilteredFileSystemSnapshot(spec, snapshot, fileSystem);
+        return FileSystemSnapshotFilterer.filterSnapshot(spec, snapshot, fileSystem);
     }
 
     private String internPath(File file) {

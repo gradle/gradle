@@ -293,7 +293,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
-                builder.postVisitDirectory();
+                builder.postVisitDirectory(false);
             }
             if (parser.getDepth() == 0) {
                 break;
@@ -311,7 +311,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         for (int i = 0; i < parser.getDepth(); i++) {
-            builder.postVisitDirectory();
+            builder.postVisitDirectory(false);
         }
 
         snapshots.put(propertyName, builder.getResult());
