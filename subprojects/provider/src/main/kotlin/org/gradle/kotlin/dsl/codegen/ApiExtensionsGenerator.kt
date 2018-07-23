@@ -211,7 +211,7 @@ data class MappedApiFunctionParameter(
     val index: Int = original.index,
     val type: ApiTypeUsage = original.type,
     val isVarargs: Boolean = original.isVarargs,
-    val invocation: String = "${if (original.isVarargs) "*" else ""}`${original.name ?: "p$index"}`"
+    val asArguments: String = "${if (original.isVarargs) "*" else ""}`${original.name ?: "p$index"}`"
 ) {
     val name: String
         get() = original.name ?: "p$index"
@@ -230,7 +230,7 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                         typeArguments = listOf(
                             ApiTypeUsage("String"), ApiTypeUsage("Any", isNullable = true))))),
             isVarargs = true,
-            invocation = "mapOf(*${first.invocation})")
+            asArguments = "mapOf(*${first.asArguments})")
         if (last().type.isSAM) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
         else drop(1) + mappedMapParameter
     } ?: this
@@ -243,15 +243,15 @@ fun List<MappedApiFunctionParameter>.javaClassToKotlinClass() =
             when {
                 isJavaClass -> p.copy(
                     type = toKotlinClass(),
-                    invocation = "${p.invocation}.java"
+                    asArguments = "${p.asArguments}.java"
                 )
                 isKotlinArray && typeArguments.single().isJavaClass -> p.copy(
                     type = toArrayOfKotlinClasses(),
-                    invocation = "${p.invocation}.map { it.java }.toTypedArray()"
+                    asArguments = "${p.asArguments}.map { it.java }.toTypedArray()"
                 )
                 isKotlinCollection && typeArguments.single().isJavaClass -> p.copy(
                     type = toCollectionOfKotlinClasses(),
-                    invocation = "${p.invocation}.map { it.java }"
+                    asArguments = "${p.asArguments}.map { it.java }"
                 )
                 else -> p
             }
@@ -294,7 +294,7 @@ data class KotlinExtensionFunction(
         append("): ")
         append(returnType.toTypeArgumentString())
         appendln(" =")
-        appendln("`$name`(${parameters.toInvocationString()})".prependIndent())
+        appendln("`$name`(${parameters.toArgumentsString()})".prependIndent())
         appendln()
     }.toString()
 
@@ -311,10 +311,10 @@ data class KotlinExtensionFunction(
 
 
     private
-    fun List<MappedApiFunctionParameter>.toInvocationString(): String =
+    fun List<MappedApiFunctionParameter>.toArgumentsString(): String =
         takeIf { it.isNotEmpty() }
             ?.sortedBy { it.original.index }
-            ?.joinToString(separator = ", ") { it.invocation }
+            ?.joinToString(separator = ", ") { it.asArguments }
             ?: ""
 }
 
@@ -415,7 +415,7 @@ object SourceNames {
 
 private
 val ApiTypeUsage.isSAM
-    get() = type?.isSAM ?: isGradleAction
+    get() = type?.isSAM == true
 
 
 private
@@ -441,11 +441,6 @@ val ApiTypeUsage.isJavaClass
 private
 val ApiTypeUsage.isGroovyClosure
     get() = sourceName == SourceNames.groovyClosure
-
-
-private
-val ApiTypeUsage.isGradleAction
-    get() = sourceName == SourceNames.gradleAction
 
 
 private
