@@ -32,8 +32,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
-import org.gradle.kotlin.dsl.support.minus
-import org.gradle.kotlin.dsl.support.root
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.util.GFileUtils.moveFile
@@ -75,6 +73,7 @@ typealias JarsProvider = () -> Collection<File>
 
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
+    val coreAndPluginsScope: ClassLoaderScope,
     val gradleApiJarsProvider: JarsProvider,
     val jarCache: JarCache,
     val progressMonitorProvider: JarGenerationProgressMonitorProvider
@@ -105,6 +104,15 @@ class KotlinScriptClassPathProvider(
         DefaultClassPath.of(gradleKotlinDslJars())
     }
 
+    /**
+     * The Gradle implementation classpath which should **NOT** be visible
+     * in the compilation classpath of any script.
+     */
+    private
+    val gradleImplementationClassPath: Set<File> by lazy {
+        cachedClassLoaderClassPath.of(coreAndPluginsScope.exportClassLoader)
+    }
+
     fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
         cachedScopeCompilationClassPath.computeIfAbsent(scope, ::computeCompilationClassPath)
 
@@ -117,9 +125,8 @@ class KotlinScriptClassPathProvider(
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"
         }
-        val fullClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
-        val rootClassPath = cachedClassLoaderClassPath.of(scope.root.exportClassLoader)
-        return fullClassPath - rootClassPath
+        val exportedClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
+        return DefaultClassPath.of(exportedClassPath - gradleImplementationClassPath)
     }
 
     private
@@ -196,16 +203,16 @@ private
 class ClassLoaderClassPathCache {
 
     private
-    val cachedClassPaths = hashMapOf<ClassLoader, ClassPath>()
+    val cachedClassPaths = hashMapOf<ClassLoader, Set<File>>()
 
-    fun of(classLoader: ClassLoader): ClassPath =
+    fun of(classLoader: ClassLoader): Set<File> =
         cachedClassPaths.getOrPut(classLoader) {
             classPathOf(classLoader)
         }
 
     private
-    fun classPathOf(classLoader: ClassLoader): ClassPath {
-        val classPathFiles = mutableListOf<File>()
+    fun classPathOf(classLoader: ClassLoader): Set<File> {
+        val classPathFiles = mutableSetOf<File>()
 
         object : ClassLoaderVisitor() {
             override fun visitClassPath(classPath: Array<URL>) {
@@ -217,11 +224,11 @@ class ClassLoaderClassPathCache {
             }
 
             override fun visitParent(classLoader: ClassLoader) {
-                classPathFiles.addAll(of(classLoader).asFiles)
+                classPathFiles.addAll(of(classLoader))
             }
         }.visit(classLoader)
 
-        return DefaultClassPath.of(classPathFiles)
+        return classPathFiles
     }
 
     private

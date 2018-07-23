@@ -34,6 +34,7 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
 
         val subject = KotlinScriptClassPathProvider(
             classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn ClassPath.EMPTY },
+            coreAndPluginsScope = mock(),
             gradleApiJarsProvider = { listOf(gradleApiJar) },
             jarCache = { id, generator -> file("$id.jar").apply(generator) },
             progressMonitorProvider = progressMonitorProvider)

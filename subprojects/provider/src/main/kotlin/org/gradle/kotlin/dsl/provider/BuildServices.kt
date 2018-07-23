@@ -23,6 +23,8 @@ import org.gradle.cache.internal.GeneratedGradleJarCache
 
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
+import org.gradle.initialization.ClassLoaderScopeRegistry
+
 import org.gradle.internal.classloader.ClasspathHasher
 
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -41,6 +43,7 @@ object BuildServices {
     @Suppress("unused")
     fun createKotlinScriptClassPathProvider(
         classPathRegistry: ClassPathRegistry,
+        classLoaderScopeRegistry: ClassLoaderScopeRegistry,
         dependencyFactory: DependencyFactory,
         jarCache: GeneratedGradleJarCache,
         progressLoggerFactory: ProgressLoggerFactory
@@ -48,6 +51,7 @@ object BuildServices {
 
         KotlinScriptClassPathProvider(
             classPathRegistry,
+            classLoaderScopeRegistry.coreAndPluginsScope,
             gradleApiJarsProviderFor(dependencyFactory),
             versionedJarCacheFor(jarCache),
             StandardJarGenerationProgressMonitorProvider(progressLoggerFactory))
