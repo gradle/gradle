@@ -442,7 +442,7 @@ org:foo:1.0 FAILED
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo' prefers '1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.0', rejects '(1.0,)' because of the following reason: dependency was locked to version '1.0'
+               Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:1.0 FAILED
 \\--- lockedConf
