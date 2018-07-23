@@ -239,10 +239,23 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
 private
 fun List<MappedApiFunctionParameter>.javaClassToKotlinClass() =
     map { p ->
-        if (p.type.isJavaClass) p.copy(type = p.type.toKotlinClass(), invocation = "${p.invocation}.java")
-        else if (p.type.isKotlinArray && p.type.typeArguments.single().isJavaClass) p.copy(type = p.type.toArrayOfKotlinClasses(), invocation = "${p.invocation}.map { it.java }.toTypedArray()")
-        else if (p.type.isKotlinCollection && p.type.typeArguments.single().isJavaClass) p.copy(type = p.type.toCollectionOfKotlinClasses(), invocation = "${p.invocation}.map { it.java }")
-        else p
+        p.type.run {
+            when {
+                isJavaClass -> p.copy(
+                    type = toKotlinClass(),
+                    invocation = "${p.invocation}.java"
+                )
+                isKotlinArray && typeArguments.single().isJavaClass -> p.copy(
+                    type = toArrayOfKotlinClasses(),
+                    invocation = "${p.invocation}.map { it.java }.toTypedArray()"
+                )
+                isKotlinCollection && typeArguments.single().isJavaClass -> p.copy(
+                    type = toCollectionOfKotlinClasses(),
+                    invocation = "${p.invocation}.map { it.java }"
+                )
+                else -> p
+            }
+        }
     }
 
 
