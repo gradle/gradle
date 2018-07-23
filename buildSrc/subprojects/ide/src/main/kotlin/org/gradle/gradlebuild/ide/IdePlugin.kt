@@ -100,6 +100,7 @@ open class IdePlugin : Plugin<Project> {
         idea {
             module {
                 configureLanguageLevel(this)
+                jdkName = "9.0"
                 iml {
                     whenMerged(Action<Module> {
                         removeGradleBuildOutputDirectories(this)
