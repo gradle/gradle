@@ -47,7 +47,7 @@ include::{samplesPath}/maven/quickstart/build.gradle[tag=use-plugin]
 
 The Maven plugin defines the following tasks:
 
-`install` — type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
+`install` — link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
 _Depends on_: All tasks that build the associated archives.
 +
 Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see <<#sub:installing_to_the_local_repository,Installing to the local repository>>
@@ -63,10 +63,10 @@ The Maven plugin does not define any dependency configurations.
 
 The Maven plugin defines the following convention properties:
 
-`mavenPomDir` — type: `File`::
+`mavenPomDir` `File`::
 The directory where the generated POMs are written to. _Default value_: `__${project.buildDir}__/poms`
 
-`conf2ScopeMappings` — type: `link:{javadocPath}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer]`::
+`conf2ScopeMappings` `link:{javadocPath}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer]`::
 Instructions for mapping Gradle configurations to Maven scopes. See <<#sub:dependency_mapping,Dependency mapping>>.
 
 These properties are provided by a link:{groovyDslPath}/org.gradle.api.plugins.MavenPluginConvention.html[MavenPluginConvention] convention object.
@@ -84,7 +84,7 @@ The maven plugin provides a factory method for creating a POM. This is useful if
 include::{samplesPath}/maven/pomGeneration/build.gradle[tag=new-pom]
 ----
 
-Amongst other things, Gradle supports the same builder syntax as polyglot Maven. To learn more about the Gradle Maven POM object, see link:{javadocPath}/org/gradle/api/artifacts/maven/MavenPom.html[MavenPom]. See also: link:{javadocPath}/org/gradle/api/plugins/MavenPluginConvention.html[MavenPluginConvention]
+Amongst other things, Gradle supports the same builder syntax as polyglot Maven. To learn more about the Gradle Maven POM object, see link:{javadocPath}/org/gradle/api/artifacts/maven/MavenPom.html[MavenPom]. See also: link:{groovyDslPath}/org.gradle.api.plugins.MavenPluginConvention.html[MavenPluginConvention]
 
 [[uploading_to_maven_repositories]]
 == Interacting with Maven repositories
