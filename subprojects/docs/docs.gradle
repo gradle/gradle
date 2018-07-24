@@ -58,7 +58,7 @@ configurations {
 }
 
 dependencies {
-    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.2.0"
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.3.0"
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
@@ -323,6 +323,7 @@ tasks.withType(AsciidoctorTask).configureEach {
         website             : 'https://gradle.org',
         javaApi             : 'https://docs.oracle.com/javase/7/docs/api',
         antManual           : 'https://ant.apache.org/manual',
+        docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
         groovyDslPath       : "../dsl",
