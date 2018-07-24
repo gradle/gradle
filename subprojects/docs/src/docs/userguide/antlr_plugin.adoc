@@ -38,13 +38,13 @@ include::{samplesPath}/antlr/build.gradle[tag=use-plugin]
 
 The ANTLR plugin adds a number of tasks to your project, as shown below.
 
-`generateGrammarSource` — type: link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
+`generateGrammarSource` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
 Generates the source files for all production ANTLR grammars.
 
-`generateTestGrammarSource` — type: link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
+`generateTestGrammarSource` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
 Generates the source files for all test ANTLR grammars.
 
-`generate__SourceSet__GrammarSource` — type: link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
+`generate__SourceSet__GrammarSource` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
 Generates the source files for all ANTLR grammars for the given source set.
 
 The ANTLR plugin adds the following dependencies to tasks added by the Java plugin.
@@ -103,10 +103,10 @@ The ANTLR plugin does not add any convention properties.
 
 The ANTLR plugin adds the following properties to each source set in the project.
 
-`antlr` — type: link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
+`antlr` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 The ANTLR grammar files of this source set. Contains all `.g` or `.g4` files found in the ANTLR source directories, and excludes all other types of files. _Default value is non-null._
 
-`antlr.srcDirs` — type: `Set&lt;File&gt;`::
+`antlr.srcDirs` `Set&lt;File&gt;`::
 The source directories containing the ANTLR grammar files of this source set.
 Can set using anything <<working_with_files.adoc#sec:specifying_multiple_files, that implicitly converts to a file collection>>.
 Default value is `[__projectDir__/src/__name__/antlr]`.
