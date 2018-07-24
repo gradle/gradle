@@ -40,17 +40,17 @@ Note that Findbugs will run with the same Java version used to run Gradle.
 
 The FindBugs plugin adds the following tasks to the project:
 
-`findbugsMain` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]::
+`findbugsMain` — link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]::
 _Depends on_: `classes`
 +
 Runs FindBugs against the production Java source files.
 
-`findbugsTest` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]::
+`findbugsTest` — link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]::
 _Depends on_: `testClasses`
 +
 Runs FindBugs against the test Java source files.
 
-`findbugs__SourceSet__` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]::
+`findbugs__SourceSet__` — link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html[FindBugs]::
 _Depends on_: `__sourceSet__Classes`
 +
 Runs FindBugs against the given source set's Java source files.
