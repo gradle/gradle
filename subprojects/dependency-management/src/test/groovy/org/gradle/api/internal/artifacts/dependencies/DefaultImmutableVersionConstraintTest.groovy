@@ -123,7 +123,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "can convert mutable version constraint to immutable version constraint"() {
         given:
-        def v = new DefaultMutableVersionConstraint('1.0', ['1.1', '2.0'])
+        def v = new DefaultMutableVersionConstraint('1.0', '2.0', ['1.1', '2.0'])
 
         when:
         def c = DefaultImmutableVersionConstraint.of(v)
@@ -132,6 +132,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         !v.is(c)
         c instanceof ImmutableVersionConstraint
         c.preferredVersion == v.preferredVersion
+        c.strictVersion == v.strictVersion
         c.rejectedVersions == v.rejectedVersions
     }
 }

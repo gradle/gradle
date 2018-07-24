@@ -320,7 +320,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            new DefaultMutableVersionConstraint(version, false)
+            DefaultMutableVersionConstraint.withVersion(version)
         }
 
         @Override
@@ -339,7 +339,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            new DefaultMutableVersionConstraint(version, true)
+            DefaultMutableVersionConstraint.withStrictVersion(version)
         }
 
         @Override

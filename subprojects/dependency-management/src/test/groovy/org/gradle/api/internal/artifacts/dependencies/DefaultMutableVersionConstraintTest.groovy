@@ -45,7 +45,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
     def "can override strict version with preferred version"() {
         given:
-        def version = new DefaultMutableVersionConstraint('1.0', true)
+        def version = DefaultMutableVersionConstraint.withStrictVersion('1.0')
 
         when:
         version.prefer('2.0')

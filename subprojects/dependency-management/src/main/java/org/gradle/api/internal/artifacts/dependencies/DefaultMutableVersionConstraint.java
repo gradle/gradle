@@ -31,28 +31,39 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private String preferredVersion;
     private String strictVersion;
     private String branch;
-    private final List<String> rejectedVersions = Lists.newArrayListWithExpectedSize(1);
+    private final List<String> rejectedVersions;
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
-        this.preferredVersion = nullToEmpty(versionConstraint.getPreferredVersion());
-        this.strictVersion = nullToEmpty(versionConstraint.getStrictVersion());
-        this.rejectedVersions.addAll(versionConstraint.getRejectedVersions());
+        this(versionConstraint.getPreferredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
     }
 
     public DefaultMutableVersionConstraint(String version) {
-        prefer(version);
+        this(version, null);
     }
 
-    public DefaultMutableVersionConstraint(String version, boolean strict) {
-        prefer(version);
-        if (strict) {
-            strictly(version);
+    private DefaultMutableVersionConstraint(String preferredVersion, String strictVersion) {
+        this(preferredVersion, strictVersion, Collections.<String>emptyList());
+    }
+
+    private DefaultMutableVersionConstraint(String preferredVersion, String strictVersion, List<String> rejects) {
+        this.preferredVersion = nullToEmpty(preferredVersion);
+        this.strictVersion = nullToEmpty(strictVersion);
+        this.rejectedVersions = Lists.newArrayListWithCapacity(rejects.size());
+        for (String reject : rejects) {
+            this.rejectedVersions.add(nullToEmpty(reject));
         }
     }
 
-    public DefaultMutableVersionConstraint(String version, List<String> rejects) {
-        prefer(version);
-        this.rejectedVersions.addAll(rejects);
+    public static DefaultMutableVersionConstraint withVersion(String version) {
+        return new DefaultMutableVersionConstraint(version, null);
+    }
+
+    public static DefaultMutableVersionConstraint withPreferredVersion(String version) {
+        return new DefaultMutableVersionConstraint(version, null);
+    }
+
+    public static DefaultMutableVersionConstraint withStrictVersion(String version) {
+        return new DefaultMutableVersionConstraint(version, version);
     }
 
     @Override
