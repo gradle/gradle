@@ -37,22 +37,22 @@ include::{samplesPath}/groovy/quickstart/build.gradle[tag=use-plugin]
 
 The Groovy plugin adds the following tasks to the project.
 
-`compileGroovy` — type: link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
+`compileGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
 _Depends on_: `compileJava`
 +
 Compiles production Groovy source files.
 
-`compileTestGroovy` — type: link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
+`compileTestGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
 _Depends on_: `compileTestJava`
 +
 Compiles test Groovy source files.
 
-`compile__SourceSet__Groovy` — type: link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
+`compile__SourceSet__Groovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
 _Depends on_: `compile__SourceSet__Java`
 +
 Compiles the given source set's Groovy source files.
 
-`groovydoc` — type: link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]::
+`groovydoc` — link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]::
 +
 Generates API documentation for the production Groovy source files.
 
@@ -177,17 +177,17 @@ The Groovy plugin adds the following convention properties to each source set in
 
 === Groovy Plugin — source set properties
 
-`groovy` — type: link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+`groovy` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
 _Default value_: Not null
 +
 The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
 
-`groovy.srcDirs` — type: `Set&lt;File&gt;`::
+`groovy.srcDirs` `Set&lt;File&gt;`::
 _Default value_: `[__projectDir__/src/__name__/groovy]`
 +
 The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 
-`allGroovy` — type: link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
+`allGroovy` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
 _Default value_: Not null
 +
 All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
