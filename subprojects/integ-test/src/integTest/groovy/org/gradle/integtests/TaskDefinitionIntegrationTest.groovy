@@ -209,6 +209,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasLineNumber(3)
         failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("broken task")
     }
 
@@ -342,7 +343,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
 
         where:
         description   | script
@@ -360,7 +363,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -379,6 +384,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("constructorArgs must be a List or Object[]")
 
         where:
@@ -399,6 +405,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
@@ -417,6 +424,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Received null for CustomTask constructor argument #$position")
 
         where:

@@ -38,6 +38,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
@@ -101,6 +102,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options) {
+        return doCreate(options, Actions.doNothing());
+    }
+
+    private Task doCreate(Map<String, ?> options, final Action<? super Task> configureAction) {
         Map<String, ?> factoryOptions = options;
         final boolean replace;
         if (options.containsKey(Task.TASK_OVERWRITE)) {
@@ -156,6 +161,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     }
 
                     addTask(task, replace);
+                    configureAction.execute(task);
                     context.setResult(REALIZE_RESULT);
                     return task;
                 } catch (Throwable t) {
@@ -250,16 +256,20 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
-        return create(options).configure(configureClosure);
+        return doCreate(options, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
-        return create(name, type, NO_ARGS);
+        return doCreate(name, type, NO_ARGS, Actions.doNothing());
     }
 
     @Override
     public <T extends Task> T create(final String name, final Class<T> type, final Object... constructorArgs) throws InvalidUserDataException {
+        return doCreate(name, type, constructorArgs, Actions.doNothing());
+    }
+
+    private <T extends Task> T doCreate(final String name, final Class<T> type, final Object[] constructorArgs, final Action<? super T> configureAction) throws InvalidUserDataException {
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
@@ -268,6 +278,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     T task = createTask(identity, constructorArgs);
                     statistics.eagerTask(type);
                     addTask(task, false);
+                    configureAction.execute(task);
                     context.setResult(REALIZE_RESULT);
                     return task;
                 } catch (Throwable t) {
@@ -282,7 +293,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         });
     }
 
-    private <T extends Task> T createTask(TaskIdentity<T> identity, Object... constructorArgs) throws InvalidUserDataException {
+    private <T extends Task> T createTask(TaskIdentity<T> identity, Object[] constructorArgs) throws InvalidUserDataException {
         for (int i = 0; i < constructorArgs.length; i++) {
             if (constructorArgs[i] == null) {
                 throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.type.getName(), i + 1));
@@ -292,13 +303,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(String name) {
-        return create(name, DefaultTask.class);
+        return doCreate(name, DefaultTask.class, NO_ARGS, Actions.doNothing());
     }
 
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
-        Task task = create(name);
-        configureAction.execute(task);
-        return task;
+        return doCreate(name, DefaultTask.class, NO_ARGS, configureAction);
     }
 
     public Task maybeCreate(String name) {
@@ -314,7 +323,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(String name, Closure configureClosure) {
-        return create(name).configure(configureClosure);
+        return doCreate(name, DefaultTask.class, NO_ARGS, ConfigureUtil.configureUsing(configureClosure));
     }
 
     public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
