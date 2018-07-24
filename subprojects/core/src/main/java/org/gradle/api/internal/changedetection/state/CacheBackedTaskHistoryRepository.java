@@ -28,6 +28,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -41,6 +43,7 @@ import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -49,9 +52,9 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
-import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -62,6 +65,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +131,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             @Override
-            public void updateCurrentExecutionWithOutputs(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> newOutputSnapshot) {
+            public void updateCurrentExecutionWithOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputSnapshot) {
                 updateExecution(getCurrentExecution(), task, newOutputSnapshot);
             }
 
@@ -177,14 +181,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private void updateExecution(@Nullable final HistoricalTaskExecution previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, TaskProperties taskProperties, InputNormalizationStrategy normalizationStrategy) {
         final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesAfter = fingerprintTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
 
-        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> newOutputFingerprint;
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprint;
         if (currentExecution.getDetectedOverlappingOutputs() == null) {
             newOutputFingerprint = outputFilesAfter;
         } else {
-            newOutputFingerprint = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFingerprintsBeforeExecution(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, FileCollectionFingerprint>() {
+            newOutputFingerprint = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFingerprints(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
                 @Override
                 @SuppressWarnings("NullableProblems")
-                public FileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
+                public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
                     CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
                     HistoricalFileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previousExecution, propertyName);
                     return filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
@@ -194,7 +198,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         updateExecution(currentExecution, task, newOutputFingerprint);
     }
 
-    private void updateExecution(CurrentTaskExecution currentExecution, TaskInternal task, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> newOutputFingerprint) {
+    private void updateExecution(CurrentTaskExecution currentExecution, TaskInternal task, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprint) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
         currentExecution.setOutputFingerprintsAfterExecution(newOutputFingerprint);
     }
@@ -202,32 +206,68 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     /**
      * Returns a new fingerprint that filters out entries that should not be considered outputs of the task.
      */
-    private static FileCollectionFingerprint filterOutputFingerprint(
+    private static CurrentFileCollectionFingerprint filterOutputFingerprint(
         @Nullable HistoricalFileCollectionFingerprint afterPreviousExecution,
         CurrentFileCollectionFingerprint beforeExecution,
         CurrentFileCollectionFingerprint afterExecution
     ) {
-        FileCollectionFingerprint filesFingerprint;
-        Map<String, PhysicalSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
-        Map<String, PhysicalSnapshot> afterExecutionSnapshots = getAllSnapshots(afterExecution);
-        if (!beforeExecutionSnapshots.isEmpty() && !afterExecutionSnapshots.isEmpty()) {
-            Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : ImmutableMap.<String, NormalizedFileSnapshot>of();
-            int newEntryCount = 0;
-            ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
+        CurrentFileCollectionFingerprint filesFingerprint;
+        final Map<String, PhysicalSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
+        if (!beforeExecution.getSnapshots().isEmpty() && !afterExecution.getSnapshots().isEmpty()) {
+            final Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : ImmutableMap.<String, NormalizedFileSnapshot>of();
 
-            for (PhysicalSnapshot snapshot : afterExecutionSnapshots.values()) {
-                if (isOutputEntry(snapshot, beforeExecutionSnapshots, afterPreviousSnapshots)) {
-                    outputEntries.put(snapshot.getAbsolutePath(), afterExecution.getSnapshots().get(snapshot.getAbsolutePath()));
-                    newEntryCount++;
+            final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
+            final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
+
+            afterExecution.visitRoots(new PhysicalSnapshotVisitor() {
+                private MerkleDirectorySnapshotBuilder merkleBuilder;
+                private boolean currentRootFiltered = false;
+                private PhysicalDirectorySnapshot currentRoot;
+
+                @Override
+                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                    if (merkleBuilder == null) {
+                        merkleBuilder = new MerkleDirectorySnapshotBuilder();
+                        currentRoot = directorySnapshot;
+                        currentRootFiltered = false;
+                    }
+                    merkleBuilder.preVisitDirectory(directorySnapshot);
+                    return true;
                 }
-            }
+
+                @Override
+                public void visit(PhysicalSnapshot fileSnapshot) {
+                    if (!isOutputEntry(fileSnapshot, beforeExecutionSnapshots, afterPreviousSnapshots)) {
+                        hasBeenFiltered.set(true);
+                        currentRootFiltered = true;
+                        return;
+                    }
+                    if (merkleBuilder == null) {
+                        newRoots.add(fileSnapshot);
+                    } else {
+                        merkleBuilder.visit(fileSnapshot);
+                    }
+                }
+
+                @Override
+                public void postVisitDirectory() {
+                    merkleBuilder.postVisitDirectory(false);
+                    if (merkleBuilder.isRoot()) {
+                        newRoots.add(currentRootFiltered ? merkleBuilder.getResult() : currentRoot);
+                        merkleBuilder = null;
+                        currentRoot = null;
+                    }
+                }
+            });
+
+
             // Are all file snapshots after execution accounted for as new entries?
-            if (newEntryCount == afterExecution.getSnapshots().size()) {
+            if (!hasBeenFiltered.get()) {
                 filesFingerprint = afterExecution;
-            } else if (newEntryCount == 0) {
+            } else if (newRoots.isEmpty()) {
                 filesFingerprint = EmptyFileCollectionFingerprint.INSTANCE;
             } else {
-                filesFingerprint = new DefaultHistoricalFileCollectionFingerprint(outputEntries.build(), FingerprintCompareStrategy.ABSOLUTE, null);
+                filesFingerprint = DefaultCurrentFileCollectionFingerprint.from(newRoots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
             }
         } else {
             filesFingerprint = afterExecution;

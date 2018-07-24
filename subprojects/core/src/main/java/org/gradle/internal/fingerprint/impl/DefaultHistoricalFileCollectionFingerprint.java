@@ -30,7 +30,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Map;
 
@@ -40,7 +39,7 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     private final FingerprintCompareStrategy compareStrategy;
     private final ImmutableMultimap<String, HashCode> rootHashes;
 
-    public DefaultHistoricalFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> fingerprints, FingerprintCompareStrategy compareStrategy, @Nullable ImmutableMultimap<String, HashCode> rootHashes) {
+    public DefaultHistoricalFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> fingerprints, FingerprintCompareStrategy compareStrategy, ImmutableMultimap<String, HashCode> rootHashes) {
         this.fingerprints = fingerprints;
         this.compareStrategy = compareStrategy;
         this.rootHashes = rootHashes;
@@ -92,11 +91,10 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
             return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy, rootHashes);
         }
 
-        @Nullable
         private ImmutableMultimap<String, HashCode> readRootHashes(Decoder decoder) throws IOException {
             int numberOfRoots = decoder.readSmallInt();
             if (numberOfRoots == 0) {
-                return null;
+                return ImmutableMultimap.of();
             }
             ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
             for (int i = 0; i < numberOfRoots; i++) {
@@ -114,11 +112,7 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
             writeRootHashes(encoder, value.getRootHashes());
         }
 
-        private void writeRootHashes(Encoder encoder, @Nullable ImmutableMultimap<String, HashCode> rootHashes) throws IOException {
-            if (rootHashes == null || rootHashes.isEmpty()) {
-                encoder.writeSmallInt(0);
-                return;
-            }
+        private void writeRootHashes(Encoder encoder, ImmutableMultimap<String, HashCode> rootHashes) throws IOException {
             encoder.writeSmallInt(rootHashes.size());
             for (Map.Entry<String, HashCode> entry : rootHashes.entries()) {
                 encoder.writeString(entry.getKey());

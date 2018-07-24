@@ -28,7 +28,6 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -113,7 +112,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public Map<String, ? extends FileCollectionFingerprint> getOutputFingerprints() {
+        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
             return delegate.getOutputFingerprints();
         }
 

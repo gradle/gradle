@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
@@ -27,7 +28,6 @@ import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -59,10 +59,9 @@ public class EmptyFileCollectionFingerprint implements CurrentFileCollectionFing
         return Collections.emptyMap();
     }
 
-    @Nullable
     @Override
     public Multimap<String, HashCode> getRootHashes() {
-        return null;
+        return ImmutableMultimap.of();
     }
 
     @Override

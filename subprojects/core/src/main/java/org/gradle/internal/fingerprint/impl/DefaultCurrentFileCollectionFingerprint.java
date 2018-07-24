@@ -85,12 +85,9 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     private boolean hasSameRootHashes(FileCollectionFingerprint oldFingerprint) {
-        if (oldFingerprint.getRootHashes() != null) {
-            List<String> currentRootPaths = Lists.newArrayList(rootHashes.keys());
-            List<String> oldRootPaths = Lists.newArrayList(oldFingerprint.getRootHashes().keys());
-            return currentRootPaths.equals(oldRootPaths) && rootHashes.equals(oldFingerprint.getRootHashes());
-        }
-        return false;
+        List<String> currentRootPaths = Lists.newArrayList(rootHashes.keys());
+        List<String> oldRootPaths = Lists.newArrayList(oldFingerprint.getRootHashes().keys());
+        return currentRootPaths.equals(oldRootPaths) && rootHashes.equals(oldFingerprint.getRootHashes());
     }
 
     @Override

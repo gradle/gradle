@@ -21,7 +21,6 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -44,7 +43,6 @@ public interface FileCollectionFingerprint {
     /**
      * The Merkle hashes of the roots which make up this file collection fingerprint.
      */
-    @Nullable
     Multimap<String, HashCode> getRootHashes();
 
     /**

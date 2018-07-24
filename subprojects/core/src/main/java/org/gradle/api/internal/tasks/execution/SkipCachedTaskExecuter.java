@@ -31,7 +31,6 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
-import org.gradle.internal.Cast;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +109,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (state.getFailure() == null) {
                     try {
                         TaskArtifactState taskState = context.getTaskArtifactState();
-                        // No overlapping outputs -> all the output fingerprints are CurrentFileCollectionFingerprints
-                        Map<String, CurrentFileCollectionFingerprint> outputFingerprints = Cast.uncheckedCast(taskState.getOutputFingerprints());
+                        Map<String, CurrentFileCollectionFingerprint> outputFingerprints = taskState.getOutputFingerprints();
                         buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputFingerprints, task, context.getExecutionTime()));
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
