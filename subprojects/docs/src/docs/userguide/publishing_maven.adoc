@@ -37,13 +37,13 @@ The Maven Publish Plugin uses an extension on the project named `publishing` of 
 == Tasks
 
 [[publishing_maven:generate-pom]]
-`generatePomFileFor__PubName__Publication` — type: link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html[GenerateMavenPom]::
+`generatePomFileFor__PubName__Publication` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html[GenerateMavenPom]::
 Creates a POM file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the POM file is _build/publications/$pubName/pom-default.xml_.
 
-`publish__PubName__PublicationTo__RepoName__Repository` — type: link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]::
+`publish__PubName__PublicationTo__RepoName__Repository` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]::
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
 
-`publish__PubName__PublicationToMavenLocal` — type: link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
+`publish__PubName__PublicationToMavenLocal` — link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
 Copies the _PubName_ publication to the local Maven cache — typically _$USER_HOME/.m2/repository_ — along with the publication's POM file and other metadata.
 
 `publish`::
