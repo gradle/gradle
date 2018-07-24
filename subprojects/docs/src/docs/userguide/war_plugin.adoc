@@ -43,7 +43,7 @@ Web application sources
 
 The War plugin adds and modifies the following tasks:
 
-`war` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War]::
+`war` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War]::
 _Depends on_: `compile`
 +
 Assembles the application WAR file.
