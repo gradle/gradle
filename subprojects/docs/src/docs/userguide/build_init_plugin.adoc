@@ -35,12 +35,12 @@ It also leverages the `wrapper` task to <<gradle_wrapper.adoc#sec:adding_wrapper
 
 The plugin adds the following tasks to the project:
 
-`init` — type: link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
+`init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
 _Depends on_: `wrapper`
 +
 Generates a Gradle project.
 
-`wrapper` — type: link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]::
+`wrapper` — link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]::
 Generates Gradle wrapper files.
 
 [[sec:what_to_set_up]]
