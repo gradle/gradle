@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
+public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     public static final String WARNING_SUMMARY = "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
     public static final String WARNING_LOGGING_DOCS_MESSAGE = "See";
@@ -58,7 +58,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     @Override
-    public void featureUsed(FeatureUsage usage) {
+    public void featureUsed(DeprecatedFeatureUsage usage) {
         String featureMessage = usage.formattedMessage();
         if (messages.add(featureMessage)) {
             StringBuilder message = new StringBuilder();
@@ -75,7 +75,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         fireDeprecatedUsageBuildOperationProgress(usage);
     }
 
-    private void fireDeprecatedUsageBuildOperationProgress(FeatureUsage usage) {
+    private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
         if (buildOperationProgressBroadaster != null) {
             buildOperationProgressBroadaster.progress(usage);
         }

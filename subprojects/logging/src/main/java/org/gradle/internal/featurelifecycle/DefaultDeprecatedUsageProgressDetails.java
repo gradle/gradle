@@ -20,9 +20,9 @@ import java.util.List;
 
 public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails {
 
-    private final FeatureUsage featureUsage;
+    private final DeprecatedFeatureUsage featureUsage;
 
-    public DefaultDeprecatedUsageProgressDetails(FeatureUsage featureUsage) {
+    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage) {
         this.featureUsage = featureUsage;
     }
 

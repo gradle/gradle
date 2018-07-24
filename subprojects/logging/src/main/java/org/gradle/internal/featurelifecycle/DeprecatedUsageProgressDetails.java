@@ -29,18 +29,38 @@ import java.util.List;
 @UsedByScanPlugin
 public interface DeprecatedUsageProgressDetails {
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getSummary()}
+     */
     String getSummary();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getRemovalDetails()}
+     */
     String getRemovalDetails();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getAdvice()}
+     */
     @Nullable
     String getAdvice();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getContextualAdvice()}
+     */
     @Nullable
     String getContextualAdvice();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getType()}.
+     *
+     * Value is always of {@link DeprecatedFeatureUsage.Type#name()}.
+     */
     String getType();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getStack()}
+     */
     List<StackTraceElement> getStackTrace();
 
 }

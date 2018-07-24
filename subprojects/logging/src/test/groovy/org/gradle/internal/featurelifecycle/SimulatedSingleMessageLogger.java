@@ -16,7 +16,8 @@
 
 package org.gradle.internal.featurelifecycle;
 
-public class SimulatedDeprecationMessageLogger {
+public class SimulatedSingleMessageLogger {
+
     public static final String DIRECT_CALL = "direct call";
     public static final String INDIRECT_CALL = "indirect call";
     public static final String INDIRECT_CALL_2 = "second-level indirect call";
@@ -30,6 +31,12 @@ public class SimulatedDeprecationMessageLogger {
     }
 
     public static FeatureUsage nagUserWith(String message) {
-        return new FeatureUsage(message, null, null, null, FeatureUsage.FeatureUsageType.USER_CODE_INDIRECT, SimulatedDeprecationMessageLogger.class);
+        return new TestFeatureUsage(message, SimulatedSingleMessageLogger.class);
+    }
+
+    private static class TestFeatureUsage extends FeatureUsage {
+        public TestFeatureUsage(String summary, Class<?> calledFrom) {
+            super(summary, calledFrom);
+        }
     }
 }

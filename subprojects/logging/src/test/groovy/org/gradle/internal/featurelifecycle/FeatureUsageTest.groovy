@@ -20,9 +20,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.DIRECT_CALL
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
+import static SimulatedSingleMessageLogger.DIRECT_CALL
+import static SimulatedSingleMessageLogger.INDIRECT_CALL
+import static SimulatedSingleMessageLogger.INDIRECT_CALL_2
 
 @Subject(FeatureUsage)
 class FeatureUsageTest extends Specification {
@@ -47,15 +47,4 @@ class FeatureUsageTest extends Specification {
         SimulatedGroovyCallLocation | INDIRECT_CALL_2 | 'indirectly2'  | SimulatedGroovyCallLocation.indirectly2()
     }
 
-    def "formats messages"() {
-        expect:
-        new FeatureUsage(summary, removalDetails, advice, contextualAdvice, FeatureUsage.FeatureUsageType.USER_CODE_DIRECT, getClass()).formattedMessage() == expected
-
-        where:
-        expected                         | summary   | removalDetails | advice   | contextualAdvice
-        "summary"                        | "summary" | null           | null     | null
-        "summary warning"                | "summary" | "warning"      | null     | null
-        "summary warning advice"         | "summary" | "warning"      | "advice" | null
-        "summary warning context advice" | "summary" | "warning"      | "advice" | "context"
-    }
 }
