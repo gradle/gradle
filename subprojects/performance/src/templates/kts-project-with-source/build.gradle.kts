@@ -21,8 +21,8 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import java.io.File
 
 apply<IdeaPlugin>()
-apply { plugin("java") }
-apply { plugin("eclipse") }
+apply(plugin = "java")
+apply(plugin = "eclipse")
 
 repositories {
     mavenCentral()

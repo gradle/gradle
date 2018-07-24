@@ -49,7 +49,7 @@ open class TestFixturesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        apply { plugin("java") }
+        apply(plugin = "java")
 
         //TODO:kotlin-dsl - revert to reified syntax after nightly upgrade
         extensions.create("testFixtures", TestFixturesExtension::class.java)

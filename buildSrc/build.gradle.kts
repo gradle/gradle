@@ -24,9 +24,7 @@ import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 
 buildscript {
-    project.apply {
-        from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-    }
+    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
 }
 
 plugins {
@@ -37,7 +35,7 @@ plugins {
 
 subprojects {
 
-    apply { plugin("java-library") }
+    apply(plugin = "java-library")
 
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
 
@@ -49,10 +47,8 @@ subprojects {
         applyKotlinProjectConventions()
     }
 
-    apply {
-        plugin("idea")
-        plugin("eclipse")
-    }
+    apply(plugin = "idea")
+    apply(plugin = "eclipse")
 
     configure<IdeaModel> {
         module.name = "buildSrc-${this@subprojects.name}"
@@ -95,7 +91,7 @@ dependencies {
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { "CI" in System.getenv() }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts") }
+    apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 }
 
 if (isCiServer) {
@@ -149,7 +145,7 @@ val checkSameDaemonArgs = tasks.register("checkSameDaemonArgs") {
 tasks.named("build").configure { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
-    apply { plugin("groovy") }
+    apply(plugin = "groovy")
 
     dependencies {
         compile(localGroovy())
