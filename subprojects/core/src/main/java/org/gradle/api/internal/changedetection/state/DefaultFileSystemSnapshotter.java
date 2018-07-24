@@ -43,6 +43,7 @@ import org.gradle.internal.MutableReference;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -70,7 +71,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.striped();
     private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
     private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
-    private final DefaultGenericFileCollectionSnapshotter snapshotter;
+    private final AbsolutePathFileCollectionFingerprinter fingerprinter;
     private final MirrorUpdatingDirectoryWalker mirrorUpdatingDirectoryWalker;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
@@ -78,7 +79,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
+        this.fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, directoryFileTreeFactory, this);
         this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem, stringInterner);
     }
 
@@ -117,7 +118,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public HashCode create() {
                 HashCode fileContentHash = fileSystemMirror.getContent(path);
                 if (fileContentHash == null) {
-                    CurrentFileCollectionFingerprint fileCollectionFingerprint = snapshotter.snapshot(ImmutableFileCollection.of(file), PathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
+                    CurrentFileCollectionFingerprint fileCollectionFingerprint = fingerprinter.snapshot(ImmutableFileCollection.of(file), InputNormalizationStrategy.NO_NORMALIZATION);
                     fileContentHash = fileCollectionFingerprint.getHash();
                     String internedPath = internPath(file);
                     fileSystemMirror.putContent(internedPath, fileContentHash);

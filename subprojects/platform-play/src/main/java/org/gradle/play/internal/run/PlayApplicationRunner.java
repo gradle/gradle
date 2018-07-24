@@ -19,7 +19,6 @@ package org.gradle.play.internal.run;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.internal.hash.HashCode;
@@ -58,7 +57,7 @@ public class PlayApplicationRunner {
         private final Deployment delegate;
         private final FileCollection applicationClasspath;
         private final boolean isPlay22;
-        private HashCode snapshot;
+        private HashCode classpathHash;
 
         private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec, VersionedPlayRunAdapter adapter) {
             this.delegate = delegate;
@@ -105,9 +104,9 @@ public class PlayApplicationRunner {
         }
 
         private boolean applicationClasspathChanged() {
-            HashCode oldSnapshot = snapshot;
-            snapshot = snapshotter.snapshot(applicationClasspath, PathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
-            return !snapshot.equals(oldSnapshot);
+            HashCode oldClasspathHash = classpathHash;
+            classpathHash = snapshotter.snapshot(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
+            return !classpathHash.equals(oldClasspathHash);
         }
     }
 

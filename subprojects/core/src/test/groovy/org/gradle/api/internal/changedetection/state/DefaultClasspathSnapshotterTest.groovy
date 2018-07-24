@@ -59,10 +59,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         def missingRootFile = file('missing-root')
 
         when:
-        def fileCollectionSnapshot = snapshot(emptyDir.parentFile, missingFile.parentFile, missingRootFile)
+        def fileCollectionFingerprint = fingerprint(emptyDir.parentFile, missingFile.parentFile, missingRootFile)
 
         then:
-        fileCollectionSnapshot.empty
+        fileCollectionFingerprint.empty
     }
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
@@ -73,10 +73,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         def rootFile2 = file("root2.txt") << "root2"
 
         when:
-        def fileCollectionSnapshot = snapshot(rootFile1, rootDir, rootFile2)
+        def fileCollectionFingerprint = fingerprint(rootFile1, rootDir, rootFile2)
 
         then:
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['root1.txt', '', 'e5d9dee0892c9f474a174d3bfffb7810'],
             ['file1.txt', 'file1.txt', '826e8142e6baabe8af779f5f490cf5f5'],
             ['file2.txt', 'file2.txt', '1c1c96fd2cf8330db0bfa936ce82f3b9'],
@@ -84,9 +84,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
         ]
 
         when:
-        fileCollectionSnapshot = snapshot(rootFile2, rootFile1, rootDir)
+        fileCollectionFingerprint = fingerprint(rootFile2, rootFile1, rootDir)
         then:
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['root2.txt', '', '9b70d6dbfb1457d05e4e2c2fbb42d7db'],
             ['root1.txt', '', 'e5d9dee0892c9f474a174d3bfffb7810'],
             ['file1.txt', 'file1.txt', '826e8142e6baabe8af779f5f490cf5f5'],
@@ -94,7 +94,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         ]
     }
 
-    def "snapshots runtime classpath files"() {
+    def "fingerprints runtime classpath files"() {
         def zipFile = file('library.jar')
         file('zipContents').create {
             file('firstFile.txt').text = "Some text"
@@ -112,10 +112,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         }
 
         when:
-        def fileCollectionSnapshot = snapshot(zipFile, classes)
+        def fileCollectionFingerprint = fingerprint(zipFile, classes)
         then:
 
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
             ['fourthFile.txt', 'fourthFile.txt', '6c99cb370b82c9c527320b35524213e6'],
             ['build.log', 'subdir/build.log', 'a9cca315f4b8650dccfa3d93284998ef'],
@@ -139,9 +139,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
         }
 
         when:
-        def fileCollectionSnapshot = snapshot(zipFile, classes)
+        def fileCollectionFingerprint = fingerprint(zipFile, classes)
         then:
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['library.jar', '', '9caa94545d5150c01cf20881f31c4fb2'],
             ['thirdFile.txt', 'thirdFile.txt', '3f1d3e7fb9620156f8e911fb90d89c42'],
         ]
@@ -151,10 +151,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         file('classes/thirdFile.txt').moveToDirectory(file('classes/subdir'))
         file('zipContents').zipTo(zipFile)
 
-        fileCollectionSnapshot = snapshot(zipFile, classes)
+        fileCollectionFingerprint = fingerprint(zipFile, classes)
 
         then:
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['library.jar', '', '63d04b00e1c9d80e20d881a820b228a1'],
             ['thirdFile.txt', 'subdir/thirdFile.txt', '3f1d3e7fb9620156f8e911fb90d89c42'],
         ]
@@ -180,10 +180,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         }.zipTo(zipFile2)
 
         when:
-        def fileCollectionSnapshot = snapshot(zipFile, zipFile2)
+        def fileCollectionFingerprint = fingerprint(zipFile, zipFile2)
 
         then:
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
             ['another-library.jar', '', '4c54ecab47d005e6862ced54627c6208']
         ]
@@ -192,11 +192,11 @@ class DefaultClasspathSnapshotterTest extends Specification {
         values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
 
         when:
-        fileCollectionSnapshot = snapshot(zipFile, zipFile2)
+        fileCollectionFingerprint = fingerprint(zipFile, zipFile2)
         values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
 
         then:
-        fileCollectionSnapshot == [
+        fileCollectionFingerprint == [
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
             ['another-library.jar', '', '4c54ecab47d005e6862ced54627c6208']
         ]
@@ -204,10 +204,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
     }
 
-    def snapshot(TestFile... classpath) {
+    def fingerprint(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
-        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, InputNormalizationStrategy.NOT_CONFIGURED)
-        return fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
+        def fileCollectionFingerprint = snapshotter.snapshot(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
+        return fileCollectionFingerprint.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.normalizedContentHash.toString()]
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
+import org.gradle.api.tasks.FileNormalizer;
 
-@NonNullApi
-public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
-
-    @Override
-    TaskFilePropertyBuilderInternal withPropertyName(String propertyName);
+/**
+ * {@link FileNormalizer} that uses the file name as normalized path.
+ */
+public interface NameOnlyInputNormalizer extends FileNormalizer {
 }
