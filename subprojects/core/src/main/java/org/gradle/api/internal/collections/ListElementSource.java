@@ -144,13 +144,13 @@ public class ListElementSource<T> implements IndexedElementSource<T> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.addPending(provider);
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        return pending.addPending(provider);
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.removePending(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return pending.removePending(provider);
     }
 
     @Override

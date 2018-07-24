@@ -174,6 +174,15 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         source.iterator().collect { it.toString() } == ["foo", "bar", "baz", "fizz"]
     }
 
+    def "an element added as both a provider and a realized value is not duplicated"() {
+        when:
+        source.add("foo")
+        source.addPending(provider("foo"))
+
+        then:
+        source.iterator().collect() == ["foo"]
+    }
+
     ProviderInternal<? extends String> provider(String value) {
         return new TypedProvider<String>(String, value)
     }

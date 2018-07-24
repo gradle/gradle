@@ -59,13 +59,13 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.add(provider);
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        return pending.add(provider);
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.remove(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return pending.remove(provider);
     }
 
     @Override

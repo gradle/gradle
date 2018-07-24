@@ -272,12 +272,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void addPending(ProviderInternal<? extends T> provider) {
+        public boolean addPending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void removePending(ProviderInternal<? extends T> provider) {
+        public boolean removePending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }
 

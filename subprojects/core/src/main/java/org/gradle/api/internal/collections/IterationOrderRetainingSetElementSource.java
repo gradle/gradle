@@ -22,10 +22,12 @@ import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
@@ -36,7 +38,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
-    private final Set<RealizableProvider<T>> inserted = new LinkedHashSet<RealizableProvider<T>>();
+    private final List<RealizableProvider<T>> inserted = new ArrayList<RealizableProvider<T>>();
 
     // Represents the pending elements that have not yet been realized.
     private final PendingSource<T> pending = new DefaultPendingSource<T>();
@@ -161,14 +163,18 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.addPending(provider);
-        inserted.add(new CachingProvider(provider));
-        clearCachedValues();
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        if (pending.addPending(provider)) {
+            inserted.add(new CachingProvider(provider));
+            clearCachedValues();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
+    public boolean removePending(ProviderInternal<? extends T> provider) {
         Iterator<RealizableProvider<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             RealizableProvider<T> next = iterator.next();
@@ -177,8 +183,12 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
                 break;
             }
         }
-        pending.removePending(provider);
-        clearCachedValues();
+        if (pending.removePending(provider)) {
+            clearCachedValues();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
