@@ -36,7 +36,9 @@ class BuildTypesPlugin : Plugin<Project> {
             if (!isTaskHelpInvocation(invokedTaskNames, index)) {
                 buildType.active = true
                 buildType.onProjectProperties = { properties: ProjectProperties ->
-                    properties.forEach(project::setOrCreateProperty)
+                    properties.forEach { (name, value) ->
+                        project.setOrCreateProperty(name, value)
+                    }
                 }
                 afterEvaluate {
                     invokedTaskNames.removeAt(index)

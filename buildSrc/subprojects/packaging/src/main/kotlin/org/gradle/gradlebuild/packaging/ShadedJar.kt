@@ -103,7 +103,7 @@ open class ShadedJar : DefaultTask() {
     private
     inline fun <reified T> readJson(file: File) =
         file.bufferedReader().use { reader ->
-            Gson().fromJson<T>(reader, object : TypeToken<T>() {}.type)
+            Gson().fromJson<T>(reader, object : TypeToken<T>() {}.type)!!
         }
 }
 

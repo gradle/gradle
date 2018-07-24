@@ -17,7 +17,8 @@ package gradlebuild
 
 import org.gradle.plugins.strictcompile.StrictCompileExtension
 
-val strictCompile = extensions.create<StrictCompileExtension>("strictCompile")
+//TODO:kotlin-dsl - revert to reified syntax after nightly upgrade
+val strictCompile = extensions.create("strictCompile", StrictCompileExtension::class.java)
 
 afterEvaluate {
 

@@ -31,7 +31,8 @@ buildscript {
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.8" apply false
+    //TODO:kotlin-dsl - uncomment after nightly upgrade
+    //id("org.gradle.kotlin.ktlint-convention") version "0.1.10" apply false
 }
 
 subprojects {
@@ -188,10 +189,10 @@ fun Project.applyGroovyProjectConventions() {
 }
 
 fun Project.applyKotlinProjectConventions() {
-    apply {
-        plugin("kotlin")
-        plugin("org.gradle.kotlin.ktlint-convention")
-    }
+    apply(plugin = "kotlin")
+
+    //TODO:kotlin-dsl - uncomment after nightly upgrade
+    //apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
