@@ -144,6 +144,6 @@ compareGradleBuilds {
 [[sec:which_archives_are_compared]]
 === Which archives are compared?
 
-For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management.adoc#artifact_management,Artifact Management>> for more information on how to configure and add artifacts.
+For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management.adoc#artifact_management,Legacy Publishing>> for more information on how to configure and add artifacts.
 
 The archive must also have been produced by a link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War], link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task. Future versions of Gradle will support increased flexibility in this area.
