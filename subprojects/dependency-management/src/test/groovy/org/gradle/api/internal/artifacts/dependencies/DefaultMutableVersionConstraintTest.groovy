@@ -25,7 +25,8 @@ class DefaultMutableVersionConstraintTest extends Specification {
         def e = new DefaultMutableVersionConstraint('1.0')
 
         then:
-        e.preferredVersion == '1.0'
+        e.requiredVersion == '1.0'
+        e.preferredVersion == ''
         e.strictVersion == ''
         e.rejectedVersions == []
     }
@@ -33,11 +34,27 @@ class DefaultMutableVersionConstraintTest extends Specification {
     def "can override preferred version with another preferred version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
+        version.prefer('1.0')
 
         when:
         version.prefer('2.0')
 
         then:
+        version.requiredVersion == '2.0'
+        version.preferredVersion == '2.0'
+        version.strictVersion == ''
+        version.rejectedVersions == []
+    }
+
+    def "can override version with preferred version"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+
+        when:
+        version.prefer('2.0')
+
+        then:
+        version.requiredVersion == '2.0'
         version.preferredVersion == '2.0'
         version.strictVersion == ''
         version.rejectedVersions == []
@@ -51,6 +68,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.prefer('2.0')
 
         then:
+        version.requiredVersion == '2.0'
         version.preferredVersion == '2.0'
         version.strictVersion == ''
         version.rejectedVersions == []
@@ -64,6 +82,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.strictly('2.0')
 
         then:
+        version.requiredVersion == '2.0'
         version.preferredVersion == '2.0'
         version.strictVersion == '2.0'
     }
@@ -76,14 +95,14 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.reject('1.0.1')
 
         then:
-        version.preferredVersion == '1.0'
+        version.requiredVersion == '1.0'
         version.rejectedVersions == ['1.0.1']
 
         when:
         version.reject('1.0.2')
 
         then:
-        version.preferredVersion == '1.0'
+        version.requiredVersion == '1.0'
         version.rejectedVersions == ['1.0.1', '1.0.2']
     }
 
@@ -96,6 +115,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.prefer('1.1')
 
         then:
+        version.requiredVersion == '1.1'
         version.preferredVersion == '1.1'
         version.strictVersion == ''
         version.rejectedVersions == []
@@ -110,6 +130,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.strictly('1.1')
 
         then:
+        version.requiredVersion == '1.1'
         version.preferredVersion == '1.1'
         version.strictVersion == '1.1'
         version.rejectedVersions == []

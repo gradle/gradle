@@ -31,7 +31,8 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
         AbstractVersionConstraint that = (AbstractVersionConstraint) o;
 
-        return Objects.equal(getPreferredVersion(), that.getPreferredVersion())
+        return Objects.equal(getRequiredVersion(), that.getRequiredVersion())
+            && Objects.equal(getPreferredVersion(), that.getPreferredVersion())
             && Objects.equal(getStrictVersion(), that.getStrictVersion())
             && Objects.equal(getBranch(), that.getBranch())
             && Objects.equal(getRejectedVersions(), that.getRejectedVersions());
@@ -39,11 +40,15 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getPreferredVersion(), getStrictVersion(), getRejectedVersions());
+        return Objects.hashCode(getRequiredVersion(), getPreferredVersion(), getStrictVersion(), getRejectedVersions());
     }
 
     @Override
     public String toString() {
-        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " {rejects: " + Joiner.on(" & ").join(getRejectedVersions()) + "}") + (getBranch() == null ? "" : " {branch: " + getBranch() + "}");
+        return getRequiredVersion()
+            + (getPreferredVersion().isEmpty() ? "" : " {prefers: " + getPreferredVersion() + "}")
+            + (getStrictVersion().isEmpty() ? "" : " {strictly: " + getStrictVersion() + "}")
+            + (getRejectedVersions().isEmpty() ? "" : " {rejects: " + Joiner.on(" & ").join(getRejectedVersions()) + "}")
+            + (getBranch() == null ? "" : " {branch: " + getBranch() + "}");
     }
 }

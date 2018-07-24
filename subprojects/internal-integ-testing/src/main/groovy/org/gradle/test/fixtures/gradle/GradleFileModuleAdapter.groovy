@@ -73,6 +73,7 @@ class GradleFileModuleAdapter {
                             group d.group
                             module d.module
                             version {
+                                requires d.prefers
                                 prefers d.prefers
                                 if (d.strictVersion) {
                                     strictly d.strictVersion
@@ -105,6 +106,7 @@ class GradleFileModuleAdapter {
                             module dc.module
                             version {
                                 if (dc.prefers) {
+                                    requires dc.prefers
                                     prefers dc.prefers
                                 }
                                 if (dc.strictVersion) {

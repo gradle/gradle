@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
+/**
+ * Tuesday:
+ * - Differentiate between `prefer` and `require` in `VersionConstraint`:
+ *     - Push all the way into `.module` files
+ *     - No difference in behaviour at this stage.
+ *     - Display differently in exceptions (and insight report?)
+ * - Merge improvements to `strictly`, `require` and `prefer` into master. No change in behaviour: better reporting.
+ *     - Single update to metadata cache layout
+ * - Provide different resolution of `prefer` vs `require`
+ *     - Come up with a matrix of combinations
+ *     - Add more test coverage to VersionRangeResolveTestScenarios (maybe similar to prefer vs strictly)
+ *     - Implement a hacky solution
+ *     - Consider what to do about `require 4.+ && strictly 4` : Do we have a reject constraint for `require` or special treatment of `prefer`?
+ */
 package org.gradle.resolve.scenarios
 
 import groovy.transform.Canonical
@@ -339,7 +353,9 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultMutableVersionConstraint.withStrictVersion(version)
+            def vc = new DefaultMutableVersionConstraint(version)
+            vc.strictly(version)
+            return vc
         }
 
         @Override
@@ -358,7 +374,9 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultImmutableVersionConstraint.of(version)
+            def vc = new DefaultMutableVersionConstraint(version)
+            vc.prefer(version)
+            return vc
         }
 
         @Override
@@ -377,7 +395,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultImmutableVersionConstraint.of("", "", [version])
+            DefaultImmutableVersionConstraint.of("", "", "", [version])
         }
 
         @Override

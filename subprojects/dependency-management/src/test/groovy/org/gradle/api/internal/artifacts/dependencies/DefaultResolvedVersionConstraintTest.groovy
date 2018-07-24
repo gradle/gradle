@@ -30,7 +30,7 @@ class DefaultResolvedVersionConstraintTest extends Specification {
     @Unroll
     def "computes the complement of strict version #strictVersion"() {
         when:
-        def e = new DefaultResolvedVersionConstraint('', strictVersion, [], versionSelectorScheme)
+        def e = new DefaultResolvedVersionConstraint('', '', strictVersion, [], versionSelectorScheme)
 
         then:
         e.preferredSelector.selector == strictVersion
@@ -50,7 +50,7 @@ class DefaultResolvedVersionConstraintTest extends Specification {
     @Unroll
     def "fails converting version #version to a strict dependency"() {
         when:
-        new DefaultResolvedVersionConstraint('', version, [], versionSelectorScheme)
+        new DefaultResolvedVersionConstraint('', '', version, [], versionSelectorScheme)
 
         then:
         IllegalArgumentException ex = thrown()

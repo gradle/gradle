@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.util.GUtil;
 
 import java.util.List;
 
@@ -36,13 +37,15 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
-        this(parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
+        this(parent.getRequiredVersion(), parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
     }
 
     @VisibleForTesting
-    public DefaultResolvedVersionConstraint(String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
+    public DefaultResolvedVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
+        // For now, required and preferred are treated the same
+
         boolean strict = !strictVersion.isEmpty();
-        String version = strict ? strictVersion : preferredVersion;
+        String version = strict ? strictVersion : GUtil.elvis(preferredVersion, requiredVersion);
         this.preferredVersionSelector = scheme.parseSelector(version);
 
         if (strict) {

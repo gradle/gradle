@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
 import java.util.List;
+import java.util.Set;
 
 public class RejectedModuleMessageBuilder {
     public String buildFailureMessage(ModuleResolveState module) {
@@ -35,7 +36,12 @@ public class RejectedModuleMessageBuilder {
         } else {
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints: \n");
         }
-        for (EdgeState incomingEdge : module.getIncomingEdges()) {
+        renderEdges(module.getIncomingEdges(), sb);
+        return sb.toString();
+    }
+
+    private void renderEdges(Set<EdgeState> incomingEdges, StringBuilder sb) {
+        for (EdgeState incomingEdge : incomingEdges) {
             SelectorState selector = incomingEdge.getSelector();
             for (String path : MessageBuilderHelper.pathTo(incomingEdge)) {
                 sb.append("   ").append(path);
@@ -44,7 +50,6 @@ public class RejectedModuleMessageBuilder {
                 sb.append("\n");
             }
         }
-        return sb.toString();
     }
 
     private static void renderReason(StringBuilder sb, SelectorState selector) {

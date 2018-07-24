@@ -136,6 +136,10 @@ public class ModuleMetadataFileGenerator {
 
         jsonWriter.name("version");
         jsonWriter.beginObject();
+        if (!versionConstraint.getRequiredVersion().isEmpty()) {
+            jsonWriter.name("requires");
+            jsonWriter.value(versionConstraint.getRequiredVersion());
+        }
         if (!versionConstraint.getPreferredVersion().isEmpty()) {
             jsonWriter.name("prefers");
             jsonWriter.value(versionConstraint.getPreferredVersion());

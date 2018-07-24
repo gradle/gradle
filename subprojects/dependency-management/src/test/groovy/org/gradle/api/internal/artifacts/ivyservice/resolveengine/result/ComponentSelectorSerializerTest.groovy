@@ -40,9 +40,10 @@ import static org.gradle.util.Path.path
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
-    private ImmutableVersionConstraint constraint(String version, String strictVersion = '', List<String> rejectVersions = []) {
+    private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = []) {
         return new DefaultImmutableVersionConstraint(
             version,
+            preferredVersion,
             strictVersion,
             rejectVersions
         )
@@ -148,7 +149,9 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.group == 'group-one'
         result.module == 'name-one'
         result.version == 'version-one'
-        result.versionConstraint.preferredVersion == 'version-one'
+        result.versionConstraint.requiredVersion == 'version-one'
+        result.versionConstraint.preferredVersion == ''
+        result.versionConstraint.strictVersion == ''
         result.versionConstraint.rejectedVersions == []
     }
 
@@ -185,7 +188,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes version constraint"() {
         given:
-        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('pref', 'req', ['rej']))
+        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('req', 'pref', 'strict', ['rej']))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)
@@ -193,9 +196,10 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         result.group == 'group-one'
         result.module == 'name-one'
-        result.version == 'pref'
+        result.version == 'req'
+        result.versionConstraint.requiredVersion == 'req'
         result.versionConstraint.preferredVersion == 'pref'
-        result.versionConstraint.strictVersion == 'req'
+        result.versionConstraint.strictVersion == 'strict'
         result.versionConstraint.rejectedVersions == ['rej']
     }
 }

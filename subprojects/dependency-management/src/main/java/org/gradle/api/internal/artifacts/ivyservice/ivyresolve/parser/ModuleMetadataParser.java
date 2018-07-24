@@ -286,12 +286,15 @@ public class ModuleMetadataParser {
 
     private ImmutableVersionConstraint consumeVersion(JsonReader reader) throws IOException {
         reader.beginObject();
+        String requiredVersion = "";
         String preferredVersion = "";
         String strictVersion = "";
         List<String> rejects = Lists.newArrayList();
         while (reader.peek() != END_OBJECT) {
             String cst = reader.nextName();
-            if ("prefers".equals(cst)) {
+            if ("requires".equals(cst)) {
+                requiredVersion = reader.nextString();
+            } else if ("prefers".equals(cst)) {
                 preferredVersion = reader.nextString();
             } else if ("strictly".equals(cst)) {
                 strictVersion = reader.nextString();
@@ -304,7 +307,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return DefaultImmutableVersionConstraint.of(preferredVersion, strictVersion, rejects);
+        return DefaultImmutableVersionConstraint.of(requiredVersion, preferredVersion, strictVersion, rejects);
     }
 
     private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {

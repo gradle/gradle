@@ -48,6 +48,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
+        String required = decoder.readString();
         String preferred = decoder.readString();
         String strictly = decoder.readString();
         int cpt = decoder.readSmallInt();
@@ -55,7 +56,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         for (int i = 0; i < cpt; i++) {
             rejects.add(decoder.readString());
         }
-        return new DefaultImmutableVersionConstraint(preferred, strictly, rejects);
+        return new DefaultImmutableVersionConstraint(required, preferred, strictly, rejects);
     }
 
     public void write(Encoder encoder, ModuleComponentSelector value) throws IOException {
@@ -73,6 +74,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
     }
 
     public void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {
+        encoder.writeString(cst.getRequiredVersion());
         encoder.writeString(cst.getPreferredVersion());
         encoder.writeString(cst.getStrictVersion());
         List<String> rejectedVersions = cst.getRejectedVersions();

@@ -181,7 +181,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 void execute(ComponentMetadataContext context) {
                     context.details.withVariant("$variantToTest") {
                         withDependencies {
-                            removeAll { it.versionConstraint.preferredVersion == '1.0' }
+                            removeAll { it.versionConstraint.requiredVersion == '1.0' }
                         }
                     }
                 }
@@ -224,7 +224,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 void execute(ComponentMetadataContext context) {
                     context.details.withVariant("$variantToTest") {
                         withDependencyConstraints {
-                            removeAll { it.versionConstraint.preferredVersion == '2.0' }
+                            removeAll { it.versionConstraint.requiredVersion == '2.0' }
                         }
                     }
                 }
