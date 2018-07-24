@@ -83,56 +83,56 @@ The Eclipse plugins add the tasks shown below to a project.
 [[eclipsetasks]]
 === Eclipse Plugin tasks
 
-`eclipse` — type: link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`eclipse` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: all Eclipse configuration file generation tasks
 +
 Generates all Eclipse configuration files
 
-`cleanEclipse` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanEclipse` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 _Depends on_: all Eclipse configuration file clean tasks
 +
 Removes all Eclipse configuration files
 
-`cleanEclipseProject` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanEclipseProject` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 +
 Removes the `.project` file.
 
-`cleanEclipseClasspath` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanEclipseClasspath` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 +
 Removes the `.classpath` file.
 
-`cleanEclipseJdt` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanEclipseJdt` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 +
 Removes the `.settings/org.eclipse.jdt.core.prefs` file.
 
-`eclipseProject` — type: link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseProject.html[GenerateEclipseProject]::
+`eclipseProject` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseProject.html[GenerateEclipseProject]::
 +
 Generates the `.project` file.
 
-`eclipseClasspath` — type: link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.html[GenerateEclipseClasspath]::
+`eclipseClasspath` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.html[GenerateEclipseClasspath]::
 +
 Generates the `.classpath` file.
 
-`eclipseJdt` — type: link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.html[GenerateEclipseJdt]::
+`eclipseJdt` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.html[GenerateEclipseJdt]::
 +
 Generates the `.settings/org.eclipse.jdt.core.prefs` file.
 
 [[eclipsewtptasks]]
 === Eclipse WTP Plugin — additional tasks
 
-`cleanEclipseWtpComponent` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanEclipseWtpComponent` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 +
 Removes the `.settings/org.eclipse.wst.common.component` file.
 
-`cleanEclipseWtpFacet` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanEclipseWtpFacet` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 +
 Removes the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 
-`eclipseWtpComponent` — type: link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.html[GenerateEclipseWtpComponent]::
+`eclipseWtpComponent` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.html[GenerateEclipseWtpComponent]::
 +
 Generates the `.settings/org.eclipse.wst.common.component` file.
 
-`eclipseWtpFacet` — type: link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.html[GenerateEclipseWtpFacet]::
+`eclipseWtpFacet` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.html[GenerateEclipseWtpFacet]::
 +
 Generates the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 
