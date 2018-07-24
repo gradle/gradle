@@ -32,6 +32,9 @@ import org.gradle.build.GradleDistributionWithSamples
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
+import java.util.Timer
+import kotlin.concurrent.timerTask
 
 
 /**
@@ -62,6 +65,30 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
         systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
+    }
+
+    override fun executeTests() {
+        setTimeoutMonitor()
+        super.executeTests()
+    }
+
+    private
+    fun setTimeoutMonitor() {
+        Timer(true).schedule(timerTask {
+            project.javaexec {
+                classpath = project.getConfigurations().getByName("integTestRuntimeClasspath")
+                main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
+            }
+        }, determineTimeoutMillis())
+    }
+
+    private
+    fun determineTimeoutMillis(): Long {
+        return if ("embeded" == System.getProperty("org.gradle.integtest.executer")) {
+            TimeUnit.HOURS.toMillis(1) - TimeUnit.MINUTES.toMillis(1) // in case the build process killed by TC before it finishes
+        } else {
+            TimeUnit.HOURS.toMillis(3) - TimeUnit.MINUTES.toMillis(1)
+        }
     }
 }
 
