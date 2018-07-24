@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.provider.Provider
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -45,6 +46,12 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
 class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>
 ) : NamedDomainObjectContainer<T> by container, PolymorphicDomainObjectContainer<T> {
+
+    override fun <U : T> register(name: String, type: Class<U>, configurationAction: Action<in U>): Provider<U> =
+        polymorphicDomainObjectContainer().register(name, type, configurationAction)
+
+    override fun <U : T> register(name: String, type: Class<U>): Provider<U> =
+        polymorphicDomainObjectContainer().register(name, type)
 
     override fun <U : T> create(name: String, type: Class<U>): U =
         polymorphicDomainObjectContainer().create(name, type)

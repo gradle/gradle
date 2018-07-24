@@ -3,7 +3,7 @@ import org.eclipse.jgit.api.Git
 buildscript {
     repositories { jcenter() }
     dependencies {
-        classpath("org.eclipse.jgit:org.eclipse.jgit:4.9.0.201710071750-r")
+        classpath("org.eclipse.jgit:org.eclipse.jgit:5.0.1.201806211838-r")
     }
 }
 

@@ -56,6 +56,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.provider.ignoringErrors
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -300,9 +301,13 @@ data class KotlinScriptTargetModelBuilder(
 ) {
 
     fun buildModel(): KotlinBuildScriptModel {
-        val accessorsClassPath = accessorsClassPath(scriptClassPath)
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
         val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
+        val accessorsClassPath =
+            classPathModeExceptionCollector.ignoringErrors {
+                accessorsClassPath(scriptClassPath)
+            } ?: AccessorsClassPath.empty
+
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
@@ -313,7 +318,11 @@ data class KotlinScriptTargetModelBuilder(
     private
     fun gradleSource() =
         SourcePathProvider.sourcePathFor(
-            scriptClassPath, rootDir, gradleHomeDir, SourceDistributionResolver(project))
+            scriptClassPath,
+            rootDir,
+            gradleHomeDir,
+            SourceDistributionResolver(project)
+        )
 
     val gradleHomeDir
         get() = project.gradle.gradleHomeDir
@@ -333,7 +342,9 @@ val KotlinBuildScriptModelParameter.scriptFile
 
 private
 val Settings.scriptCompilationClassPath
-    get() = serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(classLoaderScope)
+    get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) {
+        this as SettingsInternal
+    }
 
 
 private
@@ -353,7 +364,21 @@ val Project.scriptCompilationClassPath
 
 private
 fun Project.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
-    serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(classLoaderScope)
+    serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) { settings }
+
+
+private
+inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
+    classLoaderScope: ClassLoaderScope,
+    getSettings: () -> SettingsInternal
+): ClassPath = try {
+    compilationClassPathOf(classLoaderScope)
+} catch (error: Exception) {
+    getSettings().run {
+        serviceOf<ClassPathModeExceptionCollector>().collect(error)
+        compilationClassPathOf(rootClassLoaderScope)
+    }
+}
 
 
 private

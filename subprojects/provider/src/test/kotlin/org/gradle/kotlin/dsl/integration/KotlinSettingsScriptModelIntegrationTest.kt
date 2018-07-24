@@ -4,6 +4,7 @@ import org.gradle.util.TextUtil
 import org.junit.Assert.assertThat
 
 import org.junit.Test
+import java.io.File
 
 
 class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
@@ -17,7 +18,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         val settings = withSettings("""
             buildscript {
                 dependencies {
-                    classpath(files("${TextUtil.normaliseFileSeparators(settingsDependency.path)}"))
+                    classpath(files("${settingsDependency.normalisedPath}"))
                 }
             }
         """)
@@ -26,7 +27,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withFile("build.gradle", """
             buildscript {
                 dependencies {
-                    classpath(files("${TextUtil.normaliseFileSeparators(projectDependency.path)}"))
+                    classpath(files("${projectDependency.normalisedPath}"))
                 }
             }
         """)
@@ -48,7 +49,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         val settings = withFile("my.settings.gradle.kts", """
             buildscript {
                 dependencies {
-                    classpath(files("${TextUtil.normaliseFileSeparators(settingsDependency.path)}"))
+                    classpath(files("${settingsDependency.normalisedPath}"))
                 }
             }
         """)
@@ -57,7 +58,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withFile("build.gradle", """
             buildscript {
                 dependencies {
-                    classpath(files("${TextUtil.normaliseFileSeparators(projectDependency.path)}"))
+                    classpath(files("${projectDependency.normalisedPath}"))
                 }
             }
         """)
@@ -92,3 +93,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             matchesProjectsSourceRoots(*sourceRoots))
     }
 }
+
+
+val File.normalisedPath
+    get() = TextUtil.normaliseFileSeparators(path)

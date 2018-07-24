@@ -20,11 +20,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 
 
 internal
-val ClassLoaderScope.root
-    get() = foldHierarchy(this) { _, scope -> scope }
-
-
-internal
 inline fun <T> ClassLoaderScope.foldHierarchy(initial: T, operation: (T, ClassLoaderScope) -> T): T {
     var result = initial
     traverseHierarchy { result = operation(result, it) }

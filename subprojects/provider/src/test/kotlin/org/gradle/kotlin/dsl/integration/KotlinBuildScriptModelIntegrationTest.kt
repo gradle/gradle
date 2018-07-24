@@ -4,8 +4,6 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.matching
 
-import org.gradle.util.TextUtil.normaliseFileSeparators
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
@@ -29,6 +27,18 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withBuildScript("""
             val p =
+        """)
+
+        assertContainsBuildSrc(canonicalClassPath())
+    }
+
+    @Test
+    fun `can fetch buildSrc classpath in face of buildscript exceptions`() {
+
+        withBuildSrc()
+
+        withBuildScript("""
+            buildscript { TODO() }
         """)
 
         assertContainsBuildSrc(canonicalClassPath())
@@ -93,7 +103,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         fun String.withBuildscriptDependencyOn(fixture: File) =
             withFile(this, """
                 buildscript {
-                    dependencies { classpath(files("${normaliseFileSeparators(fixture.path)}")) }
+                    dependencies { classpath(files("${fixture.normalisedPath}")) }
                 }
             """)
 

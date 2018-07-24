@@ -5,7 +5,7 @@ import org.gradle.internal.hash.Hashing
 
 plugins {
     id("kotlin-dsl-plugin-bundle")
-    id("com.github.johnrengelman.shadow") version "2.0.3" apply false
+    id("com.github.johnrengelman.shadow") version "2.0.4" apply false
 }
 
 base {

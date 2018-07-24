@@ -38,8 +38,9 @@ class KotlinScriptClassPathProviderTest : AbstractIntegrationTest() {
         }
 
         val subject = KotlinScriptClassPathProvider(
-            classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn ClassPath.EMPTY },
             moduleRegistry = mock { on { getExternalModule(any()) } doReturn apiMetadataModule },
+            classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn ClassPath.EMPTY },
+            coreAndPluginsScope = mock(),
             gradleApiJarsProvider = { listOf(gradleApiJar) },
             jarCache = { id, generator -> existing("$id.jar").apply(generator) },
             progressMonitorProvider = progressMonitorProvider)
