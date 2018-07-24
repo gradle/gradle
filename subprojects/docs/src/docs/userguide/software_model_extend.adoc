@@ -260,7 +260,7 @@ Our `internalData` property should not be exposed to build logic. Let's check th
 include::{samplesPath}/customModel/internalViews/build.gradle[tag=build-script]
 ----
 
-.Output of`gradle -q model`
+.Output of `gradle -q model`
 ----
 > gradle -q model
 include::{samplesPath}/customModel/internalViews/softwareModelExtend-iv-model.out[]
