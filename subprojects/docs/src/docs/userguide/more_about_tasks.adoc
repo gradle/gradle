@@ -540,13 +540,13 @@ When you’re writing a custom task class, it’s easy to register properties as
 
 ===== Example: Custom task class
 
-[source.multi-language-sample,java]
+[source,java]
 .buildSrc/src/main/java/org/example/ProcessTemplates.java
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
-[source.multi-language-sample,java]
+[source,java]
 .buildSrc/src/main/java/org/example/TemplateData.java
 ----
 include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/TemplateData.java[]
@@ -588,31 +588,41 @@ This example is particularly interesting because it works with collections of so
 
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
+.Incremental build property type annotations
+[cols="a,a,a", options="header"]
+|===
+| Annotation
+| Expected property type
+| Description
 
-===== Incremental build property type annotations
+| `@link:{javadocPath}/org/gradle/api/tasks/Input.html[Input]`
+| Any `Serializable` type
+| A simple input value
 
-`@link:{javadocPath}/org/gradle/api/tasks/Input.html[Input]` — Expected property type: Any `Serializable` type::
-A simple input value
+| `@link:{javadocPath}/org/gradle/api/tasks/InputFile.html[InputFile]`
+| `File`*
+| A single input file (not directory)
 
-`@link:{javadocPath}/org/gradle/api/tasks/InputFile.html[InputFile]` — Expected property type: `File`*::
-A single input file (not directory)
+| `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]`
+| `File`*
+| A single input directory (not file)
 
-`@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` — Expected property type: `File`*::
-A single input directory (not file)
+| `@link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[InputFiles]`
+| `Iterable&lt;File&gt;`*
+| An iterable of input files and directories
 
-`@link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[InputFiles]` — Expected property type: `Iterable&lt;File&gt;`*::
-An iterable of input files and directories
+| `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`
+| `Iterable&lt;File&gt;`*
+| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
 
-`@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]` — Expected property type: `Iterable&lt;File&gt;`*::
-An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
-+
 **Note:** The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible with earlier Gradle versions, classpath properties should also be annotated with `@InputFiles`.
 
-`@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]` — Expected property type: `Iterable&lt;File&gt;`*::
-An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
-+
+| `@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]`
+| `Iterable&lt;File&gt;`*
+| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. See also <<#sec:task_input_using_classpath_annotations,Using the classpath annotations>>.
+
 The following kinds of changes to the classpath will be ignored:
-+
+
 * Changes to the path of jar or top level directories.
 * Changes to timestamps and the order of entries in Jars.
 * Changes to resources and Jar manifests, including adding or removing resources.
@@ -620,58 +630,71 @@ The following kinds of changes to the classpath will be ignored:
 * Changes to code, such as method bodies, static initializers and field initializers (except for constants).
 * Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.
 * Changes to directories, including directory entries in Jars.
-+
-**Note:** The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
 
-`link:{javadocPath}/org/gradle/api/tasks/OutputFile.html[@OutputFile]` — Expected property type: `File`†::
-A single output file (not directory)
+[NOTE]
+====
+The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
+====
 
-`link:{javadocPath}/org/gradle/api/tasks/OutputDirectory.html[@OutputDirectory]` — Expected property type: `File`†::
-A single output directory (not file)
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputFile.html[OutputFile]`
+| `File`*
+| A single output file (not directory)
 
-`link:{javadocPath}/org/gradle/api/tasks/OutputFiles.html[@OutputFiles]` — Expected property type: `Map&lt;String, File&gt;`‡ or `Iterable&lt;File&gt;`†::
-An iterable of output files (no directories). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputDirectory.html[OutputDirectory]`
+| `File`*
+| A single output directory (not file)
 
-`link:{javadocPath}/org/gradle/api/tasks/OutputDirectories.html[@OutputDirectories]` — Expected property type: `Map&lt;String, File&gt;`‡ or `Iterable&lt;File&gt;`†::
-An iterable of output directories (no files). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputFiles.html[OutputFiles]`
+| `Map&lt;String, File&gt;`+**+ or `Iterable&lt;File&gt;`*
+| An iterable of output files (no directories). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
 
-`link:{javadocPath}/org/gradle/api/tasks/Destroys.html[@Destroys]` — Expected property type: `File` or `Iterable&lt;File&gt;`†::
-Specifies one or more files that are removed by this task.  Note that a task can define either inputs/outputs or destroyables, but not both.
+| `@link:{javadocPath}/org/gradle/api/tasks/OutputDirectories.html[OutputDirectories]`
+| `Map&lt;String, File&gt;`+**+ or `Iterable&lt;File&gt;`*
+| An iterable of output directories (no files). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
 
-`link:{javadocPath}/org/gradle/api/tasks/LocalState.html[@LocalState]` — Expected property type: `File` or `Iterable&lt;File&gt;`†::
-Specifies one or more files that represent the <<custom_tasks.adoc#sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
+| `@link:{javadocPath}/org/gradle/api/tasks/Destroys.html[Destroys]`
+| `File` or `Iterable&lt;File&gt;`*
+| Specifies one or more files that are removed by this task.  Note that a task can define either inputs/outputs or destroyables, but not both.
 
-`link:{javadocPath}/org/gradle/api/tasks/Nested.html[@Nested]` — Expected property type: Any custom type::
-A custom type that may not implement `Serializable` but does have at least one field or property marked with one of the annotations in this table. It could even be another `@Nested`.
+| `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]`
+| `File` or `Iterable&lt;File&gt;`*
+| Specifies one or more files that represent the <<custom_tasks.adoc#sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
 
-`link:{javadocPath}/org/gradle/api/tasks/Console.html[@Console]` — Expected property type: Any type::
-Indicates that the property is neither an input nor an output. It simply affects the console output of the task in some way, such as increasing or decreasing the verbosity of the task.
+| `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`
+| Any custom type
+| A custom type that may not implement `Serializable` but does have at least one field or property marked with one of the annotations in this table. It could even be another `@Nested`.
 
-`link:{javadocPath}/org/gradle/api/tasks/Internal.html[@Internal]` — Expected property type: Any type::
-Indicates that the property is used internally but is neither an input nor an output.
+| `@link:{javadocPath}/org/gradle/api/tasks/Console.html[Console]`
+| Any type
+| Indicates that the property is neither an input nor an output. It simply affects the console output of the task in some way, such as increasing or decreasing the verbosity of the task.
+
+| `@link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal]`
+| Any type
+| Indicates that the property is used internally but is neither an input nor an output.
+
+| [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
+| `File`*
+| Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
+
+| `@link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional]`
+| Any type
+| Used with any of the property type annotations listed in the link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
+
+| `@link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]`
+| `File`*
+| [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
+|===
 
 [NOTE]
 ====
 [horizontal]
-†::
+*::
 In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)], or link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object++...++)].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
-‡::
++**+::
 Similar to the above, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 ====
-
-===== Additional annotations used to further qualifying property type annotations
-
-[#skip-when-empty]
-`link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty]`::
-Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
-
-`link:{javadocPath}/org/gradle/api/tasks/Optional.html[@Optional]`::
-Used with any of the property type annotations listed in the link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
-
-`link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]`::
-[[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
 
 Annotations are inherited from all parent types including implemented interfaces. Property type annotations override any other property type annotation declared in a parent type. This way an `@InputFile` property can be turned into an `@InputDirectory` property in a child task type.
 
@@ -719,7 +742,8 @@ Using nested inputs allows richer modeling and extensibility for tasks, as e.g. 
 
 This allows us to link:https://github.com/gradle/gradle/blob/7b047c7cbb4932743243a76123f5347be6d07856/subprojects/jacoco/src/main/java/org/gradle/testing/jacoco/plugins/JacocoPluginExtension.java#L138-L157[model the JaCoCo Java agent], thus declaring the necessary JVM arguments and providing the inputs and outputs to Gradle:
 
-[source,groovy]
+[source,java]
+.JacocoAgent.java
 ----
 class JacocoAgent implements CommandLineArgumentProvider {
     private final JacocoTaskExtension jacoco;
@@ -740,7 +764,7 @@ class JacocoAgent implements CommandLineArgumentProvider {
     }
 }
 
-test.getJvmArgumentProviders().add(new JacocoAgent(extension))
+test.getJvmArgumentProviders().add(new JacocoAgent(extension));
 ----
 
 For this to work, `link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html[JacocoTaskExtension]` needs to have the correct input and output annotations.
@@ -820,13 +844,13 @@ Another type of example involves adding input and output definitions to instance
 include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/build.gradle[tag=custom-class-runtime-api]
 ----
 
-.Output of`gradle processTemplatesRuntime`
+.Output of `gradle processTemplatesRuntime`
 ----
 > gradle processTemplatesRuntime
 include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApi.out[]
 ----
 
-.Output of`gradle processTemplatesRuntime` (run again)
+.Output of `gradle processTemplatesRuntime` (run again)
 ----
 > gradle processTemplatesRuntime
 include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiUpToDate.out[]
@@ -969,7 +993,7 @@ The implementation is quite simple and you can use the same technique for your o
 .ProcessTemplates.java
 [source,java]
 ----
-include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
 [source.multi-language-sample,groovy]
@@ -978,7 +1002,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=custom-task-class]
 ----
 
-.Output of`gradle processTemplates`
+.Output of `gradle processTemplates`
 ----
 > gradle processTemplates
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethods.out[]
@@ -1002,7 +1026,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/build.gradle[tag=task-arg-method]
 ----
 
-.Output of`gradle processTemplates2`
+.Output of `gradle processTemplates2`
 ----
 > gradle processTemplates2
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethodsWithTaskArg.out[]
