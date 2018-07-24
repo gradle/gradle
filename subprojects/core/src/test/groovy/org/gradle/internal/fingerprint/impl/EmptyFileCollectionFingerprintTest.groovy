@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVi
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.HashCode

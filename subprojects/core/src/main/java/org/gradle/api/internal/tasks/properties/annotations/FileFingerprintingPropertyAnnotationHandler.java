@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
-import java.util.Collection;
-
-public interface FileCollectionSnapshotterRegistry {
-    Collection<FileCollectionSnapshotter> getAllSnapshotters();
-    FileCollectionSnapshotter getSnapshotter(Class<? extends FileNormalizer> type);
+public interface FileFingerprintingPropertyAnnotationHandler extends PropertyAnnotationHandler {
+    Class<? extends FileCollectionFingerprinter> getFingerprinterImplementationType();
 }

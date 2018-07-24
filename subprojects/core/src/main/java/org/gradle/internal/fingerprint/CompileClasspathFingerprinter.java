@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 
 /**
@@ -25,5 +24,5 @@ import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprin
  *
  * @see org.gradle.api.tasks.CompileClasspath
  */
-public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
+public interface CompileClasspathFingerprinter extends FileCollectionFingerprinter {
 }

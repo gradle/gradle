@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 
 import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Fingerprint files normalizing the path to the file name.
- *
- * File names for root directories are ignored.
+ * Fingerprint files without path or content normalization.
  */
-public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
+public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
+    INCLUDE_MISSING(true),
+    IGNORE_MISSING(false);
 
-    public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+    private final boolean includeMissing;
 
-    private NameOnlyFingerprintingStrategy() {
+    AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+        this.includeMissing = includeMissing;
     }
 
     @Override
@@ -45,36 +47,31 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
-                private boolean root = true;
 
                 @Override
                 public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(directorySnapshot.getName(), directorySnapshot);
-                        builder.put(absolutePath, snapshot);
+                        builder.put(absolutePath, new DefaultNormalizedFileSnapshot(directorySnapshot.getAbsolutePath(), directorySnapshot));
                     }
-                    root = false;
                     return true;
                 }
 
                 @Override
                 public void visit(PhysicalSnapshot fileSnapshot) {
+                    if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
+                        return;
+                    }
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(
-                            absolutePath,
-                            new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot));
+                        builder.put(absolutePath, new DefaultNormalizedFileSnapshot(fileSnapshot.getAbsolutePath(), fileSnapshot));
                     }
-                }
-
-                private boolean isRoot() {
-                    return root;
                 }
 
                 @Override
                 public void postVisitDirectory() {
                 }
+
             });
         }
         return builder.build();
@@ -82,6 +79,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.NORMALIZED;
+        return FingerprintCompareStrategy.ABSOLUTE;
     }
+
 }

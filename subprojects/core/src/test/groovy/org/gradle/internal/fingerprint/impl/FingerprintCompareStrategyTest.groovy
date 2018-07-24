@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical
+package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot
 import org.gradle.internal.file.FileType
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static FingerprintCompareStrategy.ABSOLUTE
-import static FingerprintCompareStrategy.CLASSPATH
-import static FingerprintCompareStrategy.IGNORED_PATH
-import static FingerprintCompareStrategy.NORMALIZED
-import static org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy.compareTrivialSnapshots
+import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.ABSOLUTE
+import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.CLASSPATH
+import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.IGNORED_PATH
+import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.NORMALIZED
+import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.compareTrivialSnapshots
 
 class FingerprintCompareStrategyTest extends Specification {
 

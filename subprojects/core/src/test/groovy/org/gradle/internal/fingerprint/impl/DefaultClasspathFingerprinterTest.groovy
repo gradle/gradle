@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
+import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer
@@ -33,7 +38,7 @@ import spock.lang.Specification
 
 @CleanupTestDirectory(fieldName = "tmpDir")
 @UsesNativeServices
-class DefaultClasspathSnapshotterTest extends Specification {
+class DefaultClasspathFingerprinterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -47,7 +52,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
-    def snapshotter = new DefaultClasspathSnapshotter(
+    def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         directoryFileTreeFactory,
         fileSystemSnapshotter,
@@ -206,7 +211,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
     def fingerprint(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
-        def fileCollectionFingerprint = snapshotter.snapshot(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
+        def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
         return fileCollectionFingerprint.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.normalizedContentHash.toString()]
         }

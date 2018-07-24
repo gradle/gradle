@@ -17,15 +17,14 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintCompareStrategy;
-import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;

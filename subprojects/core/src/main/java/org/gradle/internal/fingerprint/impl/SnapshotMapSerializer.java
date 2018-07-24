@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;

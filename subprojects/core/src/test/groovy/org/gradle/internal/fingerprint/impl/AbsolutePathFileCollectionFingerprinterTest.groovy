@@ -37,7 +37,7 @@ import spock.lang.Specification
 class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
     def normalizationStrategy = InputNormalizationStrategy.NO_NORMALIZATION
     @Rule
@@ -50,7 +50,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file3 = tmpDir.createFile('file3')
 
         when:
-        def fingerprint = snapshotter.snapshot(files(file, file2, file3), normalizationStrategy)
+        def fingerprint = fingerprinter.fingerprint(files(file, file2, file3), normalizationStrategy)
 
         then:
         fingerprint.snapshots.keySet().collect { new File(it) } == [file, file2, file3]
@@ -65,7 +65,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile noExist = tmpDir.file('file3')
 
         when:
-        def fingerprint = snapshotter.snapshot(files(file, dir, noExist), normalizationStrategy)
+        def fingerprint = fingerprinter.fingerprint(files(file, dir, noExist), normalizationStrategy)
 
         then:
         fingerprint.snapshots.keySet().collect { new File(it) } == [file, dir, dir2, file2, noExist]
@@ -79,7 +79,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file4 = tmpDir.createFile('file4')
 
         when:
-        def fingerprint = snapshotter.snapshot(files(file, file2, file3, file4), normalizationStrategy)
+        def fingerprint = fingerprinter.fingerprint(files(file, file2, file3, file4), normalizationStrategy)
 
         then:
         fingerprint.snapshots.keySet().collect { new File(it) } == [file, file2, file3, file4]
@@ -91,9 +91,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
-        def fingerprint = snapshotter.snapshot(files(file1), normalizationStrategy)
+        def fingerprint = fingerprinter.fingerprint(files(file1), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file1, file2), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file1, file2), normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.added(file2.path)
@@ -108,9 +108,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file4 = tmpDir.createDir('file4')
 
         when:
-        def fingerprint = snapshotter.snapshot(files(file1, file2), normalizationStrategy)
+        def fingerprint = fingerprinter.fingerprint(files(file1, file2), normalizationStrategy)
         file2.createFile()
-        def target = snapshotter.snapshot(files(file1, file2, file3, file4), normalizationStrategy)
+        def target = fingerprinter.fingerprint(files(file1, file2, file3, file4), normalizationStrategy)
         def visitor = new CollectingTaskStateChangeVisitor()
         target.visitChangesSince(fingerprint, "TYPE", false, visitor)
         visitor.changes.empty
@@ -125,9 +125,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(files(file1, file2), normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file1, file2), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file1), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file1), normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.removed(file2.path)
@@ -140,12 +140,12 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         file.setLastModified(1234L)
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(files(file), normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file), normalizationStrategy), fingerprint, listener)
         file.setLastModified(45600L)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file), normalizationStrategy), fingerprint, listener)
 
         then:
         0 * listener._
@@ -158,11 +158,11 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         def fileCollection = files(root)
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(fileCollection, normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection, normalizationStrategy)
         file.delete()
         file.createDir()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(fileCollection, normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.changed(file.path)
@@ -173,10 +173,10 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(files(file), normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file), normalizationStrategy)
         file.write('new content')
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file), normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.changed(file.path)
@@ -187,9 +187,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile dir = tmpDir.createDir('dir')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(files(dir), normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(dir), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(dir), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(dir), normalizationStrategy), fingerprint, listener)
 
         then:
         0 * _
@@ -201,11 +201,11 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile dir = root.createDir('dir')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(fileCollection, normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection, normalizationStrategy)
         dir.deleteDir()
         dir.createFile()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(fileCollection, normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.changed(dir.path)
@@ -216,9 +216,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.file('unknown')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(files(file), normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file), normalizationStrategy), fingerprint, listener)
 
         then:
         0 * _
@@ -230,10 +230,10 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = root.file('newfile')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(fileCollection, normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection, normalizationStrategy)
         file.createFile()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(fileCollection, normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.added(file.path)
@@ -245,10 +245,10 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = root.createFile('file')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(fileCollection, normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection, normalizationStrategy)
         file.delete()
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(fileCollection, normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(fileCollection, normalizationStrategy), fingerprint, listener)
 
         then:
         1 * listener.removed(file.path)
@@ -259,9 +259,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint fingerprint = snapshotter.snapshot(files(file1, file2), normalizationStrategy)
+        FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file1, file2), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
-        changes(snapshotter.snapshot(files(file1), normalizationStrategy), fingerprint, listener)
+        changes(fingerprinter.fingerprint(files(file1), normalizationStrategy), fingerprint, listener)
 
         then:
         0 * _
@@ -272,7 +272,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint fingerprint = EmptyFileCollectionFingerprint.INSTANCE
-        FileCollectionFingerprint newFingerprint = snapshotter.snapshot(files(file), normalizationStrategy)
+        FileCollectionFingerprint newFingerprint = fingerprinter.fingerprint(files(file), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
         changes(newFingerprint, fingerprint, listener)
 

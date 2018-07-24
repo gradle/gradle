@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 public class IgnoredPathFingerprint implements NormalizedFileSnapshot {

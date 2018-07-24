@@ -18,7 +18,6 @@ package org.gradle.internal.fingerprint;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 
 import java.util.Map;
 

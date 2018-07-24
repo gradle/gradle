@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFingerprintingStrategy;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.ResourceFilter;
+import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
-import static org.gradle.api.internal.changedetection.state.mirror.logical.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
+import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
 
-public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
+public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     private final ResourceSnapshotterCacheService cacheService;
     private final StringInterner stringInterner;
     private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
 
-    public DefaultClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
@@ -45,8 +49,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public CurrentFileCollectionFingerprint snapshot(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
         ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
-        return super.snapshot(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
+        return super.fingerprint(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
     }
 }

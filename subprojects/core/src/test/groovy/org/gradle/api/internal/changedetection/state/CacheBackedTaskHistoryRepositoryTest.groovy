@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.changedetection.rules.AbstractTaskStateChangesTest
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 
@@ -29,19 +31,19 @@ class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest 
     def "adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-        def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
+        def mockInputFileFingerprinter = Mock(FileCollectionFingerprinter)
+        def mockInputFileFingerprinterRegistry = Mock(FileCollectionFingerprinterRegistry)
 
         when:
-        CacheBackedTaskHistoryRepository.fingerprintTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
+        CacheBackedTaskHistoryRepository.fingerprintTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileFingerprinterRegistry)
 
         then:
-        1 * mockInputFileSnapshotterRegistry.getSnapshotter(AbsolutePathInputNormalizer) >> mockInputFileSnapshotter
-        1 * mockInputFileSnapshotter.snapshot(_, NORMALIZATION_STRATEGY) >> { throw cause }
+        1 * mockInputFileFingerprinterRegistry.getFingerprinter(AbsolutePathInputNormalizer) >> mockInputFileFingerprinter
+        1 * mockInputFileFingerprinter.fingerprint(_, NORMALIZATION_STRATEGY) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)
-        e.message == "Failed to capture snapshot of input files for $stubTask property 'prop' during up-to-date check."
+        e.message == "Failed to capture fingerprint of input files for $stubTask property 'prop' during up-to-date check."
         e.cause == cause
     }
 }

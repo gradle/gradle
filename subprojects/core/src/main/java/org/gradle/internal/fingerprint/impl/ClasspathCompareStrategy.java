@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 
 import java.util.Collection;
 import java.util.Iterator;

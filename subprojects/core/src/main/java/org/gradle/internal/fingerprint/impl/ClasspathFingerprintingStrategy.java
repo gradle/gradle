@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -36,7 +35,8 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;

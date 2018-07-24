@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.logical.FingerprintingStrategy;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -29,9 +29,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.Serializers;
 
@@ -43,12 +42,12 @@ import java.util.List;
  * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
  */
 @NonNullApi
-public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
+public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
     private final StringInterner stringInterner;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    public AbstractFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+    public AbstractFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         this.stringInterner = stringInterner;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
@@ -59,7 +58,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(EmptyFileCollectionFingerprint.class, Serializers.constant(EmptyFileCollectionFingerprint.INSTANCE));
     }
 
-    public CurrentFileCollectionFingerprint snapshot(FileCollection input, FingerprintingStrategy strategy) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
         fileCollection.visitRootElements(visitor);

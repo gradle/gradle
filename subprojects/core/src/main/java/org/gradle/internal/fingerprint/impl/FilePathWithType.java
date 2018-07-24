@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.file.FileType;
 
