@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
@@ -30,7 +31,7 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE, null)
+        ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
         getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, false).empty
         getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, true) == [
@@ -43,7 +44,7 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE, null)
+        ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
         getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
