@@ -38,10 +38,10 @@ The Ivy Publish Plugin uses an extension on the project named `publishing` of ty
 == Tasks
 
 [[publishing_ivy:descriptor]]
-`generateDescriptorFileFor__PubName__Publication` — type: link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.html[GenerateIvyDescriptor]::
+`generateDescriptorFileFor__PubName__Publication` — link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.html[GenerateIvyDescriptor]::
 Creates an Ivy descriptor file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the descriptor file is _build/publications/$pubName/ivy.xml_.
 
-`publish__PubName__PublicationTo__RepoName__Repository` — type: link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository]::
+`publish__PubName__PublicationTo__RepoName__Repository` — link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository]::
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Ivy".
 
 `publish`::
