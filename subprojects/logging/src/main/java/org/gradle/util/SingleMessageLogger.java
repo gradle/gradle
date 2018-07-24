@@ -127,7 +127,7 @@ public class SingleMessageLogger {
                 String.format("The %s method has been deprecated.", methodName), null,
                 String.format("Please use the %s method instead.", replacement),
                 null,
-                FeatureUsage.FeatureUsageType.USER_CODE_DIRECT);
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
