@@ -40,42 +40,37 @@ Note that JDepend will run with the same Java version used to run Gradle.
 
 The JDepend plugin adds the following tasks to the project:
 
-`jdependMain` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
+`jdependMain` — link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
 _Depends on_: `classes`
 +
 Runs JDepend against the production Java source files.
 
-`jdependTest` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
+`jdependTest` — link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
 _Depends on_: `testClasses`
 +
 Runs JDepend against the test Java source files.
 
-`jdepend__SourceSet__` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
+`jdepend__SourceSet__` — link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
 _Depends on_: `__sourceSet__Classes`
 +
 Runs JDepend against the given source set's Java source files.
 
 The JDepend plugin adds the following dependencies to tasks defined by the Java plugin.
 
-.JDepend plugin - additional task dependencies
-[%header%autowidth,compact]
-|===
-| Task name | Depends on
-| `check`   | All JDepend tasks, including `jdependMain` and `jdependTest`.
-|===
+=== Additional task dependencies
 
+`check`::
+All JDepend tasks, including `jdependMain` and `jdependTest`.
 
 [[sec:jdepend_dependency_management]]
 == Dependency management
 
 The JDepend plugin adds the following dependency configurations:
 
-.JDepend plugin - dependency configurations
-[%header%autowidth,compact]
-|===
-| Name      | Meaning
-| `jdepend` | The JDepend libraries to use
-|===
+=== Dependency configurations
+
+`jdepend`::
+The JDepend libraries to use
 
 
 [[sec:jdepend_configuration]]
