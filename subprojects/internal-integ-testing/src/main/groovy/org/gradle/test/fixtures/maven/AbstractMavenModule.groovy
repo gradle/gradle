@@ -558,7 +558,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 dependency {
                                     groupId(dep.group)
                                     artifactId(dep.module)
-                                    if (dep.prefers) { version(dep.prefers) }
+                                    if (dep.version) { version(dep.version) }
                                     scope('compile')
                                 }
                             }
@@ -568,7 +568,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 dependency {
                                     groupId(dep.group)
                                     artifactId(dep.module)
-                                    if (dep.prefers) { version(dep.prefers) }
+                                    if (dep.version) { version(dep.version) }
                                     scope('runtime')
                                 }
                             }

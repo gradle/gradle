@@ -99,7 +99,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
             return moduleIdentifier.getName().equals(moduleComponentIdentifier.getModule())
                 && moduleIdentifier.getGroup().equals(moduleComponentIdentifier.getGroup())
-                && versionConstraint.getPreferredVersion().equals(moduleComponentIdentifier.getVersion());
+                && getVersion().equals(moduleComponentIdentifier.getVersion());
         }
 
         return false;

@@ -486,13 +486,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             def runtimeDependencies = variants.find{ it.name == 'runtime' }?.dependencies
             if (compileDependencies) {
                 compileDependencies.each { dep ->
-                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.prefers, conf: 'compile->default']
+                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.version, conf: 'compile->default']
                     builder.dependency(depAttrs)
                 }
             }
             if (runtimeDependencies) {
                 (runtimeDependencies - compileDependencies).each { dep ->
-                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.prefers, conf: 'runtime->default']
+                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.version, conf: 'runtime->default']
                     builder.dependency(depAttrs)
                 }
             }

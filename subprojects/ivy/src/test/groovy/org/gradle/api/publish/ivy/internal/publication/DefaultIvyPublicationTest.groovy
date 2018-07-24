@@ -134,7 +134,7 @@ class DefaultIvyPublicationTest extends Specification {
         when:
         moduleDependency.group >> "org"
         moduleDependency.name >> "name"
-        moduleDependency.versionConstraint >> DefaultImmutableVersionConstraint.of("version")
+        moduleDependency.version >> "version"
         moduleDependency.targetConfiguration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]

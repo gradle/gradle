@@ -132,8 +132,8 @@ public abstract class DependencyResultSorter {
             }
 
             //order dynamic selectors after static selectors
-            boolean leftDynamic = versionSelectorScheme.parseSelector(leftRequested.getVersionConstraint().getPreferredVersion()).isDynamic();
-            boolean rightDynamic = versionSelectorScheme.parseSelector(rightRequested.getVersionConstraint().getPreferredVersion()).isDynamic();
+            boolean leftDynamic = versionSelectorScheme.parseSelector(leftRequested.getVersion()).isDynamic();
+            boolean rightDynamic = versionSelectorScheme.parseSelector(rightRequested.getVersion()).isDynamic();
             if (leftDynamic && !rightDynamic) {
                 return 1;
             } else if (!leftDynamic && rightDynamic) {
@@ -143,10 +143,10 @@ public abstract class DependencyResultSorter {
             int byVersion;
             if (leftDynamic && rightDynamic) {
                 // order dynamic selectors lexicographically
-                byVersion = leftRequested.getVersionConstraint().getPreferredVersion().compareTo(rightRequested.getVersionConstraint().getPreferredVersion());
+                byVersion = leftRequested.getVersion().compareTo(rightRequested.getVersion());
             } else {
                 // order static selectors semantically
-                byVersion = compareVersions(leftRequested.getVersionConstraint().getPreferredVersion(), rightRequested.getVersionConstraint().getPreferredVersion());
+                byVersion = compareVersions(leftRequested.getVersion(), rightRequested.getVersion());
             }
             if (byVersion != 0) {
                 return byVersion;
