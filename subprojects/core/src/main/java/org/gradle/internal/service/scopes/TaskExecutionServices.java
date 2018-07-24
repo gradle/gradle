@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -115,7 +116,8 @@ public class TaskExecutionServices {
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
-                                    BuildCancellationToken buildCancellationToken
+                                    BuildCancellationToken buildCancellationToken,
+                                    TaskExecutionListener taskExecutionListener
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -153,7 +155,7 @@ public class TaskExecutionServices {
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionGraph, executer);
+        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, executer);
         return executer;
     }
 
