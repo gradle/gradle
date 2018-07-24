@@ -67,7 +67,7 @@ One way to define rules is via a link:{javadocPath}/org/gradle/model/RuleSource.
 
 === Example: applying a rule source plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type-and-plugin]
@@ -83,7 +83,7 @@ Each of the different methods of the rule source are discrete, independent rules
 
 === Example: a model creation rule
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=create-rule]
@@ -93,7 +93,7 @@ This rule declares that there is a model element at path `"person"` (defined by 
 
 === Example: a model mutation rule
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=plugin-mutate-rule]
@@ -103,7 +103,7 @@ This link:{javadocPath}/org/gradle/model/Mutate.html[Mutate] rule mutates the pe
 
 === Example: creating a task
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=task-create-rule]
@@ -139,7 +139,7 @@ Managed models can be defined by attaching the `@Managed` annotation to an inter
 
 === Example: a managed type
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type]
@@ -157,9 +157,7 @@ Managed properties can be of any scalar type. In addition, properties can also b
 | `String`
 | Yes
 |
-.Example: a String property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-string]
 ----
@@ -167,9 +165,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | `File`
 | Yes
 |
-.Example: a File property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-file]
 ----
@@ -177,9 +173,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | `Integer`, `Boolean`, `Byte`, `Short`, `Float`, `Long`, `Double`
 | Yes
 |
-.Example: a Long property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-long]
 ----
@@ -187,18 +181,14 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | `int`, `boolean`, `byte`, `short`, `float`, `long`, `double`
 | No
 |
-.Example: a boolean property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-boolean]
 ----
 
 '''
 
-.Example: an int property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-int]
 ----
@@ -206,9 +196,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | Another _managed_ type.
 | Only if read/write
 |
-.Example: a managed property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managed]
 ----
@@ -216,9 +204,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | An _enumeration_ type.
 | Yes
 |
-.Example: an enumeration type property
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-enum]
 ----
@@ -226,9 +212,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | A `ManagedSet`. A managed set supports the creation of new named model elements, but not their removal.
 | Only if read/write
 |
-.Example: a managed set
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managedset]
 ----
@@ -236,9 +220,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 | A `Set` or `List` of scalar types. All classic operations on collections are supported: add, remove, clear...
 | Only if read/write
 |
-.Example: a scalar collection
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
+[source,groovy,indent=0]
 ----
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-collection-scalar]
 ----
@@ -315,13 +297,13 @@ link:{javadocPath}/org/gradle/language/base/FunctionalSourceSet.html[FunctionalS
 
 === Example: Strongly modelling sources sets
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/language-support/build.gradle[tag=model-language-support]
 ----
 
-.Output of`gradle help`
+.Output of `gradle help`
 ----
 > gradle help
 include::{samplesPath}/modelRules/language-support/model-language-support-all.out[]
@@ -366,7 +348,7 @@ In the example below, a `@Defaults` rule is applied to each `FileItem` in the mo
 
 === Example: a DSL example applying a rule to every element in a scope
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/ruleSourcePluginEach/build.gradle[]
@@ -417,7 +399,7 @@ Continuing with the example so far of the model element `"person"` of type `Pers
 
 === Example: DSL configuration rule
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=configure-rule]
@@ -429,7 +411,7 @@ You should note that the configuration code is not executed immediately but is i
 
 === Example: Configuration run when required
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/modelRules/configureAsRequired/build.gradle[tag=configure-rule]
@@ -472,7 +454,7 @@ The following model rule creates the `"person"` element:
 
 === Example: DSL creation rule
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=create-rule]
@@ -486,7 +468,7 @@ The initialization closure is optional and can be omitted, for example:
 
 === Example: DSL creation rule without initialization
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=create-rule-no-config]
@@ -496,7 +478,7 @@ You should note that the initialization code is not executed immediately but is 
 
 === Example: Initialization before configuration
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/build.gradle[tag=configure-and-create-rules]
@@ -534,7 +516,7 @@ Here is an example of a nested creation rule:
 
 === Example: Nested DSL creation rule
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-create-rule]
@@ -546,7 +528,7 @@ Here is an example of a nested configuration rule:
 
 === Example: Nested DSL configuration rule
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-configure-rule]
@@ -558,7 +540,7 @@ As before, a nested configuration rule defines the name of the element to config
 
 === Example: DSL configuration rule for each element in a map
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/userguide/modelRules/configureElementsOfMap/build.gradle[tag=create-and-configure]
@@ -581,7 +563,7 @@ A rule closure can also configure the properties of the element using nested clo
 
 === Example: Nested DSL property configuration
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=managed-type-nested-config-rule]
@@ -605,7 +587,7 @@ Scalar properties in managed types can be assigned `CharSequence` values (e.g. `
 
 === Example: a DSL example showing type conversions
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDslCoercion/build.gradle[]
@@ -635,7 +617,7 @@ $.person.firstName
 
 === Example: a DSL rule using inputs
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=rule-inputs]
@@ -671,7 +653,7 @@ The built-in link:{groovyDslPath}/org.gradle.api.reporting.model.ModelReport.htm
 
 === Example: Model task output
 
-.Output of`gradle model`
+.Output of `gradle model`
 ----
 > gradle model
 include::{samplesPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out[]
