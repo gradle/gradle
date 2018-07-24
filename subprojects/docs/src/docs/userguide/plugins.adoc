@@ -101,7 +101,7 @@ The new plugins DSL provides a succinct and convenient way to declare plugin dep
 
 To apply a core plugin, the short name can be used:
 
-=== Example: Applying a core plugin
+==== Example: Applying a core plugin
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -111,7 +111,7 @@ include::{samplesPath}/plugins/dsl/build.gradle[tag=use-plugin]
 
 To apply a community plugin from the portal, the fully qualified plugin id must be used:
 
-=== Example: Applying a community plugin
+==== Example: Applying a community plugin
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -169,7 +169,7 @@ If the restrictions of the new syntax are prohibitive, the recommended approach 
 
 If you have a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block:
 
-=== Example: Applying plugins only on certain subprojects.
+===== Example: Applying plugins only on certain subprojects.
 
 [.multi-language-sample,groovy]
 ====
@@ -188,7 +188,6 @@ include::{samplesPath}/plugins/multiproject/build.gradle[tag=plugins-on-subproje
 
 If you then run `gradle hello` you'll see that only the helloA and helloB subprojects had the hello plugin applied.
 
-[source]
 ----
 gradle/subprojects/docs/src/samples/plugins/multiproject $> gradle hello
 Parallel execution is an incubating feature.
@@ -236,7 +235,7 @@ By default, the `plugins {}` DSL resolves plugins from the public https://plugin
 
 To specify custom plugin repositories, use the `repositories {}` block inside `pluginManagement {}`:
 
-=== Example: Using plugins from custom plugin repositories.
+====== Example: Using plugins from custom plugin repositories.
 
 [source.multi-language-sample,groovy]
 .settings.gradle
@@ -253,7 +252,7 @@ Plugin resolution rules allow you to modify plugin requests made in `plugins {}`
 
 To add resolution rules, use the `resolutionStrategy {}` inside the `pluginManagement {}` block:
 
-=== Example: Plugin resolution strategy.
+===== Example: Plugin resolution strategy.
 
 [source.multi-language-sample,groovy]
 .settings.gradle
@@ -274,7 +273,7 @@ Since the `plugins {}` DSL block only allows for declaring plugins by their glob
 
 For example, the following complete sample from the `sample-plugins` project shows how to publish a `org.gradle.sample.hello` plugin and a `org.gradle.sample.goodbye` plugin to both an Ivy and Maven repository using the combination of the <<java_gradle_plugin.adoc#java_gradle_plugin,java-gradle-plugin>>, the <<publishing_maven.adoc#publishing_maven,maven-publish>> plugin, and the <<publishing_ivy.adoc#publishing_ivy,ivy-publish>> plugin.
 
-=== Example: Complete Plugin Publishing Sample
+===== Example: Complete Plugin Publishing Sample
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -296,7 +295,7 @@ With the introduction of the <<#sec:plugins_block,plugins DSL>>, users should ha
 ==== Applying Binary Plugins
 
 
-=== Example: Applying a binary plugin
+===== Example: Applying a binary plugin
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -308,7 +307,7 @@ Plugins can be applied using a _plugin id_. In the above case, we are using the 
 
 Rather than using a plugin id, plugins can also be applied by simply specifying the class of the plugin:
 
-=== Example: Applying a binary plugin by type
+===== Example: Applying a binary plugin by type
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -323,7 +322,7 @@ The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org
 
 Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>.
 
-=== Example: Applying a plugin with the buildscript block
+===== Example: Applying a plugin with the buildscript block
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -335,7 +334,7 @@ include::{samplesPath}/plugins/buildscript/build.gradle[tag=buildscript_block]
 [[sec:finding_community_plugins]]
 == Finding community plugins
 
-Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities. The Gradle http://plugins.gradle.org[plugin portal] provides an interface for searching and exploring community plugins.
+Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities. The Gradle https://plugins.gradle.org[plugin portal] provides an interface for searching and exploring community plugins.
 
 [[sec:more_on_plugins]]
 == More on plugins
