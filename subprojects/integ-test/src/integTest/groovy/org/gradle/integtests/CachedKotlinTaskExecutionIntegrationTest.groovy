@@ -36,7 +36,24 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     def setup() {
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
-        file("buildSrc/settings.gradle") << localCacheConfiguration()
+
+        // TODO:kotlin-dsl
+        // In order to facilitate the upgrade to the latest version of the
+        // Kotlin DSL, which ships with Kotlin 1.2.60-eap-44,
+        // the presence of settings.gradle.kts causes
+        // the kotlin-dev repository to be added to settings.buildscript.repositories,
+        // settings.pluginManagement.repositories and to every project.repositories
+        // and project.buildscript.repositories.
+        // This behaviour is temporary and will be removed once the Kotlin DSL
+        // upgrades to the next GA release of Kotlin.
+        file("buildSrc/settings.gradle.kts") << """
+            buildCache {
+                local(DirectoryBuildCache::class.java) {
+                    directory = "${cacheDir.absoluteFile.toURI()}"
+                    isPush = true
+                }
+            }
+        """
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -52,7 +69,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        executer.expectDeprecationWarning()
         withBuildCache().run "customTask"
         then:
         skippedTasks.empty
@@ -62,7 +78,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        executer.expectDeprecationWarning()
         withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
@@ -82,7 +97,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        executer.expectDeprecationWarning()
         withBuildCache().run "customTask"
         then:
         skippedTasks.empty
@@ -92,7 +106,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
-        executer.expectDeprecationWarning()
         withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"

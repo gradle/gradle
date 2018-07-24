@@ -70,7 +70,7 @@ testFixtures {
     from(":ide")
 }
 
-apply { from("buildship.gradle") }
+apply(from = "buildship.gradle")
 
 tasks.named("sourceJar").configureAs<Jar> {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {

@@ -25,9 +25,7 @@ import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 
 buildscript {
-    project.apply {
-        from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
-    }
+    project.apply(from = "$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
 }
 
 plugins {
@@ -144,6 +142,7 @@ allprojects {
         maven(url = "https://repo.gradle.org/gradle/libs")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
+        maven(url = "https://dl.bintray.com/kotlin/kotlin-dev")
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -278,7 +277,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
 
 evaluationDependsOn(":distributions")
 
-val gradle_installPath: Any? by project
+val gradle_installPath: Any? = findProperty("gradle_installPath")
 
 tasks.register<Install>("install") {
     description = "Installs the minimal distribution into directory $gradle_installPath"
@@ -309,4 +308,5 @@ fun Project.buildCacheConfiguration() =
     (gradle as GradleInternal).settings.buildCache
 
 fun Configuration.usage(named: String) =
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
+    //TODO:kotlin-dsl - revert to reified syntax after nightly upgrade
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, named))
