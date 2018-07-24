@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
 import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 
 buildscript {
     project.apply {
@@ -74,12 +75,13 @@ subprojects {
         }
     }
 }
+var pluginPortalUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("gradleplugins")
 
 allprojects {
     repositories {
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        gradlePluginPortal()
+        maven(url = pluginPortalUrl ?: PLUGIN_PORTAL_DEFAULT_URL)
     }
 }
 
