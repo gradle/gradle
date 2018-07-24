@@ -12,9 +12,15 @@ Starting with this release, it is now possible to use SNAPSHOT plugin versions i
 
 ### Incremental Java compilation by default
 
-This release fixes the last known issue of the incremental compiler: It now deletes empty package directories when the last class file is removed.
-It's memory usage has also been significantly reduced.
-We are now confident that it is ready to be enabled for everyone, so incremental compilation is the new default setting.
+This release fixes all known issues of the incremental compiler. It now
+
+- deletes empty package directories when the last class file is removed
+- recompiles all classes when module-info files change
+- recompiles all classes in a package when that package's package-info changes
+
+It's memory usage has also been reduced. For our own build, its heap usage dropped from 350MB to just 10MB.
+
+We are now confident that the incremental compiler is ready to be used in every build, so it is now the new default setting.
 
 ### Nested included builds
 
