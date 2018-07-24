@@ -123,27 +123,27 @@ The start scripts are completely customizable. Please refer to the documentation
 
 The Application plugin adds the following tasks to the project.
 
-`run` — type: link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]::
+`run` — link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]::
 _Depends on_: `classes`
 +
 Starts the application.
 
-`startScripts` — type: link:{groovyDslPath}/org.gradle.api.tasks.application.tasks.application.CreateStartScripts.html[CreateStartScripts]::
+`startScripts` — link:{groovyDslPath}/org.gradle.api.tasks.application.tasks.application.CreateStartScripts.html[CreateStartScripts]::
 _Depends on_: `jar`
 +
 Creates OS specific scripts to run the project as a JVM application.
 
-`installDist` — type: link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+`installDist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
 _Depends on_: `jar`, `startScripts`
 +
 Installs the application into a specified directory.
 
-`distZip` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.tasks.bundling.Zip.html[Zip]::
+`distZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.tasks.bundling.Zip.html[Zip]::
 _Depends on_: `jar`, `startScripts`
 +
 Creates a full distribution ZIP archive including runtime libraries and OS specific scripts.
 
-`distTar` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.tasks.bundling.Tar.html[Tar]::
+`distTar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.tasks.bundling.Tar.html[Tar]::
 _Depends on_: `jar`, `startScripts`
 +
 Creates a full distribution TAR archive including runtime libraries and OS specific scripts.
