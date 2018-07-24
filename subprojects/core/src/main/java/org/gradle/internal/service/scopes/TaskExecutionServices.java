@@ -175,13 +175,12 @@ public class TaskExecutionServices {
 
     TaskHistoryRepository createTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        for (FileCollectionFingerprinter fingerprinter : fileCollectionFingerprinterRegistry.getAllFingerprinters()) {
+        for (FileCollectionFingerprinter fingerprinter : fingerprinterRegistry.getAllFingerprinters()) {
             fingerprinter.registerSerializers(serializerRegistry);
         }
 
