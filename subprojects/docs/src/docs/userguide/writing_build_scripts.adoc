@@ -195,7 +195,7 @@ include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/other.gradl
 ----
 ====
 
-.Output of`gradle -q configure`
+.Output of `gradle -q configure`
 ----
 > gradle -q configure
 include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/configureObjectUsingScript.out[]
