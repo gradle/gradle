@@ -684,7 +684,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
     }
 
     def "fails to create custom task if all constructor arguments missing"() {
@@ -696,7 +698,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
     }
 
     @Unroll
@@ -709,7 +713,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
         description | constructorArgs | argumentNumber | outputType
@@ -727,7 +732,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
 
         where:
         position | script
