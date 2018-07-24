@@ -36,19 +36,19 @@ apply plugin: 'project-report'
 
 The project report plugin defines the following tasks:
 
-`dependencyReport` — type: link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]::
+`dependencyReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]::
 Generates the project dependency report.
 
-`dependencyReport` — type: link:{groovyDslPath}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]::
+`dependencyReport` — link:{groovyDslPath}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]::
 Generates an HTML dependency and dependency insight report for the project or a set of projects.
 
-`propertyReport` — type: link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.PropertyReportTask.html[PropertyReportTask]::
+`propertyReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.PropertyReportTask.html[PropertyReportTask]::
 Generates the project property report.
 
-`taskReport` — type: link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.TaskReportTask.html[TaskReportTask]::
+`taskReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.TaskReportTask.html[TaskReportTask]::
 Generates the project task report.
 
-`projectReport` — type: link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`projectReport` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
 +
 Generates all project reports.
@@ -69,19 +69,19 @@ The project report plugin does not define any dependency configurations.
 
 The project report defines the following convention properties:
 
-`projects` — type: `Set&lt;Project&gt;`::
+`projects` `Set&lt;Project&gt;`::
 The projects to generate the reports for. _Default value_: A one element set with the project the plugin was applied to.
 
-`projectReportDirName` — type: `String`::
+`projectReportDirName` `String`::
 The name of the directory to generate the project report into, relative to the reports directory. _Default value_: `"project"`.
 
-`projectReportDir` — type: `File` (read-only)::
+`projectReportDir` `File` (read-only)::
 The directory to generate the project report into. _Default value_: `__reportsDir__/__projectReportDirName__`.
 
-`reportsDirName` — type: `String`::
+`reportsDirName` `String`::
 The name of the directory to generate the project report into, relative to the reports directory. _Default value_: `"reports"`.
 
-`reportsDir` — type: `File` (read-only)::
+`reportsDir` `File` (read-only)::
 The directory to generate the project reports into. _Default value_: `__buildDir__/__reportsDirName__`.
 
 These convention properties are provided by a convention object of type link:{groovyDslPath}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].
