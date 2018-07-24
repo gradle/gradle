@@ -51,28 +51,13 @@ class ExtensionContainerExtensionsTest {
     fun create() {
 
         val extensions = mock<ExtensionContainer> {
-            on { create(any<TypeOf<SomeExtension<Long>>>(), any(), any<Class<SomeExtension<Long>>>(), anyVararg()) } doReturn SomeExtension(23L)
+            on { create(any(), any<Class<SomeExtension<Long>>>(), anyVararg()) } doReturn SomeExtension(23L)
         }
 
         extensions.create<SomeExtension<Long>>("name", 23L)
 
         inOrder(extensions) {
-            verify(extensions).create(any<TypeOf<SomeExtension<Long>>>(), any(), any<Class<SomeExtension<Long>>>(), anyVararg())
-            verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `create with instance type`() {
-
-        val extensions = mock<ExtensionContainer> {
-            on { create(any<TypeOf<SomeInterface<Long>>>(), any(), any<Class<SomeExtension<Long>>>(), anyVararg()) } doReturn SomeExtension(23L)
-        }
-
-        extensions.create<SomeInterface<Long>>("name", SomeExtension::class, 23L)
-
-        inOrder(extensions) {
-            verify(extensions).create(any<TypeOf<SomeInterface<Long>>>(), any(), any<Class<SomeExtension<Long>>>(), anyVararg())
+            verify(extensions).create(any(), any<Class<SomeExtension<Long>>>(), anyVararg())
             verifyNoMoreInteractions()
         }
     }

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionContainer
 
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 
@@ -82,7 +81,7 @@ inline fun <reified T : Any> ExtensionContainer.add(name: String, extension: T) 
 /**
  * Creates and adds a new extension to this container.
  *
- * @param T the public and instance type of the new extension
+ * @param T the instance type of the new extension
  * @param name the extension's name
  * @param constructionArguments construction arguments
  * @return the created instance
@@ -91,23 +90,7 @@ inline fun <reified T : Any> ExtensionContainer.add(name: String, extension: T) 
  */
 @Incubating
 inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any): T =
-    create(name, T::class, *constructionArguments)
-
-
-/**
- * Creates and adds a new extension to this container.
- *
- * @param T the public type of the new extension
- * @param name the extension's name
- * @param instanceType the instance type of the new extension
- * @param constructionArguments construction arguments
- * @return the created instance
- *
- * @see [ExtensionContainer.create]
- */
-@Incubating
-inline fun <reified T : Any> ExtensionContainer.create(name: String, instanceType: KClass<out T>, vararg constructionArguments: Any): T =
-    create(typeOf<T>(), name, instanceType.java, *constructionArguments)
+    create(name, T::class.java, *constructionArguments)
 
 
 /**
