@@ -36,7 +36,7 @@ include::{samplesPath}/ear/earWithWar/build.gradle[tag=use-ear-plugin]
 
 The Ear plugin adds the following tasks to the project.
 
-`ear` — type: link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear]::
+`ear` — link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear]::
 _Depends on_: `compile` (only if the Java plugin is also applied)
 +
 Assembles the application EAR file.
@@ -69,13 +69,13 @@ The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All de
 [[sec:ear_convention_properties]]
 == Convention properties
 
-`appDirName` — type: `String`::
+`appDirName` `String`::
 The name of the application source directory, relative to the project directory. _Default value: `src/main/application`_.
 
-`libDirName` — type: `String`::
+`libDirName` `String`::
 The name of the lib directory inside the generated EAR. _Default value: `lib`_.
 
-`deploymentDescriptor` — type: link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html[DeploymentDescriptor]::
+`deploymentDescriptor` — link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html[DeploymentDescriptor]::
 Metadata to generate a deployment descriptor file, e.g. `application.xml`. _Default value: A deployment descriptor with sensible defaults named `application.xml`_. If this file already exists in the `appDirName/META-INF` then the existing file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.
 
 These properties are provided by a link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] convention object.
