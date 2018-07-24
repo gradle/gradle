@@ -68,27 +68,27 @@ _Depends on_: `idea`
 +
 Generates all IDEA configuration files and opens the project in IDEA
 
-`cleanIdea` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanIdea` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 _Depends on_: `cleanIdeaProject`, `cleanIdeaModule`
 +
 Removes all IDEA configuration files
 
-`cleanIdeaProject` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanIdeaProject` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA project file
 
-`cleanIdeaModule` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanIdeaModule` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA module file
 
-`cleanIdeaWorkspace` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`cleanIdeaWorkspace` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA workspace file
 
-`ideaProject` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]::
+`ideaProject` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]::
 Generates the `.ipr` file. This task is only added to the root project.
 
-`ideaModule` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]::
+`ideaModule` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]::
 Generates the `.iml` file
 
-`ideaWorkspace` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]::
+`ideaWorkspace` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]::
 Generates the `.iws` file. This task is only added to the root project.
 
 
@@ -101,16 +101,16 @@ Here are the configuration properties you can use:
 
 [[idea-configuration]]
 
-`idea` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]::
+`idea` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]::
 Top level element that enables configuration of the idea plugin in a DSL-friendly fashion
 
-`idea.project` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
+`idea.project` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
 Allows configuring project information
 
-`idea.module` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]::
+`idea.module` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]::
 Allows configuring module information
 
-`idea.workspace` — type: link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]::
+`idea.workspace` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]::
 Allows configuring the workspace XML
 
 Follow the links to the types for examples of using these configuration properties.
