@@ -176,12 +176,12 @@ include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=test]
 
 The Java plugin adds a number of tasks to your project, as shown below.
 
-`compileJava` — type: link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+`compileJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: All tasks which contribute to the compilation classpath, including `jar` tasks from projects that are on the classpath via project dependencies
 +
 Compiles production Java source files using the JDK compiler.
 
-`processResources` — type: link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+`processResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
 Copies production resources into the production resources directory.
 
 `classes`::
@@ -189,12 +189,12 @@ _Depends on_: `compileJava`, `processResources`
 +
 This is an aggregate task that just depends on other tasks. Other plugins may attach additional compilation tasks to it.
 
-`compileTestJava` — type: link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+`compileTestJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: `classes`, and all tasks that contribute to the test compilation classpath
 +
 Compiles test Java source files using the JDK compiler.
 
-`processTestResources` — type: link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+`processTestResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
 Copies test resources into the test resources directory.
 
 `testClasses`::
@@ -202,30 +202,30 @@ _Depends on_: `compileTestJava`, `processTestResources`
 +
 This is an aggregate task that just depends on other tasks. Other plugins may attach additional test compilation tasks to it.
 
-`jar` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
+`jar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
 _Depends on_: `classes`
 +
 Assembles the production JAR file, based on the classes and resources attached to the `main` source set.
 
-`javadoc` — type: link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]::
+`javadoc` — link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]::
 _Depends on_: `classes`
 +
 Generates API documentation for the production Java source using Javadoc.
 
-`test` — type: link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
+`test` — link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
 _Depends on_: `testClasses`, and all tasks which produce the test runtime classpath
 +
 Runs the unit tests using JUnit or TestNG.
 
-`uploadArchives` — type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
+`uploadArchives` — link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
 _Depends on_: `jar`, and any other task that produces an artifact attached to the `archives` configuration
 +
 Uploads artifacts in the `archives` configuration — including the production JAR file — to the configured repositories.
 
-`clean` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`clean` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Deletes the project build directory.
 
-`clean__TaskName__` — type: link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+`clean__TaskName__` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Deletes files created by the specified task. For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
 
 [[java_source_set_tasks]]
@@ -234,15 +234,15 @@ Deletes files created by the specified task. For example, `cleanJar` will delete
 For each source set you add to the project, the Java plugin adds the following tasks:
 
 
-`compile__SourceSet__Java` — type: link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+`compile__SourceSet__Java` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: All tasks which contribute to the source set's compilation classpath
 +
 Compiles the given source set's Java source files using the JDK compiler.
 
-`process__SourceSet__Resources` — type: link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+`process__SourceSet__Resources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
 Copies the given source set's resources into the resources directory.
 
-`__sourceSet__Classes` — type: link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`__sourceSet__Classes` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
 +
 Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
@@ -494,7 +494,7 @@ Default value: `__buildDir__`
 
 == Resources
 
-The Java plugin uses the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files,Copying files>>.
+The Java plugin uses the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files,File copying in depth>>.
 
 === ProcessResources properties
 
@@ -585,7 +585,7 @@ and return its true type at runtime using the https://docs.oracle.com/javase/10/
 
 === Example: Registering incremental annotation processors dynamically
 
-[source.multi-language-sample,java,indent=0]
+[source,java,indent=0]
 .processor/src/main/java/ServiceRegistryProcessor.java
 ----
 include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
@@ -611,7 +611,7 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 
 === Example: An isolated annotation processor
 
-[source.multi-language-sample,java,indent=0]
+[source,java,indent=0]
 .processor/src/main/java/EntityProcessor.java
 ----
 include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/java/EntityProcessor.java[tag=isolating-annotation-processor]
@@ -638,7 +638,7 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 
 === Example: An aggregating annotation processor
 
-[source.multi-language-sample,java,indent=0]
+[source,java,indent=0]
 .processor/src/main/java/ServiceRegistryProcessor.java
 ----
 include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
@@ -689,7 +689,7 @@ See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapte
 [[sec:jar]]
 == Jar
 
-The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files.adoc#sec:archives,file paths in depth>> and artifact configurations in <<artifact_management.adoc#artifact_management,Artifact Management>>.
+The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files.adoc#sec:archives,Archive creation in depth>> and artifact configurations in <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
 
 
 [[sub:manifest]]
