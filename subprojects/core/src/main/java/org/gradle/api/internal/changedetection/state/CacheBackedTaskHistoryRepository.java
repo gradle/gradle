@@ -67,7 +67,9 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -223,6 +225,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 private MerkleDirectorySnapshotBuilder merkleBuilder;
                 private boolean currentRootFiltered = false;
                 private PhysicalDirectorySnapshot currentRoot;
+                private Deque<PhysicalDirectorySnapshot> dirTracker = new LinkedList<PhysicalDirectorySnapshot>();
 
                 @Override
                 public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
@@ -232,6 +235,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         currentRootFiltered = false;
                     }
                     merkleBuilder.preVisitDirectory(directorySnapshot);
+                    dirTracker.addLast(directorySnapshot);
                     return true;
                 }
 
@@ -251,9 +255,18 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
                 @Override
                 public void postVisitDirectory() {
-                    merkleBuilder.postVisitDirectory(false);
+                    PhysicalDirectorySnapshot currentDirectory = dirTracker.removeLast();
+                    boolean isOutputDir = isOutputEntry(currentDirectory, beforeExecutionSnapshots, afterPreviousSnapshots);
+                    boolean includedDir = merkleBuilder.postVisitDirectory(false, isOutputDir);
+                    if (!includedDir) {
+                        currentRootFiltered = true;
+                        hasBeenFiltered.set(true);
+                    }
                     if (merkleBuilder.isRoot()) {
-                        newRoots.add(currentRootFiltered ? merkleBuilder.getResult() : currentRoot);
+                        PhysicalSnapshot result = merkleBuilder.getResult();
+                        if (result != null) {
+                            newRoots.add(currentRootFiltered ? result : currentRoot);
+                        }
                         merkleBuilder = null;
                         currentRoot = null;
                     }

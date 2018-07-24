@@ -69,7 +69,7 @@ public class FileSystemSnapshotFilterer {
             @Override
             public void postVisitDirectory() {
                 relativePathTracker.leave();
-                builder.postVisitDirectory(false);
+                builder.postVisitDirectory(false, true);
             }
         });
         if (builder.getResult() == null) {

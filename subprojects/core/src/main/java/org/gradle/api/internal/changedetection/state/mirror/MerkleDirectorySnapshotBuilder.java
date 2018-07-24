@@ -56,13 +56,16 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
 
     @Override
     public void postVisitDirectory() {
-        postVisitDirectory(true);
+        postVisitDirectory(true, true);
     }
 
-    public void postVisitDirectory(boolean sortingRequired) {
+    public boolean postVisitDirectory(boolean sortingRequired, boolean includeEmpty) {
         String name = relativePathSegmentsTracker.leave();
         List<PhysicalSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
+        if (children.isEmpty() && !includeEmpty) {
+            return false;
+        }
         if (sortingRequired) {
             Collections.sort(children, PhysicalSnapshot.BY_NAME);
         }
@@ -79,6 +82,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
         } else {
             result = directorySnapshot;
         }
+        return true;
     }
 
     public boolean isRoot() {
