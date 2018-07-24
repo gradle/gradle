@@ -112,7 +112,7 @@ These plugins provide some integration with various runtime technologies.
 | <<maven_plugin.adoc#maven_plugin, `maven`>>
 | -
 | `java`, `war`
-| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management.adoc#artifact_management,Artifact Management>>.
+| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
 
 | <<osgi_plugin.adoc#osgi_plugin, `osgi`>>
 | `java-base`
