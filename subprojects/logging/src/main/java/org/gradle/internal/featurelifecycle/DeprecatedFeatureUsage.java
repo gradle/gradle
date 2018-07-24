@@ -32,14 +32,14 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
 
     public DeprecatedFeatureUsage(
         String summary,
-        String removalDetails,
+        @Nullable String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
         Type type,
         Class<?> calledFrom
     ) {
         super(summary, calledFrom);
-        this.removalDetails = Preconditions.checkNotNull(removalDetails);
+        this.removalDetails = removalDetails;
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
         this.type = Preconditions.checkNotNull(type);
