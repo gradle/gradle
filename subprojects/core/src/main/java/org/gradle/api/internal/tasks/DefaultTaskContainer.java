@@ -55,7 +55,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
-import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

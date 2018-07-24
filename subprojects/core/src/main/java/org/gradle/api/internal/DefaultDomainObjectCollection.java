@@ -202,7 +202,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public void whenObjectRemoved(Closure action) {
-        whenObjectRemoved(toAction(action));
+        eventRegister.registerRemoveAction(type, toAction(action));
     }
 
     /**
