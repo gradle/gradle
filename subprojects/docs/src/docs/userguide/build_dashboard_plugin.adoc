@@ -48,7 +48,7 @@ The `buildDashboard` task does not depend on any other tasks. It will only aggre
 
 The Build Dashboard plugin adds the following task to the project:
 
-`buildDashboard` — type: link:{groovyDslPath}/org.gradle.api.reporting.GenerateBuildDashboard.html[GenerateBuildDashboard]::
+`buildDashboard` — link:{groovyDslPath}/org.gradle.api.reporting.GenerateBuildDashboard.html[GenerateBuildDashboard]::
 Generates build dashboard report.
 
 [[sec:build_dashboard_project_layout]]
