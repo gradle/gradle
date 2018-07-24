@@ -148,6 +148,17 @@ fun apiTypeKey(usage: ApiTypeUsage): List<Any> = usage.run {
 }
 
 
+// TODO Policy for extensions with reified generics
+//
+// Goals
+// - make the dsl predictable
+// - prevent ambiguous overload situations
+//
+// Rules
+// 1. an extension should either require no type parameters, a single reifeid type parameter, at call site
+// 2. all type parameters must all be reifeid or values (TypeOf, KClass or Class)
+// 3. when overloading, prefer TypeOf over Class
+// 4. in case the policy forbids your overloads, discuss
 private
 fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction> =
     candidatesForExtensionFrom(type)
