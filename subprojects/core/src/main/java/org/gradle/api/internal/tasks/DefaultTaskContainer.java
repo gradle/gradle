@@ -33,6 +33,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.initialization.ProjectAccessListener;
@@ -56,6 +57,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -226,7 +228,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             duplicateTask(name);
         }
 
-        add(task);
+        addInternal(task);
     }
 
     private <T extends Task> T duplicateTask(String task) {
@@ -352,7 +354,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
                     .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configurationAction, constructorArgs)
                 );
-                addLater(provider);
+                addLaterInternal(provider);
                 context.setResult(REGISTER_RESULT);
                 return provider;
             }
@@ -649,6 +651,39 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
         return BuildOperationDescriptor.displayName("Register task " + identity.identityPath)
             .details(new RegisterDetails(identity));
+    }
+
+    @Deprecated
+    @Override
+    public boolean add(Task o) {
+        DeprecationLogger.nagUserOfReplacedMethodWithoutRemoval("add()", "create() or register()");
+        return addInternal(o);
+    }
+
+    @Deprecated
+    @Override
+    public boolean addAll(Collection<? extends Task> c) {
+        DeprecationLogger.nagUserOfReplacedMethodWithoutRemoval("addAll()", "create() or register()");
+        return addAllInternal(c);
+    }
+
+    @Override
+    public void addLater(Provider<? extends Task> provider) {
+        throw new UnsupportedOperationException("Adding a task provider directly to the task container is not supported.  Use the register() method instead.");
+    }
+
+    @Override
+    public boolean addInternal(Task task) {
+        return super.add(task);
+    }
+
+    @Override
+    public boolean addAllInternal(Collection<? extends Task> task) {
+        return super.addAll(task);
+    }
+
+    private void addLaterInternal(Provider<? extends Task> provider) {
+        super.addLater(provider);
     }
 
     private static final RegisterTaskBuildOperationType.Result REGISTER_RESULT = new RegisterTaskBuildOperationType.Result() {

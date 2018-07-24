@@ -109,7 +109,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                     @Override
                     public void execute(MutableModelNode modelNode, Task task) {
                         TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);
-                        taskContainer.add(task);
+                        taskContainer.addInternal(task);
                     }
                 }));
             }

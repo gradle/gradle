@@ -83,6 +83,10 @@ Instances of this class are intended to be created only by the `base` plugin and
 
 Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
 
+### Adding tasks via TaskContainer.add() and TaskContainer.addAll() 
+
+These methods have been deprecated and the `create()` or `register()` methods should be used instead.
+
 ## Potential breaking changes
 
 ### Kotlin DSL breakages

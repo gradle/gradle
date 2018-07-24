@@ -27,6 +27,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -1416,6 +1417,19 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         container.findByName("task") == null
+    }
+
+    def "cannot add a provider directly to the task container"() {
+        given:
+        def provider = Mock(Provider) {
+            _ * get() >> task("foo")
+        }
+
+        when:
+        container.addLater(provider)
+
+        then:
+        thrown(UnsupportedOperationException)
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {

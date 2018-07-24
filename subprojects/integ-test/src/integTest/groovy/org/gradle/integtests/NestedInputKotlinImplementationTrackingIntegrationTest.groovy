@@ -41,6 +41,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         buildFile.makeOlder()
 
         when:
+        executer.expectDeprecationWarning()
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
@@ -51,6 +52,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                 action = Action { writeText("changed") }
             }                      
         """
+        executer.expectDeprecationWarning()
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -69,6 +71,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         buildFile.makeOlder()
 
         when:
+        executer.expectDeprecationWarning()
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
@@ -79,6 +82,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                 action = { it.writeText("changed") }
             }
         """
+        executer.expectDeprecationWarning()
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
