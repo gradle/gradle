@@ -40,17 +40,17 @@ Note that Checkstyle will run with the same Java version used to run Gradle.
 
 The Checkstyle plugin adds the following tasks to the project:
 
-`checkstyleMain` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]::
+`checkstyleMain` — link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]::
 _Depends on_: `classes`
 +
 Runs Checkstyle against the production Java source files.
 
-`checkstyleTest` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]::
+`checkstyleTest` — link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]::
 _Depends on_: `testClasses`
 +
 Runs Checkstyle against the test Java source files.
 
-`checkstyle__SourceSet__` — type: link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]::
+`checkstyle__SourceSet__` — link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle]::
 _Depends on_: `__sourceSet__Classes`
 +
 Runs Checkstyle against the given source set's Java source files.
