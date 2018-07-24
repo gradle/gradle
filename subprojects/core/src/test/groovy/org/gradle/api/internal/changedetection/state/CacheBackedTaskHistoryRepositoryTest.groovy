@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.changedetection.rules.AbstractTaskStateChangesTest
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 

@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.fingerprint.ClasspathFingerprinter
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
 import org.gradle.play.internal.toolchain.DefaultPlayToolChain

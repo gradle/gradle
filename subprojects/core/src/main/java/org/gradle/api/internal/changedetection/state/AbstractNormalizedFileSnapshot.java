@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {

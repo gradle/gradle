@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.normalization.internal.InputNormalizationStrategy;

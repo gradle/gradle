@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint;
 
+import org.gradle.api.internal.changedetection.state.Hashable;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 

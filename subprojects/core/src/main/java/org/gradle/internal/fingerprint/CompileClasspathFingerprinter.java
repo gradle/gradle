@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 
 /**
- * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java classpath. Compared to {@link RelativePathFileCollectionFingerprinter} this fingerprinter orders files within any sub-tree.
+ * Responsible for calculating a {@link FileCollectionFingerprint} for a {@link org.gradle.api.file.FileCollection} representing a Java
+ * compile classpath. Compared to {@link RelativePathFileCollectionFingerprinter} this fingerprinter orders files within any sub-tree.
  *
- * @see org.gradle.api.tasks.Classpath
+ * @see org.gradle.api.tasks.CompileClasspath
  */
-public interface ClasspathFingerprinter extends FileCollectionFingerprinter {
+public interface CompileClasspathFingerprinter extends FileCollectionFingerprinter {
 }

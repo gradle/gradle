@@ -16,8 +16,8 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;

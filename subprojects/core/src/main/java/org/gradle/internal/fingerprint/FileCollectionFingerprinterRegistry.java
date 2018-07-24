@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.tasks.FileNormalizer;
+
+import java.util.Collection;
+
+public interface FileCollectionFingerprinterRegistry {
+    Collection<FileCollectionFingerprinter> getAllFingerprinters();
+    FileCollectionFingerprinter getFingerprinter(Class<? extends FileNormalizer> type);
+}

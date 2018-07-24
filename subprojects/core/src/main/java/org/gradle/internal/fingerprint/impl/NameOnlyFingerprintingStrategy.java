@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror.logical;
+package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
-import org.gradle.internal.fingerprint.IgnoredPathFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 
 import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Fingerprint {@link org.gradle.api.file.FileCollection}s normalizing the path to the relative path in a hierarchy.
+ * Fingerprint files normalizing the path to the file name.
  *
- * File names for root directories are ignored. For root files, the file name is used as normalized path.
+ * File names for root directories are ignored.
  */
-public class RelativePathFingerprintingStrategy implements FingerprintingStrategy {
-    private final StringInterner stringInterner;
+public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
 
-    public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
-        this.stringInterner = stringInterner;
+    public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
+
+    private NameOnlyFingerprintingStrategy() {
     }
 
     @Override
@@ -47,17 +45,16 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
-                private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
+                private boolean root = true;
 
                 @Override
                 public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-                    boolean isRoot = relativePathStringTracker.isRoot();
-                    relativePathStringTracker.enter(directorySnapshot);
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), directorySnapshot);
+                        NormalizedFileSnapshot snapshot = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(directorySnapshot.getName(), directorySnapshot);
                         builder.put(absolutePath, snapshot);
                     }
+                    root = false;
                     return true;
                 }
 
@@ -65,21 +62,18 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 public void visit(PhysicalSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot normalizedFileSnapshot = relativePathStringTracker.isRoot() ? new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot) : createNormalizedFileSnapshot(fileSnapshot);
-                        builder.put(absolutePath, normalizedFileSnapshot);
+                        builder.put(
+                            absolutePath,
+                            new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot));
                     }
                 }
 
-                private NormalizedFileSnapshot createNormalizedFileSnapshot(PhysicalSnapshot fileSnapshot) {
-                    relativePathStringTracker.enter(fileSnapshot);
-                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), fileSnapshot);
-                    relativePathStringTracker.leave();
-                    return normalizedFileSnapshot;
+                private boolean isRoot() {
+                    return root;
                 }
 
                 @Override
                 public void postVisitDirectory() {
-                    relativePathStringTracker.leave();
                 }
             });
         }
@@ -90,5 +84,4 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.NORMALIZED;
     }
-
 }

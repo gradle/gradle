@@ -18,9 +18,9 @@ package org.gradle.play.internal.run;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.ClasspathFingerprinter;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
+import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.process.internal.JavaExecHandleBuilder;
