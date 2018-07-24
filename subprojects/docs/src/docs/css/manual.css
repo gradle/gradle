@@ -877,8 +877,14 @@ b, strong {
     font-weight: 500;
 }
 
-dl dt {
-    font-weight: normal;
+.dlist dt code {
+    color: #02303A;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.dlist p {
+    margin-bottom: 0.625rem;
 }
 
 /* Layout */
@@ -1138,6 +1144,11 @@ div.screenshot {
     margin-left: auto;
     margin-right: auto;
     width: 90%;
+}
+
+.inset {
+    box-shadow: 0 0 1px 1px rgba(0,0,0,0.1);
+    padding: 1em;
 }
 
 .image.inline-icon img {
