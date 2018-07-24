@@ -37,22 +37,22 @@ include::{samplesPath}/scala/quickstart/build.gradle[tag=use-plugin]
 
 The Scala plugin adds the following tasks to the project.
 
-`compileScala` — type: link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
+`compileScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
 _Depends on_: `compileJava`
 +
 Compiles production Scala source files.
 
-`compileTestScala` — type: link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
+`compileTestScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
 _Depends on_: `compileTestJava`
 +
 Compiles test Scala source files.
 
-`compile__SourceSet__Scala` — type: link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
+`compile__SourceSet__Scala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
 _Depends on_: `compile__SourceSet__Java`
 +
 Compiles the given source set's Scala source files.
 
-`scaladoc` — type: link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]::
+`scaladoc` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]::
 +
 Generates API documentation for the production Scala source files.
 
@@ -198,15 +198,15 @@ The Scala plugin does not add any convention properties to the project.
 
 The Scala plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
-`scala` — type: link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+`scala` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
 The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files. _Default value:_ non-null.
 
-`scala.srcDirs` — type: `Set&lt;File&gt;`::
+`scala.srcDirs` `Set&lt;File&gt;`::
 The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
 Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
 _Default value:_ `[__projectDir__/src/__name__/scala]`.
 
-`allScala` — type: link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
+`allScala` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
 All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories. _Default value:_ non-null.
 
 These convention properties are provided by a convention object of type link:{groovyDslPath}/org.gradle.api.tasks.ScalaSourceSet.html[ScalaSourceSet].
