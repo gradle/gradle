@@ -83,7 +83,7 @@ include::{samplesPath}/userguide/tutorial/properties/gradle.properties[]
 include::{samplesPath}/userguide/tutorial/properties/build.gradle[]
 ----
 
-.Output of`gradle -q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps`
+.Output of `gradle -q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps`
 ----
 > gradle -q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps
 include::{samplesPath}/userguide/tutorial/properties/properties.out[]
