@@ -50,34 +50,34 @@ You can run `gradle installDist` to assemble the uncompressed distribution into 
 
 The Distribution Plugin adds a number of tasks to your project, as shown below.
 
-`distZip` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
+`distZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
 Creates a ZIP archive of the distribution contents.
 
-`distTar` — type: link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`distTar` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 Creates a TAR archive of the distribution contents.
 
-`assembleDist` — type: link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`assembleDist` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `distTar`, `distZip`
 +
 Creates ZIP and TAR archives of the distribution contents.
 
-`installDist` — type: link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+`installDist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
 Assembles the distribution content and installs it on the current machine.
 
 For each additional distribution you add to the project, the Distribution Plugin adds the following tasks, where _distributionName_ comes from link:{javadocPath}/org/gradle/api/distribution/Distribution.html#getName--[Distribution.getName()]:
 
-`__distributionName__DistZip` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
+`__distributionName__DistZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
 Creates a ZIP archive of the distribution contents.
 
-`__distributionName__DistTar` — type: link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar]::
+`__distributionName__DistTar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar]::
 Creates a TAR archive of the distribution contents.
 
-`assemble__DistributionName__Dist` — type: link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`assemble__DistributionName__Dist` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `__distributionName__DistTar`, `__distributionName__DistZip`
 +
 Creates ZIP and TAR archives of the distribution contents.
 
-`install__DistributionName__Dist` — type: link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+`install__DistributionName__Dist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
 Assembles the distribution content and installs it on the current machine.
 
 The following sample creates a `custom` distribution that will cause four additional tasks to be added to the project: `customDistZip`, `customDistTar`, `assembleCustomDist`, and `installCustomDist`:
