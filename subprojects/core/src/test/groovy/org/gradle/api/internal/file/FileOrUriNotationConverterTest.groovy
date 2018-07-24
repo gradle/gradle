@@ -167,6 +167,6 @@ The following types/formats are supported:
     }
 
     def parse(def value) {
-        return FileOrUriNotationConverter.parser(TestFiles.fileSystem()).parseNotation(value)
+        return FileOrUriNotationConverter.parser().parseNotation(value)
     }
 }
