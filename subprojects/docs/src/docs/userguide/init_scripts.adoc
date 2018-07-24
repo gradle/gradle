@@ -76,7 +76,7 @@ include::{samplesPath}/userguide/initScripts/configurationInjection/init.gradle[
 ----
 ====
 
-.Output of`gradle --init-script init.gradle -q showRepos`
+.Output of `gradle --init-script init.gradle -q showRepos`
 ----
 > gradle --init-script init.gradle -q showRepos
 include::{samplesPath}/userguide/initScripts/configurationInjection/initScriptConfiguration.out[]
@@ -136,7 +136,7 @@ include::{samplesPath}/userguide/initScripts/plugins/init.gradle[tag=init-script
 include::{samplesPath}/userguide/initScripts/plugins/build.gradle[tag=show-repos-task]
 ----
 
-.Output of`gradle --init-script init.gradle -q showRepositories`
+.Output of `gradle --init-script init.gradle -q showRepositories`
 ----
 > gradle --init-script init.gradle -q showRepositories
 include::{samplesPath}/userguide/initScripts/plugins/usePluginsInInitScripts.out[]
