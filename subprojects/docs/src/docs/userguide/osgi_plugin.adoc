@@ -47,7 +47,7 @@ Applies the Java base plugin.
 
 The OSGi plugin adds the following tasks to the project:
 
-`osgiClasses` — type: link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+`osgiClasses` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
 _Depends on_: `classes`
 +
 Copies all classes from the main source set to a single directory that is processed by BND.
