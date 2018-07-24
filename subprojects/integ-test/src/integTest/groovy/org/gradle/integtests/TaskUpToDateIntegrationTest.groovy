@@ -269,4 +269,30 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":customTask"
     }
+
+    def "changing default excludes leaves task up-to-date"() {
+        def inputDir = file("inputDir").createDir()
+        inputDir.file('inputFile.txt').text = "input file"
+
+        buildFile << """
+            task myTask {
+                inputs.dir('inputDir')
+                outputs.file('build/output.txt')
+                doLast {
+                    file('build/output.txt').text = "Hello world"
+                }
+            }
+        """
+
+        when:
+        run 'myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+
+        when:
+        inputDir.file('.gitignore').text = "some ignored file"
+        run 'myTask'
+        then:
+        skipped(':myTask')
+    }
 }
