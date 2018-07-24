@@ -173,6 +173,87 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds ":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all"
     }
 
+    def "reports failure in task constructor when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.create("broken", Broken)
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task configuration block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.create("broken") {
+                throw new RuntimeException("broken task")
+            }
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in all block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.all {
+                throw new RuntimeException("broken task")
+            }
+            tasks.create("broken")
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task constructor when task replaced"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.create("broken")
+            tasks.replace("broken", Broken)
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
         when:

@@ -310,6 +310,62 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("task2")
     }
 
+    def "reports failure in task constructor when task realized"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.register("broken", Broken)
+        """
+
+        expect:
+        fails("broken")
+        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task configuration block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.register("broken") {
+                throw new RuntimeException("broken task")
+            }
+        """
+
+        expect:
+        fails("broken")
+        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in configure block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.configureEach {
+                throw new RuntimeException("broken task")
+            }
+            tasks.register("broken")
+        """
+
+        expect:
+        fails("broken")
+        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/5148")
     def "can get a task by name with a filtered collection"() {
         buildFile << '''

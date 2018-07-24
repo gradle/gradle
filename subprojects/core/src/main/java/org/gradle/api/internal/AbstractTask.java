@@ -148,7 +148,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AbstractTask(TaskInfo taskInfo) {
         if (taskInfo == null) {
-            throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the DSL.", getClass().getName()));
+            throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the Gradle API or DSL.", getClass().getName()));
         }
 
         this.identity = taskInfo.identity;
