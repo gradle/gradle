@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import org.gradle.plugins.ide.idea.model.IdeaModel
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import java.io.File
 import java.util.Properties
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
+
 
 buildscript {
     project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
