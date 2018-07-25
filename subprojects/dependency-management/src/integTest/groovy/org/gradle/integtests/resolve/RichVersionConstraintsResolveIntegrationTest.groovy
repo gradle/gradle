@@ -117,37 +117,43 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
     @Issue("gradle/gradle#4186")
     def "should choose highest when multiple prefer versions disagree"() {
         repository {
+            'org:bar:1' {
+                dependsOn(group: 'org', artifact: 'foo', prefers: '1.1')
+            }
+            'org:baz:1' {
+                dependsOn(group: 'org', artifact: 'foo', prefers: '1.0')
+            }
             'org:foo' {
-                '1.0.0'()
-                '1.1.0'()
-                '1.2.0'()
-                '2.0.0'()
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '2.0'()
             }
         }
 
         buildFile << """
             dependencies {
-                constraints {
-                    conf('org:foo') {
-                        version { prefer '1.1.0' }
-                    }
-                    conf('org:foo') {
-                        version { prefer '1.0.0' }
-                    }
-                }
-                conf 'org:foo:[1.0.0,2.0.0)'
+                conf 'org:bar:1'
+                conf 'org:baz:1'
+                conf 'org:foo:[1.0,2.0)'
             }
         """
 
         when:
         repositoryInteractions {
+            'org:bar:1' {
+                expectResolve()
+            }
+            'org:baz:1' {
+                expectResolve()
+            }
             'org:foo' {
                 expectVersionListing()
-                '1.1.0' {
+                '1.1' {
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                '1.2.0' {
+                '1.2' {
                     expectGetMetadata()
                 }
             }
@@ -157,9 +163,13 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0.0", "org:foo:1.1.0")
-                edge("org:foo:1.1.0", "org:foo:1.1.0")
-                edge("org:foo:[1.0.0,2.0.0)", "org:foo:1.1.0")
+                module('org:bar:1') {
+                    edge("org:foo", "org:foo:1.1")
+                }
+                module('org:baz:1') {
+                    edge("org:foo", "org:foo:1.1")
+                }
+                edge("org:foo:[1.0,2.0)", "org:foo:1.1")
             }
         }
     }
