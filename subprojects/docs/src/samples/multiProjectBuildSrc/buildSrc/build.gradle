@@ -6,9 +6,9 @@ subprojects {
     compile gradleApi()
   }
 
-// START SNIPPET addToRootProject
+// tag::addToRootProject[]
 rootProject.dependencies {
   runtime project(path)
 }
-// END SNIPPET addToRootProject
+// end::addToRootProject[]
 }

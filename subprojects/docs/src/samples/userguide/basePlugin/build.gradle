@@ -1,5 +1,5 @@
-// START SNIPPET apply-base-plugin
+// tag::apply-base-plugin[]
 plugins {
     id 'base'
 }
-// END SNIPPET apply-base-plugin
+// end::apply-base-plugin[]

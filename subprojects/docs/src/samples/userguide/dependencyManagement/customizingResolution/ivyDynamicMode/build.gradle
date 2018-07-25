@@ -1,4 +1,4 @@
-//START SNIPPET ivy-repo-dynamic-mode
+// tag::ivy-repo-dynamic-mode[]
 // Can enable dynamic resolve mode when you define the repository
 repositories {
     ivy {
@@ -11,4 +11,4 @@ repositories {
 repositories.withType(IvyArtifactRepository) {
     resolve.dynamicMode = true
 }
-//END SNIPPET ivy-repo-dynamic-mode
+// end::ivy-repo-dynamic-mode[]

@@ -17,11 +17,11 @@
 apply plugin: 'cpp'
 apply plugin: 'c'
 
-// START SNIPPET binary-library
+// tag::binary-library[]
 model {
     components {
         hello(NativeLibrarySpec) {
-// START SNIPPET c-sources
+// tag::c-sources[]
             sources {
                 c {
                     source {
@@ -33,10 +33,10 @@ model {
                     }
                 }
             }
-// END SNIPPET c-sources
+// end::c-sources[]
         }
         main(NativeExecutableSpec) {
-// START SNIPPET cpp-sources
+// tag::cpp-sources[]
             sources {
                 cpp {
                     source {
@@ -45,7 +45,7 @@ model {
                     }
                 }
             }
-// END SNIPPET cpp-sources
+// end::cpp-sources[]
             binaries.all {
                 // Each executable binary produced uses the 'hello' static library binary
                 lib library: 'hello', linkage: 'static'
@@ -53,6 +53,6 @@ model {
         }
     }
 }
-// END SNIPPET binary-library
+// end::binary-library[]
 
 

@@ -13,27 +13,27 @@
 // limitations under the License.
 
 [[writing_build_scripts]]
-== Writing Build Scripts
+= Writing Build Scripts
 
 This chapter looks at some of the details of writing a build script.
 
 [[sec:the_gradle_build_language]]
-=== The Gradle build language
+== The Gradle build language
 
 Gradle provides a _domain specific language_, or DSL, for describing builds. This build language is based on Groovy, with some additions to make it easier to describe a build.
 
 A build script can contain any Groovy language element.footnote:[Any language element except for statement labels.] Gradle assumes that each build script is encoded using UTF-8.
 
 [[sec:project_api]]
-=== The Project API
+== The Project API
 
-In the tutorial in <<tutorial_java_projects>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type api:org.gradle.api.Project[] and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
+In <<tutorial_java_projects.adoc#tutorial_java_projects,the tutorial>> we used, for example, the `apply()` method. Where does this method come from? We said earlier that the build script defines a project in Gradle. For each project in the build, Gradle creates an object of type link:{groovyDslPath}/org.gradle.api.Project.html[Project] and associates this `Project` object with the build script. As the build script executes, it configures this `Project` object:
 
 [TIP]
 .Getting help writing build scripts
 ====
 
-Don't forget that your build script is simply Groovy code that drives the Gradle API. And the api:org.gradle.api.Project[] interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
+Don't forget that your build script is simply Groovy code that drives the Gradle API. And the link:{groovyDslPath}/org.gradle.api.Project.html[Project] interface is your starting point for accessing everything in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can start with the documentation for the `Project` interface.
 
 ====
 
@@ -42,29 +42,34 @@ Don't forget that your build script is simply Groovy code that drives the Gradle
 
 Let's try this out and try to access the `name` property of the `Project` object.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="projectApi" dir="userguide/tutorial/projectApi" title="Accessing property of the Project object">
-    <sourcefile file="build.gradle" snippet="project-name"/>
-    <output args="-q check"/>
-</sample>
-++++
+=== Example: Accessing property of the Project object
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/projectApi/build.gradle[tag=project-name]
+----
+
+.Output of **`gradle -q check`**
+----
+> gradle -q check
+include::{samplesPath}/userguide/tutorial/projectApi/projectApi.out[]
+----
 
 Both `println` statements print out the same property. The first uses auto-delegation to the `Project` object, for properties not defined in the build script. The other statement uses the `project` property available to any build script, which returns the associated `Project` object. Only if you define a property or a method which has the same name as a member of the `Project` object, would you need to use the `project` property.
 
 [[sec:standard_project_properties]]
-==== Standard project properties
+=== Standard project properties
 
 The `Project` object provides some standard properties, which are available in your build script. The following table lists a few of the commonly used ones.
 
 .Project Properties
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Name
-| Type
-| Default Value
+| Name | Type | Default Value
 
 | `project`
-| api:org.gradle.api.Project[]
+| link:{groovyDslPath}/org.gradle.api.Project.html[Project]
 | The `Project` instance
 
 | `name`
@@ -96,153 +101,197 @@ The `Project` object provides some standard properties, which are available in y
 | `unspecified`
 
 | `ant`
-| api:org.gradle.api.AntBuilder[]
+| link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder]
 | An `AntBuilder` instance
 |===
 
 
 [[sec:the_script_api]]
-=== The Script API
+== The Script API
 
-When Gradle executes a script, it compiles the script into a class which implements api:org.gradle.api.Script[]. This means that all of the properties and methods declared by the `Script` interface are available in your script.
+When Gradle executes a script, it compiles the script into a class which implements link:{groovyDslPath}/org.gradle.api.Script.html[Script]. This means that all of the properties and methods declared by the `Script` interface are available in your script.
 
 [[sec:declaring_variables]]
-=== Declaring variables
+== Declaring variables
 
 There are two kinds of variables that can be declared in a build script: local variables and extra properties.
 
 [[sec:local_variables]]
-==== Local variables
+=== Local variables
 
 Local variables are declared with the `def` keyword. They are only visible in the scope where they have been declared. Local variables are a feature of the underlying Groovy language.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="localVariables" dir="userguide/tutorial/localVariables" title="Using local variables">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
+=== Example: Using local variables
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/localVariables/build.gradle[]
+----
 
 [[sec:extra_properties]]
-==== Extra properties
+=== Extra properties
 
 All enhanced objects in Gradle's domain model can hold extra user-defined properties. This includes, but is not limited to, projects, tasks, and source sets. Extra properties can be added, read and set via the owning object's `ext` property. Alternatively, an `ext` block can be used to add multiple properties at once.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="extraProperties" dir="userguide/tutorial/extraProperties" title="Using extra properties">
-    <sourcefile file="build.gradle" snippet="extraProperties"/>
-    <output args="-q printProperties"/>
-</sample>
-++++
+=== Example: Using extra properties
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/extraProperties/build.gradle[tag=extraProperties]
+----
+
+.Output of **`gradle -q printProperties`**
+----
+> gradle -q printProperties
+include::{samplesPath}/userguide/tutorial/extraProperties/extraProperties.out[]
+----
 
 In this example, an `ext` block adds two extra properties to the `project` object. Additionally, a property named `purpose` is added to each source set by setting `ext.purpose` to `null` (`null` is a permissible value). Once the properties have been added, they can be read and set like predefined properties.
 
 By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property but the property is misspelled or does not exist. Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables. Extra properties on a project are visible from its subprojects.
 
-For further details on extra properties and their API, see the api:org.gradle.api.plugins.ExtraPropertiesExtension[] class in the API documentation.
+For further details on extra properties and their API, see the link:{groovyDslPath}/org.gradle.api.plugins.ExtraPropertiesExtension.html[ExtraPropertiesExtension] class in the API documentation.
 
 [[sec:configuring_arbitrary_objects]]
-=== Configuring arbitrary objects
+== Configuring arbitrary objects
 
 You can configure arbitrary objects in the following very readable way.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureObject" dir="userguide/tutorial/configureObject" title="Configuring arbitrary objects">
-    <sourcefile file="build.gradle"/>
-    <output args="-q configure"/>
-</sample>
-++++
+=== Example: Configuring arbitrary objects
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/configureObject/build.gradle[]
+----
+
+.Output of **`gradle -q configure`**
+----
+> gradle -q configure
+include::{samplesPath}/userguide/tutorial/configureObject/configureObject.out[]
+----
 
 [[sec:configuring_arbitrary_objects_using_an_external_script]]
-=== Configuring arbitrary objects using an external script
+== Configuring arbitrary objects using an external script
 
 You can also configure arbitrary objects using an external script.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureObjectUsingScript" dir="userguide/tutorial/configureObjectUsingScript" title="Configuring arbitrary objects using a script">
-    <sourcefile file="build.gradle"/>
-    <sourcefile file="other.gradle"/>
-    <output args="-q configure"/>
-</sample>
-++++
+=== Example: Configuring arbitrary objects using a script
+
+[.multi-language-sample,groovy]
+====
+.build.gradle
+[source,groovy]
+----
+include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/build.gradle[]
+----
+
+.other.gradle
+[source,groovy]
+----
+include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/other.gradle[]
+----
+====
+
+.Output of `gradle -q configure`
+----
+> gradle -q configure
+include::{samplesPath}/userguide/tutorial/configureObjectUsingScript/configureObjectUsingScript.out[]
+----
+
 
 [[groovy-dsl-basics]]
-=== Some Groovy basics
+== Some Groovy basics
 
 The http://docs.groovy-lang.org/latest/html/documentation/index.html[Groovy language] provides plenty of features for creating DSLs, and the Gradle build language takes advantage of these. Understanding how the build language works will help you when you write your build script, and in particular, when you start to write custom plugins and tasks.
 
 
 [[sec:groovy_jdk]]
-==== Groovy JDK
+=== Groovy JDK
 
 Groovy adds lots of useful methods to the standard Java classes. For example, `Iterable` gets an `each` method, which iterates over the elements of the `Iterable`:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyBasics" dir="userguide/tutorial/groovy" title="Groovy JDK methods">
-    <sourcefile file="build.gradle" snippet="groovyJdk"/>
-</sample>
-++++
+=== Example: Groovy JDK methods
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovy/build.gradle[tag=groovyJdk]
+----
 
 Have a look at http://groovy-lang.org/gdk.html[] for more details.
 
 [[sec:property_accessors]]
-==== Property accessors
+=== Property accessors
 
 Groovy automatically converts a property reference into a call to the appropriate getter or setter method.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyBasics" dir="userguide/tutorial/groovy" title="Property accessors">
-    <sourcefile file="build.gradle" snippet="propertyAccessors"/>
-</sample>
-++++
+=== Example: Property accessors
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovy/build.gradle[tag=propertyAccessors]
+----
 
 [[sec:optional_parentheses_on_method_calls]]
-==== Optional parentheses on method calls
+=== Optional parentheses on method calls
 
 Parentheses are optional for method calls.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyBasics" dir="userguide/tutorial/groovy" title="Method call without parentheses">
-    <sourcefile file="build.gradle" snippet="methodCallWithoutParentheses"/>
-</sample>
-++++
+=== Example: Method call without parentheses
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovy/build.gradle[tag=methodCallWithoutParentheses]
+----
 
 [[sec:list_and_map_literals]]
-==== List and map literals
+=== List and map literals
 
 Groovy provides some shortcuts for defining `List` and `Map` instances. Both kinds of literals are straightforward, but map literals have some interesting twists.
 
 For instance, the “`apply`” method (where you typically apply plugins) actually takes a map parameter. However, when you have a line like “`apply plugin:'java'`”, you aren't actually using a map literal, you're actually using “named parameters”, which have almost exactly the same syntax as a map literal (without the wrapping brackets). That named parameter list gets converted to a map when the method is called, but it doesn't start out as a map.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyBasics" dir="userguide/tutorial/groovy" title="List and map literals">
-    <sourcefile file="build.gradle" snippet="listAndMapLiterals"/>
-</sample>
-++++
+=== Example: List and map literals
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovy/build.gradle[tag=listAndMapLiterals]
+----
 
 [[sec:closures_as_the_last_parameter_in_a_method]]
-==== Closures as the last parameter in a method
+=== Closures as the last parameter in a method
 
 The Gradle DSL uses closures in many places. You can find out more about closures http://docs.groovy-lang.org/latest/html/documentation/index.html#_closures[here]. When the last parameter of a method is a closure, you can place the closure after the method call:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyBasics" dir="userguide/tutorial/groovy" title="Closure as method parameter">
-    <sourcefile file="build.gradle" snippet="closureAsLastParam"/>
-</sample>
-++++
+=== Example: Closure as method parameter
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovy/build.gradle[tag=closureAsLastParam]
+----
 
 [[sec:closure_delegate]]
-==== Closure delegate
+=== Closure delegate
 
 Each closure has a `delegate` object, which Groovy uses to look up variable and method references which are not local variables or parameters of the closure. Gradle uses this for _configuration closures_, where the `delegate` object is set to the object to be configured.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyBasics" dir="userguide/tutorial/groovy" title="Closure delegates">
-    <sourcefile file="build.gradle" snippet="closureDelegates"/>
-</sample>
-++++
+=== Example: Closure delegates
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovy/build.gradle[tag=closureDelegates]
+----
 
 [[script-default-imports]]
-=== Default imports
+== Default imports
 
 To make build scripts more concise, Gradle automatically adds a set of import statements to the Gradle scripts. This means that instead of using `throw new org.gradle.api.tasks.StopExecutionException()` you can just type `throw new StopExecutionException()` instead.
 

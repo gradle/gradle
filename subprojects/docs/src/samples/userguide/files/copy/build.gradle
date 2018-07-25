@@ -1,18 +1,18 @@
 version = "1.1"
 
-// START SNIPPET copy-single-file-example
+// tag::copy-single-file-example[]
 task copyReport(type: Copy) {
     from file("${buildDir}/reports/my-report.pdf")
     into file("${buildDir}/toArchive")
 }
-// END SNIPPET copy-single-file-example
+// end::copy-single-file-example[]
 
-// START SNIPPET copy-single-file-example-without-file-method
+// tag::copy-single-file-example-without-file-method[]
 task copyReport2(type: Copy) {
     from "${buildDir}/reports/my-report.pdf"
     into "${buildDir}/toArchive"
 }
-// END SNIPPET copy-single-file-example-without-file-method
+// end::copy-single-file-example-without-file-method[]
 
 task myReportTask {
     ext.outputFile = file("${buildDir}/reports/my-report.pdf")
@@ -28,71 +28,71 @@ task archiveReportsTask {
     inputs.dir dirToArchive
 }
 
-// START SNIPPET copy-single-file-example-with-task-properties
+// tag::copy-single-file-example-with-task-properties[]
 task copyReport3(type: Copy) {
     from myReportTask.outputFile
     into archiveReportsTask.dirToArchive
 }
-// END SNIPPET copy-single-file-example-with-task-properties
+// end::copy-single-file-example-with-task-properties[]
 
-// START SNIPPET copy-multiple-files-example
+// tag::copy-multiple-files-example[]
 task copyReportsForArchiving(type: Copy) {
     from "${buildDir}/reports/my-report.pdf", "src/docs/manual.pdf"
     into "${buildDir}/toArchive"
 }
-// END SNIPPET copy-multiple-files-example
+// end::copy-multiple-files-example[]
 
-// START SNIPPET copy-multiple-files-with-flat-filter-example
+// tag::copy-multiple-files-with-flat-filter-example[]
 task copyPdfReportsForArchiving(type: Copy) {
     from "${buildDir}/reports"
     include "*.pdf"
     into "${buildDir}/toArchive"
 }
-// END SNIPPET copy-multiple-files-with-flat-filter-example
+// end::copy-multiple-files-with-flat-filter-example[]
 
-// START SNIPPET copy-multiple-files-with-deep-filter-example
+// tag::copy-multiple-files-with-deep-filter-example[]
 task copyAllPdfReportsForArchiving(type: Copy) {
     from "${buildDir}/reports"
     include "**/*.pdf"
     into "${buildDir}/toArchive"
 }
-// END SNIPPET copy-multiple-files-with-deep-filter-example
+// end::copy-multiple-files-with-deep-filter-example[]
 
-// START SNIPPET copy-directory-example
+// tag::copy-directory-example[]
 task copyReportsDirForArchiving(type: Copy) {
     from "${buildDir}/reports"
     into "${buildDir}/toArchive"
 }
-// END SNIPPET copy-directory-example
+// end::copy-directory-example[]
 
-// START SNIPPET copy-directory-including-itself-example
+// tag::copy-directory-including-itself-example[]
 task copyReportsDirForArchiving2(type: Copy) {
     from("${buildDir}") {
         include "reports/**"
     }
     into "${buildDir}/toArchive"
 }
-// END SNIPPET copy-directory-including-itself-example
+// end::copy-directory-including-itself-example[]
 
-// START SNIPPET create-archive-example
+// tag::create-archive-example[]
 task packageDistribution(type: Zip) {
     archiveName = "my-distribution.zip"
     destinationDir = file("${buildDir}/dist")
 
     from "${buildDir}/toArchive"
 }
-// END SNIPPET create-archive-example
+// end::create-archive-example[]
 
-// START SNIPPET rename-on-copy-example
+// tag::rename-on-copy-example[]
 task copyFromStaging(type: Copy) {
     from "src/main/webapp"
     into "${buildDir}/explodedWar"
 
     rename '(.+)-staging(.+)', '$1$2'
 }
-// END SNIPPET rename-on-copy-example
+// end::rename-on-copy-example[]
 
-// START SNIPPET truncate-names-example
+// tag::truncate-names-example[]
 task copyWithTruncate(type: Copy) {
     from "${buildDir}/reports"
     rename { String filename ->
@@ -103,7 +103,7 @@ task copyWithTruncate(type: Copy) {
     }
     into "${buildDir}/toArchive"
 }
-// END SNIPPET truncate-names-example
+// end::truncate-names-example[]
 
 
 
@@ -111,14 +111,14 @@ task copyWithTruncate(type: Copy) {
 
 
 
-// START SNIPPET copy-task
+// tag::copy-task[]
 task copyTask(type: Copy) {
     from 'src/main/webapp'
     into "${buildDir}/explodedWar"
 }
-// END SNIPPET copy-task
+// end::copy-task[]
 
-// START SNIPPET copy-task-with-patterns
+// tag::copy-task-with-patterns[]
 task copyTaskWithPatterns(type: Copy) {
     from 'src/main/webapp'
     into "${buildDir}/explodedWar"
@@ -129,9 +129,9 @@ task copyTaskWithPatterns(type: Copy) {
             details.file.text.contains('DRAFT')
     }
 }
-// END SNIPPET copy-task-with-patterns
+// end::copy-task-with-patterns[]
 
-// START SNIPPET copy-task-2
+// tag::copy-task-2[]
 task anotherCopyTask(type: Copy) {
     // Copy everything under src/main/webapp
     from 'src/main/webapp'
@@ -146,13 +146,13 @@ task anotherCopyTask(type: Copy) {
     // Determine the destination directory later
     into { getDestDir() }
 }
-// END SNIPPET copy-task-2
+// end::copy-task-2[]
 
 def getDestDir() {
     file('some-dir')
 }
 
-// START SNIPPET copy-method
+// tag::copy-method[]
 task copyMethod {
     doLast {
         copy {
@@ -163,9 +163,9 @@ task copyMethod {
         }
     }
 }
-// END SNIPPET copy-method
+// end::copy-method[]
 
-// START SNIPPET copy-method-with-dependency
+// tag::copy-method-with-dependency[]
 task copyMethodWithExplicitDependencies{
     // up-to-date check for inputs, plus add copyTask as dependency
     inputs.files copyTask
@@ -178,11 +178,11 @@ task copyMethodWithExplicitDependencies{
         }
     }
 }
-// END SNIPPET copy-method-with-dependency
+// end::copy-method-with-dependency[]
 
 configurations { runtime }
 
-// START SNIPPET rename-files
+// tag::rename-files[]
 task rename(type: Copy) {
     from 'src/main/webapp'
     into "${buildDir}/explodedWar"
@@ -194,9 +194,9 @@ task rename(type: Copy) {
     rename '(.+)-staging-(.+)', '$1$2'
     rename(/(.+)-staging-(.+)/, '$1$2')
 }
-// END SNIPPET rename-files
+// end::rename-files[]
 
-// START SNIPPET filter-files
+// tag::filter-files[]
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 
@@ -219,7 +219,7 @@ task filter(type: Copy) {
     }
     filteringCharset = 'UTF-8'
 }
-// END SNIPPET filter-files
+// end::filter-files[]
 
 task test {
     dependsOn tasks.withType(Copy)
@@ -229,7 +229,7 @@ task test {
 
 def appClasses = layout.files("$buildDir/classes")
 
-// START SNIPPET standalone-copyspec
+// tag::standalone-copyspec[]
 CopySpec webAssetsSpec = copySpec {
     from 'src/main/webapp'
     include '**/*.html', '**/*.png', '**/*.jpg'
@@ -248,9 +248,9 @@ task distApp(type: Zip) {
     from appClasses
     with webAssetsSpec
 }
-// END SNIPPET standalone-copyspec
+// end::standalone-copyspec[]
 
-// START SNIPPET shared-copy-patterns
+// tag::shared-copy-patterns[]
 def webAssetPatterns = {
     include '**/*.html', '**/*.png', '**/*.jpg'
 }
@@ -266,9 +266,9 @@ task archiveDistAssets(type: Zip) {
 
     from 'distResources', webAssetPatterns
 }
-// END SNIPPET shared-copy-patterns
+// end::shared-copy-patterns[]
 
-// START SNIPPET change-default-exclusions
+// tag::change-default-exclusions[]
 task forcedCopy(type: Copy) {
     into "${buildDir}/inPlaceApp"
     from 'src/main/webapp'
@@ -283,4 +283,4 @@ task forcedCopy(type: Copy) {
         ant.defaultexcludes default: true
     }
 }
-// END SNIPPET change-default-exclusions
+// end::change-default-exclusions[]

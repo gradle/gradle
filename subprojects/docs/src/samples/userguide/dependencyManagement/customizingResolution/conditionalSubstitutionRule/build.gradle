@@ -22,7 +22,7 @@ allprojects {
         ivy { url repoUrl }
     }
 
-    //START SNIPPET project_substitution
+    // tag::project_substitution[]
     configurations.all {
         resolutionStrategy.dependencySubstitution.all { DependencySubstitution dependency ->
             if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.group == "org.example") {
@@ -33,7 +33,7 @@ allprojects {
             }
         }
     }
-    //END SNIPPET project_substitution
+    // end::project_substitution[]
 }
 
 dependencies {

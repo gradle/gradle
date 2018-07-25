@@ -6,3 +6,7 @@ dependencies {
     compileOnly project(":library")
     annotationProcessor project(":processor")
 }
+
+compileJava {
+    options.incremental = true
+}

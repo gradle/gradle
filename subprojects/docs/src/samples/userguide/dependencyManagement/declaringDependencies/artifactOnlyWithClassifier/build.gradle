@@ -1,4 +1,4 @@
-//START SNIPPET artifact-only-dependency-declaration
+// tag::artifact-only-dependency-declaration[]
 repositories {
     ivy {
         url 'https://ajax.googleapis.com/ajax/libs'
@@ -15,7 +15,7 @@ configurations {
 dependencies {
     js 'jquery:jquery:3.2.1:min@js'
 }
-//END SNIPPET artifact-only-dependency-declaration
+// end::artifact-only-dependency-declaration[]
 
 task copyLibs(type: Copy) {
     from configurations.js

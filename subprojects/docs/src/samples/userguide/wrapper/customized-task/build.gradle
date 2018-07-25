@@ -1,5 +1,5 @@
-// START SNIPPET customized-wrapper-task
+// tag::customized-wrapper-task[]
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
-// END SNIPPET customized-wrapper-task
+// end::customized-wrapper-task[]

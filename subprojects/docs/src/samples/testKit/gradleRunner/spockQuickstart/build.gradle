@@ -5,13 +5,13 @@ dependencies {
     testCompile gradleTestKit()
 }
 
-// START SNIPPET declare-spock-dependency
+// tag::declare-spock-dependency[]
 dependencies {
     testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
         exclude module: 'groovy-all'
     }
 }
-// END SNIPPET declare-spock-dependency
+// end::declare-spock-dependency[]
 
 repositories {
     mavenCentral()

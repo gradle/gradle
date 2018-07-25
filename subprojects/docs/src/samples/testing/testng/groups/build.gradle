@@ -8,11 +8,11 @@ dependencies {
     testCompile 'org.testng:testng:6.3.1'
 }
 
-// START SNIPPET test-config
+// tag::test-config[]
 test {
     useTestNG {
         excludeGroups 'integrationTests'
         includeGroups 'unitTests'
     }
 }
-// END SNIPPET test-config
+// end::test-config[]

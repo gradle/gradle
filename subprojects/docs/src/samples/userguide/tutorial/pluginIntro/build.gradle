@@ -1,4 +1,4 @@
-// START SNIPPET apply-by-id
+// tag::apply-by-id[]
 apply plugin: 'java'
 
 task show {
@@ -7,11 +7,11 @@ task show {
         println relativePath(processResources.destinationDir)
     }
 }
-// END SNIPPET apply-by-id
-// START SNIPPET apply-by-type
+// end::apply-by-id[]
+// tag::apply-by-type[]
 apply plugin: JavaPlugin
-// END SNIPPET apply-by-type
-// START SNIPPET explicit-apply
+// end::apply-by-type[]
+// tag::explicit-apply[]
 apply plugin: 'java'
 apply plugin: 'groovy'
-// END SNIPPET explicit-apply
+// end::explicit-apply[]

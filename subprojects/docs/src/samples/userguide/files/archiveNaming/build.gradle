@@ -1,4 +1,4 @@
-// START SNIPPET zip-task
+// tag::zip-task[]
 plugins {
     id 'base'
 }
@@ -14,9 +14,9 @@ task myZip(type: Zip) {
         println relativePath(archivePath)
     }
 }
-// END SNIPPET zip-task
+// end::zip-task[]
 
-// START SNIPPET zip-task-with-custom-base-name
+// tag::zip-task-with-custom-base-name[]
 task myCustomZip(type: Zip) {
     baseName = 'customName'
     from 'somedir'
@@ -25,4 +25,4 @@ task myCustomZip(type: Zip) {
         println archiveName
     }
 }
-// END SNIPPET zip-task-with-custom-base-name
+// end::zip-task-with-custom-base-name[]

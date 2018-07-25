@@ -2,7 +2,7 @@ configurations {
     compile
 }
 
-// START SNIPPET generated-file-dependencies
+// tag::generated-file-dependencies[]
 dependencies {
     compile files("$buildDir/classes") {
         builtBy 'compile'
@@ -20,4 +20,4 @@ task list(dependsOn: configurations.compile) {
         println "classpath = ${configurations.compile.collect { File file -> file.name }}"
     }
 }
-// END SNIPPET generated-file-dependencies
+// end::generated-file-dependencies[]

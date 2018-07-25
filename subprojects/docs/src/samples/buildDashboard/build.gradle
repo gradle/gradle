@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-build-dashboard-plugin
+// tag::use-build-dashboard-plugin[]
 apply plugin: 'build-dashboard'
-// END SNIPPET use-build-dashboard-plugin
+// end::use-build-dashboard-plugin[]
 apply plugin: 'codenarc'
 apply plugin: 'groovy'
 

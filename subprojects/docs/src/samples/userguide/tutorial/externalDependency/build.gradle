@@ -1,6 +1,7 @@
+// tag::all[]
 import org.apache.commons.codec.binary.Base64
 
-// START SNIPPET declare-classpath
+// tag::declare-classpath[]
 buildscript {
     repositories {
         mavenCentral()
@@ -9,7 +10,7 @@ buildscript {
         classpath group: 'commons-codec', name: 'commons-codec', version: '1.2'
     }
 }
-// END SNIPPET declare-classpath
+// end::declare-classpath[]
 
 task encode {
     doLast {
@@ -17,3 +18,4 @@ task encode {
         println new String(encodedString)
     }
 }
+// end::all[]

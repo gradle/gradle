@@ -18,7 +18,7 @@
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
-// START SNIPPET custom-task-implementation
+// tag::custom-task-implementation[]
 import org.gradle.api.tasks.options.Option;
 
 public class UrlVerify extends DefaultTask {
@@ -41,4 +41,4 @@ public class UrlVerify extends DefaultTask {
         // verify URL by making a HTTP call
     }
 }
-// END SNIPPET custom-task-implementation
+// end::custom-task-implementation[]

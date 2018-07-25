@@ -13,84 +13,67 @@
 // limitations under the License.
 
 [[jdepend_plugin]]
-== The JDepend Plugin
+= The JDepend Plugin
 
 The JDepend plugin performs quality checks on your project's source files using http://clarkware.com/software/JDepend.html[JDepend] and generates reports from these checks.
 
 
 [[sec:jdepend_usage]]
-=== Usage
+== Usage
 
 To use the JDepend plugin, include the following in your build script:
 
-++++
-<sample id="useJDependPlugin" dir="codeQuality" title="Using the JDepend plugin">
-            <sourcefile file="build.gradle" snippet="use-jdepend-plugin"/>
-        </sample>
-++++
+=== Example: Using the JDepend plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/codeQuality/build.gradle[tag=use-jdepend-plugin]
+----
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 
 Note that JDepend will run with the same Java version used to run Gradle.
 
 [[sec:jdepend_tasks]]
-=== Tasks
+== Tasks
 
 The JDepend plugin adds the following tasks to the project:
 
-.JDepend plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`jdependMain` — link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
+_Depends on_: `classes`
++
+Runs JDepend against the production Java source files.
 
-| `jdependMain`
-| `classes`
-| api:org.gradle.api.plugins.quality.JDepend[]
-| Runs JDepend against the production Java source files.
+`jdependTest` — link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
+_Depends on_: `testClasses`
++
+Runs JDepend against the test Java source files.
 
-| `jdependTest`
-| `testClasses`
-| api:org.gradle.api.plugins.quality.JDepend[]
-| Runs JDepend against the test Java source files.
-
-| `jdepend__SourceSet__`
-| `__sourceSet__Classes`
-| api:org.gradle.api.plugins.quality.JDepend[]
-| Runs JDepend against the given source set's Java source files.
-|===
+`jdepend__SourceSet__` — link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend]::
+_Depends on_: `__sourceSet__Classes`
++
+Runs JDepend against the given source set's Java source files.
 
 The JDepend plugin adds the following dependencies to tasks defined by the Java plugin.
 
-.JDepend plugin - additional task dependencies
-[cols="a,a", options="header"]
-|===
-| Task name
-| Depends on
-| `check`
-| All JDepend tasks, including `jdependMain` and `jdependTest`.
-|===
+=== Additional task dependencies
 
+`check`::
+All JDepend tasks, including `jdependMain` and `jdependTest`.
 
 [[sec:jdepend_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The JDepend plugin adds the following dependency configurations:
 
-.JDepend plugin - dependency configurations
-[cols="a,a", options="header"]
-|===
-| Name
-| Meaning
+=== Dependency configurations
 
-| `jdepend`
-| The JDepend libraries to use
-|===
+`jdepend`::
+The JDepend libraries to use
 
 
 [[sec:jdepend_configuration]]
-=== Configuration
+== Configuration
 
-See the api:org.gradle.api.plugins.quality.JDependExtension[] class in the API documentation.
+See the link:{groovyDslPath}/org.gradle.api.plugins.quality.()JDependExtension.html[JDependExtension] class in the API documentation.

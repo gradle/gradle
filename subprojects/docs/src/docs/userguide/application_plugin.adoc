@@ -13,65 +13,71 @@
 // limitations under the License.
 
 [[application_plugin]]
-== The Application Plugin
+= The Application Plugin
 
 The Application plugin facilitates creating an executable JVM application. It makes it easy to start the application locally during development, and to package the application as a TAR and/or ZIP including operating system specific start scripts.
 
-Applying the Application plugin also implicitly applies the <<java_plugin,Java plugin>>. The `main` source set is effectively the “application”.
+Applying the Application plugin also implicitly applies the <<java_plugin.adoc#java_plugin,Java plugin>>. The `main` source set is effectively the “application”.
 
-Applying the Application plugin also implicitly applies the <<distribution_plugin,Distribution plugin>>. A `main` distribution is created that packages up the application, including code dependencies and generated start scripts.
+Applying the Application plugin also implicitly applies the <<distribution_plugin.adoc#distribution_plugin,Distribution plugin>>. A `main` distribution is created that packages up the application, including code dependencies and generated start scripts.
 
 
 [[sec:application_usage]]
-=== Usage
+== Usage
 
 To use the application plugin, include the following in your build script:
 
-++++
-<sample id="useApplicationPlugin" dir="application" title="Using the application plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Using the application plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/application/build.gradle[tag=use-plugin]
+----
 
 The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
 
-++++
-<sample id="useApplicationPlugin" dir="application" title="Configure the application main class">
-            <sourcefile file="build.gradle" snippet="mainClassName-conf"/>
-        </sample>
-++++
+=== Example: Configure the application main class
 
-You can run the application by executing the `run` task (type: api:org.gradle.api.tasks.JavaExec[]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see api:org.gradle.api.tasks.JavaExec#setDebug(boolean)[]).
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/application/build.gradle[tag=mainClassName-conf]
+----
 
-Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args 'foo --bar'` (see api:org.gradle.api.tasks.JavaExec#setArgsString(java.lang.String)[]).
+You can run the application by executing the `run` task (type: link:{javadocPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
+
+Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args 'foo --bar'` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setArgsString-java.lang.String-[JavaExec.setArgsString(java.lang.String)].
 
 If your application requires a specific set of JVM settings or system properties, you can configure the `applicationDefaultJvmArgs` property. These JVM arguments are applied to the `run` task and also considered in the generated start scripts of your distribution.
 
-++++
-<sample id="configureApplicationDefaultJvmArgs" dir="application" title="Configure default JVM settings">
-            <sourcefile file="build.gradle" snippet="application-defaultjvmargs"/>
-        </sample>
-++++
+=== Example: Configure default JVM settings
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/application/build.gradle[tag=application-defaultjvmargs]
+----
 
 If your application's start scripts should be in a different directory than `bin`, you can configure the `executableDir` property.
 
-++++
-<sample id="configureApplicationDefaultJvmArgs" dir="application" title="Configure custom directory for start scripts">
-            <sourcefile file="build.gradle" snippet="executableDir-conf"/>
-        </sample>
-++++
+=== Example: Configure custom directory for start scripts
 
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/application/build.gradle[tag=executableDir-conf]
+----
 
 [[sec:the_distribution]]
-==== The distribution
+=== The distribution
 
-A distribution of the application can be created, by way of the <<distribution_plugin,Distribution plugin>> (which is automatically applied). A `main` distribution is created with the following content:
+A distribution of the application can be created, by way of the <<distribution_plugin.adoc#distribution_plugin,Distribution plugin>> (which is automatically applied). A `main` distribution is created with the following content:
 
 .Distribution content
-[cols="a,a", options="header"]
+[%header%autowidth]
 |===
-| Location
-| Content
+| Location | Content
 
 | (root dir)
 | `src/dist`
@@ -83,72 +89,67 @@ A distribution of the application can be created, by way of the <<distribution_p
 | Start scripts (generated by `createStartScripts` task).
 |===
 
-Static files to be added to the distribution can be simply added to `src/dist`. More advanced customization can be done by configuring the api:org.gradle.api.file.CopySpec[] exposed by the main distribution.
+Static files to be added to the distribution can be simply added to `src/dist`. More advanced customization can be done by configuring the link:{javadocPath}/org.gradle.api.file.file.CopySpec.html[CopySpec] exposed by the main distribution.
 
-++++
-<sample id="includeTaskOutputInApplicationDistribution" dir="application" title="Include output from other tasks in the application distribution">
-                <sourcefile file="build.gradle" snippet="distribution-spec"/>
-            </sample>
-++++
+=== Example: Include output from other tasks in the application distribution
 
-By specifying that the distribution should include the task's output files (see <<sec:task_inputs_outputs>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/application/build.gradle[tag=distribution-spec]
+----
 
-++++
-<sample id="dependentTaskForApplicationDistributionOutput" dir="application" title="Automatically creating files for distribution">
-                <output args="distZip"/>
-            </sample>
-++++
+By specifying that the distribution should include the task's output files (see <<more_about_tasks.adoc#sec:task_inputs_outputs, more about tasks>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
+
+=== Example: Automatically creating files for distribution
+
+.Output of `gradle distZip`
+----
+> gradle distZip
+include::{samplesPath}/application/dependentTaskForApplicationDistributionOutput.out[]
+----
 
 You can run `gradle installDist` to create an image of the application in `build/install/__projectName__`. You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assemble` to build both.
 
 [[sec:customizing_start_script_generation]]
-==== Customizing start script generation
+=== Customizing start script generation
 
 The application plugin can generate Unix (suitable for Linux, macOS etc.) and Windows start scripts out of the box. The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. `JAVA_OPTS` env var). The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
 
-The start scripts are completely customizable. Please refer to the documentation of api:org.gradle.jvm.application.tasks.CreateStartScripts[] for more details and customization examples.
+The start scripts are completely customizable. Please refer to the documentation of link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] for more details and customization examples.
 
 [[sec:application_tasks]]
-=== Tasks
+== Tasks
 
 The Application plugin adds the following tasks to the project.
 
-.Application plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`run` — link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]::
+_Depends on_: `classes`
++
+Starts the application.
 
-| `run`
-| `classes`
-| api:org.gradle.api.tasks.JavaExec[]
-| Starts the application.
+`startScripts` — link:{groovyDslPath}/org.gradle.api.tasks.application.tasks.application.CreateStartScripts.html[CreateStartScripts]::
+_Depends on_: `jar`
++
+Creates OS specific scripts to run the project as a JVM application.
 
-| `startScripts`
-| `jar`
-| api:org.gradle.api.tasks.application.CreateStartScripts[]
-| Creates OS specific scripts to run the project as a JVM application.
+`installDist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+_Depends on_: `jar`, `startScripts`
++
+Installs the application into a specified directory.
 
-| `installDist`
-| `jar`, `startScripts`
-| api:org.gradle.api.tasks.Sync[]
-| Installs the application into a specified directory.
+`distZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.tasks.bundling.Zip.html[Zip]::
+_Depends on_: `jar`, `startScripts`
++
+Creates a full distribution ZIP archive including runtime libraries and OS specific scripts.
 
-| `distZip`
-| `jar`, `startScripts`
-| api:org.gradle.api.tasks.bundling.Zip[]
-| Creates a full distribution ZIP archive including runtime libraries and OS specific scripts.
-
-| `distTar`
-| `jar`, `startScripts`
-| api:org.gradle.api.tasks.bundling.Tar[]
-| Creates a full distribution TAR archive including runtime libraries and OS specific scripts.
-|===
+`distTar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.tasks.bundling.Tar.html[Tar]::
+_Depends on_: `jar`, `startScripts`
++
+Creates a full distribution TAR archive including runtime libraries and OS specific scripts.
 
 
 [[sec:application_convention_properties]]
-=== Convention properties
+== Convention properties
 
-The application plugin adds some properties to the project, which you can use to configure its behaviour. See the api:org.gradle.api.Project[] class in the API documentation.
+The application plugin adds some properties to the project, which you can use to configure its behaviour. See the link:{groovyDslPath}/org.gradle.api.Project.html[Project] class in the API documentation.

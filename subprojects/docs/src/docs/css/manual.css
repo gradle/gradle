@@ -814,10 +814,6 @@ a:focus {
     text-decoration: underline;
 }
 
-#content a {
-    font-style: italic;
-}
-
 #content a[href^='../dsl/'],
 #content a[href^='../javadoc/'] {
     font-family: monospace;
@@ -830,13 +826,6 @@ a:focus {
 #content a[href^='../javadoc/']:hover,
 #content a[href^='../javadoc/']:focus {
     text-decoration: none;
-}
-
-#content a.link,
-#content a.anchor,
-#content a[href^='http']
-#content a[href^='#'] {
-    font-style: normal;
 }
 
 /* Copy */
@@ -876,6 +865,16 @@ h5, h6 {
 
 b, strong {
     font-weight: 500;
+}
+
+.dlist dt code {
+    color: #02303A;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.dlist p {
+    margin-bottom: 0.625rem;
 }
 
 /* Layout */
@@ -997,8 +996,21 @@ p.lead,
     font-family: "Lato", Arial, sans-serif;
 }
 
+.admonitionblock .content,
+.admonitionblock p {
+    color: #666;
+}
+
 .verseblock pre {
     font-family: "Lato", Arial, sans-serif;
+}
+
+td.hdlist1 {
+    padding-bottom: 0.625rem;
+}
+
+td.hdlist2 p {
+    margin-bottom: 0.625rem;
 }
 
 body.book #header > h1 {
@@ -1137,6 +1149,11 @@ div.screenshot {
     width: 90%;
 }
 
+.inset {
+    box-shadow: 0 0 1px 1px rgba(0,0,0,0.1);
+    padding: 1em;
+}
+
 .image.inline-icon img {
     vertical-align: sub;
 }
@@ -1172,7 +1189,6 @@ div.screenshot {
 }
 
 #toc a {
-    color: #02303A;
     font-style: normal;
 }
 

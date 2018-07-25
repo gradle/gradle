@@ -17,16 +17,16 @@
 
 apply plugin: "java"
 
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: "jacoco"
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
-// START SNIPPET jacoco-configuration
+// tag::jacoco-configuration[]
 jacoco {
     toolVersion = "0.8.1"
     reportsDir = file("$buildDir/customJacocoReportDir")
 }
-// END SNIPPET jacoco-configuration
+// end::jacoco-configuration[]
 
 repositories {
     mavenCentral()
@@ -36,7 +36,7 @@ dependencies {
     testCompile "junit:junit:4.+"
 }
 
-// START SNIPPET testtask-configuration
+// tag::testtask-configuration[]
 test {
     jacoco {
         append = false
@@ -44,10 +44,10 @@ test {
         classDumpDir = file("$buildDir/jacoco/classpathdumps")
     }
 }
-// END SNIPPET testtask-configuration
+// end::testtask-configuration[]
 
 
-// START SNIPPET report-configuration
+// tag::report-configuration[]
 jacocoTestReport {
     reports {
         xml.enabled false
@@ -55,9 +55,9 @@ jacocoTestReport {
         html.destination file("${buildDir}/jacocoHtml")
     }
 }
-// END SNIPPET report-configuration
+// end::report-configuration[]
 
-// START SNIPPET violation-rules-configuration
+// tag::violation-rules-configuration[]
 jacocoTestCoverageVerification {
     violationRules {
         rule {
@@ -79,4 +79,4 @@ jacocoTestCoverageVerification {
         }
     }
 }
-// END SNIPPET violation-rules-configuration
+// end::violation-rules-configuration[]

@@ -13,13 +13,21 @@
 // limitations under the License.
 
 = Gradle User Manual: Version {gradleVersion}
+:description: Single-page Gradle User Manual for Gradle {gradleVersion}
+:meta-name-robots: noindex
+:meta-name-twitter_card: summary
+:meta-name-twitter_site: @gradle
+:meta-name-twitter_creator: @gradle
+:meta-name-twitter_title: {doctitle}
+:meta-name-twitter_description: {description}
+:meta-name-twitter_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
+:meta-name-twitter_image: {website}/images/gradle-256x256.png
 
 toc::[]
 
 == About Gradle
 
 include::overview.adoc[leveloffset=+2]
-
 
 == Getting Started
 

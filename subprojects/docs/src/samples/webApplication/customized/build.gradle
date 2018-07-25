@@ -10,13 +10,13 @@ buildscript {
 }
 apply plugin: 'org.gretty'
 
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'war'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 group = 'gradle'
 version = '1.0'
 
-// START SNIPPET customization
+// tag::customization[]
 configurations {
    moreLibs
 }
@@ -48,7 +48,7 @@ war {
     classpath configurations.moreLibs // adds a configuration to the WEB-INF/lib dir.
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
-// END SNIPPET customization
+// end::customization[]
 gretty {
     httpPort = 8080
 }

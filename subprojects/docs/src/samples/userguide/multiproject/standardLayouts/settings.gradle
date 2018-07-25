@@ -1,7 +1,7 @@
-//START SNIPPET hierarchical-layout
+// tag::hierarchical-layout[]
 include 'project1', 'project2:child', 'project3:child1'
-//END SNIPPET hierarchical-layout
+// end::hierarchical-layout[]
 
-//START SNIPPET flat-layout
+// tag::flat-layout[]
 includeFlat 'project3', 'project4'
-//END SNIPPET flat-layout
+// end::flat-layout[]

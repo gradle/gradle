@@ -1,4 +1,4 @@
-//START SNIPPET releasable-unit
+// tag::releasable-unit[]
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.gradle') {
@@ -7,9 +7,9 @@ configurations.all {
         }
     }
 }
-//END SNIPPET releasable-unit
+// end::releasable-unit[]
 
-//START SNIPPET custom-versioning-scheme
+// tag::custom-versioning-scheme[]
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.version == 'default') {
@@ -24,9 +24,9 @@ def findDefaultVersionInCatalog(String group, String name) {
     //some custom logic that resolves the default version into a specific version
     [version: "1.0", because: 'tested by QA']
 }
-//END SNIPPET custom-versioning-scheme
+// end::custom-versioning-scheme[]
 
-//START SNIPPET blacklisting_version
+// tag::blacklisting_version[]
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.software' && details.requested.name == 'some-library' && details.requested.version == '1.2') {
@@ -35,9 +35,9 @@ configurations.all {
         }
     }
 }
-//END SNIPPET blacklisting_version
+// end::blacklisting_version[]
 
-//START SNIPPET module_substitution
+// tag::module_substitution[]
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.name == 'groovy-all') {
@@ -50,4 +50,4 @@ configurations.all {
         }
     }
 }
-//END SNIPPET module_substitution
+// end::module_substitution[]

@@ -13,20 +13,22 @@
 // limitations under the License.
 
 [[managing_transitive_dependencies]]
-== Managing Transitive Dependencies
+= Managing Transitive Dependencies
 
 Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
 
 [[sec:dependency_constraints]]
-=== Managing versions of transitive dependencies with dependency constraints
+== Managing versions of transitive dependencies with dependency constraints
 
-Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies. It is the preferred method to express constraints that should be applied to all dependencies of a configuration. When Gradle attempts to resolve a dependency to a module version, all <<sub:declaring_dependency_with_version,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration. The highest version that matches all conditions is selected. If no such version is found, Gradle fails with an error showing the conflicting declarations. If this happens you can adjust your dependencies or dependency constraints declarations, or <<managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed. Similar to dependency declarations, dependency constraint declarations are <<managing_dependency_configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build. If a dependency constraint influenced the resolution result, any type of <<sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
+Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies. It is the preferred method to express constraints that should be applied to all dependencies of a configuration. When Gradle attempts to resolve a dependency to a module version, all <<declaring_dependencies.adoc#sub:declaring_dependency_with_version,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration. The highest version that matches all conditions is selected. If no such version is found, Gradle fails with an error showing the conflicting declarations. If this happens you can adjust your dependencies or dependency constraints declarations, or <<#managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed. Similar to dependency declarations, dependency constraint declarations are <<managing_dependency_configurations.adoc#managing_dependency_configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build. If a dependency constraint influenced the resolution result, any type of <<customizing_dependency_resolution_behavior.adoc#sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
-++++
-<sample id="declaringDependencyVersionsWithDependencyConstraints" dir="userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints" title="Define dependency constraints">
-    <sourcefile file="build.gradle" snippet="dependency-constraints"/>
-</sample>
-++++
+=== Example: Define dependency constraints
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints/build.gradle[tag=dependency-constraints]
+----
 
 In the example, all versions are omitted from the dependency declaration. Instead, the versions are defined in the constraints block. The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project. Otherwise, the constraint has no effect.
 
@@ -44,7 +46,7 @@ Support for _optional dependencies_ from pom files is active by default with Gra
 ====
 
 [[sec:excluding_transitive_module_dependencies]]
-=== Excluding transitive module dependencies
+== Excluding transitive module dependencies
 
 Declared dependencies in a build script can pull in a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
 
@@ -55,15 +57,18 @@ Declared dependencies in a build script can pull in a lot of transitive dependen
 
 Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J also defines transitive dependencies.
 
-++++
-<sample id="unresolvedTransitiveDependencies" dir="userguide/dependencyManagement/managingTransitiveDependencies/unresolved" title="Unresolved artifacts for transitive dependencies">
-    <sourcefile file="build.gradle" snippet="unresolved-transitive-dependencies"/>
-</sample>
-++++
+=== Example: Unresolved artifacts for transitive dependencies
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/unresolved/build.gradle[tag=unresolved-transitive-dependencies]
+----
 
 If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary files will fail e.g. a compilation task.
 
-```
+[listing]
+----
 > gradle -q compileJava
 
 * What went wrong:
@@ -77,35 +82,39 @@ Could not resolve all files for configuration ':compileClasspath'.
 > Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
   Searched in the following locations:
       https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
-```
+----
 
-The situation can be fixed by adding a repository containing those dependencies. In the given example project, the source code does not actually use any of Log4J's functionality that require the JMS (e.g. link:https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/net/JMSAppender.html[`JMSAppender`]) or JMX libraries. It's safe to exclude them from the dependency declaration.
+The situation can be fixed by adding a repository containing those dependencies. In the given example project, the source code does not actually use any of Log4J's functionality that require the JMS (e.g. `link:https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/net/JMSAppender.html[JMSAppender]`) or JMX libraries. It's safe to exclude them from the dependency declaration.
 
-Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[].
+Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#exclude-java.util.Map-[ModuleDependency.exclude(java.util.Map)].
 
-++++
-<sample id="exclude-transitive-for-dependency" dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency" title="Excluding transitive dependency for a particular dependency declaration">
-    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
-</sample>
-++++
+=== Example: Excluding transitive dependency for a particular dependency declaration
 
-You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method api:org.gradle.api.artifacts.Configuration#exclude(java.util.Map)[].
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/build.gradle[tag=exclude-transitive-dependencies]
+----
 
-++++
-<sample id="exclude-transitive-for-configuration" dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration" title="Excluding transitive dependency for a particular configuration">
-    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
-</sample>
-++++
+You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[Configuration.exclude(java.util.Map)].
+
+=== Example: Excluding transitive dependency for a particular configuration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/build.gradle[tag=exclude-transitive-dependencies]
+----
 
 [NOTE]
 ====
-As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[] to define a global rule.
+As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] to define a global rule.
 ====
 
-You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<customizing_dependency_resolution_behavior>>.
+You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API. Some of these use cases are covered in <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>>.
 
 [[sec:enforcing_dependency_version]]
-=== Enforcing a particular dependency version
+== Enforcing a particular dependency version
 
 Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph. Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
@@ -114,60 +123,70 @@ Gradle resolves any dependency version conflicts by selecting the latest version
 Enforcing a version of a dependency requires a conscious decision. Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them. Consider upgrading your source code to use a newer version of the library as an alternative approach.
 ====
 
-Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting api:org.gradle.api.artifacts.ExternalDependency#setForce(boolean)[] to `true`.
+Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting link:{javadocPath}/org/gradle/api/artifacts/ExternalDependency.html#setForce-boolean-[ExternalDependency.setForce(boolean)] to `true`.
 
-++++
-<sample id="force-per-dependency" dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency" title="Enforcing a dependency version">
-    <sourcefile file="build.gradle" snippet="force-per-dependency"/>
-</sample>
-++++
+=== Example: Enforcing a dependency version
 
-If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[].
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency/build.gradle[tag=force-per-dependency]
+----
 
-++++
-<sample id="force-per-configuration" dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration" title="Enforcing a dependency version on the configuration-level">
-    <sourcefile file="build.gradle" snippet="force-per-configuration"/>
-</sample>
-++++
+If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:force(java.lang.Object++[]++)[ResolutionStrategy.force(java.lang.Object++[]++)].
+
+=== Example: Enforcing a dependency version on the configuration-level
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration/build.gradle[tag=force-per-configuration]
+----
 
 [[sub:disabling_resolution_transitive_dependencies]]
-=== Disabling resolution of transitive dependencies
+== Disabling resolution of transitive dependencies
 
-By default Gradle resolves all transitive dependencies specified by the dependency metadata. Sometimes this behavior may not be desirable e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting api:org.gradle.api.artifacts.ModuleDependency#setTransitive(boolean)[] to `true`. As a result only the main artifact will be resolved for the declared dependency.
+By default Gradle resolves all transitive dependencies specified by the dependency metadata. Sometimes this behavior may not be desirable e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#setTransitive-boolean-[ModuleDependency.setTransitive(boolean)] to `true`. As a result only the main artifact will be resolved for the declared dependency.
 
-++++
-<sample id="disabling-transitive-dependency-resolution" dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency" title="Disabling transitive dependency resolution for a declared dependency">
-    <sourcefile file="build.gradle" snippet="transitive-per-dependency"/>
-</sample>
-++++
+=== Example: Disabling transitive dependency resolution for a declared dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/build.gradle[tag=transitive-per-dependency]
+----
 
 [NOTE]
 ====
 Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
 ====
 
-A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. For more information, see api:org.gradle.api.artifacts.Configuration#setTransitive(boolean)[].
+A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive-boolean-[Configuration.setTransitive(boolean)].
 
-++++
-<sample id="disabling-transitive-dependency-resolution-for-configuration" dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration" title="Disabling transitive dependency resolution on the configuration-level">
-    <sourcefile file="build.gradle" snippet="transitive-per-configuration"/>
-</sample>
-++++
+=== Example: Disabling transitive dependency resolution on the configuration-level
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/build.gradle[tag=transitive-per-configuration]
+----
 
 [[sec:bom_import]]
-=== Importing version recommendations from a Maven BOM
+== Importing version recommendations from a Maven BOM
 
 Gradle provides support for importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[bill of materials (BOM) files], which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. The BOM support in Gradle works similar to using `<scope>import</scope>` when depending on a BOM in Maven. In Gradle however, it is done via a regular dependency declaration on the BOM:
 
-++++
-<sample id="importing-dependency-constraints-from-bom" dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM" title="Depending on a BOM to import its dependency constraints">
-    <sourcefile file="build.gradle" snippet="dependency-on-bom"/>
-</sample>
-++++
+=== Example: Depending on a BOM to import its dependency constraints
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/build.gradle[tag=dependency-on-bom]
+----
 
 In the example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM. This way, if you are developing for a platform like Spring Boot, you do not have to declare any versions yourself but can rely on the versions the platform provides.
 
-Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<sec:dependency_constraints,Gradle's dependency constraints>>. This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result. In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
+Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<#sec:dependency_constraints,Gradle's dependency constraints>>. This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result. In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
 
 [NOTE]
 ====

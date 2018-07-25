@@ -1,5 +1,19 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[dependency_cache]]
-== The Dependency Cache
+= The Dependency Cache
 
 Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
 
@@ -11,7 +25,7 @@ The Gradle dependency cache consists of two storage types located under `GRADLE_
 The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior. Gradle enables reliable and reproducible enterprise builds with a focus on bandwidth and storage efficiency.
 
 [[sub:cache_metadata]]
-=== Separate metadata cache
+== Separate metadata cache
 
 Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache. The information stored in the metadata cache includes:
 
@@ -23,26 +37,26 @@ Gradle keeps a record of various aspects of dependency resolution in binary form
 Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
 
 [[sub:cache_repository_independence]]
-=== Repository caches are independent
+== Repository caches are independent
 
-As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases <<sub:cache_artifact_reuse,no download will be required>>.
+As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases <<#sub:cache_artifact_reuse,no download will be required>>.
 
 Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository. Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before. This is a key feature to create builds that are reliable and reproducible in any environment.
 
 [[sub:cache_artifact_reuse]]
-=== Artifact reuse
+== Artifact reuse
 
 Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact. If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum. If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
 
 As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository. If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
 
 [[sub:cache_checksum_storage]]
-=== Checksum based storage
+== Checksum based storage
 
 It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
 
 [[sub:cache_locking]]
-=== Cache Locking
+== Cache Locking
 
 The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
 

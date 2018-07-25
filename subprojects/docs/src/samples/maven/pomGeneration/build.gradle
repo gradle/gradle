@@ -1,7 +1,7 @@
 apply plugin: 'war'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'maven'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 group = 'gradle'
 version = '1.0'
@@ -59,14 +59,14 @@ uploadArchives {
 
 // Customize the contents of the pom
 
-// START SNIPPET when-configured
+// tag::when-configured[]
 def installer = install.repositories.mavenInstaller
 def deployer = uploadArchives.repositories.mavenDeployer
 
 [installer, deployer]*.pom*.whenConfigured {pom ->
     pom.dependencies.find {dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
 }
-// END SNIPPET when-configured
+// end::when-configured[]
 
 [installer, deployer]*.pom*.version = '1.0MVN'
 installer.pom.project {
@@ -74,7 +74,7 @@ installer.pom.project {
 }
 deployer.pom.groupId = 'deployGroup'
 
-// START SNIPPET new-pom
+// tag::new-pom[]
 task writeNewPom {
     doLast {
         pom {
@@ -91,7 +91,7 @@ task writeNewPom {
         }.writeTo("$buildDir/newpom.xml")
     }
 }
-// END SNIPPET new-pom
+// end::new-pom[]
 
 task writeDeployerPom(dependsOn: uploadArchives) {
     doLast {

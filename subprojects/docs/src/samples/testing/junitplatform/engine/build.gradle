@@ -9,11 +9,11 @@ dependencies {
     testImplementation 'org.junit.vintage:junit-vintage-engine:5.1.0'
 }
 
-// START SNIPPET filter-engine
+// tag::filter-engine[]
 test {
     useJUnitPlatform {
         includeEngines 'junit-vintage'
         // excludeEngines 'junit-jupiter'
     }
 }
-// END SNIPPET filter-engine
+// end::filter-engine[]

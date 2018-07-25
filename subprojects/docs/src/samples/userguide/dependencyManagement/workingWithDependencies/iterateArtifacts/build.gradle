@@ -11,7 +11,7 @@ dependencies {
     scm 'commons-codec:commons-codec:1.7'
 }
 
-//START SNIPPET iteration-task
+// tag::iteration-task[]
 task iterateResolvedArtifacts {
     dependsOn configurations.scm
 
@@ -21,4 +21,4 @@ task iterateResolvedArtifacts {
         }
     }
 }
-//END SNIPPET iteration-task
+// end::iteration-task[]

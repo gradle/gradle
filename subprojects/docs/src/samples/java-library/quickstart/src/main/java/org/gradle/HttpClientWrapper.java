@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET sample
+// tag::sample[]
 // The following types can appear anywhere in the code
 // but say nothing about API or implementation usage
 import org.apache.commons.httpclient.*;
@@ -57,4 +57,4 @@ public class HttpClientWrapper {
         return statusCode;
     }
 }
-// END SNIPPET sample
+// end::sample[]

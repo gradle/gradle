@@ -4,8 +4,8 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET scala-test-dependency
+// tag::scala-test-dependency[]
 dependencies {
     testCompile "org.scala-lang:scala-library:2.11.1"
 }
-// END SNIPPET scala-test-dependency
+// end::scala-test-dependency[]

@@ -13,210 +13,187 @@
 // limitations under the License.
 
 [[eclipse_plugin]]
-== The Eclipse Plugins
+= The Eclipse Plugins
 
 The Eclipse plugins generate files that are used by the http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse (`File` - `Import...` - `Existing Projects into Workspace`).
 
-The `eclipse-wtp` is automatically applied whenever the `eclipse` plugin is applied to a <<war_plugin,War>> or <<ear_plugin,Ear>> project. For utility projects (i.e. <<java_plugin,Java>> projects used by other web projects), you need to apply the `eclipse-wtp` plugin explicitly.
+The `eclipse-wtp` is automatically applied whenever the `eclipse` plugin is applied to a <<war_plugin.adoc#war_plugin,War>> or <<ear_plugin.adoc#ear_plugin,Ear>> project. For utility projects (i.e. <<java_plugin.adoc#java_plugin,Java>> projects used by other web projects), you need to apply the `eclipse-wtp` plugin explicitly.
 
 What exactly the `eclipse` plugin generates depends on which other plugins are used:
 
 .Eclipse plugin behavior
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin
-| Description
+| Plugin | Description
 
 | None
 | Generates minimal `.project` file.
 
-| <<java_plugin,Java>>
+| <<java_plugin.adoc#java_plugin,Java>>
 | Adds Java configuration to `.project`. Generates `.classpath` and JDT settings file.
 
-| <<groovy_plugin,Groovy>>
+| <<groovy_plugin.adoc#groovy_plugin,Groovy>>
 | Adds Groovy configuration to `.project` file.
 
-| <<scala_plugin,Scala>>
+| <<scala_plugin.adoc#scala_plugin,Scala>>
 | Adds Scala support to `.project` and `.classpath` files.
 
-| <<war_plugin,War>>
+| <<war_plugin.adoc#war_plugin,War>>
 | Adds web application support to `.project` file.
 
-| <<ear_plugin,Ear>>
+| <<ear_plugin.adoc#ear_plugin,Ear>>
 | Adds ear application support to `.project` file.
 |===
 
-The `eclipse-wtp` plugin generates all WTP settings files and enhances the `.project` file. If a <<java_plugin,Java>> or <<war_plugin,War>> is applied, `.classpath` will be extended to get a proper packaging structure for this utility library or web application project.
+The `eclipse-wtp` plugin generates all WTP settings files and enhances the `.project` file. If a <<java_plugin.adoc#java_plugin,Java>> or <<war_plugin.adoc#war_plugin,War>> is applied, `.classpath` will be extended to get a proper packaging structure for this utility library or web application project.
 
 Both Eclipse plugins are open to customization and provide a standardized set of hooks for adding and removing content from the generated files.
 
 
 [[sec:eclipse_usage]]
-=== Usage
+== Usage
 
 To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in your build script:
 
-++++
-<sample id="useEclipsePlugin" dir="eclipse" title="Using the Eclipse plugin">
-            <sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
-        </sample>
-++++
+=== Example: Using the Eclipse plugin
 
-++++
-<sample id="useEclipseWtpPlugin" dir="eclipse" title="Using the Eclipse WTP plugin">
-            <sourcefile file="build.gradle" snippet="use-eclipse-wtp-plugin"/>
-        </sample>
-++++
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/eclipse/build.gradle[tag=use-eclipse-plugin]
+----
+
+=== Example: Using the Eclipse WTP plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/eclipse/build.gradle[tag=use-eclipse-wtp-plugin]
+----
 
 _Note:_ Internally, the `eclipse-wtp` plugin also applies the `eclipse` plugin so you don't need to apply both.
 
 Both Eclipse plugins add a number of tasks to your projects. The main tasks that you will use are the `eclipse` and `cleanEclipse` tasks.
 
 [[sec:eclipse_tasks]]
-=== Tasks
+== Tasks
 
 The Eclipse plugins add the tasks shown below to a project.
 
 [[eclipsetasks]]
-.Eclipse plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Eclipse Plugin tasks
 
-| `eclipse`
-| all Eclipse configuration file generation tasks
-| api:org.gradle.api.Task[]
-| Generates all Eclipse configuration files
+`eclipse` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: all Eclipse configuration file generation tasks
++
+Generates all Eclipse configuration files
 
-| `cleanEclipse`
-| all Eclipse configuration file clean tasks
-| api:org.gradle.api.tasks.Delete[]
-| Removes all Eclipse configuration files
+`cleanEclipse` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+_Depends on_: all Eclipse configuration file clean tasks
++
+Removes all Eclipse configuration files
 
-| `cleanEclipseProject`
-| `-`
-| api:org.gradle.api.tasks.Delete[]
-| Removes the `.project` file.
+`cleanEclipseProject` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
++
+Removes the `.project` file.
 
-| `cleanEclipseClasspath`
-| `-`
-| api:org.gradle.api.tasks.Delete[]
-| Removes the `.classpath` file.
+`cleanEclipseClasspath` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
++
+Removes the `.classpath` file.
 
-| `cleanEclipseJdt`
-| `-`
-| api:org.gradle.api.tasks.Delete[]
-| Removes the `.settings/org.eclipse.jdt.core.prefs` file.
+`cleanEclipseJdt` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
++
+Removes the `.settings/org.eclipse.jdt.core.prefs` file.
 
-| `eclipseProject`
-| `-`
-| api:org.gradle.plugins.ide.eclipse.GenerateEclipseProject[]
-| Generates the `.project` file.
+`eclipseProject` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseProject.html[GenerateEclipseProject]::
++
+Generates the `.project` file.
 
-| `eclipseClasspath`
-| `-`
-| api:org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath[]
-| Generates the `.classpath` file.
+`eclipseClasspath` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.html[GenerateEclipseClasspath]::
++
+Generates the `.classpath` file.
 
-| `eclipseJdt`
-| `-`
-| api:org.gradle.plugins.ide.eclipse.GenerateEclipseJdt[]
-| Generates the `.settings/org.eclipse.jdt.core.prefs` file.
-|===
+`eclipseJdt` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.html[GenerateEclipseJdt]::
++
+Generates the `.settings/org.eclipse.jdt.core.prefs` file.
 
 [[eclipsewtptasks]]
-.Eclipse WTP plugin - additional tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+=== Eclipse WTP Plugin — additional tasks
 
-| `cleanEclipseWtpComponent`
-| `-`
-| api:org.gradle.api.tasks.Delete[]
-| Removes the `.settings/org.eclipse.wst.common.component` file.
+`cleanEclipseWtpComponent` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
++
+Removes the `.settings/org.eclipse.wst.common.component` file.
 
-| `cleanEclipseWtpFacet`
-| `-`
-| api:org.gradle.api.tasks.Delete[]
-| Removes the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
+`cleanEclipseWtpFacet` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
++
+Removes the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 
-| `eclipseWtpComponent`
-| `-`
-| api:org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent[]
-| Generates the `.settings/org.eclipse.wst.common.component` file.
+`eclipseWtpComponent` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.html[GenerateEclipseWtpComponent]::
++
+Generates the `.settings/org.eclipse.wst.common.component` file.
 
-| `eclipseWtpFacet`
-| `-`
-| api:org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet[]
-| Generates the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
-|===
+`eclipseWtpFacet` — link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.html[GenerateEclipseWtpFacet]::
++
+Generates the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 
 
 [[sec:eclipse_configuration]]
-=== Configuration
+== Configuration
 
 
 [[eclipse-configuration]]
 .Configuration of the Eclipse plugins
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Model
-| Reference name
-| Description
+| Model | Reference name | Description
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseModel[]
+| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseModel.html[EclipseModel]
 | `eclipse`
 | Top level element that enables configuration of the Eclipse plugin in a DSL-friendly fashion.
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseProject[]
+| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject]
 | `eclipse.project`
 | Allows configuring project information
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseClasspath[]
+| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[EclipseClasspath]
 | `eclipse.classpath`
 | Allows configuring classpath information.
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseJdt[]
+| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[EclipseJdt]
 | `eclipse.jdt`
 | Allows configuring jdt information (source/target Java compatibility).
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent[]
+| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.html[EclipseWtpComponent]
 | `eclipse.wtp.component`
 | Allows configuring wtp component information only if `eclipse-wtp` plugin was applied.
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet[]
+| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]
 | `eclipse.wtp.facet`
 | Allows configuring wtp facet information only if `eclipse-wtp` plugin was applied.
 |===
 
 
 [[sec:eclipse_customizing_the_generated_files]]
-=== Customizing the generated files
+== Customizing the generated files
 
 The Eclipse plugins allow you to customize the generated metadata files. The plugins provide a DSL for configuring model objects that model the Eclipse view of the project. These model objects are then merged with the existing Eclipse XML metadata to ultimately generate new metadata. The model objects provide lower level hooks for working with domain objects representing the file content before and after merging with the model configuration. They also provide a very low level hook for working directly with the raw XML for adjustment before it is persisted, for fine tuning and configuration that the Eclipse and Eclipse WTP plugins do not model.
 
 
 [[sec:merging_with_eclipse_files]]
-==== Merging
+=== Merging
 
 Sections of existing Eclipse files that are also the target of generated content will be amended or overwritten, depending on the particular section. The remaining sections will be left as-is.
 
 
 [[sec:complete_rewrite_of_eclipse_files]]
-===== Disabling merging with a complete rewrite
+==== Disabling merging with a complete rewrite
 
 To completely rewrite existing Eclipse files, execute a clean task together with its corresponding generation task, like “`gradle cleanEclipse eclipse`” (in that order). If you want to make this the default behavior, add “`tasks.eclipse.dependsOn(cleanEclipse)`” to your build script. This makes it unnecessary to execute the clean task explicitly.
 
 This strategy can also be used for individual files that the plugins would generate. For instance, this can be done for the “`.classpath`” file with “`gradle cleanEclipseClasspath eclipseClasspath`”.
 
 [[sec:hooking_into_the_eclipse_generation_lifecycle]]
-==== Hooking into the generation lifecycle
+=== Hooking into the generation lifecycle
 
 The Eclipse plugins provide objects modeling the sections of the Eclipse files that are generated by Gradle. The generation lifecycle is as follows:
 
@@ -227,85 +204,83 @@ The Eclipse plugins provide objects modeling the sections of the Eclipse files t
 . The `withXml` hook is executed with a raw representation of the XML that will be persisted
 . The final XML is persisted
 
-The following table lists the domain object used for each of the Eclipse model types:
-
 [[eclipse-plugin-hooks]]
-.Advanced configuration hooks
-[cols="a,a,a,a,a", options="header"]
-|===
-| Model
-| `beforeMerged { arg -&gt; }` argument type
-| `whenMerged { arg -&gt; }` argument type
-| `withXml { arg -&gt; }` argument type
-| `withProperties { arg -&gt; }` argument type
+==== Advanced configuration hooks
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseProject[]
-| api:org.gradle.plugins.ide.eclipse.model.Project[]
-| api:org.gradle.plugins.ide.eclipse.model.Project[]
-| api:org.gradle.api.XmlProvider[]
-| -
+The following list covers the domain object used for each of the Eclipse model types:
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseClasspath[]
-| api:org.gradle.plugins.ide.eclipse.model.Classpath[]
-| api:org.gradle.plugins.ide.eclipse.model.Classpath[]
-| api:org.gradle.api.XmlProvider[]
-| -
+link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject]::
+  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Project.html[Project] arg -&gt; ... }`
+  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Project.html[Project] arg -&gt; ... }`
+  * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseJdt[]
-| api:org.gradle.plugins.ide.eclipse.model.Jdt[]
-| api:org.gradle.plugins.ide.eclipse.model.Jdt[]
-| -
-| http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html[`java.util.Properties`]
+link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[EclipseClasspath]::
+  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath] arg -&gt; ... }`
+  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath] arg -&gt; ... }`
+  * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent[]
-| api:org.gradle.plugins.ide.eclipse.model.WtpComponent[]
-| api:org.gradle.plugins.ide.eclipse.model.WtpComponent[]
-| api:org.gradle.api.XmlProvider[]
-| -
+link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.html[EclipseWtpComponent]::
+  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent] arg -&gt; ... }`
+  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent] arg -&gt; ... }`
+  * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
-| api:org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet[]
-| api:org.gradle.plugins.ide.eclipse.model.WtpFacet[]
-| api:org.gradle.plugins.ide.eclipse.model.WtpFacet[]
-| api:org.gradle.api.XmlProvider[]
-| -
-|===
+link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]::
+  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
+  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
+  * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
+
+link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[EclipseJdt]::
+  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
+  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
+  * `withProperties { arg -&gt; }` argument type => http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html[`java.util.Properties`]
 
 
 [[sec:partial-overwrite]]
-===== Partial overwrite of existing content
+==== Partial overwrite of existing content
 
-A <<sec:complete-overwrite,complete overwrite>> causes all existing content to be discarded, thereby losing any changes made directly in the IDE. Alternatively, the `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Classpath` domain object:
-++++
-<sample id="partialOverwrites" dir="eclipse" title="Partial Overwrite for Classpath">
-                        <sourcefile file="build.gradle" snippet="module-before-merged"/>
-                    </sample>
-++++
+A complete overwrite causes all existing content to be discarded, thereby losing any changes made directly in the IDE. Alternatively, the `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Classpath` domain object:
+
+=== Example: Partial Overwrite for Classpath
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/eclipse/build.gradle[tag=module-before-merged]
+----
 The resulting `.classpath` file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the `.classpath` file will be either left as-is or merged. The same could be done for the natures in the `.project` file:
-++++
-<sample id="partialOverwritesProject" dir="eclipse" title="Partial Overwrite for Project">
-                        <sourcefile file="build.gradle" snippet="project-before-merged"/>
-                    </sample>
-++++
+
+=== Example: Partial Overwrite for Project
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/eclipse/build.gradle[tag=project-before-merged]
+----
 
 
 [[sec:eclipse_modify_domain_objects]]
-===== Modifying the fully populated domain objects
+==== Modifying the fully populated domain objects
 
 The `whenMerged` hook allows to manipulate the fully populated domain objects. Often this is the preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
-++++
-<sample id="exportDependencies" dir="eclipse" title="Export Classpath Entries">
-                        <sourcefile file="build.gradle" snippet="module-when-merged"/>
-                    </sample>
-++++
+
+=== Example: Export Classpath Entries
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/eclipse/build.gradle[tag=module-when-merged]
+----
 
 
 [[sec:eclipse_modify_xml]]
-===== Modifying the XML representation
+==== Modifying the XML representation
 
 The `withXml` hook allows to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
-++++
-<sample id="wtpWithXml" dir="eclipse" title="Customizing the XML">
-                        <sourcefile file="build.gradle" snippet="wtp-with-xml"/>
-                        <test args="cleanEclipse eclipse"/>
-                    </sample>
-++++
+
+=== Example: Customizing the XML
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/eclipse/build.gradle[tag=wtp-with-xml]
+----

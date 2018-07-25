@@ -4,7 +4,7 @@ apply plugin: 'signing'
 
 group = 'gradle'
 
-// START SNIPPET conditional-signing
+// tag::conditional-signing[]
 version = '1.0-SNAPSHOT'
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
@@ -12,14 +12,14 @@ signing {
     required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
     sign configurations.archives
 }
-// END SNIPPET conditional-signing
+// end::conditional-signing[]
 
 // Alternative to signing.required
-// START SNIPPET only-if
+// tag::only-if[]
 tasks.withType(Sign) {
     onlyIf { isReleaseVersion }
 }
-// END SNIPPET only-if
+// end::only-if[]
 
 uploadArchives {
     repositories {

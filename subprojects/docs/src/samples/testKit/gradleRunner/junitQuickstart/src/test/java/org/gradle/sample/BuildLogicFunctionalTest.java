@@ -16,7 +16,7 @@
 
 package org.gradle.sample;
 
-// START SNIPPET functional-test-junit
+// tag::functional-test-junit[]
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.Before;
@@ -74,4 +74,4 @@ public class BuildLogicFunctionalTest {
         }
     }
 }
-// END SNIPPET functional-test-junit
+// end::functional-test-junit[]
