@@ -67,7 +67,7 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         // Request should be complete soon after build completes
         routeChecker.completesWithin(1, TimeUnit.SECONDS)
     }
-    
+
     def "wait for changes to be built when a change occurs during a build"() {
         given:
         appRunning()

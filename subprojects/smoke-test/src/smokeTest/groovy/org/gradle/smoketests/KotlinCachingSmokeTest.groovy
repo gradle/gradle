@@ -18,7 +18,9 @@ package org.gradle.smoketests
 
 import org.eclipse.jgit.api.Git
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import spock.lang.Ignore
 
+@Ignore('need to clone other repo and run tests against it')
 class KotlinCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Spek framework build"() {

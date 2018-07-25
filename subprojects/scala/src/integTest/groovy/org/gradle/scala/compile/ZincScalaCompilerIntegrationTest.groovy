@@ -37,6 +37,7 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         args("-PscalaVersion=$version")
         buildFile << buildScript()
+        useRepositoryMirrors()
     }
 
     def compileGoodCode() {

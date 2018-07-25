@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.samples.organizinggradleprojects
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
-class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractIntegrationSpec {
+class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)

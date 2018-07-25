@@ -17,12 +17,14 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Ignore
 
-class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
+@Ignore("can't replace a included gradle build's repo in composite build")
+class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 

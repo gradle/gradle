@@ -15,14 +15,14 @@
  */
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 
 @Issue("GRADLE-1682")
-class TestNGJdkNavigationIntegrationTest extends AbstractIntegrationSpec {
+class TestNGJdkNavigationIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)

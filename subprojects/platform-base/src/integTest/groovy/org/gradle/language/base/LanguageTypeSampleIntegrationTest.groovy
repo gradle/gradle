@@ -15,27 +15,27 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 @Requires(TestPrecondition.ONLINE)
+@Ignore('contains buildSrc')
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
 
-    def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-    }
-
     def "shows custom language sourcesets in component"() {
         given:
         sample languageTypeSample
+
         when:
         succeeds "components"
+
         then:
         output.contains """
 DocumentationComponent 'docs'
@@ -56,10 +56,13 @@ Binaries
     def "can build binary"() {
         given:
         sample languageTypeSample
+
         when:
         succeeds "assemble"
+
         then:
         executedTasks == [":compileDocsExplodedReference", ":compileDocsExplodedUserguide", ":docsExploded", ":assemble"]
+
         and:
         languageTypeSample.dir.file("build/docs/exploded").assertHasDescendants(
                 "reference/README.txt",

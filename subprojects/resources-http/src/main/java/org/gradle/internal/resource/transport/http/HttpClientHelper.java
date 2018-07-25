@@ -121,6 +121,18 @@ public class HttpClientHelper implements Closeable {
     }
 
     public CloseableHttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
+        if (
+            request.getURI().toString().contains("jcenter.bintray.com")
+                || request.getURI().toString().contains("repo.typesafe.com")
+                || request.getURI().toString().contains("repo.lightbend.com")
+                || request.getURI().toString().contains("repo.maven.apache.org")
+                || request.getURI().toString().contains("repo.jfrog.org")
+                || request.getURI().toString().contains("repo.gradle.org")
+                || request.getURI().toString().contains("plugins.gradle.org")
+                || request.getURI().toString().contains("dl.google.com")
+            ) {
+            throw new AssertionError("");
+        }
         if (sharedContext == null) {
             // There's no authentication involved, requests can be done concurrently
             return performHttpRequest(request, new BasicHttpContext());
