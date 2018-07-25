@@ -35,7 +35,7 @@ public class FileSystemSnapshotFilterer {
     }
 
     public static FileSystemSnapshot filterSnapshot(final Spec<FileTreeElement> spec, FileSystemSnapshot unfiltered, final FileSystem fileSystem) {
-        final MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
+        final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
         unfiltered.accept(new PhysicalSnapshotVisitor() {
             private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
@@ -69,7 +69,7 @@ public class FileSystemSnapshotFilterer {
             @Override
             public void postVisitDirectory() {
                 relativePathTracker.leave();
-                builder.postVisitDirectory(false, true);
+                builder.postVisitDirectory();
             }
         });
         if (builder.getResult() == null) {

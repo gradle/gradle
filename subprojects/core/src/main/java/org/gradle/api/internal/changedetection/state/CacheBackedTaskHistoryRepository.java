@@ -230,7 +230,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 @Override
                 public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                     if (merkleBuilder == null) {
-                        merkleBuilder = new MerkleDirectorySnapshotBuilder();
+                        merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
                         currentRoot = directorySnapshot;
                         currentRootFiltered = false;
                     }
@@ -257,7 +257,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 public void postVisitDirectory() {
                     PhysicalDirectorySnapshot currentDirectory = dirTracker.removeLast();
                     boolean isOutputDir = isOutputEntry(currentDirectory, beforeExecutionSnapshots, afterPreviousSnapshots);
-                    boolean includedDir = merkleBuilder.postVisitDirectory(false, isOutputDir);
+                    boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
                     if (!includedDir) {
                         currentRootFiltered = true;
                         hasBeenFiltered.set(true);

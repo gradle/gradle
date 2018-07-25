@@ -204,7 +204,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         });
         PhysicalSnapshot rootSnapshot = root.get();
         if (rootSnapshot != null) {
-            MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
+            MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
             rootSnapshot.accept(builder);
             return Preconditions.checkNotNull(builder.getResult());
         }

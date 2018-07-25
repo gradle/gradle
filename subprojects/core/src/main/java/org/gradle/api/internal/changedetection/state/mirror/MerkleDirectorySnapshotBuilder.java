@@ -31,7 +31,20 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
     private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
     private final Deque<String> directoryAbsolutePaths = new ArrayDeque<String>();
+    private final boolean sortingRequired;
     private PhysicalSnapshot result;
+
+    public static MerkleDirectorySnapshotBuilder sortingRequired() {
+        return new MerkleDirectorySnapshotBuilder(true);
+    }
+
+    public static MerkleDirectorySnapshotBuilder noSortingRequired() {
+        return new MerkleDirectorySnapshotBuilder(false);
+    }
+
+    private MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
+        this.sortingRequired = sortingRequired;
+    }
 
     public boolean preVisitDirectory(String absolutePath, String name) {
         relativePathSegmentsTracker.enter(name);
@@ -56,10 +69,10 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
 
     @Override
     public void postVisitDirectory() {
-        postVisitDirectory(true, true);
+        postVisitDirectory(true);
     }
 
-    public boolean postVisitDirectory(boolean sortingRequired, boolean includeEmpty) {
+    public boolean postVisitDirectory(boolean includeEmpty) {
         String name = relativePathSegmentsTracker.leave();
         List<PhysicalSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();

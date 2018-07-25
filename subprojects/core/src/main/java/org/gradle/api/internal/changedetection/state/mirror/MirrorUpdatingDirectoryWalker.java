@@ -77,7 +77,7 @@ public class MirrorUpdatingDirectoryWalker {
 
     private PhysicalSnapshot walkDir(Path rootPath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
         final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
-        final MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
+        final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {

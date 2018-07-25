@@ -283,7 +283,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         RelativePathParser parser = new RelativePathParser();
         parser.rootPath(rootEntry.getName());
 
-        MerkleDirectorySnapshotBuilder builder = new MerkleDirectorySnapshotBuilder();
+        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         builder.preVisitDirectory(stringInterner.intern(propertyRoot.getAbsolutePath()), stringInterner.intern(propertyRoot.getName()));
 
         TarArchiveEntry entry;
@@ -293,7 +293,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
-                builder.postVisitDirectory(false, true);
+                builder.postVisitDirectory();
             }
             if (parser.getDepth() == 0) {
                 break;
@@ -311,7 +311,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         for (int i = 0; i < parser.getDepth(); i++) {
-            builder.postVisitDirectory(false, true);
+            builder.postVisitDirectory();
         }
 
         snapshots.put(propertyName, builder.getResult());
