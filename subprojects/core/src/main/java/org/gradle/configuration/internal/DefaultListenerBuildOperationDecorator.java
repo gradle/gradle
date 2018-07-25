@@ -18,6 +18,7 @@ package org.gradle.configuration.internal;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.apache.commons.lang.ClassUtils;
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;
@@ -32,7 +33,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,13 +86,16 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         applicationStack.finishApplication(id);
     }
 
-    public <T> T decorate(Class<T> cls, T listener) {
+    @SuppressWarnings("unchecked")
+    public <T> T decorate(Class<T> targetClass, T listener) {
         if (listener instanceof InternalListener) {
             return listener;
         }
         if (isSupported(listener)) {
+            Class<?> listenerClass = listener.getClass();
+            List<Class<?>> allInterfaces = ClassUtils.getAllInterfaces(listenerClass);
             BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(applicationStack.currentApplication(), listener);
-            return cls.cast(Proxy.newProxyInstance(listener.getClass().getClassLoader(), supportedInterfaces(listener), handler));
+            return targetClass.cast(Proxy.newProxyInstance(listenerClass.getClassLoader(), allInterfaces.toArray(new Class[0]), handler));
         }
         return listener;
     }
@@ -108,16 +111,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             }
         }
         return false;
-    }
-
-    private static Class<?>[] supportedInterfaces(Object listener) {
-        List<Class<?>> interfaces = new ArrayList<Class<?>>(SUPPORTED_INTERFACES.size());
-        for(Class<?> i : SUPPORTED_INTERFACES) {
-            if (i.isInstance(listener)) {
-                interfaces.add(i);
-            }
-        }
-        return interfaces.toArray(new Class<?>[0]);
     }
 
     private abstract class BuildOperationEmitter {
@@ -143,7 +136,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         private BuildOperationEmittingAction(ApplicationStackEntry application, Action<T> delegate) {
             super(application);
-//            System.out.println("BuildOperationEmittingAction: current application: " + application);
             this.delegate = delegate;
         }
 
@@ -212,14 +204,14 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         @Override
         public Object invoke(Object proxy, final Method method, final Object[] args) throws Throwable {
-            String methodName = method.getName();
+            final String methodName = method.getName();
             if (methodName.equals("toString") && args.length == 0) {
                 return "BuildOperationEmittingBuildListenerInvocationHandler{delegate: " + delegate + "}";
             } else if (methodName.equals("hashCode") && args == null || args.length == 0) {
-                return System.identityHashCode(proxy);
+                return delegate.hashCode();
             } else if (methodName.equals("equals") && args.length == 1) {
-                return proxy == args[0];
-            } else if(UNDECORATED_METHOD_NAMES.contains(methodName)){
+                return proxy == args[0] || delegate.equals(args[0]) || args[0] instanceof BuildOperationEmittingInvocationHandler && delegate.equals(((BuildOperationEmittingInvocationHandler) args[0]).delegate);
+            } else if(!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)){
                 // just execute directly
                 return method.invoke(delegate, args);
             } else {

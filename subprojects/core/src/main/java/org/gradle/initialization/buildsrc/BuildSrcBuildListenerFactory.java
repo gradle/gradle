@@ -16,7 +16,6 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.internal.Actions;
+import org.gradle.internal.InternalBuildAdapter;
 
 import java.io.File;
 import java.util.Collection;
@@ -46,7 +46,7 @@ public class BuildSrcBuildListenerFactory {
         return new Listener(buildSrcRootProjectConfiguration);
     }
 
-    public static class Listener extends BuildAdapter implements ModelConfigurationListener {
+    public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
         private Set<File> classpath;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
@@ -57,7 +57,6 @@ public class BuildSrcBuildListenerFactory {
         @Override
         public void projectsLoaded(Gradle gradle) {
             rootProjectConfiguration.execute((ProjectInternal)gradle.getRootProject());
-
         }
 
         @Override

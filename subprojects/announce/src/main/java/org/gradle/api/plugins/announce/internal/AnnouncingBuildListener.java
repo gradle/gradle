@@ -15,17 +15,17 @@
  */
 package org.gradle.api.plugins.announce.internal;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.internal.InternalBuildAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnnouncingBuildListener extends BuildAdapter implements TaskExecutionListener {
+public class AnnouncingBuildListener extends InternalBuildAdapter implements TaskExecutionListener {
     private final Announcer announcer;
     private List<Task> failed = new ArrayList<Task>();
     private Task lastFailed;

@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
@@ -28,7 +27,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.InternalListener;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -270,7 +269,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public TaskStatus status = TaskStatus.QUEUED;
     }
 
-    private class IncludedBuildExecutionListener extends BuildAdapter implements TaskExecutionGraphListener, BuildListener, InternalListener {
+    private class IncludedBuildExecutionListener extends InternalBuildAdapter implements TaskExecutionGraphListener, BuildListener {
         private final Collection<String> tasksToExecute;
 
         IncludedBuildExecutionListener(Collection<String> tasksToExecute) {
