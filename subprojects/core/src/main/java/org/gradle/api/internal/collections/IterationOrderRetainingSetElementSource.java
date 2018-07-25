@@ -117,7 +117,6 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         if (allRealizedValues().contains(element)) {
             // Represents an already inserted value (such as a just-realized provider value)
             // that may or may not have already been "added".
-            clearCachedValues();
             return added.add(element);
         } else {
             // A realized element that has not been inserted before.
