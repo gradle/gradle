@@ -19,6 +19,7 @@ package org.gradle.internal.logging.sink;
 import org.fusesource.jansi.AnsiOutputStream;
 import org.fusesource.jansi.internal.Kernel32.*;
 import org.fusesource.jansi.internal.WindowsSupport;
+import org.gradle.api.GradleSystem;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -131,7 +132,7 @@ public final class AnsiConsoleUtil {
      * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/AnsiConsole.java#L121-L124">Method copied over from AnsiConsole.isXterm</a>
      */
     private static boolean isXterm() {
-        String term = System.getenv("TERM");
+        String term = GradleSystem.getenv("TERM");
         return term != null && term.startsWith("xterm");
     }
 

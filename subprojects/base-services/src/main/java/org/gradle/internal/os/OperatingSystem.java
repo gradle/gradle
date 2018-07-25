@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.os;
 
+import org.gradle.api.GradleSystem;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -165,7 +166,7 @@ public abstract class OperatingSystem {
     }
 
     public List<File> getPath() {
-        String path = System.getenv(getPathVar());
+        String path = GradleSystem.getenv(getPathVar());
         if (path == null) {
             return Collections.emptyList();
         }

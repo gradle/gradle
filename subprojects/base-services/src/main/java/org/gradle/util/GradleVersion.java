@@ -17,6 +17,7 @@
 package org.gradle.util;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.GradleSystem;
 import org.gradle.internal.UncheckedException;
 
 import java.io.InputStream;
@@ -70,7 +71,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
             // to the version and need to test with various different version patterns.
             // We use an env variable because these are easy to set on daemon startup,
             // whereas system properties are scrubbed at daemon startup.
-            String overrideVersion = System.getenv(VERSION_OVERRIDE_VAR);
+            String overrideVersion = GradleSystem.getenv(VERSION_OVERRIDE_VAR);
             if (overrideVersion != null) {
                 version = overrideVersion;
             }

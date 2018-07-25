@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.GradleSystem;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.os.OperatingSystem;
@@ -66,7 +67,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         if (!invocation.getPath().isEmpty()) {
             String pathVar = OperatingSystem.current().getPathVar();
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
-            toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
+            toolPath = toolPath + File.pathSeparator + GradleSystem.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
             if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())) {
                 toolExec.getEnvironment().remove(pathVar.toUpperCase());

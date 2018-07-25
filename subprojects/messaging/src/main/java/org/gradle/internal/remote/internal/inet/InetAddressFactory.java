@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
+import org.gradle.api.GradleSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,9 +117,9 @@ public class InetAddressFactory {
 
 
     private InetAddress findOpenshiftAddresses() {
-        for (String key : System.getenv().keySet()) {
+        for (String key : GradleSystem.getenv().keySet()) {
             if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
-                String ipAddress = System.getenv(key);
+                String ipAddress = GradleSystem.getenv(key);
                 logger.debug("OPENSHIFT IP environment variable {} detected. Using IP address {}.", key, ipAddress);
                 try {
                     return InetAddress.getByName(ipAddress);

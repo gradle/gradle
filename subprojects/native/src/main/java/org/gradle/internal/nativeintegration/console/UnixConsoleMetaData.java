@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.console;
 
+import org.gradle.api.GradleSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class UnixConsoleMetaData implements ConsoleMetaData {
 
     @Override
     public int getCols() {
-        final String columns = System.getenv("COLUMNS");
+        final String columns = GradleSystem.getenv("COLUMNS");
         if (columns != null) {
             try {
                 return Integer.parseInt(columns);
@@ -54,7 +55,7 @@ public class UnixConsoleMetaData implements ConsoleMetaData {
 
     @Override
     public int getRows() {
-        final String rows = System.getenv("LINES");
+        final String rows = GradleSystem.getenv("LINES");
         if (rows != null) {
             try {
                 return Integer.parseInt(rows);

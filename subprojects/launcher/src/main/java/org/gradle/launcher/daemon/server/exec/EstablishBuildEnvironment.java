@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.GradleSystem;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
@@ -45,7 +46,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());
-        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
+        Map<String, String> originalEnv = new HashMap<String, String>(GradleSystem.getenv());
         File originalProcessDir = FileUtils.canonicalize(new File("."));
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
@@ -71,7 +72,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
                 + System.getProperty("line.separator") + "  "
                 + "If the daemon was started with a significantly different environment from the client, and your build "
                 + System.getProperty("line.separator") + "  "
-                + "relies on environment variables, you may experience unexpected behavior.");
+                + "relies on environment variables, you may experience unexpected behavior. Consider using Gradle.getenv()");
         }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 

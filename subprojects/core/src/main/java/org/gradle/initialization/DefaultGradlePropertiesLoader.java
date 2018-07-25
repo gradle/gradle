@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     Map<String, String> getAllEnvProperties() {
-        return System.getenv();
+        return GradleSystem.getenv();
     }
 
     private void addGradleProperties(Map<String, String> target, File... files) {

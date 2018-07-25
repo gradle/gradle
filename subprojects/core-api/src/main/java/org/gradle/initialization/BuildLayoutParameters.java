@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.GradleSystem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.Deprecatable;
 import org.gradle.internal.deprecation.LoggingDeprecatable;
@@ -40,7 +41,7 @@ public class BuildLayoutParameters implements Deprecatable {
     public BuildLayoutParameters() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome == null) {
-            gradleUserHome = System.getenv("GRADLE_USER_HOME");
+            gradleUserHome = GradleSystem.getenv("GRADLE_USER_HOME");
             if (gradleUserHome == null) {
                 gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
             }

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.GradleSystem;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
@@ -205,7 +206,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private void clearEnvironmentVars(MutableCommandLineToolContext invocation, String... names) {
         // TODO: This check should really be done in the compiler process
-        Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
+        Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(GradleSystem.getenv());
         for (String name : names) {
             Object value = environmentVariables.get(name);
             if (value != null) {
