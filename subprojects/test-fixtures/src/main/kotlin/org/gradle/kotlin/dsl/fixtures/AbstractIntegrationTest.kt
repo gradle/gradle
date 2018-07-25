@@ -29,10 +29,12 @@ val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
 open class AbstractIntegrationTest {
 
     @JvmField
-    @Rule val testName = TestName()
+    @Rule
+    val testName = TestName()
 
     @JvmField
-    @Rule val temporaryFolder = ForcefullyDeletedTemporaryFolder()
+    @Rule
+    val temporaryFolder = ForcefullyDeletedTemporaryFolder()
 
     @Before
     fun withDefaultGradleJvmArguments() =
