@@ -17,6 +17,10 @@
 package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.tasks.CacheableTask
+import java.util.concurrent.TimeUnit
+import java.util.Timer
+import kotlin.concurrent.timerTask
+import org.gradle.gradlebuild.BuildEnvironment
 
 
 /**
@@ -25,4 +29,37 @@ import org.gradle.api.tasks.CacheableTask
  * been using the term 'integration test'.
  */
 @CacheableTask
-open class IntegrationTest : DistributionTest()
+open class IntegrationTest : DistributionTest() {
+    override fun executeTests() {
+        printStacktracesAfterTimeout { super.executeTests() }
+    }
+
+    private
+    fun printStacktracesAfterTimeout(work: () -> Unit) = if (BuildEnvironment.isCiServer) {
+        val timer = Timer(true).apply {
+            schedule(timerTask {
+                project.javaexec {
+                    classpath = this@IntegrationTest.classpath
+                    main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
+                }
+            }, determineTimeoutMillis())
+        }
+        try {
+            work()
+        } finally {
+            timer.cancel()
+        }
+    } else {
+        work()
+    }
+
+    private
+    fun determineTimeoutMillis(): Long {
+        return if ("embeded" == System.getProperty("org.gradle.integtest.executer")) {
+            TimeUnit.MINUTES.toMillis(30)
+        } else {
+            TimeUnit.HOURS.toMillis(2)
+        }
+    }
+
+}

@@ -32,9 +32,6 @@ import org.gradle.build.GradleDistributionWithSamples
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
-import java.util.concurrent.TimeUnit
-import java.util.Timer
-import kotlin.concurrent.timerTask
 
 
 /**
@@ -65,37 +62,6 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
         systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
-    }
-
-    override fun executeTests() {
-        val timer = setTimeoutMonitor()
-        super.executeTests()
-        timer?.cancel()
-    }
-
-    private
-    fun setTimeoutMonitor(): Timer? {
-        return if (System.getenv().contains("CI")) {
-            Timer(true).also {
-                it.schedule(timerTask {
-                    project.javaexec {
-                        classpath = super<Test>.getClasspath()
-                        main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
-                    }
-                }, determineTimeoutMillis())
-            }
-        } else {
-            null
-        }
-    }
-
-    private
-    fun determineTimeoutMillis(): Long {
-        return if ("embeded" == System.getProperty("org.gradle.integtest.executer")) {
-            TimeUnit.MINUTES.toMillis(30)
-        } else {
-            TimeUnit.HOURS.toMillis(2)
-        }
     }
 }
 
