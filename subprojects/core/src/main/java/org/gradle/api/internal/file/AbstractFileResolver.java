@@ -46,7 +46,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     protected AbstractFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         this.fileSystem = fileSystem;
-        this.fileNotationParser = FileOrUriNotationConverter.parser(fileSystem);
+        this.fileNotationParser = FileOrUriNotationConverter.parser();
         this.patternSetFactory = patternSetFactory;
     }
 
