@@ -1006,8 +1006,21 @@ p.lead,
     font-family: "Lato", Arial, sans-serif;
 }
 
+.admonitionblock .content,
+.admonitionblock p {
+    color: #666;
+}
+
 .verseblock pre {
     font-family: "Lato", Arial, sans-serif;
+}
+
+td.hdlist1 {
+    padding-bottom: 0.625rem;
+}
+
+td.hdlist2 p {
+    margin-bottom: 0.625rem;
 }
 
 body.book #header > h1 {
