@@ -121,10 +121,11 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserOfReplacedMethodWithoutCustomRemoval(String methodName, String replacement, String removalDetails) {
+    public static void nagUserOfReplacedMethodWithCustomRemoval(String methodName, String replacement, String removalDetails) {
         if (isEnabled()) {
             nagUserWith(
-                String.format("The %s method has been deprecated.", methodName), removalDetails,
+                String.format("The %s method has been deprecated.", methodName),
+                removalDetails,
                 String.format("Please use the %s method instead.", replacement),
                 null,
                 DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
