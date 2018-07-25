@@ -17,6 +17,9 @@
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
+import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
+import org.gradle.kotlin.dsl.plugins.dsl.ProgressiveModeState
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
@@ -191,6 +194,12 @@ fun Project.applyKotlinProjectConventions() {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs += listOf("-Xjsr305=strict")
+        }
+    }
+
+    plugins.withType<KotlinDslPlugin> {
+        kotlinDslPluginOptions {
+            progressive.set(ProgressiveModeState.ENABLED)
         }
     }
 }
