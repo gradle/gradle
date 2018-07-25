@@ -18,7 +18,16 @@ package org.gradle.internal.graph;
 
 import org.gradle.util.GUtil;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A graph walker which collects the values reachable from a given set of start nodes. Handles cycles in the graph. Can
@@ -28,7 +37,7 @@ import java.util.*;
  */
 public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraphWithEdgeValues<N, T> graph;
-    private List<N> startNodes = new LinkedList<N>();
+    private List<N> startNodes = new ArrayList<N>();
     private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
     private final Map<N, Set<T>> cachedNodeValues = new HashMap<N, Set<T>>();
 
@@ -87,7 +96,7 @@ public class CachingDirectedGraphWalker<N, T> {
         int componentCount = 0;
         Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
         Map<Integer, NodeDetails<N, T>> components = new HashMap<Integer, NodeDetails<N, T>>();
-        LinkedList<N> queue = new LinkedList<N>(startNodes);
+        Deque<N> queue = new ArrayDeque<N>(startNodes);
 
         while (!queue.isEmpty()) {
             N node = queue.getFirst();
@@ -114,7 +123,7 @@ public class CachingDirectedGraphWalker<N, T> {
                     NodeDetails<N, T> connectedNodeDetails = seenNodes.get(connectedNode);
                     if (connectedNodeDetails == null) {
                         // Have not visited the successor node, so add to the queue for visiting
-                        queue.add(0, connectedNode);
+                        queue.addFirst(connectedNode);
                     } else if (!connectedNodeDetails.finished) {
                         // Currently visiting the successor node - we're in a cycle
                         details.stronglyConnected = true;

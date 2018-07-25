@@ -165,7 +165,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         succeeds "tasks"
-        result.output.contains '''thing configured
+        outputContains '''thing configured
 tasks configured
 '''
 
@@ -229,7 +229,7 @@ tasks configured
 
         then:
         succeeds "echo"
-        output.contains "values: [true, false, false]"
+        outputContains "values: [true, false, false]"
     }
 
     @Unroll
@@ -370,7 +370,7 @@ tasks configured
 
         then:
         succeeds "printMessage"
-        output.contains("message: [foo]")
+        outputContains("message: [foo]")
 
         where:
         code << [

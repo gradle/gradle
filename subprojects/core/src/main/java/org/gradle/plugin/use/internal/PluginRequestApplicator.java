@@ -21,7 +21,18 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
+import javax.annotation.Nullable;
+
 // Implementation is provided by 'plugin-use' module
 public interface PluginRequestApplicator {
-    void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, PluginManagerInternal target, ClassLoaderScope classLoaderScope);
+
+    /**
+     * Resolves the given {@link PluginRequests} into the given {@link ScriptHandlerInternal#getScriptClassPath()},
+     * exports the resulting classpath into the given {@link ClassLoaderScope}, closes it and then applies
+     * the requested plugins.
+     *
+     * A null target indicates that no plugin requests should be resolved but only the setup of the given
+     * {@link ClassLoaderScope}.
+     */
+    void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
 }

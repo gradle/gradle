@@ -16,18 +16,16 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor.DefaultResourceFileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.net.URI;
 
 public class DefaultExternalResourceAccessor implements ExternalResourceAccessor {
@@ -45,27 +43,28 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
     @Nullable
     @Override
     public LocallyAvailableExternalResource resolveUri(URI uri) {
-        return resolve(new ExternalResourceName(uri), uri);
+        return resolve(new ExternalResourceName(uri));
     }
 
     @Nullable
     @Override
     public LocallyAvailableExternalResource resolveResource(ExternalResourceName resource) {
-        return resolve(resource, resource.getUri());
+        return resolve(resource);
     }
 
-    private LocallyAvailableExternalResource resolve(final ExternalResourceName resource, URI uri) {
+    @Nullable
+    private LocallyAvailableExternalResource resolve(final ExternalResourceName resource) {
         LOGGER.debug("Loading {}", resource);
 
         try {
-            return resourceAccessor.getResource(resource, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
-                public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                    String key = Hashing.sha1().hashString(resource.toString()).toString();
-                    return fileStore.move(key, downloadedResource);
+            return resourceAccessor.getResource(resource, null, new DefaultResourceFileStore<String>(fileStore) {
+                @Override
+                protected String computeKey() {
+                    return resource.toString();
                 }
             }, null);
         } catch (Exception e) {
-            throw ResourceExceptions.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(resource.getUri(), e);
         }
     }
 }

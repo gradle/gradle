@@ -169,7 +169,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         ExecutionFailure failure = gradle.waitForFailure()
 
         then:
-        failure.assertOutputContains(DaemonStoppedException.MESSAGE + ": " + GcThrashingDaemonExpirationStrategy.EXPIRATION_REASON)
+        failure.assertHasDescription(DaemonStoppedException.MESSAGE + ": " + GcThrashingDaemonExpirationStrategy.EXPIRATION_REASON)
     }
 
     private boolean daemonIsExpiredEagerly() {

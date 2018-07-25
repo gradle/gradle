@@ -79,6 +79,10 @@ public class ClosureBackedAction<T> implements Action<T> {
         }
     }
 
+    public Closure getClosure() {
+        return closure;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

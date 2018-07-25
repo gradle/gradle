@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resource.local.ivy;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
@@ -47,8 +47,8 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
     private final FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore;
 
     public LocallyAvailableResourceFinderFactory(
-            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore) {
-        this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
+        ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore) {
+        this.rootCachesDirectory = artifactCacheMetadata.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;
     }

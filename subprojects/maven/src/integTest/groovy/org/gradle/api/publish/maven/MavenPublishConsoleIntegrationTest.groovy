@@ -16,14 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
-
-class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -62,6 +61,9 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
         def putPom = server.expectAndBlock(server.put(m1.pom.path))
         def putPomSha = server.expectAndBlock(server.put(m1.pom.path + ".sha1"))
         server.expect(server.put(m1.pom.path + ".md5"))
+        def putModule = server.expectAndBlock(server.put(m1.moduleMetadata.path))
+        server.expect(server.put(m1.moduleMetadata.path + ".sha1"))
+        server.expect(server.put(m1.moduleMetadata.path + ".md5"))
         def getMetaData = server.expectAndBlock(server.missing(m1.rootMetaData.path))
         def putMetaData = server.expectAndBlock(server.put(m1.rootMetaData.path))
         server.expect(server.put(m1.rootMetaData.path + ".sha1"))
@@ -93,6 +95,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
             assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.pom"))
         }
 
+        when:
         putPom.releaseAll()
         putPomSha.waitForAllPendingCalls()
 
@@ -103,6 +106,15 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
 
         when:
         putPomSha.releaseAll()
+        putModule.waitForAllPendingCalls()
+
+        then:
+        ConcurrentTestUtil.poll {
+             assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded"))
+        }
+
+        when:
+        putModule.releaseAll()
         getMetaData.waitForAllPendingCalls()
 
         then:

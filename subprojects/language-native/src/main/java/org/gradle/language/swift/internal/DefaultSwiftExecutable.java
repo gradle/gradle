@@ -18,16 +18,116 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.Set;
 
-public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
+public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
+    private final RegularFileProperty executableFile;
+    private final DirectoryProperty installDirectory;
+    private final Property<Configuration> runtimeElementsProperty;
+    private final Property<LinkExecutable> linkTaskProperty;
+    private final Property<InstallExecutable> installTaskProperty;
+    private final RegularFileProperty debuggerExecutableFile;
+    private final ConfigurableFileCollection outputs;
+
     @Inject
-    public DefaultSwiftExecutable(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, objectFactory, module, debuggable, source, configurations, implementation);
+    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(name, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        this.executableFile = projectLayout.fileProperty();
+        this.installDirectory = projectLayout.directoryProperty();
+        this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
+        this.installTaskProperty = objectFactory.property(InstallExecutable.class);
+        this.debuggerExecutableFile = projectLayout.fileProperty();
+        this.runtimeElementsProperty = objectFactory.property(Configuration.class);
+        this.outputs = fileOperations.configurableFiles();
+    }
+
+    @Override
+    public ConfigurableFileCollection getOutputs() {
+        return outputs;
+    }
+
+    @Override
+    public RegularFileProperty getExecutableFile() {
+        return executableFile;
+    }
+
+    @Override
+    public DirectoryProperty getInstallDirectory() {
+        return installDirectory;
+    }
+
+    @Override
+    public Property<LinkExecutable> getLinkTask() {
+        return linkTaskProperty;
+    }
+
+    @Override
+    public Property<InstallExecutable> getInstallTask() {
+        return installTaskProperty;
+    }
+
+    @Override
+    public RegularFileProperty getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
+    }
+
+    @Override
+    public Property<Configuration> getRuntimeElements() {
+        return runtimeElementsProperty;
+    }
+
+    @Override
+    public Provider<RegularFile> getRuntimeFile() {
+        return executableFile;
+    }
+
+    @Nullable
+    @Override
+    public Linkage getLinkage() {
+        return null;
+    }
+
+    @Override
+    public boolean hasRuntimeFile() {
+        return true;
+    }
+
+    @Override
+    public Set<? extends UsageContext> getUsages() {
+        Configuration runtimeElements = runtimeElementsProperty.get();
+        return Collections.singleton(new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements));
+    }
+
+    @Override
+    public AttributeContainer getRuntimeAttributes() {
+        return getIdentity().getRuntimeUsageContext().getAttributes();
     }
 }

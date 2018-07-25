@@ -17,14 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.RootConfigurationMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
-class RootNode extends NodeState {
-    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
-        super(resultId, id, moduleRevision, resolveState);
+class RootNode extends NodeState implements RootGraphNode {
+    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, ConfigurationMetadata configuration) {
+        super(resultId, id, moduleRevision, resolveState, configuration);
+        moduleRevision.setRoot();
     }
 
     @Override
@@ -34,7 +37,7 @@ class RootNode extends NodeState {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        return ((LocalConfigurationMetadata) getMetadata()).getFiles();
+        return getMetadata().getFiles();
     }
 
     @Override
@@ -44,5 +47,10 @@ class RootNode extends NodeState {
 
     @Override
     public void deselect() {
+    }
+
+    @Override
+    public RootConfigurationMetadata getMetadata() {
+        return (RootConfigurationMetadata) super.getMetadata();
     }
 }

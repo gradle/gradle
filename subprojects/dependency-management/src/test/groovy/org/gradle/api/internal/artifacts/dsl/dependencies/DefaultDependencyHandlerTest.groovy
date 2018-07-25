@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
+import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
@@ -23,11 +24,13 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import org.gradle.internal.Factory
 import spock.lang.Specification
@@ -44,7 +47,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private DependencySet dependencySet = Mock()
 
     private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyHandler,
-        configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
+        configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory))
 
     void setup() {
@@ -102,7 +105,12 @@ class DefaultDependencyHandlerTest extends Specification {
         ExternalDependency dependency = Mock()
 
         when:
-        def result = dependencyHandler.create("someNotation") { force = true}
+        def result = dependencyHandler.create("someNotation") {
+            force = true
+            version {
+                it.prefer '1.0'
+            }
+        }
 
         then:
         result == dependency
@@ -110,6 +118,7 @@ class DefaultDependencyHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
         1 * dependency.setForce(true)
+        1 * dependency.version(_ as Action<VersionConstraint>)
     }
 
     void "can use dynamic method to add dependency"() {

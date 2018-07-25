@@ -17,16 +17,16 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
- * Configuration for the <a href="https://docs.gradle.org/current/userguide/build_cache.html">build cache</a> for an entire Gradle build.
+ * Configuration for the <a href="https://docs.gradle.org/current/userguide/build_cache.html" target="_top">build cache</a> for an entire Gradle build.
  *
  * @since 3.5
  */
-@Incubating
 @HasInternalProtocol
 public interface BuildCacheConfiguration {
 
@@ -47,7 +47,7 @@ public interface BuildCacheConfiguration {
      * Configures the local cache with the given type.
      *
      * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
-     * <p>Push is enabled by default for the local cache.</p>
+     * <p>Storing ("push") in the local build cache is enabled by default.</p>
      *
      * @param type the type of local cache to configure.
      */
@@ -58,7 +58,7 @@ public interface BuildCacheConfiguration {
      *
      * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
      * <p>If a local build cache has already been configured with the <b>same</b> type, this method configures it.</p>
-     * <p>Push is enabled by default for the local cache.</p>
+     * <p>Storing ("push") in the local build cache is enabled by default.</p>
      *
      * @param type the type of local cache to configure.
      * @param configuration the configuration to execute against the remote cache.
@@ -75,6 +75,7 @@ public interface BuildCacheConfiguration {
     /**
      * Returns the remote cache configuration.
      */
+    @Nullable
     BuildCache getRemote();
 
     /**
@@ -83,7 +84,7 @@ public interface BuildCacheConfiguration {
      * If a remote build cache has already been configured with a different type, this method replaces it.
      * </p>
      * <p>
-     * Push is disabled by default for the remote cache.
+     * Storing ("push") in the remote build cache is disabled by default.
      * </p>
      * @param type the type of remote cache to configure.
      *
@@ -99,7 +100,7 @@ public interface BuildCacheConfiguration {
      * If a remote build cache has already been configured with the <b>same</b>, this method configures it.
      * </p>
      * <p>
-     * Push is disabled by default for the remote cache.
+     * Storing ("push") in the remote build cache is disabled by default.
      * </p>
      * @param type the type of remote cache to configure.
      * @param configuration the configuration to execute against the remote cache.

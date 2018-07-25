@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class DefaultComponentArtifactsResult implements ComponentArtifactsResult {
     private final ComponentIdentifier componentIdentifier;
-    private final Set<ArtifactResult> artifactResults = Sets.newHashSet();
+    private final Set<ArtifactResult> artifactResults = Sets.newLinkedHashSet();
 
     public DefaultComponentArtifactsResult(ComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;

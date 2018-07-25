@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import java.util.Collection;
 
 public class DefaultProjectTaskLister implements ProjectTaskLister {
-    public Collection<Task> listProjectTasks(Project project) {
+    public synchronized Collection<Task> listProjectTasks(Project project) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         TaskContainerInternal tasks = projectInternal.getTasks();
         tasks.realize();

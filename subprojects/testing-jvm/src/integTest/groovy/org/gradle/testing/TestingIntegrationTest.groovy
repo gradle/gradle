@@ -16,9 +16,10 @@
 package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
@@ -26,10 +27,14 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
-class TestingIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -73,20 +78,29 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArgument("-Dtest.debug")
-
+        executer.withArgument("-Dtest.debug").expectDeprecationWarning()
         then:
         succeeds("test")
+        output.contains("System property 'test.debug' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --debug-jvm to enable remote debugging of tests.")
+        when:
+        executer.withArgument("-D:test.debug").expectDeprecationWarning()
+        then:
+        succeeds("test")
+        output.contains("System property ':test.debug' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --debug-jvm to enable remote debugging of tests.")
+
+        expect:
+        succeeds("test", "--debug-jvm")
     }
 
     def "configures test task when test.single property is set"() {
         given:
         buildFile << """
             apply plugin: 'java'
+
             task validate() {
                 doFirst {
+                    assert test.candidateClassFiles.empty
                     assert test.includes  == ['**/pattern*.class'] as Set
-                    assert test.inputs.sourceFiles.empty
                 }
             }
             test.include 'ignoreme'
@@ -95,10 +109,17 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArgument("-Dtest.single=pattern")
-
+        executer.withArgument("-Dtest.single=pattern").expectDeprecationWarning()
         then:
         succeeds("test")
+        output.contains("System property 'test.single' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --tests to filter which tests to run instead.")
+
+
+        when:
+        executer.withArgument("-D:test.single=pattern").expectDeprecationWarning()
+        then:
+        succeeds("test")
+        output.contains("System property ':test.single' has been deprecated. This is scheduled to be removed in Gradle 5.0. Use --tests to filter which tests to run instead.")
     }
 
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
@@ -223,6 +244,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     "can clean test after extracting class file with #framework"() {
         when:
+        ignoreWhenJUnitPlatform()
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
@@ -249,6 +271,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")
     def "test class detection works for custom test tasks"() {
         given:
+        ignoreWhenJupiter()
         buildFile << """
                 apply plugin:'java'
                 ${mavenCentralRepository()}
@@ -476,5 +499,42 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5305")
+    def "test can install an irreplaceable SecurityManager"() {
+        given:
+        executer.withStackTraceChecksDisabled()
+        buildFile << """
+            apply plugin:'java'
+            ${mavenCentralRepository()}
+            dependencies { testCompile 'junit:junit:4.12' }
+        """
+
+        and:
+        file('src/test/java/SecurityManagerInstallationTest.java') << """
+            import org.junit.Test;
+            import java.security.Permission;
+
+            public class SecurityManagerInstallationTest {
+                @Test
+                public void testSecurityManagerCleanExit() {
+                    System.setSecurityManager(new SecurityManager() {
+                        @Override
+                        public void checkPermission(Permission perm) {
+                            if ("setSecurityManager".equals(perm.getName())) {
+                                throw new SecurityException("You cannot replace this security manager!");
+                            }
+                        }
+                    });
+                }
+            }
+        """
+
+        when:
+        succeeds "test"
+
+        then:
+        outputContains "Unable to reset SecurityManager"
     }
 }

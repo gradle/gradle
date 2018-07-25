@@ -17,25 +17,23 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeParallelIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegrationTest {
     def app = new SwiftApp()
 
-    def "link task is executed in parallel"() {
-        settingsFile << "rootProject.name = 'app'"
-
-        given:
+    def setup() {
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
-
-        and:
         buildFile << """
-            apply plugin: 'swift-executable'
-        """
+            apply plugin: 'swift-application'
+         """
+    }
 
+    def "link task is executed in parallel"() {
         createTaskThatRunsInParallelUsingCustomToolchainWith("linkDebug")
 
         when:
@@ -46,16 +44,6 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
     }
 
     def "compile task is executed in parallel"() {
-        settingsFile << "rootProject.name = 'app'"
-
-        given:
-        app.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            apply plugin: 'swift-executable'
-         """
-
         createTaskThatRunsInParallelUsingCustomToolchainWith("compileDebugSwift")
 
         when:

@@ -55,6 +55,9 @@ class TestExecutor implements Executor {
                     runnable.run()
                 } catch (Throwable throwable) {
                     logger.log "failed"
+                    def writer = new StringWriter()
+                    throwable.printStackTrace(new PrintWriter(writer))
+                    logger.log writer
                     lock.lock()
                     try {
                         if (failure == null) {
@@ -67,7 +70,7 @@ class TestExecutor implements Executor {
                     logger.log "finished"
                     lock.lock()
                     try {
-                        threads.remove(Thread.currentThread())
+                        TestExecutor.this.threads.remove(currentThread())
                         condition.signalAll()
                     } finally {
                         lock.unlock()

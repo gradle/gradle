@@ -17,18 +17,18 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.internal.file.PathToFileResolver;
 
 public class TaskPropertyFileCollection extends CompositeFileCollection {
     private final String taskName;
     private final String type;
     private final TaskFilePropertySpec property;
-    private final FileResolver resolver;
+    private final PathToFileResolver resolver;
     private final Object paths;
     private String displayName;
 
-    public TaskPropertyFileCollection(String taskName, String type, TaskFilePropertySpec property, FileResolver resolver, Object paths) {
+    public TaskPropertyFileCollection(String taskName, String type, TaskFilePropertySpec property, PathToFileResolver resolver, Object paths) {
         this.taskName = taskName;
         this.type = type;
         this.property = property;

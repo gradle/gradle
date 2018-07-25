@@ -19,6 +19,7 @@ package org.gradle.test.fixtures.file;
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -43,7 +44,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     private TestFile dir;
     private String prefix;
     private boolean cleanup = true;
-    private boolean suppressCleanupErrors;
+    private boolean suppressCleanupErrors = false;
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -60,27 +61,38 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         cleanup = false;
     }
 
+    public void suppressCleanupErrors() {
+        suppressCleanupErrors = true;
+    }
+
     public boolean isCleanup() {
         return cleanup;
     }
 
+    public void cleanup() {
+        if (cleanup && dir != null && dir.exists()) {
+            ConcurrentTestUtil.poll(new Closure(null, null) {
+                @SuppressWarnings("UnusedDeclaration")
+                void doCall() throws IOException {
+                    FileUtils.forceDelete(dir);
+                }
+            });
+        }
+    }
+
     public Statement apply(final Statement base, Description description) {
-        Class<?> testClass = description.getTestClass();
-        init(description.getMethodName(), testClass.getSimpleName());
+        init(description.getMethodName(), description.getTestClass().getSimpleName());
 
-        suppressCleanupErrors = testClass.getAnnotation(LeaksFileHandles.class) != null
-            || description.getAnnotation(LeaksFileHandles.class) != null;
-
-        return new TestDirectoryCleaningStatement(base, description.getDisplayName());
+        return new TestDirectoryCleaningStatement(base, description);
     }
 
     private class TestDirectoryCleaningStatement extends Statement {
         private final Statement base;
-        private final String displayName;
+        private final Description description;
 
-        public TestDirectoryCleaningStatement(Statement base, String displayName) {
+        TestDirectoryCleaningStatement(Statement base, Description description) {
             this.base = base;
-            this.displayName = displayName;
+            this.description = description;
         }
 
         @Override
@@ -89,22 +101,34 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
             base.evaluate();
 
             try {
-                if (cleanup && dir != null && dir.exists()) {
-                    ConcurrentTestUtil.poll(new Closure(null, null) {
-                        @SuppressWarnings("UnusedDeclaration")
-                        void doCall() throws IOException {
-                            FileUtils.forceDelete(dir);
-                        }
-                    });
-                }
+                cleanup();
             } catch (Exception e) {
-                if (suppressCleanupErrors) {
-                    System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
+                if (suppressCleanupErrors()) {
+                    System.err.println(cleanupErrorMessage());
                     e.printStackTrace(System.err);
                 } else {
-                    throw e;
+                    throw new GradleException(cleanupErrorMessage(), e);
                 }
             }
+        }
+
+        private boolean suppressCleanupErrors() {
+            return suppressCleanupErrors
+                || testClass().getAnnotation(LeaksFileHandles.class) != null
+                || description.getAnnotation(LeaksFileHandles.class) != null;
+        }
+
+        private Class<?> testClass() {
+            return description.getTestClass();
+        }
+
+        private String cleanupErrorMessage() {
+            return "Couldn't delete test dir for `" + displayName() + "` (test is holding files open). "
+                + "In order to find out which files are held open you may find http://file-leak-detector.kohsuke.org/ useful.";
+        }
+
+        private String displayName() {
+            return description.getDisplayName();
         }
     }
 

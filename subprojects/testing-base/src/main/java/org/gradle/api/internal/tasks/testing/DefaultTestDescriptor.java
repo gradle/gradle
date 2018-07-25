@@ -17,11 +17,19 @@
 package org.gradle.api.internal.tasks.testing;
 
 public class DefaultTestDescriptor extends AbstractTestDescriptor {
+    private final String displayName;
     private final String className;
+    private final String classDisplayName;
 
     public DefaultTestDescriptor(Object id, String className, String name) {
+        this(id, className, name, className, name);
+    }
+
+    public DefaultTestDescriptor(Object id, String className, String name, String classDisplayName, String displayName) {
         super(id, name);
         this.className = className;
+        this.classDisplayName = classDisplayName;
+        this.displayName = displayName;
     }
 
     @Override
@@ -37,5 +45,15 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     @Override
     public String getClassName() {
         return className;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public String getClassDisplayName() {
+        return classDisplayName;
     }
 }

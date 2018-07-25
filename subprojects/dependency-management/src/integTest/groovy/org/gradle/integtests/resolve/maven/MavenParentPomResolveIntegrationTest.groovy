@@ -84,37 +84,24 @@ task retrieve(type: Sync) {
 
         def parent = mavenRepo.module("org", "parent", "1.0")
         parent.hasPackaging('pom')
+        parent.dependencyConstraint(mavenRepo.module('org', 'child_dep', '1.7'))
+        parent.dependencyConstraint(mavenRepo.module('org', 'child_dep', '44'), type: 'bar')
+        parent.dependencyConstraint(mavenRepo.module('org', 'child_dep', '44'), classifier: 'classy')
+
+        parent.dependencyConstraint(mavenRepo.module('org', 'typed_dep', '44'))
+        parent.dependencyConstraint(mavenRepo.module('org', 'typed_dep', '1.8'), type: 'bar')
+        parent.dependencyConstraint(mavenRepo.module('org', 'typed_dep', '44'), type: 'zip')
+
+        parent.dependencyConstraint(mavenRepo.module('org', 'classified_dep', '44'))
+        parent.dependencyConstraint(mavenRepo.module('org', 'classified_dep', '1.9'), classifier: 'classy')
+        parent.dependencyConstraint(mavenRepo.module('org', 'classified_dep', '44'), classifier: 'other')
+
+        parent.dependencyConstraint(mavenRepo.module('org', 'fq_dep', '44'))
+        parent.dependencyConstraint(mavenRepo.module('org', 'fq_dep', '44'), classifier: 'classy')
+        parent.dependencyConstraint(mavenRepo.module('org', 'fq_dep', '44'), type: 'bar')
+        parent.dependencyConstraint(mavenRepo.module('org', 'fq_dep', '2.1'), classifier: 'classy', type: 'bar')
+
         parent.publish()
-
-        def dep = { Map vals ->
-            def depString = "<dependency><groupId>org</groupId>"
-            vals.each { key, val -> depString += "<$key>$val</$key>" }
-            depString += "</dependency>"
-        }
-
-        parent.pomFile.text = parent.pomFile.text.replace("</project>", """
-<dependencyManagement>
-    <dependencies>
-        ${dep(artifactId: 'child_dep', version: '1.7')}
-        ${dep(artifactId: 'child_dep', version: '44', type: 'bar')}
-        ${dep(artifactId: 'child_dep', version: '44', classifier: 'classy')}
-
-        ${dep(artifactId: 'typed_dep', version: '44')}
-        ${dep(artifactId: 'typed_dep', version: '1.8', type: 'bar')}
-        ${dep(artifactId: 'typed_dep', version: '44', type: 'zip')}
-
-        ${dep(artifactId: 'classified_dep', version: '44')}
-        ${dep(artifactId: 'classified_dep', version: '1.9', classifier: 'classy')}
-        ${dep(artifactId: 'classified_dep', version: '44', classifier: 'other')}
-
-        ${dep(artifactId: 'fq_dep', version: '44')}
-        ${dep(artifactId: 'fq_dep', version: '44', classifier: 'classy')}
-        ${dep(artifactId: 'fq_dep', version: '44', type: 'bar')}
-        ${dep(artifactId: 'fq_dep', version: '2.1', classifier: 'classy', type: 'bar')}
-    </dependencies>
-</dependencyManagement>
-</project>
-""")
 
         def child = mavenRepo.module("org", "child", "1.0")
         child.parent("org", "parent", "1.0")

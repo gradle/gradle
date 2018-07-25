@@ -1,0 +1,5 @@
+// START SNIPPET apply-base-plugin
+plugins {
+    id 'base'
+}
+// END SNIPPET apply-base-plugin

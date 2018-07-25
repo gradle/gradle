@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
@@ -61,14 +62,14 @@ import java.util.SortedSet;
  * </pre>
  *
  * <p>{@link Rule} objects can be attached to the collection in order to respond to requests for objects by name
- * where no object with name exists in the collection. This mechanism can be used to create objects on demand. 
+ * where no object with name exists in the collection. This mechanism can be used to create objects on demand.
  * For example: </p>
- * 
+ *
  * <pre>
  * books.addRule('create any') { books.add(new Book(name: "gradle", title: null)) }
  * books.gradle.name == "gradle"
  * </pre>
- * 
+ *
  * @param <T> The type of domain objects in this collection.
  */
 public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T> {
@@ -215,5 +216,17 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * {@inheritDoc}
      */
     NamedDomainObjectCollection<T> matching(Closure spec);
+
+    /**
+     * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     *
+     * @param name The object's name
+     * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
+     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @since 4.10
+     */
+    @Incubating
+    Provider<T> named(String name) throws UnknownDomainObjectException;
 
 }

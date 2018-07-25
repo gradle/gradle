@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.publish.ivy.internal.publisher.ContextualizingIvyPublisher;
@@ -31,23 +32,18 @@ import org.gradle.ivy.IvyDescriptorArtifact;
 import org.gradle.ivy.IvyModule;
 
 public class IvyServices extends AbstractPluginServiceRegistry {
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new GlobalServices());
-    }
-
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new ComponentRegistrationAction());
+        registration.addProvider(new BuildServices());
     }
 
-    private static class GlobalServices {
-        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
+    private static class BuildServices {
+
+        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
-            publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory, fileResourceRepository);
+            publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory, fileResourceRepository, metadataFactory);
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
-    }
 
-    private static class ComponentRegistrationAction {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(IvyModule.class)

@@ -28,9 +28,9 @@ public interface ResolvableArtifact {
     ComponentArtifactIdentifier getId();
 
     /**
-     * Has this artifact already resolved, so that calls to {@link #getFile()} are cheap. For example, is the result available in memory or can it be calculated quickly without IO calls?
+     * Should this artifact be resolved synchronously? For example, is the result of {@link #getFile()} available in memory or can it be calculated quickly without IO calls? Or is the implementation of {@link #getFile()} not parallel safe?
      */
-    boolean isResolved();
+    boolean isResolveSynchronously();
 
     /**
      * Resolves the file, if not already, blocking until complete.

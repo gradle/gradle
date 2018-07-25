@@ -24,7 +24,7 @@ public interface ModuleReplacementsData {
     ModuleReplacementsData NO_OP = new ModuleReplacementsData() {
         @Nullable
         @Override
-        public ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule) {
+        public Replacement getReplacementFor(ModuleIdentifier sourceModule) {
             return null;
         }
 
@@ -34,7 +34,25 @@ public interface ModuleReplacementsData {
         }
     };
 
-    @Nullable ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule);
+    @Nullable Replacement getReplacementFor(ModuleIdentifier sourceModule);
 
     boolean participatesInReplacements(ModuleIdentifier moduleId);
+
+    class Replacement {
+        private final ModuleIdentifier target;
+        private final String reason;
+
+        Replacement(ModuleIdentifier target, String reason) {
+            this.target = target;
+            this.reason = reason;
+        }
+
+        public ModuleIdentifier getTarget() {
+            return target;
+        }
+
+        public String getReason() {
+            return reason;
+        }
+    }
 }

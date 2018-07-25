@@ -18,9 +18,9 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenMetaData
+import org.gradle.test.fixtures.maven.RootMavenMetaData
 
-class MetaDataArtifact extends HttpArtifact implements MavenMetaData {
+class MetaDataArtifact extends HttpArtifact implements RootMavenMetaData {
     MavenFileModule backingModule
 
     MetaDataArtifact(HttpServer httpServer, String path, MavenFileModule backingModule) {

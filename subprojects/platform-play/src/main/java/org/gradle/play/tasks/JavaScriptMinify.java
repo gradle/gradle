@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
@@ -102,7 +101,6 @@ public class JavaScriptMinify extends SourceTask {
         this.playPlatform = playPlatform;
     }
 
-    @Internal
     private Compiler<JavaScriptCompileSpec> getCompiler() {
         ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
         return select.newCompiler(JavaScriptCompileSpec.class);
@@ -124,7 +122,7 @@ public class JavaScriptMinify extends SourceTask {
     @TaskAction
     void compileJavaScriptSources() {
         StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
+        cleaner.addDirToClean(getDestinationDir());
         cleaner.execute();
 
         MinifyFileVisitor visitor = new MinifyFileVisitor();
@@ -150,7 +148,7 @@ public class JavaScriptMinify extends SourceTask {
             final File outputFileDir = new File(destinationDir, fileDetails.getRelativePath().getParent().getPathString());
 
             // Copy the raw form
-            FileOperations fileOperations = (ProjectInternal) getProject();
+            FileOperations fileOperations = ((ProjectInternal) getProject()).getFileOperations();
             fileOperations.copy(new Action<CopySpec>() {
                 @Override
                 public void execute(CopySpec copySpec) {

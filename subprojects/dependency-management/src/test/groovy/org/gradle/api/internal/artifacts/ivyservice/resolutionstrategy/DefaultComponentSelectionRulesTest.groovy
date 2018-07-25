@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
@@ -38,14 +39,16 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 class DefaultComponentSelectionRulesTest extends Specification {
     static final GROUP = "group"
     static final MODULE = "module"
-    RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
+    static final ModuleIdentifier MID = DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+    RuleActionAdapter adapter = Mock(RuleActionAdapter)
     DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter)
     ComponentSelectionInternal componentSelection
     def ruleAction = Mock(RuleAction)
     def ruleSource = new Object()
 
     def setup() {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId(GROUP, MODULE, "version")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(MID, "version")
         componentSelection = new DefaultComponentSelection(componentIdentifier)
     }
 

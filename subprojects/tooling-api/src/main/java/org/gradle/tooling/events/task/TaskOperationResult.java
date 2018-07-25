@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationResult;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.OperationResult;
  *
  * @since 2.5
  */
-@Incubating
 public interface TaskOperationResult extends OperationResult {
 }

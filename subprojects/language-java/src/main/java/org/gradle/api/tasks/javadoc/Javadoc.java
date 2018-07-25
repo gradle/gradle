@@ -43,6 +43,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -94,7 +95,7 @@ public class Javadoc extends SourceTask {
 
     private String maxMemory;
 
-    private StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
+    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
 
@@ -178,12 +179,11 @@ public class Javadoc extends SourceTask {
      * Sets the tool chain to use to generate the Javadoc.
      */
     @Incubating
-    public void setToolChain(JavaToolChain toolChain) {
+    public void setToolChain(@SuppressWarnings("unused") JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
     }
 
-    @Internal
     private JavaPlatform getPlatform() {
         return DefaultJavaPlatform.current();
     }
@@ -194,6 +194,7 @@ public class Javadoc extends SourceTask {
      * @return The directory.
      */
     @Internal
+    @Nullable
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -218,6 +219,7 @@ public class Javadoc extends SourceTask {
      * Returns the amount of memory allocated to this task.
      */
     @Internal
+    @Nullable
     public String getMaxMemory() {
         return maxMemory;
     }
@@ -236,8 +238,9 @@ public class Javadoc extends SourceTask {
      *
      * @return The title, possibly null.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getTitle() {
         return title;
     }
@@ -245,7 +248,7 @@ public class Javadoc extends SourceTask {
     /**
      * <p>Sets the title for the generated documentation.</p>
      */
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
@@ -343,12 +346,12 @@ public class Javadoc extends SourceTask {
      *
      * @return The executable. May be null.
      */
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getExecutable() {
         return executable;
     }
 
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         this.executable = executable;
     }
 }

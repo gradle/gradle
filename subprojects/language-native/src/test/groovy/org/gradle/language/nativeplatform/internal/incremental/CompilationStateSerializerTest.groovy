@@ -20,9 +20,6 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 
 class CompilationStateSerializerTest extends SerializerSpec {
     private CompilationStateSerializer serializer = new CompilationStateSerializer()
@@ -37,64 +34,61 @@ class CompilationStateSerializerTest extends SerializerSpec {
         }
     }
 
-    def "serializes source inputs"() {
-        when:
-        def fileOne = new File("one")
-        def fileTwo = new File("two")
-        def state = compilationState([fileOne, fileTwo], [:])
-
-        then:
-        with (serialized(state)) {
-            sourceInputs == [fileOne, fileTwo] as Set
-            fileStates.isEmpty()
-        }
-    }
-
-    def "serializes file state"() {
+    def "serializes state with source files"() {
         when:
         def fileEmpty = new File("empty")
         def fileStates = [:]
-        fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), createSourceIncludes(), []))
+        fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), []))
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), createSourceIncludes("<system>", '"quoted"', "MACRO"), [resolvedInclude("ONE"), resolvedInclude("TWO")])
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), ["ONE","TWO"])
         fileStates.put(fileTwo, stateTwo)
-        def state = compilationState([], fileStates)
+        def state = compilationState(fileStates)
 
         then:
         def newState = serialized(state)
-        newState.sourceInputs.empty
         newState.fileStates.size() == 2
 
         def emptyCompileState = newState.getState(fileEmpty)
         emptyCompileState.hash == HashCode.fromInt(0x12345678)
-        emptyCompileState.includeDirectives.macroIncludes.empty
-        emptyCompileState.includeDirectives.quotedIncludes.empty
-        emptyCompileState.includeDirectives.systemIncludes.empty
-        emptyCompileState.resolvedIncludes.empty
+        emptyCompileState.edges.empty
 
         def otherCompileState = newState.getState(fileTwo)
         otherCompileState.hash == HashCode.fromInt(0x23456789)
-        otherCompileState.includeDirectives.systemIncludes.collect { it.value } == ["system"]
-        otherCompileState.includeDirectives.quotedIncludes.collect { it.value } == ["quoted"]
-        otherCompileState.includeDirectives.macroIncludes.collect { it.value } == ["MACRO"]
-        otherCompileState.resolvedIncludes == [resolvedInclude("ONE"), resolvedInclude("TWO")] as Set
+        otherCompileState.edges == stateTwo.edges
     }
 
-    private DefaultIncludeDirectives createSourceIncludes(String... strings) {
-        return new DefaultIncludeDirectives(strings.collect { DefaultInclude.parse(it, false) })
+    def "serializes state with shared include files"() {
+        when:
+        def fileOne = new File("one")
+        def fileStates = [:]
+        def stateOne = compilationFileState(HashCode.fromInt(0x12345678), ["ONE", "TWO"])
+        fileStates.put(fileOne, stateOne)
+
+        def fileTwo = new File("two")
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), ["TWO", "THREE"])
+        fileStates.put(fileTwo, stateTwo)
+        def state = compilationState(fileStates)
+
+        then:
+        def newState = serialized(state)
+        newState.fileStates.size() == 2
+
+        def emptyCompileState = newState.getState(fileOne)
+        emptyCompileState.hash == HashCode.fromInt(0x12345678)
+        emptyCompileState.edges == stateOne.edges
+
+        def otherCompileState = newState.getState(fileTwo)
+        otherCompileState.hash == HashCode.fromInt(0x23456789)
+        otherCompileState.edges == stateTwo.edges
     }
 
-    private CompilationFileState compilationFileState(HashCode hash, IncludeDirectives includeDirectives, Collection<ResolvedInclude> resolvedIncludes) {
-        return new CompilationFileState(hash, includeDirectives, ImmutableSet.copyOf(resolvedIncludes))
+    private SourceFileState compilationFileState(HashCode hash, Collection<String> includes) {
+        return new SourceFileState(hash, true, ImmutableSet.copyOf(includes.collect { new IncludeFileEdge(it, null, HashCode.fromInt(123) )}))
     }
 
-    private CompilationState compilationState(Collection<File> sourceFiles, Map<File, CompilationFileState> states) {
-        return new CompilationState(ImmutableSet.copyOf(sourceFiles), ImmutableMap.copyOf(states))
-    }
-
-    private ResolvedInclude resolvedInclude(String value) {
-        return new ResolvedInclude(value, new File(value))
+    private CompilationState compilationState(Map<File, SourceFileState> states) {
+        return new CompilationState(ImmutableMap.copyOf(states))
     }
 
     private CompilationState serialized(CompilationState state) {

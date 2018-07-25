@@ -17,10 +17,31 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import spock.lang.Specification
 
-class AbstractProviderTest extends Specification {
+class AbstractProviderTest extends ProviderSpec<String> {
     TestProvider provider = new TestProvider()
+
+    @Override
+    TestProvider providerWithNoValue() {
+        return new TestProvider()
+    }
+
+    @Override
+    TestProvider providerWithValue(String value) {
+        def p = new TestProvider()
+        p.value = value
+        return p
+    }
+
+    @Override
+    String someOtherValue() {
+        "s1"
+    }
+
+    @Override
+    String someValue() {
+        "s2"
+    }
 
     def "is present when value is not null"() {
         expect:
@@ -33,24 +54,6 @@ class AbstractProviderTest extends Specification {
         expect:
         provider.getOrNull() == null
         provider.getOrElse("s2") == "s2"
-    }
-
-    def "cannot query when value is null"() {
-        when:
-        provider.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
-    }
-
-    def "can query with default when value is not null"() {
-        provider.value("s1")
-
-        expect:
-        provider.get() == "s1"
-        provider.getOrNull() == "s1"
-        provider.getOrElse("s2") == "s1"
     }
 
     def "mapped provider is live"() {

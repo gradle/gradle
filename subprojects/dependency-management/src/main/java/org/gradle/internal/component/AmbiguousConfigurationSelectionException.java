@@ -15,12 +15,6 @@
  */
 package org.gradle.internal.component;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
@@ -33,31 +27,27 @@ import org.gradle.internal.text.TreeFormatter;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 public class AmbiguousConfigurationSelectionException extends RuntimeException {
-    private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
-        @Override
-        public String apply(ConfigurationMetadata input) {
-            return input.getName();
-        }
-    };
-
     public AmbiguousConfigurationSelectionException(AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
-                                                    ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent));
+                                                    ComponentResolveMetadata targetComponent,
+                                                    boolean variantAware) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
-        Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware) {
+        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
+        for (ConfigurationMetadata match : matches) {
+            ambiguousConfigurations.put(match.getName(), match);
+        }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot choose between the following configurations of ");
-        formatter.append(targetComponent.getComponentId().getDisplayName());
+        formatter.node("Cannot choose between the following " + (variantAware ? "variants" : "configurations") + " of ");
+        formatter.append(targetComponent.getId().getDisplayName());
         formatter.startChildren();
-        for (String configuration : ambiguousConfigurations) {
+        for (String configuration : ambiguousConfigurations.keySet()) {
             formatter.node(configuration);
         }
         formatter.endChildren();
@@ -65,30 +55,26 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         // We're sorting the names of the configurations and later attributes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
-        for (String ambiguousConf : ambiguousConfigurations) {
-            formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, matches, ambiguousConf);
+        for (ConfigurationMetadata ambiguousConf : ambiguousConfigurations.values()) {
+            formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware);
         }
         formatter.endChildren();
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, final String conf) {
-        Optional<? extends ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
-            @Override
-            public boolean apply(ConfigurationMetadata input) {
-                return conf.equals(input.getName());
-            }
-        });
-        if (match.isPresent()) {
-            AttributeContainerInternal producerAttributes = match.get().getAttributes();
+    static void formatConfiguration(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration, boolean variantAware) {
+        AttributeContainerInternal producerAttributes = configuration.getAttributes();
+        if (variantAware) {
+            formatter.node("Variant '");
+        } else {
             formatter.node("Configuration '");
-            formatter.append(conf);
-            formatter.append("'");
-            formatAttributeMatches(formatter, consumerAttributes, attributeMatcher, producerAttributes);
         }
+        formatter.append(configuration.getName());
+        formatter.append("'");
+        formatAttributeMatches(formatter, consumerAttributes, attributeMatcher, producerAttributes);
     }
 
-    public static void formatAttributeMatches(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainerInternal producerAttributes) {
+    static void formatAttributeMatches(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainerInternal producerAttributes) {
         Map<String, Attribute<?>> allAttributes = new TreeMap<String, Attribute<?>>();
         for (Attribute<?> attribute : producerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
@@ -105,7 +91,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             AttributeValue<Object> consumerValue = immmutableConsumer.findEntry(untyped);
             AttributeValue<?> producerValue = immutableProducer.findEntry(attribute.getName());
             if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.get(), consumerValue.get())) {
+                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
                     formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
                 } else {
                     formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");

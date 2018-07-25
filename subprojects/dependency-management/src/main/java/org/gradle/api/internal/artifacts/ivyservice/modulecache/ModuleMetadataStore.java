@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import com.google.common.collect.Interner;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -36,13 +36,13 @@ public class ModuleMetadataStore {
     private final PathKeyFileStore metaDataStore;
     private final ModuleMetadataSerializer moduleMetadataSerializer;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ModuleExclusions moduleExclusions;
+    private final Interner<String> stringInterner;
 
-    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner) {
         this.metaDataStore = metaDataStore;
         this.moduleMetadataSerializer = moduleMetadataSerializer;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.moduleExclusions = moduleExclusions;
+        this.stringInterner = stringInterner;
     }
 
     public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
@@ -50,9 +50,9 @@ public class ModuleMetadataStore {
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
             try {
-                KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(resource.getFile()));
+                StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner);
                 try {
-                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory, moduleExclusions);
+                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory);
                 } finally {
                     decoder.close();
                 }

@@ -17,12 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyInternal<T> {
+public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertyState<T>, ProviderInternal<T> {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 
@@ -94,9 +95,8 @@ public class DefaultPropertyState<T> implements PropertyInternal<T> {
         return provider.getOrNull();
     }
 
-    @Nullable
     @Override
-    public T getOrElse(@Nullable T defaultValue) {
+    public T getOrElse(T defaultValue) {
         T t = provider.getOrNull();
         if (t == null) {
             return defaultValue;
@@ -116,6 +116,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T> {
 
     @Override
     public String toString() {
-        return String.format("value: %s", getOrNull());
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        return String.format("property(%s, %s)", type, provider);
     }
 }

@@ -111,7 +111,11 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         synchronized (lock) {
             id = testClassId.remove(testClass);
         }
-        resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
+        // Guard against TestNG calling this hook more than once with the same testClass.
+        // See https://github.com/cbeust/testng/issues/1618 for details.
+        if (id != null) {
+            resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
+        }
     }
 
     @Override

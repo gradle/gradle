@@ -17,28 +17,27 @@
 package org.gradle.vcs.internal;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.vcs.VersionControlSpec;
 
 public class DefaultVcsMapping implements VcsMappingInternal {
     private final ComponentSelector requested;
-    private final ModuleVersionSelector oldRequested;
+    private final VersionControlSpecFactory specFactory;
+    private ClassLoaderScope classLoaderScope;
     private VersionControlSpec versionControlSpec;
 
-    public DefaultVcsMapping(ComponentSelector requested, ModuleVersionSelector oldRequested) {
+    public DefaultVcsMapping(ComponentSelector requested, VersionControlSpecFactory specFactory) {
         this.requested = requested;
-        this.oldRequested = oldRequested;
+        this.specFactory = specFactory;
     }
+
+
 
     @Override
     public ComponentSelector getRequested() {
         return requested;
-    }
-
-    @Override
-    public ModuleVersionSelector getOldRequested() {
-        return oldRequested;
     }
 
     @Override
@@ -48,12 +47,23 @@ public class DefaultVcsMapping implements VcsMappingInternal {
     }
 
     @Override
+    public <T extends VersionControlSpec> void from(Class<T> type, Action<? super T> configureAction) {
+        T spec = specFactory.create(type, classLoaderScope);
+        configureAction.execute(spec);
+        this.versionControlSpec = spec;
+    }
+
+    @Override
     public VersionControlSpec getRepository() {
         return versionControlSpec;
     }
 
     @Override
-    public boolean isUpdated() {
+    public boolean hasRepository() {
         return versionControlSpec != null;
+    }
+
+    public void setClassLoaderScope(ClassLoaderScope classLoaderScope) {
+        this.classLoaderScope = classLoaderScope;
     }
 }

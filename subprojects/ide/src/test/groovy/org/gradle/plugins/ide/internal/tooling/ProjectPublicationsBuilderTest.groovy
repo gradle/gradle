@@ -23,11 +23,11 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.TestUtil
 
-public class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
+class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
 
     def publicationRegistry = Stub(ProjectPublicationRegistry) {
         getPublications(":") >> [Stub(ProjectPublication) {
-            getId() >> Stub(ModuleVersionIdentifier) {
+            getCoordinates(ModuleVersionIdentifier) >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> "group"
                 getName() >> "name"
                 getVersion() >> "version"

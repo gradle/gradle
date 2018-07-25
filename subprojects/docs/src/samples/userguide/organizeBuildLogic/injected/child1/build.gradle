@@ -1,3 +1,0 @@
-// Use injected property and method. Here, we override the injected value
-srcDirName = 'java'
-def dir = srcDir()

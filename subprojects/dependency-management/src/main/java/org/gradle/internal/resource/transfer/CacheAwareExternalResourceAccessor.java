@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
@@ -29,19 +30,35 @@ public interface CacheAwareExternalResourceAccessor {
     /**
      * Fetches for a resource located at some URI.
      * @param source the URI of the resource to be fetched
+     * @param baseName the required name of the local resource. Can be null.
      * @param fileStore used whenever the resource is effectively downloaded, to move it into a cache
-     * @param additionalCandidates a list of candidates, found in a different place than the cache. When null, will only look into the cache. When not null, the checksum of the
-     * resource is going to be checked
+     * @param additionalCandidates a list of candidates, found in a different place than the cache. When null, will only look into the cache. When not null, the checksum of the resource is going to be checked
      * @return a locally available resource, if found
      * @throws IOException whenever an error occurs when downloading of fetching from the cache
      */
     @Nullable
-    LocallyAvailableExternalResource getResource(ExternalResourceName source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException;
+    LocallyAvailableExternalResource getResource(ExternalResourceName source, @Nullable String baseName, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException;
 
     interface ResourceFileStore {
         /**
          * Called when a resource is to be cached. Should *move* the given file into the appropriate location and return a handle to the file.
          */
         LocallyAvailableResource moveIntoCache(File downloadedResource);
+    }
+
+    abstract class DefaultResourceFileStore<K> implements ResourceFileStore {
+
+        private final FileStore<K> delegate;
+
+        public DefaultResourceFileStore(FileStore<K> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public final LocallyAvailableResource moveIntoCache(File downloadedResource) {
+            return delegate.move(computeKey(), downloadedResource);
+        }
+
+        protected abstract K computeKey();
     }
 }

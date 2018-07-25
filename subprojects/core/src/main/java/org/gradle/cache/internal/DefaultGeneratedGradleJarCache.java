@@ -20,13 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.classpath.CachedJarFileStore;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable {
+public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable, CachedJarFileStore {
 
     private final PersistentCache cache;
     private final String gradleVersion;
@@ -43,15 +46,13 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     @Override
     public File get(final String identifier, final Action<File> creator) {
         final File jarFile = jarFile(identifier);
-        if (!jarFile.exists()) {
-            cache.useCache(new Runnable() {
-                public void run() {
-                    if (!jarFile.exists()) {
-                        creator.execute(jarFile);
-                    }
+        cache.useCache(new Runnable() {
+            public void run() {
+                if (!jarFile.exists()) {
+                    creator.execute(jarFile);
                 }
-            });
-        }
+            }
+        });
         return jarFile;
     }
 
@@ -62,5 +63,10 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
 
     private File jarFile(String identifier) {
         return new File(cache.getBaseDir(), "gradle-" + identifier + "-" + gradleVersion + ".jar");
+    }
+
+    @Override
+    public List<File> getFileStoreRoots() {
+        return Collections.singletonList(cache.getBaseDir());
     }
 }

@@ -37,6 +37,14 @@ dependencies {
     conf someDependency
     conf "org.mockito:mockito-core:1.8"
     conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
+    conf('org.test:configured') {
+        version {
+           prefer '1.1'
+        }
+        transitive = false
+        force = true
+    }
+
     conf module('org.foo:moduleOne:1.0'), module('org.foo:moduleTwo:1.0')
 
     gradleStuff gradleApi()
@@ -50,6 +58,11 @@ task checkDeps {
         assert deps.contains(someDependency)
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
+        def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.test' && it.name == 'configured' }
+        assert configuredDep.version == '1.1'
+        assert configuredDep.transitive == false
+        assert configuredDep.force == true
+        
         assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
         assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
@@ -116,6 +129,12 @@ dependencies {
         dependency 'org.foo:bar:1.0'
         dependencies ('org.foo:one:1', 'org.foo:two:1')
         dependency ('high:five:5') { transitive = false }
+        dependency('org.test:lateversion') { 
+               version {
+                  prefer '1.0' 
+                  strictly '1.1' // intentionally overriding "prefer" 
+               } 
+           }
     }
 }
 
@@ -125,11 +144,12 @@ task checkDeps {
         assert deps.size() == 1
         def dep = deps.find { it instanceof ClientModule && it.name == 'moduleOne' }
         assert dep
-        assert dep.dependencies.size() == 4
+        assert dep.dependencies.size() == 5
         assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'bar' && it.version == '1.0' && it.transitive == true }
         assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'one' && it.version == '1' }
         assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'two' && it.version == '1' }
         assert dep.dependencies.find { it.group == 'high' && it.name == 'five' && it.version == '5' && it.transitive == false }
+        assert dep.dependencies.find { it.group == 'org.test' && it.name == 'lateversion' && it.version == '1.1' }
     }
 }
 """

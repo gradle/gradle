@@ -16,18 +16,20 @@
 
 package org.gradle.ide.visualstudio
 
-import org.gradle.ide.visualstudio.fixtures.FiltersFile
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import spock.lang.IgnoreIf
 
-class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
     def app = new CppHelloWorldApp()
 
     def setup() {
+        settingsFile << """
+            rootProject.name = 'app'
+        """
         app.writeSources(file("src/main"))
         buildFile << """
     apply plugin: 'cpp'
@@ -50,9 +52,10 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 """
     }
 
+    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
     def "can specify location of generated files"() {
         when:
-        file("gradlew.bat") << "dummy wrapper"
+        hostGradleWrapperFile << "dummy wrapper"
         buildFile << '''
     model {
         visualStudio {
@@ -60,30 +63,30 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
                 projectFile.location = "very/deeply/nested/${project.name}.vcxproj"
                 filtersFile.location = "other/filters.vcxproj.filters"
             }
-            solutions.all {
+            solution {
                 solutionFile.location = "vs/${it.name}.solution"
             }
         }
     }
 '''
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
-        executedAndNotSkipped ":mainExeVisualStudio"
+        executedAndNotSkipped ":visualStudio"
 
         and:
         final projectFile = projectFile("very/deeply/nested/mainExe.vcxproj")
         assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
         assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../../../${hostGradleWrapperFile.name}\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")
 
         and:
-        final mainSolution = solutionFile("vs/mainExe.solution")
+        final mainSolution = solutionFile("vs/app.solution")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, ['debug', 'release'])
 
@@ -113,7 +116,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
     }
 """
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
@@ -135,7 +138,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
     }
 '''
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
         final filtersFile = filtersFile("mainExe.vcxproj.filters")
@@ -147,9 +150,9 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         buildFile << '''
     model {
         visualStudio {
-            solutions.all { solution ->
+            solution { solution ->
                 solution.solutionFile.withContent { content ->
-                    String projectList = solution.projects.collect({it.name}).join(',')
+                    String projectList = projects.collect({it.name}).join(',')
                     int insertPos = text.lastIndexOf("EndGlobal")
                     content.text = content.text.replace("EndGlobal", """
     GlobalSection(MyGlobalSection)
@@ -164,10 +167,10 @@ EndGlobal
 '''
 
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
-        final solutionFile = solutionFile("mainExe.sln")
+        final solutionFile = solutionFile("app.sln")
         solutionFile.content.contains "GlobalSection(MyGlobalSection)"
         solutionFile.content.contains "Project-list: mainExe"
     }
@@ -181,24 +184,12 @@ tasks.withType(GenerateProjectFileTask) {
 }
 """
         and:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
         projectFile.projectConfigurations.values().each {
             assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :installMain${it.name.capitalize()}Executable"
         }
-    }
-
-    private SolutionFile solutionFile(String path) {
-        return new SolutionFile(file(path))
-    }
-
-    private ProjectFile projectFile(String path) {
-        return new ProjectFile(file(path))
-    }
-
-    private FiltersFile filtersFile(String path) {
-        return new FiltersFile(file(path))
     }
 }

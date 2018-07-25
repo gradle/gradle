@@ -15,15 +15,15 @@
  */
 package org.gradle.test.fixtures.maven
 
-import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 
 interface MavenModule extends Module {
     /**
-     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module. Publishes only those artifacts whose content has
-     * changed since the last call to {@code # publish ( )}.
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module. Publishes only those artifacts whose content has changed since the last call to {@code # publish ( )}.
+     *
+     * @return this
      */
     MavenModule publish()
 
@@ -60,6 +60,10 @@ interface MavenModule extends Module {
 
     MavenModule dependsOn(String group, String artifactId, String version, String type, String scope, String classifier)
 
+    MavenModule dependencyConstraint(Module module)
+
+    MavenModule dependencyConstraint(Map<String, ?> attributes, Module module)
+
     MavenModule hasPackaging(String packaging)
 
     /**
@@ -68,9 +72,9 @@ interface MavenModule extends Module {
     MavenModule hasType(String type)
 
     /**
-     * Asserts exactly pom and jar published, along with checksums.
+     * Define a variant with attributes. Variants are only published when using {@link #withModuleMetadata()}.
      */
-    void assertPublishedAsJavaModule()
+    MavenModule variant(String variant, Map<String, String> attributes)
 
     String getPublishArtifactVersion()
 
@@ -85,23 +89,59 @@ interface MavenModule extends Module {
      */
     String getPath()
 
+    /**
+     * Returns the POM file of this module.
+     */
     ModuleArtifact getPom()
-
-    ModuleArtifact getModuleMetadata()
 
     TestFile getPomFile()
 
+    /**
+     * Returns the main artifact of this module.
+     */
     ModuleArtifact getArtifact()
 
+    /**
+     * Returns an artifact of this module, using Maven coordinates.
+     *
+     * @param options : 'type' and 'classifier'
+     */
+    ModuleArtifact getArtifact(Map<String, ?> options)
+
+    /**
+     * Returns a file relative to this module, using a relative path.
+     */
+    ModuleArtifact getArtifact(String relativePath)
+
     TestFile getArtifactFile()
+
+    TestFile getArtifactFile(Map options)
 
     TestFile getMetaDataFile()
 
     MavenPom getParsedPom()
 
-    GradleModuleMetadata getParsedModuleMetadata()
+    ModuleArtifact getRootMetaData()
 
-    MavenMetaData getRootMetaData()
+    ModuleArtifact getSnapshotMetaData()
 
     boolean getUniqueSnapshots()
+
+    String getUniqueSnapshotVersion()
+
+    /**
+     * Asserts pom and module files have not been published.
+     */
+    void assertNotPublished()
+
+    /**
+     * Asserts pom and module files are published correctly. Does not verify artifacts.
+     */
+    void assertPublished()
+
+    /**
+     * Asserts exactly pom and jar published, along with checksums.
+     * If created {@link #withModuleMetadata()}, module file is also expected.
+     */
+    void assertPublishedAsJavaModule()
 }

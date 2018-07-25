@@ -15,8 +15,13 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+
 public interface ProjectInitDescriptor {
-    void generate(BuildInitTestFramework testFramework);
+    void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework);
+
+    boolean supports(BuildInitDsl dsl);
 
     boolean supports(BuildInitTestFramework testFramework);
 }

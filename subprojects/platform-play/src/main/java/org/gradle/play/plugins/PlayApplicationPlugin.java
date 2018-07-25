@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -66,6 +67,7 @@ import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.PlayApplicationSpecInternal;
 import org.gradle.play.internal.PlayPlatformAwareComponentSpecInternal;
 import org.gradle.play.internal.PlayPlatformResolver;
+import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -237,6 +239,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play"));
             configurations.getPlayTest().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-test"));
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
+
+            PlayMajorVersion playMajorVersion = PlayMajorVersion.forPlatform(playPlatform);
+            if (playMajorVersion == PlayMajorVersion.PLAY_2_6_X) {
+                // This has the downside of adding play-java-forms for all kind of play projects
+                // including Scala based projects. Still, users can exclude the dependency if they
+                // want/need. Maybe in the future we can enable users to have some flag to specify
+                // if the project is Java or Scala based.
+                configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-java-forms"));
+            }
         }
 
         @BinaryTasks
@@ -244,7 +255,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             tasks.withType(PlatformScalaCompile.class).afterEach(new Action<PlatformScalaCompile>() {
                 @Override
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
+                    FileCollection classpath = ((PlayApplicationBinarySpecInternal) binary).getClasspath();
+                    scalaCompile.setClasspath(classpath);
+                    scalaCompile.getOptions().setAnnotationProcessorPath(classpath);
                 }
             });
         }
@@ -279,7 +292,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+        void createPlayRunTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, final ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
 
             for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
                 String runTaskName = binary.getTasks().taskName("run");
@@ -289,6 +302,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setDescription("Runs the Play application for local development.");
                         playRun.setGroup(RUN_GROUP);
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
+                        playRun.getWorkingDir().set(projectIdentifier.getProjectDir());
                         playRun.setPlayToolProvider(playToolChain.select(binary.getTargetPlatform()));
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());

@@ -8,9 +8,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>file</td>
-            </tr>
-            <tr>
                 <td>extension</td>
             </tr>
             <tr>
@@ -26,9 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>builtBy</td>
-            </tr>
         </table>
     </section>
 </section>

@@ -24,27 +24,38 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
  */
 class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegrationTest {
 
+    protected static final String PENDING_DETECTED_MESSAGE = 'Pending changes detected'
+
     int pendingChangesMarker
 
     def setup() {
         buildFile << """
                 def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
                 pendingChangesManager.addListener {
-                    println "Pending changes detected"
+                    println "$PENDING_DETECTED_MESSAGE"
                 }
         """
+        buildFile << playLogbackDependenciesIfPlay25(versionNumber)
     }
 
-    private int waitForChangesToBePickedUp() {
+    protected int waitForChangesToBePickedUp() {
+        waitForConditionSatisfied { output -> output.contains(PENDING_DETECTED_MESSAGE) }
+    }
+
+    protected int waitForBuildFinish() {
+        waitForConditionSatisfied { output -> output ==~ /(?s).*Waiting for changes.*/ }
+    }
+
+    private int waitForConditionSatisfied(Closure predicate){
         def buildOutput = ''
         ConcurrentTestUtil.poll {
             buildOutput = buildOutputSoFar()
-            assert buildOutput.substring(pendingChangesMarker).contains("Pending changes detected")
+            assert predicate(buildOutput.substring(pendingChangesMarker))
         }
         pendingChangesMarker = buildOutput.length()
     }
 
-    def "should reload modified scala controller and routes"() {
+    def "should reload modified scala controller and routes and restart server"() {
         when:
         succeeds("runPlayBinary")
 
@@ -54,12 +65,14 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         when:
         addNewRoute('hello')
         waitForChangesToBePickedUp()
+        def page = runningApp.playUrl('hello').text
+        serverRestart()
 
         then:
-        runningApp.playUrl('hello').text == 'hello world'
+        page == 'hello world'
     }
 
-    def "should reload with exception when modify scala controller"() {
+    def "should reload with exception when modify scala controller and restart server"() {
         when:
         succeeds("runPlayBinary")
         then:
@@ -72,18 +85,22 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         then:
         println "CHECKING ERROR PAGE"
         errorPageHasTaskFailure("compilePlayBinaryScala")
+        waitForBuildFinish()
+        serverStartCount == 1
         !executedTasks.contains('runPlayBinary')
 
         when:
         fixBadCode()
         waitForChangesToBePickedUp()
+        runningApp.playUrl().text
+        serverRestart()
         println "CHANGES DETECTED IN BUILD"
 
         then:
         appIsRunningAndDeployed()
     }
 
-    def "should reload modified coffeescript"() {
+    def "should reload modified coffeescript but not restart server"() {
         when:
         succeeds("runPlayBinary")
 
@@ -99,12 +116,16 @@ alert message
 '''
         waitForChangesToBePickedUp()
 
+        def testJs = runningApp.playUrl('assets/javascripts/test.js').text
+        def testMinJs = runningApp.playUrl('assets/javascripts/test.min.js').text
+        noServerRestart()
+
         then:
-        runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
-        runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
+        testJs.contains('Hello coffeescript')
+        testMinJs.contains('Hello coffeescript')
     }
 
-    def "should detect new javascript files"() {
+    def "should detect new javascript files but not restart"() {
         when:
         succeeds("runPlayBinary")
 
@@ -117,12 +138,16 @@ var message = "Hello JS";
 '''
         waitForChangesToBePickedUp()
 
+        def helloworldJs = runningApp.playUrl('assets/javascripts/helloworld.js').text
+        def helloworldMinJs = runningApp.playUrl('assets/javascripts/helloworld.min.js').text
+        noServerRestart()
+
         then:
-        runningApp.playUrl('assets/javascripts/helloworld.js').text.contains('Hello JS')
-        runningApp.playUrl('assets/javascripts/helloworld.min.js').text.contains('Hello JS')
+        helloworldJs.contains('Hello JS')
+        helloworldMinJs.contains('Hello JS')
     }
 
-    def "should reload modified java model"() {
+    def "should reload modified java model and restart server"() {
         when:
         succeeds("runPlayBinary")
 
@@ -136,11 +161,14 @@ var message = "Hello JS";
         }
         waitForChangesToBePickedUp()
 
+        def page = runningApp.playUrl().text
+        serverRestart()
+
         then:
-        runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
+        page.contains("<li>Hello foo:1 !</li>")
     }
 
-    def "should reload twirl template"() {
+    def "should reload twirl template and restart server"() {
         when:
         succeeds("runPlayBinary")
 
@@ -152,9 +180,11 @@ var message = "Hello JS";
             text = text.replaceFirst(~/Welcome to Play/, 'Welcome to Play with Gradle')
         }
         waitForChangesToBePickedUp()
+        def page = runningApp.playUrl().text
+        serverRestart()
 
         then:
-        runningApp.playUrl().text.contains("Welcome to Play with Gradle")
+        page.contains("Welcome to Play with Gradle")
     }
 
     def "should reload with exception when task that depends on runPlayBinary fails"() {

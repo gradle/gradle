@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * The configuration for mapping a set of {@link org.gradle.nativeplatform.NativeComponentSpec}s to a Visual Studio project.
+ * The configuration for mapping a set of native components to a Visual Studio project.
  */
 @Incubating
 public interface VisualStudioExtension {
@@ -28,9 +28,4 @@ public interface VisualStudioExtension {
      * The {@link VisualStudioProject}s generated.
      */
     NamedDomainObjectSet<? extends VisualStudioProject> getProjects();
-
-    /**
-     * The {@link VisualStudioSolution}s generated.
-     */
-    NamedDomainObjectSet<? extends VisualStudioSolution> getSolutions();
 }

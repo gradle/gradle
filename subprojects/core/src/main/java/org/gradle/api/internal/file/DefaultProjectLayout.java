@@ -18,13 +18,20 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractProvider;
@@ -32,9 +39,10 @@ import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -42,8 +50,12 @@ import java.io.File;
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
+    private final TaskResolver taskResolver;
+    private final FileResolver fileResolver;
 
-    public DefaultProjectLayout(File projectDir, FileResolver resolver) {
+    public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskResolver taskResolver) {
+        this.taskResolver = taskResolver;
+        this.fileResolver = resolver;
         this.projectDir = new FixedDirectory(projectDir, resolver);
         this.buildDir = new DefaultDirectoryVar(resolver, Project.DEFAULT_BUILD_DIR_NAME);
     }
@@ -54,32 +66,58 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public DirectoryVar getBuildDirectory() {
+    public DirectoryProperty getBuildDirectory() {
         return buildDir;
     }
 
     @Override
     public DirectoryVar newDirectoryVar() {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newDirectoryVar()", "ProjectLayout.directoryProperty()");
+        return directoryProperty();
+    }
+
+    @Override
+    public DirectoryVar directoryProperty() {
         return new DefaultDirectoryVar(projectDir.fileResolver);
     }
 
     @Override
+    public DirectoryVar directoryProperty(Provider<? extends Directory> initialProvider) {
+        DirectoryVar result = directoryProperty();
+        result.set(initialProvider);
+        return result;
+    }
+
+    @Override
     public RegularFileVar newFileVar() {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newFileVar()", "ProjectLayout.fileProperty()");
+        return fileProperty();
+    }
+
+    @Override
+    public RegularFileVar fileProperty() {
         return new DefaultRegularFileVar(projectDir.fileResolver);
     }
 
     @Override
-    public DirectoryVar newOutputDirectory(Task producer) {
+    public RegularFileVar fileProperty(Provider<? extends RegularFile> initialProvider) {
+        RegularFileVar result = fileProperty();
+        result.set(initialProvider);
+        return result;
+    }
+
+    @Override
+    public DirectoryProperty newOutputDirectory(Task producer) {
         return new BuildableDirectoryVar(projectDir.fileResolver, producer);
     }
 
     @Override
-    public RegularFileVar newOutputFile(Task producer) {
+    public RegularFileProperty newOutputFile(Task producer) {
         return new BuildableRegularFileVar(projectDir.fileResolver, producer);
     }
 
     @Override
-    public RegularFileVar newInputFile(final Task consumer) {
+    public RegularFileProperty newInputFile(final Task consumer) {
         final DefaultRegularFileVar fileVar = new DefaultRegularFileVar(projectDir.fileResolver);
         consumer.dependsOn(new AbstractTaskDependency() {
             @Override
@@ -91,7 +129,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public DirectoryVar newInputDirectory(final Task consumer) {
+    public DirectoryProperty newInputDirectory(final Task consumer) {
         final DefaultDirectoryVar directoryVar = new DefaultDirectoryVar(projectDir.fileResolver);
         consumer.dependsOn(new AbstractTaskDependency() {
             @Override
@@ -103,6 +141,16 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
+    public ConfigurableFileCollection newInputFileCollection(Task consumer) {
+        return new CachingTaskInputFileCollection(consumer.getPath(), projectDir.fileResolver, taskResolver);
+    }
+
+    @Override
+    public FileCollection newCalculatedInputFileCollection(Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs) {
+        return new CalculatedTaskInputFileCollection(consumer.getPath(), calculatedFiles, inputs);
+    }
+
+    @Override
     public Provider<RegularFile> file(Provider<File> provider) {
         return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, provider) {
             @Override
@@ -110,6 +158,16 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
                 return new FixedFile(projectDir.fileResolver.resolve(file));
             }
         };
+    }
+
+    @Override
+    public FileCollection files(Object... paths) {
+        return ImmutableFileCollection.usingResolver(fileResolver, paths);
+    }
+
+    @Override
+    public ConfigurableFileCollection configurableFiles(Object... files) {
+        return new DefaultConfigurableFileCollection(fileResolver, taskResolver, files);
     }
 
     /**
@@ -151,7 +209,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public Provider<Directory> dir(Provider<? extends CharSequence> path) {
-            return new ResolvingDirectory(fileResolver, path, path);
+            return new ResolvingDirectory(fileResolver, path);
         }
 
         @Override
@@ -254,12 +312,10 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private static class ResolvingDirectory extends AbstractProvider<Directory> implements TaskDependencyContainer {
         private final FileResolver resolver;
         private final Provider<?> valueProvider;
-        private final Factory<File> valueFactory;
 
-        ResolvingDirectory(FileResolver resolver, Object value, Provider<?> valueProvider) {
+        ResolvingDirectory(FileResolver resolver, Provider<?> valueProvider) {
             this.resolver = resolver;
             this.valueProvider = valueProvider;
-            this.valueFactory = resolver.resolveLater(value);
         }
 
         @Nullable
@@ -275,7 +331,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public boolean isPresent() {
-            return valueProvider == null || valueProvider.isPresent();
+            return valueProvider.isPresent();
         }
 
         @Override
@@ -283,9 +339,13 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             if (!isPresent()) {
                 return null;
             }
-            // TODO - factory should cache, and use a FixedDirectory instance when the value is fixed
-            File dir = valueFactory.create();
+            File dir = resolver.resolve(valueProvider);
             return new FixedDirectory(dir, resolver.newResolver(dir));
+        }
+
+        @Override
+        public String toString() {
+            return String.format("provider(%s, %s)", getType(), valueProvider);
         }
     }
 
@@ -300,7 +360,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         DefaultDirectoryVar(FileResolver resolver, Object value) {
             super(Directory.class);
             this.resolver = resolver;
-            set(new ResolvingDirectory(resolver, value, null));
+            resolveAndSet(value);
         }
 
         @Override
@@ -331,7 +391,8 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
 
         void resolveAndSet(Object value) {
-            set(new ResolvingDirectory(resolver, value, null));
+            File resolved = resolver.resolve(value);
+            set(new FixedDirectory(resolved, resolver.newResolver(resolved)));
         }
 
         @Override
@@ -392,6 +453,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(producer);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("buildable(%s, %s)", producer.getPath(), super.toString());
         }
     }
 

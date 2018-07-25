@@ -48,7 +48,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         !GroovyObject.isAssignableFrom(original)
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
@@ -94,7 +94,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         thrown java.lang.NoSuchMethodException
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
@@ -135,7 +135,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         thrown java.lang.NoSuchMethodException
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         def obj = cl.newInstance()
@@ -179,7 +179,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         !GroovyObject.isAssignableFrom(original)
 
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir), new DefaultLegacyTypesSupport())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
@@ -226,7 +226,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
         task.call()
-        def cl = new VisitableURLClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        def cl = new VisitableURLClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir))
         cl.loadClass(className)
     }
 }

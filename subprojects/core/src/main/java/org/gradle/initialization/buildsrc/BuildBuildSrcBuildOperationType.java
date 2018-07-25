@@ -28,6 +28,11 @@ public final class BuildBuildSrcBuildOperationType implements BuildOperationType
 
     @UsedByScanPlugin
     public interface Details {
+        /**
+         * Returns the path of the _containing_ build.
+         * @since 4.6
+         */
+        String getBuildPath();
     }
 
     @UsedByScanPlugin

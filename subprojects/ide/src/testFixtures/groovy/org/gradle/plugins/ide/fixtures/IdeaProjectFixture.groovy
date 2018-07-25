@@ -17,11 +17,14 @@
 package org.gradle.plugins.ide.fixtures
 
 import groovy.util.slurpersupport.GPathResult
+import org.gradle.test.fixtures.file.TestFile
 
-class IdeaProjectFixture {
-    private GPathResult ipr
+class IdeaProjectFixture extends IdeWorkspaceFixture {
+    private final GPathResult ipr
+    private final TestFile file
 
-    IdeaProjectFixture(GPathResult ipr) {
+    IdeaProjectFixture(TestFile file, GPathResult ipr) {
+        this.file = file
         this.ipr = ipr
     }
 
@@ -56,6 +59,12 @@ class IdeaProjectFixture {
         return new ProjectModules(moduleNames)
     }
 
+    @Override
+    void assertContains(IdeProjectFixture project) {
+        assert project instanceof IdeaModuleFixture
+        def path = project.file.relativizeFrom(file.parentFile).path
+        modules.modules.contains("\$PROJECT_DIR/$path")
+    }
 
     static class ProjectModules {
         List<String> modules
@@ -70,6 +79,11 @@ class IdeaProjectFixture {
 
         void assertHasModule(String name) {
             assert modules.any { it.endsWith(name)} : "No module with $name found in ${modules}"
+        }
+
+        void assertHasModules(String... name) {
+            List<String> modules = Arrays.asList(name)
+            assert this.modules.every { modules.contains(it) }
         }
     }
 

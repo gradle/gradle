@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.id.IdGenerator
+import org.gradle.internal.id.UUIDGenerator
 import org.gradle.launcher.daemon.protocol.Finished
 import org.gradle.launcher.daemon.protocol.ReportStatus
 import org.gradle.launcher.daemon.protocol.Status
@@ -32,7 +32,7 @@ class ReportDaemonStatusClientTest extends Specification {
     DaemonConnector connector = Mock(DaemonConnector)
     DaemonClientConnection connection = Mock(DaemonClientConnection)
     DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
-    IdGenerator<?> idGenerator = {12} as IdGenerator
+    def idGenerator = new UUIDGenerator()
     def client = new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry)
 
     def "does nothing given no daemons in registry"() {

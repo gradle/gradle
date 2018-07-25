@@ -18,19 +18,44 @@ package org.gradle.api.publication.maven.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultMavenDeployment implements MavenDeployment {
-    private Set<PublishArtifact> attachedArtifacts;
+    private final String packaging;
+    private final MavenProjectIdentity projectIdentity;
     private final PublishArtifact pomArtifact;
     private final PublishArtifact mainArtifact;
+    private Set<PublishArtifact> attachedArtifacts;
 
-    public DefaultMavenDeployment(PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
+    public DefaultMavenDeployment(String packaging, MavenProjectIdentity projectIdentity, PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
+        this.packaging = packaging;
+        this.projectIdentity = projectIdentity;
         this.pomArtifact = pomArtifact;
         this.mainArtifact = mainArtifact;
         this.attachedArtifacts = Sets.newLinkedHashSet(attachedArtifacts);
+    }
+
+    @Override
+    public String getPackaging() {
+        return packaging;
+    }
+
+    @Override
+    public String getGroupId() {
+        return projectIdentity.getGroupId().get();
+    }
+
+    @Override
+    public String getArtifactId() {
+        return projectIdentity.getArtifactId().get();
+    }
+
+    @Override
+    public String getVersion() {
+        return projectIdentity.getVersion().get();
     }
 
     public void addArtifact(PublishArtifact artifact) {

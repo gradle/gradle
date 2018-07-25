@@ -112,9 +112,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         buildFile << '''
 buildscript {
   repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
+    gradlePluginPortal()
   }
 
   dependencies {

@@ -41,7 +41,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        withBuildCache().succeeds "first", "second"
+        withBuildCache().run "first", "second"
         then:
         nonSkippedTasks == [":first", ":second"]
         file("first.txt").text == "Hello from the first task"
@@ -74,7 +74,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        withBuildCache().succeeds "taskA", "taskB"
+        withBuildCache().run "taskA", "taskB"
         then:
         nonSkippedTasks == [":taskA"]
         skippedTasks as List == [":taskB"]
@@ -108,7 +108,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        withBuildCache().succeeds "compileA", "compileB"
+        withBuildCache().run "compileA", "compileB"
         then:
         nonSkippedTasks == [":compileA", ":compileB"]
         file("build/compile-a/output.txt").text == "From compile task A"

@@ -20,12 +20,15 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.ArrayList;
@@ -36,11 +39,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class ResolutionFailureCollector implements DependencyGraphVisitor {
-    private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
-    private DependencyGraphNode root;
+    private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ComponentSelector, BrokenDependency>();
+    private final ComponentSelectorConverter componentSelectorConverter;
+    private RootGraphNode root;
+
+    public ResolutionFailureCollector(ComponentSelectorConverter componentSelectorConverter) {
+        this.componentSelectorConverter = componentSelectorConverter;
+    }
 
     @Override
-    public void start(DependencyGraphNode root) {
+    public void start(RootGraphNode root) {
         this.root = root;
     }
 
@@ -53,7 +61,7 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
         for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
             ModuleVersionResolveException failure = dependency.getFailure();
             if (failure != null) {
-                addUnresolvedDependency(dependency, dependency.getRequestedModuleVersion(), failure);
+                addUnresolvedDependency(dependency, dependency.getRequested(), failure);
             }
         }
     }
@@ -71,18 +79,21 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
             ImmutableSet.of();
         }
         ImmutableSet.Builder<UnresolvedDependency> builder = ImmutableSet.builder();
-        for (Map.Entry<ModuleVersionSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
+        for (Map.Entry<ComponentSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
             Collection<List<ComponentIdentifier>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root);
-            builder.add(new DefaultUnresolvedDependency(entry.getKey(), entry.getValue().failure.withIncomingPaths(paths)));
+
+            ComponentSelector key = entry.getKey();
+            ModuleVersionSelector moduleVersionSelector = componentSelectorConverter.getSelector(key);
+            builder.add(new DefaultUnresolvedDependency(moduleVersionSelector, entry.getValue().failure.withIncomingPaths(paths)));
         }
         return builder.build();
     }
 
-    private void addUnresolvedDependency(DependencyGraphEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
-        BrokenDependency breakage = failuresByRevisionId.get(requested);
+    private void addUnresolvedDependency(DependencyGraphEdge dependency, ComponentSelector selector, ModuleVersionResolveException failure) {
+        BrokenDependency breakage = failuresByRevisionId.get(selector);
         if (breakage == null) {
             breakage = new BrokenDependency(failure);
-            failuresByRevisionId.put(requested, breakage);
+            failuresByRevisionId.put(selector, breakage);
         }
         breakage.requiredBy.add(dependency.getFrom());
     }

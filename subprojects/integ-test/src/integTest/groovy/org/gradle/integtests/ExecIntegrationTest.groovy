@@ -140,4 +140,62 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         then:
         ":run" in nonSkippedTasks
     }
+
+    def "arguments can be passed by using argument providers"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            class JavaTestCommand implements CommandLineArgumentProvider {
+                @Internal
+                File expectedWorkingDir
+                
+                @Input
+                String getExpectedWorkingDirPath() {
+                    return expectedWorkingDir.absolutePath
+                }
+                
+                @Classpath
+                FileCollection classPath
+                
+                @OutputFile
+                File outputFile
+            
+                @Override
+                Iterable<String> asArguments() {
+                    ['-cp', classPath.asPath, 'org.gradle.TestMain', expectedWorkingDirPath, outputFile.absolutePath]
+                }
+            }
+            
+            task run(type: Exec) {
+                ext.testFile = file("$buildDir/out.txt")
+                argumentProviders << new JavaTestCommand(
+                    expectedWorkingDir: projectDir,
+                    classPath: sourceSets.main.runtimeClasspath,
+                    outputFile: testFile 
+                )
+                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                doLast {
+                    assert testFile.exists()
+                }
+            }
+        '''
+
+        when:
+        run "run"
+        then:
+        executedAndNotSkipped ":run"
+
+        when:
+        run "run"
+        then:
+        skipped ":run"
+
+        when:
+        file('build/out.txt').delete()
+        and:
+        run "run"
+        then:
+        executedAndNotSkipped ":run"
+    }
 }

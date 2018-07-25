@@ -23,13 +23,14 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 
-import java.io.File;
+import java.util.regex.Pattern;
 
 /**
  * The default test class scanner. Depending on the availability of a test framework detector,
  * a detection or filename scan is performed to find test classes.
  */
 public class DefaultTestClassScanner implements Runnable {
+    private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
@@ -62,8 +63,7 @@ public class DefaultTestClassScanner implements Runnable {
     private void filenameScan() {
         candidateClassFiles.visit(new ClassFileVisitor() {
             public void visitClassFile(FileVisitDetails fileDetails) {
-                String className = fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(className);
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo(getClassName(fileDetails));
                 testClassProcessor.processTestClass(testClass);
             }
         });
@@ -72,13 +72,23 @@ public class DefaultTestClassScanner implements Runnable {
     private abstract class ClassFileVisitor extends EmptyFileVisitor {
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
-            final File file = fileDetails.getFile();
-
-            if (file.getAbsolutePath().endsWith(".class")) {
+            if (isClass(fileDetails) && !isAnonymousClass(fileDetails)) {
                 visitClassFile(fileDetails);
             }
         }
 
-        public abstract void visitClassFile(FileVisitDetails fileDetails);
+        abstract void visitClassFile(FileVisitDetails fileDetails);
+
+        private boolean isAnonymousClass(FileVisitDetails fileVisitDetails) {
+            return ANONYMOUS_CLASS_NAME.matcher(getClassName(fileVisitDetails)).matches();
+        }
+
+        private boolean isClass(FileVisitDetails fileVisitDetails) {
+            return fileVisitDetails.getFile().getAbsolutePath().endsWith(".class");
+        }
+    }
+
+    private String getClassName(FileVisitDetails fileDetails) {
+        return fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
     }
 }

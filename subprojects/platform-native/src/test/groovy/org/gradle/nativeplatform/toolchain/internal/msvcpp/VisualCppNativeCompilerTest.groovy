@@ -24,9 +24,9 @@ abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
         ['/nologo', '/c', '/Dfoo=bar', '/Dempty', '-firstArg', '-secondArg',
-         '/I' + includeDir.absoluteFile.toString()]
+         '/I' + includeDir.absoluteFile.toString(), '/I' + systemIncludeDir.absoluteFile.toString()]
     }
 
     def "arguments include MSVC output flag and output file name"() {

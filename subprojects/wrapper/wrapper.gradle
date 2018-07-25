@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -13,14 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// Wrapper main entry point requires Java 5
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+plugins {
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(":cli")
 
-    testCompile libraries.ant
+    testCompile libraries.ant.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
+
+testFixtures {
+    from(':core')
 }
 
 ext {
@@ -33,7 +43,9 @@ normalization {
     }
 }
 
-task wrapperBuildReceiptResource(type: Copy) {
+def generatedTestResourcesDir = gradlebuildJava.generatedTestResourcesDir
+
+def wrapperBuildReceiptResource = tasks.register("wrapperBuildReceiptResource", Copy) {
     from {
         tasks.getByPath(':createBuildReceipt').outputs.files
     }
@@ -41,7 +53,7 @@ task wrapperBuildReceiptResource(type: Copy) {
 }
 sourceSets.test.output.dir generatedTestResourcesDir, builtBy: wrapperBuildReceiptResource
 
-task executableJar(type: Jar) {
+tasks.register("executableJar", Jar) {
     // gradle-wrapper.jar will be part of the plugins.jar - so it needs to be identical for now
     reproducibleFileOrder = true
     preserveFileTimestamps = false
@@ -50,9 +62,6 @@ task executableJar(type: Jar) {
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
-integTestTasks.all {
-    requiresBinZip = true
+integTestTasks.configureEach {
+    binaryDistributions.binZipRequired = true
 }
-
-useTestFixtures()
-useClassycle()

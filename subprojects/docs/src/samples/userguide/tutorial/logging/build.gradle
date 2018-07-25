@@ -8,6 +8,10 @@ logger.debug('A debug log message.')
 logger.trace('A trace log message.')
 // END SNIPPET use-logger
 
+// START SNIPPET use-logger-placeholder
+logger.info('A {} log message', 'info')
+// END SNIPPET use-logger-placeholder
+
 // START SNIPPET use-println
 println 'A message which is logged at QUIET level'
 // END SNIPPET use-println

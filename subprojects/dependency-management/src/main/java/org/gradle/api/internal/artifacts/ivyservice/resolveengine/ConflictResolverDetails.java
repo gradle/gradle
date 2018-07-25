@@ -23,8 +23,6 @@ public interface ConflictResolverDetails<T extends ComponentResolutionState> {
 
     void select(T candidate);
 
-    void restart();
-
     void fail(Throwable error);
 
     @Nullable

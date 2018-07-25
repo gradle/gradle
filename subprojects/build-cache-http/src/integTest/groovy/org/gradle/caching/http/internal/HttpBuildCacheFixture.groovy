@@ -18,13 +18,12 @@ package org.gradle.caching.http.internal
 
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Before
 import org.junit.Rule
 
 @SelfType(AbstractIntegrationSpec)
-trait HttpBuildCacheFixture extends BuildCacheFixture {
+trait HttpBuildCacheFixture {
     private HttpBuildCacheServer httpBuildCacheServer
 
     @Rule

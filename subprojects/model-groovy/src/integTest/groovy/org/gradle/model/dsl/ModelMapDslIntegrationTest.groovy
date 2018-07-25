@@ -63,7 +63,7 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains("value = 12")
+        outputContains("value = 12")
     }
 
     def "nested configure rule is executed only as required"() {
@@ -95,7 +95,7 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains("value = 12")
+        outputContains("value = 12")
     }
 
     def "nested create rule can reference sibling as input"() {
@@ -127,10 +127,10 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains('''configure main
+        outputContains('''configure main
 configure test
 ''')
-        result.output.contains("value = 12")
+        outputContains("value = 12")
     }
 
     def "nested create rule defined using ModelMap API methods can reference sibling as input"() {
@@ -162,10 +162,10 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains('''configure main
+        outputContains('''configure main
 configure test
 ''')
-        result.output.contains("value = 12")
+        outputContains("value = 12")
     }
 
     def "nested configure rule can reference sibling as input"() {
@@ -198,10 +198,10 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains('''configure main
+        outputContains('''configure main
 configure test
 ''')
-        result.output.contains("value = 12")
+        outputContains("value = 12")
     }
 
     def "nested configure rule defined using ModelMap API methods can reference sibling as input"() {
@@ -234,10 +234,10 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains('''configure main
+        outputContains('''configure main
 configure test
 ''')
-        result.output.contains("value = 12")
+        outputContains("value = 12")
     }
 
     def "nested rule cannot reference method of delegate of outer closure"() {
@@ -320,7 +320,7 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains("value = [[a:foo], [b:foo], [c:foo], foo]")
+        outputContains("value = [[a:foo], [b:foo], [c:foo], foo]")
     }
 
     def "can create and configure elements conditionally"() {
@@ -354,7 +354,7 @@ model {
         succeeds "show"
 
         then:
-        result.output.contains("value = [foo, [test:foo]]")
+        outputContains("value = [foo, [test:foo]]")
     }
 
     def "reports nested rule location for failure in initialization action"() {

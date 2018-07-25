@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.operations.OperationIdentifier;
 
 public class ProgressEvent extends OutputEvent {
     private final String status;
@@ -39,7 +40,7 @@ public class ProgressEvent extends OutputEvent {
 
     @Override
     public String toString() {
-        return "Progress " + status;
+        return "Progress (" + progressOperationId + ") " + status;
     }
 
     public OperationIdentifier getProgressOperationId() {

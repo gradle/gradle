@@ -21,8 +21,11 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.Collection;
@@ -35,6 +38,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     private final MinimalFileTree tree;
 
     public FileTreeAdapter(MinimalFileTree tree) {
+        this.tree = tree;
+    }
+    public FileTreeAdapter(MinimalFileTree tree, Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
         this.tree = tree;
     }
 
@@ -79,7 +86,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             Buildable buildable = (Buildable) tree;
             return buildable.getBuildDependencies();
         }
-        return super.getBuildDependencies();
+        return TaskDependencies.EMPTY;
     }
 
     @Override
@@ -101,7 +108,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public FileTree matching(PatternFilterable patterns) {
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
-            return new FileTreeAdapter(filterableTree.filter(patterns));
+            return new FileTreeAdapter(filterableTree.filter(patterns), patternSetFactory);
         }
         return super.matching(patterns);
     }

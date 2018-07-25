@@ -71,8 +71,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
                     implClass = classLoader.loadClass(implClassName);
                 } catch (ClassNotFoundException e) {
                     throw new InvalidPluginException(String.format(
-                            "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,
-                            pluginDescriptor), e);
+                        "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,
+                        pluginDescriptor), e);
                 }
 
                 PotentialPlugin<?> potentialPlugin = pluginInspector.inspect(implClass);
@@ -202,8 +202,9 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         @Override
-        public PluginImplementation<?> load(@SuppressWarnings("NullableProblems") Class<?> key) throws Exception {
-            return new RegistryAwarePluginImplementation(key.getClassLoader(), null, pluginInspector.inspect(key));
+        public PluginImplementation<?> load(@SuppressWarnings("NullableProblems") Class<?> key) {
+            ClassLoader classLoader = classLoaderScope.defines(key) ? classLoaderScope.getLocalClassLoader() : key.getClassLoader();
+            return new RegistryAwarePluginImplementation(classLoader, null, pluginInspector.inspect(key));
         }
     }
 
@@ -222,8 +223,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
             if (id.equals(pluginId)) {
                 return true;
             }
-            PluginImplementation<?> other = lookup(id, classLoader);
-            return other != null && other.asClass().equals(asClass());
+
+            PluginImplementation<?> implementation = lookup(id, classLoader);
+            return implementation != null && implementation.asClass().equals(asClass());
         }
+
     }
 }

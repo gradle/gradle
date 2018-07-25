@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
@@ -25,13 +26,17 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultCacheScopeMapping implements CacheScopeMapping {
+
+    @VisibleForTesting
+    public static final String GLOBAL_CACHE_DIR_NAME = "caches";
+
     private final File globalCacheDir;
     private final File projectCacheDir;
     private final GradleVersion version;
 
     public DefaultCacheScopeMapping(File userHomeDir, @Nullable File projectCacheDir, GradleVersion version) {
         this.version = version;
-        this.globalCacheDir = new File(userHomeDir, "caches");
+        this.globalCacheDir = new File(userHomeDir, GLOBAL_CACHE_DIR_NAME);
         this.projectCacheDir = projectCacheDir;
     }
 

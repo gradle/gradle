@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
@@ -73,4 +74,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(settings);
     }
 
+    protected GradleInternal createGradleInternal() {
+        return settings.getGradle();
+    }
 }

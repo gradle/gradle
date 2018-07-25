@@ -1,0 +1,39 @@
+
+class Producer extends DefaultTask {
+    @OutputFile
+    final RegularFileProperty outputFile = newOutputFile()
+
+    @TaskAction
+    void produce() {
+        String message = 'Hello, World!'
+        def output = outputFile.get().asFile
+        output.text = message
+        logger.quiet("Wrote '${message}' to ${output}")
+    }
+}
+
+class Consumer extends DefaultTask {
+    @InputFile
+    final RegularFileProperty inputFile = newInputFile()
+
+    @TaskAction
+    void consume() {
+        def input = inputFile.get().asFile
+        def message = input.text
+        logger.quiet("Read '${message}' from ${input}")
+    }
+}
+
+task producer(type: Producer)
+task consumer(type: Consumer)
+
+// Wire property from producer to consumer task
+consumer.inputFile = producer.outputFile
+
+// Set values for the producer lazily
+// Note that the consumer does not need to be changed again.
+producer.outputFile = layout.buildDirectory.file('file.txt')
+
+// Change the base output directory.
+// Note that this automatically changes producer.outputFile and consumer.inputFile
+buildDir = 'output'

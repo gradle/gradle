@@ -16,21 +16,37 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonatype.aether.transfer.AbstractTransferListener;
+import org.sonatype.aether.transfer.MetadataNotFoundException;
 import org.sonatype.aether.transfer.TransferEvent;
 import org.sonatype.aether.transfer.TransferEvent.RequestType;
 
 class LoggingMavenTransferListener extends AbstractTransferListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingMavenTransferListener.class);
+
+    private static final Logger LOGGER = Logging.getLogger(LoggingMavenTransferListener.class);
     private static final int KILO = 1024;
 
-    public void transferFailed(TransferEvent event) {
-        LOGGER.error(event.getException().getMessage());
+    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final BuildOperationRef buildOperationRef;
+    private final ThreadLocal<BuildOperationRef> previousBuildOperationRef = new ThreadLocal<BuildOperationRef>();
+
+    /*
+        Note: Aether implicitly uses a thread pool and tasks to perform transfers,
+        so we manually propagate the current build operation ref so logging is correctly associated.
+     */
+
+    public LoggingMavenTransferListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationRef buildOperationRef) {
+        this.currentBuildOperationRef = currentBuildOperationRef;
+        this.buildOperationRef = buildOperationRef;
     }
 
     public void transferInitiated(TransferEvent event) {
+        previousBuildOperationRef.set(currentBuildOperationRef.get());
+        currentBuildOperationRef.set(buildOperationRef);
         String message = event.getRequestType() == RequestType.PUT ? "Uploading: {} to repository {} at {}" : "Downloading: {} from repository {} at {}";
         LOGGER.info(message, event.getResource().getResourceName(), "remote", event.getResource().getRepositoryUrl());
     }
@@ -42,10 +58,24 @@ class LoggingMavenTransferListener extends AbstractTransferListener {
         }
     }
 
+    public void transferFailed(TransferEvent event) {
+        if (event.getException() instanceof MetadataNotFoundException) {
+            LOGGER.info(event.getException().getMessage());
+        } else {
+            LOGGER.error(event.getException().getMessage());
+        }
+        resetCurrentBuildOperationRef();
+    }
+
     public void transferSucceeded(TransferEvent event) {
         long contentLength = event.getResource().getContentLength();
         if (contentLength > 0 && event.getRequestType() == RequestType.PUT) {
             LOGGER.info("Uploaded {}K", (contentLength + KILO / 2) / KILO);
         }
+        resetCurrentBuildOperationRef();
+    }
+
+    private void resetCurrentBuildOperationRef() {
+        currentBuildOperationRef.set(previousBuildOperationRef.get());
     }
 }

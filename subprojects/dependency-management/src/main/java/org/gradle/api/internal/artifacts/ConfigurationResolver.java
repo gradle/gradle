@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+
+import java.util.List;
 
 public interface ConfigurationResolver {
     /**
@@ -34,4 +37,10 @@ public interface ConfigurationResolver {
      * Must be called using the same result instance as was passed to {@link #resolveGraph(ConfigurationInternal, ResolverResults)}.
      */
     void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
+
+    /**
+     * Returns the list of repositories available to resolve a given configuration. This is used for reporting only.
+     */
+    List<ResolutionAwareRepository> getRepositories();
+
 }

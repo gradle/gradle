@@ -22,6 +22,8 @@ import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
@@ -33,18 +35,24 @@ import java.util.Map;
 public class SettingsFactory {
     private final Instantiator instantiator;
     private final ServiceRegistryFactory serviceRegistryFactory;
+    private final ScriptHandlerFactory scriptHandlerFactory;
 
-    public SettingsFactory(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
+    public SettingsFactory(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory, ScriptHandlerFactory scriptHandlerFactory) {
         this.instantiator = instantiator;
         this.serviceRegistryFactory = serviceRegistryFactory;
+        this.scriptHandlerFactory = scriptHandlerFactory;
     }
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            ClassLoaderScope buildRootClassLoaderScope) {
 
+        ClassLoaderScope settingsClassLoaderScope = buildRootClassLoaderScope.createChild("settings");
+        ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, settingsClassLoaderScope);
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
-                serviceRegistryFactory, gradle, buildRootClassLoaderScope.createChild("settings"), buildRootClassLoaderScope, settingsDir, settingsScript, startParameter
+            serviceRegistryFactory, gradle,
+            settingsClassLoaderScope, buildRootClassLoaderScope, settingsScriptHandler,
+            settingsDir, settingsScript, startParameter
         );
 
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();

@@ -21,14 +21,12 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.Collection;
 
 abstract class AbstractModuleExclusion implements ModuleExclusion {
-    private static final String WILDCARD = "*";
-
     private int hashCode = -1;
     private ModuleExclusion lastCheck;
     private boolean lastCheckResult;
 
     protected static boolean isWildcard(String attribute) {
-        return WILDCARD.equals(attribute);
+        return PatternMatchers.ANY_EXPRESSION.equals(attribute);
     }
 
     public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
@@ -81,6 +79,7 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
 
     /**
      * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as an intersection.
+     * @param specs
      */
     protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.add(this);

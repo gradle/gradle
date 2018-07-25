@@ -23,10 +23,13 @@ import java.lang.annotation.*;
 
 /**
  * Indicates that the annotated object is designed to be configured only once, and that changes to configuration inputs made after configuration should not be allowed.
+ *
+ * @deprecated without replacement.
  */
 @Incubating
 @Inherited
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Deprecated
 public @interface DeferredConfigurable {}

@@ -86,7 +86,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         run "mainJar"
 
         then:
-        executedAndNotSkipped mainCompileTaskName, ":createMainJar", ":mainJar"
+        executedAndNotSkipped ":createMainJar", ":mainJar"
 
 
         and:

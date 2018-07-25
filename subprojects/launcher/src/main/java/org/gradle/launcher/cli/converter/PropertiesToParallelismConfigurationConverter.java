@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.internal.buildoption.BuildOption;
 
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.Map;
 
 public class PropertiesToParallelismConfigurationConverter {
 
-    private List<BuildOption<ParallelismConfiguration>> buildOptions = new ParallelismBuildOptionFactory().create();
+    private List<BuildOption<ParallelismConfiguration>> buildOptions = ParallelismBuildOptions.get();
 
     public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {
         for (BuildOption<ParallelismConfiguration> option : buildOptions) {

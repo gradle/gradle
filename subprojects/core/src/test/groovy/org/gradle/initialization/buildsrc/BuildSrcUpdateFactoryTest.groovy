@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.cache.PersistentCache
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.invocation.BuildController
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,42 +26,24 @@ class BuildSrcUpdateFactoryTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def cache = Stub(PersistentCache)
     def launcher = Stub(BuildController)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)
     def listenerFactory = Mock(BuildSrcBuildListenerFactory)
-    def factory = new BuildSrcUpdateFactory(cache, launcher, listenerFactory)
+    def cachedClasspathTransformer = Mock(CachedClasspathTransformer)
+    def factory = new BuildSrcUpdateFactory(launcher, listenerFactory, cachedClasspathTransformer)
 
     def "creates classpath"() {
-        cache.getBaseDir() >> temp.testDirectory
         listener.getRuntimeClasspath() >> [new File("dummy")]
 
         when:
         def classpath = factory.create()
 
         then:
+        1 * listenerFactory.create() >> listener
+        1 * cachedClasspathTransformer.transform(_) >> { arguments ->
+            arguments[0]
+        }
+
         classpath.asFiles == [new File("dummy")]
-        1 * listenerFactory.create(_) >> listener
-    }
-
-    def "uses listener with rebuild off when marker file present"() {
-        temp.createFile("built.bin")
-        cache.getBaseDir() >> temp.testDirectory
-
-        when:
-        factory.create()
-
-        then:
-        1 * listenerFactory.create(false) >> listener
-    }
-
-    def "uses listener with rebuild on when marker file not present"() {
-        cache.getBaseDir() >> temp.createDir("empty")
-
-        when:
-        factory.create()
-
-        then:
-        1 * listenerFactory.create(true) >> listener
     }
 }

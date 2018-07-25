@@ -22,7 +22,23 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.DirectInstantiator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Common methods to wrap objects in generic collections.
@@ -42,7 +58,9 @@ public class WrapUtil {
      * Wraps the given items in a mutable domain object set.
      */
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
-        return new DefaultDomainObjectSet<T>(type, toSet(items));
+        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type);
+        set.addAll(Arrays.asList(items));
+        return set;
     }
 
     /**
@@ -140,7 +158,7 @@ public class WrapUtil {
     public static <T> T[] toArray(T... items) {
         return items;
     }
-    
+
     public static <T> Set<T> asSet(Collection<T> c) {
         return new LinkedHashSet<T>(c);
     }

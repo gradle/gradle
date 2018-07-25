@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
@@ -54,6 +55,11 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
         all(ConfigureUtil.configureUsing(action));
     }
 
+    @Override
+    public void configureEach(Action<? super T> action) {
+        backingSet.configureEach(action);
+    }
+
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         return backingSet.whenObjectAdded(action);
     }
@@ -76,6 +82,11 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
         return withType(type, ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void addLater(Provider<? extends T> provider) {
+        backingSet.addLater(provider);
     }
 
     public boolean add(T o) {

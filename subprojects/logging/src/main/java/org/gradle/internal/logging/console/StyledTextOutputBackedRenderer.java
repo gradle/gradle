@@ -43,10 +43,11 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
     public void onOutput(OutputEvent event) {
         if (event instanceof LogLevelChangeEvent) {
             LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
-            debugOutput = changeEvent.getNewLogLevel() == LogLevel.DEBUG;
-            if (debugOutput && dateFormat == null) {
+            boolean newLogLevelIsDebug = changeEvent.getNewLogLevel() == LogLevel.DEBUG;
+            if (newLogLevelIsDebug && dateFormat == null) {
                 dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
             }
+            debugOutput = newLogLevelIsDebug;
         }
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;

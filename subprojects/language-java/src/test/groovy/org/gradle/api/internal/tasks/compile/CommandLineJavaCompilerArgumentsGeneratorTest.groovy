@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.Lists
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -43,7 +43,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         println argsFile.text
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", quote(""), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", quote("${spec.compileClasspath.join(File.pathSeparator)}"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == ["-g", "-sourcepath", quote(""), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", quote("${spec.compileClasspath.join(File.pathSeparator)}"), *(spec.sourceFiles*.path.collect { quote(it) })]
     }
 
     String defaultEmptySourcePathRefFolder() {
@@ -54,9 +54,9 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def sources = createFiles(numFiles)
         def classpath = createFiles(numFiles)
         def spec = new DefaultJavaCompileSpec()
-        spec.compileOptions = new CompileOptions()
+        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
-        spec.source = new SimpleFileCollection(sources)
+        spec.sourceFiles = sources
         spec.compileClasspath = classpath
         spec.tempDir = tempDir.testDirectory
         spec

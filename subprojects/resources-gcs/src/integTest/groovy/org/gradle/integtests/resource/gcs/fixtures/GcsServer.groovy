@@ -290,6 +290,9 @@ class GcsServer extends HttpServer implements RepositoryServer {
             request {
                 method = 'GET'
                 path = "/b/${bucketName}/o"
+                params = [
+                    'prefix' : [prefix] as String[]
+                ]
                 headers = [
                     'Content-Type': 'application/json; charset=utf-8',
                     'Connection'  : 'Keep-Alive'

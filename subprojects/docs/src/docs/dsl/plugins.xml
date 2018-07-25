@@ -73,6 +73,7 @@
     <plugin id="native-component" description="Native Software Model Plugin"></plugin>
     <plugin id="visual-studio" description="Visual Studio Plugin">
         <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioRootExtension"/>
     </plugin>
 
     <plugin id="play" description="Play Plugin">

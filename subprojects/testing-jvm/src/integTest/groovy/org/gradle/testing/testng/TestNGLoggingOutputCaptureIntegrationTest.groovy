@@ -89,7 +89,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
   <test name='The Foo Test'><classes><class name='FooTest'/></classes></test>
 </suite>"""
 
-        when: run "test"
+        when: succeeds "test"
 
         then:
         containsLinesThatMatch(result.output,
@@ -99,7 +99,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
             "Gradle Test Executor \\d+ -> constructor err"
         )
 
-        result.output.contains expectedOutput('The Foo Test')
+        outputContains expectedOutput('The Foo Test')
 
         /**
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
@@ -116,7 +116,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
     }
 
     def "attaches output events to correct test descriptors"() {
-        when: run "test"
+        when: succeeds "test"
 
         then:
         containsLinesThatMatch(result.output,
@@ -126,7 +126,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
             "Gradle Test Executor \\d+ -> constructor err"
         )
 
-        result.output.contains expectedOutput('Gradle test')
+        outputContains expectedOutput('Gradle test')
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = xmlReport.testClass("FooTest")

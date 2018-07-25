@@ -16,6 +16,7 @@
 
 package org.gradle.internal;
 
+import com.google.common.base.Objects;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Describable;
 
@@ -45,6 +46,34 @@ public class Describables {
      */
     public static DisplayName of(Object part1, Object part2, Object part3) {
         return new ThreePartDescribable(part1, part2, part3);
+    }
+
+    /**
+     * Returns a describable for an object that has a type and name.
+     */
+    public static DisplayName withTypeAndName(final String type, final String name) {
+        return new AbstractDescribable() {
+            @Override
+            public String getCapitalizedDisplayName() {
+                StringBuilder result = asMutable();
+                result.setCharAt(0, Character.toUpperCase(result.charAt(0)));
+                return result.toString();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return asMutable().toString();
+            }
+
+            private StringBuilder asMutable() {
+                StringBuilder result = new StringBuilder(type.length() + name.length() + 3);
+                result.append(type);
+                result.append(" '");
+                result.append(name);
+                result.append('\'');
+                return result;
+            }
+        };
     }
 
     /**
@@ -95,7 +124,10 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            if (displayName instanceof CharSequence) {
+                return displayName.toString();
+            }
+            StringBuilder builder = new StringBuilder(32);
             appendDisplayName(displayName, builder);
             return builder.toString();
         }
@@ -105,6 +137,23 @@ public class Describables {
             StringBuilder builder = new StringBuilder();
             appendCapDisplayName(displayName, builder);
             return builder.toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            FixedDescribable that = (FixedDescribable) o;
+            return Objects.equal(displayName, that.displayName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(displayName);
         }
     }
 
@@ -119,7 +168,7 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(48);
             appendDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
@@ -128,11 +177,29 @@ public class Describables {
 
         @Override
         public String getCapitalizedDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(48);
             appendCapDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
             return builder.toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TwoPartDescribable that = (TwoPartDescribable) o;
+            return Objects.equal(part1, that.part1) &&
+                Objects.equal(part2, that.part2);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(part1, part2);
         }
     }
 
@@ -149,7 +216,7 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(64);
             appendDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
@@ -160,13 +227,32 @@ public class Describables {
 
         @Override
         public String getCapitalizedDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(64);
             appendCapDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
             builder.append(' ');
             appendDisplayName(part3, builder);
             return builder.toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ThreePartDescribable that = (ThreePartDescribable) o;
+            return Objects.equal(part1, that.part1) &&
+                Objects.equal(part2, that.part2) &&
+                Objects.equal(part3, that.part3);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(part1, part2, part3);
         }
     }
 

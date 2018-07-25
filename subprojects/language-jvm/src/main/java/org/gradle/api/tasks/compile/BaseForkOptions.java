@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -73,8 +74,9 @@ public class BaseForkOptions extends AbstractOptions {
      * Returns any additional JVM arguments for the compiler process.
      * Defaults to the empty list.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public List<String> getJvmArgs() {
         return jvmArgs;
     }
@@ -83,7 +85,7 @@ public class BaseForkOptions extends AbstractOptions {
      * Sets any additional JVM arguments for the compiler process.
      * Defaults to the empty list.
      */
-    public void setJvmArgs(List<String> jvmArgs) {
+    public void setJvmArgs(@Nullable List<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }
 

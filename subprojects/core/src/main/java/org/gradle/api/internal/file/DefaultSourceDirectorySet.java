@@ -29,9 +29,8 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -55,7 +54,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PatternSet patterns;
     private final PatternSet filter;
     private final FileCollection dirs;
-    private final PropertyState<File> outputDir;
+    private final Property<File> outputDir;
 
     public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.name = name;
@@ -65,8 +64,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.patterns = fileResolver.getPatternSetFactory().create();
         this.filter = fileResolver.getPatternSetFactory().create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        ProviderFactory providerFactory = new DefaultProviderFactory();
-        this.outputDir = providerFactory.property(File.class);
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        this.outputDir = providerFactory.propertyNoNag(File.class);
     }
 
     public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {

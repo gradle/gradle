@@ -17,9 +17,11 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -76,4 +78,16 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * {@inheritDoc}
      */
     T getAt(String name) throws UnknownTaskException;
+
+    /**
+     * Locates a task by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     *
+     * @param name The task name
+     * @return A {@link Provider} that will return the task when queried. The task may be created and configured at this point, if not already.
+     * @throws UnknownTaskException If a task with the given name is not defined.
+     * @since 4.9
+     */
+    @Incubating
+    TaskProvider<T> named(String name) throws UnknownTaskException;
 }

@@ -17,7 +17,10 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.Plugin
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 4
@@ -30,7 +33,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
     def "Gradle API and TestKit dependency can be resolved and used by concurrent Gradle builds"() {
         given:
         setupProjects(CONCURRENT_BUILDS_PROJECT_COUNT) { projectDirName, buildFile ->
-            buildFile << testableGroovyProject()
+            buildFile << testablePluginProject()
             file("$projectDirName/src/test/groovy/MyTest.groovy") << gradleApiAndTestKitClassLoadingTestClass()
         }
 
@@ -58,7 +61,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
     def "Gradle API and TestKit dependency can be resolved and used by concurrent tasks within one build"() {
         given:
         setupProjects(CONCURRENT_TASKS_PROJECT_COUNT) { projectDirName, buildFile ->
-            buildFile << testableGroovyProject()
+            buildFile << testablePluginProject()
             file("$projectDirName/src/test/groovy/MyTest.groovy") << gradleApiAndTestKitClassLoadingTestClass()
         }
 

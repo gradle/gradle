@@ -30,9 +30,9 @@ import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
@@ -64,6 +64,7 @@ public final class BuildCacheControllerFactory {
         final BuildCacheMode buildCacheState,
         final RemoteAccessMode remoteAccessMode,
         final boolean logStackTraces,
+        final boolean emitDebugLogging,
         final Instantiator instantiator
     ) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
@@ -114,7 +115,8 @@ public final class BuildCacheControllerFactory {
                         config,
                         buildOperationExecutor,
                         gradleUserHomeDir,
-                        logStackTraces
+                        logStackTraces,
+                        emitDebugLogging
                     );
                 }
             }
@@ -122,7 +124,7 @@ public final class BuildCacheControllerFactory {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(DetailsImpl.INSTANCE);
+                    .details(new DetailsImpl(buildIdentityPath.getPath()));
             }
         });
     }
@@ -266,9 +268,15 @@ public final class BuildCacheControllerFactory {
     }
 
     private static class DetailsImpl implements FinalizeBuildCacheConfigurationBuildOperationType.Details {
-        public static final FinalizeBuildCacheConfigurationBuildOperationType.Details INSTANCE = new DetailsImpl();
+        private final String buildPath;
 
-        private DetailsImpl() {
+        private DetailsImpl(String buildPath) {
+            this.buildPath = buildPath;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
         }
     }
 

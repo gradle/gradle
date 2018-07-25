@@ -24,7 +24,7 @@ import java.net.URI;
 /**
  * A specification of a Git repository.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface GitVersionControlSpec extends VersionControlSpec {

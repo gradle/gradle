@@ -16,12 +16,12 @@
 
 package org.gradle.api.execution.internal;
 
-import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.GradleInternal;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
-public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details {
+public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TaskInternal task;
 
@@ -37,22 +37,32 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
 
     @Override
     public String getBuildPath() {
-        return ((GradleInternal) task.getProject().getGradle()).getIdentityPath().toString();
+        return task.getTaskIdentity().buildPath.toString();
     }
 
     @Override
     public String getTaskPath() {
-        return task.getPath();
+        return task.getTaskIdentity().projectPath.toString();
     }
 
     @Override
     public long getTaskId() {
-        return (long) System.identityHashCode(task);
+        return task.getTaskIdentity().uniqueId;
     }
 
     @Override
     public Class<?> getTaskClass() {
-        return GeneratedSubclasses.unpack(task.getClass());
+        return task.getTaskIdentity().type;
     }
 
+    @Override
+    public Object getCustomOperationTraceSerializableModel() {
+        ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+        builder.put("buildPath", getBuildPath());
+        builder.put("taskPath", getTaskPath());
+        builder.put("taskClass", getTaskClass().getName());
+        builder.put("taskId", getTaskId());
+        return builder.build();
+
+    }
 }

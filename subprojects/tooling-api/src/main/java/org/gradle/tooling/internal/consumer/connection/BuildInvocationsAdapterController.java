@@ -16,8 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.model.GradleProject;
@@ -35,11 +36,11 @@ public class BuildInvocationsAdapterController extends AbstractBuildController {
     }
 
     @Override
-    public <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException {
+    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
         if (modelType.equals(BuildInvocations.class)) {
-            GradleProject gradleProject = delegate.getModel(target, GradleProject.class);
+            GradleProject gradleProject = delegate.getModel(target, GradleProject.class, parameterType, parameterInitializer);
             return adapter.adapt(modelType, new BuildInvocationsConverter().convert(gradleProject));
         }
-        return delegate.getModel(target, modelType);
+        return delegate.getModel(target, modelType, parameterType, parameterInitializer);
     }
 }

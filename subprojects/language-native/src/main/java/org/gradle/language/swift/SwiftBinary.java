@@ -17,26 +17,31 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithDependencies;
+import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
+import org.gradle.language.swift.tasks.SwiftCompile;
 
 /**
- * A binary built from Swift source.
+ * A binary built from Swift source and linked from the resulting object files.
  *
  * @since 4.2
  */
 @Incubating
-public interface SwiftBinary extends SoftwareComponent {
+public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
-     * Returns the Swift module that this binary defines.
+     * Returns the name of the Swift module that this binary defines.
      */
     Provider<String> getModule();
 
     /**
-     * Returns true if this binary has debugging enabled.
+     * Returns true if this binary has testing enabled.
+     *
+     * @since 4.4
      */
-    boolean isDebuggable();
+    boolean isTestable();
 
     /**
      * Returns the Swift source files of this binary.
@@ -44,9 +49,11 @@ public interface SwiftBinary extends SoftwareComponent {
     FileCollection getSwiftSource();
 
     /**
-     * Returns the import path to use to compile this binary. Includes the import path this binary's dependencies.
+     * Returns the modules to use to compile this binary. Includes the module file of this binary's dependencies.
+     *
+     * @since 4.4
      */
-    FileCollection getCompileImportPath();
+    FileCollection getCompileModules();
 
     /**
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
@@ -57,4 +64,32 @@ public interface SwiftBinary extends SoftwareComponent {
      * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
      */
     FileCollection getRuntimeLibraries();
+
+    /**
+     * Returns the compile task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<SwiftCompile> getCompileTask();
+
+    /**
+     * Returns the module file for this binary.
+     *
+     * @since 4.6
+     */
+    Provider<RegularFile> getModuleFile();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 4.5
+     */
+    SwiftPlatform getTargetPlatform();
+
+    /**
+     * Returns the Swift language level to use to compile the source files.
+     *
+     * @since 4.6
+     */
+    Provider<SwiftVersion> getSourceCompatibility();
 }

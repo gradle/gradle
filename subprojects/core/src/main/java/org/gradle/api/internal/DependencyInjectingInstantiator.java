@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,27 +57,10 @@ public class DependencyInjectingInstantiator implements Instantiator {
         this.constructorCache = constructorCache;
     }
 
-    public <T> T newInstance(final Class<? extends T> type, Object... parameters) {
+    public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
-            CachedConstructor cached = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
-                @Override
-                public CachedConstructor transform(Class<?> aClass) {
-                    try {
-                        validateType(type);
-                        Class<? extends T> implClass = classGenerator.generate(type);
-                        Constructor<?> constructor = selectConstructor(type, implClass);
-                        constructor.setAccessible(true);
-                        return CachedConstructor.of(constructor);
-                    } catch (Throwable e) {
-                        return CachedConstructor.of(e);
-                    }
-                }
-            });
-            if (cached.error != null) {
-                throw cached.error;
-            }
-            Constructor<?> constructor = cached.constructor;
-            Object[] resolvedParameters = convertParameters(type, constructor, parameters);
+            Constructor<?> constructor = findConstructor(type);
+            Object[] resolvedParameters = convertParameters(type, constructor, parameters, null);
             try {
                 Object instance = constructor.newInstance(resolvedParameters);
                 if (instance instanceof WithServiceRegistry) {
@@ -91,11 +75,33 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
     }
 
-    private <T> Object[] convertParameters(Class<T> type, Constructor<?> constructor, Object[] parameters) {
+    private <T> Constructor<?> findConstructor(final Class<? extends T> type) throws Throwable {
+        CachedConstructor cached = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
+            @Override
+            public CachedConstructor transform(Class<?> aClass) {
+                try {
+                    validateType(type);
+                    Class<? extends T> implClass = classGenerator.generate(type);
+                    Constructor<?> constructor = selectConstructor(type, implClass);
+                    constructor.setAccessible(true);
+                    return CachedConstructor.of(constructor);
+                } catch (Throwable e) {
+                    return CachedConstructor.of(e);
+                }
+            }
+        });
+        if (cached.error != null) {
+            throw cached.error;
+        }
+        return cached.constructor;
+    }
+
+    private <T> Object[] convertParameters(Class<T> type, Constructor<?> constructor, Object[] parameters, List<Object> injectedServices) {
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {
             throw new IllegalArgumentException(String.format("Too many parameters provided for constructor for class %s. Expected %s, received %s.", type.getName(), parameterTypes.length, parameters.length));
         }
+        Type[] genericTypes = constructor.getGenericParameterTypes();
         Object[] resolvedParameters = new Object[parameterTypes.length];
         int pos = 0;
         for (int i = 0; i < resolvedParameters.length; i++) {
@@ -103,11 +109,29 @@ public class DependencyInjectingInstantiator implements Instantiator {
             if (targetType.isPrimitive()) {
                 targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
             }
+            Type serviceType = genericTypes[i];
+            Object currentParameter;
             if (pos < parameters.length && targetType.isInstance(parameters[pos])) {
-                resolvedParameters[i] = parameters[pos];
+                currentParameter = parameters[pos];
                 pos++;
             } else {
-                resolvedParameters[i] = services.get(constructor.getGenericParameterTypes()[i]);
+                currentParameter = services.find(serviceType);
+                if (currentParameter != null && injectedServices != null) {
+                    injectedServices.add(currentParameter);
+                }
+            }
+
+            if (currentParameter != null) {
+                resolvedParameters[i] = currentParameter;
+            } else {
+                StringBuilder builder = new StringBuilder(String.format("Unable to determine %s argument #%s:", type.getName(), i + 1));
+                if (pos < parameters.length) {
+                    builder.append(String.format(" value %s not assignable to type %s", parameters[pos], parameterTypes[i]));
+                } else {
+                    builder.append(String.format(" missing parameter value of type %s", parameterTypes[i]));
+                }
+                builder.append(String.format(", or no service of type %s", serviceType));
+                throw new IllegalArgumentException(builder.toString());
             }
         }
         if (pos != parameters.length) {

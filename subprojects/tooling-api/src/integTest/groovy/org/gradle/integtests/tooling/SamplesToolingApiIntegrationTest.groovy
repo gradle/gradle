@@ -35,11 +35,11 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         tweakProject()
 
         when:
-        def result = run()
+        run()
 
         then:
-        result.output.contains("gradle-tooling-api-")
-        result.output.contains("src/main/java")
+        outputContains("gradle-tooling-api-")
+        outputContains("src/main/java")
     }
 
     @UsesSample('toolingApi/runBuild')
@@ -47,10 +47,10 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         tweakProject()
 
         when:
-        def result = run()
+        run()
 
         then:
-        result.output.contains("Welcome to Gradle")
+        outputContains("Welcome to Gradle")
     }
 
     @UsesSample('toolingApi/idea')
@@ -69,11 +69,11 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         tweakProject()
 
         when:
-        def result = run()
+        run()
 
         then:
-        result.output.contains("Project: model")
-        result.output.contains("    build")
+        outputContains("Project: model")
+        outputContains("    build")
     }
 
     @UsesSample('toolingApi/customModel')
@@ -83,12 +83,12 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run('publish', sample.dir.file('plugin'))
-        def result = run('run', sample.dir.file('tooling'))
+        run('run', sample.dir.file('tooling'))
 
         then:
-        result.output.contains("   :a")
-        result.output.contains("   :b")
-        result.output.contains("   :c")
+        outputContains("   :a")
+        outputContains("   :b")
+        outputContains("   :c")
         noExceptionThrown()
     }
 
@@ -110,9 +110,6 @@ run {
 """ + buildScript.substring(index)
 
         buildFile.text = buildScript
-
-        // Add in an empty settings file to avoid searching up
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
 
     private void tweakPluginProject(File projectDir) {
@@ -128,18 +125,16 @@ repositories {
 """ + buildScript.substring(index)
 
         buildFile.text = buildScript
-
-        // Add in an empty settings file to avoid searching up
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
 
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {
         try {
-            return new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
+            result = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
                     .requireGradleDistribution()
                     .inDirectory(dir)
                     .withTasks(task)
                     .run()
+            return result
         } catch (Exception e) {
             throw new IntegrationTestHint(e);
         }

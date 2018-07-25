@@ -21,22 +21,22 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import spock.lang.Issue
-import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
 import static org.gradle.util.GFileUtils.forceDelete
 
-@Timeout(120)
+@IntegrationTestTimeout(120)
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
-    private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.mostRecentFinalRelease.executer(temporaryFolder, buildContext)
+    private final GradleExecuter mostRecentReleaseExecuter = releasedVersionDistributions.mostRecentRelease.executer(temporaryFolder, buildContext)
 
     def cleanup() {
-        mostRecentFinalReleaseExecuter.cleanup()
+        mostRecentReleaseExecuter.cleanup()
     }
 
     def setup() {
@@ -149,14 +149,15 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        result = runWithMostRecentFinalRelease("myTask")
+        runWithMostRecentFinalRelease("myTask")
+
         then:
-        result.assertOutputContains("From plugin")
+        outputContains("From plugin")
 
         when:
         succeeds "myTask"
         then:
-        result.assertOutputContains("From plugin")
+        outputContains("From plugin")
     }
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
@@ -265,7 +266,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // Build everything first
-        mostRecentFinalReleaseExecuter.withArguments(arguments)
+        mostRecentReleaseExecuter.withArguments(arguments)
         result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
 
         then:
@@ -624,7 +625,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private ExecutionResult runWithMostRecentFinalRelease(String... tasks) {
-        mostRecentFinalReleaseExecuter.withTasks(tasks).run()
+        result = mostRecentReleaseExecuter.withTasks(tasks).run()
+        result
     }
 
     static String createProjectName(int projectNo) {

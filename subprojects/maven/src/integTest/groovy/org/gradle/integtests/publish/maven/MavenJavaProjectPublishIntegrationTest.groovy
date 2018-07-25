@@ -116,4 +116,78 @@ uploadArchives {
         mavenModule.assertArtifactsPublished("publishTest-1.1.pom", "publishTest-1.1.jar")
         mavenModule.parsedPom.scopes.size() == 0
     }
+
+    void "defaultDependencies are included in published pom file"() {
+        given:
+        using m2
+
+        settingsFile << "rootProject.name = 'publishTest'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.gradle.test'
+version = '1.1'
+
+configurations.compile.defaultDependencies { deps ->
+    deps.add project.dependencies.create("commons-collections:commons-collections:3.2.2")
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+        """
+
+        when:
+        succeeds "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.1")
+        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.parsedPom.scopes.compile?.expectDependency('commons-collections:commons-collections:3.2.2')
+    }
+
+    void "dependency mutations are reflected in published pom file"() {
+        given:
+        using m2
+
+        settingsFile << "rootProject.name = 'publishTest'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.gradle.test'
+version = '1.1'
+
+dependencies {
+    compile "commons-collections:commons-collections"
+}
+configurations.compile.withDependencies { deps ->
+    deps.each { dep ->
+        dep.version { prefer '3.2.2' }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+        """
+
+        when:
+        succeeds "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.1")
+        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.parsedPom.scopes.compile?.expectDependency('commons-collections:commons-collections:3.2.2')
+    }
+
 }

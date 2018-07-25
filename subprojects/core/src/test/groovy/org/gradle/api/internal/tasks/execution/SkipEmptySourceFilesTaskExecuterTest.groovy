@@ -19,15 +19,17 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
+import org.gradle.internal.id.UniqueId
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -36,7 +38,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final target = Mock(TaskExecuter)
     final task = Mock(TaskInternal)
     final state = Mock(TaskStateInternal)
-    final taskInputs = Mock(TaskInputsInternal)
+    final taskProperties = Mock(TaskProperties)
     final sourceFiles = Mock(FileCollectionInternal)
     final taskFiles = Mock(FileCollectionInternal)
     final taskInputsListener = Mock(TaskInputsListener)
@@ -44,17 +46,20 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskArtifactState = Mock(TaskArtifactState)
     final taskExecutionHistory = Mock(TaskExecutionHistory)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    final taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
-    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputsGenerationListener, target)
+    final taskOutputChangesListener = Mock(TaskOutputChangesListener)
+    final buildInvocationId = UniqueId.generate()
+    final taskExecutionTime = 1L
+    final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
+    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputChangesListener, target, new BuildInvocationScopeId(buildInvocationId))
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         when:
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -83,9 +88,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -93,7 +98,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the file succeeds'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
@@ -103,7 +108,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, taskContext)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -121,9 +126,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -131,7 +136,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the file succeeds'
         1 * previousFile.exists() >> true
@@ -139,7 +144,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata.buildInvocationId, taskContext)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -158,9 +163,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -168,7 +173,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> new OverlappingOutputs("outputProperty", "some/path")
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the file succeeds'
         _ * previousFile.exists() >> true
@@ -183,7 +188,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, taskContext)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -201,9 +206,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -211,7 +216,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskArtifactState.executionHistory >> taskExecutionHistory
         1 * taskExecutionHistory.outputFiles >> outputFiles
         1 * taskExecutionHistory.overlappingOutputs >> null
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputChangesListener.beforeTaskOutputChanged()
 
         then: 'deleting the previous file fails'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
@@ -230,13 +235,13 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> false
 
         then:
-        1 * taskInputs.files >> taskFiles
+        1 * taskProperties.getInputFiles() >> taskFiles
         1 * target.execute(task, state, taskContext)
         1 * taskInputsListener.onExecute(task, taskFiles)
 
@@ -249,12 +254,12 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.hasSourceFiles >> false
-        1 * taskInputs.getSourceFiles() >> sourceFiles
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> false
 
         then:
-        1 * taskInputs.files >> taskFiles
+        1 * taskProperties.getInputFiles() >> taskFiles
         1 * target.execute(task, state, taskContext)
         1 * taskInputsListener.onExecute(task, taskFiles)
 

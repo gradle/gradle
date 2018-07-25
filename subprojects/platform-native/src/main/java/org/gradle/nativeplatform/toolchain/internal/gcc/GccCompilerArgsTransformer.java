@@ -60,6 +60,11 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
             args.add("-I");
             args.add(file.getAbsolutePath());
         }
+
+        for (File file : spec.getSystemIncludeRoots()) {
+            args.add("-isystem");
+            args.add(file.getAbsolutePath());
+        }
     }
 
     protected void addMacroArgs(T spec, List<String> args) {

@@ -16,89 +16,35 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
-import java.util.Set;
-
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencyMetadataBuilder {
-    private final CompositeBuildContext context;
+    public LocalComponentMetadata build(IncludedBuildState build, ProjectComponentIdentifier projectIdentifier) {
+        GradleInternal gradle = build.getConfiguredBuild();
+        LocalComponentRegistry localComponentRegistry = gradle.getServices().get(LocalComponentRegistry.class);
+        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
 
-    public IncludedBuildDependencyMetadataBuilder(CompositeBuildContext context) {
-        this.context = context;
+        ProjectComponentIdentifier foreignIdentifier = build.idToReferenceProjectFromAnotherBuild(projectIdentifier);
+        return createCompositeCopy(foreignIdentifier, originalComponent);
     }
 
-    public void build(IncludedBuildInternal build) {
-        Gradle gradle = build.getConfiguredBuild();
-        for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(build, (ProjectInternal) project);
-        }
-    }
-
-    private void registerProject(IncludedBuild build, ProjectInternal project) {
-        LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
-        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-
-        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
-        LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
-
-        context.register(componentIdentifier, compositeComponent);
-        for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
-            context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData));
-        }
-    }
-
-    private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
-
+    private LocalComponentMetadata createCompositeCopy(final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
         return originalComponentMetadata.copy(componentIdentifier, new Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>() {
             @Override
             public LocalComponentArtifactMetadata transform(LocalComponentArtifactMetadata originalArtifact) {
-                File artifactFile = originalArtifact.getFile();
-                Set<String> targetTasks = getArtifactTasks(originalArtifact);
-                return new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
-            }
-        }, new Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata>() {
-            @Override
-            public LocalOriginDependencyMetadata transform(LocalOriginDependencyMetadata originalDependency) {
-                if (originalDependency.getSelector() instanceof ProjectComponentSelector) {
-                    ProjectComponentSelector requested = (ProjectComponentSelector) originalDependency.getSelector();
-                    return originalDependency.withTarget(DefaultProjectComponentSelector.newSelector(build, requested));
-                }
-                return originalDependency;
+                // Currently need to resolve the file, so that the artifact can be used in both a script classpath and the main build. Instead, this should be resolved as required
+                File file = originalArtifact.getFile();
+                return new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact, file);
             }
         });
-    }
-
-    private LocalComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifactMetaData) {
-        File artifactFile = artifactMetaData.getFile();
-        return new CompositeProjectComponentArtifactMetadata(project, artifactMetaData.getName(), artifactFile, getArtifactTasks(artifactMetaData));
-    }
-
-    private Set<String> getArtifactTasks(ComponentArtifactMetadata artifactMetaData) {
-        Set<String> taskPaths = Sets.newLinkedHashSet();
-        Set<? extends Task> tasks = artifactMetaData.getBuildDependencies().getDependencies(null);
-        for (Task task : tasks) {
-            taskPaths.add(task.getPath());
-        }
-        return taskPaths;
     }
 }

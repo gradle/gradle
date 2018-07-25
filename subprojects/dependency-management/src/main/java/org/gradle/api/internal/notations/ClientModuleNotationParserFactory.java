@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.notations;
 
+import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.internal.Factory;
@@ -25,14 +26,16 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 public class ClientModuleNotationParserFactory implements Factory<NotationParser<Object, ClientModule>> {
 
     private final Instantiator instantiator;
+    private final Interner<String> stringInterner;
 
-    public ClientModuleNotationParserFactory(Instantiator instantiator) {
+    public ClientModuleNotationParserFactory(Instantiator instantiator, Interner<String> stringInterner) {
         this.instantiator = instantiator;
+        this.stringInterner = stringInterner;
     }
 
     public NotationParser<Object, ClientModule> create() {
         return NotationParserBuilder.toType(ClientModule.class)
-                .fromCharSequence(new DependencyStringNotationConverter<DefaultClientModule>(instantiator, DefaultClientModule.class))
+                .fromCharSequence(new DependencyStringNotationConverter<DefaultClientModule>(instantiator, DefaultClientModule.class, stringInterner))
                 .converter(new DependencyMapNotationConverter<DefaultClientModule>(instantiator, DefaultClientModule.class))
                 .toComposite();
 

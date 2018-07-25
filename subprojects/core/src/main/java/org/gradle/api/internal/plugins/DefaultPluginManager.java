@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -29,18 +28,20 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 @NotThreadSafe
@@ -54,7 +55,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
-    private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
+    private final Map<Class<?>, Plugin> instances = Maps.newLinkedHashMap();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -157,7 +158,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
         boolean imperative = plugin.isImperative();
         if (imperative) {
             Plugin<?> pluginInstance = producePluginInstance(pluginClass);
-            instances.put(pluginClass, pluginInstance);
 
             if (plugin.isHasRules()) {
                 target.applyImperativeRulesHybrid(pluginId, pluginInstance);
@@ -167,7 +167,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
             // Important not to add until after it has been applied as there can be
             // plugins.withType() callbacks waiting to build on what the plugin did
-            pluginContainer.add(pluginInstance);
+            instances.put(pluginClass, pluginInstance);
+            pluginContainer.pluginAdded(pluginInstance);
         } else {
             target.applyRules(pluginId, pluginClass);
         }
@@ -200,7 +201,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
-            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newLinkedHashSet());
+            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class);
             idMappings.put(pluginId, pluginsForId);
             for (PluginImplementation<?> plugin : plugins.values()) {
                 if (plugin.isAlsoKnownAs(pluginId)) {
@@ -272,7 +273,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private static class OperationDetails implements ApplyPluginBuildOperationType.Details {
+    private static class OperationDetails implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
 
         private final PluginImplementation<?> pluginImplementation;
         private final ConfigurationTargetIdentifier targetIdentifier;
@@ -307,6 +308,17 @@ public class DefaultPluginManager implements PluginManagerInternal {
         @Override
         public String getBuildPath() {
             return targetIdentifier.getBuildPath();
+        }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("pluginId", getPluginId());
+            map.put("pluginClass", getPluginClass().getName());
+            map.put("targetType", getTargetType());
+            map.put("targetPath", getTargetPath());
+            map.put("buildPath", getBuildPath());
+            return map;
         }
     }
 

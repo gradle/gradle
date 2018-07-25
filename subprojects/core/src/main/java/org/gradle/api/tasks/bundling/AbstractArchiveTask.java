@@ -182,6 +182,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param destPath destination directory *inside* the archive for the files
      * @return this
      */
+    @Override
     public AbstractArchiveTask into(Object destPath) {
         super.into(destPath);
         return this;
@@ -196,6 +197,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
+    @Override
     public AbstractArchiveTask into(Object destPath, Closure configureClosure) {
         super.into(destPath, configureClosure);
         return this;
@@ -211,6 +213,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param copySpec The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
+    @Override
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         super.into(destPath, copySpec);
         return this;

@@ -16,33 +16,99 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
-import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.ImmutableActionSet;
+import org.gradle.util.DeprecationLogger;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class BroadcastingCollectionEventRegister<T> implements CollectionEventRegister<T> {
-    private final MutableActionSet<T> addActions = new MutableActionSet<T>();
-    private final MutableActionSet<T> removeActions = new MutableActionSet<T>();
+    private ImmutableActionSet<T> addActions = ImmutableActionSet.empty();
+    private ImmutableActionSet<T> removeActions = ImmutableActionSet.empty();
+    private final Class<? extends T> baseType;
+    private boolean baseTypeSubscribed;
+    private Set<Class<?>> subscribedTypes;
 
+    public BroadcastingCollectionEventRegister(Class<? extends T> baseType) {
+        this.baseType = baseType;
+    }
+
+    @Override
+    public boolean isSubscribed(Class<?> type) {
+        if (baseTypeSubscribed) {
+            return true;
+        }
+        if (subscribedTypes != null) {
+            if (type == null) {
+                return true;
+            }
+            for (Class<?> subscribedType : subscribedTypes) {
+                if (subscribedType.isAssignableFrom(type)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Used by the Nebula plugin.
+     * @deprecated Will be removed in Gradle 5.0, with no replacement
+     */
+    @Deprecated
     public Action<T> getAddAction() {
+        DeprecationLogger.nagUserOfDeprecated("Internal method BroadcastingCollectionEventRegister.getAddAction()");
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                fireObjectAdded(t);
+            }
+        };
+    }
+
+    @Override
+    public ImmutableActionSet<T> getAddActions() {
         return addActions;
     }
 
-    public Action<T> getRemoveAction() {
-        return removeActions;
+    @Override
+    public void fireObjectAdded(T element) {
+        addActions.execute(element);
     }
 
-    public Action<? super T> registerAddAction(Action<? super T> addAction) {
-        addActions.add(addAction);
-        return addAction;
+    @Override
+    public void fireObjectRemoved(T element) {
+        removeActions.execute(element);
     }
 
-    public Action<? super T> registerRemoveAction(Action<? super T> removeAction) {
-        removeActions.add(removeAction);
-        return removeAction;
+    @Override
+    public void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
+        subscribe(type);
+        addActions = addActions.add(addAction);
     }
 
-    public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
-        CollectionEventRegister<S> cast = Cast.uncheckedCast(this);
-        return new FilteringCollectionEventRegister<S>(filter, cast);
+    @Override
+    public void registerLazyAddAction(Action<? super T> addAction) {
+        addActions = addActions.add(addAction);
+    }
+
+    @Override
+    public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
+        removeActions = removeActions.add(removeAction);
+    }
+
+    private void subscribe(Class<? extends T> type) {
+        if (baseTypeSubscribed) {
+            return;
+        }
+        if (type.equals(baseType)) {
+            baseTypeSubscribed = true;
+            subscribedTypes = null;
+        } else {
+            if (subscribedTypes == null) {
+                subscribedTypes = new HashSet<Class<?>>();
+            }
+            subscribedTypes.add(type);
+        }
     }
 }

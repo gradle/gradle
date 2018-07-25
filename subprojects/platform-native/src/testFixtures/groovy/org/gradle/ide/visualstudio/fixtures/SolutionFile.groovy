@@ -15,16 +15,19 @@
  */
 
 package org.gradle.ide.visualstudio.fixtures
+
+import org.gradle.plugins.ide.fixtures.IdeProjectFixture
+import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class SolutionFile {
+class SolutionFile extends IdeWorkspaceFixture {
     TestFile file
     String content
     Map<String, ProjectReference> projects = [:]
 
     SolutionFile(TestFile solutionFile) {
-        assert solutionFile.exists()
+        solutionFile.assertIsFile()
         this.file = solutionFile
         assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text : "Solution file contains non-windows line separators"
 
@@ -33,6 +36,14 @@ class SolutionFile {
         content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"([^\"]*)\", \"\{([\w\-]+)\}\"$/, {
             projects.put(it[1], new ProjectReference(it[1], it[2], it[3]))
         })
+    }
+
+    @Override
+    void assertContains(IdeProjectFixture project) {
+        assert project instanceof ProjectFile
+        assert projects.keySet().contains(project.name)
+        def ref = projects[project.name]
+        assert ref.file == project.projectFile.absolutePath
     }
 
     def assertHasProjects(String... names) {

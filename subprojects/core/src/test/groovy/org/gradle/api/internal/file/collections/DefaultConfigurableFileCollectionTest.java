@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -43,6 +44,7 @@ import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(JMock.class)
 public class DefaultConfigurableFileCollectionTest {
@@ -60,11 +62,18 @@ public class DefaultConfigurableFileCollectionTest {
     }
 
     @Test
+    public void canCreateEmptyCollection() {
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub);
+        assertTrue(collection.getFrom().isEmpty());
+        assertTrue(collection.getFiles().isEmpty());
+    }
+
+    @Test
     public void resolvesSpecifiedFilesUseFileResolver() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, "a", "b");
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, Arrays.asList("a", "b"));
 
         context.checking(new Expectations() {{
             oneOf(resolverMock).resolve("a");
@@ -99,8 +108,7 @@ public class DefaultConfigurableFileCollectionTest {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, "src1",
-                "src2");
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, Arrays.asList("src1", "src2"));
 
         context.checking(new Expectations() {{
             oneOf(resolverMock).resolve("src1");

@@ -50,7 +50,6 @@ public interface BuildCacheLoadCommand<T> {
          * Value may not be null.
          */
         T getMetadata();
-
     }
 
 }

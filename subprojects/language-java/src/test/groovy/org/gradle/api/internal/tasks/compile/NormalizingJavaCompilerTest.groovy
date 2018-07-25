@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import groovy.transform.InheritConstructors
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import com.google.common.collect.ImmutableSet
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
@@ -27,10 +28,36 @@ class NormalizingJavaCompilerTest extends Specification {
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def setup() {
-        spec.source = files("Source1.java", "Source2.java", "Source3.java")
+        spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
-        spec.compileOptions = new CompileOptions()
-        spec.compileOptions.annotationProcessorPath = files("processor.jar")
+        def compileOptions = new CompileOptions(TestUtil.objectFactory())
+        compileOptions.annotationProcessorPath = ImmutableFileCollection.of(new File("processor.jar"))
+        spec.compileOptions = compileOptions
+    }
+
+    def "replaces iterable sources with immutable set"() {
+        spec.sourceFiles = ["Person1.java", "Person2.java"].collect { new File(it) }
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        1 * target.execute(spec) >> {
+            assert spec.sourceFiles == files("Person1.java", "Person2.java")
+            assert spec.sourceFiles instanceof ImmutableSet
+        }
+    }
+
+    def "silently excludes source files not ending in .java"() {
+        spec.sourceFiles = files("House.scala", "Person1.java", "package.html", "Person2.java")
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        1 * target.execute(spec) >> {
+            assert spec.sourceFiles == files("Person1.java", "Person2.java")
+        }
     }
 
     def "delegates to target compiler after resolving source and processor path"() {
@@ -41,24 +68,10 @@ class NormalizingJavaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.getClass() == SimpleFileCollection
-            assert spec.source.files == old(spec.source.files)
-            assert spec.compileOptions.annotationProcessorPath == null
+            assert spec.sourceFiles == old(spec.sourceFiles)
             workResult
         }
         result == workResult
-    }
-
-    def "silently excludes source files not ending in .java"() {
-        spec.source = files("House.scala", "Person1.java", "package.html", "Person2.java")
-
-        when:
-        compiler.execute(spec)
-
-        then:
-        1 * target.execute(spec) >> {
-            assert spec.source.files == files("Person1.java", "Person2.java").files
-        }
     }
 
     def "propagates compile failure when failOnError is true"() {
@@ -115,10 +128,6 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        new TestFileCollection(paths.collect { new File(it) })
+        paths.collect { new File(it) } as Set
     }
-
-    // file collection whose type is distinguishable from SimpleFileCollection
-    @InheritConstructors
-    static class TestFileCollection extends SimpleFileCollection {}
 }

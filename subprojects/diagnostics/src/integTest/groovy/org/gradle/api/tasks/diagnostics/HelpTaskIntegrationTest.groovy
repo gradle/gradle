@@ -33,7 +33,8 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.contains """:help
+        output.contains """
+> Task :help
 
 Welcome to Gradle ${GradleVersion.current().version}.
 
@@ -44,6 +45,8 @@ To see a list of available tasks, run gradle tasks
 To see a list of command-line options, run gradle --help
 
 To see more detail about a task, run gradle help --task <task>
+
+For troubleshooting, visit https://help.gradle.org
 
 BUILD SUCCESSFUL"""
     }
@@ -315,7 +318,7 @@ BUILD SUCCESSFUL"""
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
-        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output.")
+        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
@@ -379,17 +382,17 @@ Group
 BUILD SUCCESSFUL"""
     }
 
-    def "sortsOptionsBySpecifiedOrder"() {
+    def "sortsOptionsInAlphabeticOrder"() {
         when:
         run "help", "--task", "hello"
 
         then:
         output.contains """
 Options
-     --valueC     descC
+     --valueA     descA
 
      --valueB     descB
 
-     --valueA     descA"""
+     --valueC     descC"""
     }
 }

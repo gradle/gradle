@@ -20,6 +20,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.caching.internal.controller.DefaultBuildCacheController
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -28,12 +29,11 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         settingsFile << """
             class FailingBuildCache extends AbstractBuildCache {
                 boolean shouldFail
-                boolean recoverable = true
             }
             
             class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
                 FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration, Describer describer) {
-                    return new FailingBuildCacheService(configuration.shouldFail, configuration.recoverable)
+                    return new FailingBuildCacheService(configuration.shouldFail)
                 }
             }
             
@@ -41,9 +41,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 boolean shouldFail
                 boolean recoverable
                 
-                FailingBuildCacheService(boolean shouldFail, boolean recoverable) {
+                FailingBuildCacheService(boolean shouldFail) {
                     this.shouldFail = shouldFail
-                    this.recoverable = recoverable
                 }
                 
                 @Override
@@ -58,10 +57,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                     if (shouldFail) {
-                        if (recoverable) {
-                            throw new BuildCacheException("Unable to write " + key)
-                        }
-                        throw new RuntimeException("Failure while packing")
+                        throw new BuildCacheException("Unable to write " + key)
                     }
                 }
     
@@ -79,36 +75,9 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 
                 remote(FailingBuildCache) {
                     shouldFail = gradle.startParameter.systemPropertiesArgs.containsKey("fail")
-                    recoverable = gradle.startParameter.systemPropertiesArgs.containsKey("recoverable")
                     push = true
                 }
             }
-        """
-
-        buildFile << """
-            apply plugin: "base"
-            
-            @CacheableTask
-            class CustomTask extends DefaultTask {
-                @OutputFile 
-                File outputFile = new File(temporaryDir, "output.txt")
-                
-                @TaskAction
-                void generate() {
-                    outputFile.text = "done"
-                }
-            }
-            
-            task customTask(type: CustomTask)
-            task anotherCustomTask(type: CustomTask)
-            
-            // All of our tests just run 'assemble' and we need several 
-            // tasks that are cacheable.
-
-            // CustomTask is a dummy cacheable task that will cause
-            // enough requests to the build cache to trip our short circuiting if
-            // there are errors.
-            assemble.dependsOn customTask, anotherCustomTask
         """
 
         executer.withBuildCacheEnabled()
@@ -120,12 +89,23 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         settingsFile << """
             gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStractrace)
         """
+
+        buildFile << """
+            task customTask {
+                outputs.cacheIf { true }
+                outputs.file("build/output.txt")
+                doLast {
+                    file("build/output.txt").text = "Done"
+                }
+            }
+        """
+
         if (expectStacktrace) {
             executer.withStackTraceChecksDisabled()
         }
 
         when:
-        succeeds "assemble", "-Dfail"
+        succeeds "customTask", "-Dfail"
         then:
         output.count("Could not load entry") == 1
         output.count("Could not store entry") == 0
@@ -136,7 +116,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         }
 
         when:
-        succeeds "clean", "assemble"
+        cleanBuildDir()
+        succeeds "customTask"
 
         then: "build cache is still enabled during next build"
         !output.contains("The remote build cache is now disabled")
@@ -155,5 +136,9 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
 
     boolean stackTraceContains(Class<?> type) {
         output.contains("\tat ${type.name}.")
+    }
+
+    private TestFile cleanBuildDir() {
+        file("build").assertIsDir().deleteDir()
     }
 }

@@ -32,8 +32,6 @@
     <xsl:template name="user.head.content">
         <style type="text/css">
             <xi:include href="base.css" parse="text"/>
-            <xi:include href="docs.css" parse="text"/>
-            <xi:include href="userguide.css" parse="text"/>
         </style>
     </xsl:template>
 </xsl:stylesheet>

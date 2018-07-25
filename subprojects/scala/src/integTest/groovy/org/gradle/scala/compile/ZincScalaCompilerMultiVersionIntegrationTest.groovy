@@ -29,7 +29,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             ${jcenterRepository()}
 
             dependencies {
-                compile "org.scala-lang:scala-library:2.10.4"
+                compile "org.scala-lang:scala-library:2.10.7"
                 zinc "com.typesafe.zinc:zinc:${version}"
             }
         """

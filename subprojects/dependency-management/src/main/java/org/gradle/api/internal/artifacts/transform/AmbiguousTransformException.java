@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Pair;
+import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.text.TreeFormatter;
 
 import java.util.List;
 
 import static org.gradle.internal.component.AmbiguousVariantSelectionException.formatAttributes;
 
-public class AmbiguousTransformException extends RuntimeException {
+public class AmbiguousTransformException extends VariantSelectionException {
     public AmbiguousTransformException(String producerDisplayName, AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
         super(format(producerDisplayName, requested, candidates));
     }

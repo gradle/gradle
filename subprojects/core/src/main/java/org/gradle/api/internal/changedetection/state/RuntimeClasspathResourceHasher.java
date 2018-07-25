@@ -17,25 +17,29 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
 import org.gradle.internal.io.NullOutputStream;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Hashes contents of resources ({@link RegularFileSnapshot}s and {@link ZipEntry}s) in runtime classpath entries.
+ * Hashes contents of resources files and {@link ZipEntry}s) in runtime classpath entries.
  *
  * Currently, we take the unmodified content into account but we could be smarter at some point.
  */
 public class RuntimeClasspathResourceHasher implements ResourceHasher {
+
+    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        return fileSnapshot.getContent().getContentMd5();
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+        return fileSnapshot.getContentHash();
     }
 
     @Override

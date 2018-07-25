@@ -27,6 +27,6 @@ class RepositoryChainModuleResolution implements StringVersioned {
     }
 
     public String getVersion() {
-        return module.getId().getVersion();
+        return module.getModuleVersionId().getVersion();
     }
 }

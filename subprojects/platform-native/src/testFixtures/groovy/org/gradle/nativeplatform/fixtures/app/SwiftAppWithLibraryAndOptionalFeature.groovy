@@ -19,11 +19,11 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 /**
- * A Swift app composed of 2 modules, an executable and a library, and an optional compile time feature.
+ * A Swift app composed of 2 modules, an application and a library, and an optional compile time feature.
  */
 class SwiftAppWithLibraryAndOptionalFeature {
     final library = new SwiftGreeterWithOptionalFeature()
-    final executable = new SwiftMainWithOptionalFeature(library.withFeatureDisabled()) {
+    final application = new SwiftMainWithOptionalFeature(library.withFeatureDisabled()) {
         @Override
         List<SourceFile> getFiles() {
             return super.getFiles().collect {
@@ -37,6 +37,6 @@ class SwiftAppWithLibraryAndOptionalFeature {
     }
 
     AppElement withFeatureDisabled() {
-        return executable.withFeatureDisabled()
+        return application.withFeatureDisabled()
     }
 }

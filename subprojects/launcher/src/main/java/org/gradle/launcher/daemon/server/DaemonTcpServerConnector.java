@@ -20,9 +20,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
-import org.gradle.internal.serialize.Serializers;
-import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
-import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.internal.ConnectCompletion;
@@ -30,6 +27,9 @@ import org.gradle.internal.remote.internal.IncomingConnector;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.internal.inet.TcpIncomingConnector;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.Serializers;
+import org.gradle.launcher.daemon.protocol.Message;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -39,13 +39,15 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
     final private IncomingConnector incomingConnector;
+    private final Serializer<Message> serializer;
 
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
     private ConnectionAcceptor acceptor;
 
-    public DaemonTcpServerConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+    public DaemonTcpServerConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory, Serializer<Message> serializer) {
+        this.serializer = serializer;
         this.incomingConnector = new TcpIncomingConnector(
                 executorFactory,
                 inetAddressFactory,
@@ -70,7 +72,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
                 public void execute(ConnectCompletion completion) {
                     RemoteConnection<Message> remoteConnection;
                     try {
-                        remoteConnection = completion.create(Serializers.stateful(DaemonMessageSerializer.create()));
+                        remoteConnection = completion.create(Serializers.stateful(serializer));
                     } catch (UncheckedIOException e) {
                         connectionErrorHandler.run();
                         throw e;

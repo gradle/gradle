@@ -25,6 +25,7 @@ import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
+@SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "treats invalid argument as build failure and throws if not expected"() {
@@ -166,8 +167,10 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        OutputScrapingExecutionResult.normalize(t.message) == """An error occurred executing build with args '${runner.arguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
-:helloWorld
+        def output = OutputScrapingExecutionResult.from(t.message, "")
+        output.normalizedOutput == """An error occurred executing build with args '${runner.arguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
+
+> Task :helloWorld
 Hello world!
 """
     }

@@ -16,8 +16,10 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import java.util.UUID;
+
 public class ReportStatus extends Command {
-    public ReportStatus(Object identifier, byte[] token) {
+    public ReportStatus(UUID identifier, byte[] token) {
         super(identifier, token);
     }
 }

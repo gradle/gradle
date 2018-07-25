@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,21 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(':core')
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingBase')
-    compile project(':testingJvm')
 
     integTestRuntime project(':ideNative')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ":platformBase")
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
 
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':platformNative')
+    from(':diagnostics')
+    from(':platformBase')
+    from(':testingBase')
+    from(':languageNative')
+}

@@ -22,7 +22,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
@@ -58,11 +60,13 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        Task task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        Task task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
 
         expect:
         task.dependsOn.isEmpty()
         task.actions == []
+        (task as TaskInternal).taskIdentity == identity
     }
 
     def "useful toString()"() {
@@ -72,11 +76,13 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
 
         expect:
         task.project.is(project)
         task.name == TEST_TASK_NAME
+        (task as TaskInternal).taskIdentity == identity
     }
 
     def "dependsOn() works"() {
@@ -541,6 +547,18 @@ class DefaultTaskTest extends AbstractTaskTest {
 
         then:
         task.actions[0].displayName == "Execute unnamed action"
+    }
+
+    def "can replace task logger"() {
+        expect:
+        task.logger == AbstractTask.BUILD_LOGGER
+
+        when:
+        def logger = Mock(Logger)
+        task.replaceLogger(logger)
+
+        then:
+        task.logger == logger
     }
 }
 

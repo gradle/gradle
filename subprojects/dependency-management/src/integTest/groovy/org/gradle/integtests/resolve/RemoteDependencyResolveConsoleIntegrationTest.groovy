@@ -17,14 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
-
-class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyResolutionTest {
+class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyResolutionTest implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -67,7 +66,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         then:
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
-                "> :resolve > Resolve dependencies :compile",
+                "> :resolve > Resolve dependencies of :compile",
                 "> one-1.2.pom", "> two-1.2.pom"
             )
         }
@@ -80,7 +79,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         then:
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
-                "> :resolve > Resolve dependencies :compile",
+                "> :resolve > Resolve dependencies of :compile",
                 "> one-1.2.pom > 1 KB/2 KB downloaded", "> two-1.2.pom > 1 KB/2 KB downloaded"
             )
         }

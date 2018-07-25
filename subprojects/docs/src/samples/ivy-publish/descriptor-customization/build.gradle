@@ -7,9 +7,19 @@ publishing {
 // START SNIPPET customize-descriptor
     publications {
         ivyCustom(IvyPublication) {
-            descriptor.withXml {
-                asNode().info[0].appendNode('description',
-                                            'A demonstration of ivy descriptor customization')
+            descriptor {
+                license {
+                    name = 'The Apache License, Version 2.0'
+                    url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+                author {
+                    name = 'Jane Doe'
+                    url = 'http://example.com/users/jane'
+                }
+                description {
+                    text = 'A concise description of my library'
+                    homepage = 'http://www.example.com/library'
+                }
             }
         }
     }
@@ -22,11 +32,7 @@ publishing {
     }
 }
 // START SNIPPET generate
-model {
-    tasks.generateDescriptorFileForIvyCustomPublication {
-        destination = file("$buildDir/generated-ivy.xml")
-    }
+generateDescriptorFileForIvyCustomPublication {
+    destination = file("$buildDir/generated-ivy.xml")
 }
 // END SNIPPET generate
-
-

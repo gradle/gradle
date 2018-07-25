@@ -21,8 +21,8 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 
 import java.util.ArrayList;
 import java.util.List;

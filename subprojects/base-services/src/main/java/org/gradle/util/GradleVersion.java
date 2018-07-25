@@ -47,6 +47,8 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private static final GradleVersion CURRENT;
 
     public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
+    public static final String VERSION_OVERRIDE_VAR = "GRADLE_VERSION_OVERRIDE";
+    public static final String VERSION_NUMBER_PROPERTY = "versionNumber";
 
     static {
         URL resource = GradleVersion.class.getResource(RESOURCE_NAME);
@@ -62,7 +64,17 @@ public class GradleVersion implements Comparable<GradleVersion> {
             Properties properties = new Properties();
             properties.load(inputStream);
 
-            String version = properties.get("versionNumber").toString();
+            String version = properties.get(VERSION_NUMBER_PROPERTY).toString();
+
+            // We allow the gradle version to be overridden for tests that are sensitive
+            // to the version and need to test with various different version patterns.
+            // We use an env variable because these are easy to set on daemon startup,
+            // whereas system properties are scrubbed at daemon startup.
+            String overrideVersion = System.getenv(VERSION_OVERRIDE_VAR);
+            if (overrideVersion != null) {
+                version = overrideVersion;
+            }
+
             String buildTimestamp = properties.get("buildTimestampIso").toString();
             String commitId = properties.get("commitId").toString();
 

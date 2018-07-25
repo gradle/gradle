@@ -17,6 +17,7 @@ package org.gradle.api.specs;
 
 import com.google.common.collect.ObjectArrays;
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.specs.internal.ClosureSpec;
 
 /**
@@ -65,6 +66,12 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return new AndSpec<T>(combinedSpecs);
     }
 
+    /**
+     * Typed and() method for a single {@link Spec}.
+     *
+     * @since 4.3
+     */
+    @Incubating
     @SuppressWarnings("unchecked")
     public AndSpec<T> and(Spec<? super T> spec) {
         return and(new Spec[]{spec});

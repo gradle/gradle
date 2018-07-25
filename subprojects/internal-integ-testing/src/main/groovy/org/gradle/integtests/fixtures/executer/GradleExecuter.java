@@ -19,7 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec;
+import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.integtests.fixtures.RichConsoleStyling;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -422,12 +423,35 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Executes the build with {@code "--console=rich, auto, verbose"} argument.
      *
-     * @see AbstractConsoleFunctionalSpec
+     * @see RichConsoleStyling
      */
     GradleExecuter withConsole(ConsoleOutput consoleOutput);
+
+    /**
+     * Executes the build with {@code "--warning-mode=none, summary, all"} argument.
+     *
+     * @see WarningMode
+     */
+    GradleExecuter withWarningMode(WarningMode warningMode);
 
     /**
      * Execute the builds without adding the {@code "--stacktrace"} argument.
      */
     GradleExecuter withStacktraceDisabled();
+
+    /**
+     * Renders the welcome message users see upon first invocation of a Gradle distribution with a given Gradle user home directory.
+     * By default the message is never rendered.
+     */
+    GradleExecuter withWelcomeMessageEnabled();
+
+    /**
+     * Specifies we should use a test console that has both stdout and stderr attached.
+     */
+    GradleExecuter withTestConsoleAttached();
+
+    /**
+     * Specifies we should use a test console that only has stdout attached.
+     */
+    GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment);
 }

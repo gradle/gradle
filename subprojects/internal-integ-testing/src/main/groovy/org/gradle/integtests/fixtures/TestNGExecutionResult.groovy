@@ -45,15 +45,24 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
-        parseResults()
-        htmlReportFile().assertIsFile()
-        def actualTestClasses = findTestClasses().keySet()
+        Set actualTestClasses = getExecutedTestClasses()
         assert actualTestClasses == testClasses as Set
         this
     }
 
+    private Set getExecutedTestClasses() {
+        parseResults()
+        htmlReportFile().assertIsFile()
+        def actualTestClasses = findTestClasses().keySet()
+        actualTestClasses
+    }
+
     private TestFile htmlReportFile() {
         projectDir.file("$outputDirectory/index.html")
+    }
+
+    boolean testClassExists(String testClass) {
+        throw new UnsupportedOperationException("Unsupported. Implement if you need it.")
     }
 
     TestClassExecutionResult testClass(String testClass) {
@@ -65,6 +74,11 @@ class TestNGExecutionResult implements TestExecutionResult {
     TestClassExecutionResult testClassStartsWith(String testClass) {
         def matching = findTestClassStartsWith(testClass)
         return new TestNgTestClassExecutionResult(matching.key, matching.value)
+    }
+
+    @Override
+    int getTotalNumberOfTestClassesExecuted() {
+        return getExecutedTestClasses().size()
     }
 
     private void parseResults() {
@@ -114,6 +128,10 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         throw new RuntimeException("Unsupported. Implement if you need it.");
     }
 
+    int getTestCount() {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
+    }
+
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
         def actualTestMethods = findTestMethods().keySet()
         assert actualTestMethods == testNames as Set
@@ -126,7 +144,17 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    @Override
+    TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
+        throw new UnsupportedOperationException()
+    }
+
     TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    TestClassExecutionResult assertTestPassed(String name, String displayName) {
         throw new UnsupportedOperationException()
     }
 
@@ -134,6 +162,10 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         def testMethodNode = findTestMethod(name)
         assert testMethodNode.@status as String == 'SKIP'
         this
+    }
+
+    int getTestSkippedCount() {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
     }
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
@@ -147,6 +179,15 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
             assert messageMatchers[i].matches(exceptions[i].message[0].text().trim())
         }
         this
+    }
+
+    boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
+    }
+
+    @Override
+    TestClassExecutionResult assertTestSkipped(String name, String displayName) {
+        throw new UnsupportedOperationException()
     }
 
     TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
@@ -168,6 +209,11 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
     @Override
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    TestClassExecutionResult assertDisplayName(String classDisplayName) {
+        throw new UnsupportedOperationException()
     }
 
     TestClassExecutionResult assertConfigMethodPassed(String name) {

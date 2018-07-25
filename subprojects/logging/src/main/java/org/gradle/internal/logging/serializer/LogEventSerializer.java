@@ -18,7 +18,7 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -43,7 +43,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeSmallLong(((OperationIdentifier) event.getBuildOperationId()).getId());
+            encoder.writeSmallLong(event.getBuildOperationId().getId());
         }
     }
 
@@ -54,7 +54,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         LogLevel logLevel = logLevelSerializer.read(decoder);
         String message = decoder.readString();
         Throwable throwable = throwableSerializer.read(decoder);
-        Object buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         return new LogEvent(timestamp, category, logLevel, message, throwable, buildOperationId);
     }
 }

@@ -16,16 +16,17 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
 
 class MavenHttpArtifact extends HttpArtifact {
-    private final MavenFileModule backingModule;
-    private final Map options
+    private final MavenFileModule backingModule
+    private final ModuleArtifact backingArtifact
 
-    public MavenHttpArtifact(HttpServer server, String modulePath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
-        super(server, modulePath)
-        this.options = options
+    MavenHttpArtifact(HttpServer server, String rootUrl, MavenFileModule backingModule, ModuleArtifact backingArtifact) {
+        super(server, rootUrl)
+        this.backingArtifact = backingArtifact
         this.backingModule = backingModule;
     }
 
@@ -39,7 +40,13 @@ class MavenHttpArtifact extends HttpArtifact {
         backingModule.getMd5File(file)
     }
 
+    @Override
+    String getPath() {
+        return "${modulePath}/${backingArtifact.path}"
+    }
+
+    @Override
     TestFile getFile() {
-        return backingModule.getArtifactFile(options)
+        return backingArtifact.getFile()
     }
 }

@@ -21,7 +21,7 @@
 	<info organisation="myorg"
 	       module="mymodule"
 	       revision="myrev"
-	       status="integration"
+	       status="status"
            branch="branch"
 	       publication="20041101110000"
 	       e:attr1="value1">

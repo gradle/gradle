@@ -16,8 +16,10 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 
@@ -28,11 +30,19 @@ public class ApplicationPluginConvention {
     private String applicationName;
     private String mainClassName;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
+    private String executableDir = "bin";
     private CopySpec applicationDistribution;
 
     private final Project project;
 
+    /**
+     * Constructs an {@link ApplicationPluginConvention}.
+     *
+     * @deprecated Creating instances of this class is deprecated. These should be created by the application plugin only.
+     */
+    @Deprecated
     public ApplicationPluginConvention(Project project) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of ApplicationPluginConvention");
         this.project = project;
         applicationDistribution = project.copySpec();
     }
@@ -77,6 +87,26 @@ public class ApplicationPluginConvention {
      */
     public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
         this.applicationDefaultJvmArgs = applicationDefaultJvmArgs;
+    }
+
+    /**
+     * Directory to place executables in
+     *
+     * @since 4.5
+     */
+    @Incubating
+    public String getExecutableDir() {
+        return executableDir;
+    }
+
+    /**
+     * Directory to place executables in
+     *
+     * @since 4.5
+     */
+    @Incubating
+    public void setExecutableDir(String executableDir) {
+        this.executableDir = executableDir;
     }
 
     /**

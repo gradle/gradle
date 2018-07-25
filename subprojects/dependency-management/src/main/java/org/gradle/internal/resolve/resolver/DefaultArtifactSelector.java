@@ -25,15 +25,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newHashMap();
@@ -53,10 +54,10 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ModuleExclusion exclusions) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ModuleExclusion exclusions, ImmutableAttributes overriddenAttributes) {
         ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusions);
+            artifacts = selector.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusions, overriddenAttributes);
             if (artifacts != null) {
                 break;
             }
@@ -68,7 +69,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends ComponentArtifactMetadata> artifacts) {
-        return DefaultArtifactSet.singleVariant(component.getComponentId(), component.getId(), Describables.of(component.getComponentId()), artifacts, component.getSource(), ModuleExclusions.excludeNone(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
+        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), Describables.of(component.getId()), artifacts, component.getSource(), ModuleExclusions.excludeNone(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes);
     }
 }

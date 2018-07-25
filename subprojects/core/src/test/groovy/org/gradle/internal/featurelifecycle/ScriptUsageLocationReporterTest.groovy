@@ -27,7 +27,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def stack = [
                 new StackTraceElement("SomeClass", "method", "SomeClass.java", 12),
                 new StackTraceElement("SomeClass", "method", "SomeClass.java", 77)]
-        def usage = Stub(DeprecatedFeatureUsage) {
+        def usage = Stub(FeatureUsage) {
             getStack() >> stack
         }
         def result = new StringBuilder()
@@ -47,7 +47,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def stack = [
                 new StackTraceElement("SomeClass", "method", "some-file.gradle", 12),
                 new StackTraceElement("SomeClass", "method", "some-file.gradle", 77)]
-        def usage = Stub(DeprecatedFeatureUsage) {
+        def usage = Stub(FeatureUsage) {
             getStack() >> stack
         }
         def result = new StringBuilder()
@@ -72,7 +72,7 @@ class ScriptUsageLocationReporterTest extends Specification {
                 new StackTraceElement("SomeLibrary", "method", "SomeLibrary.java", 67),
                 new StackTraceElement("SomeClass", "method", "some-file.gradle", 12)
                 ]
-        def usage = Stub(DeprecatedFeatureUsage) {
+        def usage = Stub(FeatureUsage) {
             getStack() >> stack
         }
         def result = new StringBuilder()
@@ -97,7 +97,7 @@ class ScriptUsageLocationReporterTest extends Specification {
                 new StackTraceElement("OtherLibrary", "method", "OtherLibrary.java", 67),
                 new StackTraceElement("SomeClass", "method", "some-file.gradle", 12)
                 ]
-        def usage = Stub(DeprecatedFeatureUsage) {
+        def usage = Stub(FeatureUsage) {
             getStack() >> stack
         }
         def result = new StringBuilder()

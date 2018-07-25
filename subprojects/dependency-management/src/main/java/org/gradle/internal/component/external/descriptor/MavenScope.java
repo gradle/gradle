@@ -17,9 +17,19 @@
 package org.gradle.internal.component.external.descriptor;
 
 public enum MavenScope {
-    Compile,
-    Runtime,
-    Provided,
-    Test,
-    System
+    Compile("compile"),
+    Runtime("runtime"),
+    Provided("provided"),
+    Test("test"),
+    System("system");
+
+    private final String lowerName;
+
+    MavenScope(String lowerName) {
+        this.lowerName = lowerName;
+    }
+
+    public String getLowerName() {
+        return lowerName;
+    }
 }

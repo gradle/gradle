@@ -168,6 +168,24 @@ int main(int argc, char **argv) {
         }
     }
 
+    TestNativeComponent getSimpleTestExecutable() {
+        return new TestNativeComponent() {
+            List<SourceFile> sourceFiles = [
+                sourceFile("cpp", "test.cpp", """
+#include "hello.h"
+
+int main(int argc, char **argv) {
+  if (sum(2, 2) == 4) {
+    return 0;
+  }
+  return -1;
+}"""),
+            ]
+            List<SourceFile> headerFiles = [
+            ]
+        }
+    }
+
     SourceFile getBrokenFile() {
         return sourceFile("cpp", "broken.cpp", """'broken""")
     }

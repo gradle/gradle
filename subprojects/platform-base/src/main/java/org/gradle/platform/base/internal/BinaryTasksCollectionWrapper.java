@@ -17,7 +17,12 @@
 package org.gradle.platform.base.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.platform.base.BinaryTasksCollection;
 
@@ -135,6 +140,11 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
+    public void configureEach(Action<? super Task> action) {
+        delegate.configureEach(action);
+    }
+
+    @Override
     public int size() {
         return delegate.size();
     }
@@ -167,6 +177,11 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     @Override
     public boolean add(Task task) {
         return delegate.add(task);
+    }
+
+    @Override
+    public void addLater(Provider<? extends Task> provider) {
+        delegate.addLater(provider);
     }
 
     @Override

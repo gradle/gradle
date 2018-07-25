@@ -47,7 +47,7 @@ public class ScalaPlugin implements Plugin<Project> {
     }
 
     private static void configureScaladoc(final Project project) {
-        project.getTasks().withType(ScalaDoc.class, new Action<ScalaDoc>() {
+        project.getTasks().withType(ScalaDoc.class).configureEach(new Action<ScalaDoc>() {
             @Override
             public void execute(ScalaDoc scalaDoc) {
                 final SourceSet main = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main");
@@ -63,8 +63,12 @@ public class ScalaPlugin implements Plugin<Project> {
                 scalaDoc.setSource(InvokerHelper.invokeMethod(main, "getScala", null));
             }
         });
-        ScalaDoc scalaDoc = project.getTasks().create(SCALA_DOC_TASK_NAME, ScalaDoc.class);
-        scalaDoc.setDescription("Generates Scaladoc for the main source code.");
-        scalaDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+        project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, new Action<ScalaDoc>() {
+            @Override
+            public void execute(ScalaDoc scalaDoc) {
+                scalaDoc.setDescription("Generates Scaladoc for the main source code.");
+                scalaDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+            }
+        });
     }
 }

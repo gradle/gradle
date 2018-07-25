@@ -16,15 +16,21 @@
 
 package org.gradle.vcs.git.internal;
 
+import org.gradle.StartParameter;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.vcs.git.GitVersionControlSpec;
+import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
+public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
     private URI url;
+
+    public DefaultGitVersionControlSpec(StartParameter rootBuildStartParameter, ClassLoaderScope classLoaderScope) {
+        super(rootBuildStartParameter, classLoaderScope);
+    }
 
     @Override
     public URI getUrl() {
@@ -38,6 +44,7 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
 
     @Override
     public void setUrl(String url) {
+        // TODO - should use a resolver so that this method is consistent with Project.uri(string)
         try {
             setUrl(new URI(url));
         } catch (URISyntaxException e) {
@@ -52,7 +59,7 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
 
     @Override
     public String getUniqueId() {
-        return Hashing.md5().hashString(getDisplayName()).toString();
+        return "git-repo:" + getUrl().toASCIIString();
     }
 
     @Override
@@ -63,5 +70,31 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
             repoPart = repoPart.substring(0, repoPart.indexOf(".git"));
         }
         return repoPart;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGitVersionControlSpec that = (DefaultGitVersionControlSpec) o;
+
+        return url != null ? url.equals(that.url) : that.url == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return url != null ? url.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "GitVersionControlSpec{"
+            + "url=" + url
+            + '}';
     }
 }

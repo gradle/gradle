@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDescriptor {
     public GroovyApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor, DocumentationRegistry documentationRegistry) {
@@ -27,8 +28,12 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
     @Override
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .plugin("Apply the application plugin to add support for building an application", "application")
-            .configuration("Define the main class for the application", "mainClassName = 'App'");
+            .plugin(
+                "Apply the application plugin to add support for building an application",
+                "application")
+            .conventionPropertyAssignment(
+                "Define the main class for the application",
+                "application", "mainClassName", "App");
     }
 
     @Override

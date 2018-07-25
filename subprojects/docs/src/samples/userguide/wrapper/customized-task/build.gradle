@@ -1,0 +1,5 @@
+// START SNIPPET customized-wrapper-task
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
+// END SNIPPET customized-wrapper-task

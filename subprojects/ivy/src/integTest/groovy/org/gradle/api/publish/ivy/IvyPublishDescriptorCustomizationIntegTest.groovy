@@ -71,6 +71,18 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
                         descriptor {
                             status "custom-status"
                             branch "custom-branch"
+                            license {
+                                name = 'The Apache License, Version 2.0'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            }
+                            author {
+                                name = 'Jane Doe'
+                                url = 'http://example.com/users/jane'
+                            }
+                            description {
+                                text = 'A concise description of my library'
+                                homepage = 'http://www.example.com/library'
+                            }
                             extraInfo 'http://my.extra.info1', 'foo', 'fooValue'
                             extraInfo 'http://my.extra.info2', 'bar', 'barValue'
                             withXml {
@@ -83,17 +95,26 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         """
         succeeds 'publish'
 
-
         then:
         ":jar" in skippedTasks
 
         and:
-        module.parsedIvy.resolver == "test"
-        module.parsedIvy.status == "custom-status"
-        module.parsedIvy.branch == "custom-branch"
-        module.parsedIvy.extraInfo.size() == 2
-        module.parsedIvy.extraInfo[new QName('http://my.extra.info1', 'foo')] == 'fooValue'
-        module.parsedIvy.extraInfo[new QName('http://my.extra.info2', 'bar')] == 'barValue'
+        with (module.parsedIvy) {
+            resolver == "test"
+            status == "custom-status"
+            branch == "custom-branch"
+            licenses.size() == 1
+            licenses[0].@name == 'The Apache License, Version 2.0'
+            licenses[0].@url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            authors.size() == 1
+            authors[0].@name == 'Jane Doe'
+            authors[0].@url == 'http://example.com/users/jane'
+            description.text() == "A concise description of my library"
+            description.@homepage == 'http://www.example.com/library'
+            extraInfo.size() == 2
+            extraInfo[new QName('http://my.extra.info1', 'foo')] == 'fooValue'
+            extraInfo[new QName('http://my.extra.info2', 'bar')] == 'barValue'
+        }
     }
 
     def "can generate ivy.xml without publishing"() {
@@ -179,8 +200,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
-        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin.Rules#publishing")
+        failure.assertHasDescription("A problem occurred evaluating root project 'publish'.")
         failure.assertHasCause("Invalid ivy extra info element name: '${name}'")
 
         where:
@@ -209,7 +229,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
+        failure.assertHasDescription("A problem occurred evaluating root project 'publish'.")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(23)
         failure.assertHasCause("Cannot add an extra info element with null ")

@@ -22,4 +22,6 @@ import org.gradle.nativeplatform.platform.OperatingSystem;
 public interface OperatingSystemInternal extends OperatingSystem {
     @Internal
     org.gradle.internal.os.OperatingSystem getInternalOs();
+
+    String toFamilyName();
 }

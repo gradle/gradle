@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 
 /**
@@ -25,6 +26,6 @@ import org.gradle.buildinit.tasks.internal.TaskConfiguration;
  */
 public class BuildInitPlugin implements Plugin<Project> {
     public void apply(final Project project) {
-        TaskConfiguration.createInitTask(project);
+        TaskConfiguration.addInitPlaceholder((ProjectInternal) project);
     }
 }

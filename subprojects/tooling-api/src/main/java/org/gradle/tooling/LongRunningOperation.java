@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationType;
 
 import javax.annotation.Nullable;
@@ -71,7 +70,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.3
      */
-    @Incubating
     LongRunningOperation setColorOutput(boolean colorOutput);
 
     /**
@@ -187,7 +185,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 3.5
      */
-    @Incubating
     LongRunningOperation setEnvironmentVariables(@Nullable Map<String, String> envVariables);
 
     /**
@@ -195,8 +192,7 @@ public interface LongRunningOperation {
      *
      * <p>This method is intended to be replaced by {@link #addProgressListener(org.gradle.tooling.events.ProgressListener)}. The new progress listener type
      * provides much richer information and much better handling of parallel operations that run during the build, such as tasks that run in parallel.
-     * You should prefer using the new listener interface where possible. Note, however, that the new interface is supported only for Gradle 2.5 and later
-     * and is currently {@link Incubating}. It may change in later Gradle releases.
+     * You should prefer using the new listener interface where possible. Note, however, that the new interface is supported only for Gradle 2.5.
      * </p>
      *
      * @param listener The listener
@@ -218,7 +214,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.5
      */
-    @Incubating
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**
@@ -235,7 +230,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.5
      */
-    @Incubating
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> operationTypes);
 
     /**
@@ -261,6 +255,5 @@ public interface LongRunningOperation {
      *
      * @since 2.1
      */
-    @Incubating
     LongRunningOperation withCancellationToken(CancellationToken cancellationToken);
 }

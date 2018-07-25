@@ -108,7 +108,7 @@ public class GradleBuildComparison {
         return String.format("executing %s build %s", name, executer.getSpec());
     }
 
-    public BuildComparisonResult compare(FileStore<String> fileStore, File reportDir, Map<String, String> hostAttributes) {
+    public BuildComparisonResult compare(MovableFileStore<String> fileStore, File reportDir, Map<String, String> hostAttributes) {
         String executingSourceBuildMessage = executingMessage("source", sourceBuildExecuter);
         String executingTargetBuildMessage = executingMessage("target", targetBuildExecuter);
 
@@ -190,12 +190,12 @@ public class GradleBuildComparison {
         return connector.connect();
     }
 
-    private void writeReport(final BuildComparisonResult result, final File reportDir, FileStore<String> fileStore, final Map<String, String> hostAttributes) {
+    private void writeReport(final BuildComparisonResult result, final File reportDir, MovableFileStore<String> fileStore, final Map<String, String> hostAttributes) {
         if (reportDir.exists() && reportDir.list().length > 0) {
             GFileUtils.cleanDirectory(reportDir);
         }
 
-        fileStore.moveFilestore(new File(reportDir, FILES_DIR_NAME));
+        fileStore.moveFileStore(new File(reportDir, FILES_DIR_NAME));
 
         final Charset encoding = Charset.defaultCharset();
         IoActions.writeTextFile(new File(reportDir, HTML_REPORT_FILE_NAME), encoding.name(), new Action<BufferedWriter>() {

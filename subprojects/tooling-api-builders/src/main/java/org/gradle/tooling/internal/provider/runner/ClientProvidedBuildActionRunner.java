@@ -19,18 +19,18 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.composite.internal.IncludedBuildInternal;
-import org.gradle.execution.ProjectConfigurer;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -47,10 +47,15 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
         ClientProvidedBuildAction clientProvidedBuildAction = (ClientProvidedBuildAction) action;
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-        final InternalBuildAction<?> clientAction = (InternalBuildAction<?>) payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
+        final Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
         gradle.addBuildListener(new BuildAdapter() {
+            @Override
+            public void projectsEvaluated(Gradle gradle) {
+                forceFullConfiguration((GradleInternal) gradle);
+            }
+
             @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
@@ -66,14 +71,17 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle) {
-        forceFullConfiguration(gradle);
-
-        InternalBuildController internalBuildController = new DefaultBuildController(gradle);
+    @SuppressWarnings("deprecation")
+    private BuildActionResult buildResult(Object clientAction, GradleInternal gradle) {
+        DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;
         Throwable failure = null;
         try {
-            model = clientAction.execute(internalBuildController);
+            if (clientAction instanceof InternalBuildActionVersion2<?>) {
+                model = ((InternalBuildActionVersion2) clientAction).execute(internalBuildController);
+            } else {
+                model = ((org.gradle.tooling.internal.protocol.InternalBuildAction) clientAction).execute(internalBuildController);
+            }
         } catch (BuildCancelledException e) {
             failure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
@@ -92,7 +100,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         try {
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
             for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-                GradleInternal build = ((IncludedBuildInternal) includedBuild).getConfiguredBuild();
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
                 forceFullConfiguration(build);
             }
         } catch (BuildCancelledException e) {

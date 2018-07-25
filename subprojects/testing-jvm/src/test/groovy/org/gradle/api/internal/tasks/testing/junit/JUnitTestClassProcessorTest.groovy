@@ -452,4 +452,11 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
+
+    def "stopNow should fail on call"() {
+        when: classProcessor.stopNow()
+
+        then:
+        UnsupportedOperationException uoe = thrown()
+    }
 }

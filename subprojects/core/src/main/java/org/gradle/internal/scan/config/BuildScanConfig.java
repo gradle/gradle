@@ -43,4 +43,40 @@ public interface BuildScanConfig {
      */
     boolean isDisabled();
 
+    /**
+     * Indicates whether the build scan plugin should not apply itself because its known to be incompatible.
+     *
+     * @since 4.4
+     */
+    String getUnsupportedMessage();
+
+    /**
+     * Attributes about the build environment that the build scan plugin needs to know about.
+     *
+     * This is effectively an insulation layer between the plugin and internal API.
+     *
+     * @return the attributes
+     * @since 4.4
+     */
+    Attributes getAttributes();
+
+    interface Attributes {
+
+        boolean isRootProjectHasVcsMappings();
+
+        /**
+         * Deprecated.
+         *
+         * See https://github.com/gradle/gradle/issues/5347.
+         * This was used by 4.8-rc-1 and scan plugin 1.13.3.
+         * For 4.8-rc-2, the constraint on disabling the scan plugin for continuous builds was removed.
+         *
+         * @since 4.8-rc-1
+         * @deprecated 4.8-rc-2
+         */
+        boolean isAnyDeploymentsStarted();
+
+    }
+
+
 }

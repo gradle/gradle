@@ -46,7 +46,8 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
             targetPluginRequest.isApply(),
             targetPluginRequest.getLineNumber(),
             targetPluginRequest.getScriptDisplayName(),
-            NOTATION_PARSER.parseNotation(notation)
+            NOTATION_PARSER.parseNotation(notation),
+            targetPluginRequest.getOriginalRequest()
         );
     }
 
@@ -58,7 +59,8 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
             targetPluginRequest.isApply(),
             targetPluginRequest.getLineNumber(),
             targetPluginRequest.getScriptDisplayName(),
-            targetPluginRequest.getModule()
+            targetPluginRequest.getModule(),
+            targetPluginRequest.getOriginalRequest()
         );
     }
 

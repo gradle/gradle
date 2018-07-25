@@ -16,12 +16,14 @@
 
 package org.gradle.smoketests
 
+import static AndroidPluginsSmokeTest.STABLE_ANDROID_2X_VERSION
+import static AndroidPluginsSmokeTest.STABLE_ANDROID_3X_VERSION
 import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
-    private kotlinVersion = '1.1.1'
-    private androidPluginVersion = AndroidPluginsSmokeTest.ANDROID_PLUGIN_VERSION
+    // https://blog.jetbrains.com/kotlin/
+    private kotlinVersion = '1.2.50'
     private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
 
     def 'kotlin plugin'() {
@@ -46,9 +48,12 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
             androidBuildToolsVersion: androidBuildToolsVersion)
 
         when:
-        def build = runner('clean', 'testDebugUnitTestCoverage').build()
+        def build = runner('clean', 'testDebugUnitTestCoverage').forwardOutput().build()
 
         then:
         build.task(':testDebugUnitTestCoverage').outcome == SUCCESS
+
+        where:
+        androidPluginVersion << [STABLE_ANDROID_2X_VERSION, STABLE_ANDROID_3X_VERSION]
     }
 }

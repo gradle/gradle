@@ -31,6 +31,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -114,12 +115,12 @@ public class ScalaDoc extends SourceTask {
     /**
      * Returns the documentation title.
      */
-    @Input @Optional
+    @Nullable @Optional @Input
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 

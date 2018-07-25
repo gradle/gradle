@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.fixtures.app
 
 /**
- * A Swift app composed of 2 modules: an executable and a library.
+ * A Swift app composed of 2 modules: an application and a library.
  */
 class SwiftAppWithLibrary implements AppElement {
     final library = new SwiftLib()

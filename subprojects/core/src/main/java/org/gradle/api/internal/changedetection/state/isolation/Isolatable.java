@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.isolation;
 
-import org.gradle.api.internal.changedetection.state.Snapshot;
+import org.gradle.api.internal.changedetection.state.Hashable;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  * The primary reason to need such an isolated instance of an object is to ensure that work can be done in parallel using the instance without
  * fear that it's internal state is changing while the work is being carried out.
  */
-public interface Isolatable<T> extends Snapshot {
+public interface Isolatable<T> extends Hashable {
     /**
      * Returns an instance of T that is isolated from the original object. When T is mutable, a new instance is created on each call. When T is immutable, a new instance may or may not be created on each call.
      */

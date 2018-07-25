@@ -17,9 +17,9 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
-import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
 @LeaksFileHandles
@@ -29,19 +29,24 @@ class RuleSourcePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     public static final String VERSION = "1.0"
     public static final String GROUP = "my"
     public static final String ARTIFACT = "plugin"
+
     def pluginBuilder = new PluginBuilder(file(ARTIFACT))
 
     @Rule
-    PluginResolutionServiceTestServer resolutionService = new PluginResolutionServiceTestServer(executer, mavenRepo)
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        resolutionService.start()
     }
 
     def "can apply a rule source only plugin via plugins container"() {
-        publishRuleSourcePlugin()
+        given:
+        pluginBuilder.with {
+            addRuleSource(PLUGIN_ID)
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
+        }
 
+        and:
         buildScript """
             plugins { id '$PLUGIN_ID' version '$VERSION' }
         """
@@ -49,14 +54,5 @@ class RuleSourcePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         succeeds("fromModelRule")
         output.contains("Model rule provided task executed")
-    }
-
-    void publishRuleSourcePlugin() {
-        resolutionService.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
-        def module = resolutionService.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-
-        pluginBuilder.addRuleSource(PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
     }
 }

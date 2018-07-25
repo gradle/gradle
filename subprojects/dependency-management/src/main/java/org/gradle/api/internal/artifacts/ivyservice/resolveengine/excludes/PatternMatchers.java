@@ -56,7 +56,7 @@ public class PatternMatchers {
     }
 
     public static boolean isExactMatcher(String name) {
-        return EXACT.equals(name);
+        return name == null || EXACT.equals(name);
     }
 
     public static synchronized PatternMatchers getInstance() {

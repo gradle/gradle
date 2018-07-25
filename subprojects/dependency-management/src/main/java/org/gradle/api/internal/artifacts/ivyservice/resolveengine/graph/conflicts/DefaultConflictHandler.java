@@ -20,16 +20,21 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
 
-public class DefaultConflictHandler implements ConflictHandler {
+public class DefaultConflictHandler implements ModuleConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
@@ -42,13 +47,19 @@ public class DefaultConflictHandler implements ConflictHandler {
         this.compositeResolver.addFirst(conflictResolver);
     }
 
+    @Override
+    public ModuleConflictResolver getResolver() {
+        return compositeResolver;
+    }
+
     /**
      * Registers new newModule and returns an instance of a conflict if conflict exists.
      */
     @Nullable
-    public PotentialConflict registerModule(CandidateModule newModule) {
-        ModuleIdentifier replacedBy = moduleReplacements.getReplacementFor(newModule.getId());
-        return potentialConflict(conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy));
+    public PotentialConflict registerCandidate(CandidateModule candidate) {
+        ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
+        ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
+        return potentialConflict(conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy));
     }
 
     /**
@@ -64,14 +75,30 @@ public class DefaultConflictHandler implements ConflictHandler {
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.popConflict();
-        DefaultConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
+        ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
         compositeResolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, details.getSelected(), conflict.candidates);
+        ComponentResolutionState selected = details.getSelected();
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, selected);
         resolutionAction.execute(result);
-        LOGGER.debug("Selected {} from conflicting modules {}.", details.getSelected(), conflict.candidates);
+        maybeSetReason(conflict.participants, selected);
+        LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
+    }
+
+    private void maybeSetReason(Set<ModuleIdentifier> partifipants, ComponentResolutionState selected) {
+        for (ModuleIdentifier identifier : partifipants) {
+            ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
+            if (replacement != null) {
+                String reason = replacement.getReason();
+                ComponentSelectionDescriptorInternal moduleReplacement = VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(identifier, "replaced with", replacement.getTarget()));
+                if (reason != null) {
+                    moduleReplacement = moduleReplacement.withReason(Describables.of(reason));
+                }
+                selected.addCause(moduleReplacement);
+            }
+        }
     }
 
     public void registerResolver(ModuleConflictResolver conflictResolver) {

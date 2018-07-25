@@ -15,23 +15,22 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.HttpRepository
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Ignore
+import spock.lang.Issue
 
-abstract class ComponentMetadataRulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    abstract HttpRepository getRepo()
-    abstract String getRepoDeclaration()
-    abstract String getDefaultStatus()
+class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
+    String getDefaultStatus() {
+        GradleMetadataResolveRunner.useIvy()?'integration':'release'
+    }
 
     def setup() {
         buildFile <<
 """
-$repoDeclaration
-
-configurations { compile }
-
 dependencies {
-    compile 'org.test:projectA:1.0'
+    conf 'org.test:projectA:1.0'
 }
 
 // implement Sync manually to make sure that task is never up-to-date
@@ -39,7 +38,7 @@ task resolve {
     doLast {
         delete 'libs'
         copy {
-            from configurations.compile
+            from configurations.conf
             into 'libs'
         }
     }
@@ -48,81 +47,135 @@ task resolve {
     }
 
     def "rule receives correct metadata"() {
-        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
-        buildFile <<
-"""
+        repository {
+            'org.test:projectA:1.0'()
+        }
+        buildFile << """
+
+class AssertingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert context.details.id.group == "org.test"
+            assert context.details.id.name == "projectA"
+            assert context.details.id.version == "1.0"
+            assert context.details.status == "$defaultStatus"
+            assert context.details.statusScheme == ["integration", "milestone", "release"]
+            assert !context.details.changing
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            assert details.id.group == "org.test"
-            assert details.id.name == "projectA"
-            assert details.id.version == "1.0"
-            assert details.status == "$defaultStatus"
-            assert details.statusScheme == ["integration", "milestone", "release"]
-            assert !details.changing
-        }
+        all(AssertingRule)
     }
 }
 """
 
-        expect:
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
         succeeds 'resolve'
     }
 
     def "changes made by a rule are visible to subsequent rules"() {
-        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        repository {
+            'org.test:projectA:1.0'()
+        }
 
         buildFile <<
                 """
+class UpdatingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            context.details.status "integration.changed" // verify that 'details' is enhanced
+            context.details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
+            context.details.changing = true
+    }
+}
+
+class VerifyingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert context.details.status == "integration.changed"
+            assert context.details.statusScheme == ["integration.changed", "milestone.changed", "release.changed"]
+            assert context.details.changing
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            details.status "integration.changed" // verify that 'details' is enhanced
-            details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
-            details.changing = true
-        }
-        all { ComponentMetadataDetails details ->
-            assert details.status == "integration.changed"
-            assert details.statusScheme == ["integration.changed", "milestone.changed", "release.changed"]
-            assert details.changing
-        }
+        all(UpdatingRule)
+        all(VerifyingRule)
     }
 }
 """
 
-        expect:
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
         succeeds 'resolve'
     }
 
     def "changes made by a rule are not cached"() {
-        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        repository {
+            'org.test:projectA:1.0'()
+        }
 
         buildFile <<
                 """
+class UpdatingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert !context.details.changing
+            assert context.details.status == "$defaultStatus"
+            assert context.details.statusScheme == ["integration", "milestone", "release"]
+
+            context.details.changing = true
+            context.details.status = "release.changed"
+            context.details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            assert !details.changing
-            assert details.status == "$defaultStatus"
-            assert details.statusScheme == ["integration", "milestone", "release"]
-
-            details.changing = true
-            details.status = "release.changed"
-            details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
-        }
+        all(UpdatingRule)
     }
 }
 """
 
-        expect:
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
         succeeds 'resolve'
         succeeds 'resolve'
     }
 
     def "can apply all rule types to all modules" () {
-        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        repository {
+            'org.test:projectA:1.0'()
+        }
         buildFile << """
             ext.rulesInvoked = []
+
+            class VerifyingRule implements ComponentMetadataRule {
+                static boolean ruleInvoked
+                
+                public void execute(ComponentMetadataContext context) {
+                    ruleInvoked = true
+                }
+            }
+
             dependencies {
                 components {
                     all { ComponentMetadataDetails details ->
@@ -136,6 +189,7 @@ dependencies {
                     }
                     all(new ActionRule('rulesInvoked': rulesInvoked))
                     all(new RuleObject('rulesInvoked': rulesInvoked))
+                    all(VerifyingRule)
                 }
             }
 
@@ -156,18 +210,47 @@ dependencies {
                 }
             }
 
-            resolve.doLast { assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ] }
+            resolve.doLast { 
+                assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
+                assert VerifyingRule.ruleInvoked 
+            }
         """
 
-        expect:
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
         succeeds 'resolve'
     }
 
     def "can apply all rule types by module" () {
-        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        repository {
+            'org.test:projectA:1.0'()
+        }
         buildFile << """
             ext.rulesInvoked = []
             ext.rulesUninvoked = []
+
+            class InvokedRule implements ComponentMetadataRule {
+                static boolean ruleInvoked
+                
+                public void execute(ComponentMetadataContext context) {
+                    ruleInvoked = true
+                }
+            }
+
+            class NotInvokedRule implements ComponentMetadataRule {
+                static boolean ruleInvoked
+                
+                public void execute(ComponentMetadataContext context) {
+                    ruleInvoked = true
+                }
+            }
+
             dependencies {
                 components {
                     withModule('org.test:projectA') { ComponentMetadataDetails details ->
@@ -183,6 +266,9 @@ dependencies {
                     }
                     withModule('org.test:projectB', new ActionRule('rulesInvoked': rulesUninvoked))
                     withModule('org.test:projectB', new RuleObject('rulesInvoked': rulesUninvoked))
+
+                    withModule('org.test:projectA', InvokedRule)
+                    withModule('org.test:projectB', NotInvokedRule)
                 }
             }
 
@@ -206,18 +292,187 @@ dependencies {
             resolve.doLast {
                 assert rulesInvoked.sort() == [ 1, 2, 3 ]
                 assert rulesUninvoked.empty
+                assert InvokedRule.ruleInvoked
+                assert !NotInvokedRule.ruleInvoked
             }
         """
 
-        expect:
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
         succeeds 'resolve'
     }
 
-    String sq(String input) {
-        return escapeForSingleQuoting(input)
+    def "produces sensible error when @Mutate method does not have ComponentMetadata as first parameter"() {
+        buildFile << """
+            dependencies {
+                components {
+                    all(new BadRuleSource())
+                }
+            }
+
+            class BadRuleSource {
+                @org.gradle.model.Mutate
+                void doSomething(String s) { }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasCause("""Type BadRuleSource is not a valid rule source:
+- Method doSomething(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
     }
 
-    String escapeForSingleQuoting(String input) {
-        return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    @RequiredFeatures(
+        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven")
+    )
+    def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
+        given:
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        buildFile <<
+            """
+def plainRuleInvoked = false
+def ivyRuleInvoked = false
+
+dependencies {
+    components {
+        all { ComponentMetadataDetails details ->
+            plainRuleInvoked = true
+        }
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
+            ivyRuleInvoked = true
+        }
+    }
+}
+
+resolve.doLast {
+    assert plainRuleInvoked
+    assert !ivyRuleInvoked
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+        // also works when already cached
+        succeeds 'resolve'
+    }
+
+    def 'class based rule does not get access to IvyModuleDescriptor for Maven component'() {
+        given:
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        buildFile << """
+class IvyRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert context.getDescriptor(IvyModuleDescriptor) ${GradleMetadataResolveRunner.useIvy()? '!=' : '=='} null
+    }
+}
+
+dependencies {
+    components {
+        all(IvyRule)
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+    }
+
+    @Ignore // In-memory caching of processed metadata does not respect project boundaries
+    @Issue("gradle/gradle#4261")
+    def "different projects can apply different metadata rules for the same component"() {
+        repository {
+            'org.test:projectA:1.0'()
+            'org.test:projectB:1.0'()
+        }
+
+        settingsFile << """
+rootProject.name = 'root'
+include 'sub'
+"""
+        buildFile << """
+class AddDependencyRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                add('org.test:projectB:1.0')
+            }
+        }
+    }
+}
+
+project (':sub') {
+    $repositoryDeclaration
+
+    configurations {
+        conf
+        other
+    }
+    dependencies {
+        conf 'org.test:projectA:1.0'
+        other 'org.test:projectA:1.0'
+
+        // Component metadata rule that applies only to the 'sub' project
+        components {
+            withModule('org.test:projectA', AddDependencyRule)
+        }
+    }
+    task res {
+        doLast {
+            // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory 
+            println configurations.conf.collect { it.name }
+            println configurations.other.collect { it.name }
+        }
+    }
+}
+
+task res {
+    doLast {
+        // Should get the unmodified component metadata for 'projectA'
+        println configurations.conf.collect { it.name }
+        assert configurations.conf.collect { it.name } == ['projectA-1.0.jar']
+    }
+}
+"""
+
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+            'org.test:projectB:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds ':sub:res', ':res'
     }
 }

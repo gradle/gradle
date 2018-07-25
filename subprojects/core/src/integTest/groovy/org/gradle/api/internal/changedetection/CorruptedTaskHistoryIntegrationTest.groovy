@@ -30,7 +30,7 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         def numberOfInputProperties = 10
         def numberOfTasks = 100
         def totalNumberOfOutputDirectories = numberOfTasks
-        def millisecondsToKill = 300
+        def millisecondsToKill = 200
         def totalNumberOfOutputFiles = numberOfTasks * numberOfOutputFilesPerTask + totalNumberOfOutputDirectories
 
         setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, millisecondsToKill)
@@ -44,9 +44,11 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds("createFiles")
         succeeds("clean")
         fails("createFiles", "-PkillMe=true", "--max-workers=${numberOfTasks}")
+        def createdFiles = file('build').allDescendants().size()
+        println "\nNumber of created files when the process has been killed: ${createdFiles}"
 
         then:
-        file('build').allDescendants().size() in ((0.1 * totalNumberOfOutputFiles)..(0.9 * totalNumberOfOutputFiles))
+        createdFiles in ((0.1 * totalNumberOfOutputFiles)..(0.9 * totalNumberOfOutputFiles))
 
         expect:
         succeeds "createFiles"

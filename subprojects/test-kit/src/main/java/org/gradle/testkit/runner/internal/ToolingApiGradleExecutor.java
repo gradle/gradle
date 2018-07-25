@@ -111,6 +111,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardOutput())));
             launcher.setStandardError(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardError())));
 
+            if (parameters.getStandardInput() != null) {
+                launcher.setStandardInput(parameters.getStandardInput());
+            }
+
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks), OperationType.TASK);
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));

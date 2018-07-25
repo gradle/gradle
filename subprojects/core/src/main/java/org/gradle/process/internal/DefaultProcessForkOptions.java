@@ -16,7 +16,6 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ProcessForkOptions;
@@ -28,12 +27,11 @@ import java.util.Map;
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final PathToFileResolver resolver;
     private Object executable;
-    private Factory<File> workingDir;
+    private File workingDir;
     private Map<String, Object> environment;
 
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
         this.resolver = resolver;
-        workingDir = resolver.resolveLater(".");
     }
 
     public String getExecutable() {
@@ -54,15 +52,18 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     public File getWorkingDir() {
-        return workingDir.create();
+        if (workingDir == null) {
+            workingDir = resolver.resolve(".");
+        }
+        return workingDir;
     }
 
     public void setWorkingDir(File dir) {
-        this.workingDir = resolver.resolveLater(dir);
+        this.workingDir = resolver.resolve(dir);
     }
 
     public void setWorkingDir(Object dir) {
-        this.workingDir = resolver.resolveLater(dir);
+        this.workingDir = resolver.resolve(dir);
     }
 
     public ProcessForkOptions workingDir(Object dir) {
@@ -101,7 +102,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
         target.setExecutable(executable);
-        target.setWorkingDir(workingDir);
+        target.setWorkingDir(getWorkingDir());
         target.setEnvironment(getEnvironment());
         return this;
     }

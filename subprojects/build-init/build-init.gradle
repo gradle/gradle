@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -13,14 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':wrapper')
-    integTestRuntime project(':maven')
-    integTestRuntime project(':scala')
+plugins {
+    id 'gradlebuild.classycle'
 }
 
-useTestFixtures()
-useClassycle()
+dependencies {
+    implementation 'org.codehaus.plexus:plexus-container-default'
+    implementation 'org.apache.maven:maven-compat'
+    implementation 'org.apache.maven:maven-plugin-api'
+    implementation libraries.groovy.coordinates
+
+    implementation project(':core')
+    implementation project(':plugins')
+    implementation project(':wrapper')
+
+    testFixturesImplementation project(":internalTesting")
+
+    integTestRuntime allTestRuntimeDependencies
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+}

@@ -125,7 +125,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     public static Node findOrCreateFirstChildWithAttributeValue(@Nullable Node root, String childName, String attribute, String value) {
         Node child = findFirstChildWithAttributeValue(root, childName, attribute, value);
         if (child == null) {
-            Map<String, Object> attributes = Maps.newHashMap();
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put(attribute, value);
             child = root.appendNode(childName, attributes);
         }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.internal.MutableReference;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -30,7 +31,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
@@ -38,7 +38,9 @@ import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class MapFileTreeTest {
     @Rule
@@ -131,7 +133,7 @@ public class MapFileTreeTest {
 
     @Test
     public void overwritesFileWhenGeneratedContentChanges() {
-        final AtomicReference<String> currentContentReference = new AtomicReference<String>("content");
+        final MutableReference<String> currentContentReference = MutableReference.of("content");
 
         tree.add("path/file.txt", new Action<OutputStream>() {
             @Override

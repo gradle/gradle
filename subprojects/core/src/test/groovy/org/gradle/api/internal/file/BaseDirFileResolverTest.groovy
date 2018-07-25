@@ -21,17 +21,18 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.file.TestFiles.resolver
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class BaseDirFileResolverTest {
     static final String TEST_PATH = 'testpath'
@@ -46,7 +47,7 @@ class BaseDirFileResolverTest {
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
-        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, resolver().getPatternSetFactory())
+        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, TestFiles.getPatternSetFactory())
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }
@@ -156,12 +157,6 @@ class BaseDirFileResolverTest {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
     }
 
-    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
-    @Test public void testResolveAbsolutePathOnCaseInsensitiveFileSystemToUri() {
-        String path = baseDir.absolutePath.toLowerCase()
-        assertEquals(baseDir, baseDirConverter.resolve(path))
-    }
-
     @Test public void testResolveRelativeFileURIString() {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve('file:relative'))
         assertEquals(new File(baseDir.parentFile, 'relative'), baseDirConverter.resolve('file:../relative'))
@@ -221,10 +216,6 @@ class BaseDirFileResolverTest {
 
     @Test public void testResolveCallable() {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'} as Callable))
-    }
-
-    @Test public void testResolveFileSource() {
-        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(baseDirConverter.resolveLater('relative')))
     }
 
     @Test public void testResolveNestedClosuresAndCallables() {
@@ -312,14 +303,6 @@ class BaseDirFileResolverTest {
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
-    }
-
-    @Test public void testResolveLater() {
-        String src;
-        Closure cl = { src }
-        org.gradle.internal.Factory<File> source = baseDirConverter.resolveLater(cl)
-        src = 'file1'
-        assertEquals(new File(baseDir, 'file1'), source.create())
     }
 
     @Test public void testCreateFileResolver() {

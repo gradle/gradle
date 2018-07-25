@@ -42,5 +42,5 @@ public abstract class AbstractStructMethodBinding implements StructMethodBinding
     }
 
     @Override
-    abstract public String toString();
+    public abstract String toString();
 }

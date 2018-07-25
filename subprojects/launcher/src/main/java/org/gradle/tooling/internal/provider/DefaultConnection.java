@@ -34,15 +34,20 @@ import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionParameters;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
+import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
+import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -57,6 +62,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +72,10 @@ import java.io.File;
 import java.io.IOException;
 
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
-    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
+    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, InternalParameterAcceptingConnection,
+    StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private static final String UNSUPPORT_MESAGE = "Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
+    private static final String UNSUPPORTED_MESSAGE = "Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
     private static final String DEPRECATION_MESSAGE = "Support for clients using a tooling API version older than 3.0 was deprecated and will be removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.\n";
 
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
@@ -90,7 +97,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
      * This is used by consumers 1.2-rc-1 and later.
      */
     public void configure(ConnectionParameters parameters) {
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        assertUsingJava7();
         ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
         File gradleUserHomeDir = providerConnectionParameters.getGradleUserHomeDir(null);
         if (gradleUserHomeDir == null) {
@@ -99,6 +106,15 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         initializeServices(gradleUserHomeDir);
         connection.configure(providerConnectionParameters);
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
+    }
+
+    private void assertUsingJava7() {
+        try {
+            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        } catch (IllegalArgumentException e) {
+            // https://github.com/gradle/gradle/issues/3317
+            LOGGER.warn(e.getMessage());
+        }
     }
 
     private void initializeServices(File gradleUserHomeDir) {
@@ -203,7 +219,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     }
 
     /**
-     * This is used by consumers 2.1-rc-1 and later.
+     * This is used by consumers 2.1-rc-1 to 4.3
      */
     public <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
@@ -211,6 +227,28 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.run(action, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<T>((T) results);
+    }
+
+    /**
+     * This is used by consumers 4.4 and later
+     */
+    public <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+        throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
+        Object results = connection.run(action, buildCancellationToken, providerParameters);
+        return new ProviderBuildResult<T>((T) results);
+    }
+
+    /**
+     * This is used by consumers 4.8 and later
+     */
+    @Override
+    public BuildResult<?> run(InternalPhasedAction phasedAction, PhasedActionResultListener listener, InternalCancellationToken cancellationToken, BuildParameters operationParameters) {
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
+        Object results = connection.runPhasedAction(phasedAction, listener, buildCancellationToken, providerParameters);
+        return new ProviderBuildResult<Object>(results);
     }
 
     /**
@@ -227,17 +265,18 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        assertUsingJava7();
 
         checkUnsupportedTapiVersion();
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
         checkDeprecatedTapiVersion(parameters);
 
+        DeprecationLogger.reset();
         return parameters;
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException(String.format(UNSUPPORT_MESAGE, createCurrentVersionMessage()));
+        return new UnsupportedVersionException(String.format(UNSUPPORTED_MESSAGE, createCurrentVersionMessage()));
     }
 
     private String createCurrentVersionMessage() {

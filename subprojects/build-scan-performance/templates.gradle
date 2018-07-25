@@ -16,13 +16,13 @@
 import groovy.json.JsonSlurper
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 
-tasks.withType(JvmProjectGeneratorTask) {
+tasks.withType(JvmProjectGeneratorTask).configureEach {
     if(project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
 }
 
-task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
+tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     doFirst {
         templateArgs.buildScanPluginVersion = {
             def pluginInfo = file("$rootDir/incoming/plugin.json")

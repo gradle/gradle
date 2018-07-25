@@ -20,8 +20,10 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -51,9 +53,10 @@ class SettingsFactoryTest extends Specification {
         1 * settingsServices.get(ScriptHandlerFactory) >> scriptHandlerFactory
         1 * settingsServices.get(ProjectDescriptorRegistry) >> projectDescriptorRegistry
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
+        1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
 
         when:
-        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory, scriptHandlerFactory);
         GradleInternal gradle = Mock(GradleInternal)
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,

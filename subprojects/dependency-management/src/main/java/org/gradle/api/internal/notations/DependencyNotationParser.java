@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.notations;
 
+import com.google.common.collect.Interner;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
@@ -31,10 +32,10 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class DependencyNotationParser {
-    public static NotationParser<Object, Dependency> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, ClassPathRegistry classPathRegistry, FileLookup fileLookup, RuntimeShadedJarFactory runtimeShadedJarFactory, CurrentGradleInstallation currentGradleInstallation) {
+    public static NotationParser<Object, Dependency> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, ClassPathRegistry classPathRegistry, FileLookup fileLookup, RuntimeShadedJarFactory runtimeShadedJarFactory, CurrentGradleInstallation currentGradleInstallation, Interner<String> stringInterner) {
         return NotationParserBuilder
             .toType(Dependency.class)
-            .fromCharSequence(new DependencyStringNotationConverter<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class))
+            .fromCharSequence(new DependencyStringNotationConverter<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class, stringInterner))
             .converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class))
             .fromType(FileCollection.class, new DependencyFilesNotationConverter(instantiator))
             .fromType(Project.class, new DependencyProjectNotationConverter(dependencyFactory))

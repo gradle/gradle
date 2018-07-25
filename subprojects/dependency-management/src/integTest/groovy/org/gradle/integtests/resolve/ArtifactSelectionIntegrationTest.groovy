@@ -586,7 +586,7 @@ task show {
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project :lib, project :ui, org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
     }
 
     def "can query the content of view before task graph is calculated"() {
@@ -887,11 +887,92 @@ task show {
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes: test:test:1.2 configuration default:
   - Required artifactType 'dll' and found incompatible value 'jar'.
+  - Found org.gradle.status 'integration' but wasn't required.
   - Required usage 'api' but no value provided.""")
 
         failure.assertHasCause("""No variants of thing.jar match the consumer attributes: thing.jar:
   - Required artifactType 'dll' and found incompatible value 'jar'.
   - Required usage 'api' but no value provided.""")
 
+    }
+
+    def "reports failure to match attributes during selection"() {
+        buildFile << """
+            project(':lib') {
+                def attr = Attribute.of('attr', Boolean)
+                dependencies {
+                    attributesSchema {
+                        attribute(attr)
+                    }
+                }
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                broken1 {
+                                    attributes.attribute(attr, true)
+                                }
+                                broken2 {
+                                    attributes.attribute(attr, false)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            project(':ui') {
+                def attr = Attribute.of('attr', Number)
+                dependencies {
+                    attributesSchema {
+                        attribute(attr)
+                    }
+                }                
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                broken1 {
+                                    attributes.attribute(attr, 12)
+                                }
+                                broken2 {
+                                    attributes.attribute(attr, 10)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            project(':app') {
+                def attr = Attribute.of('attr', String)
+                dependencies {
+                    attributesSchema {
+                        attribute(attr)
+                    }
+
+                    compile project(':lib'), project(':ui')
+                }
+
+                task resolve {
+                    doLast {
+                        configurations.compile.incoming.artifactView {
+                            attributes { 
+                                it.attribute(attr, 'jar') 
+                            }
+                        }.files.each { println it }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails(":app:resolve")
+        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasCause("Could not select a variant of project :lib that matches the consumer attributes.")
+        failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Boolean.")
+        failure.assertHasCause("Could not select a variant of project :ui that matches the consumer attributes.")
+        failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
     }
 }

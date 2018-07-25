@@ -1,0 +1,10 @@
+apply plugin: 'java'
+repositories { mavenCentral() }
+dependencies { testCompile 'junit:junit:4.12'}
+
+test {
+    ignoreFailures = true
+    include '**/TestSuite.class'
+    include '**/Test.class'
+    exclude '**/OtherTest.class'
+}

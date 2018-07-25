@@ -50,6 +50,28 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         null              | 'artifactB'          | 'groupA'   | 'artifactB'
     }
 
+    def "can resolve module with relocated version"() {
+        given:
+        def moduleB = mavenHttpRepo.module('groupB', 'artifactB').publish()
+        def original = publishPomWithRelocation('groupA', 'artifactA', 'groupA', 'artifactA', '2.0')
+        def newModule = mavenHttpRepo.module('groupA', 'artifactA', '2.0').dependsOn(moduleB).publish()
+
+        and:
+        createBuildFileWithDependency('groupA', 'artifactA')
+
+        and:
+        original.pom.expectGet()
+        newModule.pom.expectGet()
+        moduleB.pom.expectGet()
+        moduleB.artifact.expectGet()
+
+        when:
+        run "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("artifactB-1.0.jar")
+    }
+
     def "can resolve module from a nested relocation"() {
         given:
         def moduleA = publishPomWithRelocation('groupA', 'artifactA', 'groupB', 'artifactB')
@@ -102,10 +124,11 @@ task retrieve(type: Sync) {
 """
     }
 
-    def publishPomWithRelocation(String groupId, String artifactId, String relocationGroupId, String relocationArtifactId) {
+    def publishPomWithRelocation(String groupId, String artifactId, String relocationGroupId, String relocationArtifactId, String relocationVersion = null) {
         def module = mavenHttpRepo.module(groupId, artifactId, '1.0').publishPom()
         def relocation = relocationGroupId ? "<groupId>${relocationGroupId}</groupId>" : ''
         relocation += relocationArtifactId ? "<artifactId>${relocationArtifactId}</artifactId>" : ''
+        relocation += relocationVersion ? "<version>${relocationVersion}</version>" : ''
 
         module.pomFile.text = """
 <project>

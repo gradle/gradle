@@ -18,6 +18,7 @@ package org.gradle.testfixtures
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
@@ -34,7 +35,7 @@ class ProjectBuilderTest extends Specification {
     @Rule
     public final Resources resources = new Resources()
 
-    def canCreateARootProject() {
+    def "can create a root project"() {
 
         when:
         def project = ProjectBuilder.builder().build()
@@ -44,10 +45,24 @@ class ProjectBuilderTest extends Specification {
         project.name == 'test'
         project.path == ':'
         project.projectDir.parentFile != null
+        project.buildFile == project.file("build.gradle")
         project.gradle != null
         project.gradle.rootProject == project
         project.gradle.gradleHomeDir == project.file('gradleHome')
         project.gradle.gradleUserHomeDir == project.file('userHome')
+    }
+
+    def "can create a child project"() {
+
+        when:
+        def root = ProjectBuilder.builder().build()
+        def child = ProjectBuilder.builder().withParent(root).build()
+
+        then:
+        child.name == 'test'
+        child.path == ':test'
+        child.projectDir == root.file("test")
+        child.buildFile == child.file("build.gradle")
     }
 
     private Project buildProject() {
@@ -148,6 +163,18 @@ class ProjectBuilderTest extends Specification {
         then:
         noExceptionThrown()
         latch.get()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5396")
+    def "can run task by calling TaskInternal.execute()"() {
+        def project = buildProject()
+        TaskInternal task = project.task('custom', type: CustomTask)
+
+        when:
+        task.execute()
+
+        then:
+        noExceptionThrown()
     }
 }
 

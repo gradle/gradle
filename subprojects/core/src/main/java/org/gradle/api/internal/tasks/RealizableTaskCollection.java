@@ -17,14 +17,29 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Namer;
+import org.gradle.api.Rule;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RealizableTaskCollection<T extends Task> implements TaskCollection<T> {
@@ -33,19 +48,21 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     private final Class<T> type;
     private final AtomicBoolean realized = new AtomicBoolean(false);
     private final MutableModelNode modelNode;
+    private final Instantiator instantiator;
 
-    public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode) {
+    public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode, Instantiator instantiator) {
         assert !(delegate instanceof RealizableTaskCollection) : "Attempt to wrap already realizable task collection in realizable wrapper: " + delegate;
 
         this.delegate = delegate;
         this.type = type;
         this.modelNode = modelNode;
+        this.instantiator = instantiator;
     }
 
     public void realizeRuleTaskTypes() {
         // Task dependencies may be calculated more than once.
         // This guard is purely an optimisation.
-        if (realized.compareAndSet(false, true)) {
+        if (modelNode != null && realized.compareAndSet(false, true)) {
             modelNode.ensureAtLeast(ModelNode.State.SelfClosed);
             for (MutableModelNode node : modelNode.getLinks(ModelType.of(type))) {
                 node.ensureAtLeast(ModelNode.State.GraphClosed);
@@ -54,7 +71,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     private <S extends T> RealizableTaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
-        return new RealizableTaskCollection<S>(type, collection, modelNode);
+        return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, collection, modelNode, instantiator));
     }
 
     @Override
@@ -110,6 +127,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public boolean add(T e) {
         return delegate.add(e);
+    }
+
+    @Override
+    public void addLater(Provider<? extends T> provider) {
+        delegate.addLater(provider);
     }
 
     @Override
@@ -198,6 +220,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
+    public void configureEach(Action<? super T> action) {
+        delegate.configureEach(action);
+    }
+
+    @Override
     public int size() {
         return delegate.size();
     }
@@ -250,5 +277,10 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public void clear() {
         delegate.clear();
+    }
+
+    @Override
+    public TaskProvider<T> named(String name) throws InvalidUserDataException {
+        return delegate.named(name);
     }
 }

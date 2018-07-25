@@ -95,7 +95,7 @@ In order to only test against `2.14` and not the latest release we modify `Cross
 ...
 //            if (!targetVersions.contains('nightly')) {
 //                // Include the most recent final release if we're not testing against a nightly
-//                baselineVersions.add(mostRecentFinalRelease)
+//                baselineVersions.add(mostRecentRelease)
 //            } else {
 //                baselineVersions.add(mostRecentSnapshot)
 //            }

@@ -25,18 +25,18 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -49,6 +49,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.emptyList;
 
 /**
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
@@ -75,7 +77,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
-    private File gradleHomeDir;
+    protected File gradleHomeDir;
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
@@ -89,11 +91,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private boolean buildCacheEnabled;
+    private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
     private boolean noBuildScan;
+    private boolean interactive;
+    private boolean writeDependencyLocks;
+    private List<String> lockedDependenciesToUpdate = emptyList();
 
     /**
      * {@inheritDoc}
@@ -144,6 +150,22 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public WarningMode getWarningMode() {
+        return loggingConfiguration.getWarningMode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWarningMode(WarningMode warningMode) {
+        loggingConfiguration.setWarningMode(warningMode);
+    }
+
+    /**
      * Sets the project's cache location. Set to null to use the default location.
      */
     public void setProjectCacheDir(@Nullable File projectCacheDir) {
@@ -189,6 +211,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     protected StartParameter prepareNewInstance(StartParameter p) {
         prepareNewBuild(p);
+        p.setWarningMode(getWarningMode());
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
@@ -200,7 +223,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.searchUpwards = searchUpwards;
         p.projectProperties = new HashMap<String, String>(projectProperties);
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        p.gradleHomeDir = gradleHomeDir;
         p.initScripts = new ArrayList<File>(initScripts);
         p.includedBuilds = new ArrayList<File>(includedBuilds);
         p.dryRun = dryRun;
@@ -220,9 +242,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     protected StartParameter prepareNewBuild(StartParameter p) {
         p.gradleUserHomeDir = gradleUserHomeDir;
+        p.gradleHomeDir = gradleHomeDir;
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
+        p.setWarningMode(getWarningMode());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
@@ -234,6 +258,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.interactive = interactive;
+        p.writeDependencyLocks = writeDependencyLocks;
+        p.lockedDependenciesToUpdate = new ArrayList<String>(lockedDependenciesToUpdate);
         return p;
     }
 
@@ -273,9 +300,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Specifies that an empty settings script should be used.
      *
-     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(java.io.File)}, it will not be used.
+     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(File)}, it will not be used.
      *
-     * If {@link #setSettingsFile(java.io.File)} is called after this, it will supersede calling this method.
+     * If {@link #setSettingsFile(File)} is called after this, it will supersede calling this method.
      *
      * @return this
      */
@@ -296,8 +323,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from
-     * these task parameters are returned.
+     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
@@ -317,7 +343,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setTaskNames(@Nullable Iterable<String> taskNames) {
         if (taskNames == null) {
-            this.taskRequests = Collections.emptyList();
+            this.taskRequests = emptyList();
         } else {
             this.taskRequests = Arrays.<TaskExecutionRequest>asList(new DefaultTaskExecutionRequest(taskNames));
         }
@@ -660,7 +686,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 3.5
      */
-    @Incubating
     public boolean isBuildCacheEnabled() {
         return buildCacheEnabled;
     }
@@ -670,32 +695,28 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 3.5
      */
-    @Incubating
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         this.buildCacheEnabled = buildCacheEnabled;
     }
 
     /**
-     * Returns true if task output caching is enabled.
+     * Whether build cache debug logging is enabled.
      *
-     * @deprecated Use {@link #isBuildCacheEnabled()}
+     * @since 4.6
      */
     @Incubating
-    @Deprecated
-    public boolean isTaskOutputCacheEnabled() {
-        return isBuildCacheEnabled();
+    public boolean isBuildCacheDebugLogging() {
+        return buildCacheDebugLogging;
     }
 
     /**
-     * Enables/disables task output caching.
+     * Whether build cache debug logging is enabled.
      *
-     * @deprecated Use {@link #setBuildCacheEnabled(boolean)}
+     * @since 4.6
      */
     @Incubating
-    @Deprecated
-    public void setTaskOutputCacheEnabled(boolean buildCacheEnabled) {
-        SingleMessageLogger.nagUserOfReplacedMethod("StartParameter.setTaskOutputCacheEnabled", "StartParameter.setBuildCacheEnabled");
-        setBuildCacheEnabled(buildCacheEnabled);
+    public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     /**
@@ -748,6 +769,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", interactive=" + interactive
+            + ", writeDependencyLocks=" + writeDependencyLocks
             + '}';
     }
 
@@ -828,4 +851,70 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.noBuildScan = noBuildScan;
     }
 
+    /**
+     * Returns true when console is interactive.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public boolean isInteractive() {
+        return interactive;
+    }
+
+    /**
+     * Specifies whether console is interactive.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setInteractive(boolean interactive) {
+        this.interactive = interactive;
+    }
+
+    /**
+     * Specifies whether dependency resolution needs to be persisted for locking
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public void setWriteDependencyLocks(boolean writeDependencyLocks) {
+        this.writeDependencyLocks = writeDependencyLocks;
+    }
+
+    /**
+     * Returns true when dependency resolution is to be persisted for locking
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public boolean isWriteDependencyLocks() {
+        return writeDependencyLocks;
+    }
+
+    /**
+     * Indicates that specified dependencies are to be allowed to update their version.
+     * Implicitly activates dependency locking persistence.
+     *
+     * @param lockedDependenciesToUpdate the modules to update
+     * @see #isWriteDependencyLocks()
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
+        this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
+        this.writeDependencyLocks = true;
+    }
+
+    /**
+     * Returns the list of modules that are to be allowed to update their version compared to the lockfile.
+     *
+     * @return a list of modules allowed to have a version update
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public List<String> getLockedDependenciesToUpdate() {
+        return lockedDependenciesToUpdate;
+    }
 }

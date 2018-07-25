@@ -15,18 +15,15 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import org.apache.tools.ant.filters.BaseFilterReader;
-
 import java.io.IOException;
 import java.io.Reader;
 
 /**
  * Replaces c-style comments with a single space, and removes line-continuation characters.
  * This code is largely adopted from org.apache.tools.ant.filters.StripJavaComments.
- *
- * This avoids the synchronisation overhead of PushbackReader and is _not_ threadsafe.
  */
-public class PreprocessingReader extends BaseFilterReader {
+public class PreprocessingReader {
+    private final Reader reader;
     /**
      * The read-ahead characters, used for reading ahead up to 2 characters and pushing back into stream.
      * A value of -1 indicates that no character is in the buffer.
@@ -43,10 +40,35 @@ public class PreprocessingReader extends BaseFilterReader {
      */
     private boolean quoted;
 
-    public PreprocessingReader(Reader in) {
-        super(in);
+    public PreprocessingReader(Reader reader) {
+        this.reader = reader;
         readAheadChars[0] = -1;
         readAheadChars[1] = -1;
+    }
+
+    /**
+     * Collects the next line from the filtered stream into the given buffer. Does not include the line separators.
+     *
+     * @return true if next line is available (possibly empty), false when end of stream reached.
+     */
+    public boolean readNextLine(Appendable buffer) throws IOException {
+        int ch;
+        boolean read = false;
+        while ((ch = read()) >= 0) {
+            if (ch == '\n') {
+                return true;
+            }
+            if (ch == '\r') {
+                int next = next();
+                if (next != '\n') {
+                    pushBack(next);
+                }
+                return true;
+            }
+            buffer.append((char) ch);
+            read = true;
+        }
+        return read;
     }
 
     /**
@@ -56,8 +78,7 @@ public class PreprocessingReader extends BaseFilterReader {
      *     <li>Line continuation (backslash-newline) will be removed</li>
      * </ul>
      */
-    @Override
-    public int read() throws IOException {
+    private int read() throws IOException {
         int ch = next();
 
         if (ch == '\\') {
@@ -132,7 +153,7 @@ public class PreprocessingReader extends BaseFilterReader {
             return ch;
         }
 
-        return in.read();
+        return reader.read();
     }
 
     private void pushBack(int ch) {

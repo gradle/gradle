@@ -42,14 +42,14 @@ public class UnionFileTreeTest {
     public void canAddFileTree() {
         FileTreeInternal set1 = context.mock(FileTreeInternal.class, "set1");
 
-        set.add(set1);
+        set.addToUnion(set1);
         assertThat(set.getSourceCollections(), equalTo((Iterable) toList((Object) set1)));
     }
 
     @Test
     public void cannotAddFileCollection() {
         try {
-            set.add(context.mock(FileCollection.class));
+            set.addToUnion(context.mock(FileCollection.class));
             fail();
         } catch (UnsupportedOperationException e) {
             assertThat(e.getMessage(), equalTo("Can only add FileTree instances to <display name>."));

@@ -16,14 +16,18 @@
 
 package org.gradle.initialization
 
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
@@ -81,6 +85,43 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         then:
         operation().failure.contains("Task 'someNonExisting' not found in root project")
+    }
+
+    def "build path for calculated task graph is exposed"() {
+        settingsFile << """
+            includeBuild "b"
+        """
+
+        file('buildSrc').mkdir()
+
+        buildFile << """
+            apply plugin:'java'
+            
+            dependencies {
+                compile "org.acme:b:1.0"            
+            }
+        """
+
+        file("b/build.gradle") << """
+            apply plugin:'java'
+            group = 'org.acme'
+            version = '1.0'
+        """
+        file('b/settings.gradle') << ""
+
+        when:
+        succeeds('build')
+
+        def taskGraphCalculations = buildOperations.all(CalculateTaskGraphBuildOperationType)
+
+        then:
+        taskGraphCalculations.size() == 3
+        taskGraphCalculations[0].details.buildPath == ":buildSrc"
+        taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
+        taskGraphCalculations[1].details.buildPath == ":"
+        taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
+        taskGraphCalculations[2].details.buildPath== ":b"
+        taskGraphCalculations[2].result.requestedTaskPaths == [":jar"]
     }
 
     private BuildOperationRecord operation() {

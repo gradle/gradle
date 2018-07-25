@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Cast;
 
-import java.util.Collection;
+import java.util.List;
 
 import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
 
@@ -34,14 +34,17 @@ import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
  * A {@link FileTree} that contains the union of zero or more file trees.
  */
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
-    protected Collection<? extends FileTreeInternal> getSourceCollections() {
+    @Override
+    protected List<? extends FileTreeInternal> getSourceCollections() {
         return Cast.uncheckedCast(super.getSourceCollections());
     }
 
+    @Override
     public FileTree plus(FileTree fileTree) {
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
+    @Override
     public FileTree matching(final Closure filterConfigClosure) {
         return new FilteredFileTree() {
             @Override
@@ -61,6 +64,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         };
     }
 
+    @Override
     public FileTree matching(final PatternFilterable patterns) {
         return new FilteredFileTree() {
             @Override
@@ -70,6 +74,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         };
     }
 
+    @Override
     public FileTree visit(Closure visitor) {
         return visit(fileVisitorFrom(visitor));
     }
@@ -82,6 +87,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         return this;
     }
 
+    @Override
     public FileTree visit(FileVisitor visitor) {
         for (FileTree tree : getSourceCollections()) {
             tree.visit(visitor);

@@ -16,27 +16,27 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 public interface MutableModuleComponentResolveMetadata {
     /**
      * The identifier for this component
      */
-    ModuleComponentIdentifier getComponentId();
+    ModuleComponentIdentifier getId();
 
     /**
      * The module version associated with this module.
      */
-    ModuleVersionIdentifier getId();
+    ModuleVersionIdentifier getModuleVersionId();
 
     /**
      * Creates an immutable copy of this meta-data.
@@ -46,13 +46,16 @@ public interface MutableModuleComponentResolveMetadata {
     /**
      * Sets the component id and legacy module version id
      */
-    void setComponentId(ModuleComponentIdentifier componentId);
+    void setId(ModuleComponentIdentifier componentId);
 
     /**
      * Returns the hash of the resource(s) from which this metadata was created.
      */
     HashValue getContentHash();
     void setContentHash(HashValue hash);
+
+    boolean isMissing();
+    void setMissing(boolean missing);
 
     boolean isChanging();
     void setChanging(boolean changing);
@@ -67,35 +70,39 @@ public interface MutableModuleComponentResolveMetadata {
     void setSource(ModuleSource source);
 
     /**
-     * Returns this module version as an Ivy-like ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
+     * Adds a variant to this module.
      */
-    ModuleDescriptorState getDescriptor();
-
-    List<? extends DependencyMetadata> getDependencies();
+    MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes);
 
     /**
-     * Replaces the dependencies of this module version.
+     * Checks if the metadata defines the given variant. Depending on the origin of the metadata, a "variant" can be backed
+     * by another concept (for example an ivy configuration). The check should be implemented in a cheap way without creating
+     * full variant/configuration metadata objects since the method only needs to check the name.
      */
-    void setDependencies(Iterable<? extends DependencyMetadata> dependencies);
+    boolean definesVariant(String name);
 
-    /**
-     * Returns the Ivy-like definitions for the configurations of this module. This method is here to allow us to migrate away from the Ivy model and will be removed.
-     */
-    Map<String, Configuration> getConfigurationDefinitions();
+    AttributeContainer getAttributes();
 
-    @Nullable
-    List<ModuleComponentArtifactMetadata> getArtifacts();
-
-    /**
-     * Replaces the artifacts of this module version.
-     */
-    void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
+    void setAttributes(AttributeContainer attributes);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
+
+    ImmutableAttributesFactory getAttributesFactory();
+
+    /**
+     * Returns the metadata rules container for this module
+     */
+    VariantMetadataRules getVariantMetadataRules();
+
+    /**
+     * Declares that this component belongs to a platform.
+     * @param platform the identifer of the platform
+     */
+    void belongsTo(ComponentIdentifier platform);
+
+    @Nullable
+    List<? extends ComponentIdentifier> getPlatformOwners();
 }

@@ -16,15 +16,16 @@
 
 package org.gradle.internal.component;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.text.TreeFormatter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
@@ -32,29 +33,28 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
     public NoMatchingConfigurationSelectionException(
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
-        ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent));
+        ComponentResolveMetadata targetComponent,
+        boolean variantAware) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
-        TreeSet<String> configurationNames = new TreeSet<String>(targetComponent.getConfigurationNames());
-        List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
-        for (String name : configurationNames) {
-            ConfigurationMetadata targetComponentConfiguration = targetComponent.getConfiguration(name);
-            if (targetComponentConfiguration.isCanBeConsumed() && !targetComponentConfiguration.getAttributes().isEmpty()) {
-                configurations.add(targetComponentConfiguration);
-            }
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
+        Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
+        Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
+        ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
+        for (ConfigurationMetadata configurationMetadata : variantsParticipatingInSelection) {
+            configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Unable to find a matching configuration of " + targetComponent.getComponentId().getDisplayName());
+        formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName());
         formatter.startChildren();
         if (configurations.isEmpty()) {
-            formatter.node("None of the consumable configurations have attributes.");
+            formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");
         } else {
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
-            for (String config : configurationNames) {
-                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configurations, config);
+            for (ConfigurationMetadata configuration : configurations.values()) {
+                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configuration, variantAware);
             }
         }
         formatter.endChildren();

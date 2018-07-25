@@ -25,14 +25,16 @@ class IdProviderToolingApiPerformanceTest extends AbstractToolingApiCrossVersion
         experiment("test") {}
 
         then:
-        experimentSpec.displayName == "if no test id is set, the test method name is used"
+        experiment.displayName == "if no test id is set, the test method name is used"
     }
 
     def "if test id is set, it is not replaced"() {
         when:
-        experiment("test", "Another id") {}
+        experiment("test") {
+            displayName = "Another id"
+        }
 
         then:
-        experimentSpec.displayName == "Another id"
+        experiment.displayName == "Another id"
     }
 }

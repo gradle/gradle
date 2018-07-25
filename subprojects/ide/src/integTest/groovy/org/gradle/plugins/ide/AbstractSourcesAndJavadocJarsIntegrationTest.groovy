@@ -206,8 +206,8 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("foo-1.0.jar", ["foo-api-sources-1.0.jar", "foo-sources-1.0.jar"], ["foo-api-javadoc-1.0.jar", "foo-javadoc-1.0.jar"])
-        ideFileContainsEntry("foo-api-1.0.jar", ["foo-api-sources-1.0.jar", "foo-sources-1.0.jar"], ["foo-api-javadoc-1.0.jar", "foo-javadoc-1.0.jar"])
+        ideFileContainsEntry("foo-1.0.jar", ["foo-sources-1.0.jar", "foo-api-sources-1.0.jar"], ["foo-javadoc-1.0.jar", "foo-api-javadoc-1.0.jar"])
+        ideFileContainsEntry("foo-api-1.0.jar", ["foo-sources-1.0.jar", "foo-api-sources-1.0.jar"], ["foo-javadoc-1.0.jar", "foo-api-javadoc-1.0.jar"])
     }
 
     def "ignores missing sources and javadoc jars in ivy repositories"() {

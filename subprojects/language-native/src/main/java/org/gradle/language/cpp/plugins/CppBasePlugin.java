@@ -18,33 +18,35 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.component.ComponentAwareRepository;
+import org.gradle.api.Project;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.ProductionCppComponent;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
+import org.gradle.swiftpm.internal.SwiftPmTarget;
 
+import javax.inject.Inject;
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 /**
  * A common base plugin for the C++ executable and library plugins
@@ -52,95 +54,80 @@ import java.util.concurrent.Callable;
  * @since 4.1
  */
 @Incubating
+@NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
+    private final ProjectPublicationRegistry publicationRegistry;
+
+    @Inject
+    public CppBasePlugin(ProjectPublicationRegistry publicationRegistry) {
+        this.publicationRegistry = publicationRegistry;
+    }
+
     @Override
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+    public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-        final ModelRegistry modelRegistry = project.getModelRegistry();
-        final ProviderFactory providers = project.getProviders();
+        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        project.getRepositories().withType(ComponentAwareRepository.class, new Action<ComponentAwareRepository>() {
-            @Override
-            public void execute(ComponentAwareRepository componentAwareRepository) {
-                componentAwareRepository.useGradleMetadata();
-            }
-        });
+        project.getGradle().getServices().get(FeaturePreviews.class).enableFeature(GRADLE_METADATA);
 
         // Create the tasks for each C++ binary that is registered
-        project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {
+        project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
             @Override
-            public void execute(final CppBinary binary) {
-                final Names names = Names.of(binary.getName());
+            public void execute(final DefaultCppBinary binary) {
+                final Names names = binary.getNames();
 
-                CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
+                String language = "cpp";
+                final NativePlatform currentPlatform = binary.getTargetPlatform();
+                // TODO - make this lazy
+                final NativeToolChainInternal toolChain = binary.getToolChain();
+
+                Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                    @Override
+                    public List<File> call() {
+                        PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
+                        return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
+                    }
+                };
+
+                CppCompile compile = tasks.create(names.getCompileTaskName(language), CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
+                compile.getSystemIncludes().from(systemIncludes);
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {
                     compile.setDebuggable(true);
-                } else {
+                }
+                if (binary.isOptimized()) {
                     compile.setOptimized(true);
                 }
+                compile.getTargetPlatform().set(currentPlatform);
+                compile.getToolChain().set(toolChain);
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
-                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-                compile.setTargetPlatform(currentPlatform);
-
-                // TODO - make this lazy
-                NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-                compile.setToolChain(toolChain);
-
-                if (binary instanceof CppExecutable) {
-                    // Add a link task
-                    LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-                    link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    })));
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    // Add an install task
-                    // TODO - should probably not add this for all executables?
-                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-                    install.setPlatform(link.getTargetPlatform());
-                    install.setToolChain(link.getToolChain());
-                    install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
-                    install.setExecutable(link.getBinaryFile());
-                    install.lib(binary.getRuntimeLibraries());
-                } else if (binary instanceof CppSharedLibrary) {
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-
-                    compile.setPositionIndependentCode(true);
-
-                    // Add a link task
-                    LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(binary.getLinkLibraries());
-                    // TODO - need to set soname
-                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
-                    link.setOutputFile(runtimeFile);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-                }
+                binary.getObjectsDir().set(compile.getObjectFileDir());
+                binary.getCompileTask().set(compile);
+            }
+        });
+        project.getComponents().withType(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
+            @Override
+            public void execute(CppSharedLibrary library) {
+                library.getCompileTask().get().setPositionIndependentCode(true);
+            }
+        });
+        project.getComponents().withType(ProductionCppComponent.class, new Action<ProductionCppComponent>() {
+            @Override
+            public void execute(final ProductionCppComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        DefaultCppComponent componentInternal = (DefaultCppComponent) component;
+                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get()), false));
+                    }
+                });
             }
         });
     }
-
 }

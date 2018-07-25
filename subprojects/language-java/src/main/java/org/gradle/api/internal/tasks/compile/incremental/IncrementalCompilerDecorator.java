@@ -16,71 +16,73 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
-import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationOutputAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
+/**
+ * Decorates a non-incremental Java compiler (like javac) so that it can be invoked incrementally.
+ */
 public class IncrementalCompilerDecorator {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
-    private final JarClasspathSnapshotMaker jarClasspathSnapshotMaker;
-    private final CompileCaches compileCaches;
+    private final ClasspathSnapshotMaker classpathSnapshotMaker;
+    private final TaskScopedCompileCaches compileCaches;
     private final CleaningJavaCompiler cleaningCompiler;
-    private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
-    private final ClassSetAnalysisUpdater classSetAnalysisUpdater;
     private final CompilationSourceDirs sourceDirs;
-    private final FileCollection annotationProcessorPath;
+    private final Compiler<JavaCompileSpec> rebuildAllCompiler;
     private final IncrementalCompilationInitializer compilationInitializer;
+    private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
+    private StringInterner interner;
 
-    public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
-                                        IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
-                                        RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
-                                        CompilationSourceDirs sourceDirs, FileCollection annotationProcessorPath) {
-        this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
+    public IncrementalCompilerDecorator(ClasspathSnapshotMaker classpathSnapshotMaker, TaskScopedCompileCaches compileCaches,
+                                        IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler,
+                                        RecompilationSpecProvider staleClassDetecter,
+                                        CompilationSourceDirs sourceDirs, Compiler<JavaCompileSpec> rebuildAllCompiler, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer, StringInterner interner) {
+        this.classpathSnapshotMaker = classpathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
-        this.displayName = displayName;
         this.staleClassDetecter = staleClassDetecter;
-        this.classSetAnalysisUpdater = classSetAnalysisUpdater;
         this.sourceDirs = sourceDirs;
-        this.annotationProcessorPath = annotationProcessorPath;
+        this.rebuildAllCompiler = rebuildAllCompiler;
+        this.previousCompilationOutputAnalyzer = previousCompilationOutputAnalyzer;
+        this.interner = interner;
     }
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
         Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
+        return new IncrementalResultStoringCompiler(compiler, classpathSnapshotMaker, compileCaches.getPreviousCompilationStore(), interner);
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
-            LOG.info("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
-            return cleaningCompiler;
+            LOG.info("Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
+            return rebuildAllCompiler;
         }
         if (!sourceDirs.canInferSourceRoots()) {
-            LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
-            return cleaningCompiler;
+            LOG.info("Full recompilation is required because the source roots could not be inferred.");
+            return rebuildAllCompiler;
         }
-        if (!annotationProcessorPath.isEmpty()) {
-            LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
-            return cleaningCompiler;
-        }
-        ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
+        PreviousCompilationData data = compileCaches.getPreviousCompilationStore().get();
         if (data == null) {
-            LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
-            return cleaningCompiler;
+            LOG.info("Full recompilation is required because no previous compilation result is available.");
+            return rebuildAllCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
-        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
+
+        PreviousCompilation previousCompilation = new PreviousCompilation(data, compileCaches.getClasspathEntrySnapshotCache(), previousCompilationOutputAnalyzer);
+        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, staleClassDetecter, compilationInitializer, classpathSnapshotMaker);
     }
 }

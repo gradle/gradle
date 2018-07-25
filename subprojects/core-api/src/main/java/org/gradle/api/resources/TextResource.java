@@ -27,6 +27,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Reader;
 
@@ -76,8 +77,9 @@ public interface TextResource extends Buildable {
      *
      * @return the input properties registered when this resource is used as task input
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     Object getInputProperties();
 
     /**
@@ -86,9 +88,10 @@ public interface TextResource extends Buildable {
      *
      * @return the input files registered when this resource is used as task input
      */
+    @Nullable
+    @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    @Optional
     FileCollection getInputFiles();
 
     @Internal

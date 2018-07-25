@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @since 4.3
  */
-public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public EnabledOnlyBooleanBuildOption(String gradleProperty) {
         super(gradleProperty, new CommandLineOptionConfiguration[] {});
@@ -46,7 +46,7 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
         }
     }
 

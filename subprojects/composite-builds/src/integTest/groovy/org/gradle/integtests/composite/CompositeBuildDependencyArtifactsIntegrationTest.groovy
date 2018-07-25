@@ -19,7 +19,9 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ToBeImplemented
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -223,11 +225,11 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         dependency 'org.test:buildB:1.0'
 
         buildB.buildFile << """
-            task myJar(type: Jar) {
-                classifier 'my'
+            task jar1(type: Jar) {
+                classifier '1'
             }
             dependencies {
-                compile files(myJar.archivePath) { builtBy 'myJar' }
+                compile files(jar1.archivePath) { builtBy jar1 }
             }
 """
 
@@ -235,8 +237,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:myJar", ":buildB:jar"
-        assertResolved buildB.file('build/libs/buildB-1.0.jar') // File dependencies are never part of the published metadata
+        executed ":buildB:jar1", ":buildB:jar"
+        assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file("build/libs/buildB-1.0-1.jar")
     }
 
     def "builds substituted dependency with non-default configuration"() {
@@ -640,39 +642,81 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             .assertHasCause("jar task failed")
     }
 
-    @ToBeImplemented
-    // We execute do not execute included build with --continue,
-    // and we attach the single failure to every delegated task
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
     def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
         given:
+        server.start()
         dependency 'org.test:b1:1.0'
         buildA.buildFile << """
             dependencies {
                 runtime 'org.test:b2:1.0'
+            }
+            resolve.doLast {
+                ${server.callFromBuild("resolve")}
             }
             task resolveRuntime(type: Copy) {
                 dependsOn "resolve"
                 from configurations.runtime
                 into 'libs-runtime'
             }
-                
 """
 
         buildB.buildFile << """
             project(':b2') {
                 jar.doLast {
+                    ${server.callFromBuild("b2")}
                     throw new GradleException("jar task failed")
                 }
             }
 """
 
         when:
+        server.expectConcurrent("resolve", "b2")
         fails buildA, ":resolveRuntime"
 
         then:
-        // TODO These should pass
-        !!! executedTasks.containsAll(":buildB:b1:jar", ":resolve", ":buildB:b2:jar", ":resolveRuntime")
-        // assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
+        executedTasks.containsAll(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
+        !executedTasks.containsAll(":resolveRuntime")
+    }
+
+    def "new substitutions can be discovered while building the task graph for the first level included builds"() {
+        given:
+        def firstLevel = (1..2).collect{ "firstLevel$it" }
+
+        buildA.buildFile << """
+            dependencies {
+                implementation ${firstLevel.collect { "'org.test:${it}:1.0'" }.join(", ") }
+            }
+        """
+
+        firstLevel.each { buildName ->
+            def build = singleProjectBuild(buildName) {
+                buildFile << """
+                    apply plugin: 'java'
+                    dependencies {
+                        //compileOnly ensures that this is not already found in the dependency graph of the root build
+                        compileOnly 'org.test:secondLevel:1.0'
+                    }
+                """
+            }
+            includeBuild build
+        }
+        def secondLevel = singleProjectBuild("secondLevel") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+        }
+        includeBuild secondLevel
+
+        when:
+        execute(buildA, "jar")
+
+        then:
+        executedTasks.contains(":secondLevel:jar")
     }
 
     private void resolveArtifacts() {
@@ -695,7 +739,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         def executedTasks = result.executedTasks
         def beforeTask
         for (String task : tasks) {
-            containsOnce(executedTasks, task)
+            result.assertTaskExecuted(task)
 
             if (beforeTask != null) {
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"

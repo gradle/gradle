@@ -44,7 +44,7 @@ model {
         fails "components"
 
         then:
-        errorOutput.contains "Test suite 'someExeTest' doesn't declare component under test. Please specify it with `testing \$.components.myComponent`."
+        failure.assertHasCause "Test suite 'someExeTest' doesn't declare component under test. Please specify it with `testing \$.components.myComponent`."
     }
 
     @RequiresInstalledToolChain

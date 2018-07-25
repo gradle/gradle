@@ -37,7 +37,6 @@ public class SourcepathIgnoringInvocationHandler implements InvocationHandler {
     @Override
     @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Method m = proxied.getClass().getMethod(method.getName(), method.getParameterTypes());
         if (method.getName().equals(HAS_LOCATION_METHOD)) {
             // There is currently a requirement in the JDK9 javac implementation
             // that when javac is invoked with an explicitly empty sourcepath
@@ -62,6 +61,6 @@ public class SourcepathIgnoringInvocationHandler implements InvocationHandler {
                 ((Set<JavaFileObject.Kind>) args[2]).remove(JavaFileObject.Kind.SOURCE);
             }
         }
-        return m.invoke(proxied, args);
+        return method.invoke(proxied, args);
     }
 }

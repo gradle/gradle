@@ -28,6 +28,8 @@ import org.apache.tools.ant.types.EnumeratedAttribute
 import org.apache.tools.ant.types.ZipFileSet
 import org.apache.tools.bzip2.CBZip2OutputStream
 
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipInputStream
 
@@ -129,11 +131,12 @@ class TestFileHelper {
         if (!isUnix()) {
             return
         }
-        int m = toMode(permissions)
-        setMode(m)
+        def perms = PosixFilePermissions.fromString(permissions)
+        Files.setPosixFilePermissions(file.toPath(), perms)
     }
 
     void setMode(int mode) {
+        // TODO: Remove this entirely and use built-in Files.setPosixFilePermissions
         def process = ["chmod", Integer.toOctalString(mode), file.absolutePath].execute()
         def error = process.errorStream.text
         def retval = process.waitFor()

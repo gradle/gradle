@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 /**
@@ -30,7 +31,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
  */
 public class ResolvedConfigurationDependencyGraphVisitor implements DependencyArtifactsVisitor {
     private final ResolvedConfigurationBuilder builder;
-    private DependencyGraphNode root;
+    private RootGraphNode root;
 
     public ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder) {
         this.builder = builder;
@@ -41,14 +42,16 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
         builder.newResolvedDependency(node);
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
-                ModuleDependency moduleDependency = dependency.getModuleDependency();
-                builder.addFirstLevelDependency(moduleDependency, node);
+                Dependency moduleDependency = dependency.getOriginalDependency();
+                if (moduleDependency != null) {
+                    builder.addFirstLevelDependency(moduleDependency, node);
+                }
             }
         }
     }
 
     @Override
-    public void startArtifacts(DependencyGraphNode root) {
+    public void startArtifacts(RootGraphNode root) {
         this.root = root;
     }
 

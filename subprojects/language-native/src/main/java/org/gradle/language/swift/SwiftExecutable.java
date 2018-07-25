@@ -17,6 +17,11 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithExecutable;
+import org.gradle.language.nativeplatform.ComponentWithInstallation;
 
 /**
  * An executable built from Swift source.
@@ -24,5 +29,11 @@ import org.gradle.api.Incubating;
  * @since 4.2
  */
 @Incubating
-public interface SwiftExecutable extends SwiftBinary {
+public interface SwiftExecutable extends SwiftBinary, ComponentWithExecutable, ComponentWithInstallation, ComponentWithOutputs {
+    /**
+     * Returns the executable file to use with a debugger for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<RegularFile> getDebuggerExecutableFile();
 }

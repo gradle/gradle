@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleVersions
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
@@ -167,9 +166,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     private void waitForBuild() {
         ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
-        result = executionOutput.stdout.contains("BUILD SUCCESSFUL") ?
-                    new OutputScrapingExecutionResult(executionOutput.stdout, executionOutput.stderr) :
-                    new OutputScrapingExecutionFailure(executionOutput.stdout, executionOutput.stderr)
+        result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr)
     }
 
     private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {

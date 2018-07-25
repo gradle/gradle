@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 /**
  * Configuration related to source dependencies.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface SourceControl {

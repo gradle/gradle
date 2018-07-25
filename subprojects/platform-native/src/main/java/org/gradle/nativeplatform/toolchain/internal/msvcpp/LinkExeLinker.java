@@ -72,7 +72,7 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
         new VisualCppOptionsFileArgsWriter(tempDir).execute(args);
     }
 
-    private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+    static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
         @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
@@ -83,7 +83,9 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
             args.add("/NOLOGO");
             if (spec instanceof SharedLibraryLinkerSpec) {
+                SharedLibraryLinkerSpec sharedLibSpec = (SharedLibraryLinkerSpec) spec;
                 args.add("/DLL");
+                args.add("/IMPLIB:" + sharedLibSpec.getImportLibrary().getAbsolutePath());
             }
             for (File pathEntry : spec.getLibraryPath()) {
                 args.add("/LIBPATH:" + pathEntry.getAbsolutePath());

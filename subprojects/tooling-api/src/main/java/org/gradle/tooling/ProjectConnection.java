@@ -16,28 +16,26 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import java.io.Closeable;
 
 /**
  * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.</p>
  *
  * <pre class='autoTested'>
- * ProjectConnection connection = GradleConnector.newConnector()
- *    .forProjectDirectory(new File("someFolder"))
- *    .connect();
  *
- * try {
+ * try (ProjectConnection connection = GradleConnector.newConnector()
+ *        .forProjectDirectory(new File("someFolder"))
+ *        .connect()) {
+ *    
  *    //obtain some information from the build
- *    BuildEnvironment environment = connection.model(BuildEnvironment.class)
- *      .get();
- *
+ *    BuildEnvironment environment = connection.model(BuildEnvironment.class).get();
+ *    
  *    //run some tasks
  *    connection.newBuild()
  *      .forTasks("tasks")
  *      .setStandardOutput(System.out)
  *      .run();
  *
- * } finally {
- *    connection.close();
  * }
  * </pre>
  *
@@ -49,7 +47,7 @@ import org.gradle.api.Incubating;
  *
  * @since 1.0-milestone-3
  */
-public interface ProjectConnection {
+public interface ProjectConnection extends Closeable {
     /**
      * Fetches a snapshot of the model of the given type for this project. This method blocks until the model is available.
      *
@@ -102,7 +100,6 @@ public interface ProjectConnection {
      * @return The launcher.
      * @since 2.6
      */
-    @Incubating
     TestLauncher newTestLauncher();
 
     /**
@@ -135,7 +132,7 @@ public interface ProjectConnection {
     <T> ModelBuilder<T> model(Class<T> modelType);
 
     /**
-     * Creates an executer which can be used to run the given action. The action is serialized into the build
+     * Creates an executer which can be used to run the given action when the build has finished. The action is serialized into the build
      * process and executed, then its result is serialized back to the caller.
      *
      * <p>Requires Gradle 1.8 or later.</p>
@@ -144,9 +141,21 @@ public interface ProjectConnection {
      * @param <T> The result type.
      * @return The builder.
      * @since 1.8
+     * @see #action() if you want to hook into different points of the build lifecycle.
+     */
+    <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
+
+    /**
+     * Creates a builder for an executer which can be used to run actions in different phases of the build.
+     * The actions are serialized into the build process and executed, then its result is serialized back to the caller.
+     *
+     * <p>Requires Gradle 4.8 or later.
+     *
+     * @return The builder.
+     * @since 4.8
      */
     @Incubating
-    <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
+    BuildActionExecuter.Builder action();
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

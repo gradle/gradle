@@ -29,6 +29,8 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.testing.base.plugins.TestingBasePlugin;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -52,13 +54,20 @@ public class JavaPluginConvention {
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
 
+    /**
+     * Constructs a {@link JavaPluginConvention}.
+     *
+     * @deprecated Creating instances of this class is deprecated. These should be created by the Java base plugin only.
+     */
+    @Deprecated
     public JavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of JavaPluginConvention");
         this.project = project;
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator,
             project.getServices().get(SourceDirectorySetFactory.class));
         docsDirName = "docs";
-        testResultsDirName = "test-results";
-        testReportDirName = "tests";
+        testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
+        testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
     }
 
     /**

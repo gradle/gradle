@@ -15,8 +15,10 @@
  */
 package org.gradle.nativeplatform.platform.internal
 
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultNativePlatformTest extends Specification {
     def os = Mock(OperatingSystemInternal)
     def arch = Mock(ArchitectureInternal)
@@ -50,5 +52,16 @@ class DefaultNativePlatformTest extends Specification {
 
         then:
         platform.operatingSystem.name == "the-os"
+    }
+
+    def "host platform has useful display name"() {
+        expect:
+        def host = DefaultNativePlatform.host()
+        host.displayName.startsWith("host operating system")
+        host.toString() == host.displayName
+
+        def host2 = host.withArchitecture(arch)
+        host2.displayName.startsWith("host operating system")
+        host2.toString() == host2.displayName
     }
 }

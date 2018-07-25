@@ -81,7 +81,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
             metadata.addVariant(usage.getConfigurationName(), new OutgoingVariant() {
                 @Override
                 public DisplayName asDescribable() {
-                    return Describables.of(metadata.getComponentId());
+                    return Describables.of(metadata.getId());
                 }
 
                 @Override

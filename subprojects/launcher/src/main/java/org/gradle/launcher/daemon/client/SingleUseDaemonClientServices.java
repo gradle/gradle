@@ -21,13 +21,14 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 public class SingleUseDaemonClientServices extends DaemonClientServices {
     public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
@@ -35,7 +36,7 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
     }
 
     @Override
-    protected DaemonClient createDaemonClient() {
+    protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
         ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
         return new SingleUseDaemonClient(
                 get(DaemonConnector.class),
@@ -43,7 +44,7 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
                 matchNone,
                 getBuildStandardInput(),
                 get(ExecutorFactory.class),
-                get(IdGenerator.class),
+                idGenerator,
                 get(DocumentationRegistry.class),
                 get(ProcessEnvironment.class));
     }

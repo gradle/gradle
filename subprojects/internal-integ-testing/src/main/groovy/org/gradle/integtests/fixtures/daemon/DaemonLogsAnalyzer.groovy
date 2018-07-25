@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.internal.service.scopes.BasicGlobalScopeServices
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
@@ -40,7 +40,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         def services = ServiceRegistryBuilder.builder()
             .parent(LoggingServiceRegistry.newEmbeddableLogging())
             .parent(NativeServicesTestFixture.getInstance())
-            .provider(new GlobalScopeServices(false))
+            .provider(new BasicGlobalScopeServices())
             .provider(new DaemonClientGlobalServices())
             .provider(new DaemonRegistryServices(daemonBaseDir))
             .build()

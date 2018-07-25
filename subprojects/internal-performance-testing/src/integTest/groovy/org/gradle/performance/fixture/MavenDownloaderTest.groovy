@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.UncheckedIOException
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.Requires
@@ -37,6 +38,9 @@ class MavenDownloaderTest extends Specification {
     def setup() {
         installRoot = tmpDir.newFolder()
         downloader = new MavenInstallationDownloader(installRoot)
+        if(JavaVersion.current().isJava7()) {
+            System.setProperty("https.protocols", "TLSv1.2")
+        }
     }
 
     @Unroll

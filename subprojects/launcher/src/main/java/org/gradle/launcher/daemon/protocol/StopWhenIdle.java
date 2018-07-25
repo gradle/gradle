@@ -15,8 +15,10 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+import java.util.UUID;
+
 public class StopWhenIdle extends Command {
-    public StopWhenIdle(Object identifier, byte[] token) {
+    public StopWhenIdle(UUID identifier, byte[] token) {
         super(identifier, token);
     }
 }

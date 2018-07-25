@@ -28,6 +28,6 @@ class JacocoPluginCoverageVerificationIncompatibleVersionIntegrationTest extends
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("jacocoReport doesn't support the nested \"check\" element.")
+        failure.assertHasCause("jacocoReport doesn't support the nested \"check\" element.")
     }
 }

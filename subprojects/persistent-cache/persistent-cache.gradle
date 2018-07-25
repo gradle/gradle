@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -13,19 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     api project(":baseServices")
     api project(":messaging")
     api project(":native")
-    api libraries.jcip
+    api project(":resources")
+    api project(":logging")
+    api libraries.jcip.coordinates
 
-    implementation libraries.commons_collections
-    implementation libraries.commons_io
-    implementation libraries.commons_lang
+    implementation libraries.commons_collections.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
 }
 
-useTestFixtures()
-useClassycle()
-strictCompile()
+gradlebuildJava {
+    moduleType = ModuleType.CORE
+}
+
+testFixtures {
+    from(':core')
+}

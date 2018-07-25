@@ -18,8 +18,10 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
@@ -35,6 +37,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
+    def taskExecutionHistory = Mock(TaskExecutionHistory)
     Action<Task> action = Mock(Action)
 
     def executer = new SkipUpToDateTaskExecuter(delegate)
@@ -42,16 +45,19 @@ class SkipUpToDateTaskExecuterTest extends Specification {
     def "skips task when outputs are up to date"() {
         given:
         def originBuildInvocationId = UniqueId.generate()
+        def executionTime = 1
+        def originMetadata = new OriginTaskExecutionMetadata(originBuildInvocationId, executionTime)
 
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
         1 * taskArtifactState.isUpToDate(_) >> true
-        1 * taskArtifactState.getOriginBuildInvocationId() >> originBuildInvocationId
+        1 * taskArtifactState.getExecutionHistory() >> taskExecutionHistory
+        1 * taskExecutionHistory.getOriginExecutionMetadata() >> originMetadata
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
-        1 * taskContext.setOriginBuildInvocationId(originBuildInvocationId)
+        1 * taskContext.setOriginExecutionMetadata(originMetadata)
         0 * _
     }
 

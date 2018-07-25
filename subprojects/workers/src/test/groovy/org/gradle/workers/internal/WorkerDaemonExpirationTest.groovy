@@ -25,6 +25,7 @@ import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.process.internal.health.memory.JvmMemoryStatus
 import org.gradle.process.internal.health.memory.MaximumHeapHelper
 import org.gradle.process.internal.health.memory.MemoryAmount
+import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
@@ -57,7 +58,7 @@ class WorkerDaemonExpirationTest extends Specification {
             }
         }
     }
-    def clientsManager = new WorkerDaemonClientsManager(daemonStarter, Mock(ListenerManager), Mock(LoggingManagerInternal))
+    def clientsManager = new WorkerDaemonClientsManager(daemonStarter, Mock(ListenerManager), Mock(LoggingManagerInternal), Mock(MemoryManager))
     def expiration = new WorkerDaemonExpiration(clientsManager, MemoryAmount.ofGigaBytes(OS_MEMORY_GB).bytes)
 
     def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {
@@ -202,7 +203,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private JavaForkOptions javaForkOptions(String minHeap, String maxHeap, List<String> jvmArgs) {
-        JavaForkOptions options = new DefaultJavaForkOptions(TestFiles.resolver())
+        JavaForkOptions options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
         options.workingDir = systemSpecificAbsolutePath("foo")
         options.minHeapSize = minHeap
         options.maxHeapSize = maxHeap
@@ -211,7 +212,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private DaemonForkOptions daemonForkOptions(String minHeap, String maxHeap, List<String> jvmArgs) {
-        return new DaemonForkOptionsBuilder(TestFiles.resolver())
+        return new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
             .javaForkOptions(javaForkOptions(minHeap, maxHeap, jvmArgs))
             .keepAliveMode(KeepAliveMode.SESSION)
             .build()

@@ -46,6 +46,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private ConnectionAcceptor acceptor;
     private ExecHandle execHandle;
     private boolean running;
+    private boolean aborted;
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
@@ -61,6 +62,22 @@ public class DefaultWorkerProcess implements WorkerProcess {
             return jvmMemoryStatus;
         } else {
             throw new UnsupportedOperationException("This worker process does not support reporting JVM memory status.");
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        lock.lock();
+        try {
+            aborted = true;
+            if (connection != null) {
+                connection.abort();
+            }
+        } finally {
+            lock.unlock();
+
+            // cleanup() will abort the process as desired
+            cleanup();
         }
     }
 
@@ -100,6 +117,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
             }
 
             this.connection = connection;
+            if (aborted) {
+                connection.abort();
+            }
             condition.signalAll();
             stoppable = acceptor;
         } finally {
@@ -195,7 +215,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     private void cleanup() {
         CompositeStoppable stoppable;
-        execHandle.abort();
         lock.lock();
         try {
             stoppable = CompositeStoppable.stoppable(acceptor, connection);
@@ -205,5 +224,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
         stoppable.stop();
+        execHandle.abort();
     }
 }

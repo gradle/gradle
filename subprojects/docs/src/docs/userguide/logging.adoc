@@ -45,9 +45,9 @@ The log is the main 'UI' of a build tool. If it is too verbose, real warnings an
 
 [NOTE]
 ====
- 
+
 The rich components of the console (build status and work in progress area) are displayed regardless of the log level used. Before Gradle 4.0 those rich components were only displayed at log level `LIFECYCLE` or below.
- 
+
 ====
 
 
@@ -116,6 +116,14 @@ Gradle also provides a `logger` property to a build script, which is an instance
         </sample>
 ++++
 
+Use the link:https://www.slf4j.org/manual.html#typical_usage[typical SLF4J pattern] to replace a placeholder with an actual value as part of the log message.
+
+++++
+<sample id="logging_placeholder" dir="userguide/tutorial/logging" title="Writing a log message with placeholder">
+    <sourcefile file="build.gradle" snippet="use-logger-placeholder"/>
+</sample>
+++++
+
 You can also hook into Gradle's logging system from within other classes used in the build (classes from the `buildSrc` directory for example). Simply use an SLF4J logger. You can use this logger the same way as you use the provided logger in the build script.
 
 ++++
@@ -161,11 +169,10 @@ You can replace much of Gradle's logging UI with your own. You might do this, fo
         </sample>
 ++++
 
-Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle_events>>. 
+Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle_events>>.
 
 * api:org.gradle.BuildListener[]
 * api:org.gradle.api.ProjectEvaluationListener[]
 * api:org.gradle.api.execution.TaskExecutionGraphListener[]
 * api:org.gradle.api.execution.TaskExecutionListener[]
 * api:org.gradle.api.execution.TaskActionListener[]
- 

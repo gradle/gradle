@@ -16,15 +16,14 @@
 
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
 import static org.gradle.util.BinaryDiffUtils.levenshteinDistance
 import static org.gradle.util.BinaryDiffUtils.toHexStrings
 
-class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
-
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+class JacocoTestRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
@@ -32,9 +31,10 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
+    protected void setupProjectIn(TestFile projectDir) {
+        def javaProjectUnderTest = new JavaProjectUnderTest(projectDir)
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
-        buildFile << """
+        projectDir.file("build.gradle") << """
             test {
                 jacoco {
                     // No caching when append is enabled
@@ -45,16 +45,8 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     }
 
     @Override
-    protected void moveFilesAround() {
-        buildFile << """
-            sourceSets.test.java.outputDir = file("build/test-classes")
-        """
-        file("build/classes/java/test").assertIsDir().deleteDir()
-    }
-
-    @Override
-    protected extractResults() {
-        file("build/jacoco/test.exec").bytes
+    protected extractResultsFrom(TestFile projectDir) {
+        projectDir.file("build/jacoco/test.exec").bytes
     }
 
     @Override

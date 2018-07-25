@@ -16,14 +16,15 @@
 
 package org.gradle.api.publish.ivy.internal.artifact
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -34,7 +35,8 @@ import org.gradle.util.TestUtil
 public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def fileNotationParser = Mock(NotationParser)
-    def taskDependency = Mock(TaskDependency)
+    def task = Mock(Task)
+    def taskDependency = new DefaultTaskDependency(null, ImmutableSet.of(task))
     def publishArtifact = Stub(PublishArtifact) {
         getName() >> 'name'
         getExtension() >> 'extension'
@@ -42,7 +44,6 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         getFile() >> new File('foo')
         getBuildDependencies() >> taskDependency
     }
-    def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
 
     NotationParser<Object, IvyArtifact> parser
@@ -74,11 +75,6 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.extension == publishArtifact.extension
         ivyArtifact.type == publishArtifact.type
         ivyArtifact.file == publishArtifact.file
-
-        when:
-        taskDependency.getDependencies(task) >> dependencies
-
-        then:
         ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
@@ -91,11 +87,6 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.extension == publishArtifact.extension
         ivyArtifact.type == publishArtifact.type
         ivyArtifact.file == publishArtifact.file
-
-        when:
-        taskDependency.getDependencies(task) >> dependencies
-
-        then:
         ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
@@ -126,11 +117,6 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name == "the-name"
         ivyArtifact.extension == "the-ext"
         ivyArtifact.type == "the-type"
-
-        when:
-        taskDependency.getDependencies(task) >> dependencies
-
-        then:
         ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 

@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
+import com.google.common.base.Objects;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
@@ -30,11 +31,11 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExclusion {
     private final PatternMatcher matcher;
     private final boolean isArtifactExclude;
 
-    IvyPatternMatcherExcludeRuleSpec(Exclude rule) {
+    IvyPatternMatcherExcludeRuleSpec(ExcludeMetadata rule) {
         this.moduleId = rule.getModuleId();
         this.ivyArtifactName = rule.getArtifact();
         this.matcher = PatternMatchers.getInstance().getMatcher(rule.getMatcher());
-        isArtifactExclude = !isWildcard(ivyArtifactName.getName()) || !isWildcard(ivyArtifactName.getType()) || !isWildcard(ivyArtifactName.getExtension());
+        isArtifactExclude = ivyArtifactName != null;
     }
 
     @Override
@@ -50,14 +51,14 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExclusion {
 
     @Override
     protected int doHashCode() {
-        return moduleId.hashCode() ^ ivyArtifactName.hashCode();
+        return Objects.hashCode(moduleId, ivyArtifactName);
     }
 
     @Override
     protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         IvyPatternMatcherExcludeRuleSpec otherSpec = (IvyPatternMatcherExcludeRuleSpec) other;
         return moduleId.equals(otherSpec.moduleId)
-            && ivyArtifactName.equals(otherSpec.ivyArtifactName)
+            && Objects.equal(ivyArtifactName, otherSpec.ivyArtifactName)
             && matcher.getName().equals(otherSpec.matcher.getName());
     }
 

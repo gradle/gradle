@@ -25,6 +25,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
@@ -42,12 +43,10 @@ public abstract class AbstractFileResolver implements FileResolver {
     private final FileSystem fileSystem;
     private final NotationParser<Object, Object> fileNotationParser;
     private final Factory<PatternSet> patternSetFactory;
-    private final FileNormaliser fileNormaliser;
 
     protected AbstractFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         this.fileSystem = fileSystem;
-        this.fileNormaliser = new FileNormaliser(fileSystem);
-        this.fileNotationParser = FileOrUriNotationConverter.parser(fileSystem);
+        this.fileNotationParser = FileOrUriNotationConverter.parser();
         this.patternSetFactory = patternSetFactory;
     }
 
@@ -64,12 +63,15 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
     }
 
+    @Override
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
     }
 
+    @Override
     public NotationParser<Object, File> asNotationParser() {
         return new NotationParser<Object, File>() {
+            @Override
             public File parseNotation(Object notation) throws UnsupportedNotationException {
                 // TODO Further differentiate between unsupported notation errors and others (particularly when we remove the deprecated 'notation.toString()' resolution)
                 return resolve(notation, PathValidation.NONE);
@@ -82,26 +84,18 @@ public abstract class AbstractFileResolver implements FileResolver {
         };
     }
 
+    @Override
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 
-        file = fileNormaliser.normalise(file);
+        file = FileUtils.normalize(file);
 
         validate(file, validation);
 
         return file;
     }
 
-
-    public Factory<File> resolveLater(final Object path) {
-        return new Factory<File>() {
-            public File create() {
-                return resolve(path);
-            }
-        };
-    }
-
-    @Nullable
+    @Override
     public URI resolveUri(Object path) {
         return convertObjectToURI(path);
     }
@@ -158,6 +152,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
+    @Override
     public FileCollectionInternal resolveFiles(Object... paths) {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
             return Cast.cast(FileCollectionInternal.class, paths[0]);
@@ -165,14 +160,17 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new DefaultConfigurableFileCollection(this, null, paths);
     }
 
+    @Override
     public FileTreeInternal resolveFilesAsTree(Object... paths) {
         return Cast.cast(FileTreeInternal.class, resolveFiles(paths).getAsFileTree());
     }
 
+    @Override
     public FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees) {
         return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, fileTrees));
     }
 
+    @Override
     public ReadableResourceInternal resolveResource(Object path) {
         if (path instanceof ReadableResourceInternal) {
             return (ReadableResourceInternal) path;

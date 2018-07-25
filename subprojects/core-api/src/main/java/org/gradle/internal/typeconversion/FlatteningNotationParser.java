@@ -20,6 +20,7 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -42,8 +43,14 @@ public class FlatteningNotationParser<T> implements NotationParser<Object, Set<T
     }
 
     public Set<T> parseNotation(Object notation) {
-        Set<T> out = new LinkedHashSet<T>();
         Collection notations = GUtil.collectionize(notation);
+        if (notations.isEmpty()) {
+            return Collections.emptySet();
+        }
+        if (notations.size() == 1) {
+            return Collections.singleton(delegate.parseNotation(notations.iterator().next()));
+        }
+        Set<T> out = new LinkedHashSet<T>();
         for (Object n : notations) {
             out.add(delegate.parseNotation(n));
         }

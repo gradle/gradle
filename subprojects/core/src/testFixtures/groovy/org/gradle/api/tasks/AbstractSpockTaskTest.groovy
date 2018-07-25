@@ -25,7 +25,6 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -33,19 +32,17 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.junit.Assert.assertFalse
 
 abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
-    def taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
+    def taskClassInfoStore = new DefaultTaskClassInfoStore()
     private final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory(new AsmBackedClassGenerator()))
 
     abstract AbstractTask getTask()
@@ -59,9 +56,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = taskFactory.createChild(project, DirectInstantiator.INSTANCE).createTask(
-                GUtil.map(Task.TASK_TYPE, type,
-                        Task.TASK_NAME, name))
+        Task task = taskFactory.createChild(project, DirectInstantiator.INSTANCE).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
     }
@@ -210,8 +205,8 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def onlyIfPredicateIsTrueWhenTaskIsEnabledAndAllPredicatesAreTrue() {
-        final AtomicBoolean condition1 = new AtomicBoolean(true)
-        final AtomicBoolean condition2 = new AtomicBoolean(true)
+        final MutableBoolean condition1 = new MutableBoolean(true)
+        final MutableBoolean condition2 = new MutableBoolean(true)
 
         AbstractTask task = getTask()
         task.onlyIf {
@@ -252,7 +247,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def canReplaceOnlyIfSpec() {
-        final AtomicBoolean condition1 = new AtomicBoolean(true)
+        final MutableBoolean condition1 = new MutableBoolean(true)
         AbstractTask task = getTask()
         task.onlyIf(Mock(Spec))
         task.setOnlyIf {

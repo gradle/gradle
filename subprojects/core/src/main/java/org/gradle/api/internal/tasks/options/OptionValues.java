@@ -19,10 +19,13 @@ import java.lang.annotation.*;
 
 /**
  * Marks a method providing as available values for a given option.
+ *
+ * @deprecated This class will be removed in Gradle 5.0. Use {@link org.gradle.api.tasks.options.Option instead}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Inherited
+@Deprecated
 public @interface OptionValues {
     String[] value();
 }

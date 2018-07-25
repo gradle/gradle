@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -26,7 +26,6 @@ import java.util.Map;
  *
  * @since 4.3
  */
-@Incubating
 public interface TaskInputPropertyBuilder extends TaskPropertyBuilder, TaskInputs {
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
@@ -95,7 +94,7 @@ public interface TaskInputPropertyBuilder extends TaskPropertyBuilder, TaskInput
      */
     @Deprecated
     @Override
-    TaskInputPropertyBuilder property(String name, Object value);
+    TaskInputPropertyBuilder property(String name, @Nullable Object value);
 
     /**
      * Throws {@link UnsupportedOperationException}.

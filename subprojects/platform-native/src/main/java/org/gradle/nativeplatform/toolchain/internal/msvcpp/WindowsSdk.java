@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.api.Named;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.util.VersionNumber;
-
-import java.io.File;
-
-public interface WindowsSdk extends Named {
-    VersionNumber getVersion();
-
-    File getResourceCompiler(NativePlatformInternal platform);
-
-    File getBinDir(NativePlatformInternal platform);
-
-    File[] getIncludeDirs();
-
-    File getLibDir(NativePlatformInternal platform);
-
-    File getBaseDir();
+/**
+ * Windows platform specific SDK made up of tools and libraries.
+ */
+public interface WindowsSdk extends WindowsTools, WindowsSdkLibraries {
 }

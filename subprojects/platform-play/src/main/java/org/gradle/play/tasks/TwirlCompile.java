@@ -23,7 +23,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -45,6 +44,7 @@ import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -113,7 +113,7 @@ public class TwirlCompile extends SourceTask {
      * Returns the default imports that will be used when compiling templates.
      * @return The imports that will be used.
      */
-    @Optional @Input
+    @Nullable @Optional @Input
     public TwirlImports getDefaultImports() {
         return defaultImports;
     }
@@ -122,7 +122,7 @@ public class TwirlCompile extends SourceTask {
      * Sets the default imports to be used when compiling templates.
      * @param defaultImports The imports to be used.
      */
-    public void setDefaultImports(TwirlImports defaultImports) {
+    public void setDefaultImports(@Nullable TwirlImports defaultImports) {
         this.defaultImports = defaultImports;
     }
 
@@ -154,7 +154,6 @@ public class TwirlCompile extends SourceTask {
         }
     }
 
-    @Internal
     private Compiler<TwirlCompileSpec> getCompiler() {
         ToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(platform);
         return toolProvider.newCompiler(TwirlCompileSpec.class);

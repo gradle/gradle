@@ -16,19 +16,19 @@
 
 package org.gradle.plugin.use.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.repository.PluginRepository;
-import org.gradle.plugin.repository.internal.PluginRepositoryInternal;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.SelfResolvingRequestPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,22 +37,23 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
-    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
-    private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
+    private final DependencyResolutionServices dependencyResolutionServices;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final PluginInspector pluginInspector;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
-        DocumentationRegistry documentationRegistry,
-        PluginResolutionServiceResolver pluginResolutionServiceResolver,
-        PluginRepositoryRegistry pluginRepositoryRegistry,
-        InjectedClasspathPluginResolver injectedClasspathPluginResolver
-    ) {
+        PluginInspector pluginInspector, DocumentationRegistry documentationRegistry,
+        InjectedClasspathPluginResolver injectedClasspathPluginResolver,
+        DependencyResolutionServices dependencyResolutionServices,
+        VersionSelectorScheme versionSelectorScheme) {
         this.pluginRegistry = pluginRegistry;
+        this.pluginInspector = pluginInspector;
         this.documentationRegistry = documentationRegistry;
-        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
-        this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
+        this.dependencyResolutionServices = dependencyResolutionServices;
+        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
@@ -74,10 +75,11 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      * <p>
      * <ol>
      *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
+     *     <li>{@link SelfResolvingRequestPluginResolver} - resolves "self resolving" plugins (injected from another build)</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
      *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
-     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
+     *     <li>{@link org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
      * </ol>
      * <p>
      * This order is optimized for both performance and to allow resolvers earlier in the order
@@ -85,31 +87,13 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      */
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
+        resolvers.add(new SelfResolvingRequestPluginResolver(pluginInspector));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
         if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        ImmutableList<? extends PluginRepository> pluginRepositories = getPluginRepositories();
-        if (pluginRepositories.isEmpty()) {
-            resolvers.add(pluginResolutionServiceResolver);
-        } else {
-            addPluginRepositoryResolvers(resolvers, pluginRepositories);
-        }
-    }
-
-    private ImmutableList<? extends PluginRepository> getPluginRepositories() {
-        return pluginRepositoryRegistry.getPluginRepositories();
-    }
-
-    private void addPluginRepositoryResolvers(List<PluginResolver> resolvers, ImmutableList<? extends PluginRepository> pluginRepositories) {
-        for (PluginRepository pluginRepository : pluginRepositories) {
-            resolvers.add(asResolver(pluginRepository));
-        }
-    }
-
-    private PluginResolver asResolver(PluginRepository pluginRepository) {
-        return ((PluginRepositoryInternal) pluginRepository).asResolver();
+        resolvers.add(ArtifactRepositoriesPluginResolver.createWithDefaults(dependencyResolutionServices, versionSelectorScheme));
     }
 }

@@ -24,8 +24,6 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.LoggingCommandLineConverter
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil
@@ -57,15 +55,6 @@ class LoggingServiceRegistryTest extends Specification {
         expect:
         def factory = registry.get(StyledTextOutputFactory.class)
         factory instanceof DefaultStyledTextOutputFactory
-    }
-
-    def providesAProgressLoggerFactory() {
-        given:
-        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-
-        expect:
-        def factory = registry.get(ProgressLoggerFactory.class)
-        factory instanceof DefaultProgressLoggerFactory
     }
 
     def providesACommandLineConverter() {
@@ -106,6 +95,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def logger = LoggerFactory.getLogger("category")
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
 
         when:
@@ -122,7 +112,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         then:
         1 * listener.onOutput('warning')
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         when:
@@ -140,6 +130,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def logger = Logger.getLogger("category")
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
 
         when:
@@ -156,7 +147,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         then:
         1 * listener.onOutput('warning')
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         when:
@@ -209,6 +200,7 @@ class LoggingServiceRegistryTest extends Specification {
         System.err == outputs.stdErrPrintStream
 
         when:
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -247,6 +239,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.captureStandardError(LogLevel.WARN)
         loggingManager.captureStandardOutput(LogLevel.INFO)
         loggingManager.levelInternal = LogLevel.INFO
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -285,6 +278,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -332,6 +326,7 @@ class LoggingServiceRegistryTest extends Specification {
         System.err == outputs.stdErrPrintStream
 
         when:
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -352,6 +347,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
 
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -407,6 +403,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         loggingManager.levelInternal = LogLevel.WARN
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -415,9 +412,9 @@ class LoggingServiceRegistryTest extends Specification {
 
         then:
         1 * listener.onOutput("warning")
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         1 * listener.onOutput("error")
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
     }
 
@@ -427,6 +424,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.setLevelInternal(LogLevel.INFO)
@@ -439,9 +437,9 @@ class LoggingServiceRegistryTest extends Specification {
 
         then:
         1 * listener.onOutput("info")
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         1 * listener.onOutput("error")
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         and:
@@ -455,6 +453,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.levelInternal = LogLevel.WARN
@@ -481,6 +480,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def logger = Logger.getLogger("category")
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.levelInternal = LogLevel.WARN
@@ -502,9 +502,9 @@ class LoggingServiceRegistryTest extends Specification {
 
         then:
         1 * listener.onOutput('warning')
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         1 * listener.onOutput('error')
-        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         when:
@@ -566,6 +566,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -611,6 +612,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         loggingManager.levelInternal = LogLevel.WARN
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -656,6 +658,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         def registry = LoggingServiceRegistry.newNestedLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.start()
 

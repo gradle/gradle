@@ -48,6 +48,10 @@ public class ProgressBar {
         this.total = totalProgress;
     }
 
+    public void moreProgress(int totalProgress) {
+        total += totalProgress;
+    }
+
     public void update(boolean failing) {
         this.current++;
         this.failing = this.failing || failing;

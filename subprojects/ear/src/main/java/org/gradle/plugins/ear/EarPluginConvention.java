@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -41,9 +42,9 @@ public class EarPluginConvention {
     private String libDirName;
 
     /**
-     * Construct an EarPluginConvention using internal {@link Instantiator}.
+     * Construct an {@link EarPluginConvention} using internal {@link Instantiator}.
      *
-     * @deprecated Use public {@link ObjectFactory} constructor instead of this one using internal {@link Instantiator}.
+     * @deprecated Creating instances of this class is deprecated. These should be created by the EAR plugin only.
      */
     @Deprecated
     public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
@@ -51,12 +52,15 @@ public class EarPluginConvention {
     }
 
     /**
-     * Construct an EarPluginConvention using public {@link ObjectFactory}.
+     * Construct an {@link EarPluginConvention} using public {@link ObjectFactory}.
      *
      * @since 4.2
+     * @deprecated Creating instances of this class is deprecated. These should be created by the EAR plugin only.
      */
     @Inject
+    @Deprecated
     public EarPluginConvention(FileResolver fileResolver, ObjectFactory objectFactory) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of EarPluginConvention");
         this.fileResolver = fileResolver;
         this.objectFactory = objectFactory;
         deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);

@@ -16,37 +16,34 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.base.Objects;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
-    private String group;
-    private String name;
-    private String version;
+    private final ModuleIdentifier module;
+    private final String version;
 
+    private DefaultModuleVersionSelector(ModuleIdentifier module, String versionConstraint) {
+        this.module = module;
+        this.version = versionConstraint;
+    }
+
+    // DO NOT USE THIS CONSTRUCTOR DIRECTLY
+    // It's only there for backwards compatibility with the Nebula plugin
     public DefaultModuleVersionSelector(String group, String name, String version) {
-        this.group = group;
-        this.name = name;
-        this.version = version;
+        this(DefaultModuleIdentifier.newId(group, name), version);
     }
 
     public String getGroup() {
-        return group;
-    }
-
-    public DefaultModuleVersionSelector setGroup(String group) {
-        this.group = group;
-        return this;
+        return module.getGroup();
     }
 
     public String getName() {
-        return name;
-    }
-
-    public DefaultModuleVersionSelector setName(String name) {
-        this.name = name;
-        return this;
+        return module.getName();
     }
 
     public String getVersion() {
@@ -57,14 +54,14 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
-    public DefaultModuleVersionSelector setVersion(String version) {
-        this.version = version;
-        return this;
+    @Override
+    public ModuleIdentifier getModule() {
+        return module;
     }
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", group, name, version);
+        return String.format("%s:%s", module, version);
     }
 
     @Override
@@ -77,29 +74,20 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         }
 
         DefaultModuleVersionSelector that = (DefaultModuleVersionSelector) o;
-
-        if (group != null ? !group.equals(that.group) : that.group != null) {
-            return false;
-        }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (version != null ? !version.equals(that.version) : that.version != null) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(module, that.module)
+            && Objects.equal(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        int result = group != null ? group.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (version != null ? version.hashCode() : 0);
-        return result;
+        return Objects.hashCode(module, version);
     }
 
-    public static ModuleVersionSelector newSelector(String group, String name, String version) {
-        return new DefaultModuleVersionSelector(group, name, version);
+    public static ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
+        return new DefaultModuleVersionSelector(module, version);
+    }
+
+    public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
+        return new DefaultModuleVersionSelector(selector.getModuleIdentifier(), selector.getVersion());
     }
 }

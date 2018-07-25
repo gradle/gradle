@@ -91,7 +91,7 @@ class EclipseClasspathFixture {
         }
 
         void assertHasAttribute(String key, String value) {
-            assert entry.attributes.find { it.attribute[0].@name == key && it.attribute[0].@value == value }
+            assert entry.attributes.attribute.find { it.@name == key && it.@value == value }
         }
     }
 
@@ -103,6 +103,10 @@ class EclipseClasspathFixture {
 
         String getPath() {
             return entry.@path
+        }
+
+        void assertOutputLocation(String output) {
+            assert entry.@output == output
         }
     }
 

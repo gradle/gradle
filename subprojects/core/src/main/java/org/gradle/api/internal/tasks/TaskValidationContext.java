@@ -26,20 +26,19 @@ import org.gradle.util.DeprecationLogger;
 import java.util.List;
 
 public interface TaskValidationContext {
+
+    String DEPRECATION_SUMMARY = "Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods";
+
     enum Severity {
         WARNING() {
             @Override
             public boolean report(Task task, List<String> messages, TaskStateInternal state) {
-                StringBuilder builder = new StringBuilder();
-                builder.append(getMainMessage(task, messages));
-                builder.append(" Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods ");
-                builder.append(DeprecationLogger.getDeprecationMessage());
-                builder.append(".");
+                StringBuilder contextualAdviceBuilder = new StringBuilder(getMainMessage(task, messages));
                 for (String message : messages) {
-                    builder.append("\n - ");
-                    builder.append(message);
+                    contextualAdviceBuilder.append("\n - ");
+                    contextualAdviceBuilder.append(message);
                 }
-                DeprecationLogger.nagUserWith(builder.toString());
+                DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(DEPRECATION_SUMMARY, null, contextualAdviceBuilder.toString());
                 return true;
             }
         },

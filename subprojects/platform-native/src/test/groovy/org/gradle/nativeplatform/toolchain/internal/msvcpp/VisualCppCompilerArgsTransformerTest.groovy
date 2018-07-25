@@ -43,4 +43,28 @@ class VisualCppCompilerArgsTransformerTest extends Specification {
         true  | true     | ["/Zi", "/O2"]
     }
 
+    def "transforms system header and include args correctly"() {
+        def spec = Stub(NativeCompileSpec)
+        def includes = [ new File("/foo"), new File("/bar") ]
+        def systemIncludes = [ new File("/baz") ]
+        spec.includeRoots >> includes
+        spec.systemIncludeRoots >> systemIncludes
+
+        when:
+        def args = transformer.transform(spec)
+
+        then:
+        assertHasArguments(args, "/I", includes)
+        assertHasArguments(args, "/I", systemIncludes)
+
+        and:
+        args.indexOf("/I" + includes.last().absoluteFile.toString()) < args.indexOf("/I" + systemIncludes.first().absoluteFile.toString())
+    }
+
+    boolean assertHasArguments(List<String> args, String option, List<File> files) {
+        files.each { file ->
+            assert args.indexOf(option + file.absoluteFile.toString()) > -1
+        }
+        return true
+    }
 }

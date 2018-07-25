@@ -31,7 +31,7 @@ There is a task defined in [`templates.gradle`](templates.gradle) for each perfo
 There is a `performance:report` task that generates a static HTML report from the contents of the database in `~/.gradle-performance-test-data`. This report allows the results over
 time to be visualized.
 
-The report for the most recent test suite run against master is [here](https://builds.gradle.org/repository/download/Gradle_Master_Performance_Linux/.lastFinished/results/report/index.html)
+The report for the most recent test suite run against master is [here](https://builds.gradle.org/repository/download/Gradle_Check_PerformanceTestCoordinator/.lastFinished/report-performance-performance-tests.zip%21/report/index.html?branch=master)
 
 ### Tracking down performance regressions
 

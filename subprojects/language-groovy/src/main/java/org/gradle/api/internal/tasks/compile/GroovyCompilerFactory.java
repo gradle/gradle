@@ -17,45 +17,67 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
-import org.gradle.workers.internal.WorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.internal.WorkerFactory;
+
+import java.io.Serializable;
 
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
-    private final JavaCompilerFactory javaCompilerFactory;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
+    private AnnotationProcessorDetector processorDetector;
 
-    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, WorkerDaemonFactory workerDaemonFactory,
-                                 IsolatedClassloaderWorkerFactory inProcessWorkerFactory, FileResolver fileResolver) {
+    public GroovyCompilerFactory(ProjectInternal project, WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, PathToFileResolver fileResolver, AnnotationProcessorDetector processorDetector) {
         this.project = project;
-        this.javaCompilerFactory = javaCompilerFactory;
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;
         this.fileResolver = fileResolver;
+        this.processorDetector = processorDetector;
     }
 
     @Override
     public Compiler<GroovyJavaJointCompileSpec> newCompiler(GroovyJavaJointCompileSpec spec) {
         GroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
-        Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
         WorkerFactory workerFactory;
         if (groovyOptions.isFork()) {
             workerFactory = workerDaemonFactory;
         } else {
             workerFactory = inProcessWorkerFactory;
         }
-        groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
-        return new NormalizingGroovyCompiler(groovyCompiler);
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), new DaemonSideCompiler(), project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
+        return new AnnotationProcessorDiscoveringCompiler<GroovyJavaJointCompileSpec>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
+    }
+
+    private static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
+        @Override
+        public WorkResult execute(GroovyJavaJointCompileSpec spec) {
+            DefaultExecActionFactory execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver());
+            try {
+                Compiler<JavaCompileSpec> javaCompiler;
+                if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
+                    javaCompiler = new CommandLineJavaCompiler(execHandleFactory);
+                } else {
+                    javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory());
+                }
+                Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
+                return groovyCompiler.execute(spec);
+            } finally {
+                execHandleFactory.stop();
+            }
+        }
     }
 }

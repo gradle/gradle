@@ -24,6 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
@@ -115,6 +116,11 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected  VersionParser getVersionParser() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void generate() {
         if (!reports.getHtml().isEnabled()) {
@@ -122,7 +128,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
             return;
         }
 
-        HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator());
+        HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         reporter.render(getProjects(), reports.getHtml().getDestination());
 
         getProject().getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));

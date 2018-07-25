@@ -30,7 +30,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.util.GUtil;
@@ -60,7 +59,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     private final Factory<DirectoryWalker> directoryWalkerFactory;
 
     public DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem) {
-        this(FileUtils.canonicalize(dir), patternSet, DEFAULT_DIRECTORY_WALKER_FACTORY, fileSystem, false);
+        this(dir, patternSet, DEFAULT_DIRECTORY_WALKER_FACTORY, fileSystem, false);
     }
 
     DirectoryFileTree(File dir, PatternSet patternSet, Factory<DirectoryWalker> directoryWalkerFactory, FileSystem fileSystem, boolean postfix) {

@@ -36,43 +36,6 @@ class DefaultPathKeyFileStoreTest extends Specification {
         store = new DefaultPathKeyFileStore(fsBase)
     }
 
-    def "can copy file to filestore"() {
-        def a = createFile("abc")
-        def b = createFile("def")
-
-        when:
-        store.copy("a", a)
-        store.copy("b", b)
-
-        then:
-        def storedA = store.get("a")
-        storedA.file.text == "abc"
-        storedA.file == fsBase.file("a")
-        a.text == "abc"
-
-        def storedB = store.get("b")
-        storedB.file.text == "def"
-        storedB.file == fsBase.file("b")
-        b.text == "def"
-    }
-
-    def "can copy directory to filestore"() {
-        def a = dir.createDir("a")
-        a.file("child-1").createFile()
-        a.file("dir/child-2").createFile()
-
-        when:
-        store.copy("a", a)
-
-        then:
-        def stored = store.get("a")
-        stored.file.directory
-        stored.file == fsBase.file("a")
-        fsBase.file("a").assertHasDescendants("child-1", "dir/child-2")
-        a.directory
-        a.assertHasDescendants("child-1", "dir/child-2")
-    }
-
     def "can move file to filestore"() {
         def a = createFile("abc")
         def b = createFile("def")
@@ -252,39 +215,6 @@ class DefaultPathKeyFileStoreTest extends Specification {
         then:
         search.size() == 2
         search.collect {entry -> entry.file.name}.sort() == ["a", "c"]
-    }
-
-    def "move filestore"() {
-        given:
-        def a = store.move("a", createFile("abc"))
-        def b = store.move("b", createFile("def"))
-
-        expect:
-        a.file == dir.file("fs/a")
-        b.file == dir.file("fs/b")
-
-        when:
-        store.moveFilestore(dir.file("new-store"))
-
-        then:
-        store.baseDir == dir.file("new-store")
-
-        and:
-        a.file == dir.file("new-store/a")
-        b.file == dir.file("new-store/b")
-
-        !dir.file("fs").exists()
-    }
-
-    def "can move filestore that doesn't exist yet"() {
-        expect:
-        !store.baseDir.exists()
-
-        when:
-        store.moveFilestore(dir.file("new-filestore"))
-
-        then:
-        notThrown Exception
     }
 
     def createFile(String content, String path = "f${pathCounter++}") {

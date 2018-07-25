@@ -22,7 +22,11 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
     private final DataInputStream inputStream;
 
     public InputStreamBackedDecoder(InputStream inputStream) {
-        this.inputStream = new DataInputStream(inputStream);
+        this(new DataInputStream(inputStream));
+    }
+
+    public InputStreamBackedDecoder(DataInputStream inputStream) {
+        this.inputStream = inputStream;
     }
 
     @Override

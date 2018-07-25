@@ -18,6 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-public interface DeclaredTaskOutputFileProperty extends TaskPropertySpec, TaskOutputFilePropertyBuilder, ValidatingTaskPropertySpec {
+public interface DeclaredTaskOutputFileProperty extends TaskOutputFilePropertySpec, TaskOutputFilePropertyBuilder, ValidatingTaskPropertySpec {
 }
 

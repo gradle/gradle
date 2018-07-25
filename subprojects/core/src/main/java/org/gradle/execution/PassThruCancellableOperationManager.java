@@ -30,4 +30,8 @@ public class PassThruCancellableOperationManager implements CancellableOperation
     public void monitorInput(Action<? super BuildCancellationToken> operation) {
         operation.execute(cancellationToken);
     }
+
+    @Override
+    public void closeInput() {
+    }
 }

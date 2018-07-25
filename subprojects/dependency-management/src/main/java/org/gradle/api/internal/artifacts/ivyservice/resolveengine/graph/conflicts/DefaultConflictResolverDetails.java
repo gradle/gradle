@@ -45,14 +45,6 @@ public class DefaultConflictResolverDetails<T extends ComponentResolutionState> 
     }
 
     @Override
-    public void restart() {
-        if (selected != null) {
-            throw new IllegalStateException("Cannot restart selection of a candidate if a component has previously been selected");
-        }
-        restart = true;
-    }
-
-    @Override
     public void fail(Throwable error) {
         failure = error;
     }

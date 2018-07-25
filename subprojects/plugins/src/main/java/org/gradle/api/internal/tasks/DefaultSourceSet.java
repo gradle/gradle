@@ -35,6 +35,7 @@ public class DefaultSourceSet implements SourceSet {
     private final String name;
     private final String baseName;
     private FileCollection compileClasspath;
+    private FileCollection annotationProcessorPath;
     private FileCollection runtimeClasspath;
     private final SourceDirectorySet javaSource;
     private final SourceDirectorySet allJavaSource;
@@ -136,6 +137,11 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    public String getAnnotationProcessorConfigurationName() {
+        return configurationNameOf(JavaPlugin.ANNOTATION_PROCESSOR_CONFIGURATION_NAME);
+    }
+
+    @Override
     public String getApiConfigurationName() {
         return configurationNameOf(JavaPlugin.API_CONFIGURATION_NAME);
     }
@@ -182,12 +188,22 @@ public class DefaultSourceSet implements SourceSet {
         return compileClasspath;
     }
 
+    @Override
+    public FileCollection getAnnotationProcessorPath() {
+        return annotationProcessorPath;
+    }
+
     public FileCollection getRuntimeClasspath() {
         return runtimeClasspath;
     }
 
     public void setCompileClasspath(FileCollection classpath) {
         compileClasspath = classpath;
+    }
+
+    @Override
+    public void setAnnotationProcessorPath(FileCollection annotationProcessorPath) {
+        this.annotationProcessorPath = annotationProcessorPath;
     }
 
     public void setRuntimeClasspath(FileCollection classpath) {

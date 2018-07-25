@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.collect.*;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
 
 import java.util.Set;
 
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry {
-    private final SetMultimap<String, ProjectPublication> publicationsByProject = HashMultimap.create();
+    private final SetMultimap<String, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
 
     public Set<ProjectPublication> getPublications(String projectPath) {
         return publicationsByProject.get(projectPath);

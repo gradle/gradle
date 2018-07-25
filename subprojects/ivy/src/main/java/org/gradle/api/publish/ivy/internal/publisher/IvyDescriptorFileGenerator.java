@@ -22,8 +22,12 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.CollectionUtils;
@@ -46,11 +50,15 @@ public class IvyDescriptorFileGenerator {
     private final IvyPublicationIdentity projectIdentity;
     private String branch;
     private String status;
+    private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
+    private List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
+    private IvyModuleDescriptorDescription description;
     private Map<QName, String> extraInfo;
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
     private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
+    private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
 
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
@@ -62,6 +70,20 @@ public class IvyDescriptorFileGenerator {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public IvyDescriptorFileGenerator addLicense(IvyModuleDescriptorLicense ivyLicense) {
+        licenses.add(ivyLicense);
+        return this;
+    }
+
+    public IvyDescriptorFileGenerator addAuthor(IvyModuleDescriptorAuthor ivyAuthor) {
+        authors.add(ivyAuthor);
+        return this;
+    }
+
+    public void setDescription(IvyModuleDescriptorDescription ivyDescription) {
+        description = ivyDescription;
     }
 
     public Map<QName, String> getExtraInfo() {
@@ -84,6 +106,11 @@ public class IvyDescriptorFileGenerator {
 
     public IvyDescriptorFileGenerator addDependency(IvyDependencyInternal ivyDependency) {
         dependencies.add(ivyDependency);
+        return this;
+    }
+
+    public IvyDescriptorFileGenerator addGlobalExclude(IvyExcludeRule excludeRule) {
+        globalExcludes.add(excludeRule);
         return this;
     }
 
@@ -119,6 +146,27 @@ public class IvyDescriptorFileGenerator {
                 .attribute("revision", projectIdentity.getRevision())
                 .attribute("status", status)
                 .attribute("publication", ivyDateFormat.format(new Date()));
+
+        for (IvyModuleDescriptorLicense license : licenses) {
+            xmlWriter.startElement("license")
+                    .attribute("name", license.getName().getOrNull())
+                    .attribute("url", license.getUrl().getOrNull())
+                    .endElement();
+        }
+
+        for (IvyModuleDescriptorAuthor author : authors) {
+            xmlWriter.startElement("ivyauthor")
+                    .attribute("name", author.getName().getOrNull())
+                    .attribute("url", author.getUrl().getOrNull())
+                    .endElement();
+        }
+
+        if (description != null) {
+            xmlWriter.startElement("description")
+                    .attribute("homepage", description.getHomepage().getOrNull())
+                    .characters(description.getText().getOrElse(""))
+                    .endElement();
+        }
 
         if (extraInfo != null) {
             for (Map.Entry<QName, String> entry : extraInfo.entrySet()) {
@@ -204,6 +252,9 @@ public class IvyDescriptorFileGenerator {
             }
             xmlWriter.endElement();
         }
+        for (IvyExcludeRule excludeRule : globalExcludes) {
+            writeGlobalExclude(excludeRule, xmlWriter);
+        }
         xmlWriter.endElement();
     }
 
@@ -221,6 +272,14 @@ public class IvyDescriptorFileGenerator {
                 .attribute("type", dependencyArtifact.getType())
                 .attribute("ext", dependencyArtifact.getExtension())
                 .attribute("m:classifier", dependencyArtifact.getClassifier())
+                .endElement();
+    }
+
+    private void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+        xmlWriter.startElement("exclude")
+                .attribute("org", excludeRule.getOrg())
+                .attribute("module", excludeRule.getModule())
+                .attribute("conf", excludeRule.getConf())
                 .endElement();
     }
 

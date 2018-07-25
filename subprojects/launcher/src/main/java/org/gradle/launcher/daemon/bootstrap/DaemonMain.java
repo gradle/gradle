@@ -59,6 +59,7 @@ import java.util.List;
 public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
+    public static final String SINGLE_USE_FLAG = "--single-use";
 
     private PrintStream originalOut;
     private PrintStream originalErr;
@@ -71,12 +72,12 @@ public class DaemonMain extends EntryPoint {
         }
 
         // Read configuration from stdin
-
         List<String> startupOpts;
         File gradleHomeDir;
         File daemonBaseDir;
         int idleTimeoutMs;
         int periodicCheckIntervalMs;
+        boolean singleUse;
         String daemonUid;
         List<File> additionalClassPath;
 
@@ -86,6 +87,7 @@ public class DaemonMain extends EntryPoint {
             daemonBaseDir = new File(decoder.readString());
             idleTimeoutMs = decoder.readSmallInt();
             periodicCheckIntervalMs = decoder.readSmallInt();
+            singleUse = decoder.readBoolean();
             daemonUid = decoder.readString();
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
@@ -102,11 +104,11 @@ public class DaemonMain extends EntryPoint {
         }
 
         NativeServices.initialize(gradleHomeDir);
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, startupOpts);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
-        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
+        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
         File daemonLog = daemonServices.getDaemonLogFile();
 
         // Any logging prior to this point will not end up in the daemon log file.
@@ -135,7 +137,7 @@ public class DaemonMain extends EntryPoint {
     }
 
     private static void invalidArgs(String message) {
-        System.out.println("USAGE: <gradle version> <path to registry base dir> <idle timeout in milliseconds>");
+        System.out.println("USAGE: <gradle version>");
         System.out.println(message);
         System.exit(1);
     }

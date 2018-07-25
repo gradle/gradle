@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
+
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
+    static ToolingApiDistributionResolver resolver
+
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
     }
@@ -31,21 +34,23 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         return previousVersions.all
     }
 
+    private static ToolingApiDistributionResolver getResolver() {
+        if (resolver == null) {
+            resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+        }
+        return resolver
+    }
+
     @Override
     protected void createExecutions() {
-        def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-        try {
-            if (implicitVersion) {
-                add(new ToolingApiExecution(resolver.resolve(current.version.version), current))
+        if (implicitVersion) {
+            add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
+        }
+        previous.each {
+            if (it.toolingApiSupported) {
+                add(new ToolingApiExecution(getResolver().resolve(current.version.version), it))
+                add(new ToolingApiExecution(getResolver().resolve(it.version.version), current))
             }
-            previous.each {
-                if (it.toolingApiSupported) {
-                    add(new ToolingApiExecution(resolver.resolve(current.version.version), it))
-                    add(new ToolingApiExecution(resolver.resolve(it.version.version), current))
-                }
-            }
-        } finally {
-            resolver.stop()
         }
     }
 }

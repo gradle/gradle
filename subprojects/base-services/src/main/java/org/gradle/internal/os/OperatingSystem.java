@@ -25,6 +25,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.gradle.internal.FileUtils.withExtension;
+
 public abstract class OperatingSystem {
     public static final Windows WINDOWS = new Windows();
     public static final MacOs MAC_OS = new MacOs();
@@ -117,6 +119,8 @@ public abstract class OperatingSystem {
 
     public abstract String getStaticLibraryName(String libraryName);
 
+    public abstract String getStaticLibrarySuffix();
+
     public abstract String getLinkLibrarySuffix();
 
     public abstract String getLinkLibraryName(String libraryPath);
@@ -195,7 +199,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getScriptName(String scriptPath) {
-            return withSuffix(scriptPath, ".bat");
+            return withExtension(scriptPath, ".bat");
         }
 
         @Override
@@ -205,7 +209,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getExecutableName(String executablePath) {
-            return withSuffix(executablePath, ".exe");
+            return withExtension(executablePath, ".exe");
         }
 
         @Override
@@ -215,7 +219,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getSharedLibraryName(String libraryPath) {
-            return withSuffix(libraryPath, ".dll");
+            return withExtension(libraryPath, ".dll");
         }
 
         @Override
@@ -225,12 +229,17 @@ public abstract class OperatingSystem {
 
         @Override
         public String getLinkLibraryName(String libraryPath) {
-            return withSuffix(libraryPath, ".lib");
+            return withExtension(libraryPath, ".lib");
+        }
+
+        @Override
+        public String getStaticLibrarySuffix() {
+            return ".lib";
         }
 
         @Override
         public String getStaticLibraryName(String libraryName) {
-            return withSuffix(libraryName, ".lib");
+            return withExtension(libraryName, ".lib");
         }
 
         @Override
@@ -245,24 +254,6 @@ public abstract class OperatingSystem {
             }
             return "win32-" + arch;
         }
-
-        private String withSuffix(String executablePath, String extension) {
-            if (executablePath.toLowerCase().endsWith(extension)) {
-                return executablePath;
-            }
-            return removeExtension(executablePath) + extension;
-        }
-
-        private String removeExtension(String executablePath) {
-            int fileNameStart = Math.max(executablePath.lastIndexOf('/'), executablePath.lastIndexOf('\\'));
-            int extensionPos = executablePath.lastIndexOf('.');
-
-            if (extensionPos > fileNameStart) {
-                return executablePath.substring(0, extensionPos);
-            }
-            return executablePath;
-        }
-
 
         @Override
         public String getPathVar() {
@@ -327,6 +318,11 @@ public abstract class OperatingSystem {
         @Override
         public String getLinkLibraryName(String libraryPath) {
             return getSharedLibraryName(libraryPath);
+        }
+
+        @Override
+        public String getStaticLibrarySuffix() {
+            return ".a";
         }
 
         @Override

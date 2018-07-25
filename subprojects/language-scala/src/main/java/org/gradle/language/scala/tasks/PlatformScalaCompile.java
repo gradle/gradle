@@ -17,6 +17,7 @@
 package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -29,6 +30,7 @@ import javax.inject.Inject;
 /**
  * A platform-aware Scala compile task.
  */
+@CacheableTask
 @Incubating
 public class PlatformScalaCompile extends AbstractScalaCompile {
 

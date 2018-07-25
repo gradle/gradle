@@ -17,16 +17,26 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
-public class DependencyReportHeader implements RenderableDependency {
+public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
     private final DependencyEdge dependency;
+    private final String description;
+    private final ResolvedVariantResult selectedVariant;
+    private final List<Section> extraDetails;
 
-    public DependencyReportHeader(DependencyEdge dependency) {
+    public DependencyReportHeader(DependencyEdge dependency, String description, ResolvedVariantResult resolvedVariantResult, List<Section> extraDetails) {
         this.dependency = dependency;
+        this.description = description;
+        this.selectedVariant = resolvedVariantResult;
+        this.extraDetails = extraDetails;
     }
 
     @Override
@@ -41,7 +51,7 @@ public class DependencyReportHeader implements RenderableDependency {
 
     @Override
     public String getDescription() {
-        return getReasonDescription(dependency.getReason());
+        return description;
     }
 
     @Override
@@ -50,11 +60,20 @@ public class DependencyReportHeader implements RenderableDependency {
     }
 
     @Override
-    public Set<? extends RenderableDependency> getChildren() {
-        return Collections.emptySet();
+    public ResolvedVariantResult getResolvedVariant() {
+        return selectedVariant;
     }
 
-    private String getReasonDescription(ComponentSelectionReason reason) {
-        return !reason.isExpected() ? reason.getDescription() : null;
+    @Override
+    public AttributeContainer getAttributes() {
+        ComponentSelector requested = dependency.getRequested();
+        return requested instanceof ModuleComponentSelector
+            ? requested.getAttributes()
+            : ImmutableAttributes.EMPTY;
+    }
+
+    @Override
+    public List<Section> getExtraDetails() {
+        return extraDetails;
     }
 }

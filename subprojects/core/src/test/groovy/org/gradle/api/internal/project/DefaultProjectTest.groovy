@@ -25,13 +25,13 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
-import org.gradle.api.ProjectState
 import org.gradle.api.Task
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
@@ -55,6 +55,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
@@ -94,8 +95,19 @@ import java.awt.*
 import java.lang.reflect.Type
 import java.text.FieldPosition
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.lessThan
+import static org.hamcrest.Matchers.notNullValue
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertSame
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 class DefaultProjectTest {
@@ -229,7 +241,7 @@ class DefaultProjectTest {
             ignoring(modelSchemaStore)
             allowing(serviceRegistryMock).get((Type) ModelSchemaStore); will(returnValue(modelSchemaStore))
             allowing(serviceRegistryMock).get(ModelSchemaStore); will(returnValue(modelSchemaStore))
-            allowing(serviceRegistryMock).get((Type) DefaultProjectLayout); will(returnValue(new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir))))
+            allowing(serviceRegistryMock).get((Type) DefaultProjectLayout); will(returnValue(new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir), context.mock(TaskResolver))))
 
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
@@ -246,6 +258,7 @@ class DefaultProjectTest {
             allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
 
             allowing(serviceRegistryMock).get((Type) ObjectFactory); will(returnValue(context.mock(ObjectFactory)))
+            allowing(serviceRegistryMock).get((Type) DependencyLockingHandler); will(returnValue(context.mock(DependencyLockingHandler)))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
@@ -448,16 +461,18 @@ class DefaultProjectTest {
 
     @Test(expected = CircularReferenceException)
     void testEvaluationDependsOnWithCircularDependency() {
-        final ProjectEvaluator mockReader1 = [evaluate: { DefaultProject project, ProjectState state ->
-            state.executing = true
+        final ProjectEvaluator mockReader1 = { project, state ->
+            state.toBeforeEvaluate()
+            state.toEvaluate()
             project.evaluationDependsOn(child1.path)
             testScript
-        }] as ProjectEvaluator
-        final ProjectEvaluator mockReader2 = [evaluate: { DefaultProject project, ProjectState state ->
-            state.executing = true
+        } as ProjectEvaluator
+        final ProjectEvaluator mockReader2 = { project, state ->
+            state.toBeforeEvaluate()
+            state.toEvaluate()
             project.evaluationDependsOn(project.path)
             testScript
-        }] as ProjectEvaluator
+        } as ProjectEvaluator
         project.projectEvaluator = mockReader1
         child1.projectEvaluator = mockReader2
         project.evaluate()
@@ -681,6 +696,15 @@ def scriptMethod(Closure closure) {
         project.ext.someProp = "somePropValue"
         assert project.findProperty('someProp') == "somePropValue"
         assertNull(project.findProperty("someNonExistingProp"))
+    }
+
+    @Test
+    void testSetPropertyNullValue() {
+        project.ext.someProp = "somePropValue"
+        project.setProperty("someProp", null)
+        assert project.hasProperty("someProp")
+        assertNull(project.findProperty("someProp"))
+        assertNull(project.someProp)
     }
 
     @Test(expected = MissingPropertyException)

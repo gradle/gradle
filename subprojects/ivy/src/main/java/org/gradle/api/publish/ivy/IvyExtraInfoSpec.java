@@ -16,14 +16,12 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 
 /**
  * Represents a modifiable form of IvyExtraInfo so that "extra" info elements
  * can be configured on an Ivy publication.
  */
-@Incubating
 public interface IvyExtraInfoSpec extends IvyExtraInfo {
 
     /**

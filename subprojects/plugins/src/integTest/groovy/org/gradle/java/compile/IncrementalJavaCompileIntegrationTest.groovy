@@ -17,6 +17,7 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
 
@@ -118,12 +119,47 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         succeeds appCompileJava
 
         and:
-        result.output.contains "None of the classes needs to be compiled!"
-        result.output.contains "${appCompileJava} UP-TO-DATE"
+        outputContains "None of the classes needs to be compiled!"
+        outputContains "${appCompileJava} UP-TO-DATE"
         executedAndNotSkipped(libraryCompileJava)
     }
 
-    private String getBasicInterface() {
+    @Unroll
+    def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
+        given:
+        libraryAppProjectWithIncrementalCompilation()
+
+        when:
+        buildFile << """
+            subprojects {
+                tasks.compileJava.options.incremental = $from
+            }
+        """
+        run appCompileJava
+
+        then:
+        executedAndNotSkipped libraryCompileJava
+        executedAndNotSkipped appCompileJava
+
+        when:
+        buildFile << """
+            subprojects {
+                tasks.compileJava.options.incremental = $to
+            }
+        """
+        run appCompileJava
+
+        then:
+        skipped libraryCompileJava
+        skipped appCompileJava
+
+        where:
+        from  | to
+        true  | false
+        false | true
+    }
+
+    private static String getBasicInterface() {
         '''
             interface IPerson {
                 String getName();
@@ -131,7 +167,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         '''.stripIndent()
     }
 
-    private String getExtendedInterface() {
+    private static String getExtendedInterface() {
         '''
             interface IPerson {
                 String getName();
@@ -140,7 +176,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         '''.stripIndent()
     }
 
-    private String getClassImplementingBasicInterface() {
+    private static String getClassImplementingBasicInterface() {
         '''
             class Person implements IPerson {
                 public String getName() {

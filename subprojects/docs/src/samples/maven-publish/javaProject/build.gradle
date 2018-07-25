@@ -1,5 +1,7 @@
-apply plugin: 'java'
-apply plugin: 'maven-publish'
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
 
 group = 'org.gradle.sample'
 version = '1.0'
@@ -13,8 +15,14 @@ repositories {
 }
 
 // START SNIPPET publish-custom-artifact
-task sourceJar(type: Jar) {
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
     from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 publishing {
@@ -22,19 +30,28 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
 
-            artifact sourceJar {
-                classifier "sources"
-            }
+            artifact sourcesJar
+            artifact javadocJar
         }
     }
-// END SNIPPET publish-custom-artifact
-    repositories {
-        maven {
-            url "$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
-        }
-    }
-// START SNIPPET publish-custom-artifact
 }
 // END SNIPPET publish-custom-artifact
 
-
+// START SNIPPET repo-url-from-variable
+// START SNIPPET repo-url-from-project-property
+publishing {
+    repositories {
+        maven {
+            def releasesRepoUrl = "$buildDir/repos/releases"
+            def snapshotsRepoUrl = "$buildDir/repos/snapshots"
+// END SNIPPET repo-url-from-variable
+            url = project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
+// END SNIPPET repo-url-from-project-property
+// START SNIPPET repo-url-from-variable
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+// START SNIPPET repo-url-from-project-property
+        }
+    }
+}
+// END SNIPPET repo-url-from-project-property
+// END SNIPPET repo-url-from-variable

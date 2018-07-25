@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 
+import javax.annotation.Nullable;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
@@ -98,7 +99,7 @@ public abstract class IoActions {
      *
      * @param resource The resource to be closed
      */
-    public static void uncheckedClose(Closeable resource) {
+    public static void uncheckedClose(@Nullable Closeable resource) {
         try {
             if (resource != null) {
                 resource.close();
@@ -113,7 +114,7 @@ public abstract class IoActions {
      *
      * @param resource The resource to be closed
      */
-    public static void closeQuietly(Closeable resource) {
+    public static void closeQuietly(@Nullable Closeable resource) {
         try {
             if (resource != null) {
                 resource.close();

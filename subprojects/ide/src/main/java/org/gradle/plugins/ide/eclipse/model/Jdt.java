@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.PropertiesTransformer;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject;
 
 /**
@@ -31,7 +32,7 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
     public Jdt(PropertiesTransformer transformer) {
         super(transformer);
     }
-    
+
     /**
      * Sets the source compatibility for the compiler.
      */
@@ -57,8 +58,11 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
 
     @Override
     protected void store(Properties properties) {
-        properties.put("org.eclipse.jdt.core.compiler.compliance", sourceCompatibility.toString());
-        properties.put("org.eclipse.jdt.core.compiler.source", sourceCompatibility.toString());
+        String sourceVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(sourceCompatibility);
+        String targetVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(targetCompatibility);
+
+        properties.put("org.eclipse.jdt.core.compiler.compliance", sourceVersion);
+        properties.put("org.eclipse.jdt.core.compiler.source", sourceVersion);
 
         if (sourceCompatibility.compareTo(JavaVersion.VERSION_1_3) <= 0) {
             properties.put("org.eclipse.jdt.core.compiler.problem.assertIdentifier", "ignore");
@@ -71,6 +75,6 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
             properties.put("org.eclipse.jdt.core.compiler.problem.enumIdentifier", "error");
         }
 
-        properties.put("org.eclipse.jdt.core.compiler.codegen.targetPlatform", targetCompatibility.toString());
+        properties.put("org.eclipse.jdt.core.compiler.codegen.targetPlatform", targetVersion);
     }
 }

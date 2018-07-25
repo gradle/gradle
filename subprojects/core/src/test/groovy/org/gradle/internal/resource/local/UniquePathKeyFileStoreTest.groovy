@@ -57,33 +57,6 @@ class UniquePathKeyFileStoreTest extends Specification {
         0 * action.execute(_)
     }
 
-    def "copy returns existing file it it already exists"() {
-        setup:
-        def source = temporaryFolder.createFile("some-file")
-        def file = temporaryFolder.createFile("fsbase/a/a");
-        file.text = 'existing content'
-
-        when:
-        def fileInStore = uniquePathKeyFileStore.copy("a/a", source)
-
-        then:
-        fileInStore.file == file
-        file.text == 'existing content'
-    }
-
-    def "copy adds file it it does not exist"() {
-        setup:
-        def source = temporaryFolder.createFile("some-file")
-        def file = temporaryFolder.file("fsbase/a/a");
-
-        when:
-        def fileInStore = uniquePathKeyFileStore.copy("a/a", source)
-
-        then:
-        fileInStore.file == file
-        file.assertIsCopyOf(source)
-    }
-
     def "move returns existing file it it already exists"() {
         setup:
         def source = temporaryFolder.createFile("some-file")

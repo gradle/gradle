@@ -25,7 +25,7 @@ model {
                             sharedLibraryLinkFile = file("${baseDir}/util.lib")
                         }
                     } else if (os.macOsX) {
-                        sharedLibraryFile = file("${baseDir}/libhello.dylib")
+                        sharedLibraryFile = file("${baseDir}/libutil.dylib")
                     } else {
                         sharedLibraryFile = file("${baseDir}/libutil.so")
                     }

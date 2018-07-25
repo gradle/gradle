@@ -23,7 +23,6 @@ import org.junit.runners.BlockJUnit4ClassRunner
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 import static org.junit.Assert.fail
 
 class FilteringClassLoaderTest extends Specification {
@@ -38,17 +37,15 @@ class FilteringClassLoaderTest extends Specification {
         canLoadClass(String)
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     void passesThroughSystemPackages() {
         expect:
         canSeePackage('java.lang')
     }
 
     @Issue("gradle/core-issues#115")
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     void passesThroughSystemResources() {
         expect:
-        canSeeResource('com/sun/jndi/ldap/jndiprovider.properties')
+        canSeeResource('java/lang/Object.class')
     }
 
     void filtersClassesByDefault() {
@@ -70,7 +67,6 @@ class FilteringClassLoaderTest extends Specification {
         e2.message == "$Test.name not found."
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     void filtersPackagesByDefault() {
         given:
         assert classLoader.parent.getPackage('org.junit') != null

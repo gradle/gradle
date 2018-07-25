@@ -64,9 +64,4 @@ class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSp
     String compilerConfiguration() {
         "tasks.withType(GroovyCompile) { groovyOptions.fork = true }"
     }
-
-    @Override
-    String checkCompileOutput(String errorMessage) {
-        true
-    }
 }

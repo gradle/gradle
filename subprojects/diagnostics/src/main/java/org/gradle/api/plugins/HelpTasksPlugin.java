@@ -27,12 +27,13 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;
 import org.gradle.api.reporting.dependents.DependentComponentsReport;
 import org.gradle.api.reporting.model.ModelReport;
-import org.gradle.api.tasks.diagnostics.*;
+import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
+import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
+import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.ProjectReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.configuration.Help;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Defaults;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
 
 import java.util.concurrent.Callable;
 
@@ -66,18 +67,6 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
         tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
         tasks.addPlaceholderAction(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
-    }
-
-    static class Rules extends RuleSource {
-        @Defaults
-        void addDefaultDependenciesReportConfiguration(@Path("tasks.dependencyInsight") DependencyInsightReportTask task, final ServiceRegistry services) {
-            new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
-                public Object call() {
-                    BuildableJavaComponent javaProject = services.get(ComponentRegistry.class).getMainComponent();
-                    return javaProject == null ? null : javaProject.getCompileDependencies();
-                }
-            });
-        }
     }
 
     private static class HelpAction implements Action<Help> {
@@ -154,6 +143,12 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             task.setDescription("Displays the insight into a specific dependency in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
+                public Object call() {
+                    BuildableJavaComponent javaProject = ((ProjectInternal) task.getProject()).getServices().get(ComponentRegistry.class).getMainComponent();
+                    return javaProject == null ? null : javaProject.getCompileDependencies();
+                }
+            });
         }
     }
 

@@ -15,15 +15,14 @@
  */
 
 
-
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.internal.rules.ClosureBackedRuleAction
-import org.gradle.internal.rules.SpecRuleAction
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -31,7 +30,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCo
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.rules.ClosureBackedRuleAction
+import org.gradle.internal.rules.SpecRuleAction
+import org.gradle.util.TestUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ComponentSelectionRulesProcessorTest extends Specification {
     def processor = new ComponentSelectionRulesProcessor()
@@ -39,13 +42,16 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     ComponentSelectionInternal componentSelection
 
     def setup() {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         componentSelection = new DefaultComponentSelection(componentIdentifier)
     }
 
-    def "all non-rejecting rules are evaluated" () {
-        def metadataProvider = Stub(MetadataProvider) {
-            resolve() >> true
+    def "all non-rejecting rules are evaluated"() {
+        def metadataProvider = Mock(MetadataProvider) {
+            isUsable() >> true
+            getComponentMetadata() >> Mock(ComponentMetadata)
+            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+
         }
         def closureCalled = []
         when:
@@ -66,9 +72,12 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closureCalled[1..-1].sort() == 1..4
     }
 
-    def "all non-rejecting targeted rules are evaluated" () {
-        def metadataProvider = Stub(MetadataProvider) {
-            resolve() >> true
+    def "all non-rejecting targeted rules are evaluated"() {
+        def metadataProvider = Mock(MetadataProvider) {
+            isUsable() >> true
+            getComponentMetadata() >> Mock(ComponentMetadata)
+            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+
         }
         def closureCalled = []
         when:
@@ -85,13 +94,16 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         !componentSelection.rejected
         // rules without metadata should be executed first
         closureCalled[0] == 0
-        // metadata rules get called second in in-determinate order
+        // metadata rules get called second in indeterminate order
         closureCalled[1..-1].sort() == 1..4
     }
 
-    def "can call both targeted and untargeted rules" () {
-        def metadataProvider = Stub(MetadataProvider) {
-            resolve() >> true
+    def "can call both targeted and untargeted rules"() {
+        def metadataProvider = Mock(MetadataProvider) {
+            isUsable() >> true
+            getComponentMetadata() >> Mock(ComponentMetadata)
+            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+
         }
         def closureCalled = []
         when:
@@ -111,9 +123,9 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
         then:
         !componentSelection.rejected
-        // rules without metadata should be executed first in in-determinate order
+        // rules without metadata should be executed first in indeterminate order
         closureCalled[0..1].sort() == [0, 5]
-        // metadata rules get called second in in-determinate order
+        // metadata rules get called second in indeterminate order
         closureCalled[2..-1].sort() == [*1..4, *6..9]
     }
 
@@ -149,7 +161,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "short-circuit prefers non-metadata rules over rules requiring metadata for targeted rules"() {
-        def metadataProvider = Mock(MetadataProvider)
+        def metadataProvider = Mock(DefaultMetadataProvider)
         def closuresCalled = []
 
         when:
@@ -180,7 +192,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "metadata is not requested for rules that don't require it"() {
-        def metadataProvider = Mock(MetadataProvider)
+        def metadataProvider = Mock(DefaultMetadataProvider)
         def closuresCalled = []
 
         when:
@@ -198,7 +210,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "metadata is not requested for non-targeted components"() {
-        def metadataProvider = Mock(MetadataProvider)
+        def metadataProvider = Mock(DefaultMetadataProvider)
         def closuresCalled = []
 
         when:
@@ -216,8 +228,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         0 * metadataProvider._
     }
 
-    def "produces sensible error when rule action throws exception" () {
-        def metadataProvider = Mock(MetadataProvider)
+    def "produces sensible error when rule action throws exception"() {
+        def metadataProvider = Mock(DefaultMetadataProvider)
         def failure = new Exception("From test")
 
         when:
@@ -230,8 +242,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         e.cause == failure
     }
 
-    def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
-        def metadataProvider = Stub(MetadataProvider) {
+    def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component"() {
+        def metadataProvider = Stub(DefaultMetadataProvider) {
             resolve() >> true
             getIvyModuleDescriptor() >> null
         }
@@ -246,9 +258,12 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled == []
     }
 
-    def "only matching targeted rules get called" () {
-        def metadataProvider = Stub(MetadataProvider) {
-            resolve() >> true
+    def "only matching targeted rules get called"() {
+        def metadataProvider = Mock(MetadataProvider) {
+            isUsable() >> true
+            getComponentMetadata() >> Mock(ComponentMetadata)
+            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+
         }
         def closuresCalled = []
         when:
@@ -269,8 +284,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled.sort() == [0, 2, 4, 5, 7]
     }
 
-    def "does not invoke rules that require meta-data when it cannot be resolved" () {
-        def metadataProvider = Stub(MetadataProvider) {
+    def "does not invoke rules that require meta-data when it cannot be resolved"() {
+        def metadataProvider = Stub(DefaultMetadataProvider) {
             resolve() >> false
         }
         def closuresCalled = []
@@ -287,17 +302,50 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled == [0]
     }
 
+    @Unroll
+    def "rule can have access to component metadata attributes"() {
+        def id = Mock(ModuleVersionIdentifier)
+        def testAttr = Attribute.of('test', String)
+        def metadataProvider = Mock(MetadataProvider) {
+            isUsable() >> true
+            getComponentMetadata() >> Mock(ComponentMetadata) {
+                getId() >> id
+                getAttributes() >> {
+                    TestUtil.attributesFactory().mutable().attribute(testAttr, attributeValue)
+                }
+            }
+        }
+
+        def matches = []
+        when:
+        rule { ComponentSelection cs, ComponentMetadata cm ->
+            if (cm.attributes.getAttribute(testAttr) == 'ok') {
+                matches << cm.id
+            }
+        }
+
+        and:
+        apply(metadataProvider)
+
+        then:
+        matches == (match ? [id] : [])
+
+        where:
+        attributeValue << ['ok', 'ko']
+        match << [true, false]
+    }
+
     def rule(Closure<?> closure) {
         rules << new SpecRuleAction<ComponentSelection>(
-                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
-                Specs.<ComponentSelection>satisfyAll()
+            new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
+            Specs.<ComponentSelection> satisfyAll()
         )
     }
 
     def targetedRule(String group, String module, Closure<?> closure) {
         rules << new SpecRuleAction<ComponentSelection>(
-                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
-                new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, module))
+            new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
+            new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, module))
         )
     }
 

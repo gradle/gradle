@@ -15,30 +15,22 @@
  */
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
 class ProgressOperationTest extends Specification {
 
     def "message prefers status"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("SHORT_DESCRIPTION", "STATUS", "CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation("STATUS", "CATEGORY", new OperationIdentifier(1), null)
 
         expect:
         progressOperation.getMessage() == "STATUS"
     }
 
-    def "message falls back to short description"() {
+    def "message is null if all inputs are null"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("SHORT_DESCRIPTION", null, "CATEGORY", new OperationIdentifier(1), null)
-
-        expect:
-        progressOperation.getMessage() == "SHORT_DESCRIPTION"
-    }
-
-    def "message is null if all other inputs are null"() {
-        given:
-        ProgressOperation progressOperation = new ProgressOperation(null, null, "CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation(null, "CATEGORY", new OperationIdentifier(1), null)
 
         expect:
         progressOperation.getMessage() == null
@@ -46,7 +38,7 @@ class ProgressOperationTest extends Specification {
 
     def "allows children to be managed"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("SHORT_DESCRIPTION", "STATUS", "CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation("STATUS", "CATEGORY", new OperationIdentifier(1), null)
         def mockOperation = Mock(ProgressOperation)
 
         when:

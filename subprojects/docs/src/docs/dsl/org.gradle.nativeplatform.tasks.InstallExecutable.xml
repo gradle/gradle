@@ -27,10 +27,19 @@
                 <td>installDirectory</td>
             </tr>
             <tr>
-                <td>sourceFile</td>
+                <td>executableFile</td>
+            </tr>
+            <tr>
+                <td>runScriptFile</td>
             </tr>
             <tr>
                 <td>libs</td>
+            </tr>
+            <tr>
+                <td>toolChain</td>
+            </tr>
+            <tr>
+                <td>targetPlatform</td>
             </tr>
         </table>
     </section>

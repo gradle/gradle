@@ -17,10 +17,10 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.measure.MeasuredOperation
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.Context
@@ -46,6 +46,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setup() {
+        runner.targetVersions = ["4.9-20180620235919+0000"]
         runner.warmUpRuns = 5
         runner.runs = 15
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
@@ -69,7 +70,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.2-20170817235727+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/"]
 
         when:
@@ -89,7 +89,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.2-20170817235727+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/", '--parallel']
 
         when:

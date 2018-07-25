@@ -17,12 +17,9 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.VariantTransform;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-
-import java.io.File;
-import java.util.List;
 
 public interface VariantTransformRegistry {
 
@@ -49,6 +46,6 @@ public interface VariantTransformRegistry {
         /**
          * Transformer for artifacts of the variant.
          */
-        Transformer<List<File>, File> getArtifactTransform();
+        ArtifactTransformer getArtifactTransform();
     }
 }

@@ -54,7 +54,7 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
     /**
      * Registers some input file for this task.
      *
-     * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return a property builder to further configure the property.
      */
     TaskInputFilePropertyBuilder file(Object path);

@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @TargetGradleVersion('>=3.3')
@@ -56,7 +57,7 @@ class NestedBuildsProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        if (targetVersion.version.startsWith("4.0") || targetVersion.version.startsWith("4.1")) {
+        if (targetVersion.baseVersion >= GradleVersion.version("4.0") && targetVersion.baseVersion < GradleVersion.version("4.2")) {
             //this is a regression we accepted in 4.0.x and 4.1.x
             assert caughtException instanceof IllegalStateException
             assert caughtException.message =~ "Operation org\\.gradle\\.tooling\\.internal\\.provider\\.events\\.DefaultOperationDescriptor.* already available."

@@ -71,7 +71,7 @@ public class DistributionFactory {
      */
     public Distribution getDistribution(File gradleHomeDir) {
         return new InstalledDistribution(gradleHomeDir, "Gradle installation '" + gradleHomeDir + "'",
-                "Gradle installation directory '" + gradleHomeDir + "'");
+            "Gradle installation directory '" + gradleHomeDir + "'");
     }
 
     /**
@@ -142,7 +142,7 @@ public class DistributionFactory {
         }
 
         private File determineRealUserHomeDir(final File userHomeDir) {
-            if(distributionBaseDir != null) {
+            if (distributionBaseDir != null) {
                 return distributionBaseDir;
             }
 
@@ -184,7 +184,7 @@ public class DistributionFactory {
             });
             // Make sure file order is always consistent
             Arrays.sort(files);
-            return new DefaultClassPath(files);
+            return DefaultClassPath.of(files);
         }
     }
 

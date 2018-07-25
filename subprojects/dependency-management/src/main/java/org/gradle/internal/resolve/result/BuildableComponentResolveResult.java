@@ -39,5 +39,5 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
     /**
      * Replaces the meta-data in the result. Result must already be resolved.
      */
-    void setMetaData(ComponentResolveMetadata metaData);
+    void setMetadata(ComponentResolveMetadata metadata);
 }

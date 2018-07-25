@@ -26,8 +26,6 @@ import java.util.Collection;
  * TODO - this is some legacy stuff, to be merged into other component interfaces
  */
 public interface BuildableJavaComponent {
-    Collection<String> getRebuildTasks();
-
     Collection<String> getBuildTasks();
 
     FileCollection getRuntimeClasspath();

@@ -35,9 +35,17 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setDestinationDir(File destinationDir);
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
+    @Deprecated
     FileCollection getSource();
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
+    @Deprecated
     void setSource(FileCollection source);
+
+    Iterable<File> getSourceFiles();
+
+    void setSourceFiles(Iterable<File> sourceFiles);
 
     @Deprecated
     Iterable<File> getClasspath();

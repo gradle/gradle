@@ -17,29 +17,32 @@
 
 package org.gradle.api.internal.tasks.util
 
+import com.google.common.collect.ImmutableSet
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.jvm.Jvm
+import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import java.nio.charset.Charset
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
-import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.Factory
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.nullValue
+import static org.junit.Assert.assertThat
 
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {
-    private final FileResolver resolver = Mock(FileResolver)
+    private final resolver = Mock(PathToFileResolver)
     private DefaultJavaForkOptions options
 
     def setup() {
-        _ * resolver.resolveLater(_ as File) >> { args -> Stub(Factory) { create() >> args[0] } }
-        _ * resolver.resolveLater(_ as String) >> { args -> Stub(Factory) { create() >> new File(args[0]) } }
+        _ * resolver.resolve(_ as File) >> { args -> args[0] }
+        _ * resolver.resolve(_ as String) >> { args -> new File(args[0]) }
         options = new DefaultJavaForkOptions(resolver, Jvm.current())
     }
 
@@ -62,6 +65,35 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         options.jvmArgs == ['12', '3']
+    }
+
+    def "setAllJvmArgs cleans jvmArgumentProviders"() {
+        def jvmArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
+
+        when:
+        options.jvmArgumentProviders << jvmArgumentProvider
+        then:
+        options.allJvmArgs == ['argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.allJvmArgs = ['arg1']
+        then:
+        options.allJvmArgs == ['arg1', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.jvmArgumentProviders << jvmArgumentProvider
+        then:
+        options.allJvmArgs == ['arg1', 'argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.setAllJvmArgs(ImmutableSet.of("arg2"))
+        then:
+        options.allJvmArgs == ['arg2', fileEncodingProperty(), *localeProperties()]
     }
 
     def "can add jvmArgs"() {
@@ -136,6 +168,26 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), *localeProperties()]
+    }
+
+    def "allJvmArgs include jvmArgumentProviders"() {
+        when:
+        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider1', 'argFromProvider2']
+            }
+        }
+        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider3']
+            }
+        }
+        options.jvmArgs('arg1')
+
+        then:
+        options.allJvmArgs == ['arg1', 'argFromProvider1', 'argFromProvider2', 'argFromProvider3', fileEncodingProperty(), *localeProperties()]
     }
 
     def "minHeapSize is updated when set using jvmArgs"() {
@@ -297,7 +349,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
@@ -308,7 +360,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "allJvmArgs includes bootstrapClasspath"() {
         when:
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
         options.bootstrapClasspath(files)
 
         then:
@@ -319,7 +371,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
         options.bootstrapClasspath(files[0])
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 
@@ -336,6 +388,12 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.systemProperties(key: 12)
         options.minHeapSize = '64m'
         options.maxHeapSize = '1g'
+        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
 
         when:
         options.copyTo(target)
@@ -349,6 +407,9 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.setBootstrapClasspath(options.bootstrapClasspath)
         1 * target.setEnableAssertions(false)
         1 * target.setDebug(false)
+
+        then:
+        1 * target.jvmArgs(['argFromProvider'])
     }
 
     def "defaults are compatible"() {
@@ -651,8 +712,8 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "is compatible with same bootstrapClasspath"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.resolver())
-        def other = new DefaultJavaForkOptions(TestFiles.resolver())
+        def options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        def other = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
 
         when:
         options.with {
@@ -671,8 +732,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "is not compatible with different bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file2.jar', 'file3.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.resolver())
-        def other = new DefaultJavaForkOptions(TestFiles.resolver())
+        def options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        def other = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
 
         when:
         options.with {
@@ -768,6 +829,36 @@ class DefaultJavaForkOptionsTest extends Specification {
         !options.isCompatibleWith(other2)
     }
 
+    def "cannot determine compatibility with jvmArgumentProviders"() {
+        def other = new DefaultJavaForkOptions(resolver)
+        def argumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
+        if (currentHasProviders) {
+            options.jvmArgumentProviders << argumentProvider
+        }
+        if (otherHasProviders) {
+            other.jvmArgumentProviders << argumentProvider
+        }
+
+        when:
+        options.isCompatibleWith(other)
+
+        then:
+        def thrown = thrown(UnsupportedOperationException)
+        thrown.message.contains('Cannot compare options with jvmArgumentProviders.')
+
+        where:
+        currentHasProviders | otherHasProviders
+        true                | false
+        false               | true
+        true                | true
+
+    }
+
     def "can merge options"() {
         def other = new DefaultJavaForkOptions(resolver)
 
@@ -805,8 +896,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "can merge options with bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file3.jar', 'file4.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.resolver())
-        def other = new DefaultJavaForkOptions(TestFiles.resolver())
+        def options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        def other = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
 
         when:
         options.with {
@@ -837,6 +928,36 @@ class DefaultJavaForkOptionsTest extends Specification {
         where:
         settings1 << [{executable = "foo"}, {workingDir = new File("foo")}, {defaultCharacterEncoding = "foo"}]
         settings2 << [{executable = "bar"}, {workingDir = new File("bar")}, {defaultCharacterEncoding = "bar"}]
+    }
+
+    def "cannot merge options with jvmArgumentProviders"() {
+        def other = new DefaultJavaForkOptions(resolver)
+        def argumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['Hello']
+            }
+        }
+        if (currentHasProviders) {
+            options.jvmArgumentProviders << argumentProvider
+        }
+        if (otherHasProviders) {
+            other.jvmArgumentProviders << argumentProvider
+        }
+
+
+        when:
+        options.mergeWith(other)
+
+        then:
+        def thrown = thrown(UnsupportedOperationException)
+        thrown.message.contains('Cannot merge options with jvmArgumentProviders.')
+
+        where:
+        currentHasProviders | otherHasProviders
+        true                | false
+        false               | true
+        true                | true
     }
 
     private static String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {

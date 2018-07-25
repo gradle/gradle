@@ -16,22 +16,16 @@
 
 package org.gradle.docs.releasenotes
 
+import org.gradle.docs.SystemPropertyFiles
+
 class ReleaseNotesTestContext {
 
-    private static File getSysPropFile(String property) {
-        def value = System.getProperty(property)
-        assert value != null : "System property '$property' is not set"
-        def file = new File(value)
-        assert file.file : "File '$file' (from system property '$property') does not exist"
-        file
-    }
-
     File getSourceFile() {
-        getSysPropFile("org.gradle.docs.releasenotes.source")
+        SystemPropertyFiles.get("org.gradle.docs.releasenotes.source")
     }
 
     File getRenderedFile() {
-        getSysPropFile("org.gradle.docs.releasenotes.rendered")
+        SystemPropertyFiles.get("org.gradle.docs.releasenotes.rendered")
     }
 
 }

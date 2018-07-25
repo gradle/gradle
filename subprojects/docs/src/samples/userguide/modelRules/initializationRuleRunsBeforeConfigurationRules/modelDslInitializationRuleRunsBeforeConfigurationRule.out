@@ -1,0 +1,9 @@
+creating person
+configuring person
+last name is Smith, should be Smythe
+
+> Task :showPerson
+Hello John Smythe!
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

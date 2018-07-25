@@ -24,7 +24,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class HelloController extends Controller {
 
-    public static Result index(String name) {
+    public Result index(String name) {
         return ok(String.format("Hello %s!", StringUtils.capitalize(name)));
     }
 }

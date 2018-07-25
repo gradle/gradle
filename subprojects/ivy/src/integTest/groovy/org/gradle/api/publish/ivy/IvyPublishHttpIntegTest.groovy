@@ -35,7 +35,7 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
-public class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
+class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static final String BAD_CREDENTIALS = '''
 credentials {
     username 'testuser'
@@ -82,15 +82,18 @@ credentials {
         module.jar.sha1.expectPut()
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
 
         when:
         succeeds 'publish'
 
         then:
-        module.assertIvyAndJarFilePublished()
+        module.assertMetadataAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
+        progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
         progressLogging.uploadProgressLogged(module.ivy.uri)
         progressLogging.uploadProgressLogged(module.jar.uri)
     }
@@ -132,16 +135,19 @@ credentials {
         module.jar.sha1.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.moduleMetadata.expectPut('testuser', 'password')
+        module.moduleMetadata.sha1.expectPut('testuser', 'password')
 
         when:
         run 'publish'
 
         then:
-        module.assertIvyAndJarFilePublished()
+        module.assertMetadataAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
         progressLogging.uploadProgressLogged(module.ivy.uri)
+        progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
         progressLogging.uploadProgressLogged(module.jar.uri)
 
         where:
@@ -278,12 +284,14 @@ credentials {
         module.jar.sha1.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
 
         when:
         run 'publish'
 
         then:
-        module.assertIvyAndJarFilePublished()
+        module.assertMetadataAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 

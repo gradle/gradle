@@ -121,6 +121,42 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.classifier == null
     }
 
+    def "create artifact from RegularFile"() {
+        def value = Mock(RegularFile)
+        def file = new File("classes-1.zip")
+
+        _ * value.getAsFile() >> file
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(value)
+
+        then:
+        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact.file == file
+        publishArtifact.name == "classes-1"
+        publishArtifact.extension == "zip"
+        publishArtifact.classifier == null
+        publishArtifact.buildDependencies.getDependencies(null).isEmpty()
+    }
+
+    def "create artifact from Directory"() {
+        def value = Mock(Directory)
+        def file1 = new File("classes-1.dir")
+
+        _ * value.getAsFile() >> file1
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(value)
+
+        then:
+        publishArtifact instanceof DecoratingPublishArtifact
+        publishArtifact.file == file1
+        publishArtifact.name == "classes-1"
+        publishArtifact.extension == 'dir'
+        publishArtifact.classifier == null
+        publishArtifact.buildDependencies.getDependencies(null).isEmpty()
+    }
+
     def "create artifact from File provider"() {
         def provider = Mock(BuildableProvider)
         def file1 = new File("classes-1.zip")
@@ -246,7 +282,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message.contains(TextUtil.toPlatformLineSeparators("""
+        e.message.contains(TextUtil.toPlatformLineSeparators('''
 The following types/formats are supported:
   - Instances of ConfigurablePublishArtifact.
   - Instances of PublishArtifact.
@@ -254,8 +290,10 @@ The following types/formats are supported:
   - Instances of Provider<RegularFile>.
   - Instances of Provider<Directory>.
   - Instances of Provider<File>.
+  - Instances of RegularFile.
+  - Instances of Directory.
   - Instances of File.
-  - Maps with 'file' key"""))
+  - Maps with 'file' key'''))
     }
 
     interface BuildableProvider extends Provider, TaskDependencyContainer {

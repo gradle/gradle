@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 
 public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
 
-    void useVersion(String version, ComponentSelectionReason selectionReason);
+    void useVersion(VersionConstraint version, ComponentSelectionDescriptorInternal selectionReason);
 
-    ComponentSelectionReason getSelectionReason();
+    ComponentSelectionDescriptorInternal getSelectionDescription();
 
     boolean isUpdated();
 }

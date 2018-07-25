@@ -17,15 +17,18 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.integtests.resource.s3.fixtures.AddJavaXmBindModulesTrait
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
+import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
-class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest implements AddJavaXmBindModulesTrait {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
+        addJavaXmlBindModuleIfNecessary()
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
         .withArgument("-Daws.accessKeyId=someKey")
         .withArgument("-Daws.secretKey=someSecret");
@@ -61,17 +64,12 @@ publishing {
 """
 
         when:
-        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0')
-        module.artifact.expectUpload()
-        module.artifact.sha1.expectUpload()
-        module.artifact.md5.expectUpload()
-        module.pom.expectUpload()
-        module.pom.sha1.expectUpload()
-        module.pom.md5.expectUpload()
-        module.mavenRootMetaData.expectDownloadMissing()
-        module.mavenRootMetaData.expectUpload()
-        module.mavenRootMetaData.sha1.expectUpload()
-        module.mavenRootMetaData.md5.expectUpload()
+        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0').withModuleMetadata()
+        expectPublish(module.artifact)
+        expectPublish(module.pom)
+        expectPublish(module.moduleMetadata)
+        module.rootMetaData.expectDownloadMissing()
+        expectPublish(module.rootMetaData)
 
         succeeds 'publish'
 
@@ -80,7 +78,7 @@ publishing {
         module.parsedPom.scopes.isEmpty()
     }
 
-  
+
     def "can publish to a S3 Maven repository with IAM"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
@@ -111,22 +109,23 @@ publishing {
 """
 
         when:
-        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0')
-        module.artifact.expectUpload()
-        module.artifact.sha1.expectUpload()
-        module.artifact.md5.expectUpload()
-        module.pom.expectUpload()
-        module.pom.sha1.expectUpload()
-        module.pom.md5.expectUpload()
-        module.mavenRootMetaData.expectDownloadMissing()
-        module.mavenRootMetaData.expectUpload()
-        module.mavenRootMetaData.sha1.expectUpload()
-        module.mavenRootMetaData.md5.expectUpload()
+        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0').withModuleMetadata()
+        expectPublish(module.artifact)
+        expectPublish(module.pom)
+        expectPublish(module.moduleMetadata)
+        module.rootMetaData.expectDownloadMissing()
+        expectPublish(module.rootMetaData)
 
         succeeds 'publish'
 
         then:
         module.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
+    }
+
+    private static void expectPublish(S3Artifact artifact) {
+        artifact.expectUpload()
+        artifact.sha1.expectUpload()
+        artifact.md5.expectUpload()
     }
 }

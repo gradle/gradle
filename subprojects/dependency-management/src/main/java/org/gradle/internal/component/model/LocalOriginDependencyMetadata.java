@@ -18,20 +18,19 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 
-import java.util.List;
-
 /**
- * A simplified dependency, that maps from a single module configuration to a single target configuration.
+ * A dependency that is defined locally in a build script, not resolved from a repository.
+ * This has a simplified model of a dependency, that maps from a single module configuration to a single target configuration.
  */
 public interface LocalOriginDependencyMetadata extends DependencyMetadata {
     String getModuleConfiguration();
 
     String getDependencyConfiguration();
 
-    List<Exclude> getExcludes();
-
-    @Override
-    LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion);
+    /**
+     * Was the dependency created with the 'force' attribute.
+     */
+    boolean isForce();
 
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);

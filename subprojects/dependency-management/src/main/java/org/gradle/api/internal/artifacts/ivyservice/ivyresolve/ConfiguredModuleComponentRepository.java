@@ -16,8 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+/**
+ * A ModuleComponentRepository providing some user-configuration values.
+ */
 public interface ConfiguredModuleComponentRepository extends ModuleComponentRepository {
+
+    /**
+     * Should the 'dynamic resolve mode' be used for this (Ivy) repository, where the 'revConstraint'
+     * attribute is used for versions instead of the 'rev' attribute.
+     */
     boolean isDynamicResolveMode();
 
+    /**
+     * True for a repository that only accesses the local filesystem, and does not require any remote/network access.
+     */
     boolean isLocal();
 }

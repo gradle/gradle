@@ -16,13 +16,17 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.initialization.ConfigureBuildBuildOperationType
+import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.util.CollectionUtils
-/**
- * Tests for resolving dependency artifacts with substitution within a composite build.
- */
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.launcher.exec.RunBuildBuildOperationType
+import spock.lang.Unroll
+
+import java.util.regex.Pattern
+
 class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
 
@@ -37,7 +41,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         includedBuilds << buildB
     }
 
-    def "operations for tasks are not nested"() {
+    def "generates build operations for tasks in included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
 
@@ -49,30 +53,69 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
         and:
         List<BuildOperationRecord> allOps = operations.all(ExecuteTaskBuildOperationType)
+
+        allOps.find { it.details.buildPath == ":buildB" && it.details.taskPath == ":jar" }
+        allOps.find { it.details.buildPath == ":" && it.details.taskPath == ":jar" }
+
         for (BuildOperationRecord operationRecord : allOps) {
             assertChildrenNotIn(operationRecord, operationRecord, allOps)
         }
     }
 
-    def "configure, task graph and run tasks operations for included build are nested under outermost build"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations for included builds with #display"() {
         given:
-        dependency 'org.test:buildB:1.0'
+        dependency "org.test:${buildName}:1.0"
+
+        buildB.settingsFile << settings << "\n"
 
         when:
         execute(buildA, ":jar", [])
 
         then:
-        executed ":buildB:jar"
-        and:
-        def root = CollectionUtils.single(operations.roots())
-        assertHasChild(root, "Load build (buildB)")
-        assertHasChild(root, "Configure build (buildB)")
-        assertHasChild(root, "Calculate task graph (:buildB)")
-        assertHasChild(root, "Run tasks (:buildB)")
-    }
+        executed ":${buildName}:jar"
 
-    void assertHasChild(BuildOperationRecord root, String displayName) {
-        assert root.children.collect { it.displayName }.contains(displayName)
+        and:
+        def root = operations.root(RunBuildBuildOperationType)
+
+        def loadOps = operations.all(LoadBuildBuildOperationType)
+        loadOps.size() == 2
+        loadOps[0].displayName == "Load build"
+        loadOps[0].details.buildPath == ":"
+        loadOps[0].parentId == root.id
+        loadOps[1].displayName == "Load build (buildB)"
+        loadOps[1].details.buildPath == ":${buildName}"
+        loadOps[1].parentId == loadOps[0].id
+
+        def configureOps = operations.all(ConfigureBuildBuildOperationType)
+        configureOps.size() == 2
+        configureOps[0].displayName == "Configure build"
+        configureOps[0].details.buildPath == ":"
+        configureOps[0].parentId == root.id
+        configureOps[1].displayName == "Configure build (:${buildName})"
+        configureOps[1].details.buildPath == ":${buildName}"
+        configureOps[1].parentId == configureOps[0].id
+
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
+        taskGraphOps.size() == 2
+        taskGraphOps[0].displayName == "Calculate task graph"
+        taskGraphOps[0].details.buildPath == ":"
+        taskGraphOps[0].parentId == root.id
+        taskGraphOps[1].displayName == "Calculate task graph (:${buildName})"
+        taskGraphOps[1].details.buildPath == ":${buildName}"
+        taskGraphOps[1].parentId == taskGraphOps[0].id
+
+        def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
+        runTasksOps.size() == 2
+        runTasksOps[0].displayName == "Run tasks"
+        runTasksOps[0].parentId == root.id
+        runTasksOps[1].displayName == "Run tasks (:${buildName})"
+        runTasksOps[1].parentId == root.id
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {

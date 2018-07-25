@@ -17,6 +17,7 @@
 package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskOutputCachingState;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -50,8 +51,16 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getOriginBuildInvocationId() {
-        UniqueId originBuildInvocationId = ctx.getOriginBuildInvocationId();
+        OriginTaskExecutionMetadata originExecutionMetadata = ctx.getOriginExecutionMetadata();
+        UniqueId originBuildInvocationId = originExecutionMetadata == null ? null : originExecutionMetadata.getBuildInvocationId();
         return originBuildInvocationId == null ? null : originBuildInvocationId.asString();
+    }
+
+    @Nullable
+    @Override
+    public Long getOriginExecutionTime() {
+        OriginTaskExecutionMetadata originExecutionMetadata = ctx.getOriginExecutionMetadata();
+        return originExecutionMetadata == null ? null : originExecutionMetadata.getExecutionTime();
     }
 
     @Nullable

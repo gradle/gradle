@@ -28,7 +28,7 @@ import java.util.List;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
 
-public class AmbiguousVariantSelectionException extends RuntimeException {
+public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
     public AmbiguousVariantSelectionException(String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher) {
         super(format(producerDisplayName, requested, matches, matcher));

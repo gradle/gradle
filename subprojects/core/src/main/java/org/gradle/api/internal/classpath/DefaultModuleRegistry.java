@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.classpath;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
@@ -42,9 +44,10 @@ import java.util.zip.ZipFile;
 /**
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
-public class DefaultModuleRegistry implements ModuleRegistry {
+public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore {
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<String, Module>();
+    private final Map<String, Module> externalModules = new HashMap<String, Module>();
     private final List<File> classpath = new ArrayList<File>();
     private final Map<String, File> classpathJars = new LinkedHashMap<String, File>();
 
@@ -68,11 +71,30 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     @Override
+    public List<File> getFileStoreRoots() {
+        ImmutableList.Builder<File> builder = ImmutableList.builder();
+        if (gradleInstallation != null) {
+            builder.addAll(gradleInstallation.getLibDirs());
+        }
+        builder.addAll(classpath);
+        return builder.build();
+    }
+
+    @Override
     public ClassPath getAdditionalClassPath() {
-        return gradleInstallation == null ? new DefaultClassPath(classpath) : ClassPath.EMPTY;
+        return gradleInstallation == null ? DefaultClassPath.of(classpath) : ClassPath.EMPTY;
     }
 
     public Module getExternalModule(String name) {
+        Module module = externalModules.get(name);
+        if (module == null) {
+            module = loadExternalModule(name);
+            externalModules.put(name, module);
+        }
+        return module;
+    }
+
+    private Module loadExternalModule(String name) {
         File externalJar = findJar(name);
         if (externalJar == null) {
             throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
@@ -174,18 +196,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        List<String> suffixes = new ArrayList<String>();
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
-        matcher.matches();
-        String projectDirName = matcher.group(1);
-        String projectName = toCamelCase(projectDirName);
-        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/classes/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
+        List<String> suffixes = getClasspathSuffixes(name);
         for (File file : classpath) {
             if (file.isDirectory()) {
                 for (String suffix : suffixes) {
@@ -195,6 +206,38 @@ public class DefaultModuleRegistry implements ModuleRegistry {
                 }
             }
         }
+    }
+
+    /**
+     * Provides the locations where the classes and resources of a Gradle module can be found
+     * when running in embedded mode from the IDE.
+     *
+     * <ul>
+     * <li>In Eclipse, they are in the bin/ folder.</li>
+     * <li>In IDEA, they are in a folder derived from their module name.</li>
+     * Due to de-duplication with names in the buildSrc project, that module name can start with "gradle-"
+     * </ul>
+     * <li>In both cases we also include the static and generated resources of the project.</li>
+     */
+    private List<String> getClasspathSuffixes(String name) {
+        List<String> suffixes = new ArrayList<String>();
+        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
+        matcher.matches();
+        String projectDirName = matcher.group(1);
+        String projectName = toCamelCase(projectDirName);
+
+        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
+        suffixes.add(("/out/production/gradle-" + projectName).replace('/', File.separatorChar));
+
+        suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
+
+        suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/classes/java/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/classes/groovy/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
+        return suffixes;
     }
 
     private String toCamelCase(String name) {
@@ -275,12 +318,12 @@ public class DefaultModuleRegistry implements ModuleRegistry {
             this.name = name;
             this.projects = projects;
             this.optionalProjects = optionalProjects;
-            this.implementationClasspath = new DefaultClassPath(implementationClasspath);
-            this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
+            this.implementationClasspath = DefaultClassPath.of(implementationClasspath);
+            this.runtimeClasspath = DefaultClassPath.of(runtimeClasspath);
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(implementationClasspath);
             classpath.addAll(runtimeClasspath);
-            this.classpath = new DefaultClassPath(classpath);
+            this.classpath = DefaultClassPath.of(classpath);
         }
 
         public DefaultModule(String name, Set<File> singleton, Set<File> files) {

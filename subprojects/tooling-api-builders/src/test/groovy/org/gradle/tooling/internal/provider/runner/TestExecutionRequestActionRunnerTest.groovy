@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
-import org.gradle.internal.progress.BuildOperationListenerManager
+import org.gradle.internal.operations.BuildOperationListenerManager
 import spock.lang.Specification
 
 class TestExecutionRequestActionRunnerTest extends Specification {

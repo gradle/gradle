@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp.tasks;
 
-import org.gradle.language.cpp.internal.DefaultCppPCHCompileSpec;
+import org.gradle.language.cpp.tasks.internal.DefaultCppPCHCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 

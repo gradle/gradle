@@ -1,5 +1,0 @@
-task action(dependsOn: ":producer:action") {
-    doLast {
-        println("Consuming message: ${rootProject.producerMessage}")
-    }
-}

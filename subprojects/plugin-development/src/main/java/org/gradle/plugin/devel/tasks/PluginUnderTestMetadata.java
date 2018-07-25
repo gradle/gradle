@@ -26,15 +26,10 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.GUtil;
+import org.gradle.internal.util.PropertiesUtils;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -50,7 +45,6 @@ import static org.gradle.util.CollectionUtils.collect;
 public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
-    public static final String IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY = "implementation-classpath-hash";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
     private FileCollection pluginClasspath;
     private File outputDirectory;
@@ -85,7 +79,6 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
         if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, implementationClasspathHash());
         }
 
         File outputFile = new File(getOutputDirectory(), METADATA_FILE_NAME);
@@ -98,24 +91,16 @@ public class PluginUnderTestMetadata extends DefaultTask {
         return implementationClasspath.toString();
     }
 
-    private String implementationClasspathHash() {
-        // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
-        // We should be reusing those persistent snapshots to avoid reading into memory again.
-        ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
-        return classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
-    }
-
     private void saveProperties(Properties properties, File outputFile) {
         try {
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
-            GUtil.savePropertiesNoDateComment(properties, outputStream);
+            PropertiesUtils.store(properties, outputFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     @Input
-    private List<String> getPaths() {
+    protected List<String> getPaths() {
         return collect(classpathFiles(), new Transformer<String, File>() {
             @Override
             public String transform(File file) {

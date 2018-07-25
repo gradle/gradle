@@ -17,14 +17,14 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.List;
 import java.util.Map;
 
 public class PropertiesToDaemonParametersConverter {
-    private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
+    private List<BuildOption<DaemonParameters>> buildOptions = DaemonBuildOptions.get();
 
     public void convert(Map<String, String> properties, DaemonParameters target) {
         for (BuildOption<DaemonParameters> option : buildOptions) {

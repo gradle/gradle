@@ -17,32 +17,37 @@ package org.gradle.internal.logging.text
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.OutputSpecification
-import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.services.LoggingBackedStyledTextOutput
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.Clock
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*
 
 class LoggingBackedStyledTextOutputTest extends OutputSpecification {
+
     private final OutputEventListener listener = Mock()
     private final Clock timeProvider = { 1200L } as Clock
     private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO, timeProvider)
+    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance()
 
     def forwardsLineOfTextToListener() {
         when:
         output.println('message')
 
         then:
-        1 * listener.onOutput({it.spans[0].text == toNative('message\n')})
+        1 * listener.onOutput({ it.spans[0].text == toNative('message\n') })
         0 * listener._
     }
 
     def fillsInDetailsOfEvent() {
         given:
-        def operationIdentifier = new OperationIdentifier(42L)
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(operationIdentifier)
+        currentBuildOperationRef.set(new DefaultBuildOperationRef(
+            new OperationIdentifier(42),
+            new OperationIdentifier(1)
+        ))
 
         when:
         output.text('message').println()
@@ -55,12 +60,12 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
             assert event.logLevel == LogLevel.INFO
             assert event.timestamp == 1200
             assert event.spans[0].text == toNative('message\n')
-            assert event.buildOperationId == operationIdentifier
+            assert event.buildOperationId.id == 42L
         }
         0 * listener._
 
         cleanup:
-        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()
+        currentBuildOperationRef.clear()
     }
 
     def buffersTextUntilEndOfLineReached() {
@@ -74,14 +79,14 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
         output.text(toNative('with more\nanother '))
 
         then:
-        1 * listener.onOutput({it.spans[0].text == toNative('message with more\n')})
+        1 * listener.onOutput({ it.spans[0].text == toNative('message with more\n') })
         0 * listener._
 
         when:
         output.text('line').println()
 
         then:
-        1 * listener.onOutput({it.spans[0].text == toNative('another line\n')})
+        1 * listener.onOutput({ it.spans[0].text == toNative('another line\n') })
         0 * listener._
     }
 
@@ -90,8 +95,8 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
         output.text(toNative('message1\nmessage2')).println()
 
         then:
-        1 * listener.onOutput({it.spans[0].text == toNative('message1\n')})
-        1 * listener.onOutput({it.spans[0].text == toNative('message2\n')})
+        1 * listener.onOutput({ it.spans[0].text == toNative('message1\n') })
+        1 * listener.onOutput({ it.spans[0].text == toNative('message2\n') })
         0 * listener._
     }
 
@@ -100,7 +105,7 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
         output.text(toNative('\n\n'))
 
         then:
-        2 * listener.onOutput({it.spans[0].text == toNative('\n')})
+        2 * listener.onOutput({ it.spans[0].text == toNative('\n') })
         0 * listener._
     }
 

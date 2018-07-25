@@ -17,14 +17,14 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.hamcrest.Matchers
-import spock.lang.Timeout
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-@Timeout(120)
+@IntegrationTestTimeout(120)
 class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     MavenHttpRepository repo
@@ -309,15 +309,14 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
     def moduleAvailableViaHttp() {
         module.metaData.expectGet()
         module.pom.expectGet()
-        module.getArtifact().expectGet()
+        module.artifact.expectGet()
     }
 
     def moduleAvailableViaHttpWithoutMetaData() {
         module.metaData.expectGetMissing()
         module.pom.expectGet()
-        module.getArtifact().expectGet()
+        module.artifact.expectGet()
     }
-
 
     private MavenHttpModule publishedMavenModule(withNonUniqueVersion = false) {
         module = repo.module("group", "projectA", "1.0-SNAPSHOT")

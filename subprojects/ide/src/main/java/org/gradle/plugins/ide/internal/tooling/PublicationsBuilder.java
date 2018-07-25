@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
@@ -52,10 +53,13 @@ class PublicationsBuilder implements ToolingModelBuilder {
 
         Set<ProjectPublication> projectPublications = publicationRegistry.getPublications(projectIdentifier.getProjectPath());
         for (ProjectPublication projectPublication : projectPublications) {
-            gradlePublications.add(new DefaultGradlePublication()
-                    .setId(new DefaultGradleModuleVersion(projectPublication.getId()))
-                    .setProjectIdentifier(projectIdentifier)
-            );
+            ModuleVersionIdentifier id = projectPublication.getCoordinates(ModuleVersionIdentifier.class);
+            if (id != null) {
+                gradlePublications.add(new DefaultGradlePublication()
+                        .setId(new DefaultGradleModuleVersion(id))
+                        .setProjectIdentifier(projectIdentifier)
+                );
+            }
         }
 
         return gradlePublications;

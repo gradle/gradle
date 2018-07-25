@@ -65,17 +65,17 @@ public class ReleasedVersionDistributions {
         return properties;
     }
 
-    public GradleDistribution getMostRecentFinalRelease() {
-        String mostRecentFinal = getProperties().getProperty("mostRecent");
+    public GradleDistribution getMostRecentRelease() {
+        String mostRecent = getProperties().getProperty("mostRecent");
 
-        if (mostRecentFinal == null) {
+        if (mostRecent == null) {
             throw new RuntimeException("Unable to get the last version");
         }
 
-        return buildContext.distribution(mostRecentFinal);
+        return buildContext.distribution(mostRecent);
     }
 
-    public GradleDistribution getMostRecentSnapshot() {
+    public GradleDistribution getMostRecentReleaseSnapshot() {
         String mostRecentSnapshot = getProperties().getProperty("mostRecentSnapshot");
 
         if (mostRecentSnapshot == null) {

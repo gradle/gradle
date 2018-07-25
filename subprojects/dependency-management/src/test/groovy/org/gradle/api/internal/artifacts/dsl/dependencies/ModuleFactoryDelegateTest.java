@@ -34,7 +34,7 @@ public class ModuleFactoryDelegateTest {
 
     private DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory.class);
     private ClientModule clientModule = new DefaultClientModule("junit", "junit", "4.4");
-    
+
     private ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, dependencyFactoryStub);
 
     @Test

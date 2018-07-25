@@ -18,27 +18,23 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
-import java.util.Set;
 
 class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
     private final ProjectComponentIdentifier componentIdentifier;
-    private final IvyArtifactName ivyArtifactName;
-    private final File artifactFile;
-    private final Set<String> tasks;
+    private final LocalComponentArtifactMetadata delegate;
+    private final File file;
 
-    public CompositeProjectComponentArtifactMetadata(ProjectComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, Set<String> tasks) {
+    public CompositeProjectComponentArtifactMetadata(ProjectComponentIdentifier componentIdentifier, LocalComponentArtifactMetadata delegate, File file) {
         this.componentIdentifier = componentIdentifier;
-        this.ivyArtifactName = ivyArtifactName;
-        this.artifactFile = artifactFile;
-        this.tasks = tasks;
+        this.delegate = delegate;
+        this.file = file;
     }
 
     @Override
@@ -53,7 +49,7 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
 
     @Override
     public IvyArtifactName getName() {
-        return ivyArtifactName;
+        return delegate.getName();
     }
 
     @Override
@@ -63,38 +59,22 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
 
     @Override
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(ivyArtifactName.toString());
-        builder.append(" (");
-        builder.append(componentIdentifier.toString());
-        builder.append(")");
-        return builder.toString();
+        return delegate.getId().getDisplayName();
     }
 
     @Override
     public String getCapitalizedDisplayName() {
-        return getDisplayName();
+        return Describables.of(delegate.getId()).getCapitalizedDisplayName();
     }
 
     @Override
     public File getFile() {
-        return artifactFile;
-    }
-
-    public Set<String> getTasks() {
-        return tasks;
+        return file;
     }
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                for (String task : tasks) {
-                    context.add(new IncludedBuildTaskReference(componentIdentifier.getBuild().getName(), task));
-                }
-            }
-        };
+        return delegate.getBuildDependencies();
     }
 
     @Override
@@ -107,13 +87,11 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
         }
 
         CompositeProjectComponentArtifactMetadata that = (CompositeProjectComponentArtifactMetadata) o;
-
-        return artifactFile.equals(that.artifactFile);
-
+        return delegate.equals(that.delegate);
     }
 
     @Override
     public int hashCode() {
-        return artifactFile.hashCode();
+        return delegate.hashCode();
     }
 }

@@ -60,8 +60,13 @@ class GcsClientTest extends Specification {
         1 * gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
             1 * list(uri.getHost()) >> {
                 return Mock(Storage.Objects.List) {
+                    def self = it
                     int page = 0
                     int maxPages = 2
+                    setPrefix(*_) >> { args ->
+                        assert args.get(0).startsWith(uri.getPath().replaceAll("^/+", ''))
+                        return self
+                    }
                     maxPages * execute() >> {
                         Objects objects = new Objects()
                         objects.setItems(Collections.singletonList(new StorageObject()))

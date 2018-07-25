@@ -43,6 +43,11 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
         return toMavenSyntax(defaultVersionSelectorScheme.renderSelector(selector));
     }
 
+    @Override
+    public VersionSelector complementForRejection(VersionSelector selector) {
+        return defaultVersionSelectorScheme.complementForRejection(selector);
+    }
+
     // TODO: VersionSelector should be more descriptive, so it can be directly translated
     private String toMavenSyntax(String version) {
         if (version.equals(LATEST_INTEGRATION)) {

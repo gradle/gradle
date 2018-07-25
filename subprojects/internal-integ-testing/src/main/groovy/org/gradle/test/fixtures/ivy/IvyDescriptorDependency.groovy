@@ -39,4 +39,9 @@ class IvyDescriptorDependency {
     boolean hasExclude(IvyDescriptorDependencyExclusion exclusion) {
         exclusions.contains(exclusion)
     }
+
+    @Override
+    String toString() {
+        "$org:$module:$revision $conf ${transitive?'(transitive)':''}"
+    }
 }

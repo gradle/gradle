@@ -188,7 +188,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private void readBuildCommands() {
         for (Node commandNode : getChildren(findFirstChildNamed(getXml(), "buildSpec"), "buildCommand")) {
             String name = findFirstChildNamed(commandNode, "name").text();
-            Map<String, String> arguments = Maps.newHashMap();
+            Map<String, String> arguments = Maps.newLinkedHashMap();
             for (Node dictionaryNode : getChildren(findFirstChildNamed(commandNode, "arguments"), "dictionary")) {
                 String key = findFirstChildNamed(dictionaryNode, "key").text();
                 String value = findFirstChildNamed(dictionaryNode, "value").text();

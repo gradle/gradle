@@ -16,7 +16,9 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,5 +34,14 @@ public abstract class CppSourceElement extends SourceElement {
         files.addAll(getSources().getFiles());
         files.addAll(getHeaders().getFiles());
         return files;
+    }
+
+    public List<String> getSourceFileNamesWithoutHeaders() {
+        return CollectionUtils.filter(getSourceFileNames(), new Spec<String>() {
+            @Override
+            public boolean isSatisfiedBy(String sourceFileName) {
+                return !sourceFileName.endsWith(".h");
+            }
+        });
     }
 }

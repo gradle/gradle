@@ -15,10 +15,11 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.api.reflect.ObjectInstantiationException;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,6 +78,9 @@ public class DefaultServiceLocator implements ServiceLocator {
         return factories.get(0);
     }
 
+    /**
+     * Locates and class load implementation classes for a given service.
+     */
     public <T> List<Class<? extends T>> implementationsOf(Class<T> serviceType) {
         try {
             return findServiceImplementations(serviceType);
@@ -166,6 +170,7 @@ public class DefaultServiceLocator implements ServiceLocator {
             return implementationClass;
         }
 
+        @Nonnull
         public T create() {
             return newInstance();
         }

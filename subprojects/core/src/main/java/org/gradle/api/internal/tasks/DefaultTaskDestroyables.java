@@ -16,61 +16,58 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.tasks.TaskDestroyables;
+import com.google.common.collect.Lists;
+import org.gradle.api.NonNullApi;
+import org.gradle.util.DeprecationLogger;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
-public class DefaultTaskDestroyables implements TaskDestroyables, TaskDestroyablesInternal {
-    private final FileResolver resolver;
-    private final TaskInternal task;
+@NonNullApi
+public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final TaskMutator taskMutator;
-    private DefaultConfigurableFileCollection destroyFiles;
+    private final List<Object> registeredPaths = Lists.newArrayList();
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
-        this.resolver = resolver;
-        this.task = task;
+    public DefaultTaskDestroyables(TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
     }
 
     @Override
     public void files(final Object... paths) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskDestroys.files", "TaskDestroys.register");
         taskMutator.mutate("TaskDestroys.files(Object...)", new Runnable() {
             @Override
             public void run() {
-                getFiles().from(paths);
+                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
             }
         });
     }
 
     @Override
     public void file(final Object path) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskDestroys.file", "TaskDestroys.register");
         taskMutator.mutate("TaskDestroys.file(Object...)", new Runnable() {
             @Override
             public void run() {
-                getFiles().from(path);
+                registeredPaths.add(path);
             }
         });
     }
 
     @Override
-    public DefaultConfigurableFileCollection getFiles() {
-        if (destroyFiles == null) {
-            destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
-
-        }
-        return destroyFiles;
+    public void register(final Object... paths) {
+        taskMutator.mutate("TaskDestroys.register(Object...)", new Runnable() {
+            @Override
+            public void run() {
+                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
+            }
+        });
     }
 
     @Override
-    public Collection<File> getFilesReadOnly() {
-        if (destroyFiles != null) {
-            return destroyFiles.getFiles();
-        }
-        return Collections.emptySet();
+    public Collection<Object> getRegisteredPaths() {
+        return registeredPaths;
     }
+
 }

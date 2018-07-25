@@ -300,12 +300,14 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
 """
         when:
+        executer.expectDeprecationWarning()
         succeeds 'sometask'
 
         then:
         output.contains("explicit sometask")
 
         when:
+        executer.expectDeprecationWarning()
         succeeds 'someT'
 
         then:
@@ -652,7 +654,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
             task a {
                 outputs.file('foo')
-                destroyables.file('bar')
+                destroyables.register('bar')
             }
         """
         file('foo') << 'foo'
@@ -669,7 +671,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
             task a {
                 inputs.file('foo')
-                destroyables.file('bar')
+                destroyables.register('bar')
             }
         """
         file('foo') << 'foo'
@@ -680,6 +682,23 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+    }
+
+    def "produces a sensible error when a task declares both local state and destroys"() {
+        buildFile << """
+            task a {
+                localState.register('foo')
+                destroyables.register('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2401")
@@ -730,7 +749,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds "executer"
 
         then:
-        output.contains("The TaskInternal.execute() method has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
+        output.contains("The TaskInternal.execute() method has been deprecated. This is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
     }
 
     def "#description `Task.executer` is deprecated"() {
@@ -745,7 +764,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds "myTask"
 
         then:
-        output.contains("The TaskInternal.executer property has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
+        output.contains("The TaskInternal.executer property has been deprecated. This is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
 
         where:
         description | scriptSnippet
@@ -753,4 +772,18 @@ task someTask(dependsOn: [someDep, someOtherDep])
         "setting" | ".executer = null"
     }
 
+    def "calling `Task.deleteAllActions()` is deprecated"() {
+        buildFile << """
+            task myTask {
+                deleteAllActions()
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "myTask"
+
+        then:
+        output.contains("The Task.deleteAllActions() method has been deprecated. This is scheduled to be removed in Gradle 5.0.")
+    }
 }

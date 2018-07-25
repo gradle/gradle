@@ -19,7 +19,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
 import spock.lang.Specification
 
 class DefaultSourceIncludesParserTest extends Specification {
@@ -29,23 +29,21 @@ class DefaultSourceIncludesParserTest extends Specification {
     def "returns a filtered SourceIncludes when not importAware"() {
         given:
         def file = new File("test")
+        def noImports = Mock(IncludeDirectives)
 
         when:
         def includesParser = new DefaultSourceIncludesParser(sourceParser, false)
 
         1 * sourceParser.parseSource(file) >> sourceIncludes
-        1 * sourceIncludes.includesOnly >> ['"quoted"', '<system>', 'DEFINED'].collect { include(it) }
+        1 * sourceIncludes.discardImports() >> noImports
         0 * sourceIncludes._
 
         and:
         def includes = includesParser.parseIncludes(file)
 
         then:
-        includes.quotedIncludes.collect { it.value } == ["quoted"]
-        includes.systemIncludes.collect { it.value } == ["system"]
-        includes.macroIncludes.collect { it.value } == ["DEFINED"]
+        includes.is(noImports)
     }
-
 
     def "returns the parsed SourceIncludes when importAware"() {
         given:
@@ -61,10 +59,10 @@ class DefaultSourceIncludesParserTest extends Specification {
         def includes = includesParser.parseIncludes(file)
 
         then:
-        includes == sourceIncludes
+        includes.is(sourceIncludes)
     }
 
     Include include(String value, boolean isImport = false) {
-        return DefaultInclude.parse(value, isImport)
+        return IncludeWithSimpleExpression.parse(value, isImport)
     }
 }

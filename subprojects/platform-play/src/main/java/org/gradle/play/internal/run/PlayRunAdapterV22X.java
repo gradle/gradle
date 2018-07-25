@@ -16,6 +16,13 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.internal.UncheckedException;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
     @Override
     protected Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException {
@@ -30,5 +37,13 @@ public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
     @Override
     protected Class<?> getDocHandlerFactoryClass(ClassLoader docsClassLoader) throws ClassNotFoundException {
         return docsClassLoader.loadClass("play.docs.SBTDocHandlerFactory");
+    }
+
+    protected ClassLoader createAssetsClassLoader(File assetsJar, Iterable<File> assetsDirs, ClassLoader classLoader) {
+        try {
+            return new URLClassLoader(new URL[]{assetsJar.toURI().toURL()}, classLoader);
+        } catch (MalformedURLException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

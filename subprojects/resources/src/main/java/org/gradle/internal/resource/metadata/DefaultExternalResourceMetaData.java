@@ -19,16 +19,15 @@ package org.gradle.internal.resource.metadata;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
 
-public class DefaultExternalResourceMetaData implements ExternalResourceMetaData, Serializable {
+public class DefaultExternalResourceMetaData implements ExternalResourceMetaData {
     private final URI location;
     private final Date lastModified;
     private final long contentLength;
     private final String etag;
-    private final String sha1;
+    private final HashValue sha1;
     private final String contentType;
 
     public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength) {
@@ -45,18 +44,21 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
         this.contentLength = contentLength;
         this.contentType = contentType;
         this.etag = etag;
-        this.sha1 = sha1 == null ? null : sha1.asHexString();
+        this.sha1 = sha1;
     }
 
+    @Override
     public URI getLocation() {
         return location;
     }
 
     @Nullable
+    @Override
     public Date getLastModified() {
         return lastModified;
     }
 
+    @Override
     public long getContentLength() {
         return contentLength;
     }
@@ -68,11 +70,14 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     }
 
     @Nullable
+    @Override
     public String getEtag() {
         return etag;
     }
 
+    @Nullable
+    @Override
     public HashValue getSha1() {
-        return sha1 == null ? null : HashValue.parse(sha1);
+        return sha1;
     }
 }

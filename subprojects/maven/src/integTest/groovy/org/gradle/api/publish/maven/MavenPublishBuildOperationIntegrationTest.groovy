@@ -54,22 +54,17 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         when:
         def m1 = repo.module("org.test", "test", "1.2")
-        m1.artifact.expectPut()
-        m1.artifact.sha1.expectPut()
-        m1.artifact.md5.expectPut()
-        m1.pom.expectPut()
-        m1.pom.sha1.expectPut()
-        m1.pom.md5.expectPut()
+        m1.artifact.expectPublish()
+        m1.pom.expectPublish()
+        m1.moduleMetadata.expectPublish()
         m1.rootMetaData.expectGetMissing()
-        m1.rootMetaData.expectPut()
-        m1.rootMetaData.sha1.expectPut()
-        m1.rootMetaData.md5.expectPut()
+        m1.rootMetaData.expectPublish()
 
         succeeds("publish")
 
         then:
         def writes1 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes1.size() == 9
+        writes1.size() == 12
         writes1[0].details.location == m1.artifact.uri.toString()
         writes1[0].result.bytesWritten == m1.artifact.file.length()
 
@@ -83,24 +78,19 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 """
 
         def m2 = repo.module("org.test", "test", "1.3")
-        m2.artifact.expectPut()
-        m2.artifact.sha1.expectPut()
-        m2.artifact.md5.expectPut()
-        m2.pom.expectPut()
-        m2.pom.sha1.expectPut()
-        m2.pom.md5.expectPut()
+        m2.artifact.expectPublish()
+        m2.pom.expectPublish()
+        m2.moduleMetadata.expectPublish()
         m2.rootMetaData.expectGet()
         m2.rootMetaData.sha1.expectGet()
         m2.rootMetaData.md5.expectGet()
-        m2.rootMetaData.expectPut()
-        m2.rootMetaData.sha1.expectPut()
-        m2.rootMetaData.md5.expectPut()
+        m2.rootMetaData.expectPublish()
 
         succeeds("publish")
 
         then:
         def writes2 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes2.size() == 9
+        writes2.size() == 12
 
         def reads2 = buildOperations.all(ExternalResourceReadBuildOperationType)
         reads2.size() == 3

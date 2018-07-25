@@ -27,7 +27,7 @@ import java.util.List;
 
 public class ParallelismConfigurationCommandLineConverter extends AbstractCommandLineConverter<ParallelismConfiguration> {
 
-    private List<BuildOption<ParallelismConfiguration>> buildOptions = new ParallelismBuildOptionFactory().create();
+    private List<BuildOption<ParallelismConfiguration>> buildOptions = ParallelismBuildOptions.get();
 
     public ParallelismConfiguration convert(ParsedCommandLine options, ParallelismConfiguration target) throws CommandLineArgumentException {
         for (BuildOption<ParallelismConfiguration> option : buildOptions) {

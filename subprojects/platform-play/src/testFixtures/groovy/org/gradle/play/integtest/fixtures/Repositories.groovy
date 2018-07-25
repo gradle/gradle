@@ -23,8 +23,8 @@ class Repositories {
     public static final String PLAY_REPOSITORIES = """
         repositories {
             ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
-            ${RepoScriptBlockUtil.typesafeMavenRepositoryDefinition()}
-            ${RepoScriptBlockUtil.typesafeIvyRepositoryDefinition()}
+            ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
+            ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
         }
     """
 

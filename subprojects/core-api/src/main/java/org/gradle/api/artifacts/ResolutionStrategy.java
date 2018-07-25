@@ -101,6 +101,17 @@ public interface ResolutionStrategy {
     void preferProjectModules();
 
     /**
+     * Activates dependency locking support in Gradle.
+     * Once turned on on a configuration, resolution result can be saved and then reused for subsequent builds.
+     * This enables reproducible builds when using dynamic versions.
+     *
+     * @return this resolution strategy instance
+     * @since 4.8
+     */
+    @Incubating
+    ResolutionStrategy activateDependencyLocking();
+
+    /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
      * <b>Appends</b> new forced modules to be considered when resolving dependencies.
      * <p>

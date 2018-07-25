@@ -79,10 +79,14 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     }
 
     @Override
+    protected void configureConfiguration(Configuration configuration) {
+        configureDefaultDependencies(configuration);
+    }
+
+    @Override
     protected void configureTaskDefaults(FindBugs task, String baseName) {
         task.setPluginClasspath(project.getConfigurations().getAt("findbugsPlugins"));
-        Configuration configuration = project.getConfigurations().getAt("findbugs");
-        configureDefaultDependencies(configuration);
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

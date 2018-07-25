@@ -17,47 +17,51 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails;
+import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 @UsedByScanPlugin
-public class ProgressStartEvent extends CategorisedOutputEvent {
+public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
+    public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
+    public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";
+
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;
     private final String description;
-    private final String shortDescription;
-    private final String loggingHeader;
+    private final @Nullable String loggingHeader;
     private final String status;
     private final int totalProgress;
-    private final Object buildOperationId;
-    private final Object parentBuildOperationId;
-    private BuildOperationCategory buildOperationCategory;
+    private final boolean buildOperationStart;
+    private final @Nullable OperationIdentifier buildOperationId;
+    private final BuildOperationCategory buildOperationCategory;
 
-    public ProgressStartEvent(OperationIdentifier progressOperationId,
-                              @Nullable OperationIdentifier parentProgressOperationId,
-                              long timestamp,
-                              String category,
-                              String description,
-                              @Nullable String shortDescription,
-                              @Nullable String loggingHeader,
-                              String status,
-                              int totalProgress,
-                              @Nullable Object buildOperationId,
-                              @Nullable Object parentBuildOperationId,
-                              BuildOperationCategory buildOperationCategory) {
+    public ProgressStartEvent(
+        OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier parentProgressOperationId,
+        long timestamp,
+        String category,
+        String description,
+        @Nullable String loggingHeader,
+        String status,
+        int totalProgress,
+        boolean buildOperationStart,
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable BuildOperationCategory buildOperationCategory
+    ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
         this.description = description;
-        this.shortDescription = shortDescription;
         this.loggingHeader = loggingHeader;
         this.status = status;
         this.totalProgress = totalProgress;
+        this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
-        this.parentBuildOperationId = parentBuildOperationId;
-        this.buildOperationCategory = buildOperationCategory;
+        this.buildOperationCategory = buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
     }
 
     @Nullable
@@ -67,11 +71,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
 
     public String getDescription() {
         return description;
-    }
-
-    @Nullable
-    public String getShortDescription() {
-        return shortDescription;
     }
 
     @Nullable
@@ -89,24 +88,34 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
 
     @Override
     public String toString() {
-        return "ProgressStart " + description;
+        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:" + buildOperationId + ") " + description;
     }
 
     public OperationIdentifier getProgressOperationId() {
         return progressOperationId;
     }
 
-    @Nullable
-    public Object getBuildOperationId() {
-        return buildOperationId;
+    /**
+     * Whether this progress start represent the start of a build operation,
+     * as opposed to a progress operation within a build operation.
+     */
+    public boolean isBuildOperationStart() {
+        return buildOperationStart;
     }
 
+    /**
+     * When this event is a build operation start event, this property will be non-null and will have the same value as {@link #getProgressOperationId()}.
+     */
     @Nullable
-    public Object getParentBuildOperationId() {
-        return parentBuildOperationId;
+    public OperationIdentifier getBuildOperationId() {
+        return buildOperationId;
     }
 
     public BuildOperationCategory getBuildOperationCategory() {
         return buildOperationCategory;
+    }
+
+    public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
     }
 }

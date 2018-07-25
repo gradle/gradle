@@ -58,8 +58,8 @@ repositories {
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-    ${location1}
-    ${location2}""")
+  - ${location1}
+  - ${location2}""")
     }
 
     def "resolve missing source and javadoc artifacts"() {
@@ -94,8 +94,8 @@ Searched in the following locations:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-    ${location1}
-    ${location2}""")
+  - ${location1}
+  - ${location2}""")
     }
 
     private publishModule() {

@@ -16,27 +16,36 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.GUtil;
 
 public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDescriptor {
 
-    private final TemplateOperationFactory templateOperationBuilder;
     private final PathToFileResolver fileResolver;
+    private final DocumentationRegistry documentationRegistry;
 
-    public SimpleGlobalFilesBuildSettingsDescriptor(TemplateOperationFactory templateOperationBuilder, PathToFileResolver fileResolver) {
-        this.templateOperationBuilder = templateOperationBuilder;
+    public SimpleGlobalFilesBuildSettingsDescriptor(PathToFileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         this.fileResolver = fileResolver;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        templateOperationBuilder.newTemplateOperation()
-            .withTemplate("settings.gradle.template")
-            .withTarget("settings.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
-            .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
-            .create().generate();
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        new BuildScriptBuilder(dsl, fileResolver, "settings")
+            .fileComment(
+                "The settings file is used to specify which projects to include in your build.\n\n"
+                    + "Detailed information about configuring a multi-project build in Gradle can be found\n"
+                    + "in the user guide at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
+            .propertyAssignment(null, "rootProject.name", fileResolver.resolve(".").getName())
+            .create()
+            .generate();
+    }
+
+    @Override
+    public boolean supports(BuildInitDsl dsl) {
+        return true;
     }
 
     @Override

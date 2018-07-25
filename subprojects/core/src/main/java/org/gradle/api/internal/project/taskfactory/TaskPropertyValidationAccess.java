@@ -16,21 +16,13 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Task;
-import org.gradle.internal.Cast;
-
-import java.util.Map;
+import org.gradle.api.internal.tasks.properties.PropertyValidationAccess;
 
 /**
- * Class for easy access to task property validation from the validator task.
+ * Left for backwards compatibility in Gradle build.
+ *
+ * @deprecated Use {@link PropertyValidationAccess} instead.
  */
-public class TaskPropertyValidationAccess {
-    @SuppressWarnings("unused")
-    public static void collectTaskValidationProblems(Class<?> task, Map<String, Boolean> problems) {
-        TaskClassInfoStore infoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor(new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()));
-        TaskClassInfo info = infoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(task));
-        for (TaskClassValidationMessage validationMessage : info.getValidator().getValidationMessages()) {
-            problems.put(String.format("Task type '%s': %s.", task.getName(), validationMessage), Boolean.FALSE);
-        }
-    }
+@Deprecated
+public class TaskPropertyValidationAccess extends PropertyValidationAccess {
 }

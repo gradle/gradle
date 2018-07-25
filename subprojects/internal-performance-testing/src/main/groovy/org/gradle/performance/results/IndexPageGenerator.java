@@ -56,7 +56,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
                         results = filterForRequestedCommit(results);
                         if (results.isEmpty()) {
-                            archived.put(testHistory.getId(), testHistory.getDisplayName());
+                            archived.put(urlEncode(testHistory.getId()), testHistory.getDisplayName());
                             continue;
                         }
                         h2().classAttr("test-execution");
@@ -88,7 +88,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         }
                         end();
                         div().classAttr("details");
-                            String url = "tests/" + testHistory.getId() + ".html";
+                            String url = "tests/" + urlEncode(testHistory.getId()) + ".html";
                             a().href(url).text("details...").end();
                         end();
                     }

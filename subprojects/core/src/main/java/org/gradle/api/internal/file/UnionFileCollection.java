@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
@@ -43,9 +44,14 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     @Override
-    public FileCollection add(FileCollection collection) {
-        source.add(collection);
+    public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
+        DeprecationLogger.nagUserOfReplacedMethod("FileCollection.add()", "ConfigurableFileCollection.from()");
+        addToUnion(collection);
         return this;
+    }
+
+    public void addToUnion(FileCollection collection) {
+        source.add(collection);
     }
 
     @Override

@@ -44,4 +44,13 @@ public interface TestClassProcessor extends Stoppable {
      */
     @Override
     void stop();
+
+    /**
+     * Stops any pending or asynchronous processing immediately
+     *
+     * Any test class assigned to this processor, but not yet run will not have results in the output.  The processor should
+     * not use the result processor provided to {@link #startProcessing(TestResultProcessor)} after this method has
+     * returned.
+     */
+    void stopNow();
 }

@@ -19,8 +19,6 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 
-import static org.hamcrest.Matchers.containsString
-
 @TestReproducibleArchives
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
@@ -138,7 +136,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         runAndFail 'distZip'
-        failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
+        failure.assertHasCause "Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."
     }
 
     def "compile only dependencies are not included in distribution"() {

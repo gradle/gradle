@@ -15,30 +15,29 @@
  */
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class FilteredCollection<T, S extends T> implements Collection<S>, WithEstimatedSize {
-
-    protected final Collection<T> collection;
+public class FilteredCollection<T, S extends T> implements ElementSource<S> {
+    protected final ElementSource<T> collection;
     protected final CollectionFilter<S> filter;
 
-    public FilteredCollection(Collection<T> collection, CollectionFilter<S> filter) {
+    public FilteredCollection(ElementSource<T> collection, CollectionFilter<S> filter) {
         this.collection = collection;
         this.filter = filter;
     }
 
+    @Override
     public boolean add(S o) {
         throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
     }
 
-    public boolean addAll(Collection<? extends S> c) {
-        throw new UnsupportedOperationException(String.format("Cannot add all from '%s' to '%s' as it is a filtered collection", c, this));
-    }
-
+    @Override
     public void clear() {
         throw new UnsupportedOperationException(String.format("Cannot clear '%s' as it is a filtered collection", this));
     }
@@ -47,10 +46,12 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         return filter.filter(o) != null;
     }
 
+    @Override
     public boolean contains(Object o) {
         return collection.contains(o) && accept(o);
     }
 
+    @Override
     public boolean containsAll(Collection<?> c) {
         if (collection.containsAll(c)) {
             for (Object o : c) {
@@ -64,19 +65,17 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         }
     }
 
-    // boolean equals(Object o) {
-    //
-    // }
-    //
-    // int hashCode() {
-    //
-    // }
+    @Override
+    public boolean constantTimeIsEmpty() {
+        return collection.constantTimeIsEmpty();
+    }
 
+    @Override
     public boolean isEmpty() {
         if (collection.isEmpty()) {
             return true;
         } else {
-            for (T o : collection) {
+            for (T o : this) {
                 if (accept(o)) {
                     return false;
                 }
@@ -87,20 +86,20 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
 
     @Override
     public int estimatedSize() {
-        return Estimates.estimateSizeOf(collection);
+        return collection.estimatedSize();
     }
 
-    protected static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
+    private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
         private final CollectionFilter<S> filter;
         private final Iterator<T> iterator;
         private final int estimatedSize;
 
         private S next;
 
-        public FilteringIterator(Collection<T> collection, CollectionFilter<S> filter) {
-            this.iterator = collection.iterator();
+        FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
+            this.iterator = collection.iteratorNoFlush();
             this.filter = filter;
-            this.estimatedSize = Estimates.estimateSizeOf(collection);
+            this.estimatedSize = collection.estimatedSize();
             this.next = findNext();
         }
 
@@ -116,10 +115,12 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
             return null;
         }
 
+        @Override
         public boolean hasNext() {
             return next != null;
         }
 
+        @Override
         public S next() {
             if (next != null) {
                 S thisNext = next;
@@ -130,6 +131,7 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
             }
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException("This iterator does not support removal");
         }
@@ -140,25 +142,22 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         }
     }
 
+    @Override
     public Iterator<S> iterator() {
+        collection.realizePending(filter.getType());
         return new FilteringIterator<T, S>(collection, filter);
     }
 
+    @Override
     public boolean remove(Object o) {
         throw new UnsupportedOperationException(String.format("Cannot remove '%s' from '%s' as it is a filtered collection", o, this));
     }
 
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException(String.format("Cannot remove all of '%s' from '%s' as it is a filtered collection", c, this));
-    }
-
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException(String.format("Cannot retain all of '%s' from '%s' as it is a filtered collection", c, this));
-    }
-
+    @Override
     public int size() {
         int i = 0;
-        for (T o : collection) {
+        // NOTE: There isn't much we can do about collection.matching { } filters as the spec requires a realized element, unless make major changes
+        for (T o : this) {
             if (accept(o)) {
                 ++i;
             }
@@ -166,19 +165,31 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         return i;
     }
 
-    public Object[] toArray() {
-        Object[] a = new Object[size()];
-        int i = 0;
-        for (T o : collection) {
-            if (accept(o)) {
-                a[i++] = o;
-            }
-        }
-        return a;
+    @Override
+    public Iterator<S> iteratorNoFlush() {
+        return new FilteringIterator<T, S>(collection, filter);
     }
 
-    // TODO - a proper implementation of this
-    public <T> T[] toArray(T[] a) {
-        return (T[])toArray();
+    @Override
+    public void realizePending() {
+        realizePending(filter.getType());
     }
+
+    @Override
+    public void realizePending(Class<?> type) {
+        collection.realizePending(type);
+    }
+
+    @Override
+    public void addPending(ProviderInternal<? extends S> provider) {
+        collection.addPending(provider);
+    }
+
+    @Override
+    public void removePending(ProviderInternal<? extends S> provider) {
+        collection.removePending(provider);
+    }
+
+    @Override
+    public void onRealize(Action<ProviderInternal<? extends S>> action) { }
 }

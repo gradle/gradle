@@ -13,6 +13,10 @@ mainClassName = "org.gradle.sample.Main"
 applicationDefaultJvmArgs = ["-Dgreeting.language=en"]
 // END SNIPPET application-defaultjvmargs
 
+// START SNIPPET executableDir-conf
+executableDir = "custom_bin_dir"
+// END SNIPPET executableDir-conf
+
 // START SNIPPET distribution-spec
 task createDocs {
     def docs = file("$buildDir/docs")

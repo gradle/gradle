@@ -32,6 +32,7 @@ import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
@@ -58,6 +59,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private boolean debug;
     private OutputStream standardOutput;
     private OutputStream standardError;
+    private InputStream standardInput;
     private boolean forwardingSystemStreams;
 
     public DefaultGradleRunner() {
@@ -165,7 +167,7 @@ public class DefaultGradleRunner extends GradleRunner {
             f.add(new File(file.getAbsolutePath()));
         }
         if (!f.isEmpty()) {
-            this.classpath = new DefaultClassPath(f);
+            this.classpath = DefaultClassPath.of(f);
         }
         return this;
     }
@@ -209,6 +211,11 @@ public class DefaultGradleRunner extends GradleRunner {
         OutputStream systemOut = new SynchronizedOutputStream(System.out);
         this.standardOutput = systemOut;
         this.standardError = systemOut;
+        return this;
+    }
+
+    public GradleRunner withStandardInput(InputStream standardInput) {
+        this.standardInput = standardInput;
         return this;
     }
 
@@ -284,7 +291,8 @@ public class DefaultGradleRunner extends GradleRunner {
             classpath,
             debug,
             standardOutput,
-            standardError
+            standardError,
+            standardInput
         ));
 
         resultVerification.execute(execResult);

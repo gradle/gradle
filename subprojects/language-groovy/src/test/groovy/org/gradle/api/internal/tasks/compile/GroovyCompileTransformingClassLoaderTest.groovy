@@ -26,7 +26,7 @@ class GroovyCompileTransformingClassLoaderTest extends Specification {
     Class<?> classAnnotation
 
     def setup() {
-        def classPath = new DefaultClassPath(ClasspathUtil.getClasspathForClass(getClass()), ClasspathUtil.getClasspathForClass(GroovyASTTransformationClass))
+        def classPath = DefaultClassPath.of(ClasspathUtil.getClasspathForClass(getClass()), ClasspathUtil.getClasspathForClass(GroovyASTTransformationClass))
         loader = new GroovyCompileTransformingClassLoader(null, classPath)
         classAnnotation = loader.loadClass(GroovyASTTransformationClass.name)
     }

@@ -1,6 +1,0 @@
-project: :child1
-srcDirName: java
-srcDir: child1/java
-project: :child2
-srcDirName: src/java/legacy
-srcDir: child2/src/java/legacy

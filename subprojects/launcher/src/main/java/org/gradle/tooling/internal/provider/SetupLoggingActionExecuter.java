@@ -40,6 +40,7 @@ public class SetupLoggingActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         loggingManager.setLevelInternal(startParameter.getLogLevel());
+        loggingManager.enableUserStandardOutputListeners();
         loggingManager.start();
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);

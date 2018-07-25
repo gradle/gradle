@@ -65,7 +65,7 @@ public class DefaultBuildComparator implements BuildComparator {
                 }
 
                 @SuppressWarnings("unchecked")
-                BuildOutcomeComparisonResult<?> comparisonResult = comparator.compare((BuildOutcomeAssociation) outcomeAssociation);
+                BuildOutcomeComparisonResult<?> comparisonResult = (BuildOutcomeComparisonResult<?>) comparator.compare((BuildOutcomeAssociation) outcomeAssociation);
 
                 results.add(comparisonResult);
             }

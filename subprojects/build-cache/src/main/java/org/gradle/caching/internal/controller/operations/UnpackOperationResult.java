@@ -30,4 +30,5 @@ public class UnpackOperationResult implements BuildCacheArchiveUnpackBuildOperat
     public long getArchiveEntryCount() {
         return archiveEntryCount;
     }
+
 }

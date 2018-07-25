@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle;
 import org.gradle.buildinit.plugins.internal.maven.MavenConversionException;
 import org.gradle.buildinit.plugins.internal.maven.MavenProjectsCreator;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.SingleMessageLogger;
 
@@ -37,7 +39,7 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         File pom = fileResolver.resolve("pom.xml");
         try {
@@ -47,7 +49,11 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
+    }
 
+    @Override
+    public boolean supports(BuildInitDsl dsl) {
+        return BuildInitDsl.GROOVY == dsl;
     }
 
     @Override

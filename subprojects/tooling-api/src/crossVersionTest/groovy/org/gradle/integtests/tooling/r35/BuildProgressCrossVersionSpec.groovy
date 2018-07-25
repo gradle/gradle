@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -96,7 +95,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=3.5 <4.0")
-    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -174,14 +172,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     @Issue("gradle/gradle#1641")
     @TargetGradleVersion(">=3.5 <4.0")
-    @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -192,19 +186,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         module.publish()
 
         // module will be published a second time via 'maven-publish'
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.md5.expectPut()
+        module.artifact.expectPublish()
+        module.pom.expectPublish()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.md5.expectPut()
+        module.rootMetaData.expectPublish()
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -244,9 +232,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             "Download ${module.rootMetaData.uri}",
             "Download ${module.rootMetaData.sha1.uri}"
         ]
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     def "generate events for task actions"() {

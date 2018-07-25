@@ -21,11 +21,14 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.TreeVisitor;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -66,10 +69,10 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     private static final String RESOURCE_FILENAME = "rc.exe";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
 
-    private final Map<File, WindowsSdk> foundSdks = new HashMap<File, WindowsSdk>();
+    private final Map<File, WindowsSdkInstall> foundSdks = new HashMap<File, WindowsSdkInstall>();
     private final OperatingSystem os;
     private final WindowsRegistry windowsRegistry;
-    private WindowsSdk pathSdk;
+    private WindowsSdkInstall pathSdk;
     private boolean initialised;
 
     public LegacyWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
@@ -78,7 +81,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public SearchResult locateWindowsSdks(File candidate) {
+    public SearchResult<WindowsSdkInstall> locateComponent(@Nullable File candidate) {
         initializeWindowsSdks();
 
         if (candidate != null) {
@@ -89,9 +92,8 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     @Override
-    public List<WindowsSdk> locateAllWindowsSdks() {
+    public List<? extends WindowsSdkInstall> locateAllComponents() {
         initializeWindowsSdks();
-
         return Lists.newArrayList(foundSdks.values());
     }
 
@@ -187,34 +189,34 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         pathSdk = foundSdks.get(sdkDir);
     }
 
-    private SearchResult locateUserSpecifiedSdk(File candidate) {
+    private SearchResult<WindowsSdkInstall> locateUserSpecifiedSdk(File candidate) {
         File sdkDir = FileUtils.canonicalize(candidate);
         if (!isWindowsSdk(sdkDir)) {
-            return new SdkNotFound(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
+            return new ComponentNotFound<WindowsSdkInstall>(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
         }
 
         if (!foundSdks.containsKey(sdkDir)) {
             addSdk(sdkDir, VERSION_USER, NAME_USER);
         }
-        return new SdkFound(foundSdks.get(sdkDir));
+        return new ComponentFound<WindowsSdkInstall>(foundSdks.get(sdkDir));
     }
 
-    private SearchResult locateDefaultSdk() {
+    private SearchResult<WindowsSdkInstall> locateDefaultSdk() {
         if (pathSdk != null) {
-            return new SdkFound(pathSdk);
+            return new ComponentFound<WindowsSdkInstall>(pathSdk);
         }
 
-        WindowsSdk candidate = null;
-        for (WindowsSdk windowsSdk : foundSdks.values()) {
+        WindowsSdkInstall candidate = null;
+        for (WindowsSdkInstall windowsSdk : foundSdks.values()) {
             if (candidate == null || windowsSdk.getVersion().compareTo(candidate.getVersion()) > 0) {
                 candidate = windowsSdk;
             }
         }
-        return candidate == null ? new SdkNotFound("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new SdkFound(candidate);
+        return candidate == null ? new ComponentNotFound<WindowsSdkInstall>("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new ComponentFound<WindowsSdkInstall>(candidate);
     }
 
     private void addSdk(File path, String version, String name) {
-        foundSdks.put(path, new LegacyWindowsSdk(path, VersionNumber.parse(version), name));
+        foundSdks.put(path, new LegacyWindowsSdkInstall(path, VersionNumber.parse(version), name));
     }
 
     private static boolean isWindowsSdk(File candidate) {
@@ -246,50 +248,5 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         }
 
         return version;
-    }
-
-    private static class SdkFound implements SearchResult {
-        private final WindowsSdk sdk;
-
-        public SdkFound(WindowsSdk sdk) {
-            this.sdk = sdk;
-        }
-
-        @Override
-        public WindowsSdk getSdk() {
-            return sdk;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return true;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
-    }
-
-    private static class SdkNotFound implements SearchResult {
-        private final String message;
-
-        private SdkNotFound(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public WindowsSdk getSdk() {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(message);
-        }
     }
 }

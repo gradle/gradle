@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
@@ -36,7 +37,6 @@ import java.util.Map;
 
 @NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
-    private final TaskClassValidatorExtractor validatorExtractor;
 
     private final LoadingCache<Class<? extends Task>, TaskClassInfo> classInfos = CacheBuilder.newBuilder()
         .weakKeys()
@@ -47,8 +47,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             }
         });
 
-    public DefaultTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
-        this.validatorExtractor = validatorExtractor;
+    public DefaultTaskClassInfoStore() {
     }
 
     @Override
@@ -57,6 +56,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     }
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
+        boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
         boolean incremental = false;
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
@@ -76,9 +76,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             }
         }
 
-        TaskClassValidator validator = validatorExtractor.extractValidator(type);
-
-        return new TaskClassInfo(incremental, taskActionFactoriesBuilder.build(), validator);
+        return new TaskClassInfo(incremental, taskActionFactoriesBuilder.build(), cacheable);
     }
 
     @Nullable

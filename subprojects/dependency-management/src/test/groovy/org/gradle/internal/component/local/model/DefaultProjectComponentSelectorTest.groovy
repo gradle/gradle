@@ -15,13 +15,16 @@
  */
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.util.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newSelector
 import static org.gradle.util.Matchers.strictlyEquals
 
@@ -29,26 +32,13 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentSelector defaultBuildComponentSelector = newSelector(buildName , projectPath)
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY)
 
         then:
-        defaultBuildComponentSelector.projectPath == projectPath
-        defaultBuildComponentSelector.displayName == displayName
-        defaultBuildComponentSelector.toString() == displayName
-
-        where:
-        buildName | projectPath | displayName
-        ':'       | ':myPath'   | 'project :myPath'
-        'build'   | ':myPath'   | 'project :build:myPath'
-    }
-
-    def "is instantiated with null constructor parameter value"() {
-        when:
-        new DefaultProjectComponentSelector("TEST", (String) null)
-
-        then:
-        Throwable t = thrown(AssertionError)
-        t.message == 'project path cannot be null'
+        defaultBuildComponentSelector.projectPath == ":project:path"
+        defaultBuildComponentSelector.projectName == "projectName"
+        defaultBuildComponentSelector.displayName == "project :id:path"
+        defaultBuildComponentSelector.toString() == "project :id:path"
     }
 
     @Unroll
@@ -79,24 +69,18 @@ class DefaultProjectComponentSelectorTest extends Specification {
     def "does not match id for unexpected component selector type"() {
         when:
         ProjectComponentSelector defaultBuildComponentSelector = newSelector(':myPath')
-        boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier('group', 'name', '1.0'))
+        boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'name'), '1.0'))
 
         then:
         assert !matches
     }
 
-    @Unroll
     def "matches id (#buildName #projectPath)"() {
         expect:
-        ProjectComponentSelector defaultBuildComponentSelector = newSelector(buildName, ':myProjectPath1')
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId("TEST", projectPath)
-        defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
-
-        where:
-        buildName | projectPath       | matchesId
-        'TEST'    | ':myProjectPath1' | true
-        'TEST'    | ':myProjectPath2' | false
-        'OTHER'   | ':myProjectPath1' | false
-        ':'       | ':myProjectPath1' | false
+        def selector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY)
+        def sameIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        def differentIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path2"), Path.path(":project:path"), "projectName")
+        selector.matchesStrictly(sameIdPath)
+        !selector.matchesStrictly(differentIdPath)
     }
 }

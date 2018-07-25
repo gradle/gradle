@@ -27,8 +27,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * <ul>
  *
- * <li>{@link ChildComponent} to provide information about the hierarchy of components it belongs to.</li>
- *
  * <li>{@link ComponentWithVariants} to provide information about the variants that the component provides.</li>
  *
  * </ul>

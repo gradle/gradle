@@ -17,28 +17,38 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
-import spock.lang.Specification
-import spock.lang.Unroll
 
-class DefaultProviderTest extends Specification {
+class DefaultProviderTest extends ProviderSpec<String> {
+    @Override
+    Provider<String> providerWithNoValue() {
+        return new DefaultProvider<String>({ null })
+    }
 
-    @Unroll
-    def "can compare string representation with other instance returning value #value"() {
+    @Override
+    Provider<String> providerWithValue(String value) {
+        return new DefaultProvider<String>({ value })
+    }
+
+    @Override
+    String someValue() {
+        return "s1"
+    }
+
+    @Override
+    String someOtherValue() {
+        return "s2"
+    }
+
+    def "toString() does not realize value"() {
         given:
-        boolean immutableProviderValue1 = true
-        def provider1 = createProvider(immutableProviderValue1)
-        def provider2 = createProvider(value)
+        def providerWithBadValue = new DefaultProvider<String>({
+            assert false : "never called"
+        })
 
         expect:
-        (provider1.toString() == provider2.toString()) == stringRepresentation
-        provider1.toString() == "value: $immutableProviderValue1"
-        provider2.toString() == "value: $value"
+        providerWithBadValue.toString() == "provider(?)"
+        Providers.notDefined().toString() == "undefined"
 
-        where:
-        value | stringRepresentation
-        true  | true
-        false | false
-        null  | false
     }
 
     def "throws exception if null value is retrieved for non-null get method"() {
@@ -64,22 +74,6 @@ class DefaultProviderTest extends Specification {
 
         then:
         value
-    }
-
-    def "returns value or null for get or null method"() {
-        when:
-        def provider = createProvider()
-
-        then:
-        !provider.isPresent()
-        provider.getOrNull() == null
-
-        when:
-        provider = createProvider(true)
-
-        then:
-        provider.isPresent()
-        provider.getOrNull()
     }
 
     def "rethrows exception if value calculation throws exception"() {

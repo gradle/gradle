@@ -18,6 +18,8 @@ package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
+
 class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
     def setup() {
         buildFile << """   
@@ -54,16 +56,28 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
     def "build does not fail if connection drops during store"() {
         httpBuildCacheServer.dropConnectionForPutAfterBytes(1024)
         startServer()
-        String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|Connection refused)/
+        String errorPattern = /(Broken pipe.+|Connection reset|Software caused connection abort: socket write error)/
 
         when:
         executer.withStackTraceChecksDisabled()
         executer.withStacktraceDisabled()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
 
         then:
-        output =~ /Could not store entry .* for task ':customTask' in remote build cache/
-        output =~ /Unable to store entry at .*: ${errorPattern}/
+        output =~ /Could not store entry .* for task ':customTask' in remote build cache: ${errorPattern}/
+    }
+
+    def "build cache is deactivated for the build if the connection times out"() {
+        httpBuildCacheServer.blockIncomingConnectionsForSeconds = 10
+        startServer()
+
+        when:
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        executer.withStacktraceDisabled()
+        withBuildCache().run("customTask")
+
+        then:
+        output =~ /Could not load entry .* for task ':customTask' from remote build cache: Read timed out/
     }
 
     private void startServer() {

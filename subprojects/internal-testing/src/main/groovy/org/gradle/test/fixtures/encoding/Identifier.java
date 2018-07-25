@@ -87,7 +87,7 @@ public class Identifier {
 
     public static Identifier getNonAscii() {
         if (OperatingSystem.current().isMacOsX()) {
-            // The hfs+ file system stores file names in decomposed form. Don't use precomposed characters on OS X, as way too few things normalise text correctly
+            // The hfs+ file system stores file names in decomposed form. Don't use precomposed characters on macOS, as way too few things normalise text correctly
             return new Identifier(NON_PRECOMPOSED_NON_ASCII, "non-ascii");
         }
         return new Identifier(NON_ASCII_CHARS, "non-ascii");

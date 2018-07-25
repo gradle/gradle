@@ -43,7 +43,7 @@ class DefaultClassLoaderCacheTest extends Specification {
     }
 
     ClassPath classPath(String... paths) {
-        new DefaultClassPath(paths.collect { file(it) } as Iterable<File>)
+        DefaultClassPath.of(paths.collect { file(it) } as Iterable<File>)
     }
 
     ClassLoader classLoader(ClassPath classPath) {

@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 /**
- * A Swift app composed of 3 modules: an executable and 2 libraries. Executable depends on one library only, so that the other library is a transitive dependency of the executable.
+ * A Swift app composed of 3 modules: an application and 2 libraries. The application depends on one library only, so that the other library is a transitive dependency of the application.
  */
 class SwiftAppWithLibraries implements AppElement {
     final logger = new SwiftLogger()
@@ -36,18 +36,11 @@ class SwiftAppWithLibraries implements AppElement {
     }
 
     SourceElement getLibrary() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return [greeter.sourceFile].collect {
-                    sourceFile(it.path, it.name, "import Log\n${it.content}")
-                }
-            }
-        }
+        return greeter
     }
 
-    SourceElement getExecutable() {
-        return new SourceElement() {
+    SwiftSourceElement getApplication() {
+        return new SwiftSourceElement('app') {
             @Override
             List<SourceFile> getFiles() {
                 return [main.sourceFile].collect {

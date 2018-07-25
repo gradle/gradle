@@ -45,10 +45,14 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         this
     }
 
-    def fromFileToTestClass(String s) {
-        s.replaceAll(/#([\d\w][\d\w])/){
-            (char)Integer.parseInt(it[1], 16)
-        }
+    String fromFileToTestClass(File junitXmlFile) {
+        def xml = new XmlSlurper().parse(junitXmlFile)
+        xml.@'name'.text()
+    }
+
+    boolean testClassExists(String testClass) {
+        def classes = findClasses()
+        return (classes.keySet().contains(testClass))
     }
 
     TestClassExecutionResult testClass(String testClass) {
@@ -58,6 +62,11 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     TestClassExecutionResult testClassStartsWith(String testClass) {
         def matching = findTestClassStartsWith(testClass)
         return new JUnitTestClassExecutionResult(matching[1], matching[0], outputAssociation)
+    }
+
+    @Override
+    int getTotalNumberOfTestClassesExecuted() {
+        return findClasses().size()
     }
 
     private def findTestClass(String testClass) {
@@ -84,7 +93,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         testResultsDir.eachFile { File file ->
             def matcher = (file.name=~/TEST-(.+)\.xml/)
             if (matcher.matches()) {
-                classes[fromFileToTestClass(matcher.group(1))] = file
+                classes[fromFileToTestClass(file)] = file
             }
         }
         return classes

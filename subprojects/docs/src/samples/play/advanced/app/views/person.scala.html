@@ -1,4 +1,4 @@
-@(personForm: Form[Person])
+@(personForm: Form[Person])(implicit messages: play.api.i18n.Messages)
 
 @implicitField = @{ helper.FieldConstructor(fields.f) }
 

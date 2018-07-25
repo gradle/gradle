@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.HasAttributes;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ import java.util.List;
  * a component descriptor (Ivy file, Maven POM).
  */
 @Incubating
-public interface ComponentMetadata {
+public interface ComponentMetadata extends HasAttributes {
     /**
      * Returns the identifier of the component.
      *

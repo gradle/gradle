@@ -16,14 +16,16 @@
 
 package org.gradle.internal.logging.console.jvm
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.*
 
-class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
+class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
 
     private static final int MAX_WORKERS = 2
     private static final String SERVER_RESOURCE_1 = 'test-1'
@@ -37,6 +39,7 @@ class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractConsoleFu
     BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        executer.withConsole(ConsoleOutput.Rich)
         executer.withArguments('--parallel', "--max-workers=$MAX_WORKERS")
         server.start()
     }

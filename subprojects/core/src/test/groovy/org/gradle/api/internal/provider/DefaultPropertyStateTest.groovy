@@ -18,12 +18,24 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.PropertyState
-import spock.lang.Unroll
+import org.gradle.api.provider.Provider
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
     @Override
     DefaultPropertyState<String> property() {
         return new DefaultPropertyState<String>(String)
+    }
+
+    @Override
+    Provider<String> providerWithNoValue() {
+        return property()
+    }
+
+    @Override
+    Provider<String> providerWithValue(String value) {
+        def p = property()
+        p.set(value)
+        return p
     }
 
     @Override
@@ -41,23 +53,16 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         return "value2"
     }
 
-    @Unroll
-    def "can compare string representation with other instance returning value #value"() {
+    def "toString() does not realize value"() {
         given:
-        boolean immutablePropertyStateValue1 = true
-        def property1 = createBooleanPropertyState(immutablePropertyStateValue1)
-        def property2 = createBooleanPropertyState(value)
+        def propertyWithBadValue = property()
+        propertyWithBadValue.set(new DefaultProvider<String>({
+            assert false : "never called"
+        }))
 
         expect:
-        (property1.toString() == property2.toString()) == stringRepresentation
-        property1.toString() == "value: $immutablePropertyStateValue1"
-        property2.toString() == "value: $value"
-
-        where:
-        value | stringRepresentation
-        true  | true
-        false | false
-        null  | false
+        propertyWithBadValue.toString() == "property(class java.lang.String, transform(provider(?)))"
+        providerWithNoValue().toString() == "property(class java.lang.String, undefined)"
     }
 
     def "has no initial value"() {

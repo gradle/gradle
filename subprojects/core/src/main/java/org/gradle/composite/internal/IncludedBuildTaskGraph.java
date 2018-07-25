@@ -18,10 +18,15 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
+import java.util.Collection;
+
 public interface IncludedBuildTaskGraph {
     void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
 
-    void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
+    /**
+     * Awaits completion of task execution, collecting any task failures into the given collection.
+     */
+    void awaitTaskCompletion(Collection<? super Throwable> taskFailures);
 
-    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
+    IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath);
 }

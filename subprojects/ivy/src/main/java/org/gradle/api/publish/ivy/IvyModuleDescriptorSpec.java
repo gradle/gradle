@@ -29,10 +29,11 @@ import javax.annotation.Nullable;
  * Corresponds to the <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">XML version of the Ivy Module Descriptor</a>.
  * <p>
  * The {@link #withXml(org.gradle.api.Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
+ * However, the preferred way to customize the project information to be published is to use the dedicated configuration methods exposed by this class, e.g.
+ * {@link #description(Action)}.
  *
  * @since 1.3
  */
-@Incubating
 @HasInternalProtocol
 public interface IvyModuleDescriptorSpec {
 
@@ -102,4 +103,29 @@ public interface IvyModuleDescriptorSpec {
      * Adds a new extra info element to the publication
      */
     void extraInfo(String namespace, String elementName, String value);
+
+    /**
+     * Creates, configures and adds a license to this publication.
+     *
+     * @since 4.8
+     */
+    @Incubating
+    void license(Action<? super IvyModuleDescriptorLicense> action);
+
+    /**
+     * Creates, configures and adds an author to this publication.
+     *
+     * @since 4.8
+     */
+    @Incubating
+    void author(Action<? super IvyModuleDescriptorAuthor> action);
+
+    /**
+     * Configures the description for this publication.
+     *
+     * @since 4.8
+     */
+    @Incubating
+    void description(Action<? super IvyModuleDescriptorDescription> action);
+
 }

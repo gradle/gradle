@@ -7,6 +7,6 @@ dependencies {
 task testDeps(dependsOn: configurations.runtime) {
     doLast {
         Assert.assertEquals(['commons-lang-2.4.jar', 'commons-io-1.2.jar', 'shared-1.0.jar'] as Set,
-                configurations.runtime.files.collect { it.name } as Set)
+                configurations.runtime.collect { it.name } as Set)
     }
 }

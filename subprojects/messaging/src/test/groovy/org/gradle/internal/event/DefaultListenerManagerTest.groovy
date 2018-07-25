@@ -16,8 +16,10 @@
 
 package org.gradle.internal.event
 
+import com.google.common.reflect.ClassPath
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Timeout
 
 import java.util.concurrent.CopyOnWriteArrayList
@@ -886,6 +888,27 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
         then:
         instant.removed < instant.handled
+    }
+
+    @Issue('https://github.com/gradle/gradle-private/issues/1031')
+    def concurrentAccessIsSafe() {
+        when:
+        List<Class> manyClasses = ClassPath.from(Thread.currentThread().getContextClassLoader()).getTopLevelClassesRecursive('java.util')*.load().findAll { it.isInterface() }
+
+        start {
+            manyClasses.each {
+                manager.getBroadcaster(it)
+            }
+        }
+        start {
+            10000.times {
+                manager.addListener(new Object())
+                manager.removeListener(new Object())
+            }
+        }
+
+        then:
+        executor.failure == null
     }
 
     public interface TestFooListener {

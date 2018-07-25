@@ -26,6 +26,10 @@ public class SubVersionSelector extends AbstractStringVersionSelector {
         prefix = selector.substring(0, selector.length() - 1);
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
     public boolean isDynamic() {
         return true;
     }
@@ -41,9 +45,4 @@ public class SubVersionSelector extends AbstractStringVersionSelector {
     public boolean accept(String candidate) {
         return candidate.startsWith(prefix);
     }
-
-    @Override
-    public boolean canShortCircuitWhenVersionAlreadyPreselected() {
-        return false;
     }
-}

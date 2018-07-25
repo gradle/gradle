@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
@@ -26,9 +27,11 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 
 public class DaemonCommandExecuter {
 
+    private final DaemonServerConfiguration configuration;
     private final ImmutableList<DaemonCommandAction> actions;
 
-    public DaemonCommandExecuter(ImmutableList<DaemonCommandAction> actions) {
+    public DaemonCommandExecuter(DaemonServerConfiguration configuration, ImmutableList<DaemonCommandAction> actions) {
+        this.configuration = configuration;
         this.actions = actions;
     }
 
@@ -43,6 +46,7 @@ public class DaemonCommandExecuter {
      */
     public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
         new DaemonCommandExecution(
+            configuration,
             connection,
             command,
             daemonContext,

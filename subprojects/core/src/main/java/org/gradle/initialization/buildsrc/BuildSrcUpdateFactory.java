@@ -16,47 +16,39 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
-public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
-    private final PersistentCache cache;
-    private final BuildController buildController;
-    private BuildSrcBuildListenerFactory listenerFactory;
+public class BuildSrcUpdateFactory implements Factory<ClassPath> {
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    public BuildSrcUpdateFactory(PersistentCache cache, BuildController buildController, BuildSrcBuildListenerFactory listenerFactory) {
-        this.cache = cache;
+    private final BuildController buildController;
+    private final BuildSrcBuildListenerFactory listenerFactory;
+    private final CachedClasspathTransformer cachedClasspathTransformer;
+
+    public BuildSrcUpdateFactory(BuildController buildController, BuildSrcBuildListenerFactory listenerFactory, CachedClasspathTransformer cachedClasspathTransformer) {
         this.buildController = buildController;
         this.listenerFactory = listenerFactory;
+        this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
-    public DefaultClassPath create() {
-        File markerFile = new File(cache.getBaseDir(), "built.bin");
-        final boolean rebuild = !markerFile.exists();
-
-        Collection<File> classpath = build(rebuild);
+    public ClassPath create() {
+        Collection<File> classpath = build();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        try {
-            markerFile.createNewFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return new DefaultClassPath(classpath);
+        return cachedClasspathTransformer.transform(DefaultClassPath.of(classpath));
     }
 
-    private Collection<File> build(boolean rebuild) {
-        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
+    private Collection<File> build() {
+        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
         GradleInternal gradle = buildController.getGradle();
         gradle.addListener(listener);
 

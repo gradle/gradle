@@ -16,15 +16,16 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.api.internal.tasks.TaskReferenceResolver;
-import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -43,24 +44,22 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildTreeScopeServices {
-        public DefaultIncludedBuilds createIncludedBuilds() {
-            return new DefaultIncludedBuilds();
+        public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context, ProjectStateRegistry projectRegistry, Instantiator instantiator, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
+            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
+            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
+            return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, rootServices);
         }
 
-        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return new DefaultBuildableCompositeBuildContext(includedBuilds, moduleIdentifierFactory);
+        public CompositeBuildContext createCompositeBuildContext() {
+            return new DefaultBuildableCompositeBuildContext();
         }
 
-        public DefaultProjectPathRegistry createProjectPathRegistry() {
-            return new DefaultProjectPathRegistry();
+        public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry) {
+            return new LocalComponentInAnotherBuildProvider(projectRegistry, new IncludedBuildDependencyMetadataBuilder());
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
-            return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
-        }
-
-        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuilds includedBuilds) {
-            return new DefaultIncludedBuildControllers(executorFactory, includedBuilds);
+        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry) {
+            return new DefaultIncludedBuildControllers(executorFactory, buildRegistry);
         }
 
         public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
@@ -69,16 +68,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseService workerLeaseService) {
-            return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory, workerLeaseService);
-        }
-
-        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
-            return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
-        }
-
-        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
-            return new CompositeBuildClassPathInitializer(includedBuilds, includedBuildTaskGraph, serviceRegistry);
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
+            return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, currentBuild);
         }
     }
 

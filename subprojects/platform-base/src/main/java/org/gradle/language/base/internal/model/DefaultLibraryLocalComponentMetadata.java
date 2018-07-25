@@ -15,24 +15,30 @@
  */
 package org.gradle.language.base.internal.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.component.local.model.RootConfigurationMetadata;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.locking.DefaultDependencyLockingState;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
@@ -44,12 +50,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
 import static org.gradle.platform.base.internal.DefaultModuleDependencySpec.effectiveVersionFor;
 
 public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentMetadata {
     private static final String VERSION = "<local component>";
-    private static final List<Exclude> EXCLUDE_RULES = Collections.emptyList();
+    private static final List<ExcludeMetadata> EXCLUDE_RULES = Collections.emptyList();
     private static final String CONFIGURATION_COMPILE = "compile";
 
     public static DefaultLibraryLocalComponentMetadata newResolvedLibraryMetadata(
@@ -85,7 +90,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 true,
                 ImmutableAttributes.EMPTY,
                 true,
-                false);
+                false,
+                ImmutableCapabilities.EMPTY);
         }
         return metaData;
     }
@@ -94,8 +100,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         metadata.addDependencies(value, defaultProject, configuration);
     }
 
-    private static DefaultModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {
-        return new DefaultModuleVersionIdentifier(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
+    private static ModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {
+        return DefaultModuleVersionIdentifier.newId(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
     }
 
     private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
@@ -113,15 +119,14 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
             ? moduleDependencyMetadata((ModuleDependencySpec) dependency, usageConfigurationName)
             : dependency instanceof ProjectDependencySpec ? projectDependencyMetadata((ProjectDependencySpec) dependency, defaultProject, usageConfigurationName)
             : binaryDependencyMetadata((LibraryBinaryDependencySpec) dependency, usageConfigurationName);
-        addDependency(metadata);
+        getConfiguration(usageConfigurationName).addDependency(metadata);
     }
 
     private LocalOriginDependencyMetadata moduleDependencyMetadata(ModuleDependencySpec moduleDependency, String usageConfigurationName) {
-        ModuleVersionSelector requested = moduleVersionSelectorFrom(moduleDependency);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
+        ModuleComponentSelector selector = moduleComponentSelectorFrom(moduleDependency);
         // TODO: This hard-codes the assumption of a 'compile' configuration on the external module
         // Instead, we should be creating an API configuration for each resolved module
-        return dependencyMetadataFor(selector, requested, usageConfigurationName, CONFIGURATION_COMPILE);
+        return dependencyMetadataFor(selector, usageConfigurationName, CONFIGURATION_COMPILE);
     }
 
     // TODO: projectDependency should be transformed based on defaultProject (and other context) elsewhere.
@@ -132,20 +137,18 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         }
         String libraryName = projectDependency.getLibraryName();
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
-        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
-        return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
+        return dependencyMetadataFor(selector, usageConfigurationName, usageConfigurationName);
     }
 
     private LocalOriginDependencyMetadata binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
         String projectPath = binarySpec.getProjectPath();
         String libraryName = binarySpec.getLibraryName();
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
-        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, getId().getVersion());
-        return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
+        return dependencyMetadataFor(selector, usageConfigurationName, usageConfigurationName);
     }
 
-    private ModuleVersionSelector moduleVersionSelectorFrom(ModuleDependencySpec module) {
-        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
+    private ModuleComponentSelector moduleComponentSelectorFrom(ModuleDependencySpec module) {
+        return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(module.getGroup(), module.getName()), effectiveVersionFor(module.getVersion()));
     }
 
     /**
@@ -155,12 +158,42 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
      * assumed to exist. Therefore, this method takes 2 arguments: one is the requested usage ("API") and the other is the mapped usage
      * ("compile"). For local libraries, both should be equal, but for external dependencies, they will be different.
      */
-    private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String usageConfigurationName, String mappedUsageConfiguration) {
+    private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
-            selector, requested, usageConfigurationName, null, mappedUsageConfiguration,
-            Collections.<IvyArtifactName>emptySet(),
+            new OpaqueComponentIdentifier("TODO"),
+            selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
+            ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
-            false, false, true);
+            false, false, true, false, null);
     }
 
+    @Override
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+        assert hierarchy.contains(name);
+        DefaultLocalConfigurationMetadata conf = new LibraryLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        addToConfigurations(name, conf);
+        return conf;
+    }
+
+    class LibraryLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
+
+        LibraryLocalConfigurationMetadata(String name,
+                                          String description,
+                                          boolean visible,
+                                          boolean transitive,
+                                          Set<String> extendsFrom,
+                                          Set<String> hierarchy,
+                                          ImmutableAttributes attributes,
+                                          boolean canBeConsumed,
+                                          boolean canBeResolved,
+                                          ImmutableCapabilities capabilities) {
+            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        }
+
+
+        @Override
+        public DependencyLockingState getDependencyLockingState() {
+            return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+        }
+    }
 }

@@ -1,0 +1,11 @@
+creating Person 'people.barry'
+configuring Person 'people.barry'
+creating Person 'people.john'
+configuring Person 'people.john'
+
+> Task :listPeople
+Hello Barry Barry!
+Hello John Smith!
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

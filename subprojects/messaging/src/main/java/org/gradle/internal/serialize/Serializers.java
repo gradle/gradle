@@ -48,4 +48,20 @@ public class Serializers {
             };
         }
     }
+
+    public static <T> Serializer<T> constant(final T instance) {
+        return new Serializer<T>() {
+            @Override
+            public T read(Decoder decoder) {
+                return instance;
+            }
+
+            @Override
+            public void write(Encoder encoder, T value) {
+                if (value != instance) {
+                    throw new IllegalArgumentException("Cannot serialize constant value: " + value);
+                }
+            }
+        };
+    }
 }

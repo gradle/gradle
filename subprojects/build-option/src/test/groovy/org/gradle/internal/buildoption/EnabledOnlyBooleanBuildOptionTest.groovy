@@ -66,8 +66,10 @@ class EnabledOnlyBooleanBuildOptionTest extends Specification {
         CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
         assertNoArguments(longOption)
         assertNoArguments(shortOption)
-        assertNoDeprecationWarning(longOption)
-        assertNoDeprecationWarning(shortOption)
+        assertNotDeprecated(longOption)
+        assertNotDeprecated(shortOption)
+        assertDescription(longOption)
+        assertDescription(shortOption)
     }
 
     def "can configure incubating command line option"() {
@@ -82,27 +84,32 @@ class EnabledOnlyBooleanBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[SHORT_OPTION], incubating)
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertIncubating(longOption, incubating)
+        assertIncubating(shortOption, incubating)
+        assertIncubatingDescription(longOption, incubating)
+        assertIncubatingDescription(shortOption, incubating)
 
         where:
         incubating << [false, true]
     }
 
     def "can configure deprecated command line option"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
-            .deprecated(deprecationWarning)
+            .deprecated()
 
         def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
 
         then:
-        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
-        assertDeprecationWarning(commandLineParser.optionsByString[SHORT_OPTION], deprecationWarning)
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertDeprecated(longOption)
+        assertDeprecated(shortOption)
+        assertDeprecatedDescription(longOption, true)
+        assertDeprecatedDescription(shortOption, true)
     }
 
     def "can apply from command line"() {

@@ -15,20 +15,30 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Cast;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.metaobject.PropertyAccess;
@@ -36,17 +46,21 @@ import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
@@ -58,8 +72,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private final Set<String> applyingRulesFor = new HashSet<String>();
+    private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
-    public DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -73,7 +88,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
+    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -85,16 +100,69 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer);
     }
 
-    /**
-     * Subclasses that can guarantee that the backing store enforces name uniqueness should override this to simply call super.add(T) (avoiding an unnecessary lookup)
-     */
-    public boolean add(T o) {
-        if (!hasWithName(namer.determineName(o))) {
-            return super.add(o);
+    @Override
+    public boolean add(final T o) {
+        return add(o, getEventRegister().getAddActions());
+    }
+
+    @Override
+    protected <I extends T> boolean add(final I o, Action<? super I> notification) {
+        final String name = namer.determineName(o);
+        if (index.get(name) == null) {
+            boolean added = super.add(o, notification);
+            if (added) {
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, o));
+            }
+            return added;
         } else {
             handleAttemptToAddItemWithNonUniqueName(o);
             return false;
         }
+    }
+
+    @Override
+    protected void realized(ProviderInternal<? extends T> provider) {
+        super.realized(provider);
+        index.removePending(provider);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+        boolean changed = super.addAll(c);
+        if (changed) {
+            for (T t : c) {
+                String name = namer.determineName(t);
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, t));
+            }
+        }
+        return changed;
+    }
+
+    @Override
+    public void addLater(final Provider<? extends T> provider) {
+        super.addLater(provider);
+        if (provider instanceof Named) {
+            final Named named = (Named) provider;
+            index.putPending(named.getName(), (ProviderInternal<? extends T>) provider);
+            deferredElementKnown(named.getName(), provider);
+        }
+    }
+
+    public void whenElementKnown(Action<? super ElementInfo<T>> action) {
+        whenKnown = whenKnown.add(action);
+        Iterator<T> iterator = iteratorNoFlush();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            whenKnown.execute(new ObjectBackedElementInfo<T>(namer.determineName(next), next));
+        }
+
+        for (Map.Entry<String, ProviderInternal<? extends T>> entry : index.getPendingAsMap().entrySet()) {
+            deferredElementKnown(entry.getKey(), entry.getValue());
+        }
+    }
+
+    protected final void deferredElementKnown(String name, Provider<? extends T> provider) {
+        whenKnown.execute(new ProviderBackedElementInfo<T>(name, provider));
     }
 
     @Override
@@ -108,12 +176,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         index.clear();
     }
 
-
     @Override
     protected void didRemove(T t) {
         index.remove(namer.determineName(t));
     }
-
 
     /**
      * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add an item with the same name as an existing item.</p>
@@ -175,7 +241,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public SortedSet<String> getNames() {
-        return index.asMap().navigableKeySet();
+        NavigableSet<String> realizedNames = index.asMap().navigableKeySet();
+        Set<String> pendingNames = index.getPendingAsMap().keySet();
+        if (pendingNames.isEmpty()) {
+            return realizedNames;
+        }
+        TreeSet<String> allNames = new TreeSet<String>(realizedNames);
+        allNames.addAll(pendingNames);
+        return allNames;
     }
 
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
@@ -195,6 +268,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (value != null) {
             return value;
         }
+        ProviderInternal<? extends T> provider = index.getPending(name);
+        if (provider != null) {
+            // TODO - this isn't correct, assumes that a side effect is to add the element
+            provider.getOrNull();
+            // Use the index here so we can apply any filters to the realized element
+            return index.get(name);
+        }
         if (!applyRules(name)) {
             return null;
         }
@@ -202,11 +282,17 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected boolean hasWithName(String name) {
-        return findByNameWithoutRules(name) != null;
+        return index.get(name) != null || index.getPending(name) != null;
     }
 
+    @Nullable
     protected T findByNameWithoutRules(String name) {
         return index.get(name);
+    }
+
+    @Nullable
+    protected ProviderInternal<? extends T> findByNameLaterWithoutRules(String name) {
+        return index.getPending(name);
     }
 
     protected T removeByName(String name) {
@@ -246,6 +332,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     public T getAt(String name) throws UnknownDomainObjectException {
         return getByName(name);
+    }
+
+    @Override
+    public Provider<T> named(String name) throws UnknownTaskException {
+        Provider<? extends T> provider = findDomainObject(name);
+        if (provider == null) {
+            throw createNotFoundException(name);
+        }
+        return Cast.uncheckedCast(provider);
     }
 
     @Override
@@ -379,6 +474,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected interface Index<T> {
         void put(String name, T value);
 
+        @Nullable
         T get(String name);
 
         void remove(String name);
@@ -388,10 +484,21 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         NavigableMap<String, T> asMap();
 
         <S extends T> Index<S> filter(CollectionFilter<S> filter);
+
+        @Nullable
+        ProviderInternal<? extends T> getPending(String name);
+
+        void putPending(String name, ProviderInternal<? extends T> provider);
+
+        void removePending(String name);
+
+        void removePending(ProviderInternal<? extends T> provider);
+
+        Map<String, ProviderInternal<? extends T>> getPendingAsMap();
     }
 
     protected static class UnfilteredIndex<T> implements Index<T> {
-
+        private final Map<String, ProviderInternal<? extends T>> pendingMap = Maps.newLinkedHashMap();
         private final NavigableMap<String, T> map = new TreeMap<String, T>();
 
         @Override
@@ -423,6 +530,32 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
             return new FilteredIndex<S>(this, filter);
         }
+
+        @Nullable
+        @Override
+        public ProviderInternal<? extends T> getPending(String name) {
+            return pendingMap.get(name);
+        }
+
+        @Override
+        public void putPending(String name, ProviderInternal<? extends T> provider) {
+            pendingMap.put(name, provider);
+        }
+
+        @Override
+        public void removePending(String name) {
+            pendingMap.remove(name);
+        }
+
+        @Override
+        public void removePending(ProviderInternal<? extends T> provider) {
+            pendingMap.values().remove(provider);
+        }
+
+        @Override
+        public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
+            return pendingMap;
+        }
     }
 
     private static class FilteredIndex<T> implements Index<T> {
@@ -430,7 +563,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         private final Index<? super T> delegate;
         private final CollectionFilter<T> filter;
 
-        public FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
+        FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
             this.delegate = delegate;
             this.filter = filter;
         }
@@ -474,6 +607,152 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
             return new FilteredIndex<S>(delegate, this.filter.and(filter));
         }
+
+        @Nullable
+        @Override
+        public ProviderInternal<? extends T> getPending(String name) {
+            ProviderInternal<?> provider = delegate.getPending(name);
+            if (provider != null && provider.getType() != null && filter.getType().isAssignableFrom(provider.getType())) {
+                return (ProviderInternal<? extends T>) provider;
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public void putPending(String name, ProviderInternal<? extends T> provider) {
+            delegate.putPending(name, provider);
+        }
+
+        @Override
+        public void removePending(String name) {
+            delegate.removePending(name);
+        }
+
+        @Override
+        public void removePending(ProviderInternal<? extends T> provider) {
+            delegate.removePending(provider);
+        }
+
+        @Override
+        public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
+            // TODO not sure if we can clean up the generics here and do less unchecked casting
+            Map<String, ProviderInternal<?>> delegateMap = Cast.uncheckedCast(delegate.getPendingAsMap());
+            Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
+            for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
+                if (entry.getValue().getType() != null && filter.getType().isAssignableFrom(entry.getValue().getType())) {
+                    ProviderInternal<? extends T> typedValue = Cast.uncheckedCast(entry.getValue());
+                    filteredMap.put(entry.getKey(), typedValue);
+                }
+            }
+            return filteredMap;
+        }
     }
 
+    public interface ElementInfo<T> {
+        String getName();
+
+        Class<?> getType();
+    }
+
+    private static class ObjectBackedElementInfo<T> implements ElementInfo<T> {
+        private final String name;
+        private final T o;
+
+        ObjectBackedElementInfo(String name, T o) {
+            this.name = name;
+            this.o = o;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return new DslObject(o).getDeclaredType();
+        }
+    }
+
+    private static class ProviderBackedElementInfo<T> implements ElementInfo<T> {
+        private final String name;
+        private final Provider<? extends T> provider;
+
+        ProviderBackedElementInfo(String name, Provider<? extends T> provider) {
+            this.name = name;
+            this.provider = provider;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return ((ProviderInternal<?>) provider).getType();
+        }
+    }
+
+    @Nullable
+    protected Provider<? extends T> findDomainObject(String name) {
+        T object = findByNameWithoutRules(name);
+        if (object == null) {
+            return findByNameLaterWithoutRules(name);
+        }
+
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, object, name));
+    }
+
+    protected abstract class AbstractDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named {
+        private final String name;
+
+        protected AbstractDomainObjectProvider(String name) {
+            this.name = name;
+        }
+
+        @Nullable
+        @Override
+        public Class<I> getType() {
+            return (Class<I>) DefaultNamedDomainObjectCollection.this.getType();
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findDomainObject(name) != null;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("provider(%s %s, %s)", getTypeDisplayName(), getName(), getType());
+        }
+    }
+
+    protected class ExistingDomainObjectProvider<I extends T> extends AbstractDomainObjectProvider<I> {
+        private final I object;
+
+        public ExistingDomainObjectProvider(I object, String name) {
+            super(name);
+            this.object = object;
+        }
+
+        public void configure(Action<? super I> action) {
+            action.execute(object);
+        }
+
+        @Override
+        public boolean isPresent() {
+            return true;
+        }
+
+        public I getOrNull() {
+            return object;
+        }
+    }
 }

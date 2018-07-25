@@ -43,9 +43,8 @@ public class Providers {
             return null;
         }
 
-        @Nullable
         @Override
-        public Object getOrElse(@Nullable Object defaultValue) {
+        public Object getOrElse(Object defaultValue) {
             return defaultValue;
         }
 
@@ -57,6 +56,11 @@ public class Providers {
         @Override
         public boolean isPresent() {
             return false;
+        }
+
+        @Override
+        public String toString() {
+            return "undefined";
         }
     };
 
@@ -96,9 +100,8 @@ public class Providers {
             return value;
         }
 
-        @Nullable
         @Override
-        public T getOrElse(@Nullable T defaultValue) {
+        public T getOrElse(T defaultValue) {
             return value;
         }
 
@@ -115,6 +118,11 @@ public class Providers {
         @Override
         public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
             return new MappedFixedValueProvider<S, T>(transformer, this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("fixed(%s, %s)", getType(), value);
         }
     }
 
@@ -154,7 +162,7 @@ public class Providers {
         }
 
         @Override
-        public S getOrElse(@Nullable S defaultValue) {
+        public S getOrElse(S defaultValue) {
             return get();
         }
 
@@ -167,6 +175,14 @@ public class Providers {
         @Override
         public <U> ProviderInternal<U> map(Transformer<? extends U, ? super S> transformer) {
             return new MappedFixedValueProvider<U, S>(transformer, this);
+        }
+
+        @Override
+        public String toString() {
+            if (value == null) {
+                return String.format("transform(not calculated)");
+            }
+            return String.format("transform(%s, %s)", getType(), value);
         }
     }
 }

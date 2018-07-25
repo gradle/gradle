@@ -21,7 +21,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.BasicTextResourceLoader;
 
@@ -58,7 +58,7 @@ public class InitScriptHandler {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Run init scripts").progressDisplayName("init scripts");
+                return BuildOperationDescriptor.displayName("Run init scripts").progressDisplayName("Running init scripts");
             }
         });
     }

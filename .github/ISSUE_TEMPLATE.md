@@ -1,7 +1,10 @@
-<!--- Please follow the instructions below. We receive dozens of issues every week, -->
-<!--- so to stay productive, we will close issues that don't provide enough information. -->
+<!--- 
+Please follow the instructions below. We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information. 
 
-<!--- Please open Android-related issues on the Android Issue Tracker at `https://source.android.com/source/report-bugs` -->
+Please open Android-related issues on the Android Issue Tracker at https://source.android.com/source/report-bugs
+Please open Kotlin DSL-related issues at https://github.com/gradle/kotlin-dsl/issues
+Please open Gradle Native-related issues at https://github.com/gradle/gradle-native/issues
+-->
 
 <!--- Provide a brief summary of the issue in the title above -->
 
@@ -23,5 +26,5 @@
 
 ### Your Environment
 <!--- Include as many relevant details about the environment you experienced the bug in -->
-<!--- A build scan `https://gradle.com/scans/get-started` is ideal -->
+<!--- A build scan `https://scans.gradle.com/get-started` is ideal -->
  * Build scan URL: 

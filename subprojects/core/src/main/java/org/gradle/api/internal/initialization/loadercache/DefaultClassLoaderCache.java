@@ -169,9 +169,14 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             return filterSpec != null;
         }
 
-        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object o) {
+            if (o == this) {
+                return true;
+            }
+            if (o == null || o.getClass() != getClass()) {
+                return false;
+            }
             ManagedClassLoaderSpec that = (ManagedClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
                 && this.implementationHash.equals(that.implementationHash)

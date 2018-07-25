@@ -18,14 +18,11 @@ package org.gradle.nativeplatform.fixtures.app
 
 class SwiftMultiplyTest extends XCTestSourceFileElement {
     final MultiplyElement testedElement
-    final String moduleName
 
-    SwiftMultiplyTest(String moduleName, MultiplyElement testedElement) {
+    SwiftMultiplyTest(MultiplyElement testedElement) {
+        super("MultiplyTestSuite")
         this.testedElement = testedElement
-        this.moduleName = moduleName
     }
-
-    String testSuiteName = "MultiplyTestSuite"
 
     @Override
     List<XCTestCaseElement> getTestCases() {

@@ -22,7 +22,7 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class DefaultFileHasher implements FileHasher {
@@ -41,8 +41,8 @@ public class DefaultFileHasher implements FileHasher {
             } finally {
                 IOUtils.closeQuietly(inputStream);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
         }
     }
 

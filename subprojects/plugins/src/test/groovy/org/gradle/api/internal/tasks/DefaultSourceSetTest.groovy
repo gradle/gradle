@@ -67,6 +67,8 @@ class DefaultSourceSetTest extends Specification {
 
         assertThat(sourceSet.compileClasspath, nullValue())
 
+        assertThat(sourceSet.annotationProcessorPath, nullValue())
+
         assertThat(sourceSet.runtimeClasspath, nullValue())
 
         assertThat(sourceSet.resources, instanceOf(DefaultSourceDirectorySet))
@@ -114,6 +116,7 @@ class DefaultSourceSetTest extends Specification {
         assertThat(sourceSet.runtimeConfigurationName, equalTo("setNameRuntime"))
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("setNameCompileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("setNameCompileClasspath"))
+        assertThat(sourceSet.annotationProcessorConfigurationName, equalTo("setNameAnnotationProcessor"))
         assertThat(sourceSet.apiConfigurationName, equalTo("setNameApi"))
         assertThat(sourceSet.apiElementsConfigurationName, equalTo("setNameApiElements"))
     }
@@ -133,6 +136,7 @@ class DefaultSourceSetTest extends Specification {
         assertThat(sourceSet.runtimeConfigurationName, equalTo("runtime"))
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("compileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("compileClasspath"))
+        assertThat(sourceSet.annotationProcessorConfigurationName, equalTo("annotationProcessor"))
         assertThat(sourceSet.apiConfigurationName, equalTo("api"))
         assertThat(sourceSet.apiElementsConfigurationName, equalTo("apiElements"))
     }

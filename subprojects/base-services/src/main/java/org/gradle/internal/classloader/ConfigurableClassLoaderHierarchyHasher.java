@@ -72,7 +72,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
             }
             HashCode hash = classLoaderHasher.getHash(cl);
             if (hash != null) {
-                hasher.putBytes(hash.toByteArray());
+                hasher.putHash(hash);
                 return true;
             }
             foundUnknown = true;

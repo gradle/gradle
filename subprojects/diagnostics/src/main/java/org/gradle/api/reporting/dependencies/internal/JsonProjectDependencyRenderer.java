@@ -28,8 +28,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -110,9 +110,10 @@ import java.util.Set;
  * </pre>
  */
 public class JsonProjectDependencyRenderer {
-    public JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
+    public JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
+        this.versionParser = versionParser;
     }
 
     /**
@@ -197,7 +198,7 @@ public class JsonProjectDependencyRenderer {
     private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
         if (renderableDependency.getId() instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) renderableDependency.getId();
-            return DefaultModuleIdentifier.newId(id.getGroup(), id.getModule());
+            return id.getModuleIdentifier();
         }
         return null;
     }
@@ -262,7 +263,7 @@ public class JsonProjectDependencyRenderer {
             }
         });
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionSelectorScheme, versionComparator);
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser).convertToRenderableItems(selectedDependencies, false);
         return CollectionUtils.collect(sortedDeps, new Transformer<Object, RenderableDependency>() {
             @Override
             public Object transform(RenderableDependency dependency) {
@@ -311,4 +312,5 @@ public class JsonProjectDependencyRenderer {
 
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
+    private final VersionParser versionParser;
 }

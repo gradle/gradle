@@ -17,7 +17,7 @@
 package org.gradle.internal.cleanup
 
 import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         def dir1 = file('dir1')
         File file1 = file('someDir/test1.txt')
         File outputFile = file('someDir/test2.txt')
-        def outputFiles = new SimpleFileCollection(outputFile)
+        def outputFiles = ImmutableFileCollection.of(outputFile)
 
 
         when:

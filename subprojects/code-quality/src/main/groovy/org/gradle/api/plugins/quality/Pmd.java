@@ -44,6 +44,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -66,7 +67,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private boolean incrementalAnalysis;
 
     public Pmd() {
         reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
@@ -195,8 +195,9 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.2
      */
     @Incubating
-    @Nested
+    @Nullable
     @Optional
+    @Nested
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -211,7 +212,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.2
      */
     @Incubating
-    public void setRuleSetConfig(TextResource ruleSetConfig) {
+    public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
 
@@ -316,9 +317,10 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @since 2.8
      */
-    @Classpath
-    @Optional
     @Incubating
+    @Nullable
+    @Optional
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -333,34 +335,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 2.8
      */
     @Incubating
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
-    }
-
-    /**
-     * Retrieves wether to use incremental analysis or not.
-     *
-     * This is only supported for PMD 5.6.0 or better.
-     *
-     * @since 4.3
-     */
-    @Input
-    @Incubating
-    public boolean isIncrementalAnalysis() {
-        return incrementalAnalysis;
-    }
-
-    /**
-     * Configures wether to use incremental analysis or not.
-     *
-     * This is only supported for PMD 5.6.0 or better.
-     *
-     * @param incrementalAnalysis True to enable incremental analysis.
-     *
-     * @since 4.3
-     */
-    @Incubating
-    public void setIncrementalAnalysis(boolean incrementalAnalysis) {
-        this.incrementalAnalysis = incrementalAnalysis;
     }
 }

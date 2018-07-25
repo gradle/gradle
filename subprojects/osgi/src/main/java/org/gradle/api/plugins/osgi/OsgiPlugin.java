@@ -25,6 +25,8 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -35,7 +37,12 @@ public class OsgiPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        final OsgiPluginConvention osgiConvention = new OsgiPluginConvention((ProjectInternal) project);
+        final OsgiPluginConvention osgiConvention = DeprecationLogger.whileDisabled(new Factory<OsgiPluginConvention>() {
+            @Override
+            public OsgiPluginConvention create() {
+                return new OsgiPluginConvention((ProjectInternal) project);
+            }
+        });
         project.getConvention().getPlugins().put("osgi", osgiConvention);
 
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {

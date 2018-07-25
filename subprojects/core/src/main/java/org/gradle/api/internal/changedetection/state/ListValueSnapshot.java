@@ -68,6 +68,7 @@ public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
             if (element != newElement) {
                 break;
             }
+            newElement = null;
         }
         if (pos == elements.length && pos == list.size()) {
             // Same size and no differences
@@ -78,10 +79,12 @@ public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
         ValueSnapshot[] newElements = new ValueSnapshot[list.size()];
         System.arraycopy(elements, 0, newElements, 0, pos);
         if (pos < list.size()) {
+            // If we broke out of the comparison because there was a difference, we can reuse the snapshot of the new element
             if (newElement != null) {
                 newElements[pos] = newElement;
                 pos++;
             }
+            // Anything left over only exists in the new list
             for (int i = pos; i < list.size(); i++) {
                 newElements[i] = snapshotter.snapshot(list.get(i));
             }

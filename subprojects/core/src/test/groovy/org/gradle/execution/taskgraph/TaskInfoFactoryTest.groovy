@@ -16,27 +16,44 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class TaskInfoFactoryTest extends Specification {
-    def graph = new TaskInfoFactory()
+    def gradle = Stub(GradleInternal)
+    def project = Stub(ProjectInternal)
+    def graph
     def a = task('a')
     def b = task('b')
     def c = task('c')
     def d = task('d')
     def e = task('e')
 
+    def setup() {
+        def services = Stub(ServiceRegistry)
+        gradle.services >> services
+        services.get(BuildState) >> Stub(BuildState)
+        project.gradle >> gradle
+
+        graph = new TaskInfoFactory(gradle, Stub(IncludedBuildTaskGraph))
+    }
+
     private TaskInternal task(String name) {
         Mock(TaskInternal) {
             getName() >> name
             compareTo(_) >> { args -> name.compareTo(args[0].name)}
+            getProject() >> project
         }
     }
 
     void 'can create a node for a task'() {
         when:
-        def node = graph.createNode(a)
+        def node = graph.getOrCreateNode(a)
 
         then:
         !node.inKnownState
@@ -44,21 +61,22 @@ class TaskInfoFactoryTest extends Specification {
         node.mustSuccessors.empty
         node.dependencySuccessors.empty
         node.shouldSuccessors.empty
+        node.finalizingSuccessors.empty
         node.finalizers.empty
     }
 
     void 'caches node for a given task'() {
         when:
-        def node = graph.createNode(a)
+        def node = graph.getOrCreateNode(a)
 
         then:
-        graph.createNode(a).is(node)
+        graph.getOrCreateNode(a).is(node)
     }
 
     void 'can add multiple nodes'() {
         when:
-        graph.createNode(a)
-        graph.createNode(b)
+        graph.getOrCreateNode(a)
+        graph.getOrCreateNode(b)
 
         then:
         graph.tasks == [a, b] as Set
@@ -66,9 +84,9 @@ class TaskInfoFactoryTest extends Specification {
 
     void 'clear'() {
         when:
-        graph.createNode(a)
-        graph.createNode(b)
-        graph.createNode(c)
+        graph.getOrCreateNode(a)
+        graph.getOrCreateNode(b)
+        graph.getOrCreateNode(c)
         graph.clear()
 
         then:

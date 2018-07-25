@@ -51,24 +51,19 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         this._propertyNames = JavaReflectionUtil.propertyNames(source);
     }
 
-    private interface Value<T> {
-        T getValue(Convention convention, IConventionAware conventionAwareObject);
-    }
-
-    private MappedProperty map(String propertyName, Value<?> value) {
+    private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
         if (!_propertyNames.contains(propertyName)) {
             throw new InvalidUserDataException(
-                    "You can't map a property that does not exist: propertyName=" + propertyName);
+                "You can't map a property that does not exist: propertyName=" + propertyName);
         }
 
-        MappedPropertyImpl mappedProperty = new MappedPropertyImpl(value);
-        _mappings.put(propertyName, mappedProperty);
-        return mappedProperty;
+        _mappings.put(propertyName, mapping);
+        return mapping;
     }
 
     public MappedProperty map(String propertyName, final Closure<?> value) {
-        return map(propertyName, new Value<Object>() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        return map(propertyName, new MappedPropertyImpl() {
+            public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
                 switch (value.getMaximumNumberOfParameters()) {
                     case 0:
                         return value.call();
@@ -82,8 +77,8 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     public MappedProperty map(String propertyName, final Callable<?> value) {
-        return map(propertyName, new Value<Object>() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        return map(propertyName, new MappedPropertyImpl() {
+            public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
                 return uncheckedCall(value);
             }
         });
@@ -102,7 +97,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
             return actualValue;
         }
 
-        Object returnValue = actualValue;
+        T returnValue = actualValue;
         if (_mappings.containsKey(propertyName)) {
             boolean useMapping = true;
             if (actualValue instanceof Collection && !((Collection<?>) actualValue).isEmpty()) {
@@ -111,40 +106,38 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = _mappings.get(propertyName).getValue(_convention, _source);
+                returnValue = (T) _mappings.get(propertyName).getValue(_convention, _source);
             }
         }
-        return (T) returnValue;
+        return returnValue;
     }
 
     public Convention getConvention() {
         return _convention;
     }
 
-    private static class MappedPropertyImpl implements MappedProperty {
-        private final Value<?> value;
+    private static abstract class MappedPropertyImpl implements MappedProperty {
         private boolean haveValue;
         private boolean cache;
         private Object cachedValue;
 
-        private MappedPropertyImpl(Value<?> value) {
-            this.value = value;
-        }
-
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             if (!cache) {
-                return value.getValue(convention, conventionAwareObject);
+                return doGetValue(convention, conventionAwareObject);
             }
             if (!haveValue) {
-                cachedValue = value.getValue(convention, conventionAwareObject);
+                cachedValue = doGetValue(convention, conventionAwareObject);
                 haveValue = true;
             }
             return cachedValue;
         }
 
+        @Override
         public void cache() {
             cache = true;
             cachedValue = null;
         }
+
+        abstract Object doGetValue(Convention convention, IConventionAware conventionAwareObject);
     }
 }

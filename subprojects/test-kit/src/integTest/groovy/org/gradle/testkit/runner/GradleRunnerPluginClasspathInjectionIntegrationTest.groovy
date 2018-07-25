@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.containsString
 @InjectsPluginClasspath
 @InspectsBuildOutput
 @UsesNativeServices
+@SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def plugin = new PluginUnderTest(1, file("plugin"))
@@ -48,7 +49,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             |Plugin [id: '$plugin.id'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
+            |- Plugin Repositories (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
 
@@ -66,7 +67,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             |- Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})
-            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
+            |- Plugin Repositories (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
 

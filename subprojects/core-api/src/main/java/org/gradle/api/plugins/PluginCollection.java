@@ -21,9 +21,11 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.specs.Spec;
 
+import java.util.Collection;
+
 /**
  * <p>A {@code PluginCollection} represents a collection of {@link org.gradle.api.Plugin} instances.</p>
- * 
+ *
  * @param <T> The type of plugins which this collection contains.
  */
 public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
@@ -60,4 +62,43 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
     @SuppressWarnings("UnusedDeclaration")
     void whenPluginAdded(Closure closure);
 
+    /**
+     * Unsupported.
+     * @deprecated Use {@link PluginManager#apply(Class)} instead.
+     */
+    @Override
+    @Deprecated
+    boolean add(T plugin);
+
+    /**
+     * Unsupported.
+     * @deprecated Use {@link PluginManager#apply(Class)} instead.
+     */
+    @Deprecated
+    @Override
+    boolean addAll(Collection<? extends T> c);
+
+    /**
+     * Unsupported.
+     * @deprecated plugins cannot be removed.
+     */
+    @Override
+    @Deprecated
+    boolean remove(Object o);
+
+    /**
+     * Unsupported.
+     * @deprecated plugins cannot be removed.
+     */
+    @Override
+    @Deprecated
+    boolean removeAll(Collection<?> c);
+
+    /**
+     * Unsupported.
+     * @deprecated plugins cannot be removed.
+     */
+    @Override
+    @Deprecated
+    void clear();
 }

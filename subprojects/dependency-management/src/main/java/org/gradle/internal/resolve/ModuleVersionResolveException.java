@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.Contextual;
@@ -35,6 +37,11 @@ import java.util.List;
 public class ModuleVersionResolveException extends DefaultMultiCauseException {
     private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<List<? extends ComponentIdentifier>>();
     private final ComponentSelector selector;
+
+    public ModuleVersionResolveException(ComponentSelector selector, String message, Throwable cause) {
+        super(message, cause);
+        this.selector = selector;
+    }
 
     public ModuleVersionResolveException(ComponentSelector selector, String message) {
         super(message);
@@ -52,31 +59,31 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, String message) {
-        this(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getName(), selector.getVersion()), message);
+        this(DefaultModuleComponentSelector.newSelector(selector), message);
     }
 
     public ModuleVersionResolveException(ModuleVersionIdentifier id, String message) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), message);
+        this(DefaultModuleComponentSelector.newSelector(id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), message);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), messageFormat);
+        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), Arrays.asList(cause));
+        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), Arrays.asList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), causes);
+        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), causes);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getName(), selector.getVersion()), cause);
+        this(DefaultModuleComponentSelector.newSelector(selector), cause);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getName(), selector.getVersion()), causes);
+        this(DefaultModuleComponentSelector.newSelector(selector), causes);
     }
 
     /**

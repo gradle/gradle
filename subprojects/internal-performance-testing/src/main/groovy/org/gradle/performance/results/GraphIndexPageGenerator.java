@@ -60,12 +60,12 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             p().text("Loading...").end();
                         end();
                         script();
-                            text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', '" + totalTimeChartId + "');");
+                            text("performanceTests.createPerformanceGraph('tests/" + urlEncode(testHistory.getId()) + ".json', function(data) { return data.totalTime }, 'total time', 's', '" + totalTimeChartId + "');");
                         end();
                     end();
 
                     div().classAttr("details");
-                        String url = "tests/" + testHistory.getId() + ".html";
+                        String url = "tests/" + urlEncode(testHistory.getId()) + ".html";
                         a().href(url).text("details...").end();
                     end();
                 }

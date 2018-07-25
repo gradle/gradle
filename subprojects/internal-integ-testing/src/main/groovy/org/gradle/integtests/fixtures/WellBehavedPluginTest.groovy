@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.util.GUtil
+import org.junit.Assume
 
 import java.util.regex.Pattern
 
@@ -74,4 +75,59 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         target << "apply plugin: '${getPluginName()}'\n"
     }
 
+    def "does not realize all possible tasks"() {
+        Assume.assumeFalse(pluginName in [
+            'swift-library',
+            'swift-application',
+            'xctest',
+
+            'cpp-unit-test',
+            'cpp-library',
+            'cpp-application',
+
+            'visual-studio',
+            'xcode',
+            'java-gradle-plugin',
+
+            'maven-publish',
+            'ivy-publish',
+            'ear',
+            'war',
+            'jacoco',
+            'java-library-distribution',
+            'distribution',
+            'play-application',
+            'build-dashboard',
+        ])
+
+        applyPlugin()
+
+        // TODO: This isn't done yet, we still realize many tasks
+        // Eventually, this should only realize "help"
+        buildFile << """
+            def configuredTasks = []
+            tasks.configureEach {
+                configuredTasks << it
+            }
+            
+            gradle.buildFinished {
+                def configuredTaskPaths = configuredTasks*.path
+                
+                if (configuredTaskPaths == [':help']) {
+                    // This plugin is well-behaved
+                    return
+                }
+                
+                assert configuredTasks.size() == 2
+
+                // This should be the only task configured
+                assert ":help" in configuredTaskPaths
+                
+                // This task needs to be able to register publications lazily
+                assert ":jar" in configuredTaskPaths
+            }
+        """
+        expect:
+        succeeds("help")
+    }
 }

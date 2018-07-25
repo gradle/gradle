@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -39,6 +40,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.*
 import static org.gradle.util.Matchers.normalizedLineSeparators
 
 /**
@@ -47,19 +49,22 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  * Plan is to bring features over as needed.
  */
 @CleanupTestDirectory
+@SuppressWarnings("IntegrationTestFixtures")
+@IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
 class AbstractIntegrationSpec extends Specification {
+
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
-    GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
+    GradleExecuter executer = createExecuter()
+
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
     IntegrationTestBuildContext getBuildContext() {
-        return IntegrationTestBuildContext.INSTANCE;
+        return IntegrationTestBuildContext.INSTANCE
     }
 
-//    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
 
     ExecutionResult result
@@ -69,6 +74,10 @@ class AbstractIntegrationSpec extends Specification {
 
     def cleanup() {
         executer.cleanup()
+    }
+
+    GradleContextualExecuter createExecuter() {
+        new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
     protected TestFile getBuildFile() {
@@ -86,6 +95,10 @@ class AbstractIntegrationSpec extends Specification {
 
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle')
+    }
+
+    protected TestFile getPropertiesFile() {
+        testDirectory.file('gradle.properties')
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
@@ -108,7 +121,7 @@ class AbstractIntegrationSpec extends Specification {
         if (path.length == 1 && path[0] instanceof TestFile) {
             return path[0] as TestFile
         }
-        getTestDirectory().file(path);
+        getTestDirectory().file(path)
     }
 
     TestFile javaClassFile(String fqcn) {
@@ -136,7 +149,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected GradleExecuter inDirectory(File directory) {
-        executer.inDirectory(directory);
+        executer.inDirectory(directory)
     }
 
     protected GradleExecuter projectDir(path) {
@@ -151,6 +164,11 @@ class AbstractIntegrationSpec extends Specification {
     protected GradleExecuter requireGradleDistribution() {
         executer.requireGradleDistribution()
         executer
+    }
+
+    AbstractIntegrationSpec withBuildCache() {
+        executer.withBuildCacheEnabled()
+        this
     }
 
     /**
@@ -197,33 +215,26 @@ class AbstractIntegrationSpec extends Specification {
 
     protected void executedAndNotSkipped(String... tasks) {
         tasks.each {
-            assert it in executedTasks
-            assert !skippedTasks.contains(it)
+            result.assertTaskNotSkipped(it)
         }
     }
 
     protected void skipped(String... tasks) {
         tasks.each {
-            assert it in executedTasks
-            assert skippedTasks.contains(it)
+            result.assertTaskSkipped(it)
         }
     }
 
     protected void notExecuted(String... tasks) {
         tasks.each {
-            assert !(it in executedTasks)
+            result.assertTaskNotExecuted(it)
         }
     }
 
     protected void executed(String... tasks) {
         tasks.each {
-            assert (it in executedTasks)
+            result.assertTaskExecuted(it)
         }
-    }
-
-    protected void assertTaskOrder(Object... tasks) {
-        assertHasResult()
-        result.assertTaskOrder(tasks)
     }
 
     protected void failureHasCause(String cause) {
@@ -371,11 +382,25 @@ class AbstractIntegrationSpec extends Specification {
         result.assertOutputContains(string.trim())
     }
 
+    void postBuildOutputContains(String string) {
+        assertHasResult()
+        result.assertHasPostBuildOutput(string.trim())
+    }
+
+    void outputDoesNotContain(String string) {
+        assertHasResult()
+        result.assertNotOutput(string.trim())
+    }
+
     static String jcenterRepository() {
         RepoScriptBlockUtil.jcenterRepository()
     }
 
     static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
+    }
+
+    static String googleRepository() {
+        RepoScriptBlockUtil.googleRepository()
     }
 }

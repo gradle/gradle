@@ -22,7 +22,9 @@ import org.gradle.process.internal.ExecException
 
 class ExecTest extends AbstractTaskTest {
     Exec execTask
-    def execAction = Mock(ExecAction)
+    def execAction = Mock(ExecAction) {
+        getArgumentProviders() >> []
+    }
 
     def setup() {
         execTask = createTask(Exec.class)

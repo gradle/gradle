@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
@@ -65,7 +66,8 @@ class ComponentMetaDataResolveState {
     protected void process(ModuleComponentRepositoryAccess moduleAccess) {
         moduleAccess.resolveComponentMetaData(componentIdentifier, componentOverrideMetadata, resolveResult);
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            if (versionedComponentChooser.isRejectedComponent(componentIdentifier, new MetadataProvider(resolveResult))) {
+            RejectedByRuleVersion rejectedComponent = versionedComponentChooser.isRejectedComponent(componentIdentifier, new CachedMetadataProvider(resolveResult));
+            if (rejectedComponent != null) {
                 resolveResult.missing();
             }
         }

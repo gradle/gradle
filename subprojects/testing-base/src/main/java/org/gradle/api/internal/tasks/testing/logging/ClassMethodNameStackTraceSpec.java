@@ -19,19 +19,34 @@ package org.gradle.api.internal.tasks.testing.logging;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
+import java.util.regex.Pattern;
 
 public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
+    private static final Pattern ANONYMOUS_CLASS_NAME_SUFFIX = Pattern.compile("\\$[\\d$]+");
     private final String className;
     private final String methodName;
 
-    ClassMethodNameStackTraceSpec(@Nullable String className, @Nullable String methodName) {
+    ClassMethodNameStackTraceSpec(String className, @Nullable String methodName) {
         this.className = className;
         this.methodName = methodName;
     }
 
     @Override
     public boolean isSatisfiedBy(StackTraceElement element) {
-        return (className == null || className.equals(element.getClassName()))
-                && (methodName == null || methodName.equals(element.getMethodName()));
+        return classNameMatch(element.getClassName()) && methodNameMatch(element.getMethodName());
+    }
+
+    private boolean methodNameMatch(String methodName) {
+        return this.methodName == null || this.methodName.equals(methodName);
+    }
+
+    private boolean classNameMatch(String targetClassName) {
+        if (!targetClassName.startsWith(className)) {
+            return false;
+        }
+
+        String suffix = targetClassName.substring(className.length());
+
+        return suffix.isEmpty() || ANONYMOUS_CLASS_NAME_SUFFIX.matcher(suffix).matches();
     }
 }

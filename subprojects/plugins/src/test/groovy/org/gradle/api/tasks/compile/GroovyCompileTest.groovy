@@ -16,13 +16,13 @@
 
 package org.gradle.api.tasks.compile
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 public class GroovyCompileTest extends AbstractCompileTest {
@@ -46,7 +46,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         testObj = createTask(GroovyCompile.class)
         testObj.setCompiler(groovyCompilerMock)
 
-        GFileUtils.touch(new File(srcDir, "incl/file.groovy"))
+        FileUtils.touch(new File(srcDir, "incl/file.groovy"))
     }
 
     @Unroll

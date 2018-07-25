@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
+
 import java.util.Set;
 
 /**
@@ -25,17 +29,15 @@ public class ClassAnalysis {
     private final String className;
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
-    private final Set<Integer> constants;
-    private final Set<Integer> literals;
+    private final IntSet constants;
     private final Set<String> superTypes;
 
-    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<Integer> literals, Set<String> superTypes) {
+    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, IntSet constants, Set<String> superTypes) {
         this.className = className;
-        this.classDependencies = classDependencies;
+        this.classDependencies = ImmutableSet.copyOf(classDependencies);
         this.dependencyToAll = dependencyToAll;
-        this.constants = constants;
-        this.literals = literals;
-        this.superTypes = superTypes;
+        this.constants = constants.isEmpty() ? IntSets.EMPTY_SET : constants;
+        this.superTypes = ImmutableSet.copyOf(superTypes);
     }
 
     public String getClassName() {
@@ -46,12 +48,8 @@ public class ClassAnalysis {
         return classDependencies;
     }
 
-    public Set<Integer> getConstants() {
+    public IntSet getConstants() {
         return constants;
-    }
-
-    public Set<Integer> getLiterals() {
-        return literals;
     }
 
     public boolean isDependencyToAll() {

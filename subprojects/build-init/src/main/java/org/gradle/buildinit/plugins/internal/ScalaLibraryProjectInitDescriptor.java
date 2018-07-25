@@ -18,8 +18,10 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor{
+public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     private final DocumentationRegistry documentationRegistry;
 
@@ -30,8 +32,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
 
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -39,7 +41,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         String junitVersion = libraryVersionProvider.getVersion("junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))

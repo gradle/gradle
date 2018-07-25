@@ -57,7 +57,7 @@ public class WbProperty implements WbModuleEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
         attributes.put("name", name);
         attributes.put("value", value);
         node.appendNode("property", attributes);

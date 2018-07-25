@@ -24,7 +24,6 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
-import java.io.OutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,15 +36,11 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     static final String META_INF_EXTENSION_MODULE_LOGGER_NAME = "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
 
     private final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
-    private final OutputStream defaultOutputStream;
-    private final OutputStream defaultErrorStream;
     private final AtomicReference<LogLevel> level = new AtomicReference<LogLevel>();
     private final AtomicReference<OutputEventListener> outputEventListener = new AtomicReference<OutputEventListener>();
     private final Clock clock;
 
-    public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream, Clock clock) {
-        this.defaultOutputStream = defaultOutputStream;
-        this.defaultErrorStream = defaultErrorStream;
+    public OutputEventListenerBackedLoggerContext(Clock clock) {
         this.clock = clock;
         applyDefaultLoggersConfig();
         reset();
@@ -83,8 +78,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
         OutputEventRenderer renderer = new OutputEventRenderer(clock);
-        renderer.addStandardOutputListener(defaultOutputStream);
-        renderer.addStandardErrorListener(defaultErrorStream);
+        renderer.attachSystemOutAndErr();
         setOutputEventListener(renderer);
     }
 

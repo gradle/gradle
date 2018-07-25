@@ -26,8 +26,7 @@ public interface IncrementalCompilation {
 
     CompilationState getFinalState();
 
-    /**
-     * The set of all input locations that were discovered as part of resolving the dependencies for this compilation.
-     */
-    Set<File> getDiscoveredInputs();
+    Set<File> getExistingHeaders();
+
+    boolean isUnresolvedHeaders();
 }

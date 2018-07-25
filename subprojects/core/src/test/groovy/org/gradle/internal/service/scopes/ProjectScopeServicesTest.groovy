@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
@@ -43,6 +44,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskStatistics
 import org.gradle.api.logging.LoggingManager
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -53,13 +55,16 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.process.internal.ExecFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -112,7 +117,9 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
         parent.get(StreamHasher) >> Mock(StreamHasher)
         parent.get(FileHasher) >> Mock(FileHasher)
-        parent.hasService(_) >> true
+        parent.get(TaskStatistics) >> new TaskStatistics()
+        parent.get(TextResourceLoader) >> Mock(TextResourceLoader)
+        parent.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 
@@ -180,6 +187,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a FileOperations instance"() {
+        _ * parent.get(ExecFactory) >> TestFiles.execFactory()
         1 * project.tasks
 
         expect:

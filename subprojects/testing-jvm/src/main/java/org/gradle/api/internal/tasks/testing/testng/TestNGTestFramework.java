@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public class TestNGTestFramework implements TestFramework {
-    private TestNGOptions options;
+    private final TestNGOptions options;
     private final TestNGDetector detector;
     private final Test testTask;
     private final DefaultTestFilter filter;
@@ -123,10 +123,6 @@ public class TestNGTestFramework implements TestFramework {
     @Override
     public TestNGOptions getOptions() {
         return options;
-    }
-
-    void setOptions(TestNGOptions options) {
-        this.options = options;
     }
 
     @Override

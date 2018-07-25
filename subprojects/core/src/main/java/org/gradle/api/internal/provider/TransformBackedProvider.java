@@ -19,20 +19,20 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 
-class TransformBackedProvider<S, T> extends AbstractMappingProvider<S, T> {
-    private final Transformer<? extends S, ? super T> transformer;
+class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> {
+    private final Transformer<? extends OUT, ? super IN> transformer;
 
-    public TransformBackedProvider(Transformer<? extends S, ? super T> transformer, Provider<? extends T> provider) {
+    public TransformBackedProvider(Transformer<? extends OUT, ? super IN> transformer, Provider<? extends IN> provider) {
         super(null, provider);
         this.transformer = transformer;
     }
 
     @Override
-    protected S map(T v) {
-        S s = transformer.transform(v);
-        if (s == null) {
+    protected OUT map(IN v) {
+        OUT result = transformer.transform(v);
+        if (result == null) {
             throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
         }
-        return s;
+        return result;
     }
 }

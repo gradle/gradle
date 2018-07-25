@@ -65,7 +65,7 @@ public class InputForwarder implements Stoppable {
             disconnectableInput = new DisconnectableInputStream(input, bufferSize);
             outputBuffer = new LineBufferingOutputStream(handler, bufferSize);
 
-            forwardingExecuter = executorFactory.create("forward input");
+            forwardingExecuter = executorFactory.create("Forward input");
             forwardingExecuter.execute(new Runnable() {
                 public void run() {
                     byte[] buffer = new byte[bufferSize];

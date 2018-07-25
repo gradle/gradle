@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.provider
 
+import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
-import org.gradle.api.Transformer
 
-class DefaultListPropertyTest extends PropertySpec<List<String>> {
+class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     @Override
     DefaultListProperty<String> property() {
         return new DefaultListProperty<String>(String)
@@ -31,96 +31,26 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
     }
 
     @Override
-    List<String> someValue() {
-        return ["value"]
+    protected Class<? extends ImmutableCollection<?>> getImmutableCollectionType() {
+        return ImmutableList.class
     }
 
     @Override
-    List<String> someOtherValue() {
-        return ["value2"]
+    protected List<String> toImmutable(Collection<String> values) {
+        return ImmutableList.copyOf(values)
+    }
+
+    @Override
+    protected List<String> toMutable(Collection<String> values) {
+        return new ArrayList<String>(values)
     }
 
     def "defaults to empty list"() {
         expect:
-        def property = new DefaultListProperty<String>(String)
         property.present
         property.get() == []
         property.getOrNull() == []
         property.getOrElse(["abc"]) == []
     }
 
-    def "returns immutable copy of value"() {
-        expect:
-        def property = new DefaultListProperty<String>(String)
-        property.set(["abc"])
-
-        property.present
-        def v = property.get()
-        v instanceof ImmutableList
-        v == ["abc"]
-
-        property.set(["123"])
-
-        def v2 = property.get()
-        v2 instanceof ImmutableList
-        v2 == ["123"]
-    }
-
-    def "get returns a snapshot of the current value of the source list"() {
-        expect:
-        def property = new DefaultListProperty<String>(String)
-        def l = ["abc"]
-        property.set(l)
-
-        def v = property.get()
-        v == ["abc"]
-
-        l.add("ignore me")
-        v == ["abc"]
-
-        def v2 = property.get()
-        v2 instanceof ImmutableList
-        v2 == ["abc", "ignore me"]
-    }
-
-    def "returns immutable copy of provider value"() {
-        def provider = Stub(ProviderInternal)
-        provider.get() >>> [["123"], ["abc"]]
-
-        expect:
-        def property = new DefaultListProperty<String>(String)
-        property.set(provider)
-
-        def v = property.get()
-        v instanceof ImmutableList
-        v == ["123"]
-
-        def v2 = property.get()
-        v2 instanceof ImmutableList
-        v2 == ["abc"]
-    }
-
-    def "mapped provider returns immutable copy of result"() {
-        def transformer = Mock(Transformer)
-
-        given:
-        def property = new DefaultListProperty<String>(String)
-        property.set(["abc"])
-        def provider = property.map(transformer)
-
-        when:
-        def r = provider.get()
-
-        then:
-        r instanceof ImmutableList
-        r == ["123"]
-
-        1 * transformer.transform(_) >> {
-            List<String> src = it[0]
-            assert src == ["abc"]
-            assert src instanceof ImmutableList
-            ["123"]
-        }
-        0 * _
-    }
 }

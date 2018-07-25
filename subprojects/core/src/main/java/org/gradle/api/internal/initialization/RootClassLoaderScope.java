@@ -17,27 +17,32 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 public class RootClassLoaderScope extends AbstractClassLoaderScope {
 
     private final ClassLoader localClassLoader;
+    private final CachingClassLoader cachingLocalClassLoader;
     private final ClassLoader exportClassLoader;
+    private final CachingClassLoader cachingExportClassLoader;
 
     public RootClassLoaderScope(ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache) {
         super(new ClassLoaderScopeIdentifier(null, "root"), classLoaderCache);
         this.localClassLoader = localClassLoader;
+        this.cachingLocalClassLoader = new CachingClassLoader(localClassLoader);
         this.exportClassLoader = exportClassLoader;
+        this.cachingExportClassLoader = new CachingClassLoader(exportClassLoader);
     }
 
     @Override
     public ClassLoader getLocalClassLoader() {
-        return localClassLoader;
+        return cachingLocalClassLoader;
     }
 
     @Override
     public ClassLoader getExportClassLoader() {
-        return exportClassLoader;
+        return cachingExportClassLoader;
     }
 
     @Override

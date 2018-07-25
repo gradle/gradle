@@ -85,7 +85,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private ClassNode currentClass;
     private final Map<String, List<String>> simpleNameToFQN;
-    private final String[] gradlePublicPackages;
     private CompilationUnit compilationUnit;
     private SourceUnit source;
     private VariableScope currentScope;
@@ -211,12 +210,11 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
-    public GradleResolveVisitor(CompilationUnit cu, String[] exportedPackages, Map<String, List<String>> simpleNameToFQN) {
+    public GradleResolveVisitor(CompilationUnit cu, Map<String, List<String>> simpleNameToFQN) {
         super(cu);
         compilationUnit = cu;
         this.classNodeResolver = new ClassNodeResolver();
         this.simpleNameToFQN = simpleNameToFQN;
-        this.gradlePublicPackages = exportedPackages;
     }
 
     public void startResolving(ClassNode node, SourceUnit source) {
@@ -555,7 +553,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             String name = type.getName();
             List<String> fqn = simpleNameToFQN.get(type.getName());
             if (fqn != null) {
-                if (fqn.size() == 1 && resolveFromResolver(type, fqn.get(0))) {
+                if (resolveFromResolver(type, fqn.get(0))) {
                     return true;
                 }
             }
@@ -572,13 +570,9 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     return true;
                 }
             }
-            for (String gradlePublicPackage : gradlePublicPackages) {
-                if (resolveFromResolver(type, gradlePublicPackage + "." + name)) {
-                    if ("org.gradle.util".equals(gradlePublicPackage)) {
-                        deprecatedImports.add(name);
-                    }
-                    return true;
-                }
+            if (resolveFromResolver(type, "org.gradle.util." + name)) {
+                deprecatedImports.add(name);
+                return true;
             }
             if (name.equals("BigInteger")) {
                 type.setRedirect(ClassHelper.BigInteger_TYPE);

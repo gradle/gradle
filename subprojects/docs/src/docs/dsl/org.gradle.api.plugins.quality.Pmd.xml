@@ -55,12 +55,6 @@
                     <literal><replaceable>sourceSet</replaceable>.compileClasspath</literal>
                 </td>
             </tr>
-            <tr>
-                <td>incrementalAnalysis</td>
-                <td>
-                    <literal>false</literal>
-                </td>
-            </tr>
         </table>
     </section>
     <section>

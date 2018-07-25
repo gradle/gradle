@@ -79,7 +79,7 @@ task retrieve(type: Sync) {
 """
 
         expect:
-        module.mavenRootMetaData.expectDownload()
+        module.rootMetaData.expectDownload()
         module.metaData.expectDownload()
         module.pom.expectDownload()
         module.artifact.expectDownload()

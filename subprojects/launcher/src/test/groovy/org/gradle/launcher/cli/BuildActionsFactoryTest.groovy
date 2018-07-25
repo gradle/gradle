@@ -57,10 +57,10 @@ class BuildActionsFactoryTest extends Specification {
     PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
     JvmVersionDetector jvmVersionDetector = Stub()
     ParametersConverter parametersConverter = new ParametersConverter(
-            Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
-            Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-            new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
-            propertiesToDaemonParametersConverter)
+        Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
+        Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
+        new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
+        propertiesToDaemonParametersConverter)
 
     BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)
 
@@ -72,7 +72,6 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(FileSystem) >> Mock(FileSystem)
         _ * loggingServices.getFactory(LoggingManagerInternal) >> Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
-        _ * loggingServices.hasService(_) >> true
         _ * loggingServices.getAll(_) >> []
     }
 

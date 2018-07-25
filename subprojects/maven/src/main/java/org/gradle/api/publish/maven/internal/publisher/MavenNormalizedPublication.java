@@ -24,16 +24,18 @@ import java.util.Set;
 public class MavenNormalizedPublication {
 
     private final String name;
-    private final File pomFile;
+    private final String packaging;
+    private final MavenArtifact pomArtifact;
     private final MavenProjectIdentity projectIdentity;
-    private final Set<MavenArtifact> artifacts;
+    private final Set<MavenArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, String packaging, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
         this.name = name;
-        this.pomFile = pomFile;
+        this.packaging = packaging;
+        this.pomArtifact = pomArtifact;
         this.projectIdentity = projectIdentity;
-        this.artifacts = artifacts;
+        this.allArtifacts = allArtifacts;
         this.mainArtifact = mainArtifact;
     }
 
@@ -41,12 +43,24 @@ public class MavenNormalizedPublication {
         return name;
     }
 
-    public File getPomFile() {
-        return pomFile;
+    public String getPackaging() {
+        return packaging;
     }
 
-    public Set<MavenArtifact> getArtifacts() {
-        return artifacts;
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
+    public File getPomFile() {
+        return pomArtifact.getFile();
+    }
+
+    public MavenArtifact getPomArtifact() {
+        return pomArtifact;
+    }
+
+    public Set<MavenArtifact> getAllArtifacts() {
+        return allArtifacts;
     }
 
     public MavenProjectIdentity getProjectIdentity() {
@@ -56,4 +70,5 @@ public class MavenNormalizedPublication {
     public MavenArtifact getMainArtifact() {
         return mainArtifact;
     }
+
 }

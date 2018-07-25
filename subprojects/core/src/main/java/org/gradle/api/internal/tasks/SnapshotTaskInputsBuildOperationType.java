@@ -22,11 +22,12 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents the computation of the task artifact state and the task output caching state.
  *
- * This operation is executed only when the build cache is enabled.
+ * This operation is executed only when the build cache is enabled or when the build scan plugin is applied.
  * Must occur as a child of {@link org.gradle.internal.execution.ExecuteTaskBuildOperationType}.
  *
  * @since 4.0
@@ -97,6 +98,17 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          */
         @Nullable
         Map<String, String> getInputHashes();
+
+
+        /**
+         * Names of input properties which have been loaded by non Gradle managed classloader.
+         *
+         * Ordered by property name, lexicographically.
+         * No null values.
+         * Never empty.
+         */
+        @Nullable
+        Set<String> getInputPropertiesLoadedByUnknownClassLoader();
 
         /**
          * The names of the output properties.

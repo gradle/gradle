@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -33,7 +33,7 @@ class ResourceVersionListerTest extends Specification {
     def module = new DefaultModuleIdentifier("org.acme", "proj1")
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
     def artifact = new DefaultIvyArtifactName("proj1", "jar", "jar")
-    def result = new DefaultResourceAwareResolveResult()
+    def result = new DefaultBuildableModuleVersionListingResolveResult()
 
     def ResourceVersionLister lister;
 
@@ -41,7 +41,7 @@ class ResourceVersionListerTest extends Specification {
         lister = new ResourceVersionLister(repo)
     }
 
-    def "visit propagates Exceptions as ResourceException"() {
+    def "listVersions propagates Exceptions as ResourceException"() {
         setup:
         def failure = new RuntimeException("Test IO Exception")
         def resource = Stub(ExternalResource)
@@ -50,8 +50,7 @@ class ResourceVersionListerTest extends Specification {
         _ * resource.list() >> { throw failure }
 
         when:
-        def versionList = lister.newVisitor(module, [], result)
-        versionList.visit(testPattern, artifact)
+        lister.listVersions(module, artifact, [testPattern], result)
 
         then:
         ResourceException e = thrown()
@@ -59,50 +58,45 @@ class ResourceVersionListerTest extends Specification {
         e.cause == failure
     }
 
-    def "visit produces empty versionList for missing resource"() {
+    def "produces no result for missing resource"() {
         setup:
         def resource = Stub(ExternalResource)
         _ * repo.resource(_) >> resource
         _ * resource.list() >> null
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
-        versionList.visit(pattern(testPattern), artifact)
+        lister.listVersions(module, artifact, [pattern(testPattern)], result)
 
         then:
-        versions.empty
+        !result.hasResult()
 
         where:
         testPattern << ["/some/[revision]", "/some/version-[revision]"]
     }
 
-    def "visit returns empty VersionList when repository contains empty list"() {
+    def "produces no result when repository contains empty list"() {
         setup:
         def resource = Stub(ExternalResource)
         _ * repo.resource(_) >> resource
         _ * resource.list() >> []
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
-        versionList.visit(pattern("/some/[revision]"), artifact)
+        lister.listVersions(module, artifact, [pattern("/some/[revision]")], result)
 
         then:
-        versions.empty
+        !result.hasResult()
     }
 
     @Unroll
-    def "visit resolves versions from pattern with '#testPattern'"() {
+    def "resolves versions from pattern with '#testPattern'"() {
         def resource = Mock(ExternalResource)
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
-        versionList.visit(pattern(testPattern), artifact)
+        lister.listVersions(module, artifact, [pattern(testPattern)], result)
+        def versions = result.versions
 
         then:
-        versions == ["1", "2.1", "a-version"]
+        versions == ["1", "2.1", "a-version"] as Set
 
         and:
         1 * repo.resource(new ExternalResourceName(repoListingPath)) >> resource
@@ -135,15 +129,13 @@ class ResourceVersionListerTest extends Specification {
         def resource2 = Mock(ExternalResource)
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
         def pattern1 = pattern("/[revision]/[artifact]-[revision].[ext]")
         def pattern2 = pattern("/[organisation]/[revision]/[artifact]-[revision].[ext]")
-        versionList.visit(pattern1, artifact)
-        versionList.visit(pattern2, artifact)
+        lister.listVersions(module, artifact, [pattern1, pattern2], result)
+        def versions = result.versions
 
         then:
-        versions == ["1.2", "1.3", "1.3", "1.4"]
+        versions == ["1.2", "1.3", "1.3", "1.4"] as Set
 
         and:
         1 * repo.resource(new ExternalResourceName("/")) >> resource1
@@ -153,18 +145,17 @@ class ResourceVersionListerTest extends Specification {
         0 * _
     }
 
-    def "visit ignores duplicate patterns"() {
+    def "ignores duplicate patterns"() {
         def resource = Mock(ExternalResource)
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
-        final patternA = pattern("/a/[revision]/[artifact]-[revision].[ext]")
-        versionList.visit(patternA, artifact)
-        versionList.visit(pattern("/a/[revision]/[artifact]-[revision]"), artifact)
+        def patternA = pattern("/a/[revision]/[artifact]-[revision].[ext]")
+        def patternB = pattern("/a/[revision]/[artifact]-[revision]")
+        lister.listVersions(module, artifact, [patternA, patternB], result)
+        def versions = result.versions
 
         then:
-        versions == ["1.2", "1.3"]
+        versions == ["1.2", "1.3"] as Set
 
         and:
         1 * repo.resource(new ExternalResourceName("/a/")) >> resource
@@ -172,13 +163,11 @@ class ResourceVersionListerTest extends Specification {
         0 * _
     }
 
-    def "visit substitutes non revision placeholders from pattern before hitting repository"() {
+    def "substitutes non revision placeholders from pattern before hitting repository"() {
         def resource = Mock(ExternalResource)
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
-        versionList.visit(pattern(inputPattern), artifact)
+        lister.listVersions(module, artifact, [pattern(inputPattern)], result)
 
         then:
         1 * repo.resource(new ExternalResourceName(repoPath)) >> resource
@@ -196,17 +185,15 @@ class ResourceVersionListerTest extends Specification {
         "/[type]s/[module]/[organisation]/[revision]" | "/jars/proj1/org.acme/"
     }
 
-    def "visit returns empty version list when pattern has no revision token"() {
+    def "produces no result when pattern has no revision token"() {
         setup:
         repo.list(_) >> repoResult
 
         when:
-        def versions = []
-        def versionList = lister.newVisitor(module, versions, result)
-        versionList.visit(pattern(testPattern), artifact)
+        lister.listVersions(module, artifact, [pattern(testPattern)], result)
 
         then:
-        versions.empty
+        !result.hasResult()
 
         where:
         testPattern                      | repoResult

@@ -20,10 +20,10 @@ import org.gradle.internal.scan.BuildScanRequest;
 
 class BuildScanRequestLegacyBridge implements BuildScanRequest {
 
-    private final BuildScanPluginCompatibilityEnforcer compatibilityEnforcer;
+    private final BuildScanPluginCompatibility compatibility;
 
-    BuildScanRequestLegacyBridge(BuildScanPluginCompatibilityEnforcer compatibilityEnforcer) {
-        this.compatibilityEnforcer = compatibilityEnforcer;
+    BuildScanRequestLegacyBridge(BuildScanPluginCompatibility compatibility) {
+        this.compatibility = compatibility;
     }
 
     @Override
@@ -38,11 +38,11 @@ class BuildScanRequestLegacyBridge implements BuildScanRequest {
 
     @Override
     public boolean collectRequested() {
-        throw compatibilityEnforcer.unsupported();
+        throw compatibility.unsupportedVersionException();
     }
 
     @Override
     public boolean collectDisabled() {
-        throw compatibilityEnforcer.unsupported();
+        throw compatibility.unsupportedVersionException();
     }
 }

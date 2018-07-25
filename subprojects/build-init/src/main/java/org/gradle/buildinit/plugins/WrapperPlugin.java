@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 
 /**
@@ -25,6 +26,6 @@ import org.gradle.buildinit.tasks.internal.TaskConfiguration;
  */
 public class WrapperPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        TaskConfiguration.createWrapperTask(project);
+        TaskConfiguration.addWrapperPlaceholder((ProjectInternal) project);
     }
 }

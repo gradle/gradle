@@ -79,7 +79,7 @@ gradle.taskGraph.whenReady {
 
     private boolean cancelBuild() {
         runBuild {
-            cyclicBarrierHttpServer.sync()
+            cyclicBarrierHttpServer.sync(60)
             cancellationTokenSource.cancel()
         }
     }

@@ -19,6 +19,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.Comparator;
 
+/**
+ * This comparator considers `1.1.1 == 1-1-1`.
+ * @see StaticVersionComparator
+ */
 public class DefaultVersionComparator implements VersionComparator {
     private final Comparator<Version> baseComparator = new StaticVersionComparator();
 

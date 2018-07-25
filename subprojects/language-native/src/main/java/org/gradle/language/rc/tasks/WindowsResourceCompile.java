@@ -19,12 +19,16 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -57,21 +61,28 @@ import java.util.concurrent.Callable;
 @Incubating
 public class WindowsResourceCompile extends DefaultTask {
 
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private List<String> compilerArgs = new ArrayList<String>();
+    private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public WindowsResourceCompile() {
+        ObjectFactory objectFactory = getProject().getObjects();
         includes = getProject().files();
         source = getProject().files();
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, Providers.FALSE);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+                NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
+                NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+                return NativeToolChainInternal.Identifier.identify(nativeToolChain, nativePlatform);
             }
         });
     }
@@ -98,10 +109,11 @@ public class WindowsResourceCompile extends DefaultTask {
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs());
         spec.setIncrementalCompile(inputs.isIncremental());
-        spec.setDiscoveredInputRecorder((DiscoveredInputRecorder) inputs);
         spec.setOperationLogger(operationLogger);
 
-        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
+        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
+        NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+        PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
         WorkResult result = doCompile(spec, platformToolProvider);
         setDidWork(result.getDidWork());
     }
@@ -109,33 +121,29 @@ public class WindowsResourceCompile extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> incrementalCompiler = this.incrementalCompiler.createCompiler(baseCompiler);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return CompilerUtil.castCompiler(loggingCompiler).execute(spec);
     }
 
     /**
      * The tool chain used for compilation.
+     *
+     * @since 4.7
      */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
-    }
-
     /**
-     * The platform being targeted.
+     * The platform being compiled for.
+     *
+     * @since 4.7
      */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
-    }
-
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**
@@ -154,7 +162,7 @@ public class WindowsResourceCompile extends DefaultTask {
      * Returns the header directories to be used for compilation.
      */
     @InputFiles
-    public FileCollection getIncludes() {
+    public ConfigurableFileCollection getIncludes() {
         return includes;
     }
 
@@ -169,7 +177,7 @@ public class WindowsResourceCompile extends DefaultTask {
      * Returns the source files to be compiled.
      */
     @InputFiles
-    public FileCollection getSource() {
+    public ConfigurableFileCollection getSource() {
         return source;
     }
 
@@ -202,5 +210,16 @@ public class WindowsResourceCompile extends DefaultTask {
 
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
+    }
+
+    /**
+     * The set of dependent headers. This is used for up-to-date checks only.
+     *
+     * @since 4.5
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    protected FileCollection getHeaderDependencies() {
+        return incrementalCompiler.getHeaderFiles();
     }
 }

@@ -17,17 +17,22 @@ package org.gradle.util
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
@@ -35,11 +40,15 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.rmi.server.UID
+
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
+import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT
 
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
@@ -57,7 +66,9 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory() {
-        return new DefaultObjectFactory(instantiatorFactory().decorate(), NamedObjectInstantiator.INSTANCE)
+        DefaultServiceRegistry services = new DefaultServiceRegistry()
+        services.add(ProviderFactory, new DefaultProviderFactory())
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE)
     }
 
     static ValueSnapshotter valueSnapshotter() {
@@ -70,7 +81,22 @@ class TestUtil {
     }
 
     static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(valueSnapshotter())
+        return new DefaultImmutableAttributesFactory(valueSnapshotter(), NamedObjectInstantiator.INSTANCE)
+    }
+
+    static NamedObjectInstantiator objectInstantiator() {
+        return NamedObjectInstantiator.INSTANCE
+    }
+
+    static FeaturePreviews featurePreviews(boolean improvedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
+        def previews = new FeaturePreviews()
+        if (improvedPomSupportEnabled) {
+            previews.enableFeature(IMPROVED_POM_SUPPORT)
+        }
+        if (gradleMetadataEnabled) {
+            previews.enableFeature(GRADLE_METADATA)
+        }
+        return previews
     }
 
     static TestUtil create(File rootDir) {
@@ -94,6 +120,9 @@ class TestUtil {
     private static void hackInTaskProperties(Class type, Task task, Map args) {
         args.each { k, v ->
             def field = type.getDeclaredFields().find { it.name == k }
+            if (!field) {
+                field = type.getSuperclass().getDeclaredFields().find { it.name == k }
+            }
             if (field) {
                 field.setAccessible(true)
                 field.set(task, v)
@@ -109,7 +138,7 @@ class TestUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-        return project.services.get(ITaskFactory).createTask([name: name, type: type])
+        return project.services.get(ITaskFactory).create(name, type)
     }
 
     static ProjectBuilder builder(File rootDir) {
@@ -179,6 +208,17 @@ class TestUtil {
     static String createUniqueId() {
         return new UID().toString();
     }
+
+    static ImmutableAttributes attributes(Map<String, ?> values) {
+        def attrs = ImmutableAttributes.EMPTY
+        if (values) {
+            values.each { String key, Object value ->
+                attrs = attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
+            }
+        }
+        return attrs
+    }
+
 }
 
 

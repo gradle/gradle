@@ -1,0 +1,31 @@
+> Task :shared:compileJava
+> Task :shared:processResources
+> Task :shared:classes
+> Task :shared:jar
+> Task :api:compileJava
+> Task :api:processResources
+> Task :api:classes
+> Task :api:jar
+> Task :api:assemble
+> Task :api:compileTestJava
+> Task :api:processTestResources
+> Task :api:testClasses
+> Task :api:test
+> Task :api:check
+> Task :api:build
+> Task :services:personService:compileJava
+> Task :services:personService:processResources
+> Task :services:personService:classes
+> Task :services:personService:jar
+> Task :services:personService:assemble
+> Task :services:personService:compileTestJava
+> Task :services:personService:processTestResources
+> Task :services:personService:testClasses
+> Task :services:personService:test
+> Task :services:personService:check
+> Task :services:personService:build
+> Task :services:personService:buildDependents
+> Task :api:buildDependents
+
+BUILD SUCCESSFUL in 0s
+17 actionable tasks: 17 executed

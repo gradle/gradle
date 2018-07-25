@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
@@ -25,16 +26,18 @@ import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.GFileUtils;
 
@@ -44,11 +47,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Generates parsers from Antlr grammars.
  */
+@NonNullApi
+@CacheableTask
 public class AntlrTask extends SourceTask {
 
     private boolean trace;
@@ -114,7 +118,7 @@ public class AntlrTask extends SourceTask {
     /**
      * The maximum heap size for the forked antlr process (ex: '1g').
      */
-    @Optional @Input
+    @Internal
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -187,7 +191,7 @@ public class AntlrTask extends SourceTask {
     public void execute(IncrementalTaskInputs inputs) {
         final Set<File> grammarFiles = new HashSet<File>();
         final Set<File> sourceFiles = getSource().getFiles();
-        final AtomicBoolean cleanRebuild = new AtomicBoolean();
+        final MutableBoolean cleanRebuild = new MutableBoolean();
         inputs.outOfDate(
             new Action<InputFileDetails>() {
                 public void execute(InputFileDetails details) {
@@ -272,12 +276,9 @@ public class AntlrTask extends SourceTask {
      *
      * @return The source.
      */
-    // This method is here as the Gradle DSL generation can't handle properties with setters and getters in different classes.
-    @InputFiles
-    @SkipWhenEmpty
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
     }
-
-
 }

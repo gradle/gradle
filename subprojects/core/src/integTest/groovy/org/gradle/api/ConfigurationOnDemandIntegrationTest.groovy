@@ -273,6 +273,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
+        executer.expectDeprecationWarning()
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:
@@ -347,7 +348,7 @@ project(':api') {
         file("b/build.gradle") << """
             apply plugin: 'java'
             project(':b') {
-                dependencies { compile project(':a') }
+                dependencies { implementation project(':a') }
             }
         """
 
@@ -355,7 +356,7 @@ project(':api') {
         run(":b:buildNeeded")
 
         then:
-        result.executedTasks.containsAll ':b:buildNeeded', ':a:buildNeeded'
+        executed ':b:buildNeeded', ':a:buildNeeded'
         fixture.assertProjectsConfigured(":", ":b", ":a")
     }
 
@@ -365,7 +366,7 @@ project(':api') {
         file("b/build.gradle") << """
             apply plugin: 'java'
             project(':b') {
-                dependencies { compile project(':a') }
+                dependencies { implementation project(':a') }
             }
         """
 
@@ -373,7 +374,7 @@ project(':api') {
         run(":a:buildDependents")
 
         then:
-        result.executedTasks.containsAll ':b:buildDependents', ':a:buildDependents'
+        executed ':b:buildDependents', ':a:buildDependents'
         //unfortunately buildDependents requires all projects to be configured
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
     }
@@ -385,7 +386,7 @@ task one(type: SomeTask)
 task two(type: SomeTask)
 
 class SomeTask extends DefaultTask {
-    @org.gradle.api.internal.tasks.options.Option(description="some value")
+    @org.gradle.api.tasks.options.Option(description="some value")
     String value
 }
 """

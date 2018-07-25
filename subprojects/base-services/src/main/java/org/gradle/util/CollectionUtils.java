@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -81,6 +82,7 @@ public abstract class CollectionUtils {
         return Cast.uncheckedCast(input);
     }
 
+    @Nullable
     public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
@@ -91,6 +93,7 @@ public abstract class CollectionUtils {
         return null;
     }
 
+    @Nullable
     public static <T> T findFirst(T[] source, Spec<? super T> filter) {
         for (T thing : source) {
             if (filter.isSatisfiedBy(thing)) {
@@ -118,11 +121,11 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
-        return filter(list, new LinkedList<T>(), filter);
+        return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
     }
 
     public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
-        return filter(Arrays.asList(array), new LinkedList<T>(), filter);
+        return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
     }
 
 

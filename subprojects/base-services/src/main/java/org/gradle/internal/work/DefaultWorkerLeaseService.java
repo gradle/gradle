@@ -23,6 +23,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
@@ -40,9 +41,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ParallelismConfigurationListener {
@@ -211,7 +213,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
-        final AtomicBoolean allLocked = new AtomicBoolean();
+        final MutableBoolean allLocked = new MutableBoolean();
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {

@@ -16,17 +16,15 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
 class SwiftFailingXCTestBundle extends XCTestSourceElement {
-    List<XCTestSourceFileElement> testSuites = [new XCTestSourceFileElement() {
-        String testSuiteName = "FailingTestSuite"
-        List<XCTestCaseElement> testCases = [testCase("testCanFailTestCaseWithAssertion", "XCTAssert(false)", true)]
-        String moduleName = "AppTest"
-    }]
+    private final XCTestSourceFileElement failingTestSuite = new XCTestSourceFileElement("FailingTestSuite") {
+        List<XCTestCaseElement> testCases = [
+            failingTestCase("testCanFailTestCaseWithAssertion")
+        ]
+    }
+    List<XCTestSourceFileElement> testSuites = [ failingTestSuite ]
 
-    @Override
-    List<SourceFile> getFiles() {
-        super.files + [emptyInfoPlist()]
+    SwiftFailingXCTestBundle() {
+        super('app')
     }
 }

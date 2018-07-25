@@ -22,10 +22,10 @@ import org.gradle.internal.jvm.Jvm
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 
 class TestNGCoverage {
-    final static String NEWEST = Jvm.current().javaVersion.java7Compatible ? '6.9.13.6' : '6.8.7'
+    final static String NEWEST = Jvm.current().javaVersion.java7Compatible ? '6.14.2' : '6.8.7'
     final static String INITIAL_BROKEN_ICLASS_LISTENER = '6.9.10' // introduces initial, buggy IClassListener
     final static String FIXED_ICLASS_LISTENER = '6.9.13.3' // introduces fixed IClassListener
-    final static String[] STANDARD_COVERAGE = ['5.14.10', '6.2', '6.8.7', NEWEST]
+    final static String[] STANDARD_COVERAGE = ['5.14.10', '6.2', '6.8.7', '6.9.13.6', NEWEST]
     final static String[] STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER =  ObjectArrays.concat(INITIAL_BROKEN_ICLASS_LISTENER, STANDARD_COVERAGE)
     final static String[] PRESERVE_ORDER = Jvm.current().javaVersion.java7Compatible ? ['5.14.6', '6.1.1', '6.9.4', NEWEST] : ['5.14.6', '6.1.1'] // skipped NEWEST (6.8.7) because of cbeust/testng#639
     final static String[] GROUP_BY_INSTANCES = ['6.1', '6.8.7', NEWEST]

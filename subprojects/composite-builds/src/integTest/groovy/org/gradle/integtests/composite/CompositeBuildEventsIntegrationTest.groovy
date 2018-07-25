@@ -17,9 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-/**
- * Tests for resolving dependency cycles in a composite build.
- */
+
 class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
     BuildTestFile buildC
@@ -128,7 +126,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         // `:buildB` is executed twice
         loggedAtLeast('buildListener.settingsEvaluated [:buildB]', 2)
         loggedAtLeast('buildListener.projectsEvaluated [:buildB]', 2)
-        loggedAtLeast('buildListener.buildFinished [:buildB]',2)
+        loggedAtLeast('buildListener.buildFinished [:buildB]', 2)
     }
 
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
@@ -150,6 +148,61 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
+    def "buildFinished for root build is guaranteed to complete after included builds"() {
+        given:
+
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+        buildC.buildFile << """
+            dependencies {
+                compileOnly 'org.test:b2:1.0'
+            }
+            
+            gradle.buildFinished {
+                sleep 500
+            }
+        """
+
+        buildB.file("b2/build.gradle") << """
+            task wait {
+                doLast {
+                    sleep 500
+                }
+            }
+            
+            jar.finalizedBy wait
+        """
+
+        when:
+        execute()
+
+        then:
+        def outputLines = result.normalizedOutput.readLines()
+        def rootBuildFinishedPosition = outputLines.indexOf("gradle.buildFinished [:]")
+        rootBuildFinishedPosition >= 0
+
+        def buildSuccessfulPosition = outputLines.indexOf("BUILD SUCCESSFUL in 0s")
+        buildSuccessfulPosition >= 0
+
+        def buildBFinishedPosition = outputLines.indexOf("gradle.buildFinished [:buildB]")
+        buildBFinishedPosition >= 0
+        def buildCFinishedPosition = outputLines.indexOf("gradle.buildFinished [:buildC]")
+        buildCFinishedPosition >= 0
+
+        buildBFinishedPosition < rootBuildFinishedPosition
+        buildBFinishedPosition < buildSuccessfulPosition
+
+        buildCFinishedPosition < rootBuildFinishedPosition
+        buildCFinishedPosition < buildSuccessfulPosition
+
+        def lastRootBuildTaskPosition = outputLines.indexOf("> Task :resolveArtifacts")
+        lastRootBuildTaskPosition >= 0
+
+        def lateIncludedBuildTaskPosition = outputLines.indexOf("> Task :buildB:b2:wait")
+
+        lateIncludedBuildTaskPosition < rootBuildFinishedPosition
+    }
+
     void verifyBuildEvents() {
         loggedOncePerBuild('buildListener.settingsEvaluated')
         loggedOncePerBuild('buildListener.projectsLoaded')
@@ -160,8 +213,8 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         // buildStarted events should _not_ be logged, since the listeners are added too late
         // If they are logged, it's due to duplicate events fired.
-        assert !result.output.contains('gradle.buildStarted')
-        assert !result.output.contains('buildListener.buildStarted')
+        outputDoesNotContain('gradle.buildStarted')
+        outputDoesNotContain('buildListener.buildStarted')
     }
 
     void loggedOncePerBuild(message, def builds = [':', ':buildB', ':buildC']) {
@@ -175,17 +228,17 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     void logged(String message, int count = 1) {
-        result.assertOutputContains(message)
+        outputContains(message)
         assert result.output.count(message) == count
     }
 
-
     void loggedAtLeast(String message, int count = 1) {
-        result.assertOutputContains(message)
+        outputContains(message)
         assert result.output.count(message) >= count
     }
 
     protected void execute() {
         super.execute(buildA, ":resolveArtifacts", ["-I../gradle-user-home/init.gradle"])
     }
+
 }

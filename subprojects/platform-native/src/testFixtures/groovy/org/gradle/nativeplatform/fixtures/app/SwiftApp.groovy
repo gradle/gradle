@@ -21,12 +21,16 @@ import org.gradle.integtests.fixtures.SourceFile
 /**
  * A single module Swift app, with several source files.
  */
-class SwiftApp extends SourceElement implements AppElement {
+class SwiftApp extends SwiftSourceElement implements AppElement {
     final greeter = new SwiftGreeter()
     final sum = new SwiftSum()
     final multiply = new SwiftMultiply()
     final main = new SwiftMain(greeter, sum)
-    final List<SourceFile> files = [main.sourceFile, greeter.sourceFile, sum.sourceFile, multiply.sourceFile]
+    List<SourceFile> files = [main.sourceFile, greeter.sourceFile, sum.sourceFile, multiply.sourceFile]
+
+    SwiftApp() {
+        super('app')
+    }
 
     @Override
     String getExpectedOutput() {

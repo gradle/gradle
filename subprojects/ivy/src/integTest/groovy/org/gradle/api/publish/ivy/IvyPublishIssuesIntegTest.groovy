@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy;
+package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
-import org.spockframework.util.TextUtil;
-import spock.lang.Issue;
+import org.spockframework.util.TextUtil
+import spock.lang.Issue
 
-public class IvyPublishIssuesIntegTest extends AbstractIntegrationSpec {
+public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-2456")
     def "generates SHA1 file with leading zeros"() {

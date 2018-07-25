@@ -20,7 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
-import org.gradle.internal.progress.BuildOperationListenerManager
+import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.SubscribableBuildAction

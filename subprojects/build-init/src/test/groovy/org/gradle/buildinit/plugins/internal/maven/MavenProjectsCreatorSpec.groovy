@@ -141,4 +141,60 @@ class MavenProjectsCreatorSpec extends Specification {
         then:
         gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
     }
+
+    def "creates multi module project with same artifactId"() {
+        given:
+        def parentPom = temp.file("pom.xml")
+        parentPom.text = """\
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <packaging>pom</packaging>
+  <groupId>org.gradle</groupId>
+  <artifactId>test</artifactId>
+  <version>0</version>
+
+  <modules>
+    <module>commons</module>
+  </modules>
+</project>
+"""
+
+        temp.file("commons/pom.xml").text = """\
+<project>
+  <parent>
+    <groupId>org.gradle</groupId>
+    <artifactId>test</artifactId>
+    <version>0</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>commons</artifactId>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>commons</module>
+  </modules>
+
+</project>
+"""
+        temp.file("commons/commons/pom.xml").text = """\
+<project>
+  <parent>
+    <groupId>org.gradle</groupId>
+    <artifactId>commons</artifactId>
+    <version>0</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.commons</groupId>
+  <artifactId>commons</artifactId>
+  
+</project>
+"""
+        def mavenProjects = creator.create(settings.buildSettings(), parentPom)
+        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory)
+
+        expect:
+        converter.convert()
+    }
 }

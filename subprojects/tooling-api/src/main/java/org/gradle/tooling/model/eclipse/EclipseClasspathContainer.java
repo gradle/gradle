@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * Eclipse classpath entry used by third-party plugins to contribute to the project's classpath.
  *
  * @since 3.0
  */
-@Incubating
 public interface EclipseClasspathContainer extends EclipseClasspathEntry {
 
     /**

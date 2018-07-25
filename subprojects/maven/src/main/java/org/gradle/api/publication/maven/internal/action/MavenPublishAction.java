@@ -18,6 +18,8 @@ package org.gradle.api.publication.maven.internal.action;
 import java.io.File;
 
 public interface MavenPublishAction {
+    void setPomArtifact(File file);
+
     void setMainArtifact(File file);
 
     void addAdditionalArtifact(File file, String type, String classifier);

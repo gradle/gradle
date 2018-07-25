@@ -75,12 +75,15 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
         buildFile << """
             ${callbackToolChain}
             
-            tasks.matching { it.name == '${taskName}' }.all {
+            tasks.matching { it.name == '${taskName}' }.all {  
+                def originalToolChain
                 doFirst {
-                    setToolChain(new CallbackToolChain(toolChain, beforeOperations, afterOperations))
+                    originalToolChain = toolChain.get()
+                    toolChain = new CallbackToolChain(originalToolChain, beforeOperations, afterOperations)
                 }
                 doLast {
-                    toolChain.undecorateToolProviders()
+                    toolChain.get().undecorateToolProviders()
+                    toolChain = originalToolChain
                 }
             }
         """

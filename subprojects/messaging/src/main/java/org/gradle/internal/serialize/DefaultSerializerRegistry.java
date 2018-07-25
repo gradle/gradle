@@ -112,7 +112,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         private final Map<Class<?>, TypeInfo> typeHierarchies = new HashMap<Class<?>, TypeInfo>();
         private final TypeInfo[] serializersByTag;
 
-        public TaggedTypeSerializer(Map<Class<?>, Serializer<?>> serializerMap, Set<Class<?>> javaSerialization) {
+        TaggedTypeSerializer(Map<Class<?>, Serializer<?>> serializerMap, Set<Class<?>> javaSerialization) {
             serializersByTag = new TypeInfo[2 + serializerMap.size()];
             serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
             int nextTag = 2;

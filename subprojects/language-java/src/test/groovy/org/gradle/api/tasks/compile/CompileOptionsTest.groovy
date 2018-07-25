@@ -17,7 +17,8 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -28,7 +29,7 @@ class CompileOptionsTest extends Specification {
     CompileOptions compileOptions
 
     def setup()  {
-        compileOptions = new CompileOptions()
+        compileOptions = new CompileOptions(TestUtil.objectFactory())
         compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
     }
@@ -183,7 +184,7 @@ class CompileOptionsTest extends Specification {
     @SuppressWarnings("GrDeprecatedAPIUsage")
     def "setting deprecated bootClasspath resets bootstrapClasspath"() {
         given:
-        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib1.jar"))
+        compileOptions.bootstrapClasspath = ImmutableFileCollection.of(new File("lib1.jar"))
 
         when:
         compileOptions.bootClasspath = "lib2.jar"
@@ -207,9 +208,17 @@ class CompileOptionsTest extends Specification {
         compileOptions.bootClasspath = "lib1.jar"
 
         when:
-        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib2.jar"))
+        compileOptions.bootstrapClasspath = ImmutableFileCollection.of(new File("lib2.jar"))
 
         then:
         compileOptions.bootClasspath == "lib2.jar"
+    }
+
+    def "converts GStrings to Strings when getting all compiler arguments"() {
+        given:
+        compileOptions.compilerArgs << "Foo${23}"
+
+        expect:
+        compileOptions.allCompilerArgs.contains('Foo23')
     }
 }

@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 final class DefaultImmutableAttributes implements ImmutableAttributes, AttributeValue<Object> {
@@ -37,33 +36,36 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         }
     };
 
-    private final DefaultImmutableAttributes parent;
     final Attribute<?> attribute;
     final Isolatable<?> value;
-
+    private final ImmutableMap<Attribute<?>, DefaultImmutableAttributes> hierarchy;
+    private final ImmutableMap<String, DefaultImmutableAttributes> hierarchyByName;
     private final int hashCode;
-    private final int size;
 
-    // cache keyset in case we need it again
-    private Set<Attribute<?>> keySet;
 
     DefaultImmutableAttributes() {
-        this.parent = null;
         this.attribute = null;
         this.value = null;
         this.hashCode = 0;
-        this.size = 0;
+        this.hierarchy = ImmutableMap.of();
+        this.hierarchyByName = ImmutableMap.of();
     }
 
     DefaultImmutableAttributes(DefaultImmutableAttributes parent, Attribute<?> key, Isolatable<?> value) {
-        this.parent = parent;
         this.attribute = key;
         this.value = value;
+        Map<Attribute<?>, DefaultImmutableAttributes> hierarchy = Maps.newLinkedHashMap();
+        hierarchy.putAll(parent.hierarchy);
+        hierarchy.put(attribute, this);
+        this.hierarchy = ImmutableMap.copyOf(hierarchy);
+        Map<String, DefaultImmutableAttributes> hierarchyByName = Maps.newLinkedHashMap();
+        hierarchyByName.putAll(parent.hierarchyByName);
+        hierarchyByName.put(attribute.getName(), this);
+        this.hierarchyByName = ImmutableMap.copyOf(hierarchyByName);
         int hashCode = parent.hashCode();
         hashCode = 31 * hashCode + attribute.hashCode();
         hashCode = 31 * hashCode + value.hashCode();
         this.hashCode = hashCode;
-        this.size = parent.size + 1;
     }
 
     @Override
@@ -77,17 +79,14 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
         DefaultImmutableAttributes that = (DefaultImmutableAttributes) o;
 
-        if (size != that.size) {
+        if (hierarchy.size() != that.hierarchy.size()) {
             return false;
         }
 
-        DefaultImmutableAttributes cur = this;
-
-        while (cur.value != null) {
-            if (!cur.value.isolate().equals(that.getAttribute(cur.attribute))) {
+        for (Map.Entry<Attribute<?>, DefaultImmutableAttributes> entry : hierarchy.entrySet()) {
+            if (!entry.getValue().value.isolate().equals(that.getAttribute(entry.getKey()))) {
                 return false;
             }
-            cur = cur.parent;
         }
         return true;
     }
@@ -98,14 +97,8 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Override
-    public Set<Attribute<?>> keySet() {
-        if (parent == null) {
-            return Collections.emptySet();
-        }
-        if (keySet == null) {
-            keySet = Sets.union(Collections.singleton(attribute), parent.keySet());
-        }
-        return keySet;
+    public ImmutableSet<Attribute<?>> keySet() {
+        return hierarchy.keySet();
     }
 
     @Override
@@ -115,39 +108,29 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        if (key.equals(attribute)) {
-            return Cast.uncheckedCast(value.isolate());
-        }
-        if (parent != null) {
-            return parent.getAttribute(key);
-        }
-        return null;
+        Isolatable<T> isolatable = getIsolatableAttribute(key);
+        return isolatable == null ? null : isolatable.isolate();
+    }
+
+    protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+        DefaultImmutableAttributes attributes = hierarchy.get(key);
+        return (Isolatable<T>) (attributes == null ? null : attributes.value);
     }
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
      */
     public <T> AttributeValue<T> findEntry(Attribute<T> key) {
-        if (key.equals(attribute)) {
-            return Cast.uncheckedCast(this);
-        }
-        if (parent != null) {
-            return parent.findEntry(key);
-        }
-        return Cast.uncheckedCast(AttributeValue.MISSING);
+        DefaultImmutableAttributes attributes = hierarchy.get(key);
+        return (AttributeValue<T>) (attributes == null ? MISSING : attributes);
     }
 
     /**
      * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
      */
     public AttributeValue<?> findEntry(String key) {
-        if (attribute != null && key.equals(attribute.getName())) {
-            return this;
-        }
-        if (parent != null) {
-            return parent.findEntry(key);
-        }
-        return AttributeValue.MISSING;
+        DefaultImmutableAttributes attributes = hierarchyByName.get(key);
+        return attributes == null ? MISSING : attributes;
     }
 
     @Override
@@ -156,8 +139,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Nullable
-    @Override
-    public <S> S coerce(Class<S> type) {
+    private <S> S coerce(Class<S> type) {
         if (value != null) {
             Isolatable<S> converted = value.coerce(type);
             if (converted != null) {
@@ -165,6 +147,24 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
             }
         }
         return null;
+    }
+
+    @Override
+    public <S> S coerce(Attribute<S> otherAttribute) {
+        Class<S> attributeType = otherAttribute.getType();
+        if (attributeType.isAssignableFrom(attribute.getType())) {
+            return (S) get();
+        }
+
+        S converted = coerce(attributeType);
+        if (converted != null) {
+            return converted;
+        }
+        String foundType = get().getClass().getName();
+        if (foundType.equals(attributeType.getName())) {
+            foundType += " with a different ClassLoader";
+        }
+        throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attributeType.getName(), foundType));
     }
 
     @Override
@@ -179,7 +179,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return key.equals(attribute) || parent != null && parent.contains(key);
+        return hierarchy.containsKey(key);
     }
 
     @Override
@@ -195,12 +195,8 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
-        DefaultImmutableAttributes node = this;
-        while (node != null) {
-            if (node.attribute != null) {
-                sorted.put(node.attribute, node.value.isolate());
-            }
-            node = node.parent;
+        for (Map.Entry<Attribute<?>, DefaultImmutableAttributes> entry : hierarchy.entrySet()) {
+            sorted.put(entry.getKey(), entry.getValue().value.isolate());
         }
         return sorted.toString();
     }

@@ -17,6 +17,7 @@ package org.gradle.language.c.plugins;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
@@ -35,6 +36,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
@@ -44,6 +46,7 @@ import java.util.Map;
  * Adds core C language support.
  */
 @Incubating
+@NonNullApi
 public class CLangPlugin implements Plugin<Project> {
 
     @Override
@@ -81,6 +84,11 @@ public class CLangPlugin implements Plugin<Project> {
         @Override
         public String getLanguageName() {
             return "c";
+        }
+
+        @Override
+        public ToolType getToolType() {
+            return ToolType.C_COMPILER;
         }
 
         @Override

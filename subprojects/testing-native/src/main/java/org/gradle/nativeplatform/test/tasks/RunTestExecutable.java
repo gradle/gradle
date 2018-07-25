@@ -17,7 +17,10 @@ package org.gradle.nativeplatform.test.tasks;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.AbstractExecTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.ConsoleRenderer;
 
 import java.io.File;
@@ -26,7 +29,6 @@ import java.io.File;
  * Runs a compiled and installed test executable.
  */
 @Incubating
-@SuppressWarnings("unchecked")
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     /**
      * The directory where the results should be generated.
@@ -45,6 +47,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     @Override
     protected void exec() {
         // Make convention mapping work
+        getOutputDir().mkdirs();
         setExecutable(getExecutable());
         setWorkingDir(getOutputDir());
 
@@ -66,7 +69,6 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
         } else {
             throw new GradleException(message, e);
         }
-
     }
 
     @OutputDirectory

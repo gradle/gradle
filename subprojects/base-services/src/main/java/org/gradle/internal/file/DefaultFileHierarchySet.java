@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class DefaultFileHierarchySet {
@@ -44,7 +43,7 @@ public class DefaultFileHierarchySet {
     /**
      * Creates a set containing the given directories and all their descendants.
      */
-    public static FileHierarchySet of(Collection<File> rootDirs) {
+    public static FileHierarchySet of(Iterable<File> rootDirs) {
         FileHierarchySet set = EMPTY;
         for (File rootDir : rootDirs) {
             set = set.plus(rootDir);
@@ -201,12 +200,24 @@ public class DefaultFileHierarchySet {
             return lastSeparator;
         }
 
+
+        /**
+         * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
+         * which does not check for negative indices or integer overflow.
+         */
         boolean isChildOfOrThis(String filePath, int offset) {
-            if (!filePath.regionMatches(offset, prefix, 0, prefix.length())) {
+            int pathLength = filePath.length();
+            int prefixLength = prefix.length();
+            int endOfThisSegment = prefixLength + offset;
+            if (pathLength < endOfThisSegment) {
                 return false;
             }
-            int endThisSegment = offset + prefix.length();
-            return endThisSegment == filePath.length() || filePath.charAt(endThisSegment) == File.separatorChar;
+            for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
+                if (prefix.charAt(i) != filePath.charAt(j)) {
+                    return false;
+                }
+            }
+            return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
         }
 
         boolean contains(String filePath, int offset) {

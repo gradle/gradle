@@ -27,7 +27,8 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -37,7 +38,7 @@ class ClangToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final Instantiator instantiator = DirectInstantiator.INSTANCE
-    final toolChain = new ClangToolChain("clang", Stub(BuildOperationExecutor), Stub(OperatingSystem), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), instantiator, Stub(WorkerLeaseService))
+    final toolChain = new ClangToolChain("clang", Stub(BuildOperationExecutor), Stub(OperatingSystem), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), Stub(SystemLibraryDiscovery), instantiator, Stub(WorkerLeaseService))
 
     def "provides default tools"() {
         def action = Mock(Action)

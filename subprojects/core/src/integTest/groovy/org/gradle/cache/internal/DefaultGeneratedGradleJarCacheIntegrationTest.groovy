@@ -18,13 +18,13 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheRepository
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
@@ -32,6 +32,8 @@ import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
+
+import static org.apache.commons.io.FileUtils.touch
 
 class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     private final static String CACHE_IDENTIFIER = 'test'
@@ -48,6 +50,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
 
     def DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .parent(NativeServicesTestFixture.getInstance())
+            .provider(LoggingServiceRegistry.NO_OP)
             .provider(new GlobalScopeServices(false))
             .build()
 
@@ -74,7 +77,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
                 void execute(File file) {
                     startSecondInvocation.countDown()
                     Thread.sleep(JAR_GENERATION_TIME_MS)
-                    GFileUtils.touch(file)
+                    touch(file)
                 }
             })
         }
@@ -112,7 +115,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
                     void execute(File file) {
                         triggeredJarFileGeneration.incrementAndGet()
                         Thread.sleep(JAR_GENERATION_TIME_MS)
-                        GFileUtils.touch(file)
+                        touch(file)
                     }
                 })
 

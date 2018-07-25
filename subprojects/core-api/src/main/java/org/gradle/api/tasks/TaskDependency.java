@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Task;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -35,5 +36,5 @@ public interface TaskDependency {
      * @param task The task to determine the dependencies for.
      * @return The tasks which the given task depends on. Returns an empty set if the task has no dependencies.
      */
-    Set<? extends Task> getDependencies(Task task);
+    Set<? extends Task> getDependencies(@Nullable Task task);
 }

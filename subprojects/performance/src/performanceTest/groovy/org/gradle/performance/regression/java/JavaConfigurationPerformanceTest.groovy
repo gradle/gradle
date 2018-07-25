@@ -30,7 +30,7 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["4.2-20170817235727+0000"]
+        runner.targetVersions = ["4.10-20180712235924+0000"]
 
         when:
         def result = runner.run()
@@ -39,8 +39,10 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                              | _
+        LARGE_MONOLITHIC_JAVA_PROJECT            | _
+        LARGE_JAVA_MULTI_PROJECT                 | _
+        // TODO:kotlin-dsl - uncomment after we have a new nightly
+        //LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 }

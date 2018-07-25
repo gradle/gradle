@@ -16,8 +16,9 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.language.fixtures.AnnotationProcessorFixture
+import org.gradle.language.fixtures.HelperProcessorFixture
 import spock.lang.Issue
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
@@ -37,11 +38,11 @@ include 'a', 'b'
         """
     }
 
-    def useIncrementalCompile() {
+    def deactivateIncrementalCompile() {
         buildFile << """
             allprojects {
                 tasks.withType(JavaCompile) {
-                    options.incremental = true
+                    options.incremental = false
                 }
             }
         """
@@ -50,10 +51,6 @@ include 'a', 'b'
     def useJar() {
         buildFile << """
             allprojects {
-                tasks.withType(JavaCompile) {
-                    // Use forking to work around javac's jar cache
-                    options.fork = true
-                }
                 jar {
                     from emptyDirs
                 }
@@ -325,11 +322,13 @@ public class ToolImpl {
                 }
             }
         """
-        def sourceFile = file("a/src/main/java/ToolImpl.java")
-        sourceFile << """ 
+        def sourceFile = file("a/src/main/java/org/ToolImpl.java")
+        sourceFile << """                  
+            package org;
             public class ToolImpl { void m() { } }
         """
-        file("b/src/main/java/Main.java") << """
+        file("b/src/main/java/org/Main.java") << """
+            package org;    
             public class Main { void go(ToolImpl t) { t.m(); } }
         """
 
@@ -343,6 +342,7 @@ public class ToolImpl {
         when:
         // change to interface
         sourceFile.text = """
+            package org;    
             public interface ToolImpl { void m(); }
 """
 
@@ -354,6 +354,7 @@ public class ToolImpl {
         when:
         // change to visibility
         sourceFile.text = """
+            package org;    
             interface ToolImpl { void m(); }
 """
 
@@ -365,6 +366,7 @@ public class ToolImpl {
         when:
         // change to interfaces
         sourceFile.text = """
+            package org;    
             interface ToolImpl extends Runnable { void m(); }
 """
 
@@ -684,7 +686,7 @@ public class ToolImpl {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         // A library class used by processor at runtime, but not the generated classes
         fixture.writeSupportLibraryTo(file("a"))
@@ -704,6 +706,7 @@ public class ToolImpl {
 '''
 
         when:
+        executer.expectDeprecationWarning()
         run(':c:run')
 
         then:
@@ -711,8 +714,10 @@ public class ToolImpl {
         executedAndNotSkipped(':b:compileJava')
         executedAndNotSkipped(':c:compileJava')
         outputContains('greetings')
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
+        executer.expectDeprecationWarning()
         run(':c:run')
 
         then:
@@ -720,12 +725,14 @@ public class ToolImpl {
         skipped(':b:compileJava')
         skipped(':c:compileJava')
         outputContains('greetings')
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
         // Update the library class
         fixture.message = 'hello'
         fixture.writeSupportLibraryTo(file("a"))
 
+        executer.expectDeprecationWarning()
         run(':c:run')
 
         then:
@@ -733,8 +740,10 @@ public class ToolImpl {
         skipped(':b:compileJava')
         executedAndNotSkipped(':c:compileJava')
         outputContains('hello')
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
+        executer.expectDeprecationWarning()
         run(':c:run')
 
         then:
@@ -742,12 +751,14 @@ public class ToolImpl {
         skipped(':b:compileJava')
         skipped(':c:compileJava')
         outputContains('hello')
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
         // Update the processor class
         fixture.suffix = 'world'
         fixture.writeAnnotationProcessorTo(file("b"))
 
+        executer.expectDeprecationWarning()
         run(':c:run')
 
         then:
@@ -755,6 +766,7 @@ public class ToolImpl {
         executedAndNotSkipped(':b:compileJava')
         executedAndNotSkipped(':c:compileJava')
         outputContains('hello world')
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "recompiles source when annotation processor implementation changes when separate annotation processor classpath is used for annotation processor discovery"() {
@@ -775,7 +787,6 @@ public class ToolImpl {
                     processor project(':b')
                 }
                 compileJava.options.annotationProcessorPath = configurations.processor
-                compileJava.options.fork = true
                 task run(type: JavaExec) {
                     main = 'TestApp'
                     classpath = sourceSets.main.runtimeClasspath
@@ -783,7 +794,7 @@ public class ToolImpl {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         // The annotation
         fixture.writeApiTo(file("a"))
@@ -873,7 +884,7 @@ public class ToolImpl {
             }
         """
 
-        def fixture = new AnnotationProcessorFixture()
+        def fixture = new HelperProcessorFixture()
 
         fixture.writeSupportLibraryTo(file("a"))
         fixture.writeApiTo(file("b"))
@@ -962,7 +973,7 @@ public class ToolImpl {
 
         then:
         fails ':a:compileJava'
-        errorOutput.contains 'String c = c()'
+        failure.assertHasErrorOutput 'String c = c()'
 
         and:
         executedAndNotSkipped ':b:compileJava'
@@ -1011,7 +1022,7 @@ public class ToolImpl {
 
         then:
         fails ':a:compileJava'
-        errorOutput.contains 'String d = d();'
+        failure.assertHasErrorOutput 'String d = d();'
 
         and:
         executedAndNotSkipped ':b:compileJava'

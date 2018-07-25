@@ -26,4 +26,8 @@ public interface CancellableOperationManager {
      */
     void monitorInput(Action<? super BuildCancellationToken> operation);
 
+    /**
+     * Perform clean-up work after build
+     */
+    void closeInput();
 }

@@ -34,7 +34,7 @@ class CommandLineOptionConfigurationTest extends Specification {
         configuration.shortOption == null
         configuration.description == DESCRIPTION
         !configuration.incubating
-        !configuration.deprecationWarning
+        !configuration.deprecated
         configuration.allOptions == [LONG_OPTION] as String[]
     }
 
@@ -47,7 +47,7 @@ class CommandLineOptionConfigurationTest extends Specification {
         configuration.shortOption == SHORT_OPTION
         configuration.description == DESCRIPTION
         !configuration.incubating
-        !configuration.deprecationWarning
+        !configuration.deprecated
         configuration.allOptions == [LONG_OPTION, SHORT_OPTION] as String[]
     }
 
@@ -61,15 +61,12 @@ class CommandLineOptionConfigurationTest extends Specification {
     }
 
     def "can mark option as deprecated"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         CommandLineOptionConfiguration configuration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
-        configuration.deprecated(deprecationWarning)
+        configuration.deprecated()
 
         then:
-        configuration.deprecationWarning == deprecationWarning
+        configuration.deprecated
     }
 
     @Unroll

@@ -49,6 +49,11 @@ class HttpDirectoryResource extends AbstractHttpResource {
     }
 
     @Override
+    void expectGetUnauthorized() {
+        server.expectGetUnauthorized(path)
+    }
+
+    @Override
     void expectGetRevalidate() {
         server.expectGetRevalidate(path, directory)
     }

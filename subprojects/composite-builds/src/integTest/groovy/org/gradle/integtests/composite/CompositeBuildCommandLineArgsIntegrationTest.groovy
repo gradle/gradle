@@ -159,7 +159,7 @@ includeBuild '../buildB'
 
     void skipped(String... taskNames) {
         for (String taskName : taskNames) {
-            result.assertOutputContains(taskName + " SKIPPED\n")
+            outputContains(taskName + " SKIPPED\n")
         }
     }
 

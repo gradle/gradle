@@ -32,7 +32,7 @@ abstract class CodeNarcInvoker {
         def logging = codenarcTask.logging
         def codenarcClasspath = codenarcTask.codenarcClasspath
         def antBuilder = codenarcTask.antBuilder
-        def classpath = new DefaultClassPath(codenarcClasspath)
+        def classpath = DefaultClassPath.of(codenarcClasspath)
         def compilationClasspath = codenarcTask.compilationClasspath
         def configFile = codenarcTask.configFile
         def maxPriority1Violations = codenarcTask.maxPriority1Violations

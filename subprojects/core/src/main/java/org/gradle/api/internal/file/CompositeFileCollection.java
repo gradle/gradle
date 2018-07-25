@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
@@ -33,8 +35,8 @@ import org.gradle.api.tasks.TaskDependency;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -48,20 +50,38 @@ import java.util.Set;
  * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
+    @Override
     public Set<File> getFiles() {
-        // Gather each of the backing Sets first, so we can set the initial capacity of the LinkedHashSet
-        List<Set<File>> fileSets = new LinkedList<Set<File>>();
-        int fileCount = 0;
-        for (FileCollection collection : getSourceCollections()) {
-            Set<File> files = collection.getFiles();
-            fileCount += files.size();
-            fileSets.add(files);
+        return getFiles(getSourceCollections());
+    }
+
+    @Override
+    public Iterator<File> iterator() {
+        List<? extends FileCollectionInternal> sourceCollections = getSourceCollections();
+        switch (sourceCollections.size()) {
+            case 0:
+                return Iterators.emptyIterator();
+            case 1:
+                return sourceCollections.get(0).iterator();
+            default:
+                // Need to make sure we remove duplicates, so we can't just compose iterators from source collections
+                return getFiles(sourceCollections).iterator();
         }
-        Set<File> allFiles = new LinkedHashSet<File>(fileCount);
-        for (Set<File> fileSet : fileSets) {
-            allFiles.addAll(fileSet);
+    }
+
+    private static Set<File> getFiles(List<? extends FileCollectionInternal> sourceCollections) {
+        switch (sourceCollections.size()) {
+            case 0:
+                return Collections.emptySet();
+            case 1:
+                return sourceCollections.get(0).getFiles();
+            default:
+                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
+                for (FileCollection collection : sourceCollections) {
+                    builder.addAll(collection);
+                }
+                return builder.build();
         }
-        return allFiles;
     }
 
     @Override
@@ -154,6 +174,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
                 return CompositeFileCollection.this.toString() + " dependencies";
             }
 
+            @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 CompositeFileCollection.this.visitDependencies(context);
             }
@@ -166,7 +187,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         visitContents(fileContext);
     }
 
-    protected Collection<? extends FileCollectionInternal> getSourceCollections() {
+    protected List<? extends FileCollectionInternal> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver());
         visitContents(context);
         return context.resolveAsFileCollections();

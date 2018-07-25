@@ -16,13 +16,13 @@
 
 package org.gradle.internal.resource.local;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
-import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.RelativePathUtil;
@@ -47,6 +47,7 @@ import static org.gradle.internal.FileUtils.hasExtension;
  * <p>
  * This file store also provides searching via relative ant path patterns.
  */
+@NonNullApi
 public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
     /*
@@ -57,26 +58,13 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
-    private final Deleter deleter;
 
     public DefaultPathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
-        IdentityFileResolver fileResolver = new IdentityFileResolver();
-        deleter = new Deleter(fileResolver, fileResolver.getFileSystem());
     }
 
     protected File getBaseDir() {
         return baseDir;
-    }
-
-    @Override
-    public LocallyAvailableResource move(String path, File source) {
-        return saveIntoFileStore(source, getFile(path), true);
-    }
-
-    @Override
-    public LocallyAvailableResource copy(String path, File source) {
-        return saveIntoFileStore(source, getFile(path), false);
     }
 
     private File getFile(String path) {
@@ -87,24 +75,16 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         File file = getFile(path);
         File markerFile = getInProgressMarkerFile(file);
         if (markerFile.exists()) {
-            deleter.delete(file);
-            deleter.delete(markerFile);
+            deleteFileQuietly(file);
+            deleteFileQuietly(markerFile);
         }
         return file;
     }
 
     @Override
-    public void moveFilestore(File destination) {
-        if (baseDir.exists()) {
-            GFileUtils.moveDirectory(baseDir, destination);
-        }
-        baseDir = destination;
-    }
-
-    @Override
     public LocallyAvailableResource add(final String path, final Action<File> addAction) {
         try {
-            return doAdd(getFile(path), new Action<File>() {
+            return doAdd(path, new Action<File>() {
                 @Override
                 public void execute(File file) {
                     try {
@@ -121,50 +101,46 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         }
     }
 
-    protected LocallyAvailableResource saveIntoFileStore(final File source, final File destination, final boolean isMove) {
-        String verb = isMove ? "move" : "copy";
-
+    @Override
+    public LocallyAvailableResource move(String path, final File source) {
         if (!source.exists()) {
-            throw new FileStoreException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
+            throw new FileStoreException(String.format("Cannot move '%s' into filestore @ '%s' as it does not exist", source, path));
         }
 
         try {
-            return doAdd(destination, new Action<File>() {
+            return doAdd(path, new Action<File>() {
                 public void execute(File file) {
-                    if (isMove) {
-                        if (source.isDirectory()) {
-                            GFileUtils.moveDirectory(source, file);
-                        } else {
-                            GFileUtils.moveFile(source, file);
-                        }
+                    if (source.isDirectory()) {
+                        GFileUtils.moveExistingDirectory(source, file);
                     } else {
-                        if (source.isDirectory()) {
-                            GFileUtils.copyDirectory(source, file);
-                        } else {
-                            GFileUtils.copyFile(source, file);
-                        }
+                        GFileUtils.moveExistingFile(source, file);
                     }
                 }
             });
         } catch (Throwable e) {
-            throw new FileStoreException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
+            throw new FileStoreException(String.format("Failed to move file '%s' into filestore at '%s' ", source, path), e);
         }
     }
 
-    protected LocallyAvailableResource doAdd(File destination, Action<File> action) {
+    private LocallyAvailableResource doAdd(String path, Action<File> action) {
+        File destination = getFile(path);
+        doAdd(destination, action);
+        return entryAt(path);
+    }
+
+    protected void doAdd(File destination, Action<File> action) {
         GFileUtils.parentMkdirs(destination);
         File inProgressMarkerFile = getInProgressMarkerFile(destination);
         GFileUtils.touch(inProgressMarkerFile);
         try {
-            deleter.delete(destination);
+            FileUtils.deleteQuietly(destination);
             action.execute(destination);
         } catch (Throwable t) {
-            deleter.delete(destination);
+            FileUtils.deleteQuietly(destination);
             throw UncheckedException.throwAsUncheckedException(t);
         } finally {
-            deleter.delete(inProgressMarkerFile);
+            deleteFileQuietly(inProgressMarkerFile);
         }
-        return entryAt(destination);
     }
 
     @Override
@@ -209,29 +185,21 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     }
 
     protected LocallyAvailableResource entryAt(final String path) {
-        return new RelativeToBaseDirResource(path);
+        return new DefaultLocallyAvailableResource(getFile(path));
     }
 
     @Override
     public LocallyAvailableResource get(String key) {
         final File file = getFileWhileCleaningInProgress(key);
         if (file.exists()) {
-            return new RelativeToBaseDirResource(key);
+            return new DefaultLocallyAvailableResource(getFile(key));
         } else {
             return null;
         }
     }
 
-    private class RelativeToBaseDirResource extends AbstractLocallyAvailableResource {
-        private final String path;
-
-        public RelativeToBaseDirResource(String path) {
-            this.path = path;
-        }
-
-        public File getFile() {
-            // Calculated on demand to deal with moves
-            return new File(baseDir, path);
-        }
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void deleteFileQuietly(File file) {
+        file.delete();
     }
 }

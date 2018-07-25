@@ -17,28 +17,28 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.registry.ModelRegistryScope;
 
 import javax.annotation.Nullable;
 
-public class RuleBasedPluginTarget<T extends ModelRegistryScope & PluginAwareInternal> implements PluginTarget {
+public class RuleBasedPluginTarget implements PluginTarget {
 
-    private final T target;
+    private final ProjectInternal target;
     private final PluginTarget imperativeTarget;
     private final ModelRuleExtractor ruleInspector;
     private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginTarget(T target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
+    public RuleBasedPluginTarget(ProjectInternal target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
-        this.imperativeTarget = new ImperativeOnlyPluginTarget<T>(target);
+        this.imperativeTarget = new ImperativeOnlyPluginTarget<ProjectInternal>(target);
     }
 
     @Override
@@ -51,6 +51,7 @@ public class RuleBasedPluginTarget<T extends ModelRegistryScope & PluginAwareInt
     }
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
+        target.prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = target.getModelRegistry();
         Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
         for (Class<? extends RuleSource> ruleSource : declaredSources) {

@@ -22,11 +22,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 
@@ -94,13 +96,21 @@ import java.util.Set;
  *
  * <li>A {@link TaskDependency} object.</li>
  *
+ * <li>A {@link org.gradle.api.tasks.TaskReference} object.</li>
+ *
  * <li>A {@link Buildable} object.</li>
+ *
+ * <li>A {@link org.gradle.api.file.RegularFileProperty} or {@link org.gradle.api.file.DirectoryProperty}.</li>
+ *
+ * <li>A {@link Provider} object. May contain any of the types listed here.</li>
  *
  * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
  * iterable/collection/map/array are recursively converted to tasks.</li>
  *
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
+ *
+ * <li>Anything else is treated as a failure.</li>
  *
  * </ul>
  *
@@ -155,6 +165,14 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     String TASK_OVERWRITE = "overwrite";
 
     String TASK_ACTION = "action";
+
+    /**
+     * Constructor arguments for the Task
+     *
+     * @since 4.7
+     */
+    @Incubating
+    String TASK_CONSTRUCTOR_ARGS = "constructorArgs";
 
     /**
      * <p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
@@ -225,30 +243,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
      * of objects which can be used as task dependencies.</p>
      *
-     * @param paths The dependencies to add to this task. The path can be defined by:
-     * <ul>
-     * <li>A {@code String}, {@code CharSequence} or {@code groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
-     * allows you to refer to tasks in other projects.</li>
-     *
-     * <li>A {@link Task}.</li>
-     *
-     * <li>A closure. The closure may take a {@code Task} as parameter. It may return any of the types listed here. Its
-     * return value is recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
-     *
-     * <li>A {@link TaskDependency} object.</li>
-     *
-     * <li>A {@link org.gradle.api.tasks.TaskReference} object.</li>
-     *
-     * <li>A {@link Buildable} object.</li>
-     *
-     * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
-     * iterable/collection/map/array are recursively converted to tasks.</li>
-     *
-     * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
-     * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
-     *
-     * <li>Anything else is treated as a failure.</li>
-     * </ul>
+     * @param paths The dependencies to add to this task.
      *
      * @return the task object this method is applied to
      */
@@ -416,7 +411,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Removes all the actions of this task.</p>
      *
      * @return the task object this method is applied to
+     *
+     * @deprecated Don't use this.
      */
+    @Deprecated
     Task deleteAllActions();
 
     /**
@@ -605,6 +603,14 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Incubating
     @Internal
     TaskDestroyables getDestroyables();
+
+    /**
+     * Returns the local state of this task.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    TaskLocalState getLocalState();
 
     /**
      * <p>Returns a directory which this task can use to write temporary files to. Each task instance is provided with a

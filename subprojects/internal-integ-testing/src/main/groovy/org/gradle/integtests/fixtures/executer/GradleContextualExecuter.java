@@ -15,7 +15,11 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.Action;
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptor;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+
+import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS;
 
 /**
  * Selects a different executer implementation based on the value of a system property.
@@ -25,7 +29,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
-    private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
 
     private Executer executerType;
 
@@ -102,10 +105,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private void configureExecuter(GradleExecuter gradleExecuter) {
         copyTo(gradleExecuter);
-
-        if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
-            gradleExecuter.withBuildJvmOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
-        }
     }
 
     private GradleExecuter createExecuter(Executer executerType) {
@@ -125,10 +124,16 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     @Override
     public void cleanup() {
-        if (gradleExecuter != null) {
-            gradleExecuter.stop();
-        }
-        super.cleanup();
+        new IntegrationTestTimeoutInterceptor(DEFAULT_TIMEOUT_SECONDS).intercept(new Action<Void>() {
+            @Override
+            public void execute(Void ignored) {
+                if (gradleExecuter != null) {
+                    gradleExecuter.stop();
+                }
+                GradleContextualExecuter.super.cleanup();
+            }
+        });
+
     }
 
     @Override

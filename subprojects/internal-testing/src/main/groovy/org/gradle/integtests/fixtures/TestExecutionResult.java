@@ -17,6 +17,8 @@
 package org.gradle.integtests.fixtures;
 
 public interface TestExecutionResult {
+    String EXECUTION_FAILURE = "failed to execute tests";
+
     /**
      * Asserts that the given test classes (and only the given test classes) were executed.
      */
@@ -31,4 +33,8 @@ public interface TestExecutionResult {
      * Returns the result for the first test class whose name starts with the given string.
      */
     TestClassExecutionResult testClassStartsWith(String testClass);
+
+    int getTotalNumberOfTestClassesExecuted();
+
+    boolean testClassExists(String testClass);
 }

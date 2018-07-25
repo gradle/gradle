@@ -15,15 +15,16 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-public class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+public class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
 
     public void "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
-        def cacheDir = executer.gradleUserHomeDir.file('caches').toURI()
+        def cacheDir = getUserHomeCacheDir().toURI()
 
         and:
         buildFile << """
@@ -48,7 +49,7 @@ task deleteCacheFiles(type: Delete) {
         and:
         succeeds('listJars')
         succeeds('deleteCacheFiles')
-        
+
         when:
         server.resetExpectations()
         module.ivy.expectGet()

@@ -17,45 +17,51 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import net.rubygrapefruit.platform.SystemInfo;
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
+import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
+import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadataProvider;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.VersionNumber;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.*;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
+     *
      * @return null if there is no such tool chain.
      */
     @Nullable
@@ -74,10 +80,11 @@ public class AvailableToolChains {
      * @return null if there is no such tool chain.
      */
     @Nullable
-    public static ToolChainCandidate getToolChain(ToolChainRequirement requirement) {
+    public static InstalledToolChain getToolChain(ToolChainRequirement requirement) {
         for (ToolChainCandidate toolChainCandidate : getToolChains()) {
             if (toolChainCandidate.meets(requirement)) {
-                return toolChainCandidate;
+                assert toolChainCandidate.isAvailable();
+                return (InstalledToolChain) toolChainCandidate;
             }
         }
         return null;
@@ -93,10 +100,14 @@ public class AvailableToolChains {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
-            } else {
-                compilers.add(findGcc());
+            } else if (OperatingSystem.current().isMacOsX()) {
                 compilers.add(findClang());
-                compilers.add(findSwiftc());
+                compilers.addAll(findGccs(false));
+                compilers.addAll(findSwiftcs());
+            } else {
+                compilers.addAll(findGccs(true));
+                compilers.add(findClang());
+                compilers.addAll(findSwiftcs());
             }
             toolChains = compilers;
         }
@@ -119,24 +130,20 @@ public class AvailableToolChains {
         return CollectionUtils.findFirst(VisualStudioVersion.values(), new Spec<VisualStudioVersion>() {
             @Override
             public boolean isSatisfiedBy(VisualStudioVersion candidate) {
-                return candidate.getVisualCppVersion().equals(version);
+                return candidate.getVersion().getMajor() == version.getMajor();
             }
         });
     }
 
     static private List<ToolChainCandidate> findVisualCpps() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class));
-        final List<VisualStudioLocator.SearchResult> searchResults = vsLocator.locateAllVisualStudioVersions();
+        final List<? extends VisualStudioInstall> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllComponents();
 
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
 
-        for (VisualStudioLocator.SearchResult searchResult : searchResults) {
-            if (searchResult.isAvailable()) {
-                VisualStudioInstall install = searchResult.getVisualStudio();
-                if (isTestableVisualStudioVersion(install.getVersion())) {
-                    toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
-                }
+        for (VisualStudioInstall install : searchResults) {
+            if (isTestableVisualStudioVersion(install.getVersion())) {
+                toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
             }
         }
 
@@ -167,38 +174,71 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc cygwin");
     }
 
-    static private ToolChainCandidate findGcc() {
-        GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(TestFiles.execActionFactory());
+    static private List<ToolChainCandidate> findGccs(boolean mustFind) {
+        GccMetadataProvider versionDeterminer = GccMetadataProvider.forGcc(TestFiles.execActionFactory());
 
-        List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
-        for (int i = 0; i < gppCandidates.size(); i++) {
-            File candidate = gppCandidates.get(i);
-            GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
-            if (version.isAvailable()) {
-                InstalledGcc gcc = new InstalledGcc("gcc");
-                if (i > 0) {
-                    // Not the first g++ in the path, needs the path variable updated
-                    gcc.inPath(candidate.getParentFile());
+        Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
+        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        if (!gppCandidates.isEmpty()) {
+            File firstInPath = gppCandidates.iterator().next();
+            for (File candidate : gppCandidates) {
+                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+                if (version.isAvailable()) {
+                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getComponent().getVersion());
+                    if (!candidate.equals(firstInPath)) {
+                        // Not the first g++ in the path, needs the path variable updated
+                        gcc.inPath(candidate.getParentFile());
+                    }
+                    toolChains.add(gcc);
                 }
-                return gcc;
+            }
+        }
+        if (mustFind && toolChains.isEmpty()) {
+            toolChains.add(new UnavailableToolChain("gcc"));
+        }
+
+        return toolChains;
+    }
+
+    static List<ToolChainCandidate> findSwiftcs() {
+        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+
+        SwiftcMetadataProvider versionDeterminer = new SwiftcMetadataProvider(TestFiles.execActionFactory());
+
+        // On Linux, we assume swift is installed into /opt/swift
+        File rootSwiftInstall = new File("/opt/swift");
+        File[] candidates = GUtil.elvis(rootSwiftInstall.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File swiftInstall) {
+                return swiftInstall.isDirectory() && !swiftInstall.getName().equals("latest");
+            }
+        }), new File[0]);
+
+        for (File swiftInstall : candidates) {
+            File swiftc = new File(swiftInstall, "/usr/bin/swiftc");
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList());
+            if (version.isAvailable()) {
+                File binDir = swiftc.getParentFile();
+                toolChains.add(new InstalledSwiftc(binDir, version.getComponent().getVersion()).inPath(binDir, new File("/usr/bin")));
             }
         }
 
-        return new UnavailableToolChain("gcc");
-    }
-
-    static ToolChainCandidate findSwiftc() {
-        File compilerExe = new File("/opt/swift/latest/usr/bin/swiftc");
-        if (compilerExe.isFile()) {
-            return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile());
-        }
-
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
-        if (!swiftcCandidates.isEmpty()) {
-            return new InstalledSwiftc("swiftc");
+        for (File candidate : swiftcCandidates) {
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+            if (version.isAvailable()) {
+                File binDir = candidate.getParentFile();
+                InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getComponent().getVersion());
+                swiftc.inPath(binDir, new File("/usr/bin"));
+                toolChains.add(swiftc);
+            }
         }
 
-        return new UnavailableToolChain("swiftc");
+        if (toolChains.isEmpty()) {
+            toolChains.add(new UnavailableToolChain("swiftc"));
+        }
+
+        return toolChains;
     }
 
     public static abstract class ToolChainCandidate {
@@ -217,7 +257,7 @@ public class AvailableToolChains {
 
         public abstract void resetEnvironment();
 
-   }
+    }
 
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
@@ -386,7 +426,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+                config += String.format("%s.path file('%s')\n", getId(), pathEntry.toURI());
             }
             return config;
         }
@@ -407,6 +447,11 @@ public class AvailableToolChains {
         @Override
         public String getPluginClass() {
             return GccCompilerPlugin.class.getSimpleName();
+        }
+
+        @Override
+        public String getId() {
+            return "gcc";
         }
     }
 
@@ -433,11 +478,30 @@ public class AvailableToolChains {
             }
             return "UNKNOWN";
         }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return super.meets(requirement) || requirement == ToolChainRequirement.WINDOWS_GCC;
+        }
+
+        @Override
+        public String getId() {
+            return getDisplayName().replaceAll("\\W", "");
+        }
     }
 
     public static class InstalledSwiftc extends InstalledToolChain {
-        public InstalledSwiftc(String displayName) {
-            super(displayName);
+        private final File binDir;
+        private final VersionNumber compilerVersion;
+
+        public InstalledSwiftc(File binDir, VersionNumber compilerVersion) {
+            super("swiftc " + compilerVersion);
+            this.binDir = binDir;
+            this.compilerVersion = compilerVersion;
+        }
+
+        public File tool(String name) {
+            return new File(binDir, name);
         }
 
         /**
@@ -457,7 +521,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+                config += String.format("%s.path file('%s')\n", getId(), pathEntry.toURI());
             }
             return config;
         }
@@ -479,7 +543,11 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.SWIFTC || (requirement == ToolChainRequirement.SWIFTC_3 && getVersion().getMajor() == 3) || (requirement == ToolChainRequirement.SWIFTC_4 && getVersion().getMajor() == 4);
+        }
+
+        public VersionNumber getVersion() {
+            return compilerVersion;
         }
     }
 
@@ -488,7 +556,7 @@ public class AvailableToolChains {
         private File installDir;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
-            super("visual c++ " + version.getVersion() + " (" + version.getVisualCppVersion().toString() + ")");
+            super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")");
         }
 
         @Override
@@ -500,7 +568,7 @@ public class AvailableToolChains {
             DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVersion();
-            pathEntries.addAll(install.getVisualCpp().getPath(targetPlatform));
+            pathEntries.addAll(install.getVisualCpp().forPlatform(targetPlatform).getPath());
             return this;
         }
 
@@ -511,15 +579,19 @@ public class AvailableToolChains {
                 case VISUALCPP:
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2012.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2012.getVersion()) >= 0;
                 case VISUALCPP_2013:
-                    return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
+                    return version.equals(VISUALSTUDIO_2013.getVersion());
                 case VISUALCPP_2013_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2013.getVersion()) >= 0;
                 case VISUALCPP_2015:
-                    return version.equals(VISUALSTUDIO_2015.getVisualCppVersion());
+                    return version.equals(VISUALSTUDIO_2015.getVersion());
                 case VISUALCPP_2015_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2015.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2015.getVersion()) >= 0;
+                case VISUALCPP_2017:
+                    return version.equals(VISUALSTUDIO_2017.getVersion());
+                case VISUALCPP_2017_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2017.getVersion()) >= 0;
                 default:
                     return false;
             }

@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
-import org.gradle.initialization.StartParameterBuildOptionFactory
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -92,7 +92,7 @@ class ProviderStartParameterConverterTest extends Specification {
     def "the start parameter is configured from properties"() {
         when:
         def properties = [
-            (StartParameterBuildOptionFactory.ConfigureOnDemandOption.GRADLE_PROPERTY): "true",
+            (StartParameterBuildOptions.ConfigureOnDemandOption.GRADLE_PROPERTY): "true",
         ]
 
         def start = new ProviderStartParameterConverter().toStartParameter(params, properties)

@@ -71,8 +71,13 @@ public class Install {
 
                 verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
 
-                logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
-                unzip(localZipFile, distDir);
+                try {
+                    unzip(localZipFile, distDir);
+                } catch (IOException e) {
+                    logger.log("Could not unzip " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath() + ".");
+                    logger.log("Reason: " + e.getMessage());
+                    throw e;
+                }
 
                 File root = getAndVerifyDistributionRoot(distDir, safeDistributionUrl.toString());
                 setExecutablePermissions(root);
@@ -84,7 +89,7 @@ public class Install {
     }
 
     private String calculateSha256Sum(File file)
-            throws Exception {
+        throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         InputStream fis = new FileInputStream(file);
         int n = 0;
@@ -98,8 +103,8 @@ public class Install {
         byte byteData[] = md.digest();
 
         StringBuffer hexString = new StringBuffer();
-        for (int i=0; i < byteData.length; i++) {
-            String hex=Integer.toHexString(0xff & byteData[i]);
+        for (int i = 0; i < byteData.length; i++) {
+            String hex = Integer.toHexString(0xff & byteData[i]);
             if (hex.length() == 1) {
                 hexString.append('0');
             }
@@ -110,7 +115,7 @@ public class Install {
     }
 
     private File getAndVerifyDistributionRoot(File distDir, String distributionDescription)
-            throws Exception {
+        throws Exception {
         List<File> dirs = listDirs(distDir);
         if (dirs.isEmpty()) {
             throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
@@ -165,9 +170,7 @@ public class Install {
         try {
             ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
             Process p = pb.start();
-            if (p.waitFor() == 0) {
-                logger.log("Set executable permissions for: " + gradleCommand.getAbsolutePath());
-            } else {
+            if (p.waitFor() != 0) {
                 BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 Formatter stdout = new Formatter();
                 String line;
@@ -213,7 +216,6 @@ public class Install {
     private void unzip(File zip, File dest) throws IOException {
         Enumeration entries;
         ZipFile zipFile = new ZipFile(zip);
-
         try {
             entries = zipFile.entries();
 

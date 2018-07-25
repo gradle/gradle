@@ -16,9 +16,12 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
 import spock.lang.Ignore
+import spock.lang.Issue
+
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -71,6 +74,42 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":jar"
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/5234")
+    def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency"() {
+        given:
+        def buildB = singleProjectBuild("buildB") {
+            buildFile << """
+                apply plugin: 'java'
+                version "2.0"
+            """
+        }
+        def buildscriptRepo = """
+            buildscript {
+                repositories {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+        """
+        buildA.buildFile << buildscriptRepo
+        buildB.buildFile << buildscriptRepo
+        applyPlugin(buildA)
+        applyPlugin(buildB)
+        includeBuild pluginBuild
+        includeBuild buildB
+        includeBuild pluginDependencyA
+        dependency(buildA, "org.test:buildB:2.0")
+        dependency(pluginBuild, "org.test:pluginDependencyA:1.0")
+
+        when:
+        execute(buildA, "assemble")
+
+        then:
+        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:jar", ":jar"
     }
 
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
@@ -141,11 +180,40 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar", ":jar"
     }
 
+    def "can develop a buildscript dependency that is used by multiple projects of main build"() {
+        given:
+        buildA.settingsFile << """
+            include 'a1'
+            include 'a2'
+        """
+        buildA.file("a1/build.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:pluginDependencyA:1.0'
+                }
+            }
+        """
+        buildA.file("a2/build.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:pluginDependencyA:1.0'
+                }
+            }
+        """
+
+        includeBuild pluginDependencyA
+
+        when:
+        execute(buildA, "help")
+
+        then:
+        executed ":pluginDependencyA:jar"
+    }
+
     def "can use an included build that provides both a buildscript dependency and a compile dependency"() {
         given:
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
-                println "Configured buildB"
                 allprojects {
                     apply plugin: 'java'
                 }
@@ -168,9 +236,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
-
-        output.count("Configured buildB") == 2
-    }
+   }
 
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
@@ -223,7 +289,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executer.inDirectory(pluginBuild).withTasks('publish').run()
     }
 
-// TODO:DAZ Fix this: https://builds.gradle.org/viewLog.html?buildId=4295932&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Linux_compositeBuilds
     @Ignore("Cycle check is not parallel safe: test may hang or produce StackOverflowError")
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
@@ -273,7 +338,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginBuild:jar"
         outputContains("taskFromPluginBuild")
 
-
         when:
         includeBuild pluginBuild
         execute(buildA, "tasks")
@@ -294,7 +358,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         then:
         executed ":pluginBuild:jar"
         outputContains("taskFromPluginBuild")
-
 
         when:
         includeBuild pluginBuild

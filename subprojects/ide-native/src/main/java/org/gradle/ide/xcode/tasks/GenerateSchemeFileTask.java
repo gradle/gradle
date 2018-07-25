@@ -22,7 +22,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.XcodeTarget;
-import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.ide.xcode.tasks.internal.XcodeSchemeFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
@@ -64,11 +63,11 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
             action.entry(new Action<XcodeSchemeFile.BuildActionEntry>() {
                 @Override
                 public void execute(XcodeSchemeFile.BuildActionEntry buildActionEntry) {
-                    buildActionEntry.setBuildForAnalysing(!PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType()));
-                    buildActionEntry.setBuildForArchiving(!PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType()));
-                    buildActionEntry.setBuildForProfiling(!PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType()));
-                    buildActionEntry.setBuildForRunning(!PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType()));
-                    buildActionEntry.setBuildForTesting(PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType()));
+                    buildActionEntry.setBuildForAnalysing(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForArchiving(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForProfiling(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForRunning(!xcodeTarget.isUnitTest());
+                    buildActionEntry.setBuildForTesting(xcodeTarget.isUnitTest());
                     buildActionEntry.setBuildableReference(toBuildableReference(xcodeTarget));
                 }
             });
@@ -79,7 +78,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
         action.setBuildConfiguration(BUILD_DEBUG);
 
         for (final XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
-            if (PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType())) {
+            if (xcodeTarget.isUnitTest()) {
                 action.setBuildConfiguration(TEST_DEBUG);
                 action.entry(new Action<XcodeSchemeFile.TestableEntry>() {
                     @Override
@@ -97,7 +96,9 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
         action.setBuildConfiguration(BUILD_DEBUG);
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeTarget);
-            action.setBuildableProductRunnable(buildableReference);
+            if (xcodeTarget.isRunnable()) {
+                action.setBuildableProductRunnable(buildableReference);
+            }
             action.setBuildableReference(buildableReference);
             break;
         }

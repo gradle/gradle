@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -53,6 +54,6 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Fil
             Buildable buildable = (Buildable) fileCollection;
             return buildable.getBuildDependencies();
         }
-        return super.getBuildDependencies();
+        return TaskDependencies.EMPTY;
     }
 }

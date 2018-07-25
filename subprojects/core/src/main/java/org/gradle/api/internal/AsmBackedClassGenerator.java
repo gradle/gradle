@@ -22,7 +22,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
-import org.apache.commons.lang.StringUtils;
+import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.PropertyInternal;
@@ -59,7 +59,17 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.signature;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_5;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
@@ -401,13 +411,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception {
+        public void addPropertySetters(PropertyMetaData property, Method getter) throws Exception {
 
             // GENERATE public void set<Name>(Object p) {
             //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
             // }
 
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "set" + StringUtils.capitalize(property.getName()), RETURN_VOID_FROM_OBJECT, null, EMPTY_STRINGS);
+
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, MetaProperty.getSetterName(property.getName()), RETURN_VOID_FROM_OBJECT, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(getter), false);

@@ -17,9 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -34,14 +36,16 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     private final boolean buildProjectDependencies;
     private final ResolutionStrategy.SortOrder sortOrder;
     private final List<ArtifactSet> artifactSetsById = new ArrayList<ArtifactSet>();
+    private final BuildIdentifier thisBuild;
 
-    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
+    public DefaultResolvedArtifactsBuilder(BuildIdentifier thisBuild, boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
+        this.thisBuild = thisBuild;
         this.buildProjectDependencies = buildProjectDependencies;
         this.sortOrder = sortOrder;
     }
 
     @Override
-    public void startArtifacts(DependencyGraphNode root) {
+    public void startArtifacts(RootGraphNode root) {
     }
 
     @Override
@@ -76,7 +80,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     private boolean isCurrentBuild(ComponentIdentifier incomingId) {
-        return ((ProjectComponentIdentifier) incomingId).getBuild().isCurrentBuild();
+        return ((ProjectComponentIdentifier) incomingId).getBuild().equals(thisBuild);
     }
 
     private void collectArtifacts(int artifactSetId, ArtifactSet artifacts) {

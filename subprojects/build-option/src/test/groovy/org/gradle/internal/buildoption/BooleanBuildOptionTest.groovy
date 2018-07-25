@@ -26,12 +26,13 @@ import static org.gradle.internal.buildoption.BuildOptionFixture.*
 class BooleanBuildOptionTest extends Specification {
 
     public static final String DISABLED_LONG_OPTION = "no-$LONG_OPTION"
+    public static final String DISABLED_DESCRIPTION = "Disables option --${LONG_OPTION}."
     def testSettings = new TestSettings()
     def commandLineParser = new CommandLineParser()
 
     def "can apply from property"() {
         given:
-        def testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
+        def testOption = new TestOption(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION, DISABLED_DESCRIPTION))
 
         when:
         testOption.applyFromProperty([:], testSettings)
@@ -59,7 +60,7 @@ class BooleanBuildOptionTest extends Specification {
         !commandLineParser.optionsByString.containsKey(SHORT_OPTION)
 
         when:
-        testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
+        testOption = new TestOption(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION, DISABLED_DESCRIPTION))
         testOption.configure(commandLineParser)
 
         then:
@@ -67,13 +68,15 @@ class BooleanBuildOptionTest extends Specification {
         CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
         assertNoArguments(enabledOption)
         assertNoArguments(disabledOption)
-        assertNoDeprecationWarning(enabledOption)
-        assertNoDeprecationWarning(disabledOption)
+        assertNotDeprecated(enabledOption)
+        assertNotDeprecated(disabledOption)
+        assertDescription(enabledOption, DESCRIPTION)
+        assertDescription(disabledOption, DISABLED_DESCRIPTION)
     }
 
     def "can configure incubating command line option"() {
         when:
-        def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
+        def commandLineOptionConfiguration = BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION, DISABLED_DESCRIPTION)
 
         if (incubating) {
             commandLineOptionConfiguration.incubating()
@@ -83,27 +86,32 @@ class BooleanBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[DISABLED_LONG_OPTION], incubating)
+        CommandLineOption enabledOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
+        assertIncubating(enabledOption, incubating)
+        assertIncubating(disabledOption, incubating)
+        assertIncubatingDescription(enabledOption, incubating, DESCRIPTION)
+        assertIncubatingDescription(disabledOption, incubating, DISABLED_DESCRIPTION)
 
         where:
         incubating << [false, true]
     }
 
     def "can configure deprecated command line option"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
-        def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
-            .deprecated(deprecationWarning)
+        def commandLineOptionConfiguration = BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION, DISABLED_DESCRIPTION)
+            .deprecated()
 
         def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
 
         then:
-        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
-        assertDeprecationWarning(commandLineParser.optionsByString[DISABLED_LONG_OPTION], deprecationWarning)
+        CommandLineOption enabledOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
+        assertDeprecated(enabledOption)
+        assertDeprecated(disabledOption)
+        assertDeprecatedDescription(enabledOption, true, DESCRIPTION)
+        assertDeprecatedDescription(disabledOption, true, DISABLED_DESCRIPTION)
     }
 
     def "can apply from command line"() {
@@ -118,7 +126,7 @@ class BooleanBuildOptionTest extends Specification {
         !testSettings.origin
 
         when:
-        testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
+        testOption = new TestOption(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION, DISABLED_DESCRIPTION))
         def enabledOption = new CommandLineOption([LONG_OPTION])
         def disabledOption = new CommandLineOption([DISABLED_LONG_OPTION])
         options << enabledOption
@@ -148,7 +156,7 @@ class BooleanBuildOptionTest extends Specification {
             super(gradleProperty)
         }
 
-        TestOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+        TestOption(String gradleProperty, BooleanCommandLineOptionConfiguration commandLineOptionConfiguration) {
             super(gradleProperty, commandLineOptionConfiguration)
         }
 

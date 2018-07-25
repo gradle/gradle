@@ -25,7 +25,12 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 
-import java.io.*;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FilterReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
@@ -135,6 +140,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return fileDetails.getMode();
     }
 
+    @Nullable
     private Integer getSpecMode() {
         return fileDetails.isDirectory() ? specResolver.getDirMode() : specResolver.getFileMode();
     }

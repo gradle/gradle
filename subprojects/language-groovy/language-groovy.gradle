@@ -1,17 +1,32 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-// Compiler daemon
-sourceCompatibility = 1.6
+plugins {
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJava")
 
+    implementation libraries.asm.coordinates
+
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
 }
 
-useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**", "org/gradle/api/tasks/javadoc/**"])
-useTestFixtures()
-useTestFixtures(project: ':languageJvm', sourceSet: 'integTest')
-useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
+}
+
+testFixtures {
+    from(':core')
+    from(':languageJvm', 'integTest')
+    from(':languageJvm', 'testFixtures')
+}
+
+classycle {
+    excludePatterns = ['org/gradle/api/internal/tasks/compile/**',
+                       'org/gradle/api/tasks/javadoc/**']
+}

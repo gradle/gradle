@@ -124,7 +124,7 @@ public class SourceFolder extends AbstractClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
         Joiner joiner = Joiner.on("|");
         attributes.put("including", joiner.join(includes));
         attributes.put("excluding", joiner.join(excludes));

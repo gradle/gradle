@@ -23,6 +23,11 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
     @UsedByScanPlugin
     public interface Details {
         /**
+         * @since 4.6
+         */
+        String getBuildPath();
+
+        /**
          * The absolute path to the settings directory.
          */
         String getSettingsDir();
@@ -35,4 +40,6 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
 
     public interface Result {
     }
+
+    private EvaluateSettingsBuildOperationType(){}
 }

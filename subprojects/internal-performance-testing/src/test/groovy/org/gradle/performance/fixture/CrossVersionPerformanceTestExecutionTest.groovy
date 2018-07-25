@@ -61,14 +61,20 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
         result.baseline("1.0").results << operation(totalTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
 
         result.baseline("1.3").results << operation(totalTime: 110)
         result.baseline("1.3").results << operation(totalTime: 110)
+        result.baseline("1.3").results << operation(totalTime: 111)
+        result.baseline("1.3").results << operation(totalTime: 111)
         result.baseline("1.3").results << operation(totalTime: 111)
 
         and:
         result.current << operation(totalTime: 110)
         result.current << operation(totalTime: 110)
+        result.current << operation(totalTime: 111)
+        result.current << operation(totalTime: 111)
         result.current << operation(totalTime: 111)
 
         when:
@@ -76,8 +82,8 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Speed ${result.displayName}: we're slower than 1.0.")
-        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.407 ms')
+        e.message.startsWith("Speed ${result.displayName}: we're slower than 1.0 with 99% confidence.")
+        e.message.contains('Difference: 11 ms slower (11 ms), 11.00%')
         !e.message.contains('1.3')
     }
 

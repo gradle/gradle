@@ -24,20 +24,19 @@ class DaemonOutputToggleIntegrationTest extends DaemonIntegrationSpec {
     def "output is received when toggle is off"() {
         when:
         executer.noExtraLogging()
-        run "help"
+        succeeds "help"
 
         then:
-        result.output.contains(":help")
-        result.output.contains("BUILD SUCCESSFUL")
+        outputContains(":help")
     }
 
     def "output is not received when toggle is on"() {
         when:
         executer.withBuildJvmOpts("-D$LogToClient.DISABLE_OUTPUT=true").noExtraLogging()
-        run "help"
+        succeeds "help"
 
         then:
-        !result.output.contains(":help")
-        !result.output.contains("BUILD SUCCESSFUL")
+        outputDoesNotContain(":help")
+        outputDoesNotContain("BUILD SUCCESSFUL")
     }
 }

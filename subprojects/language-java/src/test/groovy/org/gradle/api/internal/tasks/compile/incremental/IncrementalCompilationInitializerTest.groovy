@@ -15,11 +15,13 @@
  */
 
 
-
 package org.gradle.api.internal.tasks.compile.incremental
 
+import com.google.common.collect.ImmutableSet
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 import spock.lang.Subject
@@ -27,37 +29,66 @@ import spock.lang.Subject
 class IncrementalCompilationInitializerTest extends Specification {
 
     def fileOperations = Mock(FileOperations)
-    @Subject initializer = new IncrementalCompilationInitializer(fileOperations)
+    @Subject
+    def initializer = new IncrementalCompilationInitializer(fileOperations, Mock(FileTree))
 
     def "prepares patterns"() {
-        PatternSet classesToDelete = Mock(PatternSet)
+        PatternSet filesToDelete = Mock(PatternSet)
         PatternSet sourceToCompile = Mock(PatternSet)
 
         when:
-        initializer.preparePatterns(["com.Foo", "Bar"], classesToDelete, sourceToCompile)
+        initializer.preparePatterns(["com.Foo", "Bar"], filesToDelete, sourceToCompile)
 
         then:
-        1 * classesToDelete.include('com/Foo.class')
-        1 * classesToDelete.include('com/Foo$*.class')
-        1 * classesToDelete.include('Bar.class')
-        1 * classesToDelete.include('Bar$*.class')
+        1 * filesToDelete.include('com/Foo.class')
+        1 * filesToDelete.include('com/Foo.java')
+        1 * filesToDelete.include('com/Foo$*.class')
+        1 * filesToDelete.include('com/Foo$*.java')
+        1 * filesToDelete.include('Bar.class')
+        1 * filesToDelete.include('Bar.java')
+        1 * filesToDelete.include('Bar$*.class')
+        1 * filesToDelete.include('Bar$*.java')
 
         1 * sourceToCompile.include('Bar.java')
         1 * sourceToCompile.include('com/Foo.java')
+        1 * sourceToCompile.include('Bar$*.java')
+        1 * sourceToCompile.include('com/Foo$*.java')
 
         0 * _
-    }
-
-    def "does not prepare patterns when stale classes empty"() {
-        when: initializer.preparePatterns([], Mock(PatternSet), Mock(PatternSet))
-        then: thrown(AssertionError)
     }
 
     def "configures empty source when stale classes empty"() {
         def compileSpec = Mock(JavaCompileSpec)
-        when: initializer.initializeCompilation(compileSpec, [])
+
+        when:
+        initializer.initializeCompilation(compileSpec, new RecompilationSpec())
+
         then:
-        1 * compileSpec.setSource { it.files.empty }
-        0 * _
+        1 * compileSpec.setSourceFiles { it.files.empty }
+    }
+
+    def "configures empty classes when aggregated types empty"() {
+        def compileSpec = Mock(JavaCompileSpec)
+        def spec = new RecompilationSpec()
+
+        when:
+        initializer.initializeCompilation(compileSpec, spec)
+
+        then:
+        1 * compileSpec.setClasses(ImmutableSet.of())
+    }
+
+    def "removes recompiled types from list of reprocessed types"() {
+        def compileSpec = Mock(JavaCompileSpec)
+        def spec = new RecompilationSpec()
+        spec.getClassesToCompile().add('A')
+        spec.getClassesToProcess().add('A')
+        spec.getClassesToProcess().add('B')
+
+        when:
+        initializer.addClassesToProcess(compileSpec, spec)
+
+        then:
+        1 * compileSpec.setClasses(ImmutableSet.of("B"))
     }
 }

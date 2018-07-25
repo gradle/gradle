@@ -104,6 +104,14 @@ public class DefaultFileLockManager implements FileLockManager {
         }
     }
 
+    static File determineLockTargetFile(File target) {
+        if (target.isDirectory()) {
+            return new File(target, target.getName() + ".lock");
+        } else {
+            return new File(target.getParentFile(), target.getName() + ".lock");
+        }
+    }
+
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
         private final File lockFile;
         private final File target;
@@ -127,11 +135,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
-            if (target.isDirectory()) {
-                lockFile = new File(target, target.getName() + ".lock");
-            } else {
-                lockFile = new File(target.getParentFile(), target.getName() + ".lock");
-            }
+            this.lockFile = determineLockTargetFile(target);
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             try {

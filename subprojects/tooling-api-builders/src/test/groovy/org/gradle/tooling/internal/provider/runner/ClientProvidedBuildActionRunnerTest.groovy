@@ -18,24 +18,27 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
-import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
-import org.gradle.tooling.internal.provider.*
+import org.gradle.tooling.internal.provider.BuildActionResult
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions
+import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class ClientProvidedBuildActionRunnerTest extends Specification {
 
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def action = Mock(SerializedPayload)
     def clientSubscriptions = Mock(BuildClientSubscriptions)
     def buildEventConsumer = Mock(BuildEventConsumer)
@@ -140,5 +143,25 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
         then:
         1 * buildController.run()
+    }
+
+    def "can run action InternalActionVersion2"() {
+        given:
+        def model = new Object()
+        def output = Mock(SerializedPayload)
+        def internalAction = Mock(InternalBuildActionVersion2)
+
+        when:
+        runner.run(clientProvidedBuildAction, buildController)
+
+        then:
+        1 * internalAction.execute(_) >> model
+        1 * payloadSerializer.deserialize(action) >> internalAction
+        1 * payloadSerializer.serialize(model) >> output
+        1 * buildController.setResult(_) >> { BuildActionResult result ->
+            assert result.failure == null
+            assert result.result == output
+        }
+        0 * buildController.run()
     }
 }

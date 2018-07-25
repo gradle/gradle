@@ -2,11 +2,15 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import play.api.i18n._
 import play.api.data._
 import play.api.data.Forms._
 import models.Person
 
-object QuestionsThreeController extends Controller {
+import javax.inject._
+
+@Singleton
+class QuestionsThreeController @Inject()(override val messagesApi: MessagesApi) extends InjectedController with I18nSupport {
     val personForm = Form(
         mapping(
             "name" -> nonEmptyText,
@@ -27,7 +31,7 @@ object QuestionsThreeController extends Controller {
         )
     }
 
-    def index = Action {
+    def index = Action { implicit request =>
         Ok(views.html.person(personForm))
     }
 }

@@ -18,9 +18,16 @@ package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.util.GFileUtils
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+@IntegrationTestTimeout(300)
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     static final EXPIRATION_CHECK_FREQUENCY = 50
     public static final String EXPIRATION_EVENT = "expiration_event.txt"
@@ -48,6 +55,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
     }
 
+    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "should capture basic data when a foreground daemon runs multiple builds"() {
         given:
         buildFile << """
@@ -139,12 +148,34 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         file(EXPIRATION_EVENT).text.startsWith "onExpirationEvent fired with: expiring daemon with TestExpirationStrategy uuid:"
     }
 
-    static String captureTask(String name, int buildCount, int daemonCount) {
+    @IgnoreIf({ GradleContextualExecuter.isDaemon() })
+    def "captures single use daemons"() {
+        setup:
+        file('gradle.properties') << "org.gradle.jvmargs=-Xmx64m"
+
+        buildFile << """
+        ${imports()}
+
+        ${captureTask("capture", 1, 1, true)}
+        """
+
+        when:
+        result = executer.withArgument('--no-daemon').withTasks('capture').run()
+
+        then:
+        executedTasks.contains(':capture')
+        outputContains(SingleUseDaemonClient.MESSAGE)
+
+        and:
+        daemons.daemon.stops()
+    }
+
+    static String captureTask(String name, int buildCount, int daemonCount, boolean singleUse = false) {
         """
     task $name {
         doLast {
             DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
-            ${assertInfo(buildCount, daemonCount)}
+            ${assertInfo(buildCount, daemonCount, singleUse)}
         }
     }
     """
@@ -157,12 +188,13 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
            """
     }
 
-    static String assertInfo(int numberOfBuilds, int numDaemons) {
+    static String assertInfo(int numberOfBuilds, int numDaemons, boolean singleUse = false) {
         return """
            assert info.getNumberOfBuilds() == ${numberOfBuilds}
            assert info.getNumberOfRunningDaemons() == ${numDaemons}
            assert info.getIdleTimeout() == 120000
            assert info.getStartedAt() <= System.currentTimeMillis() + 1000 //accept slight clock adjustments while the test is running
+           assert info.isSingleUse() == ${singleUse}
         """
     }
 

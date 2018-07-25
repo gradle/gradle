@@ -20,6 +20,8 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
 class ModelTypeTest extends Specification {
@@ -531,5 +533,57 @@ class ModelTypeTest extends Specification {
         !new ModelType<List<?>>() {}.rawClassOfParameterizedType
         !new ModelType<List<String>>() {}.rawClassOfParameterizedType
         !new ModelType<List<? super String>>() {}.typeVariables[0].rawClassOfParameterizedType
+    }
+
+    enum MyEnum {
+        ONE, TWO
+    }
+
+    enum MyEnumWithClassBodies {
+        ONE {
+            int execute() { return 1 }
+        },
+        TWO {
+            int execute() { return 2 }
+        }
+
+        abstract int execute()
+    }
+
+    def "represents enums"() {
+        given:
+        def enumType = MyEnum.class
+        def enumInstanceType = MyEnum.ONE.class
+
+        expect:
+        def modelOfEnum = ModelType.of(enumType)
+        def modelOfInstance = ModelType.of(enumInstanceType)
+        modelOfEnum == modelOfInstance
+    }
+
+    def "represents top level enums having constants with class body"() {
+        given:
+        def enumType = TimeUnit.class
+        def enumInstanceType = TimeUnit.SECONDS.class
+
+        expect:
+        def modelOfEnum = ModelType.of(enumType)
+        def modelOfInstance = ModelType.of(enumInstanceType)
+        modelOfInstance.displayName == 'TimeUnit'
+        modelOfEnum.toString() == 'java.util.concurrent.TimeUnit'
+        modelOfEnum == modelOfInstance
+    }
+
+    def "represents nested enums having constants with class body"() {
+        given:
+        def enumType = MyEnumWithClassBodies.class
+        def enumInstanceType = MyEnumWithClassBodies.TWO.class
+
+        expect:
+        def modelOfEnum = ModelType.of(enumType)
+        def modelOfInstance = ModelType.of(enumInstanceType)
+        modelOfInstance.displayName == 'ModelTypeTest.MyEnumWithClassBodies'
+        modelOfEnum.toString() == 'org.gradle.model.internal.core.ModelTypeTest.MyEnumWithClassBodies'
+        modelOfEnum == modelOfInstance
     }
 }

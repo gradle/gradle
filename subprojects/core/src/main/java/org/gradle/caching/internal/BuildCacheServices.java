@@ -20,6 +20,8 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
+import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
+import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
@@ -36,6 +38,15 @@ import java.util.List;
  * Build scoped services for build cache usage.
  */
 public final class BuildCacheServices extends AbstractPluginServiceRegistry {
+
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            RootBuildCacheControllerRef createRootBuildCacheControllerRef() {
+                return new RootBuildCacheControllerRef();
+            }
+        });
+    }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
@@ -62,6 +73,13 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
         });
+
+    }
+
+    @Override
+    public void registerGradleServices(ServiceRegistration registration) {
+        // Not build scoped because of dependency on GradleInternal for build path
+        registration.addProvider(new BuildCacheTaskServices());
     }
 
 }

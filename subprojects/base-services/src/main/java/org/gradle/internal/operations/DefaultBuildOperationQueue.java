@@ -70,7 +70,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             workQueue.add(operation);
             pendingOperations++;
             workAvailable.signalAll();
-            if (workerCount == 0 || workerCount < workerLeases.getMaxWorkerCount()) {
+            if (workerCount == 0 || workerCount < workerLeases.getMaxWorkerCount() - 1) {
+                // `getMaxWorkerCount() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
                 // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
                 executor.execute(new WorkerRunnable());
             }
@@ -107,8 +108,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             lock.unlock();
         }
 
-        // Use this thread to process any work - this should only actually process work if none of the
-        // submitted workers make it onto the executor thread pool.
+        // Use this thread to process any work - this allows work to be executed using the
+        // worker lease acquired by this thread even if the executor thread pool is full of
+        // workers from other threads.  In other words, it ensures that all worker leases
+        // are being utilized, regardless of the bounds of the thread pool.
         try {
             new WorkerRunnable().run();
         } catch (Throwable t) {

@@ -16,24 +16,59 @@
 
 package org.gradle.api.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Namer
 import org.gradle.api.Rule
+import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import spock.lang.Specification
 
-class DefaultNamedDomainObjectCollectionTest extends Specification {
+class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCollectionSpec<Bean> {
 
     private final Namer<Bean> namer = new Namer<Bean>() {
-        public String determineName(Bean bean) { return bean.name; }
+        String determineName(Bean bean) { return bean.name }
     };
 
-    Instantiator instantiator = Mock(Instantiator)
-
-    private final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<CharSequence>(Bean, new HashSet<>(), instantiator, namer);
+    Instantiator instantiator = DirectInstantiator.INSTANCE
     Set<Bean> store
+
+    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer)
+    final Bean a = new BeanSub1("a")
+    final Bean b = new BeanSub1("b")
+    final Bean c = new BeanSub1("c")
+    final Bean d = new BeanSub2("d")
 
     def setup() {
         container.clear()
+    }
+
+    @NotYetImplemented
+    def "named finds objects created by rules"() {
+        def rule = Mock(Rule)
+        def bean = new Bean("bean")
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.named("bean")
+
+        then:
+        result.present
+        result.get() == bean
+
+        and:
+        1 * rule.apply("bean") >> { container.add(bean) }
+        0 * rule._
+    }
+
+    def "named finds objects added to container"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        then:
+        result.present
+        result.get() == a
     }
 
     def "getNames"() {
@@ -106,11 +141,28 @@ class DefaultNamedDomainObjectCollectionTest extends Specification {
         0 * rule._
     }
 
-    private class Bean {
-        public final String name;
+    static class Bean {
+        public final String name
 
-        public Bean(String name) {
-            this.name = name;
+        Bean(String name) {
+            this.name = name
+        }
+
+        @Override
+        String toString() {
+            return name
+        }
+    }
+
+    static class BeanSub1 extends Bean {
+        BeanSub1(String name) {
+            super(name)
+        }
+    }
+
+    static class BeanSub2 extends Bean {
+        BeanSub2(String name) {
+            super(name)
         }
     }
 }

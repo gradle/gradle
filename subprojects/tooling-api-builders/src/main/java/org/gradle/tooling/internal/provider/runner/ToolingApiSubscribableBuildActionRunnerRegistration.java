@@ -17,10 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
 
@@ -37,7 +39,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         if (clientSubscriptions.isSendBuildProgressEvents() || clientSubscriptions.isSendTaskProgressEvents()) {
             BuildOperationListener buildListener = NO_OP;
             if (clientSubscriptions.isSendBuildProgressEvents()) {
-                buildListener = new ClientForwardingBuildOperationListener(consumer);
+                buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(consumer));
             }
             listeners.add(new ClientForwardingTaskOperationListener(consumer, clientSubscriptions, buildListener));
         }
@@ -47,6 +49,10 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        }
+
+        @Override
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         }
 
         @Override

@@ -17,11 +17,11 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import spock.lang.Specification
 
-abstract class PropertySpec<T> extends Specification {
-    abstract PropertyInternal<T> property()
+abstract class PropertySpec<T> extends ProviderSpec<T> {
+    abstract Property<T> property()
 
     abstract T someValue()
 
@@ -227,6 +227,35 @@ abstract class PropertySpec<T> extends Specification {
         0 * _
     }
 
+    def "transformation is provided with the current value of the property each time the value is queried"() {
+        def transformer = Mock(Transformer)
+        def property = property()
+
+        when:
+        def provider = property.map(transformer)
+
+        then:
+        0 * _
+
+        when:
+        property.set(someValue())
+        def r1 = provider.get()
+
+        then:
+        r1 == 123
+        1 * transformer.transform(someValue()) >> 123
+        0 * _
+
+        when:
+        property.set(someOtherValue())
+        def r2 = provider.get()
+
+        then:
+        r2 == 456
+        1 * transformer.transform(someOtherValue()) >> 456
+        0 * _
+    }
+
     def "can map value to some other type"() {
         def transformer = Mock(Transformer)
         def property = property()
@@ -255,7 +284,7 @@ abstract class PropertySpec<T> extends Specification {
         0 * _
     }
 
-    def "mapped provider has no value when property has no value"() {
+    def "mapped provider has no value when property has no value and transformer is not invoked"() {
         def transformer = Mock(Transformer)
         def property = property()
         property.set(null)

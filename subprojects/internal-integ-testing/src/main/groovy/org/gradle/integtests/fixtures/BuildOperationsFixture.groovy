@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.Action
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -27,6 +28,7 @@ import org.gradle.internal.operations.trace.BuildOperationTree
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.regex.Pattern
 
 class BuildOperationsFixture {
 
@@ -46,10 +48,14 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> roots() {
-        return operations.roots
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        def roots = operations.roots.findAll {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
+        assert roots.size() == 1
+        return roots[0]
     }
-
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
@@ -59,12 +65,18 @@ class BuildOperationsFixture {
         }
     }
 
+    static <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type) {
+        assert record.detailsType
+        def detailsType = BuildOperationTypes.detailsType(type)
+        detailsType.isAssignableFrom(record.detailsType)
+    }
+
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().findAll {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
-        }
+        }.toList()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
@@ -80,7 +92,49 @@ class BuildOperationsFixture {
     }
 
     BuildOperationRecord first(String displayName) {
-        operations.records.values().find { it.displayName == displayName }
+        first(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    BuildOperationRecord first(Pattern displayName) {
+        operations.records.values().find { it.displayName ==~ displayName }
+    }
+
+    List<BuildOperationRecord> all(String displayName) {
+        all(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    List<BuildOperationRecord> all(Pattern displayName) {
+        operations.records.values().findAll { it.displayName ==~ displayName }
+    }
+
+    BuildOperationRecord only(String displayName) {
+        only(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
+        def parents = []
+        def parentId = child.parentId
+        while (parentId != null) {
+            def parent = operations.records.get(parentId)
+            parents.add(0, parent)
+            parentId = parent.parentId
+        }
+        parents
+    }
+
+    BuildOperationRecord only(Pattern displayName) {
+        def records = all(displayName)
+        assert records.size() == 1
+        records.first()
+    }
+
+    void none(String displayName) {
+        none(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    void none(Pattern displayName) {
+        def records = all(displayName)
+        assert records.size() == 0
     }
 
     Map<String, ?> result(String displayName) {
@@ -109,21 +163,35 @@ class BuildOperationsFixture {
         search(parent, Specs.intersect(typeSpec, predicate))
     }
 
+    @SuppressWarnings(["GrMethodMayBeStatic", "GrUnnecessaryPublicModifier"])
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> children(BuildOperationRecord parent, Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
+        Spec<BuildOperationRecord> parentSpec = {
+            it.parentId == parent.id
+        }
+        return search(parent, type, Specs.intersect(parentSpec, predicate))
+    }
+
     @SuppressWarnings("GrMethodMayBeStatic")
     List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         def matches = []
+        walk(parent) {
+            if (predicate.isSatisfiedBy(it)) {
+                matches << it
+            }
+        }
+        matches
+    }
+
+    @SuppressWarnings("GrMethodMayBeStatic")
+    void walk(BuildOperationRecord parent, Action<? super BuildOperationRecord> action) {
         def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
 
         def operation = search.poll()
         while (operation != null) {
-            if (predicate.isSatisfiedBy(operation)) {
-                matches << operation
-            }
+            action.execute(operation)
             search.addAll(operation.children)
             operation = search.poll()
         }
-
-        matches
     }
 
     void orderedSerialSiblings(BuildOperationRecord... expectedOrder) {
@@ -154,11 +222,9 @@ class BuildOperationsFixture {
         int compareTo(TimePoint o) {
             if (o.time > time) {
                 return -1
-            }
-            else if (o.time < time) {
+            } else if (o.time < time) {
                 return 1
-            }
-            else {
+            } else {
                 if (end && o.end) {
                     return 0
                 } else if (end) {
@@ -186,16 +252,16 @@ class BuildOperationsFixture {
      * @param maximumConcurrentOperations maximum concurrent operations allowed
      * @param concurrencyExpected whether or not to expect _any_ concurrency
      */
-    void assertConcurrentOperationsDoNotExceed(Class<BuildOperationType> type, int maximumConcurrentOperations, boolean concurrencyExpected=false) {
+    void assertConcurrentOperationsDoNotExceed(Class<BuildOperationType> type, int maximumConcurrentOperations, boolean concurrencyExpected = false) {
         int maxConcurrency = getMaximumConcurrentOperations(type)
         assert maxConcurrency <= maximumConcurrentOperations
         if (concurrencyExpected) {
-            assert maxConcurrency > 1 : "No operations were executed concurrently"
+            assert maxConcurrency > 1: "No operations were executed concurrently"
         }
     }
 
     void assertConcurrentOperationsExecuted(Class<BuildOperationType> type) {
-        assert getMaximumConcurrentOperations(type) > 1 : "No operations were executed concurrently"
+        assert getMaximumConcurrentOperations(type) > 1: "No operations were executed concurrently"
     }
 
     int getMaximumConcurrentOperations(Class<BuildOperationType> type) {

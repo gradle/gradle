@@ -20,9 +20,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
-import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class EclipsePluginTest extends AbstractProjectBuilderSpec {
@@ -30,7 +28,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     private EclipsePlugin eclipsePlugin
 
     def setup() {
-        eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator), project.services.get(UniqueProjectNameProvider))
+        eclipsePlugin = project.objects.newInstance(EclipsePlugin)
     }
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
@@ -155,7 +153,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         assert classpath.minusConfigurations == []
 
         assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${project.eclipse.jdt.getJavaRuntimeName()}/"] + additionalContainers as Set
-        assert classpath.defaultOutputDir == new File(project.projectDir, 'bin')
+        assert classpath.defaultOutputDir == new File(project.projectDir, 'bin/default')
     }
 
     private void checkEclipseJdt() {

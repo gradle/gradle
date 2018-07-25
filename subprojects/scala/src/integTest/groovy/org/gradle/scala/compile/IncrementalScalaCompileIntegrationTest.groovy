@@ -58,7 +58,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile 'org.scala-lang:scala-library:2.11.1'
+                compile 'org.scala-lang:scala-library:2.11.12'
             }
         """
 

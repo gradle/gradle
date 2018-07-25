@@ -15,17 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.List;
 
@@ -34,20 +35,22 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+            ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(),
+            dependency.getAttributes());
 
-        List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
+        List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                selector, requested, clientConfiguration, clientAttributes, dependency.getTargetConfiguration(),
+                componentId, selector, clientConfiguration, clientAttributes, dependency.getAttributes(), dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
-                excludes, force, changing, transitive);
+                excludes, force, changing, transitive, false, dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

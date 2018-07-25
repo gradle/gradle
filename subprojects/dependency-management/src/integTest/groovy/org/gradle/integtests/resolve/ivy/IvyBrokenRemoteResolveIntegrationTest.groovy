@@ -44,8 +44,8 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertResolutionFailure(':missing')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${module.ivy.uri}
-    ${module.jar.uri}
+  - ${module.ivy.uri}
+  - ${module.jar.uri}
 Required by:
     project :""")
 
@@ -59,8 +59,8 @@ Required by:
                 .assertResolutionFailure(':missing')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${module.ivy.uri}
-    ${module.jar.uri}
+  - ${module.ivy.uri}
+  - ${module.jar.uri}
 Required by:
     project :""")
 
@@ -109,14 +109,14 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertResolutionFailure(':missing')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${moduleA.ivy.uri}
-    ${moduleA.jar.uri}
+  - ${moduleA.ivy.uri}
+  - ${moduleA.jar.uri}
 Required by:
     project :""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
-    ${moduleB.ivy.uri}
-    ${moduleB.jar.uri}
+  - ${moduleB.ivy.uri}
+  - ${moduleB.jar.uri}
 Required by:
     project :""")
 
@@ -190,15 +190,15 @@ task showMissing { doLast { println configurations.compile.files } }
                 .assertResolutionFailure(':compile')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${moduleA.ivy.uri}
-    ${moduleA.jar.uri}
+  - ${moduleA.ivy.uri}
+  - ${moduleA.jar.uri}
 Required by:
     project : > group:projectC:0.99
     project : > project :child1 > group:projectD:1.0GA""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
-    ${moduleB.ivy.uri}
-    ${moduleB.jar.uri}
+  - ${moduleB.ivy.uri}
+  - ${moduleB.jar.uri}
 Required by:
     project : > project :child1 > group:projectD:1.0GA""")
 
@@ -248,8 +248,8 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause('Could not resolve all files for configuration \':missing\'.')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${module.ivy.uri}
-    ${artifact.uri}
+  - ${module.ivy.uri}
+  - ${artifact.uri}
 Required by:
 """)
 
@@ -299,10 +299,10 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause('Could not resolve all files for configuration \':missing\'.')
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${moduleInRepo1.ivy.uri}
-    ${moduleInRepo1.jar.uri}
-    ${moduleInRepo2.ivy.uri}
-    ${moduleInRepo2.jar.uri}
+  - ${moduleInRepo1.ivy.uri}
+  - ${moduleInRepo1.jar.uri}
+  - ${moduleInRepo2.ivy.uri}
+  - ${moduleInRepo2.jar.uri}
 Required by:
 """)
 

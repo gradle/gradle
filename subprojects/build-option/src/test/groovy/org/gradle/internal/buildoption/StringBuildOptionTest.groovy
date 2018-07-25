@@ -67,8 +67,10 @@ class StringBuildOptionTest extends Specification {
         CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
         assertSingleArgument(longOption)
         assertSingleArgument(shortOption)
-        assertNoDeprecationWarning(longOption)
-        assertNoDeprecationWarning(shortOption)
+        assertDeprecatedDescription(longOption, false)
+        assertDeprecatedDescription(shortOption, false)
+        assertDescription(longOption)
+        assertDescription(shortOption)
     }
 
     def "can configure incubating command line option"() {
@@ -83,27 +85,54 @@ class StringBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[SHORT_OPTION], incubating)
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertIncubating(longOption, incubating)
+        assertIncubating(shortOption, incubating)
+        assertIncubatingDescription(longOption, incubating)
+        assertIncubatingDescription(shortOption, incubating)
 
         where:
         incubating << [false, true]
     }
 
     def "can configure deprecated command line option"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
-            .deprecated(deprecationWarning)
+            .deprecated()
 
         def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
 
         then:
-        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
-        assertDeprecationWarning(commandLineParser.optionsByString[SHORT_OPTION], deprecationWarning)
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertDeprecated(longOption)
+        assertDeprecated(shortOption)
+        assertDeprecatedDescription(longOption, true)
+        assertDeprecatedDescription(shortOption, true)
+    }
+
+    def "can configure deprecated property option"() {
+        given:
+        def config1 = CommandLineOptionConfiguration.create(LONG_OPTION, DESCRIPTION)
+        def config2 = CommandLineOptionConfiguration.create('deprecated-config', DESCRIPTION).deprecated()
+        def testOption = new TestOption(GRADLE_PROPERTY, config1, config2)
+
+        when:
+        testOption.applyFromProperty([(GRADLE_PROPERTY): 'deprecated-config'], testSettings)
+
+        then:
+        testSettings.value == 'deprecated-config'
+        testSettings.deprecated
+
+        when:
+        testSettings = new TestSettings()
+        testOption.applyFromProperty([(GRADLE_PROPERTY): LONG_OPTION], testSettings)
+
+        then:
+        testSettings.value == LONG_OPTION
+        !testSettings.deprecated
     }
 
     def "can apply from command line"() {
@@ -138,7 +167,7 @@ class StringBuildOptionTest extends Specification {
             super(gradleProperty)
         }
 
-        TestOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+        TestOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfiguration) {
             super(gradleProperty, commandLineOptionConfiguration)
         }
 
@@ -146,11 +175,15 @@ class StringBuildOptionTest extends Specification {
         void applyTo(String value, TestSettings settings, Origin origin) {
             settings.value = value
             settings.origin = origin
+            if (value.contains('deprecated')) {
+                settings.deprecated = true
+            }
         }
     }
 
     static class TestSettings {
         String value
         Origin origin
+        boolean deprecated
     }
 }

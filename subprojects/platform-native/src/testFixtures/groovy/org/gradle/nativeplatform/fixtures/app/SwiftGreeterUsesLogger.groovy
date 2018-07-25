@@ -22,6 +22,7 @@ class SwiftGreeterUsesLogger extends SourceFileElement implements GreeterElement
     @Override
     SourceFile getSourceFile() {
         return sourceFile("swift", "greeter.swift", """
+            import Log            
             public class Greeter {
                 public init() { }
                 public func sayHello() {

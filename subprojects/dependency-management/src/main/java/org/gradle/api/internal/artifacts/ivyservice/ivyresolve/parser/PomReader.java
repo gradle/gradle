@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.Transformer;
@@ -157,7 +156,7 @@ public class PomReader implements PomParent {
     }
 
     public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
-        this(resource, moduleIdentifierFactory, Maps.<String, String>newHashMap());
+        this(resource, moduleIdentifierFactory, Collections.<String, String>emptyMap());
     }
 
     public void setPomParent(PomParent pomParent) {
@@ -180,9 +179,11 @@ public class PomReader implements PomParent {
     }
 
     private void setPomProperties(Map<String, String> pomProperties) {
-        this.pomProperties.putAll(pomProperties);
-        for (Map.Entry<String, String> pomProperty : pomProperties.entrySet()) {
-            maybeSetEffectiveProperty(pomProperty.getKey(), pomProperty.getValue());
+        if (!pomProperties.isEmpty()) {
+            this.pomProperties.putAll(pomProperties);
+            for (Map.Entry<String, String> pomProperty : pomProperties.entrySet()) {
+                maybeSetEffectiveProperty(pomProperty.getKey(), pomProperty.getValue());
+            }
         }
     }
 
@@ -551,8 +552,8 @@ public class PomReader implements PomParent {
                     if (node instanceof Element && EXCLUSION.equals(node.getNodeName())) {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
-                        if ((groupId != null) && (artifactId != null)) {
-                            exclusions.add(moduleIdentifierFactory.module(groupId, artifactId));
+                        if ((groupId != null) || (artifactId != null)) {
+                            exclusions.add(moduleIdentifierFactory.module(groupId != null ? groupId : "*", artifactId != null ? artifactId : "*"));
                         }
                     }
                 }

@@ -18,18 +18,19 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.internal.text.TreeFormatter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsKitComponentLocator.PLATFORMS
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.AbstractWindowsKitComponentLocator.PLATFORMS
 
 class DefaultUcrtLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final WindowsKitComponentLocator ucrtLocator = new DefaultUcrtLocator(windowsRegistry)
+    final WindowsComponentLocator ucrtLocator = new DefaultUcrtLocator(windowsRegistry)
 
     def "uses ucrt found in registry"() {
         def dir1 = ucrtDir("ucrt", "10.0.10150.0")
@@ -38,7 +39,7 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = ucrtLocator.locateComponents(null)
+        def result = ucrtLocator.locateComponent(null)
 
         then:
         result.available
@@ -55,7 +56,7 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = ucrtLocator.locateComponents(null)
+        def result = ucrtLocator.locateComponent(null)
 
         then:
         result.available
@@ -65,13 +66,13 @@ class DefaultUcrtLocatorTest extends Specification {
     }
 
     def "handles missing ucrt"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = new TreeFormatter()
 
         given:
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> { throw new MissingRegistryEntryException("missing") }
+        windowsRegistry.getStringValue(_, _, _) >> { throw new MissingRegistryEntryException("missing") }
 
         when:
-        def result = ucrtLocator.locateComponents(null)
+        def result = ucrtLocator.locateComponent(null)
 
         then:
         !result.available
@@ -81,7 +82,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Universal C Runtime installation using the Windows registry.")
+        visitor.toString() == "Could not locate a Universal C Runtime installation using the Windows registry."
     }
 
     def "uses ucrt using specified install dir"() {
@@ -91,10 +92,10 @@ class DefaultUcrtLocatorTest extends Specification {
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ignoredDir.absolutePath
-        assert ucrtLocator.locateComponents(null).available
+        assert ucrtLocator.locateComponent(null).available
 
         when:
-        def result = ucrtLocator.locateComponents(ucrtDir1)
+        def result = ucrtLocator.locateComponent(ucrtDir1)
 
         then:
         result.available
@@ -103,7 +104,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.1")
 
         when:
-        result = ucrtLocator.locateComponents(ucrtDir2)
+        result = ucrtLocator.locateComponent(ucrtDir2)
 
         then:
         result.available
@@ -117,10 +118,10 @@ class DefaultUcrtLocatorTest extends Specification {
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ucrtDir1.absolutePath
-        assert ucrtLocator.locateComponents(null).available
+        assert ucrtLocator.locateComponent(null).available
 
         when:
-        def result = ucrtLocator.locateComponents(ucrtDir1)
+        def result = ucrtLocator.locateComponent(ucrtDir1)
 
         then:
         result.available
@@ -136,10 +137,10 @@ class DefaultUcrtLocatorTest extends Specification {
 
         given:
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ignoredDir.absolutePath
-        assert ucrtLocator.locateComponents(null).available
+        assert ucrtLocator.locateComponent(null).available
 
         when:
-        def result = ucrtLocator.locateComponents(ucrtDir1)
+        def result = ucrtLocator.locateComponent(ucrtDir1)
 
         then:
         !result.available
@@ -159,7 +160,7 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ucrtDir.absolutePath
 
         when:
-        def result = ucrtLocator.locateComponents(ucrtDir)
+        def result = ucrtLocator.locateComponent(ucrtDir)
 
         then:
         result.available

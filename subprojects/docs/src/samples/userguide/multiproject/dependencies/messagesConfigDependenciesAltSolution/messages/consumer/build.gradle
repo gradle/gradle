@@ -1,5 +1,0 @@
-task consume {
-    doLast {
-        println("Consuming message: ${rootProject.producerMessage}")
-    }
-}

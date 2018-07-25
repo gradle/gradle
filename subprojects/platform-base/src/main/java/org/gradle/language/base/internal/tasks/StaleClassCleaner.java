@@ -15,29 +15,10 @@
  */
 package org.gradle.language.base.internal.tasks;
 
-import org.gradle.api.file.FileCollection;
-
 import java.io.File;
 
 public abstract class StaleClassCleaner {
-    private File destinationDir;
-    FileCollection source;
-
     public abstract void execute();
 
-    public FileCollection getSource() {
-        return source;
-    }
-
-    public void setSource(FileCollection source) {
-        this.source = source;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
-    public File getDestinationDir() {
-        return destinationDir;
-    }
+    public abstract void addDirToClean(File toClean);
 }

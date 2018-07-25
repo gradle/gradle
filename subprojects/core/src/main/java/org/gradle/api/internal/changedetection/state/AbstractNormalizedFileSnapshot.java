@@ -17,36 +17,46 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.hash.HashCode;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
-    private final FileContentSnapshot snapshot;
+    private final FileType type;
+    private final HashCode normalizedContentHash;
 
-    public AbstractNormalizedFileSnapshot(FileContentSnapshot snapshot) {
-        this.snapshot = snapshot;
+    public AbstractNormalizedFileSnapshot(FileType type, HashCode normalizedContentHash) {
+        this.type = type;
+        this.normalizedContentHash = normalizedContentHash;
     }
 
     @Override
-    public FileContentSnapshot getSnapshot() {
-        return snapshot;
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public final void appendToHasher(BuildCacheHasher hasher) {
         hasher.putString(getNormalizedPath());
-        hasher.putHash(getSnapshot().getContentMd5());
+        hasher.putHash(getNormalizedContentHash());
     }
 
     @Override
-    public int compareTo(NormalizedFileSnapshot o) {
+    public HashCode getNormalizedContentHash() {
+        return normalizedContentHash;
+    }
+
+    @Override
+    public FileType getType() {
+        return type;
+    }
+
+    @Override
+    public final int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = getSnapshot().getContentMd5().compareTo(o.getSnapshot().getContentMd5());
+            result = getNormalizedContentHash().compareTo(o.getNormalizedContentHash());
         }
         return result;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -54,19 +64,19 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
             return false;
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
-        return snapshot.equals(that.snapshot)
+        return normalizedContentHash.equals(that.normalizedContentHash)
             && getNormalizedPath().equals(that.getNormalizedPath());
     }
 
     @Override
-    public int hashCode() {
-        int result = snapshot.hashCode();
+    public final int hashCode() {
+        int result = normalizedContentHash.hashCode();
         result = 31 * result + getNormalizedPath().hashCode();
         return result;
     }
 
     @Override
-    public String toString() {
-        return String.format("'%s' / %s", getNormalizedPath(), snapshot);
+    public final String toString() {
+        return String.format("'%s' / %s", getNormalizedPath(), type == FileType.Directory ? "DIR" : type == FileType.Missing ? "MISSING" : normalizedContentHash);
     }
 }

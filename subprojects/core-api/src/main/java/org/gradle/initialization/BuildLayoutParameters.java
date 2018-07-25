@@ -17,15 +17,20 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.deprecation.Deprecatable;
+import org.gradle.internal.deprecation.LoggingDeprecatable;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Set;
 
 import static org.gradle.internal.FileUtils.canonicalize;
 
-public class BuildLayoutParameters {
+public class BuildLayoutParameters implements Deprecatable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
+    public static final String NO_SEARCH_UPWARDS_PROPERTY_KEY = "gradle.internal.noSearchUpwards";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
+    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
     private boolean searchUpwards = true;
     private File currentDir = canonicalize(SystemProperties.getInstance().getCurrentDir());
@@ -41,6 +46,11 @@ public class BuildLayoutParameters {
             }
         }
         gradleUserHomeDir = canonicalize(new File(gradleUserHome));
+
+        String noSearchUpwards = System.getProperty(NO_SEARCH_UPWARDS_PROPERTY_KEY);
+        if (noSearchUpwards != null) {
+            searchUpwards = !Boolean.valueOf(noSearchUpwards);
+        }
     }
 
     public BuildLayoutParameters setSearchUpwards(boolean searchUpwards) {
@@ -82,5 +92,20 @@ public class BuildLayoutParameters {
 
     public boolean getSearchUpwards() {
         return searchUpwards;
+    }
+
+    @Override
+    public void addDeprecation(String deprecation) {
+        deprecationHandler.addDeprecation(deprecation);
+    }
+
+    @Override
+    public Set<String> getDeprecations() {
+        return deprecationHandler.getDeprecations();
+    }
+
+    @Override
+    public void checkDeprecation() {
+        deprecationHandler.checkDeprecation();
     }
 }

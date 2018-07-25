@@ -43,4 +43,29 @@ class GccCompilerArgsTransformerTest extends Specification {
         false | true     | ["-O3"]
         true  | true     | ["-g", "-O3"]
     }
+
+    def "transforms system header and include args correctly"() {
+        def spec = Stub(NativeCompileSpec)
+        def includes = [ new File("/foo"), new File("/bar") ]
+        def systemIncludes = [ new File("/baz") ]
+        spec.includeRoots >> includes
+        spec.systemIncludeRoots >> systemIncludes
+
+        when:
+        def args = transformer.transform(spec)
+
+        then:
+        assertHasArguments(args, "-I", includes)
+        assertHasArguments(args, "-isystem", systemIncludes)
+
+        and:
+        args.indexOf(includes.last().absoluteFile.toString()) < args.indexOf(systemIncludes.first().absoluteFile.toString())
+    }
+
+    boolean assertHasArguments(List<String> args, String option, List<File> files) {
+        files.each { file ->
+            assert Collections.indexOfSubList(args, [option, file.absoluteFile.toString()]) > -1
+        }
+        return true
+    }
 }

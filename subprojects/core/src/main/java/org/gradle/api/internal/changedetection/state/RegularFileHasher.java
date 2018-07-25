@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 
 public interface RegularFileHasher {
+
     /**
      * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(RegularFileSnapshot fileSnapshot);
+    HashCode hash(PhysicalFileSnapshot snapshot);
 }

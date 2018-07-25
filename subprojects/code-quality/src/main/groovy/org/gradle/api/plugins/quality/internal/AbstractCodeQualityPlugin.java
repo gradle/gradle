@@ -103,7 +103,10 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"));
         configuration.exclude(excludeProperties("commons-logging", "commons-logging"));
         configuration.exclude(excludeProperties("log4j", "log4j"));
+        configureConfiguration(configuration);
     }
+
+    protected abstract void configureConfiguration(Configuration configuration);
 
     private Map<String, String> excludeProperties(String group, String module) {
         return ImmutableMap.<String, String>builder()
@@ -137,7 +140,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     private void configureTaskRule() {
-        project.getTasks().withType(getCastedTaskType(), new Action<Task>() {
+        project.getTasks().withType(getCastedTaskType()).configureEach(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 String prunedName = task.getName().replaceFirst(getTaskBaseName(), "");
@@ -165,9 +168,13 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     private void configureForSourceSets(SourceSetContainer sourceSets) {
         sourceSets.all(new Action<SourceSet>() {
             @Override
-            public void execute(SourceSet sourceSet) {
-                Task task = project.getTasks().create(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType());
-                configureForSourceSet(sourceSet, (T)task);
+            public void execute(final SourceSet sourceSet) {
+                project.getTasks().register(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        configureForSourceSet(sourceSet, (T)task);
+                    }
+                });
             }
         });
     }
@@ -186,13 +193,18 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     private void configureCheckTaskDependents() {
         final String taskBaseName = getTaskBaseName();
-        project.getTasks().getByName("check").dependsOn(new Callable() {
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
             @Override
-            public Object call() {
-                return Iterables.transform(extension.getSourceSets(), new Function<SourceSet, String>() {
+            public void execute(Task task) {
+                task.dependsOn(new Callable() {
                     @Override
-                    public String apply(SourceSet sourceSet) {
-                        return sourceSet.getTaskName(taskBaseName, null);
+                    public Object call() {
+                        return Iterables.transform(extension.getSourceSets(), new Function<SourceSet, String>() {
+                            @Override
+                            public String apply(SourceSet sourceSet) {
+                                return sourceSet.getTaskName(taskBaseName, null);
+                            }
+                        });
                     }
                 });
             }

@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @since 4.3
  */
-public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public ListBuildOption(String gradleProperty) {
         super(gradleProperty);
@@ -51,7 +51,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating()).hasArguments();
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating()).hasArguments();
         }
     }
 

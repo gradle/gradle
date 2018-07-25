@@ -92,6 +92,47 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         file('remote/remote-1.0.aar').assertIsCopyOf(remote.artifactFile)
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/4893')
+    def "can resolve remote module with custom packaging but default jar artifact"() {
+        def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("jar").hasPackaging("hk2-jar").publish()
+
+        given:
+        buildScript """
+            configurations {
+                remote
+            }
+            repositories {
+                maven { url "$mavenHttpRepo.uri" }
+            }
+            dependencies {
+                remote "remote:remote:1.0"
+            }
+            task remote(type: Sync) {
+                into 'remote'
+                from configurations.remote
+            }
+        """
+
+        when:
+        remote.pom.expectGet()
+        remote.getArtifact("remote-1.0.hk2-jar").expectHeadMissing()
+        remote.artifact.expectGet()
+
+        run("remote")
+
+        then:
+        file("remote").assertHasDescendants("remote-1.0.jar")
+        file('remote/remote-1.0.jar').assertIsCopyOf(remote.artifactFile)
+
+        when:
+        server.resetExpectations()
+        run("remote")
+
+        then: // uses cached stuff
+        file("remote").assertHasDescendants("remote-1.0.jar")
+        file('remote/remote-1.0.jar').assertIsCopyOf(remote.artifactFile)
+    }
+
     def "can consume remote module with custom packaging from another module"() {
         def customPackaging = mavenHttpRepo.module("remote", "remote", "1.0").hasType("aar").hasPackaging("aar").publish()
         def consumer = mavenHttpRepo.module("consumer", "consumer", "1.0").dependsOn(customPackaging).publish()

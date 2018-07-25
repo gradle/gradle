@@ -33,6 +33,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.slf4j",
             "org.apache.commons.logging",
             "org.apache.log4j",
+            "javax.annotation",
             "javax.inject");
     }
 

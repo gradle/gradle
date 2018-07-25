@@ -20,6 +20,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSupport implements DeclaredTaskInputProperty {
 
@@ -48,9 +50,15 @@ public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSu
         return this;
     }
 
+    @Nullable
+    @Override
+    public Object getValue() {
+        return value.call();
+    }
+
     @Override
     public void validate(TaskValidationContext context) {
-        value.validate(getPropertyName(), optional, ValidationAction.NO_OP, context);
+        value.validate(getPropertyName(), optional, ValidationActions.NO_OP, context);
     }
 
     @Override

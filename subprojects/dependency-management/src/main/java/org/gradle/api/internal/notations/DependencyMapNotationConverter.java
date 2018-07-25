@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 
-public class DependencyMapNotationConverter<T extends ExternalDependency> extends MapNotationConverter<T> {
+public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
 
     private final Instantiator instantiator;
     private final Class<T> resultingType;
@@ -44,8 +44,15 @@ public class DependencyMapNotationConverter<T extends ExternalDependency> extend
                          @MapKey("configuration") @Optional String configuration,
                          @MapKey("ext") @Optional String ext,
                          @MapKey("classifier") @Optional String classifier) {
-        T dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, ext, classifier);
+        T dependency;
+        if (configuration == null) {
+            dependency = instantiator.newInstance(resultingType, group, name, version);
+        } else {
+            dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
+        }
+        if (dependency instanceof ExternalDependency) {
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) dependency, ext, classifier);
+        }
         return dependency;
     }
 

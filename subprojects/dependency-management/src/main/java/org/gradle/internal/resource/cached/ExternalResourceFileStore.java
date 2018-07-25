@@ -15,38 +15,39 @@
  */
 package org.gradle.internal.resource.cached;
 
-import org.gradle.api.Transformer;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;
 
 public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> {
 
-    private static final Transformer<String, String> GROUPER = new Transformer<String, String>() {
+    private static final int NUMBER_OF_GROUPING_DIRS = 1;
+    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = NUMBER_OF_GROUPING_DIRS + NUMBER_OF_CHECKSUM_DIRS;
+
+    private static final Grouper<String> GROUPER = new Grouper<String>() {
         @Override
-        public String transform(String s) {
-            return "" + (Math.abs(s.hashCode()) % 10);
+        public String determineGroup(String s) {
+            return String.valueOf(Math.abs(s.hashCode()) % 100);
+        }
+
+        @Override
+        public int getNumberOfGroupingDirs() {
+            return NUMBER_OF_GROUPING_DIRS;
         }
     };
 
-    private static final Transformer<String, String> NAMER = new Transformer<String, String>() {
+    private static final Namer<String> NAMER = new Namer<String>() {
         @Override
-        public String transform(String s) {
-            return "" + (Math.abs(s.substring(0, 8).hashCode()) % 10);
+        public String determineName(String s) {
+            return StringUtils.substringAfterLast(s, "/");
         }
     };
 
-    public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider) {
-        super(new DefaultPathKeyFileStore(baseDir), tmpProvider, GROUPER, NAMER);
+    public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessTimeJournal fileAccessTimeJournal) {
+        super(baseDir, tmpProvider, fileAccessTimeJournal, GROUPER, NAMER);
     }
-
-    protected String toPath(String key, String checksumPart) {
-        String group = GROUPER.transform(key);
-        String name = NAMER.transform(key);
-
-        return group + "/" + name + "/" + key;
-    }
-
 }

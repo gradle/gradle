@@ -34,6 +34,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
             dependencies {
                 compile 'com.google.guava:guava:18.0'
+                compileOnly 'commons-logging:commons-logging:1.2'
                 testCompile 'junit:junit:4.12'
             }
         """
@@ -43,8 +44,9 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_source_sets', 'main,test')
-        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_source_sets', 'test')
+        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test')
+        classpath.lib('commons-logging-1.2.jar').assertHasAttribute('gradle_used_by_scope', '')
+        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
     def "Source sets defined on source folders"() {
@@ -61,8 +63,8 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.sourceDir('src/main/java').assertHasAttribute('gradle_source_sets', 'main')
-        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_source_sets', 'test')
+        classpath.sourceDir('src/main/java').assertHasAttribute('gradle_used_by_scope', 'main,test')
+        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
     def "Source set information is customizable in whenMerged block"() {
@@ -81,8 +83,8 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             eclipse.classpath.file.whenMerged {
                 def testDir = entries.find { entry -> entry.path == 'src/test/java' }
                 def guavaDep = entries.find { entry -> entry.path.contains 'guava-18.0.jar' }
-                testDir.entryAttributes['gradle_source_sets'] = 'test,integTest'
-                guavaDep.entryAttributes['gradle_source_sets'] = 'main,test,integTest'
+                testDir.entryAttributes['gradle_used_by_scope'] = 'test,integTest'
+                guavaDep.entryAttributes['gradle_used_by_scope'] = 'main,test,integTest'
             }
         """
         file('src/test/java').mkdirs()
@@ -92,8 +94,97 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_source_sets', 'test,integTest')
-        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_source_sets', 'test')
-        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_source_sets', 'main,test,integTest')
+        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test,integTest')
+        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
+        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test,integTest')
+    }
+
+    def "Source dirs have default output locations"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            
+            sourceSets {
+                integTest {
+                    java {
+                        srcDirs 'src/int_test/java'
+                    }
+                }
+            }
+        """
+        file('src/main/java').mkdirs()
+        file('src/main/resources').mkdirs()
+        file('src/test/java').mkdirs()
+        file('src/test/resources').mkdirs()
+        file('src/int_test/java').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+        classpath.sourceDir('src/main/java').assertOutputLocation('bin/main')
+        classpath.sourceDir('src/main/resources').assertOutputLocation('bin/main')
+        classpath.sourceDir('src/test/java').assertOutputLocation('bin/test')
+        classpath.sourceDir('src/test/resources').assertOutputLocation('bin/test')
+        classpath.sourceDir('src/int_test/java').assertOutputLocation('bin/integTest')
+    }
+
+    def "Source folder output location can be customized in whenMerged block"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+
+            eclipse.classpath.file.whenMerged {
+                entries.find { entry -> entry.path == 'src/main/java' }.output = null
+                entries.find { entry -> entry.path == 'src/main/resources' }.output = 'out/res'
+            }
+        """
+        file('src/main/java').mkdirs()
+        file('src/main/resources').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+        classpath.sourceDir('src/main/java').assertOutputLocation(null)
+        classpath.sourceDir('src/main/resources').assertOutputLocation('out/res')
+    }
+
+    def "Overlapping default and source folder output paths are deduplicated"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            
+            sourceSets {
+                "default" {
+                    java {
+                        srcDirs 'src/default/java'
+                    }
+                }
+                
+                default_ {
+                    java {
+                        srcDirs 'src/default_/java'
+                    }
+                }
+            }
+        """
+        file('src/default/java').mkdirs()
+        file('src/default_/java').mkdirs()
+
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+        classpath.output == 'bin/default'
+        classpath.sourceDir('src/default/java').assertOutputLocation('bin/default_')
+        classpath.sourceDir('src/default_/java').assertOutputLocation('bin/default__')
     }
 }

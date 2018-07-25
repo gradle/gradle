@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 
@@ -26,15 +25,21 @@ import org.gradle.api.tasks.FileNormalizer;
 public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskOutputFilePropertySpec {
 
     private final CompositeTaskOutputPropertySpec parent;
+    private final int index;
     private final FileCollection files;
 
-    public NonCacheableTaskOutputPropertySpec(String taskName, CompositeTaskOutputPropertySpec parent, FileResolver resolver, Object paths) {
+    public NonCacheableTaskOutputPropertySpec(String taskName, CompositeTaskOutputPropertySpec parent, int index, FileResolver resolver, Object paths) {
         this.parent = parent;
+        this.index = index;
         this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
     }
 
     @Override
     public String getPropertyName() {
+        return parent.getPropertyName() + "$" + index;
+    }
+
+    public String getOriginalPropertyName() {
         return parent.getPropertyName();
     }
 
@@ -49,13 +54,8 @@ public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSu
     }
 
     @Override
-    public PathNormalizationStrategy getPathNormalizationStrategy() {
-        return parent.getPathNormalizationStrategy();
-    }
-
-    @Override
     public int compareTo(TaskPropertySpec o) {
-        return parent.compareTo(o);
+        return getPropertyName().compareTo(o.getPropertyName());
     }
 
     @Override

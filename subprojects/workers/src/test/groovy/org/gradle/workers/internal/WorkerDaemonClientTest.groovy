@@ -18,23 +18,14 @@ package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.progress.BuildOperationState
+import org.gradle.internal.operations.BuildOperationRef
 import spock.lang.Specification
-
-import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
-import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion
 
 class WorkerDaemonClientTest extends Specification {
     BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    BuildOperationState buildOperation = Mock(BuildOperationState)
-    WorkerLease workerOperation = Mock(WorkerLease)
-    WorkerLeaseCompletion completion = Mock(WorkerLeaseCompletion)
+    BuildOperationRef buildOperation = Mock(BuildOperationRef)
 
     WorkerDaemonClient client
-
-    def setup() {
-        _ * workerOperation.startChild() >> completion
-    }
 
     def "underlying worker is executed when client is executed"() {
         def workerDaemonProcess = Mock(WorkerDaemonProcess)
@@ -43,7 +34,7 @@ class WorkerDaemonClientTest extends Specification {
         client = client(workerDaemonProcess)
 
         when:
-        client.execute(Stub(ActionExecutionSpec), workerOperation, buildOperation)
+        client.execute(Stub(ActionExecutionSpec), buildOperation)
 
         then:
         1 * workerDaemonProcess.execute(_)
@@ -55,7 +46,7 @@ class WorkerDaemonClientTest extends Specification {
         assert client.uses == 0
 
         when:
-        5.times { client.execute(Stub(ActionExecutionSpec), workerOperation, buildOperation) }
+        5.times { client.execute(Stub(ActionExecutionSpec), buildOperation) }
 
         then:
         client.uses == 5

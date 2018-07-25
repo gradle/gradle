@@ -107,7 +107,6 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
             assert rulePriority == 5
-            assert incrementalAnalysis == false
         }
     }
 
@@ -125,7 +124,6 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
         task.rulePriority == 5
-        task.incrementalAnalysis == false
     }
 
     def "adds pmd tasks to check lifecycle task"() {
@@ -152,7 +150,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             sourceSets = [project.sourceSets.main]
             ruleSets = ["java-braces", "java-unusedcode"]
             ruleSetConfig = project.resources.text.fromString("ruleset contents")
-            ruleSetFiles = project.files("my-ruleset.xml")
+            ruleSetFiles = project.getLayout().files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
             rulePriority = 3
@@ -188,7 +186,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         project.pmd {
             ruleSets = ["java-braces", "java-unusedcode"]
             ruleSetConfig = project.resources.text.fromString("ruleset contents")
-            ruleSetFiles = project.files("my-ruleset.xml")
+            ruleSetFiles = project.getLayout().files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
             rulePriority = 3

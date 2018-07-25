@@ -17,21 +17,23 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
-@TargetCoverage({JUnitCoverage.IGNORE_ON_CLASS})
-class JUnitIgnoreClassMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.IGNORE_ON_CLASS
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+
+@TargetCoverage({ IGNORE_ON_CLASS + JUNIT_VINTAGE })
+class JUnitIgnoreClassMultiVersionIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def canHandleClassLevelIgnoredTests() {
         executer.noExtraLogging()
         buildFile << """
-            dependencies { testCompile 'junit:junit:$version' }
+            dependencies { testCompile '$dependencyNotation' }
         """
 
         when:

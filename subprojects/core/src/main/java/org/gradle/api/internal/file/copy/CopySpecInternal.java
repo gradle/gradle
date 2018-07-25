@@ -19,10 +19,9 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 
-public interface CopySpecInternal extends CopySpec {
+import javax.annotation.Nullable;
 
-    //TODO - does this belong here or on the resolver? PEZ
-    boolean hasSource();
+public interface CopySpecInternal extends CopySpec {
 
     Iterable<CopySpecInternal> getChildren();
 
@@ -67,6 +66,7 @@ public interface CopySpecInternal extends CopySpec {
      * The address of a spec relative to its parent.
      */
     interface CopySpecAddress {
+        @Nullable
         CopySpecAddress getParent();
 
         CopySpecInternal getSpec();

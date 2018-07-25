@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
-    CompileOptions getCompileOptions();
+    MinimalJavaCompileOptions getCompileOptions();
 
     @Override
     File getDestinationDir();
@@ -33,4 +34,14 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     List<File> getAnnotationProcessorPath();
 
     void setAnnotationProcessorPath(List<File> path);
+
+    void setEffectiveAnnotationProcessors(Set<AnnotationProcessorDeclaration> annotationProcessors);
+
+    Set<AnnotationProcessorDeclaration> getEffectiveAnnotationProcessors();
+
+    void setClasses(Set<String> classes);
+
+    Set<String> getClasses();
+
+    List<File> getModulePath();
 }

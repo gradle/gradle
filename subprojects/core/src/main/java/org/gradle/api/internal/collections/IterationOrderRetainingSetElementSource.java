@@ -1,0 +1,114 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.collections;
+
+import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ProviderInternal;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
+    private final Set<T> values = new LinkedHashSet<T>();
+    private final PendingSource<T> pending = new DefaultPendingSource<T>();
+
+    @Override
+    public boolean isEmpty() {
+        return values.isEmpty() && pending.isEmpty();
+    }
+
+    @Override
+    public boolean constantTimeIsEmpty() {
+        return values.isEmpty() && pending.isEmpty();
+    }
+
+    @Override
+    public int size() {
+        return values.size() + pending.size();
+    }
+
+    @Override
+    public int estimatedSize() {
+        return values.size() + pending.size();
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        pending.realizePending();
+        return values.iterator();
+    }
+
+    @Override
+    public Iterator<T> iteratorNoFlush() {
+        return values.iterator();
+    }
+
+    @Override
+    public boolean contains(Object element) {
+        pending.realizePending();
+        return values.contains(element);
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> elements) {
+        pending.realizePending();
+        return values.containsAll(elements);
+    }
+
+    @Override
+    public boolean add(T element) {
+        return values.add(element);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        return values.remove(o);
+    }
+
+    @Override
+    public void clear() {
+        pending.clear();
+        values.clear();
+    }
+
+    @Override
+    public void realizePending() {
+        pending.realizePending();
+    }
+
+    @Override
+    public void realizePending(Class<?> type) {
+        pending.realizePending(type);
+    }
+
+    @Override
+    public void addPending(ProviderInternal<? extends T> provider) {
+        pending.addPending(provider);
+    }
+
+    @Override
+    public void removePending(ProviderInternal<? extends T> provider) {
+        pending.removePending(provider);
+    }
+
+    @Override
+    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        pending.onRealize(action);
+    }
+}

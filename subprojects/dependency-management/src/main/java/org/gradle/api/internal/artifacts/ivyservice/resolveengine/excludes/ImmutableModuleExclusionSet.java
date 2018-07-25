@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,10 +32,39 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
     final AbstractModuleExclusion[] elements;
     private final int hashCode;
 
-    ImmutableModuleExclusionSet(Set<AbstractModuleExclusion> delegate) {
+    // the following fields are used as optimizations, to avoid iterating on the whole set of exclusions
+    private ImmutableSet<ModuleIdentifier> excludedModules;
+    private ImmutableList<AbstractModuleExclusion> moduleExcludes;
+    private ImmutableList<AbstractModuleExclusion> artifactExcludes;
+
+    ImmutableModuleExclusionSet(ImmutableSet<AbstractModuleExclusion> delegate) {
         this.delegate = delegate;
         this.elements = delegate.toArray(new AbstractModuleExclusion[0]);
         this.hashCode = delegate.hashCode();
+    }
+
+    private synchronized void precomputeCaches() {
+        if (excludedModules != null) {
+            return;
+        }
+        ImmutableSet.Builder<ModuleIdentifier> moduleIds = ImmutableSet.builder();
+        ImmutableList.Builder<AbstractModuleExclusion> modules = ImmutableList.builder();
+        ImmutableList.Builder<AbstractModuleExclusion> artifacts = ImmutableList.builder();
+        for (AbstractModuleExclusion exclusion : delegate) {
+            if (exclusion instanceof ModuleIdExcludeSpec) {
+                moduleIds.add(((ModuleIdExcludeSpec) exclusion).moduleId);
+            } else {
+                if (!exclusion.excludesNoModules()) {
+                    modules.add(exclusion);
+                }
+                if (exclusion.mayExcludeArtifacts()) {
+                    artifacts.add(exclusion);
+                }
+            }
+        }
+        excludedModules = moduleIds.build();
+        moduleExcludes = modules.build();
+        artifactExcludes = artifacts.build();
     }
 
     @Override
@@ -52,6 +85,36 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
     @Override
     public Iterator<AbstractModuleExclusion> iterator() {
         return Iterators.forArray(elements);
+    }
+
+    /**
+     * This method optimizes module exclusion lookup, based on empirical data showing that the set can be very large, but would contain mostly direct module exclusion nodes. So instead of always
+     * iterating over all excluded modules, we can perform a fast lookup using a set of excluded modules first, then only iterate on the remaining exclusions.
+     *
+     * @param id the module to check
+     * @return true if it's excluded
+     */
+    boolean excludesModule(ModuleIdentifier id) {
+        precomputeCaches();
+        if (excludedModules.contains(id)) {
+            return true;
+        }
+        for (AbstractModuleExclusion excludeSpec : moduleExcludes) {
+            if (excludeSpec.excludeModule(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean excludesArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+        precomputeCaches();
+        for (AbstractModuleExclusion excludeSpec : artifactExcludes) {
+            if (excludeSpec.excludeArtifact(module, artifact)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

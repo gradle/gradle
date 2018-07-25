@@ -23,13 +23,15 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final CompilationState finalState;
     private final List<File> recompile;
     private final List<File> removed;
-    private final Set<File> discoveredInputs;
+    private final Set<File> existingHeaders;
+    private final boolean macroIncludesUsedInSources;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> existingHeaders, boolean macroIncludesUsedInSources) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
-        this.discoveredInputs = discoveredInputs;
+        this.existingHeaders = existingHeaders;
+        this.macroIncludesUsedInSources = macroIncludesUsedInSources;
     }
 
     @Override
@@ -48,7 +50,12 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     }
 
     @Override
-    public Set<File> getDiscoveredInputs() {
-        return discoveredInputs;
+    public Set<File> getExistingHeaders() {
+        return existingHeaders;
+    }
+
+    @Override
+    public boolean isUnresolvedHeaders() {
+        return macroIncludesUsedInSources;
     }
 }

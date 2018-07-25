@@ -21,12 +21,12 @@ plugins {
 repositories {
     jcenter()
     maven {
-        name "typesafe-maven-release"
-        url "https://repo.typesafe.com/typesafe/maven-releases"
+        name "lightbend-maven-release"
+        url "https://repo.lightbend.com/lightbend/maven-releases"
     }
     ivy {
-        name "typesafe-ivy-release"
-        url "https://repo.typesafe.com/typesafe/ivy-releases"
+        name "lightbend-ivy-release"
+        url "https://repo.lightbend.com/lightbend/ivy-releases"
         layout "ivy"
     }
 }
@@ -65,7 +65,7 @@ class AddCopyrights extends SourceTask {
     @TaskAction
     void generateAssets() {
         String copyright = copyrightFile.text
-        getSource().files.each { File file ->
+        getSource().each { File file ->
             File outputFile = new File(destinationDir, file.name)
             outputFile.text = "${copyright}\n${file.text}"
         }

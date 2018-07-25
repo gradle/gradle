@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.daemon.client
 
-import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.internal.remote.internal.Connection
+import org.gradle.launcher.daemon.protocol.Stop
 import spock.lang.Specification
 
 public class StopDispatcherTest extends Specification {
@@ -27,7 +27,7 @@ public class StopDispatcherTest extends Specification {
 
     def "ignores failed dispatch and does not receive"() {
         given:
-        def message = new Stop("12")
+        def message = new Stop(UUID.randomUUID())
         connection.dispatch(message) >> { throw new RuntimeException("Cannot dispatch") }
 
         when:
@@ -40,7 +40,7 @@ public class StopDispatcherTest extends Specification {
 
     def "ignores failed receive"() {
         given:
-        def message = new Stop("12")
+        def message = new Stop(UUID.randomUUID())
         connection.receive() >> { throw new RuntimeException("Cannot dispatch") }
 
         when:

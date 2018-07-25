@@ -30,6 +30,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,6 +141,7 @@ public class War extends Jar {
      *
      * @return The classpath. Returns an empty collection when there is no classpath to include in the WAR.
      */
+    @Nullable
     @Optional
     @Classpath
     public FileCollection getClasspath() {
@@ -180,9 +182,10 @@ public class War extends Jar {
      *
      * @return The {@code web.xml} file.
      */
-    @InputFile
-    @PathSensitive(PathSensitivity.NONE)
+    @Nullable
     @Optional
+    @PathSensitive(PathSensitivity.NONE)
+    @InputFile
     public File getWebXml() {
         return webXml;
     }
@@ -192,7 +195,7 @@ public class War extends Jar {
      *
      * @param webXml The {@code web.xml} file. Maybe null.
      */
-    public void setWebXml(File webXml) {
+    public void setWebXml(@Nullable File webXml) {
         this.webXml = webXml;
     }
 

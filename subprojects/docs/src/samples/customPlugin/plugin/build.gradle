@@ -1,5 +1,10 @@
 // START SNIPPET use-plugin
-apply plugin: 'groovy'
+plugins {
+    id 'groovy'
+// END SNIPPET use-plugin
+    id 'maven-publish'
+// START SNIPPET use-plugin
+}
 
 // START SNIPPET gradle-api-dependencies
 // START SNIPPET local-groovy-dependencies
@@ -15,8 +20,6 @@ dependencies {
 // END SNIPPET local-groovy-dependencies
 // END SNIPPET use-plugin
 
-apply plugin: 'maven'
-
 repositories {
     mavenCentral()
 }
@@ -28,10 +31,15 @@ dependencies {
 group = 'org.gradle'
 version = '1.0-SNAPSHOT'
 
-uploadArchives {
+publishing {
     repositories {
-        mavenDeployer {
-            repository(url: uri('../repo'))
+        maven {
+            url = uri("$buildDir/repo")
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            from components.java
         }
     }
 }

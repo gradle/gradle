@@ -16,36 +16,33 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * An immutable snapshot of compilation state.
  */
 public class CompilationState {
-    private final ImmutableSet<File> sourceInputs;
-    private final ImmutableMap<File, CompilationFileState> fileStates;
+    private final ImmutableMap<File, SourceFileState> fileStates;
 
-    public CompilationState(ImmutableSet<File> sourceInputs, ImmutableMap<File, CompilationFileState> fileStates) {
-        this.sourceInputs = sourceInputs;
+    public CompilationState(ImmutableMap<File, SourceFileState> fileStates) {
         this.fileStates = fileStates;
     }
 
     public CompilationState() {
-        sourceInputs = ImmutableSet.of();
         fileStates = ImmutableMap.of();
     }
 
-    public ImmutableSet<File> getSourceInputs() {
-        return sourceInputs;
+    public Set<File> getSourceInputs() {
+        return fileStates.keySet();
     }
 
-    public ImmutableMap<File, CompilationFileState> getFileStates() {
+    public ImmutableMap<File, SourceFileState> getFileStates() {
         return fileStates;
     }
 
-    public CompilationFileState getState(File file) {
+    public SourceFileState getState(File file) {
         return fileStates.get(file);
     }
 }

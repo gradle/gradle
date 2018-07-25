@@ -18,9 +18,8 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.internal.scripts.ScriptFileResolver
-import org.gradle.scripts.ScriptingLanguage
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.junit.Rule
@@ -42,7 +41,9 @@ class DefaultProjectDescriptorTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def fileResolver = TestFiles.resolver(tmpDir.testDirectory)
+    final TestFile testDirectory = tmpDir.testDirectory
+
+    def fileResolver = TestFiles.resolver(testDirectory)
     def descriptorRegistry = new DefaultProjectDescriptorRegistry()
 
     def "can set project name"() {
@@ -67,7 +68,7 @@ class DefaultProjectDescriptorTest extends Specification {
         descriptor.projectDir = new File("relative/path")
 
         then:
-        descriptor.projectDir.absolutePath == new File(tmpDir.testDirectory, "relative/path").absolutePath
+        descriptor.projectDir.absolutePath == new File(testDirectory, "relative/path").absolutePath
     }
 
     def "can set absolute project directory"() {
@@ -89,7 +90,7 @@ class DefaultProjectDescriptorTest extends Specification {
         descriptor.buildFileName = 'project.gradle'
 
         then:
-        descriptor.buildFile == new File(tmpDir.testDirectory, 'project.gradle').canonicalFile
+        descriptor.buildFile == new File(testDirectory, 'project.gradle').canonicalFile
     }
 
     def "different root"() {
@@ -98,53 +99,46 @@ class DefaultProjectDescriptorTest extends Specification {
 
         and:
         def parentDescriptor = new DefaultProjectDescriptor(null, "other", new File("other"), descriptorRegistry, fileResolver)
-        def otherDescriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, tmpDir.testDirectory, descriptorRegistry, fileResolver)
+        def otherDescriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver)
 
         expect:
         descriptor != otherDescriptor
     }
 
     @Unroll
-    def "build file name is resolved to existing #buildFilename with script languages for #extensions"() {
+    def "build file name is resolved by given ScriptFileResolver"() {
         given:
-        def descriptor = projectDescriptor(scriptFileResolver(extensions))
+        def scriptFileResolver = Mock(ScriptFileResolver)
+        def descriptor = projectDescriptor(scriptFileResolver)
 
         and:
-        def buildFile = tmpDir.createFile(buildFilename)
+        def expectedBuildFile = tmpDir.createFile(buildFilename)
+
+        when:
+        def foundBuildFile = descriptor.buildFile
+
+        then:
+        1 * scriptFileResolver.resolveScriptFile(testDirectory, 'build') >> expectedBuildFile
 
         expect:
-        descriptor.buildFileName == buildFile.name
-        descriptor.buildFile.absolutePath == buildFile.absolutePath
+        foundBuildFile == expectedBuildFile
 
         where:
-        buildFilename      | extensions
-        'build.gradle'     | []
-        'build.gradle'     | ['.gradle.kts']
-        'build.gradle.kts' | ['.gradle.kts']
-        'build.gradle'     | ['.gradle.kts', '.tic']
-        'build.gradle.kts' | ['.gradle.kts', '.tac']
-        'build.gradle'     | ['.tic', '.gradle.kts']
-        'build.gradle.kts' | ['.tac', '.gradle.kts']
+        buildFilename << ['build.gradle', 'build.gradle.kts']
     }
 
     private ProjectDescriptor projectDescriptor(ScriptFileResolver scriptFileResolver = null) {
         def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver)
-        def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, tmpDir.testDirectory, descriptorRegistry, fileResolver, scriptFileResolver)
+        def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver)
         assertSame(parentDescriptor, descriptor.parent)
         assertThat(parentDescriptor.children.size(), is(1))
         assertTrue(parentDescriptor.children.contains(descriptor))
         assertSame(descriptor.projectDescriptorRegistry, descriptorRegistry)
         assertThat(descriptor.name, equalTo(testName.methodName))
-        assertThat(descriptor.projectDir, equalTo(tmpDir.testDirectory.canonicalFile))
+        assertThat(descriptor.projectDir, equalTo(testDirectory.canonicalFile))
         assertThat(descriptor.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))
         assertThat(parentDescriptor.path, equalTo(Project.PATH_SEPARATOR))
         assertThat(descriptor.path, equalTo(Project.PATH_SEPARATOR + descriptor.name))
         return descriptor
-    }
-
-    private ScriptFileResolver scriptFileResolver(List<String> extensions) {
-        DefaultScriptFileResolver.forScriptingLanguages(extensions.collect { extension ->
-            Stub(ScriptingLanguage) { getExtension() >> extension }
-        })
     }
 }

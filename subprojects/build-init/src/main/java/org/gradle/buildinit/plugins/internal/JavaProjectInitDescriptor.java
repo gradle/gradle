@@ -19,9 +19,11 @@ package org.gradle.buildinit.plugins.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK;
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
 public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
@@ -42,14 +44,14 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
         Description desc = getDescription();
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
-            .plugin("Apply the " + desc.pluginName +" plugin to add support for " + desc.projectType, desc.pluginName);
+            .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
         buildScriptBuilder.create().generate();
@@ -83,9 +85,13 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
                 break;
             case TESTNG:
                 buildScriptBuilder
-                    .dependency(getTestImplementationConfigurationName(), "Use TestNG framework, also requires calling test.useTestNG() below",
+                    .dependency(
+                        getTestImplementationConfigurationName(),
+                        "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
-                    .configuration("Use TestNG for unit tests", "test.useTestNG()");
+                    .taskMethodInvocation(
+                        "Use TestNG for unit tests",
+                        "test", "Test", "useTestNG");
                 break;
             default:
                 buildScriptBuilder

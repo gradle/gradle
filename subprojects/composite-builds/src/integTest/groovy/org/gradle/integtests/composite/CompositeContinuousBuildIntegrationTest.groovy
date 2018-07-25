@@ -107,19 +107,19 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         when:
         succeeds("run")
         then:
-        result.assertOutputContains("Hello World")
+        outputContains("Hello World")
 
         when:
         librarySource.text = librarySource.text.replace("Hello", "Goodbye")
         then:
         succeeds()
-        result.assertOutputContains("Goodbye World")
+        outputContains("Goodbye World")
 
         when:
         mainSource.text = mainSource.text.replace("World", "Friend")
         then:
         succeeds()
-        result.assertOutputContains("Goodbye Friend")
+        outputContains("Goodbye Friend")
     }
 
     def "will rebuild on change for plugin supplied by included build"() {
@@ -163,13 +163,13 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         when:
         succeeds("tasks")
         then:
-        result.assertOutputContains("Hello World")
+        outputContains("Hello World")
 
         when:
         pluginSource.text = pluginSource.text.replace("Hello", "Goodbye")
         then:
         succeeds()
-        result.assertOutputContains("Goodbye World")
+        outputContains("Goodbye World")
     }
 
     def "will rebuild on change for build included into a multi-project build"() {
@@ -231,28 +231,28 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         when:
         succeeds("run")
         then:
-        result.assertOutputContains("Hello First")
-        result.assertOutputContains("Hello Second")
+        outputContains("Hello First")
+        outputContains("Hello Second")
 
         when:
         librarySource.text = librarySource.text.replace("Hello", "Goodbye")
         then:
         succeeds()
-        result.assertOutputContains("Goodbye First")
-        result.assertOutputContains("Goodbye Second")
+        outputContains("Goodbye First")
+        outputContains("Goodbye Second")
 
         when:
         mainSourceSub1.text = mainSourceSub1.text.replace("First", '1st')
         then:
         succeeds()
-        result.assertOutputContains("Goodbye 1st")
-        result.assertOutputContains("Goodbye Second")
+        outputContains("Goodbye 1st")
+        outputContains("Goodbye Second")
 
         when:
         mainSourceSub2.text = mainSourceSub2.text.replace("Second", '2nd')
         then:
         succeeds()
-        result.assertOutputContains("Goodbye 1st")
-        result.assertOutputContains("Goodbye 2nd")
+        outputContains("Goodbye 1st")
+        outputContains("Goodbye 2nd")
     }
 }

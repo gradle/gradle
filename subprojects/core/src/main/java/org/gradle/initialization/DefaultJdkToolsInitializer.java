@@ -37,7 +37,7 @@ public class DefaultJdkToolsInitializer implements JdkToolsInitializer {
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             final ClassLoader systemClassLoaderParent = classLoaderFactory.getIsolatedSystemClassLoader();
-            ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, new DefaultClassPath(toolsJar).getAsURLs());
+            ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, DefaultClassPath.of(toolsJar).getAsURLs());
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -27,12 +28,18 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sourceSetsPlaySample = new Sample(temporaryFolder, "play/sourcesets")
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")
     @Rule Sample distributionPlaySample = new Sample(temporaryFolder, "play/custom-distribution")
     @Rule Sample customAssetsPlaySample = new Sample(temporaryFolder, "play/custom-assets")
     @Rule Sample play24Sample = new Sample(temporaryFolder, "play/play-2.4")
+    @Rule Sample play26Sample = new Sample(temporaryFolder, "play/play-2.6")
+
+    def setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
 
     def "sourcesets sample is buildable" () {
         when:
@@ -62,6 +69,9 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ !AbstractPlaySampleIntegrationTest.portForWithBrowserTestIsFree() })
     def "compiler sample is buildable" () {
         when:
+        // The following annotation processors were detected on the compile classpath: 'org.atteo.classindex.processor.ClassIndexProcessor'.
+        // Detecting annotation processors on the compile classpath is deprecated
+        executer.expectDeprecationWarning()
         sample compilerPlaySample
 
         then:
@@ -101,8 +111,8 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "injected routes sample is buildable" () {
+    @Requires(TestPrecondition.JDK8)
+    def "injected routes sample is buildable for Play 2.4" () {
         when:
         sample play24Sample
 
@@ -111,6 +121,22 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         play24Sample.dir.file("build/src/play/binary/routesScalaSources").assertHasDescendants(
+            "controllers/routes.java",
+            "controllers/ReverseRoutes.scala",
+            "router/Routes.scala",
+            "controllers/javascript/JavaScriptReverseRoutes.scala",
+            "router/RoutesPrefix.scala")
+    }
+
+    def "injected routes sample is buildable for Play 2.6" () {
+        when:
+        sample play26Sample
+
+        then:
+        succeeds "build"
+
+        and:
+        play26Sample.dir.file("build/src/play/binary/routesScalaSources").assertHasDescendants(
             "controllers/routes.java",
             "controllers/ReverseRoutes.scala",
             "router/Routes.scala",

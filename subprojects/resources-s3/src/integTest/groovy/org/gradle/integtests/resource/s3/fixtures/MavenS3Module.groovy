@@ -44,14 +44,15 @@ class MavenS3Module extends DelegatingMavenModule<MavenS3Module> implements Remo
     }
 
     S3Artifact getModuleMetadata() {
-        throw new UnsupportedOperationException()
+        return new S3Artifact(server, backingModule.moduleMetadata.file, repositoryPath, bucket)
+    }
+
+    @Override
+    S3Artifact getRootMetaData() {
+        new S3Artifact(server, backingModule.rootMetaDataFile, repositoryPath, bucket)
     }
 
     S3Artifact getMetaData() {
         new S3Artifact(server, backingModule.metaDataFile, repositoryPath, bucket)
-    }
-
-    S3Artifact getMavenRootMetaData() {
-        new S3Artifact(server, backingModule.rootMetaDataFile, repositoryPath, bucket)
     }
 }

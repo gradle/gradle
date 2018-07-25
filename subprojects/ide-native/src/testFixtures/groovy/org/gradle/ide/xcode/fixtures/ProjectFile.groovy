@@ -59,6 +59,10 @@ class ProjectFile {
         return targets.find { it instanceof PBXNativeTarget }
     }
 
+    List<PBXTarget> findTargets(String moduleName) {
+        return targets.findAll { it.name == moduleName }
+    }
+
     PBXLegacyTarget getGradleTarget() {
         return targets.find { it instanceof PBXLegacyTarget }
     }
@@ -68,7 +72,23 @@ class ProjectFile {
     }
 
     PBXGroup getProducts() {
-        return mainGroup.children.find { it.name == 'Products' }
+        return findGroup('Products')
+    }
+
+    PBXGroup getSources() {
+        return findGroup('Sources')
+    }
+
+    PBXGroup getTests() {
+        return findGroup('Tests')
+    }
+
+    PBXGroup getHeaders() {
+        return findGroup('Headers')
+    }
+
+    private PBXGroup findGroup(String groupName) {
+        return mainGroup.children.find { it.name == groupName }
     }
 
     void assertNoTargets() {
@@ -208,12 +228,24 @@ class ProjectFile {
             assertIs(ProductType.DYNAMIC_LIBRARY)
         }
 
+        void assertIsStaticLibrary() {
+            assertIs(ProductType.STATIC_LIBRARY)
+        }
+
         void assertIsUnitTest() {
-            assertIs(ProductType.UNIT_TEST)
+            assert isUnitTest()
         }
 
         void assertIs(ProductType productType) {
-            assert getProperty("productType") == productType.identifier
+            assert is(productType)
+        }
+
+        boolean isUnitTest() {
+            return is(ProductType.UNIT_TEST)
+        }
+
+        boolean is(ProductType productType) {
+            return getProperty("productType") == productType.identifier
         }
 
         @Override

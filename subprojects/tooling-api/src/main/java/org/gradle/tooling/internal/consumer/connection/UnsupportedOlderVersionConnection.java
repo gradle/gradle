@@ -20,6 +20,7 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
+import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
@@ -63,6 +64,11 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         return new UnsupportedActionRunner(version).run(action, operationParameters);
+    }
+
+    @Override
+    public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "4.8");
     }
 
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {

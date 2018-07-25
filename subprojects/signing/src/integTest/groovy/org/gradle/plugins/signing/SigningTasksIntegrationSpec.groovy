@@ -27,6 +27,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
 
             signing {
+                ${signingConfiguration()}
                 sign jar
             }
         """
@@ -55,6 +56,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${javadocAndSourceJarsScript}
 
             signing {
+                ${signingConfiguration()}
                 sign jar, javadocJar, sourcesJar
             }
         """
@@ -81,6 +83,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         given:
         buildFile << """
             signing {
+                ${signingConfiguration()}
                 sign clean
             }
         """
@@ -99,6 +102,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
 
             signing {
+                ${signingConfiguration()}
                 sign jar
             }
 
@@ -138,5 +142,22 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
+    }
+
+    def "emits deprecation warning when trying to overwrite signature file"() {
+        given:
+        buildFile << """
+            signing {
+                sign jar
+            }
+            signJar.singleSignature.file = file('custom-signature.txt')
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        run()
+
+        then:
+        outputContains('Using Signature.setFile() has been deprecated')
     }
 }

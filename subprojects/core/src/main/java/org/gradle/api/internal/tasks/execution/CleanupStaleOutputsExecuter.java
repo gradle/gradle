@@ -29,7 +29,7 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -42,13 +42,15 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     private final Logger logger = Logging.getLogger(CleanupStaleOutputsExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
+    private final TaskOutputChangesListener taskOutputChangesListener;
     private final TaskExecuter executer;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
 
-    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, TaskExecuter executer) {
+    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, TaskOutputChangesListener taskOutputChangesListener, TaskExecuter executer) {
         this.cleanupRegistry = cleanupRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.taskOutputChangesListener = taskOutputChangesListener;
         this.executer = executer;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
@@ -56,7 +58,8 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     @Override
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Set<File> filesToDelete = new HashSet<File>();
-        for (TaskOutputFilePropertySpec outputFileSpec : task.getOutputs().getFileProperties()) {
+        TaskProperties taskProperties = context.getTaskProperties();
+        for (TaskOutputFilePropertySpec outputFileSpec : taskProperties.getOutputFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
                 if (cleanupRegistry.isOutputOwnedByBuild(file) && !taskOutputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
@@ -65,6 +68,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             }
         }
         if (!filesToDelete.isEmpty()) {
+            taskOutputChangesListener.beforeTaskOutputChanged();
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

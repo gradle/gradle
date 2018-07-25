@@ -19,10 +19,10 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.RemoteMavenModule
-import org.gradle.test.fixtures.resource.RemoteArtifact
 
 class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements RemoteMavenModule, HttpModule {
     private final HttpServer server
+    private final String repoRoot
     private final String moduleRootUriPath
     private final String uriPath
     private final MavenFileModule backingModule
@@ -31,12 +31,18 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         super(backingModule)
         this.backingModule = backingModule
         this.server = server
+        this.repoRoot = repoRoot
         this.moduleRootUriPath = "${repoRoot}/${backingModule.moduleRootPath}"
         this.uriPath = "${repoRoot}/${backingModule.path}"
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        return new MavenHttpArtifact(server, uriPath, backingModule, options)
+        return new MavenHttpArtifact(server, repoRoot, backingModule, backingModule.getArtifact(options))
+    }
+
+    @Override
+    HttpArtifact getArtifact(String relativePath) {
+        return new MavenHttpArtifact(server, repoRoot, backingModule, backingModule.getArtifact(relativePath))
     }
 
     /**
@@ -45,7 +51,7 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
      */
     HttpArtifact artifact(Map<String, ?> options = [:]) {
         backingModule.artifact(options)
-        return new MavenHttpArtifact(server, uriPath, backingModule, options)
+        return getArtifact(options)
     }
 
     MavenHttpModule withSourceAndJavadoc() {
@@ -64,8 +70,8 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
     }
 
     @Override
-    RemoteArtifact getModuleMetadata() {
-        return artifact(classifier: 'module', type: 'json')
+    HttpArtifact getModuleMetadata() {
+        return getArtifact(type: 'module')
     }
 
     MetaDataArtifact getRootMetaData() {

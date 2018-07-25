@@ -16,24 +16,29 @@
 
 package org.gradle.internal.scan.config;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.util.VersionNumber;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This is the meeting point between Gradle and the build scan plugin during initialization.
- * This is effectively build scoped.
+ * This is the meeting point between Gradle and the build scan plugin during initialization. This is effectively build scoped.
  */
 class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProvider, BuildScanPluginApplied {
 
     private static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
+
+    @VisibleForTesting
+    static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
     private static final String SYSPROP_KEY = "scan";
@@ -41,15 +46,22 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     private final StartParameter startParameter;
     private final ListenerManager listenerManager;
-    private final BuildScanPluginCompatibilityEnforcer compatibilityEnforcer;
+    private final BuildScanPluginCompatibility compatibility;
+    private final Factory<BuildScanConfig.Attributes> configAttributes;
 
-    private State state = State.DEFAULTED;
+    private Requestedness requestedness = Requestedness.DEFAULTED;
     private boolean collected;
 
-    BuildScanConfigManager(StartParameter startParameter, ListenerManager listenerManager, BuildScanPluginCompatibilityEnforcer compatibilityEnforcer) {
+    BuildScanConfigManager(
+        StartParameter startParameter,
+        ListenerManager listenerManager,
+        BuildScanPluginCompatibility compatibility,
+        Factory<BuildScanConfig.Attributes> configAttributes
+    ) {
         this.startParameter = startParameter;
         this.listenerManager = listenerManager;
-        this.compatibilityEnforcer = compatibilityEnforcer;
+        this.compatibility = compatibility;
+        this.configAttributes = configAttributes;
     }
 
     @Override
@@ -57,9 +69,9 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         boolean checkForPlugin = false;
         if (startParameter.isBuildScan()) {
             checkForPlugin = true;
-            state = State.ENABLED;
+            requestedness = Requestedness.ENABLED;
         } else if (startParameter.isNoBuildScan()) {
-            state = State.DISABLED;
+            requestedness = Requestedness.DISABLED;
         } else {
             // Before there was --scan, there was -Dscan or -Dscan=true or -Dscan=yes
             Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
@@ -96,8 +108,24 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         }
 
         collected = true;
-        compatibilityEnforcer.assertSupported(pluginMetadata.getVersion());
-        return state.configuration;
+        BuildScanConfig.Attributes configAttributes = this.configAttributes.create();
+
+        VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
+        String unsupportedReason = compatibility.unsupportedReason(pluginVersion, configAttributes);
+
+        if (unsupportedReason != null) {
+            if (isPluginAwareOfUnsupported(pluginVersion)) {
+                return requestedness.toConfig(unsupportedReason, configAttributes);
+            } else {
+                throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
+            }
+        }
+
+        return requestedness.toConfig(null, configAttributes);
+    }
+
+    private boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
+        return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
     }
 
     @Override
@@ -105,37 +133,43 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         return collected;
     }
 
-    private enum State {
-        DEFAULTED(new Config(false, false)),
-        ENABLED(new Config(true, false)),
-        DISABLED(new Config(false, true));
+    private enum Requestedness {
 
-        private final BuildScanConfig configuration;
-
-        State(BuildScanConfig configuration) {
-            this.configuration = configuration;
-        }
-    }
-
-    private static class Config implements BuildScanConfig {
+        DEFAULTED(false, false),
+        ENABLED(true, false),
+        DISABLED(false, true);
 
         private final boolean enabled;
         private final boolean disabled;
 
-        private Config(boolean enabled, boolean disabled) {
+        Requestedness(boolean enabled, boolean disabled) {
             this.enabled = enabled;
             this.disabled = disabled;
         }
 
-        @Override
-        public boolean isEnabled() {
-            return enabled;
-        }
+        BuildScanConfig toConfig(final String unsupported, final BuildScanConfig.Attributes attributes) {
+            return new BuildScanConfig() {
+                @Override
+                public boolean isEnabled() {
+                    return enabled;
+                }
 
-        @Override
-        public boolean isDisabled() {
-            return disabled;
-        }
+                @Override
+                public boolean isDisabled() {
+                    return disabled;
+                }
 
+                @Override
+                public String getUnsupportedMessage() {
+                    return unsupported;
+                }
+
+                @Override
+                public Attributes getAttributes() {
+                    return attributes;
+                }
+            };
+        }
     }
+
 }

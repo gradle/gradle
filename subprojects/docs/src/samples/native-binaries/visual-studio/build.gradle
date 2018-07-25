@@ -10,7 +10,7 @@ model {
             projectFile.location = "vs/${name}.vcxproj"
             filtersFile.location = "vs/${name}.vcxproj.filters"
         }
-        solutions.all {
+        solution {
             solutionFile.location = "vs/${name}.sln"
         }
     }
@@ -32,7 +32,7 @@ model {
 // START SNIPPET customize-solution-files
 model {
     visualStudio {
-        solutions.all { solution ->
+        solution { solution ->
             solutionFile.withContent { content ->
                 def sourceControlSection = """
     GlobalSection(SolutionNotes) = postSolution
@@ -42,7 +42,7 @@ model {
         Text1 = This is a shared note.
         Name2 = SecondNote
         Issue2 = N
-        Text2 = The projects in this solution are ${solution.projects*.name}.
+        Text2 = The projects in this solution are ${projects*.name}.
     EndGlobalSection
 """
                 def insertPos = content.text.lastIndexOf("EndGlobal")

@@ -16,9 +16,12 @@
 package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+
+import javax.inject.Inject;
 
 /**
  * Generates an Eclipse <code>.classpath</code> file. If you want to fine tune the eclipse configuration
@@ -33,6 +36,11 @@ public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
         getXmlTransformer().setIndentation("\t");
     }
 
+    @Inject
+    public GenerateEclipseClasspath(EclipseClasspath classpath) {
+        this.classpath = classpath;
+    }
+
     @Override
     protected Classpath create() {
         return new Classpath(getXmlTransformer(), classpath.getFileReferenceFactory());
@@ -41,6 +49,14 @@ public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
     @Override
     protected void configure(Classpath xmlClasspath) {
         classpath.mergeXmlClasspath(xmlClasspath);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (classpath == null) {
+            return super.getXmlTransformer();
+        }
+        return classpath.getFile().getXmlTransformer();
     }
 
     /**

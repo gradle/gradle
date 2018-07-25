@@ -20,38 +20,52 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultResolvedComponentResult implements ResolvedComponentResult {
+public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
     private final ModuleVersionIdentifier moduleVersion;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
+    private final ResolvedVariantResult variant;
+    private final String repositoryName;
 
-    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
+    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repositoryName) {
         assert moduleVersion != null;
         assert selectionReason != null;
+        assert variant != null;
 
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
+        this.variant = variant;
+        this.repositoryName = repositoryName;
     }
 
+    @Override
     public ComponentIdentifier getId() {
         return componentId;
     }
 
+    @Nullable
+    @Override
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
+    @Override
     public Set<DependencyResult> getDependencies() {
         return Collections.unmodifiableSet(dependencies);
     }
 
+    @Override
     public Set<ResolvedDependencyResult> getDependents() {
         return Collections.unmodifiableSet(dependents);
     }
@@ -66,13 +80,20 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
         return this;
     }
 
+    @Override
     public ComponentSelectionReason getSelectionReason() {
         return selectionReason;
     }
 
+    @Override
     @Nullable
     public ModuleVersionIdentifier getModuleVersion() {
         return moduleVersion;
+    }
+
+    @Override
+    public ResolvedVariantResult getVariant() {
+        return variant;
     }
 
     @Override

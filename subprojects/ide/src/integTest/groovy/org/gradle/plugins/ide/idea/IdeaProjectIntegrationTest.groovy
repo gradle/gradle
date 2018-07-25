@@ -45,7 +45,7 @@ idea.project {
     @Test
     void enablesCustomizationsOnNewModel() {
         //when
-        runTask 'idea', 'include "someProjectThatWillBeExcluded", "api"', '''
+        def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
 allprojects {
     apply plugin: "java"
     apply plugin: "idea"
@@ -70,6 +70,10 @@ idea {
     }
 }
 '''
+        result.assertTasksExecuted(":ideaModule", ":ideaProject", ":ideaWorkspace",
+            ":api:ideaModule",
+            ":idea"
+        )
 
         //then
         def ipr = getFile([:], 'someBetterName.ipr').text

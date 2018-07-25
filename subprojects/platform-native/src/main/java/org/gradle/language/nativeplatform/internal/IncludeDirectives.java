@@ -15,15 +15,30 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
- * An immutable snapshot of the include directives from a source or header file.
+ * An immutable snapshot of the preprocessor directives from a source or header file.
  */
 public interface IncludeDirectives {
     List<Include> getQuotedIncludes();
     List<Include> getSystemIncludes();
     List<Include> getMacroIncludes();
-    List<Include> getIncludesAndImports();
+    List<Include> getAll();
     List<Include> getIncludesOnly();
+
+    Iterable<Macro> getMacros(String name);
+    Iterable<MacroFunction> getMacroFunctions(String name);
+
+    Collection<Macro> getAllMacros();
+    Collection<MacroFunction> getAllMacroFunctions();
+
+    boolean hasMacros();
+    boolean hasMacroFunctions();
+
+    /**
+     * Returns a copy of these directives, with #import directives removed.
+     */
+    IncludeDirectives discardImports();
 }

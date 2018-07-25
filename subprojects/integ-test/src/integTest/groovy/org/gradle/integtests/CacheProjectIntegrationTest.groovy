@@ -93,7 +93,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classFile.assertHasChangedSince(classFileSnapshot)
         classFileSnapshot = classFile.snapshot()
 
-        executer.expectDeprecationWarning().requireGradleDistribution()
+        executer.expectDeprecationWarning()
         testBuild("newTask", "I am new", "--recompile-scripts")
         classFile.assertContentsHaveNotChangedSince(classFileSnapshot)
     }
@@ -124,7 +124,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
 
         modifyLargeBuildScript()
-        executer.expectDeprecationWarning().requireGradleDistribution()
+        executer.expectDeprecationWarning()
         testBuild("newTask", "I am new", "--recompile-scripts")
         assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
     }

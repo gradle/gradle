@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -167,17 +168,19 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds("myTask")
 
         when:
-        // Now that we produce this, we can detect the situation where
-        // someone builds with Gradle 4.3, then 4.2 and then 4.3 again.
-        file(".gradle/buildOutputCleanup/cache.properties").text = """
-            gradle.version=1.0
-        """
-        // recreate the output
+        invalidateBuildOutputCleanupState()
         dirInBuildDir.createDir()
         staleFileInDir.touch()
         fileInBuildDir.touch()
         then:
         succeeds("myTask")
+    }
+
+    // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
+    private void invalidateBuildOutputCleanupState() {
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
     }
 
     def "stale #type is removed before task executes"(String type, Closure creationCommand) {
@@ -363,6 +366,192 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         void onlyOutputFileHasBeenRemoved() {
             assert !outputFile.exists()
             assert file(outputDir).exists()
+        }
+    }
+
+    @ToBeImplemented("We don't currently clean up local state")
+    def "stale local state file is removed after input source directory is emptied"() {
+        def taskWithLocalState = new TaskWithLocalState()
+        taskWithLocalState.createInputs()
+        buildScript(taskWithLocalState.buildScript)
+
+        when:
+        succeeds(taskWithLocalState.taskPath)
+
+        then:
+        taskWithLocalState.localStateFile.exists()
+        executedAndNotSkipped(taskWithLocalState.taskPath)
+
+        when:
+        taskWithLocalState.removeInputs()
+
+        and:
+        succeeds(taskWithLocalState.taskPath)
+
+        then:
+        // FIXME This should be localStateHasBeenRemoved(), and the task should not be skipped
+        taskWithLocalState.localStateHasNotBeenRemoved()
+        skipped(taskWithLocalState.taskPath)
+    }
+
+    def "up-to-date checks detect removed stale outputs"() {
+        buildFile << """                                    
+            plugins {
+                id 'base'
+            }
+
+            def originalDir = file('build/original')
+            def backupDir = file('backup')
+
+            task backup {
+                inputs.files(originalDir)
+                outputs.dir(backupDir)
+                doLast {
+                    copy {
+                        from originalDir
+                        into backupDir
+                    }
+                }
+            }
+            
+            task restore {
+                inputs.files(backupDir)
+                outputs.dir(originalDir)
+                doLast {
+                    copy {
+                        from backupDir
+                        into originalDir
+                    }
+                }
+            }
+        """
+
+        def original = file('build/original/original.txt')
+        original.text = "Original"
+        def backup = file('backup/original.txt')
+
+        when:
+        run 'backup', 'restore'
+
+        then:
+        executedAndNotSkipped(':backup')
+        executedAndNotSkipped(':restore')
+        original.text == backup.text
+        original.text == "Original"
+
+        when:
+        // The whole setup is as follows:
+        // - Both the restore and the backup task have an entry in the task history
+        // - The output of the restore path is the input of the backup task.
+        //   This means when the backup task is up-to-date, then the contents of the output of the restore path is in the file system mirror.
+        //
+        // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
+        invalidateBuildOutputCleanupState()
+        run 'backup', 'restore', '--info'
+
+        then:
+        output.contains("Deleting stale output file: ${original.parentFile.absolutePath}")
+        skipped ':backup'
+        executedAndNotSkipped(':restore')
+        original.text == backup.text
+        original.text == "Original"
+    }
+
+    def "task with file tree output can be up-to-date"() {
+        buildFile << """                                     
+            plugins {
+                id 'base'
+            }
+
+            class TaskWithFileTreeOutput extends DefaultTask {
+                @Input
+                String input
+                
+                @Internal
+                File outputDir
+                
+                @OutputFiles
+                FileCollection getOutputFileTree() {
+                    project.fileTree(outputDir).include('**/myOutput.txt')
+                }
+                
+                @TaskAction
+                void generateOutputs() {
+                    outputDir.mkdirs()
+                    new File(outputDir, 'myOutput.txt').text = input
+                }
+            }
+            
+            task custom(type: TaskWithFileTreeOutput) {
+                outputDir = file('build/outputs')
+                input = 'input'
+            }
+        """
+        def taskPath = ':custom'
+
+        when:
+        run taskPath
+        then:
+        executedAndNotSkipped taskPath
+
+        when:
+        run taskPath, '--info'
+
+        then:
+        skipped taskPath
+    }
+
+    class TaskWithLocalState {
+        String localStateDir = "build/state"
+        String outputFile = "build/output.txt"
+        File inputFile = file('src/data/input.txt')
+        String taskName = 'test'
+
+        String getBuildScript() {
+            """       
+                apply plugin: 'base'
+
+                task ${taskName} {
+                    def sources = file("src")
+                    inputs.dir sources skipWhenEmpty()
+                    outputs.file "$outputFile"
+                    localState.register "$localStateDir"
+                    doLast {
+                        file("${localStateDir}").mkdirs()
+                        files(sources).asFileTree.visit { details ->
+                            if (!details.directory) {
+                                def output = file("${localStateDir}/\${details.relativePath}.info")
+                                output.parentFile.mkdirs()
+                                output.text = "Analysis for \${details.relativePath}"
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        String getTaskPath() {
+            ":${taskName}"
+        }
+
+        TestFile getLocalStateFile() {
+            file("${localStateDir}/data/input.txt.info")
+        }
+
+        void removeInputs() {
+            inputFile.parentFile.deleteDir()
+        }
+
+        void createInputs() {
+            inputFile.text = "input"
+        }
+
+        void localStateHasBeenRemoved() {
+            assert !file(localStateDir).exists()
+        }
+
+        void localStateHasNotBeenRemoved() {
+            assert file(localStateDir).exists()
         }
     }
 

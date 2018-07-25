@@ -17,16 +17,24 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.Task;
-import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+
+import javax.annotation.Nullable;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
     private static final Task.Namer NAMER = new Task.Namer();
@@ -76,7 +84,83 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
-    protected UnknownDomainObjectException createNotFoundException(String name) {
+    protected UnknownTaskException createNotFoundException(String name) {
         return new UnknownTaskException(String.format("Task with name '%s' not found in %s.", name, project));
+    }
+
+    @Override
+    public TaskProvider<T> named(String name) throws UnknownTaskException {
+        TaskProvider<T> taskProvider = (TaskProvider<T>) findTask(name);
+        if (taskProvider == null) {
+            throw createNotFoundException(name);
+        }
+        return taskProvider;
+    }
+
+    @Nullable
+    ProviderInternal<? extends Task> findTask(String name) {
+        Task task = findByNameWithoutRules(name);
+        if (task == null) {
+            return findByNameLaterWithoutRules(name);
+        }
+
+        TaskInternal taskInternal = (TaskInternal) task;
+        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task, taskIdentity));
+    }
+
+    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
+
+        final TaskIdentity<I> identity;
+        boolean removed = false;
+
+        DefaultTaskProvider(TaskIdentity<I> identity) {
+            this.identity = identity;
+        }
+
+        @Override
+        public String getName() {
+            return identity.name;
+        }
+
+        @Override
+        public Class<I> getType() {
+            return identity.type;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findTask(identity.name) != null;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("provider(task %s, %s)", identity.name, identity.type);
+        }
+    }
+
+    // Cannot be private due to reflective instantiation
+    public class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
+
+        private final I task;
+
+        public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
+            super(identity);
+            this.task = task;
+        }
+
+        @Override
+        public void configure(Action<? super I> action) {
+            action.execute(task);
+        }
+
+        @Override
+        public boolean isPresent() {
+            return true;
+        }
+
+        public I getOrNull() {
+            return task;
+        }
     }
 }

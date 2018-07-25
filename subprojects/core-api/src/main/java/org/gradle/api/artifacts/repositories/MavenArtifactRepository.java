@@ -15,6 +15,9 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+
 import java.net.URI;
 import java.util.Set;
 
@@ -23,7 +26,7 @@ import java.util.Set;
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(org.gradle.api.Action)} group of methods.
  */
-public interface MavenArtifactRepository extends ArtifactRepository, AuthenticationSupported {
+public interface MavenArtifactRepository extends ArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
     /**
      * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
@@ -87,4 +90,42 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
      * @param urls The URLs.
      */
     void setArtifactUrls(Iterable<?> urls);
+
+    /**
+     * Configures the metadata sources for this repository. This method will replace any previously configured sources
+     * of metadata.
+     *
+     * @param configureAction the configuration of metadata sources.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    void metadataSources(Action<? super MetadataSources> configureAction);
+
+    /**
+     * Allows configuring the sources of metadata for a specific repository.
+     *
+     * @since 4.5
+     *
+     */
+    @Incubating
+    interface MetadataSources {
+        /**
+         * Indicates that this repository will contain Gradle metadata.
+         */
+        void gradleMetadata();
+
+        /**
+         * Indicates that this repository will contain Maven POM files.
+         */
+        void mavenPom();
+
+        /**
+         * Indicates that this repository may not contain metadata files,
+         * but we can infer it from the presence of an artifact file.
+         */
+        void artifact();
+    }
+
+
 }

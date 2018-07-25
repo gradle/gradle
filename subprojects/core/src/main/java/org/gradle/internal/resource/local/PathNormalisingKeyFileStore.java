@@ -23,22 +23,14 @@ import java.util.Set;
 
 public class PathNormalisingKeyFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
-    private final PathKeyFileStore delegate;
+    private final DefaultPathKeyFileStore delegate;
 
     public PathNormalisingKeyFileStore(File baseDir) {
-        this(new DefaultPathKeyFileStore(baseDir));
-    }
-
-    public PathNormalisingKeyFileStore(PathKeyFileStore delegate) {
-        this.delegate = delegate;
+        this.delegate = new DefaultPathKeyFileStore(baseDir);
     }
 
     public LocallyAvailableResource move(String key, File source) {
         return delegate.move(normalizePath(key), source);
-    }
-
-    public LocallyAvailableResource copy(String key, File source) {
-        return delegate.copy(key, source);
     }
 
     protected String normalizePath(String path) {
@@ -47,10 +39,6 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
 
     protected String normalizeSearchPath(String path) {
         return path.replaceAll("[^\\d\\w\\.\\*/]", "_");
-    }
-
-    public void moveFilestore(File destination) {
-        delegate.moveFilestore(destination);
     }
 
     public LocallyAvailableResource add(String key, Action<File> addAction) {

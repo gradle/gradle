@@ -63,13 +63,13 @@ class BuildExceptionReporterTest extends Specification {
 <message>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
-    def "doesn't suggest to use --scan if option was on command line"() {
+    def "suggests to use --scan even if option was on command line"() {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
@@ -89,9 +89,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 <message>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -115,9 +115,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 <message>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -133,9 +133,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 org.gradle.api.GradleException (no error message)
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -155,9 +155,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 {info}> {normal}<cause>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -177,9 +177,9 @@ java.lang.RuntimeException (no error message)
 {info}> {normal}java.io.IOException (no error message)
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -200,9 +200,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 {info}> {normal}<cause2>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -228,9 +228,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
    {info}> {normal}<cause2.1>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -250,9 +250,9 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 {info}> {normal}java.lang.RuntimeException (no error message)
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -274,12 +274,12 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 {info}> {normal}<failure>
 
 * Try:
-Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -304,7 +304,7 @@ org.gradle.api.GradleException: <message>
 {info}> {normal}<cause>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 ==============================================================================
 
 {failure}2: {normal}{failure}Task failed with an exception.{normal}
@@ -313,7 +313,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 <failure>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 ==============================================================================
 
 {failure}3: {normal}{failure}Task failed with an exception.{normal}
@@ -322,10 +322,10 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 <error>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 ==============================================================================
 
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 ''';
     }
 
@@ -343,12 +343,12 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 <message>
 
 * Try:
-Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
@@ -366,12 +366,12 @@ org.gradle.api.GradleException: <message>
 <message>
 
 * Try:
-Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-* Get more help at https://help.gradle.org
+* Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 

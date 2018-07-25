@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.RetryRuleUtil
@@ -118,6 +119,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    static boolean isCompatibleVersion(String minCompatibleVersion) {
+        gradleVersion.baseVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
+    }
+
     String getReleasedGradleVersion() {
         return gradleVersion.baseVersion.version
     }
@@ -146,11 +151,26 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     ExecutionResult execResult(BuildResult buildResult) {
-        new OutputScrapingExecutionResult(buildResult.output, buildResult.output)
+        OutputScrapingExecutionResult.from(buildResult.output, buildResult.output)
     }
 
     ExecutionFailure execFailure(BuildResult buildResult) {
-        new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
+        OutputScrapingExecutionFailure.from(buildResult.output, buildResult.output)
+    }
+
+    static String determineMinimumVersionThatRunsOnCurrentJavaVersion(String desiredGradleVersion) {
+        if (JavaVersion.current().isJava11Compatible()) {
+            def compatibleVersion = GradleVersion.version("4.8.1") // see https://github.com/gradle/gradle/issues/4860
+            if (GradleVersion.version(desiredGradleVersion).compareTo(compatibleVersion) < 0) {
+                return compatibleVersion.version
+            }
+        } else if (JavaVersion.current().isJava9Compatible()) {
+            def compatibleVersion = GradleVersion.version("4.3.1") // see https://github.com/gradle/gradle/issues/2992
+            if (GradleVersion.version(desiredGradleVersion).compareTo(compatibleVersion) < 0) {
+                return compatibleVersion.version
+            }
+        }
+        return desiredGradleVersion
     }
 
     @Rule
@@ -258,8 +278,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             }
 
             static TestedGradleDistribution mostRecentFinalRelease() {
-                new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
-                    GradleProvider.version(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
+                new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentRelease.version,
+                    GradleProvider.version(RELEASED_VERSION_DISTRIBUTIONS.mostRecentRelease.version.version))
             }
 
         }

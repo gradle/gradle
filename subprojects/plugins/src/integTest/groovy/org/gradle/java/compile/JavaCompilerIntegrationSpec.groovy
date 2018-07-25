@@ -15,6 +15,8 @@
  */
 package org.gradle.java.compile
 
+import spock.lang.Issue
+
 abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationSpec {
     def setup() {
         buildFile << """
@@ -54,7 +56,6 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
 
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
     }
 
@@ -73,7 +74,6 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
         // couldn't find a good way to verify that heap settings take effect
     }
@@ -90,7 +90,6 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         output.contains(new File("src/main/java/compile/test/Person.java").toString())
         output.contains(new File("src/main/java/compile/test/Person2.java").toString())
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
         javaClassFile("compile/test/Person2.class").exists()
     }
@@ -107,5 +106,21 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         succeeds("compileJava")
         javaClassFile("compile/test/Person.class").exists()
         javaClassFile("compile/test/Person2.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5750")
+    def "include narrows down source files to compile"() {
+        given:
+        goodCode()
+
+        and:
+        file('src/main/java/Bar.java') << 'class Bar {}'
+        buildFile << 'compileJava.include "**/Person*.java"'
+
+        expect:
+        succeeds("compileJava")
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
+        !javaClassFile("Bar.class").exists()
     }
 }

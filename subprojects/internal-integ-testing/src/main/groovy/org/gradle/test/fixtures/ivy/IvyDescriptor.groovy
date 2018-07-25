@@ -22,13 +22,16 @@ class IvyDescriptor {
     Map<String, IvyDescriptorConfiguration> configurations = [:]
     List<IvyDescriptorArtifact> artifacts = []
     Map<String, IvyDescriptorDependency> dependencies = [:]
+    List<IvyDescriptorDependencyExclusion> exclusions = []
     String organisation
     String module
     String revision
     String status
-    String description
+    Node description
     String branch
     String resolver
+    NodeList licenses
+    NodeList authors
     Map<QName, String> extraInfo
 
     IvyDescriptor(File ivyFile) {
@@ -39,7 +42,9 @@ class IvyDescriptor {
         status = ivy.info[0].@status
         branch = ivy.info[0].@branch
         resolver = ivy.info[0].@resolver
-        description = ivy.info[0].description[0]?.text()
+        description = ivy.info[0].description[0]
+        licenses = ivy.info[0].license
+        authors = ivy.info[0].ivyauthor
 
         extraInfo = [:]
         ivy.info[0].children().findAll { it.name() instanceof QName }.each {
@@ -81,6 +86,10 @@ class IvyDescriptor {
             def key = "${ivyDependency.org}:${ivyDependency.module}:${ivyDependency.revision}"
             dependencies[key] = ivyDependency
         }
+
+        ivy.dependencies.exclude.each { exclude ->
+            exclusions << new IvyDescriptorDependencyExclusion(org: exclude.@org, module: exclude.@module, name: exclude.@artifact, type: exclude.@type, ext: exclude.@ext, conf: exclude.@conf, matcher: exclude.@matcher)
+        }
     }
 
     IvyDescriptorArtifact expectArtifact(String name, String ext, String classifier = null) {
@@ -91,7 +100,7 @@ class IvyDescriptor {
 
     IvyDescriptorArtifact expectArtifact(String name) {
         return oneResult(artifacts.findAll({
-            it.name == name
+            it.name == name && it.ext != 'module'
         }), [name])
     }
 
@@ -109,6 +118,18 @@ class IvyDescriptor {
             assert dependencies.containsKey(key)
             assert dependencies[key].hasConf(conf)
         }
+        true
+    }
+
+    def assertConfigurationDependsOn(String configuration, String[] expected) {
+        def actualDependencies = dependencies.values().findAll { it.conf.contains(configuration) }
+        assert actualDependencies.size() == expected.length
+        expected.each {
+            String conf = "$configuration->default"
+            assert dependencies.containsKey(it)
+            assert dependencies[it].hasConf(conf)
+        }
+
         true
     }
 

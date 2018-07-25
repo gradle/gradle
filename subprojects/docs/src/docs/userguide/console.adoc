@@ -163,26 +163,27 @@ BUILD SUCCESSFUL in 2m 10s
 [[sec:console_non_interactive_environments]]
 === Look & feel in non-interactive environments
 
-By default, Gradle tries to enable rich console output by detecting the type of console the build is running from. This enables color and additional console output formatting. Non-interactive environments fall back to using plain console output. The plain output format _does not_ support grouping of output. Tasks and outcomes are always printed to be consistent with Gradle 3.x versions.
+By default, Gradle tries to enable rich console output by detecting the type of console the build is running from. This enables color and additional console output formatting. Non-interactive environments fall back to using plain console output, which presents the status and output of tasks as they execute, but does not display the build progress bar or the work-in-progress display.
 
 NOTE: Gradle builds executed from an IDE (e.g. Buildship and IntelliJ) or Continuous Integration products (e.g. Jenkins and TeamCity) use plain console output by default.
 
 The following output demonstrates the use of a plain console:
 
 ----
-:compileJava
+> Task :compileJava
 Note: Some input files use unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
-:processResources
-:classes
-:jar
-:assemble
-:compileTestJava NO-SOURCE
-:processTestResources NO-SOURCE
-:testClasses UP-TO-DATE
-:test NO-SOURCE
-:check UP-TO-DATE
-:build
+
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :assemble
+> Task :compileTestJava
+> Task :processTestResources
+> Task :testClasses
+> Task :test
+> Task :check
+> Task :build
 
 BUILD SUCCESSFUL in 6s
 11 actionable tasks: 6 executed, 5 up-to-date

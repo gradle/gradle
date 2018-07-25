@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -51,7 +52,7 @@ public class CommandLineConverterTestSupport {
     protected ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     protected LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     protected ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
-    protected StartParameter actualStartParameter;
+    protected StartParameterInternal actualStartParameter;
     protected boolean expectedProfile;
     protected File expectedProjectCacheDir;
     protected boolean expectedRefreshDependencies;
@@ -66,7 +67,7 @@ public class CommandLineConverterTestSupport {
     protected boolean expectedContinuous;
 
     protected void checkConversion(String... args) {
-        actualStartParameter = new StartParameter();
+        actualStartParameter = new StartParameterInternal();
         actualStartParameter.setCurrentDir(currentDir);
         commandLineConverter.convert(Arrays.asList(args), actualStartParameter);
         // We check the params passed to the build factory

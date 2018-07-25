@@ -23,23 +23,20 @@ import org.gradle.internal.scan.time.BuildScanClock;
 import org.gradle.internal.scan.time.DefaultBuildScanBuildStartedTime;
 import org.gradle.internal.scan.time.DefaultBuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.time.Clock;
 
-public class BuildScanServices extends AbstractPluginServiceRegistry {
+public class BuildScanServices {
 
-    @Override
-    public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            BuildScanClock createBuildScanClock(Clock clock) {
-                return new DefaultBuildScanClock(clock);
-            }
-        });
-        registration.addProvider(new Object() {
-            BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
-                return new DefaultBuildScanBuildStartedTime(buildStartedTime);
-            }
-        });
+    BuildScanClock createBuildScanClock(Clock clock) {
+        return new DefaultBuildScanClock(clock);
+    }
+
+    BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
+        return new DefaultBuildScanBuildStartedTime(buildStartedTime);
+    }
+
+    void configure(ServiceRegistration registration) {
         registration.addProvider(new BuildScanConfigServices());
     }
+
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.InvalidUserDataException;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.Description;
 import org.junit.runner.manipulation.Filter;
@@ -26,27 +27,36 @@ import java.util.Set;
 
 /**
  * This filter is used for filtering classes and methods that are annotated with the @Category annotation.
- *
  */
 class CategoryFilter extends Filter {
-    // the way filters are implemented makes this unnecessarily complicated,
-    // buggy, and difficult to specify.  A new way of handling filters could
-    // someday enable a better new implementation.
-    // https://github.com/junit-team/junit/issues/172
+    private final ClassLoader applicationClassLoader;
+    private final Set<String> inclusions;
+    private final Set<String> exclusions;
 
-    private final Set<Class<?>> inclusions;
-    private final Set<Class<?>> exclusions;
-
-    public CategoryFilter(final Set<Class<?>> inclusions, final Set<Class<?>> exclusions) {
+    CategoryFilter(final Set<String> inclusions, final Set<String> exclusions, final ClassLoader applicationClassLoader) {
         this.inclusions = inclusions;
         this.exclusions = exclusions;
+        this.applicationClassLoader = applicationClassLoader;
     }
 
     @Override
     public boolean shouldRun(final Description description) {
         Class<?> testClass = description.getTestClass();
+        verifyCategories(testClass);
         Description desc = description.isSuite() || testClass == null ? null : Description.createSuiteDescription(testClass);
         return shouldRun(description, desc);
+    }
+
+    private void verifyCategories(Class<?> testClass) {
+        if (testClass == null) {
+            return;
+        }
+        for (String cls : inclusions) {
+            loadClass(testClass.getClassLoader(), cls);
+        }
+        for (String cls : exclusions) {
+            loadClass(testClass.getClassLoader(), cls);
+        }
     }
 
     private boolean shouldRun(final Description description, final Description parent) {
@@ -83,13 +93,27 @@ class CategoryFilter extends Filter {
         return result;
     }
 
-    private boolean matches(final Class<?> category, final Set<Class<?>> categories) {
-        for (Class<?> cls : categories) {
-            if (cls.isAssignableFrom(category)) {
+    private boolean matches(final Class<?> category, final Set<String> categories) {
+        ClassLoader classLoader = category.getClassLoader();
+        for (String cls : categories) {
+            if (loadClass(classLoader, cls).isAssignableFrom(category)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private Class<?> loadClass(ClassLoader classLoader, String className) {
+        try {
+            if (classLoader == null) {
+                // some implementation uses null to represent bootstrap classloader
+                // i.e. Object.class.getClassLoader()==null
+                classLoader = applicationClassLoader;
+            }
+            return classLoader.loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw new InvalidUserDataException(String.format("Can't load category class [%s].", className), e);
+        }
     }
 
     @Override

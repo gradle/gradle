@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.List;
 
 public abstract class VersionedTwirlCompilerAdapter implements Serializable {
-    public abstract String getDependencyNotation();
+    public abstract List<String> getDependencyNotation();
 
     public abstract ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 

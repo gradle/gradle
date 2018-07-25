@@ -15,7 +15,10 @@
  */
 package org.gradle.api.reporting;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -48,18 +51,12 @@ public class ReportingExtension {
     public static final String DEFAULT_REPORTS_DIR_NAME = "reports";
 
     private final ProjectInternal project;
-    private Object baseDir;
+    private final DirectoryProperty baseDirectory;
 
 
     public ReportingExtension(Project project) {
         this.project = (ProjectInternal)project;
-        this.baseDir = new Callable<File>() {
-            public File call() throws Exception {
-                return ReportingExtension.this.project.getServices().
-                        get(FileLookup.class).getFileResolver(ReportingExtension.this.project.getBuildDir()).
-                        resolve(DEFAULT_REPORTS_DIR_NAME);
-            }
-        };
+        this.baseDirectory = project.getLayout().directoryProperty(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
     }
 
     /**
@@ -70,7 +67,7 @@ public class ReportingExtension {
      * @return The base directory for all reports
      */
     public File getBaseDir() {
-        return project.file(baseDir);
+        return baseDirectory.getAsFile().get();
     }
 
     /**
@@ -80,7 +77,7 @@ public class ReportingExtension {
      * @since 4.0
      */
     public void setBaseDir(File baseDir) {
-        setBaseDir((Object) baseDir);
+        baseDirectory.set(baseDir);
     }
 
     /**
@@ -90,8 +87,25 @@ public class ReportingExtension {
      *
      * @param baseDir The base directory to use for all reports
      */
-    public void setBaseDir(Object baseDir) {
-        this.baseDir = baseDir;
+    public void setBaseDir(final Object baseDir) {
+        this.baseDirectory.set(project.provider(new Callable<Directory>() {
+            @Override
+            public Directory call() throws Exception {
+                DirectoryProperty result = project.getLayout().directoryProperty();
+                result.set(project.file(baseDir));
+                return result.get();
+            }
+        }));
+    }
+
+    /**
+     * Returns base directory property to use for all reports.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    public DirectoryProperty getBaseDirectory() {
+        return baseDirectory;
     }
 
     /**

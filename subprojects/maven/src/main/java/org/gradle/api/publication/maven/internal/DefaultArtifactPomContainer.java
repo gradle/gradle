@@ -19,7 +19,10 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
+import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.io.File;
 import java.util.HashMap;
@@ -49,7 +52,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
                 if (artifactPoms.get(activePomFilter.getName()) == null) {
                     artifactPoms.put(activePomFilter.getName(), artifactPomFactory.createArtifactPom(activePomFilter.getPomTemplate()));
                 }
-                artifactPoms.get(activePomFilter.getName()).addArtifact(artifact, src); 
+                artifactPoms.get(activePomFilter.getName()).addArtifact(artifact, src);
             }
         }
     }
@@ -59,8 +62,11 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         for (String activeArtifactPomName : artifactPoms.keySet()) {
             ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
             File pomFile = createPomFile(activeArtifactPomName);
+            MavenPom mavenPom = activeArtifactPom.getPom();
+            String packaging = mavenPom.getPackaging();
+            MavenProjectIdentity projectIdentity = new ReadableMavenProjectIdentity(mavenPom.getGroupId(), mavenPom.getArtifactId(), mavenPom.getVersion());
             PublishArtifact pomArtifact = activeArtifactPom.writePom(pomFile);
-            mavenDeployments.add(new DefaultMavenDeployment(pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
+            mavenDeployments.add(new DefaultMavenDeployment(packaging, projectIdentity, pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
         }
         return mavenDeployments;
     }

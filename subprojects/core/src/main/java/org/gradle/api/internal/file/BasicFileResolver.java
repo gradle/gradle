@@ -42,7 +42,7 @@ public class BasicFileResolver implements Transformer<File, String> {
     public File transform(String original) {
         if (original.startsWith("file:")) {
             try {
-                return FileUtils.canonicalize(new File(new URI(original)));
+                return FileUtils.normalize(new File(new URI(original)));
             } catch (URISyntaxException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -50,7 +50,7 @@ public class BasicFileResolver implements Transformer<File, String> {
 
         File file = new File(original);
         if (file.isAbsolute()) {
-            return FileUtils.canonicalize(file);
+            return FileUtils.normalize(file);
         }
 
         if (URI_SCHEME.matcher(original).matches()) {
@@ -58,6 +58,6 @@ public class BasicFileResolver implements Transformer<File, String> {
         }
 
         file = new File(baseDir, original);
-        return FileUtils.canonicalize(file);
+        return FileUtils.normalize(file);
     }
 }

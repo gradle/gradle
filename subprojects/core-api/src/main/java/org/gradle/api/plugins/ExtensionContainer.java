@@ -151,7 +151,16 @@ public interface ExtensionContainer {
      * @since 3.5
      */
     @Incubating
+    @Deprecated
     Map<String, TypeOf<?>> getSchema();
+
+    /**
+     * Provides access to the schema of all known extensions.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    ExtensionsSchema getExtensionsSchema();
 
     /**
      * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.

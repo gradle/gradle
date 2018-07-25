@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.FilteringClassLoader;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -37,7 +36,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     }
 
     private static ClassLoader restrictTo(FilteringClassLoader.Spec spec, ClassLoader parent) {
-        return new CachingClassLoader(new FilteringClassLoader(parent, spec));
+        return new FilteringClassLoader(parent, spec);
     }
 
     private static FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {

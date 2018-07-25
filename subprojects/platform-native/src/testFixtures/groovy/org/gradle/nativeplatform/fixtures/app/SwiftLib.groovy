@@ -21,10 +21,18 @@ import org.gradle.integtests.fixtures.SourceFile
 /**
  * A Swift library with 3 source files.
  */
-class SwiftLib extends SourceElement implements GreeterElement, SumElement, MultiplyElement {
+class SwiftLib extends SwiftSourceElement implements GreeterElement, SumElement, MultiplyElement {
     final greeter = new SwiftGreeter()
     final sum = new SwiftSum()
     final multiply = new SwiftMultiply()
+
+    SwiftLib() {
+        this("greeter")
+    }
+
+    SwiftLib(String projectName) {
+        super(projectName)
+    }
 
     @Override
     List<SourceFile> getFiles() {

@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
-import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.CacheRepository;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformInfoFactory;
+import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolver;
+import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
+import org.gradle.api.internal.artifacts.transform.TransformInfoFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -48,15 +44,22 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new DependencyManagementBuildScopeServices());
     }
 
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementBuildTreeScopeServices());
+    }
+
     private static class DependencyManagementBuildSessionServices {
-        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData artifactCacheMetaData) {
-            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetaData);
+        TransformInfoFactory createTransformInfoFactory() {
+            return new DefaultTransformInfoFactory();
         }
 
-        TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {
-            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
-            listenerManager.addListener(transformedFileCache);
-            return transformedFileCache;
+        TransformInfoDependencyResolver createTransformInfoResolver(TransformInfoFactory transformInfoFactory) {
+            return new TransformInfoDependencyResolver(transformInfoFactory);
+        }
+
+        TransformInfoExecutor createTransformInfoExecutor(BuildOperationExecutor buildOperationExecutor) {
+            return new TransformInfoExecutor(buildOperationExecutor);
         }
     }
 }

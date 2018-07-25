@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.javascript.rhino;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -24,12 +25,14 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+@NonNullApi
 public class RhinoShellExec extends JavaExec {
 
     private List<Object> rhinoOptions = new LinkedList<Object>();
@@ -104,8 +107,9 @@ public class RhinoShellExec extends JavaExec {
     /**
      * Script file.
      */
-    @InputFile
+    @Nullable
     @Optional
+    @InputFile
     public File getScript() {
         return script == null ? null : getProject().file(script);
     }
@@ -115,14 +119,14 @@ public class RhinoShellExec extends JavaExec {
      *
      * @since 4.0
      */
-    public void setScript(File script) {
+    public void setScript(@Nullable File script) {
         this.script = script;
     }
 
     /**
      * Sets script file.
      */
-    public void setScript(Object script) {
+    public void setScript(@Nullable Object script) {
         this.script = script;
     }
 

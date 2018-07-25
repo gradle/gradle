@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
     def "produces correct spec type" () {
-        CompileOptions options = new CompileOptions()
+        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
         options.fork = fork
         options.forkOptions.executable = executable
         DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options)

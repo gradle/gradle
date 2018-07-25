@@ -23,8 +23,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -109,7 +111,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
         for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
-            IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+            IncludedBuildState includedBuildInternal = (IncludedBuildState) includedBuild;
             applyEclipsePlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
         }
     }
@@ -197,30 +199,54 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         }
 
         DefaultEclipseProject eclipseProject = findEclipseProject(project);
+
         eclipseProject.setClasspath(externalDependencies);
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
+        eclipseProject.setClasspathContainers(classpathContainers);
+        eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
 
+        org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
+
+        XmlFileContentMerger projectFile = eclipseModel.getProject().getFile();
+        if (projectFile == null) {
+            xmlProject.configure(eclipseModel.getProject());
+        } else {
+            eclipseModel.getProject().mergeXmlProject(xmlProject);
+        }
+
+        populateEclipseProjectTasks(eclipseProject, tasksFactory.getTasks(project));
+        populateEclipseProject(eclipseProject, xmlProject);
+        populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
+
+        for (Project childProject : project.getChildProjects().values()) {
+            populate(childProject);
+        }
+    }
+
+    private static void populateEclipseProjectTasks(DefaultEclipseProject eclipseProject, Iterable<Task> projectTasks) {
+        List<DefaultEclipseTask> tasks = new ArrayList<DefaultEclipseTask>();
+        for (Task t : projectTasks) {
+            tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
+        }
+        eclipseProject.setTasks(tasks);
+    }
+
+    private static void populateEclipseProject(DefaultEclipseProject eclipseProject, org.gradle.plugins.ide.eclipse.model.Project xmlProject) {
         List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
-        for (Link r : eclipseModel.getProject().getLinkedResources()) {
+        for (Link r : xmlProject.getLinkedResources()) {
             linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
         eclipseProject.setLinkedResources(linkedResources);
 
-        List<DefaultEclipseTask> tasks = new ArrayList<DefaultEclipseTask>();
-        for (Task t : tasksFactory.getTasks(project)) {
-            tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
-        }
-        eclipseProject.setTasks(tasks);
-
         List<DefaultEclipseProjectNature> natures = new ArrayList<DefaultEclipseProjectNature>();
-        for(String n: eclipseModel.getProject().getNatures()) {
+        for (String n : xmlProject.getNatures()) {
             natures.add(new DefaultEclipseProjectNature(n));
         }
         eclipseProject.setProjectNatures(natures);
 
         List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
-        for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
+        for (BuildCommand b : xmlProject.getBuildCommands()) {
             Map<String, String> arguments = Maps.newLinkedHashMap();
             for (Map.Entry<String, String> entry : b.getArguments().entrySet()) {
                 arguments.put(convertGString(entry.getKey()), convertGString(entry.getValue()));
@@ -228,21 +254,15 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), arguments));
         }
         eclipseProject.setBuildCommands(buildCommands);
-        EclipseJdt jdt = eclipseModel.getJdt();
+    }
+
+    private static void populateEclipseProjectJdt(DefaultEclipseProject eclipseProject, EclipseJdt jdt) {
         if (jdt != null) {
             eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings()
                 .setSourceLanguageLevel(jdt.getSourceCompatibility())
                 .setTargetBytecodeVersion(jdt.getTargetCompatibility())
                 .setJdk(DefaultInstalledJdk.current())
             );
-        }
-
-        eclipseProject.setClasspathContainers(classpathContainers);
-
-        eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
-
-        for (Project childProject : project.getChildProjects().values()) {
-            populate(childProject);
         }
     }
 

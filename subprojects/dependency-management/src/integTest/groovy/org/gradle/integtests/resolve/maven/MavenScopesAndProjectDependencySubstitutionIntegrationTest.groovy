@@ -187,7 +187,7 @@ project(':child2') {
         }
     }
 
-    def "a dependency on compile scope of maven module includes the compile dependencies of target project that is using the Java plugin"() {
+    def "a dependency on compile scope of maven module includes the runtime dependencies of target project that is using the Java plugin"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
@@ -207,11 +207,12 @@ project(':child2') {
     apply plugin: 'java'
     dependencies {
         compile 'org.test:m1:1.0'
-        compileOnly 'org.test.ignore-me:1.0'
-        runtime 'org.test.ignore-me:1.0'
-        testCompile 'org.test.ignore-me:1.0'
-        testRuntime 'org.test.ignore-me:1.0'
-        "default" 'org.test.ignore-me:1.0'
+        runtime 'org.test:m2:1.0'
+        
+        compileOnly 'org.test:ignore-me:1.0'
+        testCompile 'org.test:ignore-me:1.0'
+        testRuntime 'org.test:ignore-me:1.0'
+        "default" 'org.test:ignore-me:1.0'
     }
 }
 """
@@ -223,9 +224,8 @@ project(':child2') {
                     configuration = 'compile'
                     edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
                         selectedByRule()
-                        // TODO - should include artifacts
-                        noArtifacts()
                         module('org.test:m1:1.0')
+                        module('org.test:m2:1.0')
                     }
                 }
             }

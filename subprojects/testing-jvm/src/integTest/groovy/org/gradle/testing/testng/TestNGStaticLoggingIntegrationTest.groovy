@@ -55,12 +55,12 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: run("test")
+        when: succeeds("test")
 
         then:
-        result.output.contains("Test method foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
-        result.output.contains("Test method foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
-        result.output.contains("Test method foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
+        outputContains("Test method foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
+        outputContains("Test method foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
+        outputContains("Test method foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("FooTest")
@@ -83,10 +83,10 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: run("test")
+        when: succeeds("test")
         then:
-        result.output.contains("Test method foo(FooTest) -> cool output from test")
-        result.output.contains("Test method foo(FooTest) -> err output from test")
+        outputContains("Test method foo(FooTest) -> cool output from test")
+        outputContains("Test method foo(FooTest) -> err output from test")
         result.output.readLines().find { it.matches "Gradle Test Executor \\d+ -> cool output from initializer" }
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
@@ -127,16 +127,16 @@ public class OkTest {
 """
 
         when:
-        run("test")
+        succeeds("test")
 
         then:
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("OkTest")
 
         5.times { n ->
-            assert result.output.contains("Test method ok(OkTest) -> stdout from thread $n")
-            assert result.output.contains("Test method ok(OkTest) -> stderr from thread $n")
-            assert result.output.contains("Test method ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
+            outputContains("Test method ok(OkTest) -> stdout from thread $n")
+            outputContains("Test method ok(OkTest) -> stderr from thread $n")
+            outputContains("Test method ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
 
             classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
             classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))

@@ -146,7 +146,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
@@ -156,7 +156,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "recompiles library and relinks executable with library source file change"() {
+    def "recompiles library and relinks executable after library source file change"() {
         given:
         run "installMainExecutable"
         maybeWait()
@@ -174,10 +174,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped ":linkHelloSharedLibrary"
-        executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
         and:
@@ -200,7 +197,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
@@ -208,6 +205,59 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
+    }
+
+    def "recompiles binary when system header file changes"() {
+        given:
+        def systemHeader = file("src/main/system/${headerFile.name}")
+        systemHeader.text = headerFile.text
+        assert headerFile.delete()
+        buildFile << """
+            tasks.withType(AbstractNativeCompileTask) {
+                systemIncludes.from("src/main/system")
+            }
+        """
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        skipped libraryCompileTask
+        skipped mainCompileTask
+
+        when:
+        maybeWait()
+        systemHeader << """
+            int unused();
+        """
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        if (nonDeterministicCompilation) {
+            // Relinking may (or may not) be required after recompiling
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        skipped libraryCompileTask
+        skipped mainCompileTask
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
@@ -225,7 +275,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
@@ -233,20 +283,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
-    }
-
-    private boolean nonDeterministicCompilation() {
-        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
-        toolChain.visualCpp || objectiveCWithAslr()
-    }
-
-    // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings)
-    // We saw this behaviour only on linux so far.
-    boolean objectiveCWithAslr() {
-        return (sourceType == "Objc" || sourceType == "Objcpp") &&
-                OperatingSystem.current().isLinux() &&
-                toolChain.displayName == "clang"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -275,10 +311,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped ":linkHelloSharedLibrary"
-        executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
         and:
@@ -481,7 +514,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if(objectiveCWithAslr()){
+        if(objectiveCWithAslr){
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {

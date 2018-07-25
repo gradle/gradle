@@ -27,12 +27,10 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.junit.Assert.assertTrue
 
@@ -53,7 +51,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = project.getServices().get(ITaskFactory.class).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name))
+        Task task = project.getServices().get(ITaskFactory.class).create(name, type)
         assertTrue(type.isAssignableFrom(task.getClass()))
         return type.cast(task)
     }
@@ -180,8 +178,8 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
     def "onlyIf predicate is true when task is enabled and all predicates are true"() {
         given:
-        final AtomicBoolean condition1 = new AtomicBoolean(true)
-        final AtomicBoolean condition2 = new AtomicBoolean(true)
+        final MutableBoolean condition1 = new MutableBoolean(true)
+        final MutableBoolean condition2 = new MutableBoolean(true)
 
         def task = getTask()
         task.onlyIf(new Spec<Task>() {
@@ -228,7 +226,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
     def "can replace onlyIf spec"() {
         given:
-        final AtomicBoolean condition1 = new AtomicBoolean(true)
+        final MutableBoolean condition1 = new MutableBoolean(true)
         final task = getTask()
         final Spec spec = Mock(Spec.class)
         task.onlyIf(spec)

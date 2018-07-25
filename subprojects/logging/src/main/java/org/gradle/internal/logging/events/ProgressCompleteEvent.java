@@ -17,12 +17,13 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.operations.OperationIdentifier;
 
 public class ProgressCompleteEvent extends OutputEvent {
     private final long timestamp;
     private final String status;
-    private OperationIdentifier progressOperationId;
-    private boolean failed;
+    private final OperationIdentifier progressOperationId;
+    private final boolean failed;
 
     public ProgressCompleteEvent(OperationIdentifier progressOperationId, long timestamp, String status, boolean failed) {
         this.progressOperationId = progressOperationId;
@@ -41,7 +42,7 @@ public class ProgressCompleteEvent extends OutputEvent {
 
     @Override
     public String toString() {
-        return "ProgressComplete " + status;
+        return "ProgressComplete (" + progressOperationId + ") " + status;
     }
 
     public OperationIdentifier getProgressOperationId() {

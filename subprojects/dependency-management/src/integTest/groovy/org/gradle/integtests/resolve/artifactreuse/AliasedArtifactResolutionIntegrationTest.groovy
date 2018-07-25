@@ -161,7 +161,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         projectBRepo2.pom.expectGet()
         projectBRepo2.artifact.expectHead()
         projectBRepo2.artifact.sha1.expectGetMissing()
-        projectBRepo2.getArtifact().expectGet()
+        projectBRepo2.artifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository2'

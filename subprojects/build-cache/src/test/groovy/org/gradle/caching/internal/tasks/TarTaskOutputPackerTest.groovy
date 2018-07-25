@@ -16,29 +16,35 @@
 
 package org.gradle.caching.internal.tasks
 
-import groovy.io.FileType
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static OutputType.DIRECTORY
-import static OutputType.FILE
+import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.OutputType.FILE
 
 @CleanupTestDirectory
 class TarTaskOutputPackerTest extends Specification {
@@ -51,6 +57,9 @@ class TarTaskOutputPackerTest extends Specification {
     def streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
     def stringInterner = new StringInterner()
     def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
+    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
+    def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+    def dirTreeFactory = TestFiles.directoryFileTreeFactory()
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
@@ -182,6 +191,80 @@ class TarTaskOutputPackerTest extends Specification {
         "unicode" | "prop-dezső"
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Unroll
+    def "can pack output directory with files having #type characters in name"() {
+        def sourceOutputDir = temporaryFolder.file("source").createDir()
+        def sourceOutputFile = sourceOutputDir.file(fileName) << "output"
+        def targetOutputDir = temporaryFolder.file("target")
+        def targetOutputFile = targetOutputDir.file(fileName)
+        def output = new ByteArrayOutputStream()
+        when:
+        pack output, prop(DIRECTORY, sourceOutputDir)
+
+        then:
+        noExceptionThrown()
+        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        unpack input, prop(DIRECTORY, targetOutputDir)
+
+        then:
+        1 * fileSystem.chmod(targetOutputDir, 0755)
+        1 * fileSystem.chmod(targetOutputFile, 0644)
+        then:
+        targetOutputFile.text == "output"
+        0 * _
+
+        where:
+        type          | fileName
+        "ascii-only"  | "input-file.txt"
+        "chinese"     | "输入文件.txt"
+        "hungarian"   | "Dezső.txt"
+        "space"       | "input file.txt"
+        "zwnj"        | "input\u200cfile.txt"
+        "url-quoted"  | "input%<file>#2.txt"
+    }
+
+    @Unroll
+    def "can pack output properties having #type characters in name"() {
+        def sourceOutputDir = temporaryFolder.file("source").createDir()
+        def sourceOutputFile = sourceOutputDir.file("output.txt") << "output"
+        def targetOutputDir = temporaryFolder.file("target")
+        def targetOutputFile = targetOutputDir.file("output.txt")
+        def output = new ByteArrayOutputStream()
+        when:
+        pack output, prop(propertyName, DIRECTORY, sourceOutputDir)
+
+        then:
+        noExceptionThrown()
+        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        unpack input, prop(propertyName, DIRECTORY, targetOutputDir)
+
+        then:
+        1 * fileSystem.chmod(targetOutputDir, 0755)
+        1 * fileSystem.chmod(targetOutputFile, 0644)
+        then:
+        targetOutputFile.text == "output"
+        0 * _
+
+        where:
+        type          | propertyName
+        "ascii-only"  | "input-file"
+        "chinese"     | "输入文件"
+        "hungarian"   | "Dezső"
+        "space"       | "input file"
+        "zwnj"        | "input\u200cfile"
+        "url-quoted"  | "input%<file>#2"
+        "file-system" | ":input\\/file:"
+    }
+
     def "can pack task output with all optional, null outputs"() {
         def output = new ByteArrayOutputStream()
         when:
@@ -258,7 +341,7 @@ class TarTaskOutputPackerTest extends Specification {
     def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, PropertyDefinition... propertyDefs) {
         def propertySpecs = propertyDefs*.property as SortedSet
         def outputSnapshots = propertyDefs.collectEntries { propertyDef ->
-            return [(propertyDef.property.propertyName): propertyDef.outputSnapshots()]
+            return [(propertyDef.property.propertyName): propertyDef.outputSnapshot()]
         }
         packer.pack(propertySpecs, outputSnapshots, output, writeOrigin)
     }
@@ -272,27 +355,17 @@ class TarTaskOutputPackerTest extends Specification {
         switch (type) {
             case FILE:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
-                    if (output == null || !output.exists()) {
-                        return [:]
+                    if (output == null) {
+                        return EmptyFileCollectionFingerprint.INSTANCE
                     }
-                    return [(output.absolutePath): new FileHashSnapshot(TestFile.md5(output))]
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotSelf(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
-                    if (output == null || !output.exists()) {
-                        return [:]
+                    if (output == null) {
+                        return EmptyFileCollectionFingerprint.INSTANCE
                     }
-                    def descendants = []
-                    output.traverse(type: FileType.ANY, visitRoot: true) { descendants += it }
-                    return descendants.collectEntries { File file ->
-                        def snapshot
-                        if (file.isDirectory()) {
-                            snapshot = DirContentSnapshot.INSTANCE
-                        } else {
-                            snapshot = new FileHashSnapshot(TestFile.md5(file))
-                        }
-                        return [(file.absolutePath): snapshot]
-                    }
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             default:
                 throw new AssertionError()
@@ -301,11 +374,11 @@ class TarTaskOutputPackerTest extends Specification {
 
     private static class PropertyDefinition {
         ResolvedTaskOutputFilePropertySpec property
-        Callable<Map<String, FileCollectionSnapshot>> outputSnapshots
+        Callable<FileCollectionFingerprint> outputSnapshot
 
-        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<Map<String, FileCollectionSnapshot>> outputSnapshots) {
+        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<FileCollectionFingerprint> outputSnapshot) {
             this.property = property
-            this.outputSnapshots = outputSnapshots
+            this.outputSnapshot = outputSnapshot
         }
     }
 }

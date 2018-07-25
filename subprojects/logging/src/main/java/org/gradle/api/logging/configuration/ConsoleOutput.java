@@ -38,6 +38,8 @@ public enum ConsoleOutput {
     Rich,
     /**
      * Enable color and rich output like Rich, but output more detailed message.
+     *
+     * @since 4.3
      */
     Verbose
 }

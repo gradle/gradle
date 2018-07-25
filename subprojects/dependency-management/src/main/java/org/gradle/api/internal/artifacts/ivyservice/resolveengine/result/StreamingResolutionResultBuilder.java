@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -41,6 +42,7 @@ import org.gradle.internal.time.Timer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,14 +61,15 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final BinaryStore store;
     private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
-    private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
+    private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory);
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, attributeContainerSerializer);
         this.store = store;
         this.cache = cache;
+        this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
     }
 
     public ResolutionResult complete() {
@@ -76,7 +79,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void start(final DependencyGraphNode root) {
+    public void start(final RootGraphNode root) {
+        componentResultSerializer.reset();
+        dependencyResultSerializer.reset();
     }
 
     @Override
@@ -117,7 +122,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     @Override
     public void visitEdges(DependencyGraphNode node) {
         final Long fromComponent = node.getOwner().getResultId();
-        final Set<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges();
+        final Collection<? extends DependencyGraphEdge> dependencies = node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
@@ -187,6 +192,8 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
                 Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
+                componentResultSerializer.reset();
+                dependencyResultSerializer.reset();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;

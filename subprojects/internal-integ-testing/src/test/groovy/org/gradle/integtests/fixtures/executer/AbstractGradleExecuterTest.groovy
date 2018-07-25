@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,7 +28,9 @@ class AbstractGradleExecuterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
 
-    AbstractGradleExecuter executer = new AbstractGradleExecuter(Mock(GradleDistribution), testDir) {
+    def gradleDistribution = Mock(GradleDistribution)
+
+    AbstractGradleExecuter executer = new AbstractGradleExecuter(gradleDistribution, testDir) {
         @Override
         protected ExecutionResult doRun() {
             return null
@@ -47,33 +50,45 @@ class AbstractGradleExecuterTest extends Specification {
     def "when requireDaemon is called, arguments should contain --daemon"() {
         when:
         executer.requireDaemon()
+        def allArgs = executer.getAllArgs()
+
         then:
-        executer.getAllArgs().contains("--daemon")
-        !executer.getAllArgs().contains("--no-daemon")
+        1 * gradleDistribution.version >> GradleVersion.current()
+        allArgs.contains("--daemon")
+        !allArgs.contains("--no-daemon")
     }
 
     def "when requireDaemon is not called, arguments should contain --no-daemon"() {
-        expect:
-        !executer.getAllArgs().contains("--daemon")
-        executer.getAllArgs().contains("--no-daemon")
+        when:
+        def allArgs = executer.getAllArgs()
+
+        then:
+        1 * gradleDistribution.version >> GradleVersion.current()
+        !allArgs.contains("--daemon")
+        allArgs.contains("--no-daemon")
     }
 
     def "when --foreground argument is added, it skips adding --daemon/--no-daemon"() {
         when:
         executer.withArgument("--foreground")
+        def allArgs = executer.getAllArgs()
+
         then:
-        !executer.getAllArgs().contains("--daemon")
-        !executer.getAllArgs().contains("--no-daemon")
+        1 * gradleDistribution.version >> GradleVersion.current()
+        !allArgs.contains("--daemon")
+        !allArgs.contains("--no-daemon")
     }
 
     def "when argument is added explicitly, no --daemon argument is added and requireDaemon gets overridden"() {
         when:
         executer.withArgument(argument)
         executer.requireDaemon()
+        def allArgs = executer.getAllArgs()
 
         then:
-        !executer.getAllArgs().contains("--daemon")
-        executer.getAllArgs().contains(argument)
+        1 * gradleDistribution.version >> GradleVersion.current()
+        !allArgs.contains("--daemon")
+        allArgs.contains(argument)
 
         where:
         argument << ['--no-daemon', '--foreground']

@@ -17,8 +17,12 @@
 package org.gradle.internal.scan.config;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.scan.BuildScanRequest;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.vcs.internal.VcsResolver;
 
 /**
  * Wiring of the objects that provide the build scan config integration.
@@ -27,17 +31,43 @@ import org.gradle.internal.scan.BuildScanRequest;
  */
 public class BuildScanConfigServices {
 
-    BuildScanPluginCompatibilityEnforcer createBuildScanPluginCompatibilityEnforcer() {
-        return BuildScanPluginCompatibilityEnforcer.create();
+    BuildScanPluginCompatibility createBuildScanPluginCompatibility() {
+        return new BuildScanPluginCompatibility();
     }
 
-    BuildScanConfigManager createBuildScanConfigManager(StartParameter startParameter, ListenerManager listenerManager, BuildScanPluginCompatibilityEnforcer compatibilityEnforcer) {
-        return new BuildScanConfigManager(startParameter, listenerManager, compatibilityEnforcer);
+    BuildScanConfigManager createBuildScanConfigManager(
+        StartParameter startParameter,
+        ListenerManager listenerManager,
+        BuildScanPluginCompatibility compatibility,
+        ServiceRegistry serviceRegistry
+    ) {
+        return new BuildScanConfigManager(startParameter, listenerManager, compatibility, serviceRegistry.getFactory(BuildScanConfig.Attributes.class));
     }
 
     // legacy support
-    BuildScanRequest createBuildScanRequest(BuildScanPluginCompatibilityEnforcer compatibilityEnforcer) {
+    BuildScanRequest createBuildScanRequest(BuildScanPluginCompatibility compatibilityEnforcer) {
         return new BuildScanRequestLegacyBridge(compatibilityEnforcer);
+    }
+
+    Factory<BuildScanConfig.Attributes> createBuildScanConfigAttributes(final GradleInternal gradle) {
+        return new Factory<BuildScanConfig.Attributes>() {
+            @Override
+            public BuildScanConfig.Attributes create() {
+                VcsResolver vcsResolver = gradle.getServices().get(VcsResolver.class);
+                final boolean hasRules = vcsResolver.hasRules();
+                return new BuildScanConfig.Attributes() {
+                    @Override
+                    public boolean isRootProjectHasVcsMappings() {
+                        return hasRules;
+                    }
+
+                    @Override
+                    public boolean isAnyDeploymentsStarted() {
+                        return false;
+                    }
+                };
+            }
+        };
     }
 
 }

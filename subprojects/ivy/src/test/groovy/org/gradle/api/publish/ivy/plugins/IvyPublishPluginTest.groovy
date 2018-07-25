@@ -57,7 +57,7 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
         project.tasks["publish"].dependsOn.contains publishTask.name
     }
 
-    def "ivy publication coordinates are a snapshot of project identity"() {
+    def "ivy publication coordinates are live"() {
         when:
         project.group = "foo"
         project.version = 1.0
@@ -80,8 +80,8 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
 
         then:
         with(publishing.publications.test) {
-            identity.organisation == "foo"
-            identity.revision == "1.0"
+            identity.organisation == "changed-group"
+            identity.revision == "changed-version"
         }
     }
 

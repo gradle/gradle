@@ -23,8 +23,11 @@ import org.objectweb.asm.Opcodes;
  * Base class for ASM test class scanners.
  */
 public abstract class TestClassVisitor extends ClassVisitor {
-
     protected final TestFrameworkDetector detector;
+    private boolean isAbstract;
+    private String className;
+    private String superClassName;
+    private boolean test;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
         super(Opcodes.ASM6);
@@ -34,11 +37,43 @@ public abstract class TestClassVisitor extends ClassVisitor {
         this.detector = detector;
     }
 
-    public abstract String getClassName();
+    public String getClassName() {
+        return className;
+    }
 
-    public abstract boolean isTest();
+    public String getSuperClassName() {
+        return superClassName;
+    }
 
-    public abstract boolean isAbstract();
+    public boolean isTest() {
+        return test;
+    }
 
-    public abstract String getSuperClassName();
+    protected void setTest(boolean test) {
+        this.test = test;
+    }
+
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
+        className = name;
+        superClassName = superName;
+    }
+
+    @Override
+    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        if (ignoreNonStaticInnerClass() && innerClassIsNonStatic(name, access)) {
+            isAbstract = true;
+        }
+    }
+
+    protected abstract boolean ignoreNonStaticInnerClass();
+
+    private boolean innerClassIsNonStatic(String name, int access) {
+        return name.equals(getClassName()) && (access & Opcodes.ACC_STATIC) == 0;
+    }
 }

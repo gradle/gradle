@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
@@ -33,13 +34,15 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.gcc.GccToolChain;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 /**
  * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU GCC/G++ compiler</a> available for compiling C/C++ code.
  */
 @Incubating
+@NonNullApi
 public class GccCompilerPlugin implements Plugin<Project> {
 
     @Override
@@ -61,10 +64,11 @@ public class GccCompilerPlugin implements Plugin<Project> {
             final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
 
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
+            final SystemLibraryDiscovery standardLibraryDiscovery = serviceRegistry.get(SystemLibraryDiscovery.class);
 
             toolChainRegistry.registerFactory(Gcc.class, new NamedDomainObjectFactory<Gcc>() {
                 public Gcc create(String name) {
-                    return instantiator.newInstance(GccToolChain.class, instantiator, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, workerLeaseService);
+                    return instantiator.newInstance(GccToolChain.class, instantiator, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, standardLibraryDiscovery, workerLeaseService);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc.class);

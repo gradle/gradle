@@ -24,7 +24,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.2")
@@ -108,7 +107,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.child('Execute doLast {} action for :custom')
     }
 
-    @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+    @Requires([KOTLIN_SCRIPT])
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts have informative names"() {
         given:
         buildFileKts << """
@@ -145,7 +144,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.child('Execute One last thing... for :custom')
     }
 
-    @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+    @Requires([KOTLIN_SCRIPT])
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts can be named"() {
         given:
         buildFileKts << """

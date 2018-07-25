@@ -17,15 +17,18 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
@@ -34,7 +37,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import org.gradle.vcs.internal.VcsMappingsInternal
+import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
 class DefaultConfigurationContainerSpec extends Specification {
@@ -46,11 +49,11 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private ProjectAccessListener projectAccessListener = Mock()
     private ProjectFinder projectFinder = Mock()
-    private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock()
+    private LocalComponentMetadataBuilder metaDataBuilder = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
-    private VcsMappingsInternal vcsMappingsInternal = Mock()
+    private VcsMappingsStore vcsMappingsInternal = Mock()
     private BuildOperationExecutor buildOperationExecutor = Mock()
     private TaskResolver taskResolver = Mock()
     private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
@@ -58,10 +61,14 @@ class DefaultConfigurationContainerSpec extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
+    private ComponentSelectorConverter componentSelectorConverter = Mock()
+    private DependencyLockingProvider dependencyLockingProvider = Mock()
+    private ProjectStateRegistry projectStateRegistry = Mock()
     def immutableAttributesFactory = TestUtil.attributesFactory()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
-        projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory);
+        projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
+        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry);
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
@@ -105,10 +112,12 @@ class DefaultConfigurationContainerSpec extends Specification {
         then:
         configurationContainer.getByName("compile") == compile
         compile.description == "I compile!"
+        compile.path == ":compile"
     }
 
     def "creates detached"() {
         given:
+        1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
 
@@ -121,5 +130,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2
+        detached.path == ":detachedConfiguration1"
     }
 }

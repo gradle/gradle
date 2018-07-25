@@ -16,18 +16,25 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskReference;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -38,24 +45,41 @@ import java.util.concurrent.Callable;
 import static com.google.common.collect.Iterables.toArray;
 import static org.gradle.util.GUtil.uncheckedCall;
 
+/**
+ * A task dependency which can have both mutable and immutable dependency values.
+ *
+ * If dependencies are known up-front, it is much more efficient to pass
+ * them as immutable values to the {@link DefaultTaskDependency#DefaultTaskDependency(TaskResolver, ImmutableSet)}
+ * constructor than to use the {@link #add(Object...)} method, as the former will
+ * require less memory to store them.
+ */
 public class DefaultTaskDependency extends AbstractTaskDependency {
-    private Set<Object> values;
+    private final ImmutableSet<Object> immutableValues;
+    private Set<Object> mutableValues;
     private final TaskResolver resolver;
 
     public DefaultTaskDependency() {
         this(null);
     }
 
-    public DefaultTaskDependency(TaskResolver resolver) {
+    public DefaultTaskDependency(@Nullable TaskResolver resolver) {
+        this(resolver, ImmutableSet.of());
+    }
+
+    public DefaultTaskDependency(@Nullable TaskResolver resolver, ImmutableSet<Object> immutableValues) {
         this.resolver = resolver;
+        this.immutableValues = immutableValues;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        if (getValues().isEmpty()) {
+        Set<Object> mutableValues = getMutableValues();
+        if (mutableValues.isEmpty() && immutableValues.isEmpty()) {
             return;
         }
-        Deque<Object> queue = new ArrayDeque<Object>(getValues());
+        Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
+        queue.addAll(immutableValues);
+        queue.addAll(mutableValues);
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();
             if (dependency instanceof Buildable) {
@@ -102,10 +126,22 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 if (callableResult != null) {
                     queue.addFirst(callableResult);
                 }
-            } else if (resolver != null && dependency instanceof TaskReference) {
-                context.add(resolver.resolveTask((TaskReference) dependency));
+            } else if (dependency instanceof TaskReferenceInternal) {
+                context.add(((TaskReferenceInternal) dependency).resolveTask());
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
+            } else if (dependency instanceof TaskDependencyContainer) {
+                ((TaskDependencyContainer) dependency).visitDependencies(context);
+            } else if (dependency instanceof ProviderInternal) {
+                ProviderInternal providerInternal = (ProviderInternal) dependency;
+                if (providerInternal.getType() == null || providerInternal.getType().equals(Provider.class) || Task.class.isAssignableFrom(providerInternal.getType())) {
+                    queue.addFirst(providerInternal.get());
+                    continue;
+                }
+                List<String> formats = new ArrayList<String>();
+                formats.add("A RegularFileProperty");
+                formats.add("A DirectoryProperty");
+                throw new UnsupportedNotationException(dependency, String.format("Cannot convert Provider %s to a task.", dependency), null, formats);
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
@@ -115,9 +151,11 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Task instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
-                formats.add("A Closure instance that returns any of the above types");
-                formats.add("A Callable instance that returns any of the above types");
-                formats.add("An Iterable, Collection, Map or array instance that contains any of the above types");
+                formats.add("A RegularFileProperty or DirectoryProperty instance");
+                formats.add("A Provider instance that returns any of these types");
+                formats.add("A Closure instance that returns any of these types");
+                formats.add("A Callable instance that returns any of these types");
+                formats.add("An Iterable, Collection, Map or array instance that contains any of these types");
                 throw new UnsupportedNotationException(dependency, String.format("Cannot convert %s to a task.", dependency), null, formats);
             }
         }
@@ -129,15 +167,15 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         }
     }
 
-    public Set<Object> getValues() {
-        if (values == null) {
-            values = Sets.newHashSet();
+    public Set<Object> getMutableValues() {
+        if (mutableValues == null) {
+            mutableValues = new TaskDependencySet();
         }
-        return values;
+        return mutableValues;
     }
 
     public void setValues(Iterable<?> values) {
-        getValues().clear();
+        getMutableValues().clear();
         for (Object value : values) {
             addValue(value);
         }
@@ -154,6 +192,105 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         if (dependency == null) {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
-        getValues().add(dependency);
+        getMutableValues().add(dependency);
+    }
+
+    private static class TaskDependencySet implements Set<Object> {
+        private final Set<Object> delegate = Sets.newHashSet();
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return delegate.contains(o);
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return delegate.iterator();
+        }
+
+        @Override
+        public Object[] toArray() {
+            return delegate.toArray();
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            return delegate.toArray(a);
+        }
+
+        @Override
+        public boolean add(Object o) {
+            return delegate.add(o);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (delegate.remove(o)) {
+                return true;
+            }
+
+            for (Iterator<Object> it = delegate.iterator(); it.hasNext();) {
+                Object obj = it.next();
+                if (isTaskProvider(obj) && o instanceof Task && isTaskProviderOfTask((TaskProvider) obj, (Task) o)) {
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a Task instance from a task dependency set when it contains a Provider to the Task instance.");
+                    it.remove();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static boolean isTaskProvider(Object obj) {
+            return obj instanceof TaskProvider;
+        }
+
+        private static boolean isTaskProviderOfTask(TaskProvider provider, Task task) {
+            return provider instanceof ProviderInternal && ((ProviderInternal) provider).getType().isInstance(task) && provider.getName().equals(task.getName());
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return delegate.containsAll(c);
+        }
+
+        @Override
+        public boolean addAll(Collection<?> c) {
+            return delegate.addAll(c);
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            return delegate.retainAll(c);
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            return delegate.removeAll(c);
+        }
+
+        @Override
+        public void clear() {
+            delegate.clear();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return delegate.equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
     }
 }

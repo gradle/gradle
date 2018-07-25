@@ -20,12 +20,16 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.authentication.Authentication
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
+import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor
+import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.DefaultAuthenticationContainer
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -130,7 +134,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.getCredentials(UnsupportedCredentials)
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message == "Unknown credentials type: '$UnsupportedCredentials.name' (supported types: $PasswordCredentials.name and $AwsCredentials.name)."
+        ex.message == "Unknown credentials type: '$UnsupportedCredentials.name' (supported types: $PasswordCredentials.name, $AwsCredentials.name and $HttpHeaderCredentials.name)."
     }
 
     def "credentials(Class, Action) creates credentials on demand if required"() {
@@ -221,7 +225,17 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
         AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
-            super(instantiator, authenticationContainer)
+            super(instantiator, authenticationContainer, null)
+        }
+
+        @Override
+        protected RepositoryDescriptor createDescriptor() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ConfiguredModuleComponentRepository createResolver() {
+            throw new UnsupportedOperationException()
         }
     }
 

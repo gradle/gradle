@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -62,13 +61,12 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * or if any of the predicates passed to {@link #doNotCacheIf(String, Spec)} returns {@code true}. If {@code cacheIf()} is not specified,
      * the task will not be cached unless the {@literal @}{@link CacheableTask} annotation is present on the task type.</p>
      *
-     * <p>Consider using {@link #cacheIf(String, Spec)} instead for also providing a reason for disabling caching.</p>
+     * <p>Consider using {@link #cacheIf(String, Spec)} instead for also providing a reason for enabling caching.</p>
      *
      * @param spec specifies if the results of the task should be cached.
      *
      * @since 3.0
      */
-    @Incubating
     void cacheIf(Spec<? super Task> spec);
 
     /**
@@ -84,12 +82,13 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * @since 3.4
      */
-    @Incubating
     void cacheIf(String cachingEnabledReason, final Spec<? super Task> spec);
 
     /**
      * <p>Disable caching the results of the task if the given spec is satisfied. The spec will be evaluated at task execution time, not
-     * during configuration. If the spec is not satisfied, the results of the task will be cached according to {@link #cacheIf(Spec)}.</p>
+     * during configuration.</p>
+     *
+     * <p>As opposed to {@link #cacheIf(String, Spec)}, this method never enables caching for a task, it can only be used to disable caching.</p>
      *
      * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return {@code true},
      * or if any of the predicates passed to {@link #cacheIf(String, Spec)} returns {@code false}.</p>
@@ -99,7 +98,6 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * @since 3.4
      */
-    @Incubating
     void doNotCacheIf(String cachingDisabledReason, Spec<? super Task> spec);
 
     /**
@@ -122,7 +120,7 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * <p>When the given {@code paths} is a {@link java.util.Map}, then each output file
      * will be associated with an identity. For cacheable tasks this is a requirement.
-     * The keys of the map must be <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
+     * The keys of the map must be non-empty strings.
      * The values of the map will be evaluated to individual files as per
      * {@link org.gradle.api.Project#file(Object)}.</p>
      *
@@ -140,7 +138,7 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * <p>When the given {@code paths} is a {@link java.util.Map}, then each output directory
      * will be associated with an identity. For cacheable tasks this is a requirement.
-     * The keys of the map must be <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
+     * The keys of the map must be non-empty strings.
      * The values of the map will be evaluated to individual directories as per
      * {@link org.gradle.api.Project#file(Object)}.</p>
      *

@@ -34,7 +34,7 @@ class ConsumerOperationParametersTest extends Specification {
     def "can build consumer operation parameters for provided properties"() {
         given:
         def tasks = ['a', 'b']
-        def classpath = new DefaultClassPath(new File('/Users/foo/bar/test.jar'), new File('/Users/foo/bar/resources'))
+        def classpath = DefaultClassPath.of(new File('/Users/foo/bar/test.jar'), new File('/Users/foo/bar/resources'))
 
         when:
         builder.tasks = tasks

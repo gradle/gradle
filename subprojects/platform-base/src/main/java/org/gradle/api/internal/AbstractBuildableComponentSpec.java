@@ -19,14 +19,14 @@ package org.gradle.api.internal;
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.CheckableComponentSpec;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.component.internal.AbstractComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Set;
 
 public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec, CheckableComponentSpec {
     private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
@@ -51,12 +51,14 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task other) {
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 if (buildTask == null) {
-                    return buildTaskDependencies.getDependencies(other);
+                    context.add(buildTaskDependencies);
+                } else {
+                    context.add(buildTask);
                 }
-                return Collections.singleton(buildTask);
             }
         };
     }

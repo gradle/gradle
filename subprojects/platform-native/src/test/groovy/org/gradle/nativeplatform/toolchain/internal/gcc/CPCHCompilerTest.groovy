@@ -33,7 +33,7 @@ class CPCHCompilerTest extends GccCompatibleNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
-        return [ '-x', 'c-header' ] + super.getCompilerSpecificArguments(includeDir)
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
+        return [ '-x', 'c-header' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

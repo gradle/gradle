@@ -75,10 +75,8 @@ public class FileSystemSubset {
 
     public boolean contains(File file) {
         File absoluteFile = file.getAbsoluteFile();
-        String pathWithSeparator = file.getAbsolutePath() + File.separator;
         for (File candidateFile : files) {
-            String candidateFilePathWithSeparator = candidateFile.getPath() + File.separator;
-            if (pathWithSeparator.startsWith(candidateFilePathWithSeparator)) {
+            if (FileUtils.doesPathStartWith(file.getAbsolutePath(), candidateFile.getPath())) {
                 return true;
             }
         }

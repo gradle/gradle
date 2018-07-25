@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -15,13 +17,19 @@
  */
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
 
     compile project(':core')
     compile project(':plugins')
 
-    compile libraries.slf4j_api
-    compile libraries.bndlib
+    compile libraries.slf4j_api.coordinates
+    compile libraries.bndlib.coordinates
 }
 
-useTestFixtures()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+}

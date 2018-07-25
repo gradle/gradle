@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 
 public interface ComponentMetadataProcessor {
@@ -23,7 +24,20 @@ public interface ComponentMetadataProcessor {
         public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
             return metadata;
         }
+
+        @Override
+        public ComponentMetadata processMetadata(ComponentMetadata metadata) {
+            return metadata;
+        }
     };
 
     ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata);
+
+    /**
+     * Processes "shallow" metadata, only for selecting a version. This metadata is typically
+     * provided by a custom metadata processor.
+     * @param metadata the metadata to be processed
+     * @return updated metadata, if any component metadata rule applies.
+     */
+    ComponentMetadata processMetadata(ComponentMetadata metadata);
 }

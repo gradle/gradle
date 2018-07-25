@@ -15,15 +15,15 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 
 public class BuildModelAction extends SubscribableBuildAction {
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final String modelName;
     private final boolean runTasks;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public BuildModelAction(StartParameterInternal startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;
@@ -31,7 +31,7 @@ public class BuildModelAction extends SubscribableBuildAction {
     }
 
     @Override
-    public StartParameter getStartParameter() {
+    public StartParameterInternal getStartParameter() {
         return startParameter;
     }
 

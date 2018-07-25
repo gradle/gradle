@@ -24,7 +24,9 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -37,49 +39,72 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
 
-    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
+        this("file collection", fileResolver, taskResolver, null);
+    }
+
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Collection<?> files) {
         this("file collection", fileResolver, taskResolver, files);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, Object[] files) {
+        this("file collection", fileResolver, taskResolver, Arrays.asList(files));
+    }
+
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
+        this(displayName, fileResolver, taskResolver, null);
+    }
+
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
-        this.files = new LinkedHashSet<Object>(Arrays.asList(files));
+        this.files = new LinkedHashSet<Object>();
+        if (files != null) {
+            this.files.addAll(files);
+        }
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public Set<Object> getFrom() {
         return files;
     }
 
+    @Override
     public void setFrom(Iterable<?> path) {
         files.clear();
         files.add(path);
     }
 
+    @Override
     public void setFrom(Object... paths) {
         files.clear();
         GUtil.addToCollection(files, Arrays.asList(paths));
     }
 
+    @Override
     public ConfigurableFileCollection from(Object... paths) {
         GUtil.addToCollection(files, Arrays.asList(paths));
         return this;
     }
 
+    @Override
     public ConfigurableFileCollection builtBy(Object... tasks) {
         buildDependency.add(tasks);
         return this;
     }
 
+    @Override
     public Set<Object> getBuiltBy() {
-        return buildDependency.getValues();
+        return buildDependency.getMutableValues();
     }
 
+    @Override
     public ConfigurableFileCollection setBuiltBy(Iterable<?> tasks) {
         buildDependency.setValues(tasks);
         return this;

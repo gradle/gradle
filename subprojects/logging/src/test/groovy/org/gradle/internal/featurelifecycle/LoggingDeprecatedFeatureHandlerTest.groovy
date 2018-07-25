@@ -17,12 +17,20 @@
 package org.gradle.internal.featurelifecycle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.time.Clock
+import org.gradle.testing.internal.util.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
@@ -34,34 +42,55 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
-    final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
+    final handler = new LoggingDeprecatedFeatureHandler()
+    final TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    final Clock clock = Mock(Clock)
+    final BuildOperationListener buildOperationListener = Mock()
+    final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
+    final DeprecatedUsageBuildOperationProgressBroadaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadaster(clock, buildOperationListener, currentBuildOperationRef)
+
+    def setup() {
+        handler.init(locationReporter, WarningMode.All, progressBroadcaster)
+    }
 
     def 'logs each deprecation warning only once'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature1'))
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature2'))
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature2'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
         then:
         def events = outputEventListener.events
         events.size() == 2
 
         and:
-        events[0].message == 'feature1'
-        events[1].message == 'feature2'
+        events[0].message == 'feature1 removal'
+        events[1].message == 'feature2 removal'
     }
 
     def 'deprecations are logged at WARN level'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature'))
+        handler.featureUsed(deprecatedFeatureUsage('feature'))
 
         then:
         outputEventListener.events.size() == 1
 
         and:
         def event = outputEventListener.events[0]
-        event.message == 'feature'
+        event.message == 'feature removal'
         event.logLevel == LogLevel.WARN
+    }
+
+    def "no warnings should be displayed in #mode"() {
+        when:
+        handler.init(locationReporter, type, progressBroadcaster)
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+
+        then:
+        outputEventListener.events.empty
+
+        where:
+        type << [WarningMode.None, null]
     }
 
     @Unroll
@@ -70,7 +99,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -79,7 +108,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.GradleScript.foo')
 
         message.contains('SimulatedJavaCallLocation.create')
@@ -90,6 +119,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         fakeStackTrace = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 25),
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
@@ -102,13 +132,19 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
+    private Exception mockTraceRootException(List<StackTraceElement> stackTraceElements) {
+        Exception mock = Mock()
+        _ * mock.getStackTrace() >> stackTraceElements.toArray(new StackTraceElement[stackTraceElements.size()])
+        mock
+    }
+
     @Unroll
     def 'fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -117,7 +153,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.GradleScript.foo')
 
         !message.contains('SimulatedJavaCallLocation.create')
@@ -128,6 +164,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         fakeStackTrace = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 15),
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
@@ -146,7 +183,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -155,7 +192,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.KotlinGradleScript')
 
         !message.contains('SimulatedJavaCallLocation.create')
@@ -166,6 +203,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         fakeStackTrace = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 25),
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
@@ -184,7 +222,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -193,10 +231,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == 'fake'
+        message == 'fake removal'
 
         where:
         fakeStackTrace = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 25),
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
@@ -214,7 +253,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -223,7 +262,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == 'fake'
+        message == 'fake removal'
 
         where:
         fakeStackTrace = [
@@ -233,12 +272,12 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call with only a single stack trace element and #deprecationTracePropertyName=true logs that element'() {
+    def 'fake call with only a single stack non root trace element and #deprecationTracePropertyName=true logs that element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -247,11 +286,12 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.ArbitraryClass.withSource')
 
         where:
         fakeStackTrace = [
+            new StackTraceElement(FeatureUsageTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
@@ -263,14 +303,14 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest))
         def events = outputEventListener.events
 
         then:
         events.size() == 1
 
         and:
-        events[0].message == 'fake'
+        events[0].message == 'fake removal'
 
         where:
         deprecationTraceProperty << [true, false]
@@ -279,17 +319,17 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'location reporter can prepend text'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature'))
+        handler.featureUsed(deprecatedFeatureUsage('feature'))
 
         then:
-        1 * locationReporter.reportLocation(_, _) >> { DeprecatedFeatureUsage param1, StringBuilder message ->
+        1 * locationReporter.reportLocation(_, _) >> { FeatureUsage param1, StringBuilder message ->
             message.append('location')
         }
 
         and:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature')
+        events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature removal')
     }
 
     @Unroll
@@ -336,7 +376,34 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String message) {
-        new DeprecatedFeatureUsage(message, LoggingDeprecatedFeatureHandlerTest)
+    def 'deprecated usages are exposed as build operation progress'() {
+        when:
+        currentBuildOperationRef.set(new DefaultBuildOperationRef(new OperationIdentifier(1), null))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+
+        then:
+        1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature1') }
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+
+        then:
+        1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+
+        then:
+        1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
+    }
+
+    private static void progressFired(OperationProgressEvent progressEvent, String summary) {
+        assert progressEvent.details instanceof DeprecatedUsageProgressDetails
+        progressEvent.details.summary == summary
+        progressEvent.details.stackTrace.size() > 0
+    }
+
+    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
+        new DeprecatedFeatureUsage(summary, "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, calledFrom)
     }
 }

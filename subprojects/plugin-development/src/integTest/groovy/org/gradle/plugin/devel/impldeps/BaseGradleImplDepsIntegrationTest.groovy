@@ -91,9 +91,9 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    static String testableGroovyProject() {
+    static String testablePluginProject(String appliedLanguagePlugin = applyGroovyPlugin()) {
         StringBuilder buildFile = new StringBuilder()
-        buildFile <<= applyGroovyPlugin()
+        buildFile <<= appliedLanguagePlugin
         buildFile <<= jcenterRepository()
         buildFile <<= gradleApiDependency()
         buildFile <<= testKitDependency()

@@ -34,7 +34,7 @@ public class BuildTreeScopeBuildActionExecuter implements BuildActionExecuter<Bu
         if (!(contextServices instanceof BuildSessionScopeServices)) {
             throw new IllegalArgumentException("Service registry must be of build session scope");
         }
-        BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices((BuildSessionScopeServices) contextServices);
+        BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(contextServices);
         try {
             return delegate.execute(action, requestContext, actionParameters, buildTreeScopeServices);
         } finally {

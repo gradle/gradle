@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * A listener which is notified when operations that are executed as part of running a build make progress.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.Set)
  * @since 2.5
  */
-@Incubating
 public interface ProgressListener {
 
     /**

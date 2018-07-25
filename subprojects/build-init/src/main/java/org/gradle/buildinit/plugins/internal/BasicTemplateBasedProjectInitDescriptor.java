@@ -16,32 +16,34 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.util.GUtil;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.internal.file.PathToFileResolver;
 
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
 
-    private final TemplateOperationFactory templateOperationFactory;
-    private final TemplateLibraryVersionProvider libraryVersionProvider;
+    private final PathToFileResolver fileResolver;
     private final ProjectInitDescriptor globalSettingsDescriptor;
 
-    public BasicTemplateBasedProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
-                                                   TemplateLibraryVersionProvider libraryVersionProvider,
-                                                   ProjectInitDescriptor globalSettingsDescriptor) {
-        this.templateOperationFactory = templateOperationFactory;
-        this.libraryVersionProvider = libraryVersionProvider;
+    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver, ProjectInitDescriptor globalSettingsDescriptor) {
+        this.fileResolver = fileResolver;
         this.globalSettingsDescriptor = globalSettingsDescriptor;
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
-        templateOperationFactory.newTemplateOperation()
-            .withTemplate("build.gradle.template")
-            .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
-            .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .create().generate();
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
+
+        new BuildScriptBuilder(dsl, fileResolver, "build")
+            .fileComment("This is a general purpose Gradle build.\n"
+                + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
+            .create()
+            .generate();
+    }
+
+    @Override
+    public boolean supports(BuildInitDsl dsl) {
+        return true;
     }
 
     @Override

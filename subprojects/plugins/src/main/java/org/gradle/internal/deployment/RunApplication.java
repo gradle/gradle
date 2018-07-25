@@ -23,8 +23,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.JavaExecHandleFactory;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -81,7 +81,7 @@ public class RunApplication extends DefaultTask {
     }
 
     @Inject
-    protected DefaultExecActionFactory getExecActionFactory() {
+    protected JavaExecHandleFactory getExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 

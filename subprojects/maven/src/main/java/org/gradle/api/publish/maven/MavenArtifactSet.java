@@ -17,7 +17,6 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
 
 /**
  * A Collection of {@link MavenArtifact}s to be included in a {@link MavenPublication}.
@@ -39,7 +38,6 @@ import org.gradle.api.Incubating;
  *
  * @see DomainObjectSet
  */
-@Incubating
 public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
     /**
      * Creates and adds a {@link MavenArtifact} to the set.

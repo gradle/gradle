@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FinishEvent;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.tooling.events.FinishEvent;
  *
  * @since 2.4
  */
-@Incubating
 public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
 
     /**

@@ -16,74 +16,183 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.transform.CompileStatic
+import org.gradle.test.fixtures.dsl.GradleDsl
+
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
+import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
+
+@CompileStatic
 class RepoScriptBlockUtil {
+
+    private static enum MirroredRepository {
+        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
+        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
+        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
+        LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
+        LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
+        SPRING_RELEASES('https://maven.springframework.org/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
+        SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
+        RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven'),
+        GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven')
+
+        String originalUrl
+        String mirrorUrl
+        String name
+        String type
+
+        private MirroredRepository(String originalUrl, String mirrorUrl, String type) {
+            this.originalUrl = originalUrl
+            this.mirrorUrl = mirrorUrl ?: originalUrl
+            this.name = mirrorUrl ? name() + "_MIRROR" : name()
+            this.type = type
+        }
+
+        String getRepositoryDefinition(GradleDsl dsl = GROOVY) {
+            if (dsl == KOTLIN) {
+                """
+                    ${type} {
+                        name = "${name}"
+                        url = uri("${mirrorUrl}")
+                    }
+                """
+            } else {
+                """
+                    ${type} {
+                        name '${name}'
+                        url '${mirrorUrl}'
+                    }
+                """
+            }
+        }
+    }
 
     private RepoScriptBlockUtil() {
     }
 
-    static String jcenterRepository() {
-        return "repositories { ${jcenterRepositoryDefinition()} }"
+    static String jcenterRepository(GradleDsl dsl = GROOVY) {
+        return """
+            repositories {
+                ${jcenterRepositoryDefinition(dsl)}
+            }
+        """
     }
 
-    static String mavenCentralRepository() {
-        return "repositories { ${mavenCentralRepositoryDefinition()} }"
+    static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
+        return """
+            repositories {
+                ${mavenCentralRepositoryDefinition(dsl)}
+            }
+        """
     }
 
-    static String jcenterRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
-        if (repoUrl) {
-            return "maven { name 'jcenter-remote'; url '${repoUrl}' }"
+    static String googleRepository(GradleDsl dsl = GROOVY) {
+        return """
+            repositories {
+                ${googleRepositoryDefinition(dsl)}
+            }
+        """
+    }
+
+    static String mavenCentralRepositoryMirrorUrl() {
+        def url = MirroredRepository.MAVEN_CENTRAL.mirrorUrl
+        if (url.endsWith('/')) {
+            url
         } else {
-            return 'jcenter()'
+            url + '/'
         }
     }
 
-    static String mavenCentralRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
-        if (repoUrl) {
-            return "maven { name 'repo1-remote'; url '${repoUrl}' }"
-        } else {
-            return 'mavenCentral()'
-        }
+    static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.JCENTER.getRepositoryDefinition(dsl)
     }
 
-    static String typesafeMavenRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafemaven')
-        if (repoUrl) {
-            return """
-                maven {
-                    name 'typesafe-maven-release-remote'
-                    url '${repoUrl}'
-                }
-            """
-        } else {
-            return """
-                maven {
-                    name 'typesafe-maven-release'
-                    url 'https://repo.typesafe.com/typesafe/maven-releases'
-                }
-            """
-        }
+    static String mavenCentralRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.MAVEN_CENTRAL.getRepositoryDefinition(dsl)
     }
 
-    static String typesafeIvyRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
-        if (repoUrl) {
-            return """
-                ivy {
-                    name 'typesafe-ivy-release-remote'
-                    url '${repoUrl}'
-                    layout 'ivy'
+    static String lightbendMavenRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.LIGHTBEND_MAVEN.getRepositoryDefinition(dsl)
+    }
+
+    static String lightbendIvyRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.LIGHTBEND_IVY.getRepositoryDefinition(dsl)
+    }
+
+    static String googleRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GOOGLE.getRepositoryDefinition(dsl)
+    }
+
+    static String gradleRepositoryMirrorUrl() {
+        MirroredRepository.GRADLE.mirrorUrl
+    }
+
+    static String gradleRepositoryDefintion(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
+    }
+
+    static File createMirrorInitScript() {
+        File mirrors = File.createTempFile("mirrors", ".gradle")
+        mirrors.deleteOnExit()
+        def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
+            """
+                if (repo.url.toString() == '${mirror.originalUrl}') {
+                    repo.url = '${mirror.mirrorUrl}'
                 }
             """
-        } else {
-            return """
-                ivy {
-                    name 'typesafe-ivy-release'
-                    url 'https://repo.typesafe.com/typesafe/ivy-releases'
-                    layout 'ivy'
+        }.join("")
+        mirrors << """
+            import groovy.transform.CompileStatic
+            import groovy.transform.CompileDynamic
+            
+            apply plugin: MirrorPlugin
+
+            @CompileStatic
+            class MirrorPlugin implements Plugin<Gradle> {
+                void apply(Gradle gradle) {
+                    gradle.allprojects { Project project ->
+                        project.buildscript.configurations["classpath"].incoming.beforeResolve {
+                            withMirrors(project.buildscript.repositories)
+                        }
+                        project.afterEvaluate {
+                            withMirrors(project.repositories)
+                        }
+                    }
+                    maybeConfigurePluginManagement(gradle)
                 }
-            """
-        }
+
+                @CompileDynamic
+                void maybeConfigurePluginManagement(Gradle gradle) {
+                    if (gradle.gradleVersion >= "4.4") {
+                        gradle.settingsEvaluated { Settings settings ->
+                            withMirrors(settings.pluginManagement.repositories)
+                        }
+                    }
+                }
+                
+                void withMirrors(RepositoryHandler repos) {
+                    repos.all { repo ->
+                        if (repo instanceof MavenArtifactRepository) {
+                            mirror(repo)
+                        } else if (repo instanceof IvyArtifactRepository) {
+                            mirror(repo)
+                        }
+                    }
+                }
+    
+                void mirror(MavenArtifactRepository repo) {
+                    ${mirrorConditions}
+                }
+
+                void mirror(IvyArtifactRepository repo) {
+                    ${mirrorConditions}
+                }
+            }
+        """
+        mirrors
     }
 }

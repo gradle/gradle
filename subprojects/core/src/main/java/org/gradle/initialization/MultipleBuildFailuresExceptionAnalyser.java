@@ -33,9 +33,11 @@ public class MultipleBuildFailuresExceptionAnalyser implements ExceptionAnalyser
     }
 
     public Throwable transform(Throwable exception) {
-        // TODO:PARALLEL Make MultipleBuildFailures a generic concept (annotation? marker interface?)
         if (exception instanceof MultipleBuildFailures) {
             MultipleBuildFailures multipleBuildFailures = (MultipleBuildFailures) exception;
+            if (multipleBuildFailures.getCauses().size() == 1) {
+                return transform(multipleBuildFailures.getCauses().get(0));
+            }
             List<Throwable> transformedCauses = new ArrayList<Throwable>(multipleBuildFailures.getCauses().size());
             for (Throwable cause : multipleBuildFailures.getCauses()) {
                 transformedCauses.add(transform(cause));

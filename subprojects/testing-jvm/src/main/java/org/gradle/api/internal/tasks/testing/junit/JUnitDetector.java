@@ -15,51 +15,26 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
-import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
-public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetecter> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitDetector.class);
+public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetector> {
+    private static final String TEST_CASE = "junit/framework/TestCase";
+    private static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
+    private static final ImmutableSet<String> KNOWN_TEST_CASE_CLASS_NAMES = ImmutableSet.of(TEST_CASE, GROOVY_TEST_CASE);
 
     public JUnitDetector(ClassFileExtractionManager classFileExtractionManager) {
         super(classFileExtractionManager);
     }
 
     @Override
-    protected JUnitTestClassDetecter createClassVisitor() {
-        return new JUnitTestClassDetecter(this);
+    protected JUnitTestClassDetector createClassVisitor() {
+        return new JUnitTestClassDetector(this);
     }
 
     @Override
-    protected boolean processTestClass(final File testClassFile, boolean superClass) {
-        final TestClassVisitor classVisitor = classVisitor(testClassFile);
-
-        boolean isTest = classVisitor.isTest();
-
-        if (!isTest) { // scan parent class
-            final String superClassName = classVisitor.getSuperClassName();
-
-            if (isKnownTestCaseClassName(superClassName)) {
-                isTest = true;
-            } else {
-                final File superClassFile = getSuperTestClassFile(superClassName);
-
-                if (superClassFile != null) {
-                    isTest = processSuperClass(superClassFile);
-                } else {
-                    LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file",
-                            superClassName);
-                }
-            }
-        }
-
-        publishTestClass(isTest, classVisitor, superClass);
-
-        return isTest;
+    protected boolean isKnownTestCaseClassName(String testCaseClassName) {
+        return KNOWN_TEST_CASE_CLASS_NAMES.contains(testCaseClassName);
     }
 }

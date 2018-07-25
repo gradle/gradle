@@ -17,6 +17,7 @@
 package org.gradle.configuration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -42,7 +43,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         def ops = operations.all(ApplyScriptPluginBuildOperationType) {
-            it.details.targetType == "gradle" && it.details.buildPath == ":"
+            it.details.targetType == "gradle" && it.details.buildPath == ":" && !it.details.file.endsWith(BuildOperationNotificationsFixture.FIXTURE_SCRIPT_NAME)
         }
         ops.size() == 3
 
@@ -81,6 +82,32 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
         operations.search(ops[0], ApplyScriptPluginBuildOperationType).size() == 2
         operations.search(ops[1], ApplyScriptPluginBuildOperationType).size() == 1
         operations.search(ops[2], ApplyScriptPluginBuildOperationType).size() == 0
+    }
+
+    def "identifies build of application target"() {
+        given:
+        def subBuildSettingsFile = file("subBuild/settings.gradle")
+        subBuildSettingsFile << "rootProject.name = 'subBuild'"
+        settingsFile << """
+            includeBuild 'subBuild'
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        def ops = operations.all(ApplyScriptPluginBuildOperationType) {
+            it.details.targetType == "settings"
+        }
+        ops.size() == 2
+        with(ops[0]) {
+            details.file == settingsFile.absolutePath
+            details.buildPath == ":"
+        }
+        with(ops[1]) {
+            details.file == subBuildSettingsFile.absolutePath
+            details.buildPath == ":subBuild"
+        }
     }
 
     def "captures project script events"() {
@@ -136,6 +163,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
     @Rule
     HttpServer httpServer = new HttpServer()
 
+
     def "captures for http scripts"() {
         given:
         println testDirectory.absolutePath
@@ -152,7 +180,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
         then:
         def op = operations.only(ApplyScriptPluginBuildOperationType) {
             it.details.targetType == "project" &&
-            it.details.uri != null
+                it.details.uri != null
         }
 
         op.details.file == null

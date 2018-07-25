@@ -6,101 +6,44 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### Improvements for plugin authors
+### Use SNAPSHOT plugin versions with the `plugins {}` block
 
-In Gradle 4.1, we added APIs that allow a specific task output directory or output file to be wired in as an input for another task, in a way that allows the task dependencies to be inferred and that deals with later changes to the configured locations of those outputs. It is intended to be a more robust, performant and descriptive alternative to using `File` property types and calls to `Task.dependsOn`.
+Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
 
-It added factory methods on `DefaultTask` - i.e. `newInputFile()`, `newOutputFile()`, and `newOutputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an output directory, and `RegularFileVar` instances that represent an output file or directory. When used as an output directory or file property, these instances carry dependency information about the producing task. When used as an input file property, the producing task is tracked as a dependency of the consuming task. Similar support for input files is done using `ConfigurableFileCollection` and friends, as has been possible for quite a while.
+### Incremental Java compilation by default
 
-In Gradle 4.3, we added a new factory method on `DefaultTask` - i.e. `newInputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an input directory.
+This release fixes all known issues of the incremental compiler. It now
 
-TBD: `Provider<T>` and `PropertyState<T>` can be used with `@Input` properties.
-TBD: `ListProperty<T>`
-TBD: `Provider.map()`
-TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
+- deletes empty package directories when the last class file is removed
+- recompiles all classes when module-info files change
+- recompiles all classes in a package when that package's package-info changes
 
-### Task input/output annotations and runtime API
+It's memory usage has also been reduced. For our own build, its heap usage dropped from 350MB to just 10MB.
 
-Gradle 4.3 introduces some changes that bring task inputs and outputs registered via task annotations (e.g. `@InputFile` and `@OutputDirectory` etc.) and the runtime API (think `task.inputs.file(...)` and `task.outputs.dir(...)` etc.) closer to each other.
+We are now confident that the incremental compiler is ready to be used in every build, so it is now the new default setting.
 
-#### Output directory creation
+### Nested included builds
 
-For task outputs declared via annotations like `@OutputDirectory` and `@OutputFile`, Gradle always ensured that the necessary directory exists before executing the task. Starting with version 4.3 Gradle will also create directories for outputs that were registered via the runtime API (e.g. by calling methods like `task.outputs.file()` and `dir()`).
+Composite builds is a feature that allows a Gradle build to 'include' another build and conveniently use its outputs locally rather than via a binary repository. This makes some common workflows more convenient, such as working on multiple source repositories at the same time to implement a cross-cutting feature. In previous releases, it was not possible for a Gradle build to include another build that also includes other builds, which limits the usefulness of this feature for these workflows. In this Gradle release, a build can now include another build that also includes other builds. In other words, composite builds can now be nested.
 
-```
-task customTask {
-    inputs.file "input.txt"
-    outputs.file "output-dir/output.txt"
-    doLast {
-        mkdir "output-dir" // <-- This is now unnecessary
-        file("output-dir/output.txt") << file("input.txt")
-    }
-}
-```
+There are a number of limitations to be aware of. These will be improved in later Gradle releases:
 
-#### Input/output validation
+- A `buildSrc` build cannot include other builds, such as a shared plugin build.
+- The root project of each build must have a unique name.
 
-Task inputs and outputs declared via task property annotations have always been validated by Gradle. If a task declared a non-optional (`@Optional`) input that was `null`, Gradle would fail the build with the message:
+### Periodic cache cleanup
 
-```text
-* What went wrong:
-Some problems were found with the configuration of task ':test'.
-> No value has been specified for property 'inputDirectory'.
-```
+Caching has always been one of the strong suits of Gradle. Over time, more and more persistent caches have been added to improve performance and support new features, requiring more and more disk space on build servers and developer workstations. Gradle now addresses one of the most highly voted issues on GitHub and introduces the following cleanup strategies:
 
-Gradle would also fail the build if an input file or directory did not exist, and also if it expected an output directory, but found a file (or vice versa).
+- Version-specific cache directories in `GRADLE_USER_HOME/caches/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity. Moreover, the corresponding Gradle distributions in `GRADLE_USER_HOME/wrapper/dists/` are deleted as well, if present.
+- Similarly, after building a project, version-specific cache directories in `PROJECT_DIR/.gradle/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. They are deleted if they haven't been used for 7 days.
+- Shared versioned cache directories in `GRADLE_USER_HOME/caches/` (e.g. `jars-*`) are checked periodically (at most every 24 hours) for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
+- Files in shared caches used by the current Gradle version in `GRADLE_USER_HOME/caches/` (e.g. `jars-3` or `modules-2`) are checked periodically (at most every 24 hours) for when they were last accessed. Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
 
-Starting with Gradle 4.3, these validations also happen for properties registered via the runtime API. For backwards compatibility, Gradle will not fail the build if the new validation fails, but produce a warning similar to this:
+### Authorization for Maven repositories with custom HTTP headers
 
-```text
-A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
- - No value has been specified for property 'inputDirectory'.
-```
-
-#### Declaring classpath properties
-
-The `@Classpath` annotation was introduced in Gradle 3.2 to mark task input properties that should represent a runtime classpath. Gradle 3.4 added `@CompileClasspath`. However, it was not possible to declare a similar property via the runtime API. With Gradle 4.3 this is now possible. The following examples declare equivalent inputs for `customTask`.
-
-Using the annotations API:
-
-```
-class CustomTask {
-    @Classpath FileCollection classpath
-
-    // ...
-}
-
-task customTask(type: CustomTask) {
-    classpath = files("lib1.jar", "lib2.jar")
-}
-```
-
-Using the runtime API:
-
-```
-task customTask {
-    inputs.files("lib1.jar", "lib2.jar")
-        .withNormalizer(ClasspathNormalizer)
-        .withPropertyName("classpath")
-}
-```
-
-### Force console type with `org.gradle.console`
-
-You may now force Gradle to use specific console type in [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
-
-### New `verbose` console type
-
-Since Gradle 4.0, task header and outcome won't be displayed by default, which may be confusing. Now you can use `--console=verbose` command line argument 
-or set [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties` to enable task header and outcome output.
-
-### Plugin library upgrades
-
-The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
-
-<!--
-### Example new and noteworthy
--->
+Now it is possible to define a custom HTTP header to authorize access to a Maven repository. This enables Gradle to access private Gitlab and TFS repositories
+used as Maven repositories or any OAuth2 protected Maven repositories.
 
 ## Promoted features
 
@@ -113,15 +56,7 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
-### Disabled equivalents for existing command line options
-
-All Command line options that allow to enable a feature now also have an equivalent for disabling the feature. For example the command line option `--build-scan` supports `--no-build-scan` as well. Some of the existing command line options did not follow the same pattern. With this version of Gradle every boolean-based command line option also expose a "disabled" option. For more information please review the list of [command line options](userguide/gradle_command_line.html) in the user guide.
-
 ## Fixed issues
-
-### Version ranges are now handled properly
-
-Gradle will now honor version ranges correctly when multiple ranges are intersecting. For example, if a dependency on `some-module` is found with a range of versions `[3,6]` and that the same dependency is found transitively with a range of `[4,8]`, Gradle now selects version `6`, which is the highest version within both ranges. Previous releases of Gradle used to select version `8`.
 
 ## Deprecations
 
@@ -130,72 +65,60 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Creating instances of JavaPluginConvention
 
-### Deprecation of old Tooling API version 
+Instances of this class are intended to be created only by the `java-base` plugin and should not be created directly. Creating instances using the constructor of `JavaPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `java-base` plugin.
 
-The following supports are deprecated now and will be removed in Gradle 5.0. You should avoid using them:
+### Creating instances of ApplicationPluginConvention
 
-- Running Gradle older than 2.6 via Tooling API 
-- Running Gradle via Tooling API older than 3.0
+Instances of this class are intended to be created only by the `application` plugin and should not be created directly. Creating instances using the constructor of `ApplicationPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `application` plugin.
 
-Please see [Gradle version and Java version compatibility](userguide/embedding.html#sec:embedding_compatibility) for more details.
+### Creating instances of WarPluginConvention
 
-### Chaining calls on `TaskInputs`
+Instances of this class are intended to be created only by the `war` plugin and should not be created directly. Creating instances using the constructor of `WarPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `war` plugin.
 
-Chaining calls to `TaskInputs.property()` and `TaskInputs.properties()` is now deprecated, similar to how calls to `TaskInputs.file()` and `TaskOutputs.dir()` should not be chained since Gradle 3.0.
+### Creating instances of EarPluginConvention
 
-Don't do this:
+Instances of this class are intended to be created only by the `ear` plugin and should not be created directly. Creating instances using the constructor of `EarPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `ear` plugin.
 
-```
-task myTask {
-    // Chaining all calls on `TaskInputs` is now deprecated
-    inputs.property("title", title).property("version", "1.0")
-}
-```
+### Creating instances of BasePluginConvention
 
-Do this instead:
+Instances of this class are intended to be created only by the `base` plugin and should not be created directly. Creating instances using the constructor of `BasePluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `base` plugin.
 
-```
-task myTask {
-    inputs.property("title", title)
-    inputs.property("version", "1.0")
-}
-```
+### Creating instances of ProjectReportsPluginConvention
 
-### Deprecation of `TaskInternal.execute()`
+Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
 
-In this release we deprecate calling `TaskInternal.execute()`. Calling `task.execute()` should never be necessary.
-There are better ways for re-using task logic, for example by using [task dependencies](userguide/more_about_tasks.html#sec:adding_dependencies_to_tasks), [task rules](userguide/more_about_tasks.html#sec:task_rules), extracting a re-usable piece of logic from your task which can be called on its own (e.g. `project.copy` vs. the `Copy` task) or using the [worker API](userguide/custom_tasks.html#worker_api).
+### Adding tasks via TaskContainer.add() and TaskContainer.addAll() 
 
-### Other deprecations
-
-* `CompileOptions.bootClasspath` is deprecated in favor of the new `bootstrapClasspath` property.
+These methods have been deprecated and the `create()` or `register()` methods should be used instead.
 
 ## Potential breaking changes
 
-### Changes to incubating native compile and link tasks
+### Kotlin DSL breakages
 
-- `AbstractNativeCompileTask.compilerArgs` changed type to `ListProperty<String>` from `List<String>`.
-- `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryVar` from `File`.
-- `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
+- `project.java.sourceSets` is now `project.sourceSets`
 
 ## External contributions
 
-We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
-- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
-- [zosrothko](https://github.com/zosrothko) - Make the Gradle build import into Eclipse again (gradle/gradle#2899)
-- [Evgeny Mandrikov](https://github.com/Godin) - JaCoCo plugin uses version 0.7.9 by default (gradle/gradle#2892)
+We would like to thank the following community members for making contributions to this release of Gradle.
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
+
+- [Björn Kautler](https://github.com/Vampire) - Update Spock version in docs and build init (gradle/gradle#5627)
+- [Kyle Moore](https://github.com/DPUkyle) - Use latest Gosu plugin 0.3.10 (gradle/gradle#5855)
+- [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
+- [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
+- [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
+- [Mike Kobit](https://github.com/mkobit) - Add ability to use `RegularFile` and `Directory` as publishable artifacts (gradle/gradle#5109)
+- [Mészáros Máté Róbert](https://github.com/mrmeszaros) - Fix typo in userguide java plugin configuration image (gradle/gradle#6011)
+- [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
+- [Kenzie Togami](https://github.com/kenzierocks) - Docs are unclear on how JavaExec parses --args (gradle/gradle#6056)
 
 ## Known issues
 

@@ -17,7 +17,6 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -37,7 +36,6 @@ import java.net.URL;
  *
  * @since 3.5
  */
-@Incubating
 public class HttpBuildCache extends AbstractBuildCache {
     private final HttpBuildCacheCredentials credentials;
     private URI url;

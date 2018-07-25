@@ -50,7 +50,7 @@ class ReleasedVersionDistributionsTest extends Specification {
         props.mostRecent = "1.2"
 
         then:
-        versions().mostRecentFinalRelease.version == version("1.2")
+        versions().mostRecentRelease.version == version("1.2")
     }
 
     def "get most recent snapshot does that"() {
@@ -58,7 +58,7 @@ class ReleasedVersionDistributionsTest extends Specification {
         props.mostRecentSnapshot = "2.5-20150413220018+0000"
 
         then:
-        versions().mostRecentSnapshot.version == version("2.5-20150413220018+0000")
+        versions().mostRecentReleaseSnapshot.version == version("2.5-20150413220018+0000")
     }
 
     def "get all final does that"() {

@@ -25,7 +25,7 @@ components.each { component ->
     }
     out.println """    
             }
-        }"""        
+        }"""
 }
 %>
     }
@@ -42,7 +42,7 @@ components.each { component ->
     }
     out.println """    
             }
-        }"""        
+        }"""
 }
 %>
     }
@@ -53,6 +53,12 @@ components.each { component ->
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'
                 linker.args '-pthread'
+            }
+        }
+        all {
+            if (toolChain instanceof Gcc) {
+                cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                linker.args '-std=c++03'
             }
         }
     }

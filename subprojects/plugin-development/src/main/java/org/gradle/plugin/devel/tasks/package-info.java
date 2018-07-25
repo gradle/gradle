@@ -17,4 +17,7 @@
 /**
  * Tasks for assisting with plugin development.
  */
+@NonNullApi
 package org.gradle.plugin.devel.tasks;
+
+import org.gradle.api.NonNullApi;

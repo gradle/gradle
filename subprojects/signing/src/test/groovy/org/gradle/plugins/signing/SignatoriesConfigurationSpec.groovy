@@ -18,7 +18,7 @@ package org.gradle.plugins.signing
 import org.gradle.api.InvalidUserDataException
 
 class SignatoriesConfigurationSpec extends SigningProjectSpec {
-    
+
     def setup() {
         applyPlugin()
     }
@@ -27,31 +27,31 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
         expect:
         signing.signatory == null
     }
-    
+
     def "default signatory with properties"() {
         when:
         addSigningProperties()
-        
+
         then:
         signing.signatory != null
     }
-    
+
     def "defining signatories with properties"() {
         given:
         def properties = signingPropertiesSet
-        
+
         when:
         signing {
             signatories {
                 custom properties.keyId, properties.secretKeyRingFile, properties.password
             }
         }
-        
+
         then:
         signing.signatories.custom != null
-        signing.signatories.custom.keyId.asHex == properties.keyId
+        signing.signatories.custom.keyId == properties.keyId
     }
-    
+
     def "defining signatories with default properties"() {
         given:
         def properties = addSigningProperties(prefix: "custom")
@@ -62,36 +62,36 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
                 custom()
             }
         }
-        
+
         then:
         signing.signatories.custom != null
-        signing.signatories.custom.keyId.asHex == properties.keyId
+        signing.signatories.custom.keyId == properties.keyId
     }
- 
+
     def "trying to read non existent file produces reasonable error message"() {
         when:
         project.ext["signing.keyId"] = "aaaaaaaa"
         project.ext["signing.secretKeyRingFile"] = "i/dont/exist"
         project.ext["signing.password"] = "anything"
-        
+
         and:
         signing.signatory
-        
+
         then:
         def e = thrown(InvalidUserDataException)
         e.message.contains "it does not exist"
     }
-    
+
     def "trying to use an invalid key ring file produces a reasonable error message"() {
         given:
         addSigningProperties(set: "invalid-key-ring")
-        
+
         when:
         signing.signatory
-        
+
         then:
         def e = thrown(InvalidUserDataException)
         e.message.contains "Unable to read secret key from"
     }
-    
+
 }

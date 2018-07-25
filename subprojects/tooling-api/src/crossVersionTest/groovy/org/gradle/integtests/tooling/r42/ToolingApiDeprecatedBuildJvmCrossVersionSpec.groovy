@@ -29,16 +29,21 @@ import spock.lang.IgnoreIf
 
 @TargetGradleVersion("current")
 class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
+
+    public static final String EXPECTED_JAVA7_DEPRECATION_MESSAGE = "Support for running Gradle using Java 7 has been deprecated. This is scheduled to be removed in Gradle 5.0."
+
     def setup() {
         toolingApi.requireDaemons()
     }
 
-    def configureJava7(){
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk7.javaHome.absolutePath)
+    def configureJava7() {
+        projectDir.file("gradle.properties").writeProperties(
+            ["org.gradle.java.home": AvailableJavaHomes.jdk7.javaHome.absolutePath, 'org.gradle.warning.mode': 'all'])
     }
 
-    def configureJava8(){
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
+    def configureJava8() {
+        projectDir.file("gradle.properties").writeProperties(
+            ["org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath, 'org.gradle.warning.mode': 'all'])
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
@@ -54,7 +59,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
@@ -70,7 +75,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
@@ -86,7 +91,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 1
     }
 
     @ToolingApiVersion(">=2.6")
@@ -105,7 +110,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         then:
         TestExecutionException e = thrown()
         e.cause.message.startsWith("No matching tests found in any candidate test task.")
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -121,7 +126,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 0
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -137,7 +142,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 0
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -153,7 +158,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 0
     }
 
     @ToolingApiVersion(">=2.6")
@@ -172,6 +177,6 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         then:
         TestExecutionException e = thrown()
         e.cause.message.startsWith("No matching tests found in any candidate test task.")
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 0
     }
 }

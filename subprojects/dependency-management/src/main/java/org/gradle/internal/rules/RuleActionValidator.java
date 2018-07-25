@@ -16,6 +16,6 @@
 
 package org.gradle.internal.rules;
 
-public interface RuleActionValidator<T> {
-    public RuleAction<? super T> validate(RuleAction<? super T> ruleAction);
+public interface RuleActionValidator {
+    <T> RuleAction<? super T> validate(RuleAction<? super T> ruleAction);
 }

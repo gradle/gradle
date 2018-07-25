@@ -167,4 +167,39 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * asyncProcessor2.processTestClass(test)
     }
+
+    def "stopNow propagates to factory created processors"() {
+        TestClassRunInfo test = Mock()
+        TestClassProcessor processor1 = Mock()
+        TestClassProcessor processor2 = Mock()
+        TestClassProcessor asyncProcessor1 = Mock()
+        TestClassProcessor asyncProcessor2 = Mock()
+        Actor actor1 = Mock()
+        Actor actor2 = Mock()
+
+        startProcessor()
+
+        when:
+        processor.processTestClass(test)
+
+        then:
+        1 * factory.create() >> processor1
+        1 * actorFactory.createActor(processor1) >> actor1
+        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+
+        when:
+        processor.processTestClass(test)
+
+        then:
+        1 * factory.create() >> processor2
+        1 * actorFactory.createActor(processor2) >> actor2
+        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+
+        when:
+        processor.stopNow()
+
+        then:
+        1 * processor1.stopNow()
+        1 * processor2.stopNow()
+    }
 }

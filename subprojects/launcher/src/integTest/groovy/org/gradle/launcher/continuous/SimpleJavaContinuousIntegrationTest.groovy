@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -95,7 +96,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
     def "can run tests"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
-        def testFile = file("src/test/java/TestThing.java") << "class TestThing {}"
+        def testFile = file("src/test/java/TestThing.java") << "class TestThing extends Thing{}"
         def resourceFile = file("src/main/resources/thing.text") << "thing"
 
         then:
@@ -111,7 +112,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         skipped(":processResources")
 
         when:
-        testFile.text = "class TestThing { static public int FLAG = 1; }"
+        testFile.text = "class TestThing extends Thing { static public int FLAG = 1; }"
 
         then:
         succeeds()
@@ -191,7 +192,9 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         when:
         def somelib = file("lib/somelib.jar")
         somelib.parentFile.mkdir()
-        file("src/main/java/Thing.java") << "class Thing {}"
+        jarWithClasses(somelib, Thing: 'class Thing {}')
+
+        file("src/main/java/Foo.java") << "class Foo extends Thing{}"
         buildFile << """
             dependencies {
                 compile files("lib/somelib.jar")
@@ -203,14 +206,14 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        jarWithClasses(somelib, Thing: 'class Thing {}')
+        jarWithClasses(somelib, Thing: 'class Thing { public void foo () {} }')
 
         then:
         succeeds()
         executedAndNotSkipped ":compileJava"
 
         when:
-        jarWithClasses(somelib, Thing: 'class Thing { String s; }')
+        jarWithClasses(somelib, Thing: 'class Thing { public void bar() {} }')
 
         then:
         succeeds()
@@ -220,15 +223,17 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         somelib.delete()
 
         then:
-        succeeds()
+        fails()
         executedAndNotSkipped ":compileJava"
     }
 
     def "multiple dependencies as inputs from local filesystem"() {
         when:
         def libDir = file('libs').createDir()
-        jarWithClasses(libDir.file("somelib.jar"), Thing: 'class Thing {}')
-        file("src/main/java/Thing.java") << "class Thing {}"
+        jarWithClasses(libDir.file("somelib.jar"), Thing: 'interface Thing {}')
+        def anotherJar = libDir.file("anotherlib.jar")
+        jarWithClasses(anotherJar, Thing2: 'interface Thing2 {}')
+        file("src/main/java/Foo.java") << "class Foo implements Thing, Thing2{}"
         buildFile << """
             dependencies {
                 compile fileTree("libs/")
@@ -240,10 +245,10 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        jarWithClasses(libDir.file("anotherlib.jar"), Thing2: 'class Thing2 {}')
+        anotherJar.delete()
 
         then:
-        succeeds()
+        fails()
         executedAndNotSkipped ":compileJava"
     }
 

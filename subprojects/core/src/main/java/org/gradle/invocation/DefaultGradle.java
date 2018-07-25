@@ -16,7 +16,7 @@
 
 package org.gradle.invocation;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
@@ -25,9 +25,11 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -38,14 +40,14 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
@@ -58,10 +60,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
+    private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
@@ -69,12 +70,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
-    private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
+    private Collection<IncludedBuild> includedBuilds;
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
-    private BuildOperationState operation;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -121,7 +121,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
-                if (rootProject == null) {
+                if (settings == null) {
                     // Not known yet
                     return null;
                 }
@@ -130,7 +130,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                     // Not known yet
                     return null;
                 }
-                this.identityPath = parentIdentityPath.child(rootProject.getName());
+                this.identityPath = parentIdentityPath.child(settings.getRootProject().getName());
             }
         }
         return identityPath;
@@ -145,19 +145,14 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public BuildOperationState getBuildOperation() {
-        if (operation != null) {
-            return operation;
+    public String contextualize(String description) {
+        if (getParent() == null) {
+            return description;
+        } else {
+            Path contextPath = findIdentityPath();
+            String context = contextPath == null ? getStartParameter().getCurrentDir().getName() : contextPath.getPath();
+            return description + " (" + context + ")";
         }
-        if (parent != null) {
-            return parent.getBuildOperation();
-        }
-        return null;
-    }
-
-    @Override
-    public void setBuildOperation(BuildOperationState operation) {
-        this.operation = operation;
     }
 
     @Override
@@ -172,6 +167,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             root = root.getParent();
         }
         return root;
+    }
+
+    @Override
+    public BuildState getOwner() {
+        return getServices().get(BuildState.class);
     }
 
     @Override
@@ -193,6 +193,19 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public StartParameter getStartParameter() {
         return startParameter;
+    }
+
+    @Override
+    public SettingsInternal getSettings() {
+        if (settings == null) {
+            throw new IllegalStateException("The settings are not yet available for " + this + ".");
+        }
+        return settings;
+    }
+
+    @Override
+    public void setSettings(SettingsInternal settings) {
+        this.settings = settings;
     }
 
     @Override
@@ -239,7 +252,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Inject
     @Override
-    public TaskGraphExecuter getTaskGraph() {
+    public TaskExecutionGraphInternal getTaskGraph() {
         throw new UnsupportedOperationException();
     }
 
@@ -361,22 +374,25 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public Collection<IncludedBuild> getIncludedBuilds() {
-        return Collections.unmodifiableCollection(includedBuilds);
+        if (includedBuilds == null) {
+            throw new IllegalStateException("Included builds are not yet available for this build.");
+        }
+        return includedBuilds;
     }
 
     @Override
-    public void setIncludedBuilds(Collection<IncludedBuild> includedBuilds) {
-        this.includedBuilds.addAll(includedBuilds);
+    public void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds) {
+        this.includedBuilds = ImmutableList.copyOf(includedBuilds);
     }
 
     @Override
     public IncludedBuild includedBuild(final String name) {
-        for (IncludedBuild includedBuild : includedBuilds) {
+        for (IncludedBuild includedBuild : getIncludedBuilds()) {
             if (includedBuild.getName().equals(name)) {
                 return includedBuild;
             }
         }
-        throw new NoSuchElementException("Included build '" + name + "' not found.");
+        throw new UnknownDomainObjectException("Included build '" + name + "' not found in " + toString() + ".");
     }
 
     @Override

@@ -18,7 +18,7 @@ package org.gradle.internal.logging.serializer
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import spock.lang.Subject

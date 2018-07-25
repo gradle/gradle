@@ -23,8 +23,9 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
     String compilationTask = ':compileJava'
     String compiledFile = "build/classes/java/main/Hello.class"
 
-    def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
+    def setupProjectInDirectory(TestFile project) {
         project.with {
+            file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
             plugins {
                 id 'java'
@@ -40,7 +41,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
             }
         """.stripIndent()
 
-        file('src/main/java/Hello.java') << """
+            file('src/main/java/Hello.java') << """
             public class Hello {
                 public static void main(String... args) {
                     System.out.println("Hello!");
@@ -56,7 +57,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         libraryAppProjectWithIncrementalCompilation()
 
         when:
-        withBuildCache().succeeds appCompileJava
+        withBuildCache().run appCompileJava
 
         then:
         executedAndNotSkipped appCompileJava
@@ -70,14 +71,15 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         succeeds appCompileJava
 
         then:
-        result.output.contains  "None of the classes needs to be compiled!"
-        result.output.contains "${appCompileJava} UP-TO-DATE"
+        outputContains "None of the classes needs to be compiled!"
+        outputContains "${appCompileJava} UP-TO-DATE"
         executedAndNotSkipped libraryCompileJava
 
         when:
-        withBuildCache().succeeds 'clean', appCompileJava
+        withBuildCache()
+        succeeds 'clean', appCompileJava
 
         then:
-        result.output.contains "${appCompileJava} FROM-CACHE"
+        outputContains "${appCompileJava} FROM-CACHE"
     }
 }

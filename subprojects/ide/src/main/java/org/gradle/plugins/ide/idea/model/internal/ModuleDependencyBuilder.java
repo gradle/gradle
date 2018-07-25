@@ -16,24 +16,24 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 class ModuleDependencyBuilder {
-    private final LocalComponentRegistry localComponentRegistry;
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public ModuleDependencyBuilder(LocalComponentRegistry localComponentRegistry) {
-        this.localComponentRegistry = localComponentRegistry;
+    public ModuleDependencyBuilder(IdeArtifactRegistry ideArtifactRegistry) {
+        this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
-    public ModuleDependency create(IdeProjectDependency dependency, String scope) {
-        return new ModuleDependency(determineProjectName(dependency), scope);
+    public ModuleDependency create(ProjectComponentIdentifier id, String scope) {
+        return new ModuleDependency(determineProjectName(id), scope);
     }
 
-    private String determineProjectName(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(dependency.getProjectId(), "iml");
-        return imlArtifact == null ? dependency.getProjectName() : imlArtifact.getName().getName();
+    private String determineProjectName(ProjectComponentIdentifier id) {
+        IdeaModuleMetadata moduleMetadata = ideArtifactRegistry.getIdeProject(IdeaModuleMetadata.class, id);
+        return moduleMetadata == null ? id.getProjectName() : moduleMetadata.getName();
     }
 }

@@ -18,9 +18,11 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,8 +31,13 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationTes
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/customizedLayout')
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
+    @Before
+    void setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
+
     @Test
-    public void canBuildJar() {
+    void canBuildJar() {
         TestFile projectDir = sample.dir
 
         // Build and test projects

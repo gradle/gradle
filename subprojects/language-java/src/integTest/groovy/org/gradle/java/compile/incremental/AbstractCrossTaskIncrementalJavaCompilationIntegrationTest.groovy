@@ -20,6 +20,8 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -28,16 +30,11 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     CompilationOutputsFixture impl
 
     def setup() {
-        executer.requireOwnGradleUserHomeDir()
         impl = new CompilationOutputsFixture(file("impl/build/classes"))
 
         buildFile << """
             subprojects {
                 apply plugin: 'java'
-                tasks.withType(JavaCompile) {
-                    options.incremental = true
-                    options.fork = true
-                }
                 ${mavenCentralRepository()}
             }
             $projectDependencyBlock
@@ -627,7 +624,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     }
 
-    def "recognizes change of constant value in annotation, even if we know it's a bad practice"() {
+    def "recognizes change of constant value in annotation"() {
         java api: [
             "class A { public static final int CST = 0; }",
             """import java.lang.annotation.Retention;
@@ -638,6 +635,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
             // cases where it's relevant, ABI-wise
             "@B(A.CST) class OnClass {}",
             "class OnMethod { @B(A.CST) void foo() {} }",
+            "class OnField { @B(A.CST) String foo; }",
             "class OnParameter { void foo(@B(A.CST) int x) {} }"
         ]
 
@@ -648,8 +646,71 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         run("impl:compileJava")
 
         then:
-        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter")
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
+    }
 
+    @Unroll
+    def "change to class referenced by an annotation recompiles annotated types"() {
+        java api: [
+            """
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.CLASS) 
+                public @interface B {
+                    Class<?> value();
+                }
+            """,
+            "class A {}"
+        ], impl: [
+            "@B(A.class) class OnClass {}",
+            "class OnMethod { @B(A.class) void foo() {} }",
+            "class OnField { @B(A.class) String foo; }",
+            "class OnParameter { void foo(@B(A.class) int x) {} }"
+        ]
+
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: [
+            """
+                class A { public void foo() {} }
+            """
+        ]
+        run "compileJava"
+
+        then:
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
+    }
+
+    @Unroll
+    def "change to class referenced by an array value in an annotation recompiles annotated types"() {
+        java api: [
+            """
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.CLASS) 
+                public @interface B {
+                    Class<?>[] value();
+                }
+            """,
+            "class A {}"
+        ], impl: [
+            "@B(A.class) class OnClass {}",
+            "class OnMethod { @B(A.class) void foo() {} }",
+            "class OnField { @B(A.class) String foo; }",
+            "class OnParameter { void foo(@B(A.class) int x) {} }"
+        ]
+
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: [
+            """
+                class A { public void foo() {} }
+            """
+        ]
+        run "compileJava"
+
+        then:
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
     @NotYetImplemented
@@ -670,7 +731,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         run 'impl:compileJava'
 
         then:
-        !output.contains(':api:compileJava - is not incremental (e.g. outputs have changed, no previous execution, etc.).')
+        !output.contains('Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.')
         impl.recompiledClasses("ImplA")
     }
 
@@ -755,5 +816,58 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         then:
         impl.recompiledClasses 'A', 'B', 'C'
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "recompiles when upstream module-info changes"() {
+        file("api/src/main/java/a/A.java").text = "package a; public class A {}"
+        file("impl/src/main/java/b/B.java").text = "package b; import a.A; class B extends A {}"
+        def moduleInfo = file("api/src/main/java/module-info.java")
+        moduleInfo.text = """
+            module api {
+                exports a;
+            }
+        """
+        file("impl/src/main/java/module-info.java").text = """
+            module impl {
+                requires api;
+            }
+        """
+        file("impl/build.gradle") << """
+            compileJava.doFirst {
+                options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
+                classpath = files()
+            }
+        """
+        succeeds "impl:compileJava"
+
+        when:
+        moduleInfo.text = """
+            module api {
+            }
+        """
+
+        then:
+        fails "impl:compileJava"
+        result.hasErrorOutput("package a is not visible")
+    }
+
+    def "recompiles downstream dependents of classes whose package-info changed"() {
+        given:
+        def packageFile = file("api/src/main/java/foo/package-info.java")
+        packageFile.text = """package foo;"""
+        file("api/src/main/java/foo/A.java").text = "package foo; public class A {}"
+        file("api/src/main/java/bar/B.java").text = "package bar; public class B {}"
+        file("impl/src/main/java/baz/C.java").text = "package baz; import foo.A; class C extends A {}"
+        file("impl/src/main/java/baz/D.java").text = "package baz; import bar.B; class D extends B {}"
+
+        impl.snapshot { succeeds 'impl:compileJava' }
+
+        when:
+        packageFile.text = """@Deprecated package foo;"""
+        succeeds 'impl:compileJava'
+
+        then:
+        impl.recompiledClasses("C")
     }
 }

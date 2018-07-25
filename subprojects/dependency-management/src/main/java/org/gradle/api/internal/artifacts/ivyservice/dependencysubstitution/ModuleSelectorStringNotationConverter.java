@@ -18,13 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.GUtil;
 
-import static org.gradle.api.internal.notations.ModuleIdentifierNotationConverter.validate;
+import static org.gradle.api.internal.notations.ModuleNotationValidation.*;
 
 class ModuleSelectorStringNotationConverter extends TypedNotationConverter<String, ComponentSelector> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -54,7 +55,7 @@ class ModuleSelectorStringNotationConverter extends TypedNotationConverter<Strin
         if (!GUtil.isTrue(version)) {
             throw new UnsupportedNotationException(notation);
         }
-        return DefaultModuleComponentSelector.newSelector(group, name, version);
+        return DefaultModuleComponentSelector.newSelector(moduleIdentifierFactory.module(group, name), DefaultImmutableVersionConstraint.of(version));
     }
 
     @Override

@@ -53,7 +53,7 @@ class ReverseFiles extends SourceTask {
     void reverseFiles() {
         // START SNIPPET wait-for-completion
         // Create and submit a unit of work for each file
-        source.files.each { file ->
+        source.each { file ->
             workerExecutor.submit(ReverseFile.class) { config ->
                 config.isolationMode = IsolationMode.NONE
                 // Constructor parameters for the unit of work implementation

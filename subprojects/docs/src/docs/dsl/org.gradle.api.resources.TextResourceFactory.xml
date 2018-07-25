@@ -42,6 +42,10 @@
             <tr>
                 <td>fromArchiveEntry</td>
             </tr>
+
+            <tr>
+                <td>fromUri</td>
+            </tr>
         </table>
     </section>
 </section>

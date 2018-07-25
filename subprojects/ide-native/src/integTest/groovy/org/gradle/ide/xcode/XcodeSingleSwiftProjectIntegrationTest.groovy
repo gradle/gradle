@@ -17,22 +17,24 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    def "can create xcode project for Swift executable"() {
+
+    def "can create xcode project for Swift application"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         def app = new SwiftApp()
@@ -42,10 +44,11 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
+        project.sources.assertHasChildren(app.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
@@ -53,10 +56,15 @@ apply plugin: 'swift-executable'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+        project.products.children[0].path == exe("build/install/main/debug/lib/App").absolutePath
+
+        rootXcodeProject.schemeFiles.size() == 1
+        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
     }
 
     def "can create xcode project for Swift library"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -68,10 +76,11 @@ apply plugin: 'swift-library'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
+        project.sources.assertHasChildren(lib.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
@@ -80,13 +89,92 @@ apply plugin: 'swift-library'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+
+        rootXcodeProject.schemeFiles.size() == 1
+        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "can create xcode project for Swift executable with xctest"() {
+    def "can create xcode project for Swift static library"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+            apply plugin: 'swift-library'
+            library.linkage = [Linkage.STATIC]
+        """
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
+        project.sources.assertHasChildren(lib.files*.name)
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
+
+        project.targets.size() == 2
+        assertTargetIsStaticLibrary(project.targets[0], 'App')
+        assertTargetIsIndexer(project.targets[1], 'App')
+
+        project.products.children.size() == 1
+        project.products.children[0].path == staticLib("build/lib/main/debug/App").absolutePath
+
+        rootXcodeProject.schemeFiles.size() == 1
+        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "can build Swift static library from xcode"() {
+        useXcodebuildTool()
+        def lib = new SwiftLib()
+        def debugBinary = staticLib("build/lib/main/debug/App")
+        def releaseBinary = staticLib("build/lib/main/release/App")
+
+        given:
+        buildFile << """
+            apply plugin: 'swift-library'
+            library.linkage = [Linkage.STATIC]
+        """
+
+        lib.writeToProject(testDirectory)
+        succeeds("xcode")
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
+        debugBinary.assertExists()
+
+        when:
+        releaseBinary.assertDoesNotExist()
+        def resultRelease = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
+        releaseBinary.assertExists()
+    }
+
+    def "can create xcode project for Swift application with xctest"() {
+        requireSwiftToolChain()
+
+        given:
+        buildFile << """
+apply plugin: 'swift-application'
 apply plugin: 'xctest'
 """
 
@@ -97,64 +185,68 @@ apply plugin: 'xctest'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+        if (OperatingSystem.current().isMacOsX()) {
+            def project = rootXcodeProject.projectFile
+            project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
+            project.sources.assertHasChildren(app.main.files*.name)
+            project.tests.assertHasChildren(app.test.files*.name)
+            project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
-        project.targets.size() == 4
-        assertTargetIsTool(project.targets[0], 'App')
-        assertTargetIsUnitTest(project.targets[1], 'AppTest')
-        assertTargetIsIndexer(project.targets[2], 'App')
-        assertTargetIsIndexer(project.targets[3], 'AppTest')
+            project.targets.size() == 4
+            assertTargetIsTool(project.targets[0], 'App')
+            assertTargetIsUnitTest(project.targets[1], 'AppTest')
+            assertTargetIsIndexer(project.targets[2], 'App')
+            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main/debug').absolutePath + '"')
 
-        project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+            project.products.children.size() == 1
+            project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+        }
     }
 
-    @Unroll
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "can create xcode project for #scenario and xctest"() {
+    def "can create xcode project for Swift library and xctest"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
+        def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
 
         when:
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+        if (OperatingSystem.current().isMacOsX()) {
+            def project = rootXcodeProject.projectFile
+            project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
+            project.sources.assertHasChildren(lib.main.files*.name)
+            project.tests.assertHasChildren(lib.test.files*.name)
+            project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
-        project.targets.size() == 4
-        assertTargetIsDynamicLibrary(project.targets[0], 'App')
-        assertTargetIsUnitTest(project.targets[1], 'AppTest')
-        assertTargetIsIndexer(project.targets[2], 'App')
-        assertTargetIsIndexer(project.targets[3], 'AppTest')
+            project.targets.size() == 4
+            assertTargetIsDynamicLibrary(project.targets[0], 'App')
+            assertTargetIsUnitTest(project.targets[1], 'AppTest')
+            assertTargetIsIndexer(project.targets[2], 'App')
+            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main/debug').absolutePath + '"')
 
-        project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
-
-        where:
-        scenario                  | lib
-        "swift lib without plist" | new SwiftLibWithXCTest()
-        "swift lib with plist"    | new SwiftLibWithXCTestWithInfoPlist()
+            project.products.children.size() == 1
+            project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+        }
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "returns meaningful errors from xcode when Swift executable product doesn't have test configured"() {
+    def "returns meaningful errors from xcode when Swift application product doesn't have test configured"() {
         useXcodebuildTool()
 
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         def lib = new SwiftLib()
@@ -164,31 +256,31 @@ apply plugin: 'swift-executable'
         when:
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App Executable")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("App")
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultDebug.error.contains("Scheme App Executable is not currently configured for the test action.")
+        resultDebug.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App Executable")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRelease.error.contains("Scheme App Executable is not currently configured for the test action.")
+        resultRelease.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRunner = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App Executable")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRunner.error.contains("Scheme App Executable is not currently configured for the test action.")
+        resultRunner.error.contains("Scheme App is not currently configured for the test action.")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -207,21 +299,21 @@ apply plugin: 'swift-library'
         when:
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App SharedLibrary")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("App")
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultDebug.error.contains("Scheme App SharedLibrary is not currently configured for the test action.")
+        resultDebug.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App SharedLibrary")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRelease.error.contains("Scheme App SharedLibrary is not currently configured for the test action.")
+        resultRelease.error.contains("Scheme App is not currently configured for the test action.")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -234,36 +326,38 @@ apply plugin: 'swift-library'
 apply plugin: 'swift-library'
 """
 
-        def lib = new SwiftLibWithXCTestWithInfoPlist()
+        def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
         succeeds("xcode")
 
         when:
         def resultDebugWithoutXCTest = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
-            .withScheme("Greeter SharedLibrary")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("Greeter")
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultDebugWithoutXCTest.error.contains("Scheme Greeter SharedLibrary is not currently configured for the test action.")
+        resultDebugWithoutXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
 
         when:
         buildFile << "apply plugin: 'xctest'"
         succeeds("xcode")
         def resultDebugWithXCTest = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
-            .withScheme("Greeter SharedLibrary")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("Greeter")
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        !resultDebugWithXCTest.error.contains("Scheme Greeter SharedLibrary is not currently configured for the test action.")
-        lib.assertTestCasesRan(resultDebugWithXCTest.output)
+        !resultDebugWithXCTest.error.contains("Scheme Greeter is not currently configured for the test action.")
+        resultDebugWithXCTest.assertHasPostBuildOutput("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultDebugWithXCTest.assertHasPostBuildOutput("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
+        resultDebugWithXCTest.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
-        def lib = new SwiftLibWithXCTestWithInfoPlist()
+        def lib = new SwiftLibWithXCTest()
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
@@ -278,17 +372,19 @@ apply plugin: 'xctest'
         when:
         def resultTestRunner = xcodebuild
             .withProject(xcodeProject("greeter.xcodeproj"))
-            .withScheme("Greeter SharedLibrary")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("Greeter")
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
-            ':syncTestBundleToXcodeBuiltProductDir', ':buildXcodeTestProduct')
-        lib.assertTestCasesRan(resultTestRunner.output)
+        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can run tests for Swift executable from xcode"() {
+    def "can run tests for Swift application from xcode"() {
         useXcodebuildTool()
         def app = new SwiftAppWithXCTest()
 
@@ -297,7 +393,7 @@ apply plugin: 'xctest'
 rootProject.name = 'app'
 """
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 apply plugin: 'xctest'
 """
 
@@ -307,23 +403,91 @@ apply plugin: 'xctest'
         when:
         def resultTestRunner = xcodebuild
             .withProject(xcodeProject("app.xcodeproj"))
-            .withScheme("App Executable")
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("App")
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
-            ':syncTestBundleToXcodeBuiltProductDir', ':buildXcodeTestProduct')
-        app.assertTestCasesRan(resultTestRunner.output)
+        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")
+        resultTestRunner.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can build Swift executable from xcode"() {
+    def "can build Swift application from xcode"() {
+        useXcodebuildTool()
+        def app = new SwiftApp()
+        def debugBinary = exe("build/exe/main/debug/App")
+        def releaseBinary = exe("build/exe/main/release/App")
+
+        given:
+        buildFile << """
+apply plugin: 'swift-application'
+"""
+
+        app.writeToProject(testDirectory)
+        succeeds("xcode")
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        debugBinary.exec().out == app.expectedOutput
+        fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
+
+        when:
+        releaseBinary.assertDoesNotExist()
+        def resultRelease = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        releaseBinary.exec().out == app.expectedOutput
+        fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "produces reasonable message when xcode uses outdated xcode configuration"() {
         useXcodebuildTool()
         def app = new SwiftApp()
 
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
+"""
+
+        app.writeToProject(testDirectory)
+        succeeds("xcode")
+        settingsFile.text = "rootProject.name = 'NotApp'"
+
+        when:
+        def result = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .fails()
+        then:
+        result.assertHasDescription("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "can clean from xcode"() {
+        useXcodebuildTool()
+        def app = new SwiftApp()
+
+        given:
+        buildFile << """
+apply plugin: 'swift-application'
 """
 
         app.writeToProject(testDirectory)
@@ -331,34 +495,28 @@ apply plugin: 'swift-executable'
 
         when:
         exe("build/exe/main/debug/App").assertDoesNotExist()
-        def resultDebug = xcodebuild
+        xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
-
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug')
         exe("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
-        exe("build/exe/main/release/App").assertDoesNotExist()
-        def resultRelease = xcodebuild
+        xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App Executable')
-            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .succeeds()
-
+            .withScheme('App')
+            .succeeds(XcodebuildExecutor.XcodeAction.CLEAN)
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease')
-        exe("build/exe/main/release/App").exec().out == app.expectedOutput
+        file("build").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can build Swift library from xcode"() {
         useXcodebuildTool()
         def lib = new SwiftLib()
+        def debugBinary = sharedLib("build/lib/main/debug/App")
+        def releaseBinary = sharedLib("build/lib/main/release/App")
 
         given:
         buildFile << """
@@ -369,35 +527,39 @@ apply plugin: 'swift-library'
         succeeds("xcode")
 
         when:
-        sharedLib("build/lib/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App SharedLibrary')
+            .withScheme('App')
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug')
-        sharedLib("build/lib/main/debug/App").assertExists()
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
+        debugBinary.assertExists()
+        fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
 
         when:
-        sharedLib("build/lib/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App SharedLibrary')
+            .withScheme('App')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease')
-        sharedLib("build/lib/main/release/App").assertExists()
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
+        releaseBinary.assertExists()
+        fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
 
     def "adds new source files in the project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
@@ -406,8 +568,7 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
 
         when:
         def app = new SwiftApp()
@@ -415,14 +576,15 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
     }
 
     def "removes deleted source files from the project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
@@ -431,8 +593,7 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
 
         when:
         file('src/main').deleteDir()
@@ -441,16 +602,17 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
-    def "includes source files in a non-default location in Swift executable project"() {
+    def "includes source files in a non-default location in Swift application project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 
-executable {
+application {
     source.from 'Sources'
 }
 """
@@ -462,11 +624,12 @@ executable {
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
     }
 
     def "includes source files in a non-default location in Swift library project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -483,16 +646,17 @@ library {
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
     def "honors changes to executable output file locations"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 buildDir = 'output'
-executable.module = 'TestApp'
+application.module = 'TestApp'
 """
 
         def app = new SwiftApp()
@@ -502,21 +666,23 @@ executable.module = 'TestApp'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
-        project.targets.every { it.productName == 'App' }
-        project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
-        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.targets.every { it.productName == 'TestApp' }
+        project.targets[0].name == 'TestApp'
+        project.targets[0].productReference.path == exe("output/install/main/debug/lib/TestApp").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/debug/lib").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/release/lib").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] TestApp'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
+        project.products.children[0].path == exe("output/install/main/debug/lib/TestApp").absolutePath
     }
 
     def "honors changes to library output file locations"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -530,16 +696,16 @@ library.module = 'TestLib'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
-        project.targets.every { it.productName == "App" }
-        project.targets[0].name == 'App SharedLibrary'
+        project.targets.every { it.productName == "TestLib" }
+        project.targets[0].name == 'TestLib'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/TestLib").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
-        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release/stripped").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] TestLib'
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
     }

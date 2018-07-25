@@ -82,10 +82,10 @@ The following types/formats are supported:
         dir.permissions = '-w-r--r--'
 
         try {
-            Assert.assertTrue(dir.isDirectory())
-            Assert.assertTrue(dir.exists())
-            Assert.assertFalse(dir.canRead())
-            Assert.assertTrue(dir.canWrite())
+            Assert.assertTrue("$dir exists", dir.exists())
+            Assert.assertTrue("$dir is a directory", dir.isDirectory())
+            Assert.assertFalse("$dir is not readable", dir.canRead())
+            Assert.assertTrue("$dir is writable", dir.canWrite())
 
             testFile('build.gradle') << '''
                 task copy(type: Copy) {

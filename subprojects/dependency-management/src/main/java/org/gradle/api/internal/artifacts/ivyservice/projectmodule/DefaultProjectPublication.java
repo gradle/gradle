@@ -16,27 +16,49 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.internal.DisplayName;
+
+import javax.annotation.Nullable;
 
 public class DefaultProjectPublication implements ProjectPublication {
-    private final ModuleVersionIdentifier id;
+    private final DisplayName displayName;
+    private final Object id;
+    private final boolean legacy;
 
-    public DefaultProjectPublication(ModuleVersionIdentifier id) {
+    public DefaultProjectPublication(DisplayName displayName, Object id, boolean legacy) {
+        this.displayName = displayName;
         this.id = id;
+        this.legacy = legacy;
     }
 
-    public ModuleVersionIdentifier getId() {
-        return id;
+    @Override
+    public DisplayName getDisplayName() {
+        return displayName;
     }
 
-    public boolean equals(Object other) {
-        if (!(other instanceof ProjectPublication)) {
-            return false;
+    @Override
+    public boolean isLegacy() {
+        return legacy;
+    }
+
+    @Nullable
+    @Override
+    public <T> T getCoordinates(Class<T> type) {
+        if (type.isInstance(id)) {
+            return type.cast(id);
         }
-        return id.equals(((ProjectPublication) other).getId());
+        return null;
     }
 
-    public int hashCode() {
-        return id.hashCode();
+    @Nullable
+    @Override
+    public SoftwareComponentInternal getComponent() {
+        return null;
+    }
+
+    @Override
+    public boolean isAlias() {
+        return false;
     }
 }

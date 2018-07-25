@@ -23,7 +23,7 @@ class IncrementalSwiftStaleLinkOutputAppWithLib {
     final lib = new IncrementalSwiftLib()
     final main = new IncrementalSwiftAppWithDep(lib)
 
-    IncrementalSwiftAppWithDep getExecutable() {
+    IncrementalSwiftAppWithDep getApplication() {
         return main
     }
 

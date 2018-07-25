@@ -59,7 +59,7 @@ public class WbDependentModule implements WbModuleEntry {
 
     @Override
     public void appendNode(Node parentNode) {
-        Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
         attributes.put("deploy-path", deployPath);
         attributes.put("handle", handle);
         Node node = parentNode.appendNode("dependent-module", attributes);

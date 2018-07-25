@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing.junit;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ public class JUnitOptions extends TestFrameworkOptions {
      * The set of categories to run.
      */
     @Incubating
+    @Input
     public Set<String> getIncludeCategories() {
         return includeCategories;
     }
@@ -63,6 +65,7 @@ public class JUnitOptions extends TestFrameworkOptions {
      * The set of categories to exclude.
      */
     @Incubating
+    @Input
     public Set<String> getExcludeCategories() {
         return excludeCategories;
     }

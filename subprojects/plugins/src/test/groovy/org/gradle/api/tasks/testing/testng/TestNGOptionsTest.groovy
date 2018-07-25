@@ -23,21 +23,21 @@ import org.junit.Test
 import static org.hamcrest.Matchers.hasItems
 import static org.junit.Assert.*
 
-public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTestFramework> {
+class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTestFramework> {
 
-    TestNGOptions testngOptions;
+    TestNGOptions testngOptions
 
     String[] groups = ['fast', 'unit']
 
-    @Before public void setUp()
-    {
+    @Before
+    void setUp() {
         super.setUp(TestNGTestFramework)
 
         testngOptions = new TestNGOptions(new File("projectDir"))
     }
 
-    @Test public void verifyDefaults()
-    {
+    @Test
+    void verifyDefaults() {
         assertNotNull(testngOptions.includeGroups)
         assertTrue(testngOptions.includeGroups.empty)
 
@@ -49,7 +49,7 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
 
         assertNull(testngOptions.parallel)
 
-        assertEquals(testngOptions.threadCount, 1)
+        assertEquals(testngOptions.threadCount, -1)
 
         assertEquals('Gradle suite', testngOptions.suiteName)
 
@@ -62,27 +62,27 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
         assertFalse(testngOptions.groupByInstances)
     }
 
-    @Test public void testIncludeGroups()
-    {
-        assertTrue(testngOptions.excludeGroups.empty);
-        assertTrue(testngOptions.includeGroups.empty);
+    @Test
+    void testIncludeGroups() {
+        assertTrue(testngOptions.excludeGroups.empty)
+        assertTrue(testngOptions.includeGroups.empty)
 
-        testngOptions.includeGroups(groups);
+        testngOptions.includeGroups(groups)
 
         assertFalse(testngOptions.includeGroups.empty)
         assertThat(testngOptions.includeGroups, hasItems(groups))
-        assertTrue(testngOptions.excludeGroups.empty);
+        assertTrue(testngOptions.excludeGroups.empty)
     }
 
-    @Test public void testExcludeGroups()
-    {
-        assertTrue(testngOptions.excludeGroups.empty);
-        assertTrue(testngOptions.includeGroups.empty);
+    @Test
+    void testExcludeGroups() {
+        assertTrue(testngOptions.excludeGroups.empty)
+        assertTrue(testngOptions.includeGroups.empty)
 
         testngOptions.excludeGroups(groups)
 
         assertFalse(testngOptions.excludeGroups.empty)
         assertThat(testngOptions.excludeGroups, hasItems(groups))
-        assertTrue(testngOptions.includeGroups.empty);
+        assertTrue(testngOptions.includeGroups.empty)
     }
 }

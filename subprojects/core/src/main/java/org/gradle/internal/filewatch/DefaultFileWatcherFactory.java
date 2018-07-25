@@ -37,7 +37,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
     private FileWatcherFactory fileWatcherFactory;
 
     public DefaultFileWatcherFactory(ExecutorFactory executorFactory, FileSystem fileSystem) {
-        this.executor = executorFactory.create("filewatcher");
+        this.executor = executorFactory.create("File watcher");
         this.fileSystem = fileSystem;
     }
 

@@ -58,7 +58,7 @@ public class AntGroovydoc {
             final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
 
         final File tmpDir = new File(project.getBuildDir(), "tmp/groovydoc");
-        FileOperations fileOperations = (ProjectInternal) project;
+        FileOperations fileOperations = ((ProjectInternal) project).getFileOperations();
         fileOperations.delete(tmpDir);
         fileOperations.copy(new Action<CopySpec>() {
             public void execute(CopySpec copySpec) {

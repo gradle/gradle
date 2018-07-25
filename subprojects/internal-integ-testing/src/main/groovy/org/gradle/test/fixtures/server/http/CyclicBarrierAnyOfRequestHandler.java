@@ -42,7 +42,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;
-    private AssertionError failure;
+    protected AssertionError failure;
 
     CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         if (expectedRequests.size() < maxConcurrent) {
@@ -158,7 +158,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
 
     @Override
     public void release(String path) {
-        path = new SendFixedContent(path).getPath();
+        path = new ExpectGetAndSendFixedContent(path).getPath();
         lock.lock();
         try {
             if (!received.contains(path)) {
@@ -183,6 +183,15 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
             if (!expected.isEmpty()) {
                 throw new IllegalStateException("Expected requests not received, should wait for pending calls first.");
             }
+            doReleaseAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    protected void doReleaseAll() {
+        lock.lock();
+        try {
             int count = 0;
             for (String path : received) {
                 if (!released.contains(path)) {

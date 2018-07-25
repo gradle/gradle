@@ -41,6 +41,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 
 /**
@@ -83,7 +84,7 @@ public class BasicGlobalScopeServices {
         return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
-    DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {
+    ExecFactory createExecFactory(FileResolver fileResolver) {
         return new DefaultExecActionFactory(fileResolver);
     }
 

@@ -17,8 +17,10 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 
 /**
  * Allows the build to provide rules that modify the metadata of depended-on software components.
@@ -101,6 +103,28 @@ public interface ComponentMetadataHandler {
     ComponentMetadataHandler all(Object ruleSource);
 
     /**
+     * Adds a class based rule that may modify the metadata of any resolved software component.
+     *
+     * @param rule the rule to be added
+     * @return this
+     *
+     * @since 4.9
+     */
+    ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule);
+
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component.
+     * The rule itself is configured by the provided configure action.
+     *
+     * @param rule the rule to be added
+     * @param configureAction the rule configuration
+     * @return this
+     *
+     * @since 4.9
+     */
+    ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
+
+    /**
      * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
@@ -131,4 +155,25 @@ public interface ComponentMetadataHandler {
      */
     ComponentMetadataHandler withModule(Object id, Object ruleSource);
 
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param rule the rule to be added
+     * @return this
+     *
+     * @since 4.9
+     */
+    ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule);
+
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param rule the rule to be added
+     * @return this
+     *
+     * @since 4.9
+     */
+    ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 }

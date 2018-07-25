@@ -15,17 +15,15 @@
  */
 package org.gradle.ide.visualstudio
 
-import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-class NativeIdeSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
@@ -37,15 +35,40 @@ class NativeIdeSamplesIntegrationTest extends AbstractInstalledToolChainIntegrat
         sample visualStudio
 
         when:
-        run "mainVisualStudio"
+        run "visualStudio"
 
         then:
-        final solutionFile = new SolutionFile(visualStudio.dir.file("vs/mainExe.sln"))
-        solutionFile.assertHasProjects("mainExe", "helloDll")
+        final solutionFile = solutionFile(visualStudio.dir.file("vs/visual-studio.sln"))
+        solutionFile.assertHasProjects("mainExe", "helloDll", "helloLib")
         solutionFile.content.contains "GlobalSection(SolutionNotes) = postSolution"
-        solutionFile.content.contains "Text2 = The projects in this solution are [mainExe, helloDll]."
+        solutionFile.content.contains "Text2 = The projects in this solution are [helloDll, helloLib, mainExe]."
 
-        final projectFile = new ProjectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
-        projectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
+        final dllProjectFile = projectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
+        dllProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
+
+        final libProjectFile = projectFile(visualStudio.dir.file("vs/helloLib.vcxproj"))
+        libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "build generated visual studio solution"() {
+        useMsbuildTool()
+
+        given:
+        sample visualStudio
+        run "visualStudio"
+
+        when:
+        def resultDebug = msbuild
+            .withWorkingDir(visualStudio.dir)
+            .withSolution(solutionFile(visualStudio.dir.file("vs/visual-studio.sln")))
+            .withConfiguration("debug")
+            .withProject("mainExe")
+            .succeeds()
+
+        then:
+        resultDebug.size() == 1
+        resultDebug[0].assertTasksExecuted(':compileMainExecutableMainCpp', ':linkMainExecutable', ':mainExecutable', ':installMainExecutable', ':compileHelloSharedLibraryHelloCpp', ':linkHelloSharedLibrary', ':helloSharedLibrary')
+        installation(visualStudio.dir.file('build/install/main')).assertInstalled()
     }
 }

@@ -60,7 +60,7 @@ public class WbResource implements WbModuleEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
         attributes.put("deploy-path", deployPath);
         attributes.put("source-path", sourcePath);
         node.appendNode("wb-resource", attributes);

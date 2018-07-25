@@ -35,7 +35,7 @@ class SourceTaskTest extends AbstractTaskTest {
         file2.createNewFile()
 
         task.source = file1
-        task.source = task.source + project.files(file2)
+        task.source = task.source + project.layout.files(file2)
 
         expect:
         task.source.asList() == [file1, file2]

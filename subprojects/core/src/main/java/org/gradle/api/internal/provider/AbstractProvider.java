@@ -17,8 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-
-import javax.annotation.Nullable;
+import org.gradle.util.GUtil;
 
 import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 
@@ -35,9 +34,8 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
         return evaluatedValue;
     }
 
-    @Nullable
     @Override
-    public T getOrElse(@Nullable T defaultValue) {
+    public T getOrElse(T defaultValue) {
         T value = getOrNull();
         if (value != null) {
             return value;
@@ -57,7 +55,7 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
 
     @Override
     public String toString() {
-        return String.format("value: %s", getOrNull());
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        return String.format("provider(%s)", GUtil.elvis(getType(), "?"));
     }
-
 }

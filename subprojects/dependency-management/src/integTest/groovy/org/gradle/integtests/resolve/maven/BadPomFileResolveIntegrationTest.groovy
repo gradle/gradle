@@ -131,8 +131,8 @@ task showBroken { doLast { println configurations.compile.files } }
                 .assertHasCause("Could not parse POM ${child.pom.uri}")
                 .assertHasCause("""Could not find org:parent:1.0.
 Searched in the following locations:
-    ${parent.pom.uri}
-    ${parent.artifact.uri}""")
+  - ${parent.pom.uri}
+  - ${parent.artifact.uri}""")
     }
 
     def "reports parent POM that cannot be parsed"() {
@@ -198,5 +198,41 @@ task showBroken { doLast { println configurations.compile.files } }
 
         where:
         attribute << ["groupId", "artifactId"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3065")
+    def "handles broken packaging type gracefully"() {
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task resolve { doLast { configurations.compile.resolve() } }
+"""
+
+        and:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+        module.pomFile.text = """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group</groupId>
+    <artifactId>projectA</artifactId>
+    <version>1.2</version>
+    <packaging>\${package.type}</packaging>
+</project>
+"""
+
+        when:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        then:
+        succeeds("resolve")
     }
 }

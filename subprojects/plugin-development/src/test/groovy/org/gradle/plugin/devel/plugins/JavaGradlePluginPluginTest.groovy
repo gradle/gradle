@@ -20,10 +20,8 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
@@ -175,31 +173,6 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         }
     }
 
-    def "apply configures filesMatching actions on jar spec"() {
-        setup:
-        project.pluginManager.apply(JavaPlugin)
-        def Jar mockJarTask = mockJar(project)
-
-        when:
-        project.pluginManager.apply(JavaGradlePluginPlugin)
-
-        then:
-        1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.PLUGIN_DESCRIPTOR_PATTERN, { it instanceof JavaGradlePluginPlugin.PluginDescriptorCollectorAction })
-        1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.CLASSES_PATTERN, { it instanceof JavaGradlePluginPlugin.ClassManifestCollectorAction })
-    }
-
-    def "apply configures doLast action on jar"() {
-        setup:
-        project.pluginManager.apply(JavaPlugin)
-        def Jar mockJarTask = mockJar(project)
-
-        when:
-        project.pluginManager.apply(JavaGradlePluginPlugin)
-
-        then:
-        1 * mockJarTask.appendParallelSafeAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction })
-    }
-
     def "creates tasks with group and description"() {
         when:
         project.pluginManager.apply(JavaGradlePluginPlugin)
@@ -216,16 +189,6 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         def validateTaskProperties = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_NAME)
         validateTaskProperties.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
         validateTaskProperties.description == JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION
-    }
-
-    def Jar mockJar(project) {
-        def Jar mockJar = Mock(Jar) {
-            _ * getName() >> { JavaGradlePluginPlugin.JAR_TASK }
-            _ * getConventionMapping() >> { Stub(ConventionMapping) }
-        }
-        project.tasks.remove(project.tasks.getByName(JavaGradlePluginPlugin.JAR_TASK))
-        project.tasks.add(mockJar)
-        return mockJar
     }
 
     static class ResettableOutputEventListener implements OutputEventListener {

@@ -32,7 +32,7 @@ public interface LocalConfigurationMetadata extends ConfigurationMetadata {
     List<? extends LocalOriginDependencyMetadata> getDependencies();
 
     @Override
-    Set<? extends LocalComponentArtifactMetadata> getArtifacts();
+    List<? extends LocalComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.

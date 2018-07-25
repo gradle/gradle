@@ -16,15 +16,11 @@
 
 package org.gradle.caching.configuration;
 
-import org.gradle.api.Incubating;
-
-
 /**
  * Configuration object for a build cache.
  *
  * @since 3.5
  */
-@Incubating
 public interface BuildCache {
 
     /**
@@ -33,17 +29,17 @@ public interface BuildCache {
     boolean isEnabled();
 
     /**
-     * Enables or disables the build cache service.
+     * Sets whether the build cache is enabled.
      */
     void setEnabled(boolean enabled);
 
     /**
-     * Returns whether pushing to the build cache is enabled.
+     * Returns whether a given build can store outputs in the build cache.
      */
     boolean isPush();
 
     /**
-     * Sets whether pushing to the build cache is enabled.
+     * Sets whether a given build can store outputs in the build cache.
      */
     void setPush(boolean enabled);
 }

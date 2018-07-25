@@ -47,6 +47,7 @@ import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("deprecation")
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
 
@@ -89,7 +90,7 @@ public class S3Client {
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
             amazonS3Client.setEndpoint(endpoint.get().toString());
-            clientOptionsBuilder.setPathStyleAccess(true);
+            clientOptionsBuilder.setPathStyleAccess(true).disableChunkedEncoding();
         }
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
     }
@@ -100,7 +101,7 @@ public class S3Client {
                 Class.forName("javax.xml.bind.DatatypeConverter");
             } catch (ClassNotFoundException e) {
                 throw new GradleException("Cannot publish to S3 since the module 'java.xml.bind' is not available. "
-                    + "Please add \"-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'\" to your GRADLE_OPTS.");
+                    + "Please add \"--add-modules java.xml.bind '-Dorg.gradle.jvmargs=--add-modules java.xml.bind'\" to your GRADLE_OPTS.");
             }
         }
     }

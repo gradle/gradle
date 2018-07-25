@@ -17,10 +17,15 @@
 package org.gradle.process.internal;
 
 public interface ExecActionFactory {
-
-    // Instances returned should not be expected to be decorated.
-    // Use ProcessOperations to create DSL facing actions
+    /**
+     * Creates an {@link ExecAction} that is not decorated. Use this when the action is not made visible to the DSL.
+     * If you need to make the action visible to the DSL, use {@link DslExecActionFactory#newDecoratedExecAction()} instead.
+     */
     ExecAction newExecAction();
 
+    /**
+     * Creates a {@link JavaExecAction} that is not decorated. Use this when the action is not made visible to the DSL.
+     * If you need to make the action visible to the DSL, use {@link DslExecActionFactory#newDecoratedJavaExecAction()} instead.
+     */
     JavaExecAction newJavaExecAction();
 }

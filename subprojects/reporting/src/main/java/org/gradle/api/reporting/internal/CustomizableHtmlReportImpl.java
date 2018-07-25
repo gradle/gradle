@@ -20,6 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.resources.TextResource;
 
+import javax.annotation.Nullable;
+
 public class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHtmlReport {
 
     private TextResource stylesheet;
@@ -29,12 +31,13 @@ public class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport im
     }
 
     @Override
+    @Nullable
     public TextResource getStylesheet() {
         return stylesheet;
     }
 
     @Override
-    public void setStylesheet(TextResource stylesheet) {
+    public void setStylesheet(@Nullable TextResource stylesheet) {
         this.stylesheet = stylesheet;
     }
 

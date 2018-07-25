@@ -51,4 +51,9 @@ public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractP
     }
 
     protected abstract OUT map(BASE b, IN v);
+
+    @Override
+    public String toString() {
+        return String.format("combine(%s, %s)", base, provider);
+    }
 }

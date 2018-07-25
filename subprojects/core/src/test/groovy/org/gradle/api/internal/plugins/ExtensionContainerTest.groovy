@@ -244,13 +244,19 @@ class ExtensionContainerTest extends Specification {
         given:
         container.create Parent, 'foo', Child
         container.create Capability, 'bar', Impl
+        container.create 'boo', Child
         container.add new TypeOf<List<String>>() {}, 'baz', []
+        container.add "cat", new Thing("gizmo")
+        container.add "meo", container.instantiator.newInstance(Thing, "w")
 
         expect:
         container.schema == [ext: typeOf(ExtraPropertiesExtension),
                              foo: typeOf(Parent),
                              bar: typeOf(Capability),
-                             baz: new TypeOf<List<String>>() {}]
+                             boo: typeOf(Child),
+                             baz: new TypeOf<List<String>>() {},
+                             cat: typeOf(Thing),
+                             meo: typeOf(Thing)]
     }
 
     def "can configure extensions by name"() {

@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.Describable;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
-public interface ArtifactRepositoryInternal extends ArtifactRepository {
+public interface ArtifactRepositoryInternal extends ArtifactRepository, Describable {
 
     void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
 

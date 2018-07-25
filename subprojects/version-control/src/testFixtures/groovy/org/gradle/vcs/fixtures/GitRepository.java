@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,89 +16,25 @@
 
 package org.gradle.vcs.fixtures;
 
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.gradle.internal.UncheckedException;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.junit.rules.ExternalResource;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collection;
 
-public class GitRepository extends ExternalResource {
-    private final String repoName;
-    private final TestDirectoryProvider temporaryFolder;
-    private Git git;
+public interface GitRepository {
+    URI getUrl();
 
-    public GitRepository(String repoName, TestDirectoryProvider temporaryFolder) {
-        this.repoName = repoName;
-        this.temporaryFolder = temporaryFolder;
-    }
+    Ref createBranch(String branchName) throws GitAPIException;
 
-    public GitRepository(TestDirectoryProvider temporaryFolder) {
-        this("repo", temporaryFolder);
-    }
+    Ref checkout(String branchName) throws GitAPIException;
 
-    @Override
-    protected void before() throws Throwable {
-        git = Git.init().setDirectory(temporaryFolder.getTestDirectory().file(repoName)).call();
-    }
+    Ref createLightWeightTag(String tagName) throws GitAPIException;
 
-    @Override
-    protected void after() {
-        git.close();
-    }
+    TestFile getWorkTree();
 
-    public RevCommit commit(String message, Collection<File> files) throws GitAPIException {
-        AddCommand add = git.add();
-        for (File file : files) {
-            add.addFilepattern(relativePath(file));
-        }
-        add.call();
-        return git.commit().setMessage(message).call();
-    }
+    TestFile file(Object... path);
 
-    public RevCommit commit(String message, File... files) throws GitAPIException {
-        return commit(message, Arrays.asList(files));
-    }
-
-    public Ref createBranch(String branchName) throws GitAPIException {
-        return git.branchCreate().setName(branchName).call();
-    }
-
-    public Ref createLightWeightTag(String tagName) throws GitAPIException {
-        return git.tag().setName(tagName).call();
-    }
-
-    public Ref createAnnotatedTag(String tagName, String message) throws GitAPIException {
-        return git.tag().setName(tagName).setAnnotated(true).setMessage(message).call();
-    }
-
-    public Ref getHead() throws IOException {
-        return git.getRepository().findRef("HEAD");
-    }
-
-    public TestFile getWorkTree() {
-        return new TestFile(git.getRepository().getWorkTree());
-    }
-
-    public URI getUrl() throws URISyntaxException {
-        return getWorkTree().toURI();
-    }
-
-    private String relativePath(File file) {
-        try {
-            return getUrl().relativize(file.toURI()).toString();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
+    RevCommit commit(String message) throws GitAPIException;
 }

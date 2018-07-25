@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -25,29 +26,32 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFileVar;
-import org.gradle.api.internal.file.TaskFileVarFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
+import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -58,6 +62,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -87,15 +92,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
 
+    private final TaskIdentity<?> identity;
+
     private final ProjectInternal project;
 
-    private final String name;
-
     private List<ContextAwareTaskAction> actions;
-
-    private Path path;
-
-    private Path identityPath;
 
     private boolean enabled = true;
 
@@ -121,6 +122,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
+    private Logger logger = BUILD_LOGGER;
+
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
     private boolean impliesSubProjects;
@@ -129,10 +132,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
-    private final Class<? extends Task> publicType;
+    private final TaskLocalStateInternal taskLocalState;
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
+    private final PropertySpecFactory specFactory;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -147,32 +151,37 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the DSL.", getClass().getName()));
         }
 
+        this.identity = taskInfo.identity;
         this.project = taskInfo.project;
-        this.name = taskInfo.name;
-        this.publicType = taskInfo.publicType;
         assert project != null;
-        assert name != null;
+        assert identity.name != null;
         state = new TaskStateInternal();
         TaskContainerInternal tasks = project.getTasks();
-        dependencies = new DefaultTaskDependency(tasks);
         mustRunAfter = new DefaultTaskDependency(tasks);
         finalizedBy = new DefaultTaskDependency(tasks);
         shouldRunAfter = new DefaultTaskDependency(tasks);
         services = project.getServices();
+
+        FileResolver fileResolver = project.getFileResolver();
+        PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
-        taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
-        taskDestroyables = new DefaultTaskDestroyables(project.getFileResolver(), this, taskMutator);
+        specFactory = new DefaultPropertySpecFactory(this, fileResolver);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, specFactory);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, specFactory);
+        taskDestroyables = new DefaultTaskDestroyables(taskMutator);
+        taskLocalState = new DefaultTaskLocalState(taskMutator);
+
+        dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
     }
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, publicType, services.get(Instantiator.class));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(Instantiator.class));
         }
     }
 
-    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
-        NEXT_INSTANCE.set(new TaskInfo(project, name, publicType));
+    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, TaskIdentity<T> identity, Callable<T> factory) {
+        NEXT_INSTANCE.set(new TaskInfo(identity, project));
         try {
             return uncheckedCall(factory);
         } finally {
@@ -197,7 +206,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public String getName() {
-        return name;
+        return identity.name;
+    }
+
+    @Override
+    public TaskIdentity<?> getTaskIdentity() {
+        return identity;
     }
 
     @Override
@@ -216,9 +230,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<ContextAwareTaskAction> getTaskActions() {
         if (actions == null) {
-            actions = new ArrayList<ContextAwareTaskAction>();
+            actions = new ArrayList<ContextAwareTaskAction>(3);
         }
         return actions;
+    }
+
+    @Override
+    public boolean hasTaskActions() {
+        return actions != null && !actions.isEmpty();
     }
 
     @Override
@@ -240,7 +259,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Set<Object> getDependsOn() {
-        return dependencies.getValues();
+        return dependencies.getMutableValues();
     }
 
     @Override
@@ -342,22 +361,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public String getPath() {
-        if (path == null) {
-            path = project.getProjectPath().child(name);
-        }
-        return path.getPath();
+        return identity.projectPath.toString();
     }
 
     @Override
     public Path getIdentityPath() {
-        if (identityPath == null) {
-            identityPath = project.getIdentityPath().child(name);
-        }
-        return identityPath;
+        return identity.identityPath;
     }
 
     @Override
     public Task deleteAllActions() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.deleteAllActions()");
         taskMutator.mutate("Task.deleteAllActions()",
             new Runnable() {
                 public void run() {
@@ -469,7 +483,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Logger getLogger() {
-        return BUILD_LOGGER;
+        return logger;
     }
 
     @Override
@@ -478,6 +492,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
         return loggingManager;
+    }
+
+    @Override
+    public void replaceLogger(Logger logger) {
+        this.logger = logger;
     }
 
     @Override
@@ -557,6 +576,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return taskDestroyables;
     }
 
+    @Override
+    public TaskLocalState getLocalState() {
+        return taskLocalState;
+    }
+
     @Internal
     protected ServiceRegistry getServices() {
         return services;
@@ -606,7 +630,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task leftShift(final Closure action) {
-        DeprecationLogger.nagUserWith("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.leftShift(Closure)", "Please use Task.doLast(Action) instead.");
 
         hasCustomActions = true;
         if (action == null) {
@@ -668,14 +692,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static class TaskInfo {
+        private final TaskIdentity<?> identity;
         private final ProjectInternal project;
-        private final Class<? extends Task> publicType;
-        private final String name;
 
-        private TaskInfo(ProjectInternal project, String name, Class<? extends Task> publicType) {
-            this.name = name;
+        private TaskInfo(TaskIdentity<?> identity, ProjectInternal project) {
+            this.identity = identity;
             this.project = project;
-            this.publicType = publicType;
         }
     }
 
@@ -980,49 +1002,5 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public boolean isHasCustomActions() {
         return hasCustomActions;
-    }
-
-    /**
-     * Creates a new output directory property for this task.
-     *
-     * @return The property.
-     * @since 4.1
-     */
-    @Incubating
-    protected DirectoryVar newOutputDirectory() {
-        return getServices().get(TaskFileVarFactory.class).newOutputDirectory(this);
-    }
-
-    /**
-     * Creates a new output file property for this task.
-     *
-     * @return The property.
-     * @since 4.1
-     */
-    @Incubating
-    protected RegularFileVar newOutputFile() {
-        return getServices().get(TaskFileVarFactory.class).newOutputFile(this);
-    }
-
-    /**
-     * Creates a new input file property for this task.
-     *
-     * @return The property.
-     * @since 4.1
-     */
-    @Incubating
-    protected RegularFileVar newInputFile() {
-        return getServices().get(TaskFileVarFactory.class).newInputFile(this);
-    }
-
-    /**
-     * Creates a new input directory property for this task.
-     *
-     * @return The property.
-     * @since 4.3
-     */
-    @Incubating
-    protected DirectoryVar newInputDirectory() {
-        return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
     }
 }

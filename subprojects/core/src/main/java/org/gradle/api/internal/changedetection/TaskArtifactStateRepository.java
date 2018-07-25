@@ -16,7 +16,8 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 
 public interface TaskArtifactStateRepository {
-    TaskArtifactState getStateFor(TaskInternal task);
+    TaskArtifactState getStateFor(TaskInternal task, TaskProperties taskProperties);
 }

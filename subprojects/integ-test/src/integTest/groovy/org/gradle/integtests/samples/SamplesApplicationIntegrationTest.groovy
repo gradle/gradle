@@ -16,37 +16,53 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+import spock.lang.Unroll
 
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'application')
 
-    def canRunTheApplicationUsingRunTask() {
-        when:
-        def result = executer.inDirectory(sample.dir).withTasks('run').run()
-
-        then:
-        result.output.contains('Greetings from the sample application.')
+    def setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
     }
 
+    def canRunTheApplicationUsingRunTask() {
+        when:
+        executer.inDirectory(sample.dir)
+        succeeds('run')
+
+        then:
+        outputContains('Greetings from the sample application.')
+    }
+
+    @Unroll
     def canBuildAndRunTheInstalledApplication() {
         when:
-        executer.inDirectory(sample.dir).withTasks('installDist').run()
+        appendExecutableDir(executableDir)
+        executer.inDirectory(sample.dir)
+        succeeds('installDist')
 
         then:
         def installDir = sample.dir.file('build/install/application')
         installDir.assertIsDir()
 
-        checkApplicationImage(installDir)
+        checkApplicationImage(installDir, executableDir)
+
+        where:
+        executableDir << ['bin', 'customBin']
     }
 
+    @Unroll
     def canBuildAndRunTheZippedDistribution() {
         when:
-        executer.inDirectory(sample.dir).withTasks('distZip').run()
+        appendExecutableDir(executableDir)
+        executer.inDirectory(sample.dir)
+        succeeds('distZip')
 
         then:
         def distFile = sample.dir.file('build/distributions/application-1.0.2.zip')
@@ -55,12 +71,21 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
         def installDir = sample.dir.file('unzip')
         distFile.usingNativeTools().unzipTo(installDir)
 
-        checkApplicationImage(installDir.file('application-1.0.2'))
+        checkApplicationImage(installDir.file('application-1.0.2'), executableDir)
+
+        where:
+        executableDir << ['bin', 'customBin']
     }
 
-    private void checkApplicationImage(TestFile installDir) {
-        installDir.file('bin/application').assertIsFile()
-        installDir.file('bin/application.bat').assertIsFile()
+    private void appendExecutableDir(String executableDir) {
+        sample.dir.file('build.gradle') << """
+executableDir = '${executableDir}' 
+"""
+    }
+
+    private void checkApplicationImage(TestFile installDir, String executableDir) {
+        installDir.file("${executableDir}/application").assertIsFile()
+        installDir.file("${executableDir}/application.bat").assertIsFile()
         installDir.file('lib/application-1.0.2.jar').assertIsFile()
         installDir.file('lib/commons-collections-3.2.2.jar').assertIsFile()
 
@@ -68,7 +93,7 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
         installDir.file('docs/readme.txt').assertIsFile()
 
         def builder = new ScriptExecuter()
-        builder.workingDir installDir.file('bin')
+        builder.workingDir installDir.file(executableDir)
         builder.executable 'application'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()

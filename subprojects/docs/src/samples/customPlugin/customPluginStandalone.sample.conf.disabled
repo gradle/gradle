@@ -1,0 +1,9 @@
+commands: [{
+    executable: gradle
+    execution-subdirectory: plugin
+    args: publish
+}, {
+    executable: gradle
+    execution-subdirectory: consumer
+    args: hello
+}]

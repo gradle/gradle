@@ -16,26 +16,29 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 public class ProjectDependencyBuilder {
-    private final LocalComponentRegistry localComponentRegistry;
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public ProjectDependencyBuilder(LocalComponentRegistry localComponentRegistry) {
-        this.localComponentRegistry = localComponentRegistry;
+    public ProjectDependencyBuilder(IdeArtifactRegistry ideArtifactRegistry) {
+        this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
-    public ProjectDependency build(IdeProjectDependency dependency) {
-        return buildProjectDependency(determineTargetProjectPath(dependency));
+    public ProjectDependency build(ProjectComponentIdentifier id) {
+        return buildProjectDependency(determineTargetProjectPath(id));
     }
 
-    private String determineTargetProjectPath(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(dependency.getProjectId(), "eclipse.project");
-        String targetProjectName = eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
-        return "/" + targetProjectName;
+    private String determineTargetProjectPath(ProjectComponentIdentifier id) {
+        return "/" + determineTargetProjectName(id);
+    }
+
+    public String determineTargetProjectName(ProjectComponentIdentifier id) {
+        EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeProject(EclipseProjectMetadata.class, id);
+        return eclipseProject == null ? id.getProjectName() : eclipseProject.getName();
     }
 
     private ProjectDependency buildProjectDependency(String path) {

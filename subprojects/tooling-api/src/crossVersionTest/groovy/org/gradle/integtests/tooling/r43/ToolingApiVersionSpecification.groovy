@@ -22,7 +22,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
-    def outputStream = new ByteArrayOutputStream()
+    def outputStream
 
     String providerDeprecationMessage(String version) {
         return "Support for builds using Gradle older than 2.6 was deprecated and will be removed in 5.0. You are currently using Gradle version ${version}. You should upgrade your Gradle build to use Gradle 2.6 or later."
@@ -30,6 +30,10 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
 
     String consumerDeprecationMessage(String version) {
         return "Support for clients using a tooling API version older than 3.0 was deprecated and will be removed in Gradle 5.0. You are currently using tooling API version ${version}. You should upgrade your tooling API client to version 3.0 or later"
+    }
+
+    def setup() {
+        outputStream = new ByteArrayOutputStream()
     }
 
     def getOutput() {

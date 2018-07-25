@@ -15,152 +15,118 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
-import org.gradle.nativeplatform.toolchain.Clang;
-import org.gradle.nativeplatform.toolchain.Gcc;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
+@NonNullApi
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
-    private static final Logger LOGGER = Logging.getLogger(IncrementalNativeCompiler.class);
+    private final Logger logger = Logging.getLogger(IncrementalNativeCompiler.class);
+
     private final Compiler<T> delegateCompiler;
-    private final boolean importsAreIncludes;
-    private final TaskInternal task;
-    private final FileHasher hasher;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final CompilationStateCacheFactory compilationStateCacheFactory;
+    private final TaskOutputsInternal outputs;
+    private final PersistentStateCache<CompilationState> compileStateCache;
+    private final IncrementalCompilation incrementalCompilation;
 
-    private final CSourceParser sourceParser = new RegexBackedCSourceParser();
-
-    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this.task = task;
-        this.hasher = hasher;
-        this.compilationStateCacheFactory = compilationStateCacheFactory;
+    public IncrementalNativeCompiler(TaskOutputsInternal outputs, Compiler<T> delegateCompiler, PersistentStateCache<CompilationState> compileStateCache, IncrementalCompilation incrementalCompilation) {
+        this.outputs = outputs;
         this.delegateCompiler = delegateCompiler;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
+        this.compileStateCache = compileStateCache;
+        this.incrementalCompilation = incrementalCompilation;
     }
 
     @Override
     public WorkResult execute(final T spec) {
-        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
-        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-        IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
-        IncrementalCompilation compilation = processor.processSourceFiles(spec.getSourceFiles());
-
-        spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
-
-        handleDiscoveredInputs(spec, compilation, spec.getDiscoveredInputRecorder());
-
         WorkResult workResult;
         if (spec.isIncrementalCompile()) {
-            workResult = doIncrementalCompile(compilation, spec);
+            workResult = doIncrementalCompile(incrementalCompilation, spec);
         } else {
             workResult = doCleanIncrementalCompile(spec);
         }
 
-        compileStateCache.set(compilation.getFinalState());
+        compileStateCache.set(incrementalCompilation.getFinalState());
 
         return workResult;
     }
 
-    protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final DiscoveredInputRecorder discoveredInputRecorder) {
-        for (File includeFile : compilation.getDiscoveredInputs()) {
-            discoveredInputRecorder.newInput(includeFile);
+    private List<File> getSourceFilesForPch(T spec) {
+        // When the component defines a precompiled header, we need to check if the precompiled header is the _first_ header in the source file.
+        // For source files that do not include the precompiled header as the first file, we emit a warning
+        // For source files that do include the precompiled header, we mark them as a "source file for pch"
+        // The native compiler then adds the appropriate compiler arguments for those source files that can use PCH
+        if (spec.getPreCompiledHeader() != null) {
+            ImmutableList.Builder<File> sourceFiles = ImmutableList.builder();
+            for (File sourceFile : spec.getSourceFiles()) {
+                SourceFileState state = incrementalCompilation.getFinalState().getState(sourceFile);
+                final HashCode hash = state.getHash();
+                List<String> headers = Lists.newArrayList();
+                for (IncludeFileEdge edge : state.getEdges()) {
+                    if (hash.equals(edge.getIncludedBy())) {
+                        headers.add(edge.getIncludePath());
+                    }
+                }
+                String header = spec.getPreCompiledHeader();
+                boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0));
+                if (usePCH) {
+                    sourceFiles.add(sourceFile);
+                } else {
+                    boolean containsHeader = headers.contains(header);
+                    if (containsHeader) {
+                        logger.log(LogLevel.WARN, getCantUsePCHMessage(spec.getPreCompiledHeader(), sourceFile));
+                    }
+                }
+            }
+            return sourceFiles.build();
         }
 
-        if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
-            LOGGER.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", task.getName());
-            for (final File includeRoot : spec.getIncludeRoots()) {
-                LOGGER.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
-                directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        discoveredInputRecorder.newInput(fileDetails.getFile());
-                    }
-                });
-            }
-        }
+        return Collections.emptyList();
     }
 
-    private Map<File, IncludeDirectives> mapIncludes(Collection<File> files, final CompilationState compilationState) {
-        return CollectionUtils.collectMapValues(files, new Transformer<IncludeDirectives, File>() {
-            @Override
-            public IncludeDirectives transform(File file) {
-                return compilationState.getState(file).getIncludeDirectives();
-            }
-        });
-    }
-
-    private boolean sourceFilesUseMacroIncludes(Collection<File> files, final CompilationState compilationState) {
-        // If we couldn't determine all dependencies of some files due to macros, we have to scan all include directories.
-        return CollectionUtils.any(files, new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                // If a macro was used for any #includes
-                return CollectionUtils.any(compilationState.getState(file).getResolvedIncludes(), new Spec<ResolvedInclude>() {
-                    @Override
-                    public boolean isSatisfiedBy(ResolvedInclude element) {
-                        // Using macro
-                        return element.isMaybeMacro();
-                    }
-                });
-            }
-        });
+    private static String getCantUsePCHMessage(String pchHeader, File sourceFile) {
+        return "The source file "
+            .concat(sourceFile.getName())
+            .concat(" includes the header ")
+            .concat(pchHeader)
+            .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
     }
 
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {
         // Determine the actual sources to clean/compile
         spec.setSourceFiles(compilation.getRecompile());
         spec.setRemovedSourceFiles(compilation.getRemoved());
+        spec.setSourceFilesForPch(getSourceFilesForPch(spec));
         return delegateCompiler.execute(spec);
     }
 
     protected WorkResult doCleanIncrementalCompile(T spec) {
         boolean deleted = cleanPreviousOutputs(spec);
+        spec.setSourceFilesForPch(getSourceFilesForPch(spec));
         WorkResult compileResult = delegateCompiler.execute(spec);
         if (deleted && !compileResult.getDidWork()) {
-            return WorkResults.didWork(deleted);
+            return WorkResults.didWork(true);
         }
         return compileResult;
     }
 
     private boolean cleanPreviousOutputs(NativeCompileSpec spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getTask().getOutputs());
-        cleaner.setDestinationDir(spec.getObjectFileDir());
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs);
+        cleaner.addDirToClean(spec.getObjectFileDir());
         cleaner.execute();
         return cleaner.getDidWork();
-    }
-
-    protected TaskInternal getTask() {
-        return task;
-    }
-
-    private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
-        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
-
-        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, hasher);
     }
 }

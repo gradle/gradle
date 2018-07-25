@@ -26,6 +26,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.ExecSpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -34,17 +35,17 @@ import java.util.List;
  * Provides the core Javadoc options.
  */
 public interface MinimalJavadocOptions {
-    @Input @Optional
+    @Nullable @Optional @Input
     String getOverview();
 
-    void setOverview(String overview);
+    void setOverview(@Nullable String overview);
 
     MinimalJavadocOptions overview(String overview);
 
-    @Input @Optional
+    @Nullable @Optional @Input
     JavadocMemberLevel getMemberLevel();
 
-    void setMemberLevel(JavadocMemberLevel memberLevel);
+    void setMemberLevel(@Nullable JavadocMemberLevel memberLevel);
 
     MinimalJavadocOptions showFromPublic();
 
@@ -56,10 +57,10 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions showAll();
 
-    @Input @Optional
+    @Nullable @Optional @Input
     String getDoclet();
 
-    void setDoclet(String docletClass);
+    void setDoclet(@Nullable String docletClass);
 
     MinimalJavadocOptions doclet(String docletClass);
 
@@ -70,10 +71,10 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions docletpath(File ... docletpath);
 
-    @Input @Optional
+    @Nullable @Optional @Input
     String getSource();
 
-    void setSource(String source);
+    void setSource(@Nullable String source);
 
     MinimalJavadocOptions source(String source);
 
@@ -93,10 +94,10 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions bootClasspath(File ... bootClasspath);
 
-    @Optional @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
+    @Nullable @Optional @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
     List<File> getExtDirs();
 
-    void setExtDirs(List<File> extDirs);
+    void setExtDirs(@Nullable List<File> extDirs);
 
     MinimalJavadocOptions extDirs(File ... extDirs);
 
@@ -121,61 +122,62 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions breakIterator();
 
-    @Input @Optional
+    @Nullable @Optional @Input
     String getLocale();
 
-    void setLocale(String locale);
+    void setLocale(@Nullable String locale);
 
     MinimalJavadocOptions locale(String locale);
 
-    @Input @Optional
+    @Nullable @Optional @Input
     String getEncoding();
 
-    void setEncoding(String encoding);
+    void setEncoding(@Nullable String encoding);
 
     MinimalJavadocOptions encoding(String encoding);
 
-    @Optional @Input
+    @Nullable @Optional @Input
     List<String> getJFlags();
 
-    void setJFlags(List<String> jFlags);
+    void setJFlags(@Nullable List<String> jFlags);
 
     MinimalJavadocOptions jFlags(String ... jFlags);
 
-    @Optional @PathSensitive(PathSensitivity.NONE) @InputFiles
+    @Nullable @Optional @PathSensitive(PathSensitivity.NONE) @InputFiles
     List<File> getOptionFiles();
 
-    void setOptionFiles(List<File> optionFiles);
+    void setOptionFiles(@Nullable List<File> optionFiles);
 
     MinimalJavadocOptions optionFiles(File ... argumentFiles);
 
     @Internal
     File getDestinationDirectory();
 
-    void setDestinationDirectory(File directory);
+    void setDestinationDirectory(@Nullable File directory);
 
     MinimalJavadocOptions destinationDirectory(File directory);
 
-    @Input @Optional
+    @Nullable @Optional @Input
     String getWindowTitle();
 
-    void setWindowTitle(String windowTitle);
+    void setWindowTitle(@Nullable String windowTitle);
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
-    @Input @Optional
+    @Nullable @Optional @Input
     String getHeader();
 
-    void setHeader(String header);
+    void setHeader(@Nullable String header);
 
     StandardJavadocDocletOptions header(String header);
 
     void write(File outputFile) throws IOException;
 
+    @Nullable
     @Internal
     List<String> getSourceNames();
 
-    void setSourceNames(List<String> sourceNames);
+    void setSourceNames(@Nullable List<String> sourceNames);
 
     MinimalJavadocOptions sourceNames(String ... sourceNames);
 

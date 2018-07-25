@@ -52,6 +52,7 @@ class DefaultGradleRunnerTest extends Specification {
         !runner.debug
         !runner.standardOutput
         !runner.standardError
+        !runner.standardInput
         0 * testKitDirProvider.getDir()
     }
 
@@ -326,6 +327,21 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
         1 * gradleExecutor.run({ it.standardError != null && it.standardOutput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
+    }
+
+    def "standard input is passed on to executor"() {
+        given:
+        def standardInput = new ByteArrayInputStream()
+        def gradleUserHomeDir = testDirectoryProvider.createDir('some/dir')
+
+        when:
+        createRunnerWithWorkingDirAndArgument()
+            .withStandardInput(standardInput)
+            .build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run({ it.standardInput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
     private DefaultGradleRunner createRunner() {

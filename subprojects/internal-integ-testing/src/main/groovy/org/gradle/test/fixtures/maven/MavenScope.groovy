@@ -21,13 +21,29 @@ package org.gradle.test.fixtures.maven
 import org.apache.commons.lang.StringUtils
 
 class MavenScope {
+    String name
     Map<String, MavenDependency> dependencies = [:]
+    Map<String, MavenDependency> dependencyManagement = [:]
 
     void assertDependsOn(String[] expected) {
         assert dependencies.size() == expected.length
         expected.each {
             String key = StringUtils.substringBefore(it, "@")
             def dependency = expectDependency(key)
+
+            String type = null
+            if (it != key) {
+                type = StringUtils.substringAfter(it, "@")
+            }
+            assert dependency.hasType(type)
+        }
+    }
+
+    void assertDependencyManagement(String[] expected) {
+        assert dependencyManagement.size() == expected.length
+        expected.each {
+            String key = StringUtils.substringBefore(it, "@")
+            def dependency = expectDependencyManagement(key)
 
             String type = null
             if (it != key) {
@@ -46,6 +62,14 @@ class MavenScope {
         final dependency = dependencies[key]
         if (dependency == null) {
             throw new AssertionError("Could not find expected dependency $key. Actual: ${dependencies.values()}")
+        }
+        return dependency
+    }
+
+    MavenDependency expectDependencyManagement(String key) {
+        final dependency = dependencyManagement[key]
+        if (dependency == null) {
+            throw new AssertionError("Could not find expected dependencyManagement $key. Actual: ${dependencyManagement.values()}")
         }
         return dependency
     }

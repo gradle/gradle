@@ -46,6 +46,12 @@ public class JavaScriptRepositoriesExtension {
             public void execute(MavenArtifactRepository repository) {
                 repository.setName("gradleJs");
                 repository.setUrl(GRADLE_PUBLIC_JAVASCRIPT_REPO_URL);
+                repository.metadataSources(new Action<MavenArtifactRepository.MetadataSources>() {
+                    @Override
+                    public void execute(MavenArtifactRepository.MetadataSources metadataSources) {
+                        metadataSources.artifact();
+                    }
+                });
                 action.execute(repository);
             }
         });
@@ -64,6 +70,12 @@ public class JavaScriptRepositoriesExtension {
                     public void execute(IvyPatternRepositoryLayout layout) {
                         layout.artifact("[organization]/[revision]/[module].[ext]");
                         layout.ivy("[organization]/[revision]/[module].xml");
+                    }
+                });
+                repo.metadataSources(new Action<IvyArtifactRepository.MetadataSources>() {
+                    @Override
+                    public void execute(IvyArtifactRepository.MetadataSources metadataSources) {
+                        metadataSources.artifact();
                     }
                 });
                 action.execute(repo);

@@ -22,6 +22,12 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Allows for comparison of Version instances.
+ * Note that this comparator only considers the 'parts' of a version, and does not consider the part 'separators'.
+ * This means that it considers `1.1.1 == 1-1-1 == 1.1-1`, and should not be used in cases where this is important.
+ * One example where this comparator is inappropriate is if versions should be retained in a TreeMap/TreeSet.
+ */
 class StaticVersionComparator implements Comparator<Version> {
     private static final Map<String, Integer> SPECIAL_MEANINGS =
             ImmutableMap.of("dev", -1, "rc", 1, "release", 2, "final", 3);
