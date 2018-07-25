@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.internal.id.UniqueId
+
 import org.gradle.kotlin.dsl.support.normalisedPathRelativeTo
 
 import java.io.DataInputStream
@@ -29,66 +31,112 @@ import java.util.zip.GZIPOutputStream
 
 
 internal
-fun pack(inputDir: File, outputStream: OutputStream): Long {
+data class PackMetadata(
+    val buildInvocationId: UniqueId,
+    val executionTimeMillis: Long
+)
 
-    var entryCount = 0L
+
+internal
+fun pack(inputDir: File, metadata: PackMetadata, outputStream: OutputStream): Long =
 
     DataOutputStream(GZIPOutputStream(outputStream)).useToRun {
 
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        writeInt(packFormatVersion)
+        packMetadata(metadata)
+        packFilesFrom(inputDir)
+    }
 
-        inputDir.walkTopDown().drop(1).forEach { file ->
 
-            val path = file.normalisedPathRelativeTo(inputDir)
-            val isFile = file.isFile
+private
+const val packFormatVersion = 1
 
-            writeUTF(path)
-            writeBoolean(isFile)
 
-            if (isFile) {
-                writeLong(file.length())
-                file.copyTo(this, buffer)
-            }
+internal
+fun unpack(inputStream: InputStream, outputDir: File): Pair<PackMetadata, Long> =
 
-            entryCount += 1
+    DataInputStream(GZIPInputStream(inputStream)).useToRun {
+
+        val packedVersion = readInt()
+        require(packedVersion == packFormatVersion) {
+            "Unsupported cache format version, expected version $packFormatVersion, got version $packedVersion."
         }
 
-        writeUTF("")
+        unpackMetadata() to unpackFilesTo(outputDir)
     }
+
+
+private
+fun DataOutputStream.packMetadata(metadata: PackMetadata) {
+    writeUTF(metadata.buildInvocationId.asString())
+    writeLong(metadata.executionTimeMillis)
+}
+
+
+private
+fun DataInputStream.unpackMetadata(): PackMetadata {
+    val buildInvocationId = UniqueId.from(readUTF())
+    val executionTimeMillis = readLong()
+    return PackMetadata(buildInvocationId, executionTimeMillis)
+}
+
+
+private
+fun DataOutputStream.packFilesFrom(inputDir: File): Long {
+
+    var entryCount = 0L
+
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+
+    inputDir.walkTopDown().drop(1).forEach { file ->
+
+        val path = file.normalisedPathRelativeTo(inputDir)
+        val isFile = file.isFile
+
+        writeUTF(path)
+        writeBoolean(isFile)
+
+        if (isFile) {
+            writeLong(file.length())
+            file.copyTo(this, buffer)
+        }
+
+        entryCount += 1
+    }
+
+    writeUTF("")
 
     return entryCount
 }
 
 
-internal
-fun unpack(inputStream: InputStream, outputDir: File): Long =
+private
+fun DataInputStream.unpackFilesTo(outputDir: File): Long {
 
-    DataInputStream(GZIPInputStream(inputStream)).useToRun {
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
 
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    var entryCount = 0L
 
-        var entryCount = 0L
+    while (true) {
 
-        while (true) {
+        val path = readUTF()
+        if (path.isEmpty()) break
 
-            val path = readUTF()
-            if (path.isEmpty()) break
+        val isFile = readBoolean()
 
-            val isFile = readBoolean()
-
-            val file = File(outputDir, path)
-            if (isFile) {
-                val length = readLong()
-                copyTo(file, length, buffer)
-            } else {
-                file.mkdir()
-            }
-
-            entryCount += 1
+        val file = File(outputDir, path)
+        if (isFile) {
+            val length = readLong()
+            copyTo(file, length, buffer)
+        } else {
+            file.mkdir()
         }
 
-        entryCount
+        entryCount += 1
     }
+
+    return entryCount
+}
 
 
 private

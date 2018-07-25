@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+import org.gradle.kotlin.dsl.fixtures.containsBuildScanPluginOutput
+
 import org.gradle.kotlin.dsl.integration.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
@@ -28,6 +30,30 @@ import java.io.File
 
 
 class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
+
+    @Test
+    fun `can publish build scan`() {
+
+        val buildCacheDir =
+            existing("build-cache")
+
+        withLocalBuildCacheSettings(buildCacheDir)
+
+        withBuildScript("""
+            plugins {
+                `build-scan`
+            }
+
+            buildScan {
+                setLicenseAgreementUrl("https://gradle.com/terms-of-service")
+                setLicenseAgree("yes")
+            }
+        """)
+
+        build("--scan", "--build-cache", withBuildCacheIntegration).apply {
+            assertThat(output, containsBuildScanPluginOutput())
+        }
+    }
 
     @LeaksFileHandles("on the separate Gradle homes")
     @Test
@@ -51,8 +77,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
         val cachedBuildFile =
             cachedBuildFile(buildFile, hasBody = true)
-
-        val withBuildCacheIntegration = "-Porg.gradle.kotlin.dsl.caching.buildcache=true"
 
         // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
         buildWithUniqueGradleHome("--build-cache", withBuildCacheIntegration).apply {
@@ -87,6 +111,9 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             assertThat(output, containsString(expectedOutput))
         }
     }
+
+    private
+    val withBuildCacheIntegration = "-Porg.gradle.kotlin.dsl.caching.buildcache=true"
 
     private
     fun withLocalBuildCacheSettings(buildCacheDir: File): File =
