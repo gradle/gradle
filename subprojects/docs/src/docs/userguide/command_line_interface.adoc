@@ -101,7 +101,7 @@ You can exclude a task from being executed using the `-x` or `--exclude-task` co
 .Example Task Graph
 image::commandLineTutorialTasks.png[]
 
-=== Example: Excluding tasks
+==== Example: Excluding tasks
 
 .Output of **`gradle dist --exclude-task test`**
 ----
@@ -141,7 +141,7 @@ When you specify tasks on the command-line, you don’t have to provide the full
 
 You can also abbreviate each word in a camel case task name. For example, you can execute task `compileTest` by running `gradle compTest` or even `gradle cT`.
 
-=== Example: Abbreviated camel case task name
+==== Example: Abbreviated camel case task name
 
 .Output of **`gradle cT`**
 ----
@@ -224,7 +224,7 @@ By default, this report shows only those tasks which have been assigned to a tas
 
 Running `gradle help --task someTask` gives you detailed information about a specific task.
 
-=== Example: Obtaining detailed help for tasks
+==== Example: Obtaining detailed help for tasks
 
 .Output of **`gradle -q help --task libs`**
 ----
@@ -277,7 +277,7 @@ Since a dependency report can get large, it can be useful to restrict the report
 
 Running `gradle properties` gives you a list of the properties of the selected project.
 
-=== Example: Information about properties
+==== Example: Information about properties
 
 .Output of `gradle -q api:properties`
 ----
