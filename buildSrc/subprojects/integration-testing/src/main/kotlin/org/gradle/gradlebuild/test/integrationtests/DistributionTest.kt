@@ -68,26 +68,33 @@ open class DistributionTest : Test() {
     }
 
     override fun executeTests() {
-        setTimeoutMonitor()
+        val timer = setTimeoutMonitor()
         super.executeTests()
+        timer?.cancel()
     }
 
     private
-    fun setTimeoutMonitor() {
-        Timer(true).schedule(timerTask {
-            project.javaexec {
-                classpath = project.getConfigurations().getByName("integTestRuntimeClasspath")
-                main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
+    fun setTimeoutMonitor(): Timer? {
+        return if (System.getenv().contains("CI")) {
+            Timer(true).also {
+                it.schedule(timerTask {
+                    project.javaexec {
+                        classpath = super<Test>.getClasspath()
+                        main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
+                    }
+                }, determineTimeoutMillis())
             }
-        }, determineTimeoutMillis())
+        } else {
+            null
+        }
     }
 
     private
     fun determineTimeoutMillis(): Long {
         return if ("embeded" == System.getProperty("org.gradle.integtest.executer")) {
-            TimeUnit.HOURS.toMillis(1) - TimeUnit.MINUTES.toMillis(1) // in case the build process killed by TC before it finishes
+            TimeUnit.MINUTES.toMillis(30)
         } else {
-            TimeUnit.HOURS.toMillis(3) - TimeUnit.MINUTES.toMillis(1)
+            TimeUnit.HOURS.toMillis(2)
         }
     }
 }
