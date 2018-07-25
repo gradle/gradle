@@ -814,16 +814,6 @@ a:focus {
     text-decoration: underline;
 }
 
-#content a {
-    font-style: italic;
-}
-
-#content a.link,
-#content a.anchor,
-#content a[href^='http'] {
-    font-style: normal;
-}
-
 #content a[href^='../dsl/'],
 #content a[href^='../javadoc/'] {
     font-family: monospace;
