@@ -228,6 +228,7 @@ The Scala plugin also modifies some source set properties:
 Scala compilation takes place in an external process.
 
 Memory settings for the external process default to the defaults of the JVM. To adjust memory settings, configure the `scalaCompileOptions.forkOptions` property as needed:
+
 === Example: Adjusting memory settings
 
 [source.multi-language-sample,groovy]
