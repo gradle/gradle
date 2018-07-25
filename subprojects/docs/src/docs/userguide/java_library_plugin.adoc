@@ -143,61 +143,61 @@ The role of each configuration is described in the following tables:
 |===
 | Configuration name | Role | Consumable? | Resolvable? | Description
 
-| api
+| `api`
 | Declaring API dependencies
 | no
 | no
 | This is where you should declare dependencies which are transitively exported to consumers, for compile.
 
-| implementation
+| `implementation`
 | Declaring implementation dependencies
 | no
 | no
 | This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers.
 
-| compileOnly
+| `compileOnly`
 | Declaring compile only dependencies
 | yes
 | yes
 | This is where you should declare dependencies which are only required at compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
-| runtimeOnly
+| `runtimeOnly`
 | Declaring runtime dependencies
 | no
 | no
 | This is where you should declare dependencies which are only required at runtime, and not at compile time.
 
-| testImplementation
+| `testImplementation`
 | Test dependencies
 | no
 | no
 | This is where you should declare dependencies which are used to compile tests.
 
-| testCompileOnly
+| `testCompileOnly`
 | Declaring test compile only dependencies
 | yes
 | yes
 | This is where you should declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
-| testRuntimeOnly
+| `testRuntimeOnly`
 | Declaring test runtime dependencies
 | no
 | no
 | This is where you should declare dependencies which are only required at test runtime, and not at test compile time.
 |===
 
-.Java Library plugin - configurations used by consumers
+.Java Library plugin — configurations used by consumers
 [%header%autowidth,compact]
 |===
 | Configuration name | Role | Consumable? | Resolvable? | Description
 
-| apiElements
+| `apiElements`
 | For compiling against this library
 | yes
 | no
 | This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against this library. Unlike the `default` configuration, this doesn't leak implementation or runtime dependencies.
 
-| runtimeElements
+| `runtimeElements`
 | For executing this library
 | yes
 | no
