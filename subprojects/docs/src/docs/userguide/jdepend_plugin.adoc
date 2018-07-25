@@ -76,4 +76,4 @@ The JDepend libraries to use
 [[sec:jdepend_configuration]]
 == Configuration
 
-See the link:{groovyDslPath}/org.gradle.api.plugins.quality.JDependExtension.html[JDependExtension] class in the API documentation.
+See the link:{groovyDslPath}/org.gradle.api.plugins.quality.()JDependExtension.html[JDependExtension] class in the API documentation.
