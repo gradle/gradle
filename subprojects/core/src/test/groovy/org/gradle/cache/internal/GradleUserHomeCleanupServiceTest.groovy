@@ -62,21 +62,6 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         currentDist.assertExists()
     }
 
-    def "skips cleanup of version-specific caches and distributions if gc.properties has recently been changed"() {
-        given:
-        def oldVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
-
-        when:
-        getGcFile(currentCacheDir).touch()
-        cleanupService.stop()
-
-        then:
-        oldCacheDir.assertExists()
-        oldDist.assertExists()
-    }
-
     @Override
     TestFile getGradleUserHomeDir() {
         return userHomeDir

@@ -21,6 +21,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -38,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache.FILE_HASHES_CACHE_KEY;
 
-public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction {
+public class VersionSpecificCacheCleanupAction implements Action<CleanupProgressMonitor>, Describable {
 
     @VisibleForTesting static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";
     private static final Logger LOGGER = Logging.getLogger(VersionSpecificCacheCleanupAction.class);
@@ -66,14 +68,12 @@ public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction
         return "Deleting unused version-specific caches in " + versionSpecificCacheDirectoryScanner.getBaseDir();
     }
 
-    public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
+    public void execute(@Nonnull CleanupProgressMonitor progressMonitor) {
         if (requiresCleanup()) {
             Timer timer = Time.startTimer();
             performCleanup(progressMonitor);
             LOGGER.debug("Processed version-specific caches at {} for cleanup in {}", versionSpecificCacheDirectoryScanner.getBaseDir(), timer.getElapsed());
-            return true;
         }
-        return false;
     }
 
     private boolean requiresCleanup() {

@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Describable;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -43,17 +46,15 @@ public class GradleUserHomeCleanupService implements Stoppable {
     @Override
     public void stop() {
         File cacheBaseDir = cacheScopeMapping.getRootDirectory(null);
-        boolean wasCleanedUp = execute(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS));
-        if (wasCleanedUp) {
-            File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
-            execute(new WrapperDistributionCleanupAction(gradleUserHomeDirectory, usedGradleVersions));
-        }
+        execute(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS));
+        File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
+        execute(new WrapperDistributionCleanupAction(gradleUserHomeDirectory, usedGradleVersions));
     }
 
-    private boolean execute(DirectoryCleanupAction action) {
+    private <T extends Action<CleanupProgressMonitor> & Describable> void execute(T action) {
         ProgressLogger progressLogger = startNewOperation(action.getClass(), action.getDisplayName());
         try {
-            return action.execute(new DefaultCleanupProgressMonitor(progressLogger));
+            action.execute(new DefaultCleanupProgressMonitor(progressLogger));
         } finally {
             progressLogger.completed();
         }

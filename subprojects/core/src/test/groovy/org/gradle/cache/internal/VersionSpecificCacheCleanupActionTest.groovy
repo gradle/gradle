@@ -50,10 +50,9 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
         def newerCacheDir = createVersionSpecificCacheDir(currentVersion.getNextMajor(), NOT_USED_WITHIN_30_DAYS)
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         4 * progressMonitor.incrementSkipped()
         2 * progressMonitor.incrementDeleted()
         ancientVersionWithoutMarkerFile.assertExists()
@@ -70,10 +69,9 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
         def dirWithUnparsableVersion = createCacheSubDir("42 foo")
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         1 * progressMonitor.incrementSkipped()
         0 * progressMonitor.incrementDeleted()
         sharedCacheDir.assertExists()
@@ -82,10 +80,9 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
 
     def "creates gc.properties file when it is missing"() {
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         getGcFile(currentCacheDir).assertExists()
     }
 
@@ -96,10 +93,9 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
         def originalLastModified = gcFile.lastModified()
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        !cleanedUp
         0 * progressMonitor._
         oldCacheDir.assertExists()
         gcFile.lastModified() == originalLastModified
@@ -113,72 +109,67 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
         gcFile.lastModified = originalLastModified
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         1 * progressMonitor.incrementSkipped()
         1 * progressMonitor.incrementDeleted()
         oldCacheDir.assertDoesNotExist()
         gcFile.lastModified() > originalLastModified
     }
 
-    def "deletes caches of snapshot versions not used within 7 days if there's a cache for a later release version with same base version"() {
+    def "cleans up caches of snapshot versions not used within 7 days if there's a cache for a later release version with same base version"() {
         given:
         def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
         def release = createVersionSpecificCacheDir(GradleVersion.version("4.8"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         2 * progressMonitor.incrementSkipped()
         1 * progressMonitor.incrementDeleted()
         snapshot.assertDoesNotExist()
         release.assertExists()
     }
 
-    def "deletes caches of snapshot versions not used within 7 days if there's a cache for a later snapshot version with same base version"() {
+    def "cleans up caches of snapshot versions not used within 7 days if there's a cache for a later snapshot version with same base version"() {
         given:
         def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
         def latestSnapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180507235951+0000"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         2 * progressMonitor.incrementSkipped()
         1 * progressMonitor.incrementDeleted()
         snapshot.assertDoesNotExist()
         latestSnapshot.assertExists()
     }
 
-    def "does not delete caches of snapshot versions not used within 7 days if there's no cache for a later version with same base version"() {
+    def "does not cleans up caches of snapshot versions not used within 7 days if there's no cache for a later version with same base version"() {
         given:
         def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         2 * progressMonitor.incrementSkipped()
         0 * progressMonitor.incrementDeleted()
         snapshot.assertExists()
     }
 
-    def "does not delete caches of recently used snapshot versions"() {
+    def "does not cleans up caches of recently used snapshot versions"() {
         given:
         def snapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180417000132+0000"), USED_TODAY)
         def latestSnapshot = createVersionSpecificCacheDir(GradleVersion.version("4.8-20180507235951+0000"), NOT_USED_WITHIN_7_DAYS)
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        cleanedUp
         3 * progressMonitor.incrementSkipped()
         0 * progressMonitor.incrementDeleted()
         snapshot.assertExists()
