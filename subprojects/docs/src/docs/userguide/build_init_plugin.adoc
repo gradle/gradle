@@ -177,7 +177,7 @@ It has the following features:
 
 
 [[sec:basic]]
-=== “basic”
+=== `basic`
 
 The “`basic`” build init type is useful for creating a fresh new Gradle project. It creates a sample `build.gradle` file, with comments and links to help get started.
 
