@@ -230,7 +230,7 @@ Embedding credentials in the `distributionUrl` in the `gradle/wrapper/gradle-wra
 distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
 ----
 
-This can be used in conjunction with a proxy, authenticated or not. See <<build_environment#sec:accessing_the_web_via_a_proxy,Accessing the web via a proxy>> for more information on how to configure the `Wrapper` to use a proxy.
+This can be used in conjunction with a proxy, authenticated or not. See <<build_environment.adoc#sec:accessing_the_web_via_a_proxy,Accessing the web via a proxy>> for more information on how to configure the `Wrapper` to use a proxy.
 
 [[sec:verification]]
 === Verification of downloaded Gradle distributions
