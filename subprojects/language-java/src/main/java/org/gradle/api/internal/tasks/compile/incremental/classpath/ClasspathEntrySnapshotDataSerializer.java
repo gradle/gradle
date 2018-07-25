@@ -17,18 +17,18 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.base.Objects;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
-
-import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ClasspathEntrySnapshotDataSerializer extends AbstractSerializer<ClasspathEntrySnapshotData> {
 
@@ -36,10 +36,10 @@ public class ClasspathEntrySnapshotDataSerializer extends AbstractSerializer<Cla
     private final Serializer<ClassSetAnalysisData> analysisSerializer;
     private final HashCodeSerializer hashCodeSerializer;
 
-    public ClasspathEntrySnapshotDataSerializer() {
+    public ClasspathEntrySnapshotDataSerializer(StringInterner interner) {
         hashCodeSerializer = new HashCodeSerializer();
-        mapSerializer = new MapSerializer<String, HashCode>(STRING_SERIALIZER, hashCodeSerializer);
-        analysisSerializer = new ClassSetAnalysisData.Serializer();
+        mapSerializer = new MapSerializer<String, HashCode>(new InterningStringSerializer(interner), hashCodeSerializer);
+        analysisSerializer = new ClassSetAnalysisData.Serializer(interner);
     }
 
     @Override

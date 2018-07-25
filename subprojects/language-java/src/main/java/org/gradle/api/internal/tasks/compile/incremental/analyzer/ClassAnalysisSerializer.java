@@ -16,29 +16,35 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.IntSetSerializer;
+import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 
 import java.util.Set;
 
-import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
-
 public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
 
-    private static final SetSerializer<String> STRING_SET_SERIALIZER = new SetSerializer<String>(STRING_SERIALIZER, false);
+    private final StringInterner interner;
+    private final SetSerializer<String> stringSetSerializer;
+
+    public ClassAnalysisSerializer(StringInterner interner) {
+        stringSetSerializer = new SetSerializer<String>(new InterningStringSerializer(interner), false);
+        this.interner = interner;
+    }
 
     @Override
     public ClassAnalysis read(Decoder decoder) throws Exception {
-        String className = decoder.readString();
+        String className = interner.intern(decoder.readString());
         boolean relatedToAll = decoder.readBoolean();
-        Set<String> classes = STRING_SET_SERIALIZER.read(decoder);
+        Set<String> classes = stringSetSerializer.read(decoder);
         IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
-        Set<String> superTypes = STRING_SET_SERIALIZER.read(decoder);
+        Set<String> superTypes = stringSetSerializer.read(decoder);
         return new ClassAnalysis(className, classes, relatedToAll, constants, superTypes);
     }
 
@@ -46,9 +52,9 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
     public void write(Encoder encoder, ClassAnalysis value) throws Exception {
         encoder.writeString(value.getClassName());
         encoder.writeBoolean(value.isDependencyToAll());
-        STRING_SET_SERIALIZER.write(encoder, value.getClassDependencies());
+        stringSetSerializer.write(encoder, value.getClassDependencies());
         IntSetSerializer.INSTANCE.write(encoder, value.getConstants());
-        STRING_SET_SERIALIZER.write(encoder, value.getSuperTypes());
+        stringSetSerializer.write(encoder, value.getSuperTypes());
     }
 
 }

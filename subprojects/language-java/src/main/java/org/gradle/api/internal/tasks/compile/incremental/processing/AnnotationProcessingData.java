@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks.compile.incremental.processing;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.AbstractSerializer;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 
@@ -62,23 +63,29 @@ public class AnnotationProcessingData {
     }
 
     public static final class Serializer extends AbstractSerializer<AnnotationProcessingData> {
-        private static final SetSerializer<String> STRING_SET_SERIALIZER = new SetSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
-        private static final MapSerializer<String, Set<String>> GENERATED_TYPES_SERIALIZER = new MapSerializer<String, Set<String>>(BaseSerializerFactory.STRING_SERIALIZER, STRING_SET_SERIALIZER);
+        private final SetSerializer<String> typesSerializer;
+        private final MapSerializer<String, Set<String>> generatedTypesSerializer;
+
+        public Serializer(StringInterner interner) {
+            InterningStringSerializer stringSerializer = new InterningStringSerializer(interner);
+            typesSerializer = new SetSerializer<String>(stringSerializer);
+            generatedTypesSerializer = new MapSerializer<String, Set<String>>(stringSerializer, typesSerializer);
+        }
 
         @Override
         public AnnotationProcessingData read(Decoder decoder) throws Exception {
-            Map<String, Set<String>> generatedTypes = GENERATED_TYPES_SERIALIZER.read(decoder);
-            Set<String> aggregatedTypes = STRING_SET_SERIALIZER.read(decoder);
-            Set<String> generatedTypesDependingOnAllOthers = STRING_SET_SERIALIZER.read(decoder);
+            Map<String, Set<String>> generatedTypes = generatedTypesSerializer.read(decoder);
+            Set<String> aggregatedTypes = typesSerializer.read(decoder);
+            Set<String> generatedTypesDependingOnAllOthers = typesSerializer.read(decoder);
             String fullRebuildCause = decoder.readNullableString();
             return new AnnotationProcessingData(generatedTypes, aggregatedTypes, generatedTypesDependingOnAllOthers, fullRebuildCause);
         }
 
         @Override
         public void write(Encoder encoder, AnnotationProcessingData value) throws Exception {
-            GENERATED_TYPES_SERIALIZER.write(encoder, value.generatedTypesByOrigin);
-            STRING_SET_SERIALIZER.write(encoder, value.aggregatedTypes);
-            STRING_SET_SERIALIZER.write(encoder, value.generatedTypesDependingOnAllOthers);
+            generatedTypesSerializer.write(encoder, value.generatedTypesByOrigin);
+            typesSerializer.write(encoder, value.aggregatedTypes);
+            typesSerializer.write(encoder, value.generatedTypesDependingOnAllOthers);
             encoder.writeNullableString(value.fullRebuildCause);
         }
     }
