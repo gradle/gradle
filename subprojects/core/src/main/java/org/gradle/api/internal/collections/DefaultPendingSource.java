@@ -64,8 +64,8 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.remove(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return pending.remove(provider);
     }
 
     @Override

@@ -186,8 +186,8 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends S> provider) {
-        collection.removePending(provider);
+    public boolean removePending(ProviderInternal<? extends S> provider) {
+        return collection.removePending(provider);
     }
 
     @Override

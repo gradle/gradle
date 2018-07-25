@@ -103,8 +103,8 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.removePending(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return pending.removePending(provider);
     }
 
     @Override
