@@ -37,7 +37,6 @@ public interface DeprecatedUsageProgressDetails {
     /**
      * See {@link DeprecatedFeatureUsage#getRemovalDetails()}
      */
-    @Nullable
     String getRemovalDetails();
 
     /**

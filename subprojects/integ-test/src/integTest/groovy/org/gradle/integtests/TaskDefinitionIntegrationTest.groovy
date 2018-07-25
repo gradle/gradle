@@ -508,7 +508,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
 
         then:
-        outputContains("The add() method has been deprecated. Please use the create() or register() method instead.")
+        outputContains("The add() method has been deprecated. This method will cause an error in Gradle 6.0. Please use the create() or register() method instead.")
     }
 
     def "cannot add a pre-created task provider to the task container"() {
