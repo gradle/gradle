@@ -65,16 +65,8 @@ data class CIBuildModel (
             Stage("Experimental", "On demand: Run experimental tests",
                     trigger = Trigger.never,
                     runsIndependent = true,
-                    functionalTests = listOf(
-                        TestCoverage(TestType.soak, OS.linux, JvmVersion.java8, JvmVersion.java9),
-                        TestCoverage(TestType.soak, OS.windows, JvmVersion.java8, JvmVersion.java9),
-                        TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7, JvmVersion.java9),
-                        TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7, JvmVersion.java9),
-                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8, JvmVersion.java9),
-                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8, JvmVersion.java9),
-                        TestCoverage(TestType.platform, OS.macos, JvmVersion.java8, JvmVersion.java9),
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java9, JvmVersion.java9)
-                        ))),
+                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11)))
+        ),
         val subProjects : List<GradleSubproject> = listOf(
             GradleSubproject("announce"),
             GradleSubproject("antlr"),
