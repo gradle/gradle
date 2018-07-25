@@ -33,6 +33,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -167,13 +168,15 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             this.delegate = delegate;
         }
 
-        public void doCall(final T arg) {
+        public void doCall(final Object... args) {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     long executionId = applicationStack.startListenerExecution(application);
                     try {
-                        delegate.call(arg);
+                        int numClosureArgs = delegate.getMaximumNumberOfParameters();
+                        Object[] finalArgs = numClosureArgs < args.length ? Arrays.copyOf(args, numClosureArgs) : args;
+                        delegate.call(finalArgs);
                         context.setResult(RESULT);
                     } finally {
                         applicationStack.finishListenerExecution(executionId);
@@ -191,6 +194,16 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         public void setDelegate(Object delegateObject) {
             delegate.setDelegate(delegateObject);
         }
+
+        @Override
+        public void setResolveStrategy(int resolveStrategy) {
+            delegate.setResolveStrategy(resolveStrategy);
+        }
+
+        @Override
+        public int getMaximumNumberOfParameters() {
+            return delegate.getMaximumNumberOfParameters();
+        }
     }
 
     private class BuildOperationEmittingInvocationHandler extends BuildOperationEmitter implements InvocationHandler {
@@ -207,7 +220,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             final String methodName = method.getName();
             if (methodName.equals("toString") && args.length == 0) {
                 return "BuildOperationEmittingBuildListenerInvocationHandler{delegate: " + delegate + "}";
-            } else if (methodName.equals("hashCode") && args == null || args.length == 0) {
+            } else if (methodName.equals("hashCode") && (args == null || args.length == 0)) {
                 return delegate.hashCode();
             } else if (methodName.equals("equals") && args.length == 1) {
                 return proxy == args[0] || delegate.equals(args[0]) || args[0] instanceof BuildOperationEmittingInvocationHandler && delegate.equals(((BuildOperationEmittingInvocationHandler) args[0]).delegate);

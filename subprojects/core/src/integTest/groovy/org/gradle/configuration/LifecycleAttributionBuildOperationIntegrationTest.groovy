@@ -234,7 +234,13 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
                 println "gradle.afterProject(Action) from $source"
             } as Action)
             gradle.afterProject {
-                println "gradle.afterProject(Closure) from $source"
+                println "gradle.afterProject(Closure(0)) from $source"
+            }
+            gradle.afterProject { passedProject ->
+                println "gradle.afterProject(Closure(1)) from $source"
+            }
+            gradle.afterProject { passedProject, projectState ->
+                println "gradle.afterProject(Closure(2)) from $source"
             }
             gradle.addListener(new ProjectEvaluationListener() {
                 void beforeEvaluate(Project p) {
@@ -253,7 +259,9 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
         """}
         def expectedGradleOpProgressMessages = [
             'gradle.afterProject(Action)',
-            'gradle.afterProject(Closure)',
+            'gradle.afterProject(Closure(0))',
+            'gradle.afterProject(Closure(1))',
+            'gradle.afterProject(Closure(2))',
             'gradle.addListener(ProjectEvaluationListener)',
             'gradle.addProjectEvaluationListener(ProjectEvaluationListener)'
         ]
@@ -287,7 +295,7 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
 
         then:
         def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
-        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, 14)
+        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, 20)
         verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
         verifyHasChildren(rootAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
         verifyHasChildren(rootAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
@@ -295,7 +303,7 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
 
         and:
         def subAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
-        verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, 20)
+        verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, 28)
         verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
         verifyHasChildren(subAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
         verifyHasChildren(subAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
