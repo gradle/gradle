@@ -21,7 +21,6 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.junit.Rule
@@ -51,9 +50,7 @@ class TestExecutionBuildOperationsContinousIntegrationTest extends AbstractConti
     }
 
     def setup() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     def "emits test operations for continuous builds"() {

@@ -17,7 +17,6 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -32,9 +31,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         executer.noExtraLogging()
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     def doesNotRunStaleTests() {

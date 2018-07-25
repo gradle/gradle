@@ -114,7 +114,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
 buildscript {
   repositories {
-    ${gradlePluginRepositoryDefintion()} 
+    ${gradlePluginRepositoryDefinition()} 
   }
 
   dependencies {

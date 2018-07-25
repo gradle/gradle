@@ -16,12 +16,9 @@
 
 package org.gradle.play.integtest.continuous
 
-import spock.lang.Ignore
-
 /**
  * Test Play reload without `--continuous`
  */
-@Ignore('contains javascript repository')
 class PlayReloadIntegrationTest extends PlayContinuousBuildReloadIntegrationTest {
 
     def setup() {

@@ -16,11 +16,8 @@
 
 package org.gradle.play.tasks
 
-import spock.lang.Ignore
-
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
-@Ignore('contains javascript repository')
 class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
 
     def setup() {

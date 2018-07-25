@@ -16,6 +16,7 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -31,6 +32,7 @@ import spock.lang.Unroll
  *   - e.g. change in Gradle that breaks the Gradle build
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
+@Ignore('contains buildSrc')
 class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll

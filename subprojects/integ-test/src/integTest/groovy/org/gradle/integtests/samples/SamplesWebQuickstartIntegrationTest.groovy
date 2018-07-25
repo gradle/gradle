@@ -17,7 +17,6 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ports.ReleasingPortAllocator
@@ -28,7 +27,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractPluginIntegrationTest 
     @Rule ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        useRepositoryMirrors()
     }
 
     def "can build a war"() {

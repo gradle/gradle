@@ -17,7 +17,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.UsesSample
@@ -31,9 +30,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     @Test @UsesSample('testing/testng/suitexmlbuilder')

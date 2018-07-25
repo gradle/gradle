@@ -25,8 +25,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.integtests.fixtures.UrlValidator.*
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.*
 
@@ -45,9 +43,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
     }
 
     def setup() {
-        executer.beforeExecute {
-            executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
-        }
+        usePluginRepositoryMirror()
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {

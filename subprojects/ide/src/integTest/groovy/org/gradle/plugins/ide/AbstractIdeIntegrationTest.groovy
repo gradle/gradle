@@ -18,7 +18,6 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
@@ -29,9 +28,7 @@ import org.junit.Before
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setUp() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {

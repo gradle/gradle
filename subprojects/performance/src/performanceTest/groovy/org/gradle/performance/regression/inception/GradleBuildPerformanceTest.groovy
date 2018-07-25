@@ -29,13 +29,18 @@ import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 /**
  * Test Gradle's build performance against current Gradle.
  *
@@ -50,7 +55,7 @@ import spock.lang.Specification
  * - be careful when rebasing/squashing/merging
  */
 @Category(PerformanceRegressionTest)
-@Ignore('release-note.gradle is using mavenCentral() https://github.com/gradle/gradle/pull/6047')
+@Ignore('Contains buildSrc')
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
@@ -84,7 +89,7 @@ class GradleBuildPerformanceTest extends Specification {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
                 if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}")
+                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}", "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}", "-I", createMirrorInitScript().absolutePath)
                 }
             }
         }
