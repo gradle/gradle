@@ -16,9 +16,6 @@
 
 package org.gradle.play.tasks
 
-import spock.lang.Ignore
-
-@Ignore('contains javascript repository')
 class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     def customCoffeeScriptImplFileName
 

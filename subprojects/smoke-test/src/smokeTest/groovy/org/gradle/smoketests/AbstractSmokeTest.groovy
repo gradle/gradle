@@ -31,7 +31,6 @@ abstract class AbstractSmokeTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
-    boolean useRepoMirror = true
 
     def setup() {
         buildFile = new File(testProjectDir.root, defaultBuildFileName)
@@ -50,13 +49,11 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     GradleRunner runner(String... tasks) {
-        List args = useRepoMirror ? tasks.toList() + ['-s', '-I', createMirrorInitScript().absolutePath] : tasks.toList()
-        args = args + ["-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]
         GradleRunner.create()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(args)
+            .withArguments(tasks.toList() + ['-s', '-I', createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()])
     }
 
     protected void useSample(String sampleDirectory) {

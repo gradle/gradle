@@ -17,7 +17,6 @@
 
 package org.gradle.testkit.runner.enduser
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.internal.util.RetryUtil
@@ -35,9 +34,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     @UsesSample("testKit/gradleRunner/junitQuickstart")

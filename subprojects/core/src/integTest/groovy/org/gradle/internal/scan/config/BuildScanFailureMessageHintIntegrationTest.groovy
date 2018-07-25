@@ -26,7 +26,7 @@ import spock.lang.Unroll
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefintion
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption
 
@@ -224,7 +224,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
     private static String buildScanRepositoryAndDependency() {
         """
             repositories {
-                ${gradlePluginRepositoryDefintion()}
+                ${gradlePluginRepositoryDefinition()}
             }
 
             dependencies {

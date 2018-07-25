@@ -17,7 +17,6 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -36,9 +35,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     @Test

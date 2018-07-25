@@ -59,7 +59,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
             buildscript {
                 repositories {
-                    ${gradlePluginRepositoryDefintion()}
+                    ${gradlePluginRepositoryDefinition()}
                 }
                 dependencies {
                     classpath "${AutoAppliedBuildScanPlugin.GROUP}:${AutoAppliedBuildScanPlugin.NAME}:${AutoAppliedBuildScanPlugin.VERSION}"

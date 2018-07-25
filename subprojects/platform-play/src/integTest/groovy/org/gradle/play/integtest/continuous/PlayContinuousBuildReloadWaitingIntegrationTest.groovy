@@ -16,12 +16,10 @@
 
 package org.gradle.play.integtest.continuous
 
-import spock.lang.Ignore
 import spock.lang.Unroll
 /**
  * Test that app requests block while a build is in progress when using `--continuous`.
  */
-@Ignore('contains javascript repository')
 class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
 
     def setup() {

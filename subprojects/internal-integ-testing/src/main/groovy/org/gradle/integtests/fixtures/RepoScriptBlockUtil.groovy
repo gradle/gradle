@@ -40,7 +40,11 @@ class RepoScriptBlockUtil {
         RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven'),
         GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven'),
-        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradleplugins'), 'maven')
+        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradleplugins'), 'maven'),
+        GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -152,7 +156,7 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE_PLUGIN.mirrorUrl
     }
 
-    static String gradlePluginRepositoryDefintion(GradleDsl dsl = GROOVY) {
+    static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
     }
 

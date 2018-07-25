@@ -19,11 +19,9 @@ package org.gradle.play.integtest.continuous
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.TestParticipant
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.concurrent.TimeUnit
 
-@Ignore('contains javascript repository')
 class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
     @Rule
     public ConcurrentTestUtil concurrent = new ConcurrentTestUtil()

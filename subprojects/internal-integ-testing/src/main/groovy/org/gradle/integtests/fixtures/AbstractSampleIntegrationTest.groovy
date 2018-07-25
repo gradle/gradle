@@ -18,8 +18,6 @@ package org.gradle.integtests.fixtures
 
 abstract class AbstractSampleIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 }

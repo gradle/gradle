@@ -17,12 +17,10 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.*
 
-@Ignore('MEDIUM_JAVA_COMPOSITE_BUILD contains buildSrc')
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll

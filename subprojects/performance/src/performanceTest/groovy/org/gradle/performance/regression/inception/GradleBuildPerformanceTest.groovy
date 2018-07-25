@@ -33,7 +33,6 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 /**
@@ -50,7 +49,6 @@ import spock.lang.Specification
  * - be careful when rebasing/squashing/merging
  */
 @Category(PerformanceRegressionTest)
-@Ignore('release-note.gradle is using mavenCentral() https://github.com/gradle/gradle/pull/6047')
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule

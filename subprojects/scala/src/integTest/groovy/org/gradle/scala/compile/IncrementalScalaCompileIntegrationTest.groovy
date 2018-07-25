@@ -16,7 +16,6 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
@@ -28,9 +27,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     void setup() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
+        useRepositoryMirrors()
     }
 
     def recompilesSourceWhenPropertiesChange() {
