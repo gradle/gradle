@@ -32,6 +32,8 @@ import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.configuration.internal.TestListenerBuildOperations
 import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
@@ -59,6 +61,7 @@ class DefaultGradleSpec extends Specification {
     StartParameter parameter = new StartParameter()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    ListenerBuildOperationDecorator listenerBuildOperations = new TestListenerBuildOperations()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
     GradleInternal gradle
@@ -76,6 +79,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
         _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
+        _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperations
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
 

@@ -28,6 +28,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -269,7 +270,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public TaskStatus status = TaskStatus.QUEUED;
     }
 
-    private class IncludedBuildExecutionListener extends BuildAdapter implements TaskExecutionGraphListener, BuildListener {
+    private class IncludedBuildExecutionListener extends BuildAdapter implements TaskExecutionGraphListener, BuildListener, InternalListener {
         private final Collection<String> tasksToExecute;
 
         IncludedBuildExecutionListener(Collection<String> tasksToExecute) {

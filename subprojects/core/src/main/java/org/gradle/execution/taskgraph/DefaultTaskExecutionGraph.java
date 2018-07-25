@@ -31,6 +31,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -71,6 +72,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ListenerBuildOperationDecorator listenerBuildOperations;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
     private List<Task> allTasks;
 
@@ -81,6 +83,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskPlanExecutor taskPlanExecutor,
         List<WorkInfoExecutor> workInfoExecutors,
         BuildOperationExecutor buildOperationExecutor,
+        ListenerBuildOperationDecorator listenerBuildOperations,
         WorkerLeaseService workerLeaseService,
         ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
@@ -90,6 +93,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.taskPlanExecutor = taskPlanExecutor;
         this.workInfoExecutors = workInfoExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.listenerBuildOperations = listenerBuildOperations;
         this.coordinationService = coordinationService;
         this.gradleInternal = gradleInternal;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -150,7 +154,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        graphListeners.add(listener);
+        graphListeners.add(listenerBuildOperations.decorate(TaskExecutionGraphListener.class, listener));
     }
 
     public void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
@@ -158,16 +162,16 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", closure));
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperations.decorate(closure)));
     }
 
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        graphListeners.add(new TaskExecutionGraphListener() {
+        graphListeners.add(listenerBuildOperations.decorate(TaskExecutionGraphListener.class, new TaskExecutionGraphListener() {
             @Override
             public void graphPopulated(TaskExecutionGraph graph) {
                 action.execute(graph);
             }
-        });
+        }));
     }
 
     public void addTaskExecutionListener(TaskExecutionListener listener) {

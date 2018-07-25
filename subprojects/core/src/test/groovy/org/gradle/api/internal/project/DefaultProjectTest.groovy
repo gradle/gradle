@@ -62,6 +62,8 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.configuration.internal.TestListenerBuildOperations
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
@@ -162,6 +164,7 @@ class DefaultProjectTest {
     AttributesSchema attributesSchema = context.mock(AttributesSchema)
     TextResourceLoader textResourceLoader = context.mock(TextResourceLoader)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    ListenerBuildOperationDecorator listenerBuildOperations = new TestListenerBuildOperations()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
@@ -224,6 +227,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
             allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
             allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))
+            allowing(serviceRegistryMock).get((Type) ListenerBuildOperationDecorator) ; will(returnValue(listenerBuildOperations))
             allowing(serviceRegistryMock).get((Type) CrossProjectConfigurator) ; will(returnValue(crossProjectConfigurator))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 

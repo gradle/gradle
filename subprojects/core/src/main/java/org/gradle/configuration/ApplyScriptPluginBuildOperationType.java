@@ -67,6 +67,13 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
         @Nullable
         String getBuildPath();
 
+        /**
+         * TODO
+         * @since 4.10
+         * @return a unique application id for this script application
+         */
+        long getApplicationId();
+
     }
 
     public interface Result {

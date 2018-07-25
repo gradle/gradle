@@ -18,6 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -81,13 +82,15 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     private final ScriptPluginFactory defaultScriptPluginFactory;
     private final ProviderInstantiator providerInstantiator;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ListenerBuildOperationDecorator listenerBuildOperations;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
                                        ProviderInstantiator providerInstantiator,
-                                       BuildOperationExecutor buildOperationExecutor) {
+                                       BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
         this.providerInstantiator = providerInstantiator;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.listenerBuildOperations = listenerBuildOperations;
     }
 
     @Override
@@ -95,7 +98,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
                                ClassLoaderScope baseScope, boolean topLevelScript) {
         ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
             .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
-        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor);
+        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor, listenerBuildOperations);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {

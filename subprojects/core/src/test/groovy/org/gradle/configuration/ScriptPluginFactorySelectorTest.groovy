@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.configuration.internal.TestListenerBuildOperations
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
@@ -29,7 +30,7 @@ class ScriptPluginFactorySelectorTest extends Specification {
 
     def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
     def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
-    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory,  providerInstantiator, new TestBuildOperationExecutor())
+    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, providerInstantiator, new TestBuildOperationExecutor(), new TestListenerBuildOperations())
 
     def scriptHandler = Mock(ScriptHandler)
     def targetScope = Mock(ClassLoaderScope)

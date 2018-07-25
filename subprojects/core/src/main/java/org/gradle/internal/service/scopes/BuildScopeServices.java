@@ -87,6 +87,8 @@ import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
+import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.BuildScriptProcessor;
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator;
 import org.gradle.configuration.project.DelayedConfigurationActions;
@@ -297,12 +299,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             classLoaderHierarchyHasher);
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, listenerBuildOperations);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
+    }
+
+    protected ListenerBuildOperationDecorator createListenerBuildOperations(BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {

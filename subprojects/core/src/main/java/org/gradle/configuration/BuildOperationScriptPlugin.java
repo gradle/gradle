@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,12 +36,14 @@ import java.net.URI;
  */
 public class BuildOperationScriptPlugin implements ScriptPlugin {
 
-    private ScriptPlugin decorated;
-    private BuildOperationExecutor buildOperationExecutor;
+    private final ScriptPlugin decorated;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ListenerBuildOperationDecorator listenerBuildOperations;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations) {
         this.decorated = decorated;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.listenerBuildOperations = listenerBuildOperations;
     }
 
     @Override
@@ -56,10 +59,16 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             decorated.apply(target);
         } else {
             buildOperationExecutor.run(new RunnableBuildOperation() {
+                long applicationId = listenerBuildOperations.allocateApplicationId();
                 @Override
                 public void run(BuildOperationContext context) {
-                    decorated.apply(target);
-                    context.setResult(OPERATION_RESULT);
+                    try {
+                        listenerBuildOperations.startApplication(applicationId);
+                        decorated.apply(target);
+                        context.setResult(OPERATION_RESULT);
+                    } finally {
+                        listenerBuildOperations.finishApplication(applicationId);
+                    }
                 }
 
                 @Override
@@ -72,7 +81,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
 
                     return BuildOperationDescriptor.displayName(displayName)
                         .name(name)
-                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target)));
+                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), applicationId));
                 }
             });
         }
@@ -83,11 +92,13 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         private final File file;
         private final ResourceLocation resourceLocation;
         private final ConfigurationTargetIdentifier identifier;
+        private final long applicationId;
 
-        private OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier) {
+        private OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier, long applicationId) {
             this.file = file;
             this.resourceLocation = resourceLocation;
             this.identifier = identifier;
+            this.applicationId = applicationId;
         }
 
         @Nullable
@@ -120,6 +131,11 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         @Override
         public String getBuildPath() {
             return identifier == null ? null : identifier.getBuildPath();
+        }
+
+        @Override
+        public long getApplicationId() {
+            return applicationId;
         }
     }
 

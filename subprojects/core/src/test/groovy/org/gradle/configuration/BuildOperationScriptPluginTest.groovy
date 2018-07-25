@@ -16,6 +16,7 @@
 
 package org.gradle.configuration
 
+import org.gradle.configuration.internal.TestListenerBuildOperations
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.ResourceLocation
@@ -24,16 +25,17 @@ import spock.lang.Specification
 
 class BuildOperationScriptPluginTest extends Specification {
 
-    def "delegates to decorated script plugin via build operation"() {
-        given:
-        def buildOperationExecutor = new TestBuildOperationExecutor()
-        def scriptSource = Mock(ScriptSource)
-        def scriptSourceResource = Mock(TextResource)
-        def scriptSourceResourceLocation = Mock(ResourceLocation)
-        def decoratedScriptPlugin = Mock(ScriptPlugin)
-        def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
-        def target = "Test Target"
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def listenerBuildOperations = new TestListenerBuildOperations()
+    def scriptSource = Mock(ScriptSource)
+    def scriptFile = Mock(File)
+    def scriptSourceResource = Mock(TextResource)
+    def scriptSourceResourceLocation = Mock(ResourceLocation)
+    def decoratedScriptPlugin = Mock(ScriptPlugin)
+    def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor, listenerBuildOperations)
+    def target = "Test Target"
 
+    def "delegates to decorated script plugin via build operation"() {
         when:
         buildOperationScriptPlugin.apply(target)
 
@@ -48,21 +50,11 @@ class BuildOperationScriptPluginTest extends Specification {
         0 * decoratedScriptPlugin._
 
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Apply script test.source to Test Target"
+        buildOperationExecutor.operations.get(0).displayName == "Apply script test.source to $target"
         buildOperationExecutor.operations.get(0).name == "Apply script test.source"
     }
 
     def "delegates to decorated script plugin and uses file name in build operation name"() {
-        given:
-        def buildOperationExecutor = new TestBuildOperationExecutor()
-        def scriptSource = Mock(ScriptSource)
-        def scriptSourceResource = Mock(TextResource)
-        def scriptSourceResourceLocation = Mock(ResourceLocation)
-        def decoratedScriptPlugin = Mock(ScriptPlugin)
-        def scriptFile = Mock(File)
-        def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
-        def target = "Test Target"
-
         when:
         buildOperationScriptPlugin.apply(target)
 
@@ -79,19 +71,11 @@ class BuildOperationScriptPluginTest extends Specification {
         0 * decoratedScriptPlugin._
 
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Apply script build.gradle to Test Target"
+        buildOperationExecutor.operations.get(0).displayName == "Apply script build.gradle to $target"
         buildOperationExecutor.operations.get(0).name == "Apply script build.gradle"
     }
 
     def "delegates to decorated script plugin without build operation in cached source has no content"() {
-        given:
-        def buildOperationExecutor = new TestBuildOperationExecutor()
-        def scriptSource = Mock(ScriptSource)
-        def scriptSourceResource = Mock(TextResource)
-        def decoratedScriptPlugin = Mock(ScriptPlugin)
-        def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
-        def target = "Test Target"
-
         when:
         buildOperationScriptPlugin.apply(target)
 

@@ -38,6 +38,7 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
@@ -181,8 +182,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new LocalTaskInfoExecutor(taskExecuterFactory);
     }
 
-    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
-        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
+    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
+        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, listenerBuildOperations, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

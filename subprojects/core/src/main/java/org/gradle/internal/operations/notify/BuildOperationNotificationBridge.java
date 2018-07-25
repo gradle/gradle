@@ -18,8 +18,8 @@ package org.gradle.internal.operations.notify;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -95,10 +95,10 @@ public class BuildOperationNotificationBridge {
     private final BuildListener buildListener = new BuildAdapter() {
         public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
-                gradle.rootProject(new Action<Project>() {
+                gradle.rootProject(new InternalAction<Project>() {
                     @Override
                     public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                        project.afterEvaluate(new Action<Project>() {
+                        project.afterEvaluate(new InternalAction<Project>() {
                             @Override
                             public void execute(@SuppressWarnings("NullableProblems") Project project) {
                                 State s = state;

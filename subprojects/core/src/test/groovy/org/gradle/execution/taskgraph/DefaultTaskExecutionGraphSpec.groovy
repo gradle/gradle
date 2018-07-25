@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.configuration.internal.TestListenerBuildOperations
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -49,6 +50,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def listenerManager = new DefaultListenerManager()
     def workExecutor = Mock(WorkInfoExecutor)
     def buildOperationExecutor = new TestBuildOperationExecutor()
+    def listenerBuildOperations = new TestListenerBuildOperations()
     def coordinationService = new DefaultResourceLockCoordinationService()
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def parallelismConfigurationManager = new ParallelismConfigurationManagerFixture(parallelismConfiguration)
@@ -57,7 +59,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def thisBuild = project.gradle
     def taskInfoFactory = new TaskInfoFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-    def taskGraph = new DefaultTaskExecutionGraph(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
+    def taskGraph = new DefaultTaskExecutionGraph(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, listenerBuildOperations, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
     def failures = []
@@ -332,7 +334,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "notifies graph listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
+        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperations, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -350,7 +352,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "executes whenReady listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
+        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperations, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")

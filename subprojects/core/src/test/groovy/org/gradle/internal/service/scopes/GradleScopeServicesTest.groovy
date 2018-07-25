@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.cache.CacheRepository
 import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
@@ -77,6 +78,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
         parent.get(Clock) >> Stub(Clock)
         parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+        parent.get(ListenerBuildOperationDecorator) >> Stub(ListenerBuildOperationDecorator)
         parent.get(WorkerLeaseService) >> Stub(WorkerLeaseService)
         parent.get(ResourceLockCoordinationService) >> Stub(ResourceLockCoordinationService)
         parent.get(Instantiator) >> Stub(Instantiator)
