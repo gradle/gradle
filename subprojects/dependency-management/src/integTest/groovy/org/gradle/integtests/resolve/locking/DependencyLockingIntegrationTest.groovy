@@ -106,7 +106,7 @@ dependencies {
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '1.+'
+   Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
    Dependency path ':depLock:unspecified' --> 'org:foo' strictly '1.1'
    Constraint path ':depLock:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'"""
     }
@@ -143,8 +143,8 @@ dependencies {
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '1.+'
-   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '1.1'
+   Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
+   Dependency path ':depLock:unspecified' --> 'org:foo:1.1'
    Constraint path ':depLock:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'"""
     }
 

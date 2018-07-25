@@ -770,7 +770,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org.test:moduleB' prefers '1.1'
+   Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
    ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' strictly '1.0'"""
 
         where:
@@ -837,8 +837,8 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org.test:moduleB' prefers '1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects any of "'1.1', '1.2'\""""
+   Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0' rejects any of "'1.1', '1.2'\""""
 
         where:
         thing                    | defineAsConstraint

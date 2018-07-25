@@ -21,4 +21,5 @@ public interface ResolvedVersionConstraint {
     VersionSelector getPreferredSelector();
     VersionSelector getRejectedSelector();
     boolean isRejectAll();
+    boolean isPrefer();
 }
