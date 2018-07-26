@@ -907,4 +907,58 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * provider2.get()
         result == iterationOrder(a)
     }
+
+    def "realize all elements when querying the iterator"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        container.withType(type).iterator()
+
+        then:
+        1 * provider1.get() >> a
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        1 * provider2.get() >> b
+        result == iterationOrder(a, b)
+    }
+
+    def "remove action is executed when removing element using iterator"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> type
+        _ * provider2.get() >> b
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        when:
+        def iterator = container.iterator()
+        iterator.next()
+        iterator.remove()
+
+        then:
+        def result = toList(container)
+        result == iterationOrder(b)
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
 }
