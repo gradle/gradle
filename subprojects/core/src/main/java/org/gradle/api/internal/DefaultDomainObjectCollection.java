@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
@@ -333,11 +334,34 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean retainAll(Collection<?> target) {
         assertMutable();
-        Object[] existingItems = toArray();
+        List<ProviderInternal<? extends T>> existingProviders = Lists.newArrayList(getStore().iteratorPending());
+        List<? extends T> existingItems = Lists.newArrayList(getStore().iteratorNoFlush());
         boolean changed = false;
-        for (Object existingItem : existingItems) {
-            if (!target.contains(existingItem)) {
+        for (final Object existingItem : existingItems) {
+            Iterator<Object> iterator = Cast.uncheckedCast(target.iterator());
+            Predicate<? super Object> spec = new Predicate<Object>() {
+                @Override
+                public boolean apply(Object element) {
+                    if (element.equals(existingItem)) {
+                        return true;
+                    } else if (element instanceof ProviderInternal) {
+                        ProviderInternal<Object> provider = Cast.uncheckedCast(element);
+                        if (provider.getType().isInstance(existingItem) && provider.get().equals(existingItem)) {
+                            return true;
+                        }
+                        return false;
+                    }
+                    return false;
+                }
+            };
+            if (!Iterators.any(iterator, spec)) {
                 doRemove(existingItem);
+                changed = true;
+            }
+        }
+        for (ProviderInternal<? extends T> existingProvider : existingProviders) {
+            if (!target.contains(existingProvider)) {
+                doRemove(existingProvider);
                 changed = true;
             }
         }
