@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-class IntegrationTestTimeoutInterceptorSpec extends Specification {
+class JavaProcessStackTracesMonitorSpec extends Specification {
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def 'can extract process info from unix ps()'() {
@@ -40,14 +40,14 @@ class IntegrationTestTimeoutInterceptorSpec extends Specification {
 32167 ?        Ssl    8:50 /opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Xmx2500m -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/home/tcagent1/agent/temp/buildTmp -Duser.country=US -Duser.language=en -Duser.variant -cp /home/tcagent1/.gradle/wrapper/dists/gradle-4.9-20180607113442+0000-bin/6o1ijseqszb59y1oe4hyx3o6o/gradle-4.9-20180607113442+0000/lib/gradle-launcher-4.9.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 4.9-20180607113442+0000
 '''
         when:
-        def suspiciousDaemons = new IntegrationTestTimeoutInterceptor.StdoutAndPatterns(output).getSuspiciousDaemons()
+        def suspiciousDaemons = new JavaProcessStackTracesMonitor.StdoutAndPatterns(output).getSuspiciousDaemons()
 
         then:
         suspiciousDaemons == [
-            new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '2477', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
-            new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '15818', javaCommand: '/opt/jdk/oracle-jdk-8/bin/java'),
-            new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '24438', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
-            new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '32167', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '2477', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '15818', javaCommand: '/opt/jdk/oracle-jdk-8/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '24438', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '32167', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
         ]
     }
 
@@ -73,12 +73,12 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
 "C:\\Program Files\\Java\\jdk1.8/bin/java.exe" -Xmx128m -Dfile.encoding=UTF-8 -XX:MaxPermSize=512m "-Djava.io.tmpdir=C:\\tcagent1\\temp\\buildTmp" "-Dorg.gradle.appname=gradlew" -classpath "C:\\tcagent1\\work\\668602365d1521fc\\\\gradle\\wrapper\\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain --init-script C:\\tcagent1\\plugins\\gradle-runner\\scripts\\init.gradle -PmaxParallelForks=4 -s --daemon --continue -I C:\\tcagent1\\work\\668602365d1521fc/gradle/init-scripts/build-scan.init.gradle.kts "-Djava7Home=C:\\Program Files\\Java\\jdk1.7" "-Djava9Home=C:\\Program Files\\Java\\jdk1.9" -Dorg.gradle.internal.tasks.createops --build-cache -Dgradle.cache.remote.url="https://e.grdev.net/cache/" -Dgradle.cache.remote.username="gradle" -Dgradle.cache.remote.password="Pw2^8w2PHN6JUCOTo7R3" "-PtestJavaHome=C:\\Program Files\\Java\\jdk1.8" -Dscan.tag.FunctionalTest -Dscan.value.coverageOs=windows -Dscan.value.coverageJvmVendor=oracle -Dscan.value.coverageJvmVersion=java8 -PteamCityUsername=TeamcityRestBot -PteamCityPassword=DxQyNUvR2Yx6P5z6 -PteamCityBuildId=13871238 -Dscan.tag.Check -Dscan.tag.BranchBuildAccept -Dorg.gradle.daemon=false clean buildCacheHttp:platformTest 3908    
 '''
         when:
-        def suspiciousDaemons = new IntegrationTestTimeoutInterceptor.StdoutAndPatterns(output).getSuspiciousDaemons()
+        def suspiciousDaemons = new JavaProcessStackTracesMonitor.StdoutAndPatterns(output).getSuspiciousDaemons()
 
         then:
         suspiciousDaemons == [
-            new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '1368', javaCommand: "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"),
-            new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '3908', javaCommand: "C:\\Program Files\\Java\\jdk1.8/bin/java.exe")
+            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '1368', javaCommand: "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '3908', javaCommand: "C:\\Program Files\\Java\\jdk1.8/bin/java.exe")
         ]
     }
 
@@ -86,7 +86,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
     @Requires(TestPrecondition.NOT_WINDOWS)
     def 'can locate jstack on Unix'() {
         expect:
-        new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
+        new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
 
         where:
         javaCommand                                                | jstackCommand
@@ -99,7 +99,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
     @Requires(TestPrecondition.WINDOWS)
     def 'can locate jstack on Windows'() {
         expect:
-        new IntegrationTestTimeoutInterceptor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
+        new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
 
         where:
         javaCommand                                           | jstackCommand
@@ -115,13 +115,13 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
 
     def 'can print all threads of all running JVM by jstack'() {
         when:
-        String stacktraces = IntegrationTestTimeoutInterceptor.getAllStackTracesByJstack()
+        String stacktraces = JavaProcessStackTracesMonitor.getAllStackTracesByJstack()
 
         then:
         stacktraces.contains("Full thread dump")
         stacktraces.contains("${getClass().getName()}.\$spock_feature")
 //        - org.codehaus.groovy.runtime.ScriptBytecodeAdapter.invokeMethod0(java.lang.Class, java.lang.Object, java.lang.String) @bci=6, line=189 (Interpreted frame)
-//        - org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptorSpec.$spock_feature_1_4() @bci=98, line=105 (Interpreted frame)
+//        - org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitorSpec.$spock_feature_1_4() @bci=98, line=105 (Interpreted frame)
 //        - sun.reflect.NativeMethodAccessorImpl.invoke0(java.lang.reflect.Method, java.lang.Object, java.lang.Object[]) @bci=0 (Interpreted frame)
     }
 }
