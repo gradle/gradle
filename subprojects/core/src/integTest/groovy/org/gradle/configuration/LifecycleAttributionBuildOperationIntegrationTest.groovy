@@ -620,6 +620,25 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
         verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
     }
 
+    def 'decorated listener can be removed'() {
+        initFile << """
+            def listener = new BuildAdapter() {
+                void projectsLoaded(Gradle ignored) {
+                }
+            }
+            gradle.addListener(listener)
+            gradle.removeListener(listener)
+        """
+
+        when:
+        run()
+
+        then:
+        def projectsLoaded = operations.only(NotifyProjectsLoadedBuildOperationType)
+        // listener should have been removed
+        verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 0)
+    }
+
     private static void verifyExpectedNumberOfExecuteListenerChildren(BuildOperationRecord op, int expectedChildren) {
         assert op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) }.size() == expectedChildren
     }

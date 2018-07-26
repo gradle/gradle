@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.internal
 
+import org.gradle.BuildAdapter
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
@@ -31,6 +32,7 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.initialization.BuildCompletionListener
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.InternalListener
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -400,6 +402,36 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
         and:
         verifyNoOp()
+    }
+
+    def 'decorated listeners can be removed from listener manager'() {
+        given:
+        def listenerManager = new DefaultListenerManager()
+        def gradle = Mock(Gradle)
+        boolean called = false
+        def undecorated = new BuildAdapter() {
+            @Override
+            void projectsLoaded(Gradle ignored) {
+                called = true
+            }
+        }
+        def broadcast = listenerManager.getBroadcaster(BuildListener)
+
+        when:
+        def decorated = decorator.decorate(BuildListener, undecorated)
+        listenerManager.addListener(decorated)
+        broadcast.projectsLoaded(gradle)
+
+        then:
+        called
+
+        when:
+        called = false
+        listenerManager.removeListener(decorated)
+        broadcast.projectsLoaded(gradle)
+
+        then:
+        !called
     }
 
     private void resetOps() {

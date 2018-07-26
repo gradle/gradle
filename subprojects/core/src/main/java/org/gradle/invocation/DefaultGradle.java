@@ -346,7 +346,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void removeListener(Object listener) {
-        getListenerManager().removeListener(listener);
+        // do same decoration as in addListener to remove correctly
+        getListenerManager().removeListener(getListenerBuildOperations().decorateUnknownListener(listener));
     }
 
     @Override

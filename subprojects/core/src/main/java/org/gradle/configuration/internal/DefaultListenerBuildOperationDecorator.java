@@ -95,6 +95,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         if (isSupported(listener)) {
             Class<?> listenerClass = listener.getClass();
             List<Class<?>> allInterfaces = ClassUtils.getAllInterfaces(listenerClass);
+            allInterfaces.add(BuildOperationEmittingListenerProxy.class);
             BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(applicationStack.currentApplication(), listener);
             return targetClass.cast(Proxy.newProxyInstance(listenerClass.getClassLoader(), allInterfaces.toArray(new Class[0]), handler));
         }
@@ -222,6 +223,10 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
     }
 
+    public interface BuildOperationEmittingListenerProxy {
+        Object getDelegate();
+    }
+
     private class BuildOperationEmittingInvocationHandler extends BuildOperationEmitter implements InvocationHandler {
 
         private final Object delegate;
@@ -234,12 +239,14 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         @Override
         public Object invoke(Object proxy, final Method method, final Object[] args) throws Throwable {
             final String methodName = method.getName();
-            if (methodName.equals("toString") && args.length == 0) {
+            if (methodName.equals("toString") && (args == null || args.length == 0)) {
                 return "BuildOperationEmittingBuildListenerInvocationHandler{delegate: " + delegate + "}";
             } else if (methodName.equals("hashCode") && (args == null || args.length == 0)) {
                 return delegate.hashCode();
+            } else if (methodName.equals("getDelegate") && (args == null || args.length == 0)) {
+                return delegate;
             } else if (methodName.equals("equals") && args.length == 1) {
-                return proxy == args[0] || delegate.equals(args[0]) || args[0] instanceof BuildOperationEmittingInvocationHandler && delegate.equals(((BuildOperationEmittingInvocationHandler) args[0]).delegate);
+                return proxy == args[0] || (args[0] instanceof BuildOperationEmittingListenerProxy && delegate.equals(((BuildOperationEmittingListenerProxy) args[0]).getDelegate()));
             } else if(!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)){
                 // just execute directly
                 return method.invoke(delegate, args);
