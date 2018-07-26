@@ -19,6 +19,8 @@ package org.gradle.scala.compile
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
     String compilationTask = ':compileScala'
@@ -191,6 +193,52 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         executedAndNotSkipped compilationTask
         assertAllRecompiled(classes.allClassesLastModified, old(classes.allClassesLastModified))
         classes.analysisFile.assertIsFile()
+    }
+
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Zinc cannot do incremental compilation on Java 9, yet
+    def "stale outputs are cleanup up for the first compilation after loading from cache"() {
+        def source1 = file('src/main/scala/Class1.java')
+        source1 << 'class Class1 {}'
+        def source2 = file('src/main/scala/Class2.java')
+        source2 << 'class Class2 {}'
+        def source3 = file('src/main/scala/proto/Class3.java')
+        source3 << 'package proto; class Class3 {}'
+        def class2 = file('build/classes/scala/main/Class2.class')
+        def class1 = file('build/classes/scala/main/Class1.class')
+        def class3 = file('build/classes/scala/main/proto/Class3.class')
+
+        when:
+        withBuildCache().run(compilationTask)
+        then:
+        class1.isFile()
+        class2.isFile()
+        class3.isFile()
+        file(compiledFile).isFile()
+
+        when:
+        run("clean")
+        withBuildCache().run(compilationTask)
+        then:
+        skipped(compilationTask)
+
+        when:
+        assert source3.delete()
+        run(compilationTask)
+        then:
+        executedAndNotSkipped(compilationTask)
+        class1.exists()
+        class2.exists()
+        !class3.exists()
+        !class3.parentFile.exists()
+
+        when:
+        assert source2.delete()
+        run(compilationTask)
+        then:
+        executedAndNotSkipped(compilationTask)
+        class1.exists()
+        !class2.exists()
+        !class3.exists()
     }
 
     private void cleanBuildDir() {
