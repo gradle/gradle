@@ -53,17 +53,20 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     Long subProjectPluginAppId
 
     private void run() {
-        succeeds '-I', initFile.name, 'help'
+        def args = initFile.exists() ? ['-I', initFile.name, 'help'] : ['help']
+        succeeds(*args)
         // useful for inspecting ops when things go wrong
         operations.debugTree({ op -> !op.hasDetailsOfType(RegisterTaskBuildOperationType.Details) })
-        initScriptAppId = findScriptApplicationId(targetsGradle())
-        if (settingsFile.file) {
+        if (notEmpty(initFile)) {
+            initScriptAppId = findScriptApplicationId(targetsGradle())
+        }
+        if (notEmpty(settingsFile)) {
             settingsScriptAppId = findScriptApplicationId(targetsSettings())
         }
-        if (buildFile.file) {
+        if (notEmpty(buildFile)) {
             rootProjectScriptAppId = findScriptApplicationId(targetsProject(':'), scriptFile(buildFile))
         }
-        if (subBuildFile.file) {
+        if (notEmpty(subBuildFile)) {
             subProjectScriptAppId = findScriptApplicationId(targetsProject(':sub'), scriptFile(subBuildFile))
         }
         if (hasPlugin(settingsFile, 'SettingsPlugin')) {
@@ -552,9 +555,28 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
         verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
     }
 
-    // TODO:
+    def 'no extra executions for composite builds'() {
+        // This is basically shaking out internal listener registration that isn't using InternalListener.
+        // There are a lost of listeners registered through the methods that we've decorated in the composite build
+        // code
+        given:
+        file('buildSrc/build.gradle') << """            
+        """
+        includeBuild()
+        file('included/build.gradle') << """
+            tasks.create('foo')
+        """
+        buildFile << "tasks.help.dependsOn(gradle.includedBuild('included').task(':foo'))"
 
-    // composite builds coverage, lots of internal listener registration there
+        when:
+        run()
+
+        then:
+        // no explicit listeners registered, we shouldn't get there
+        operations.none(ExecuteListenerBuildOperationType)
+    }
+
+    // TODO:
 
     // rootProject in init script ??
     // allprojects
@@ -586,6 +608,10 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
 
     private static String progress(Progress p) {
         p.hasDetailsOfType(StyledTextOutputEvent) ? p.details.spans*.text.join('') : ''
+    }
+
+    private static boolean notEmpty(TestFile file) {
+        file.exists() && file.length() > 0
     }
 
     private static boolean hasPlugin(TestFile file, String pluginName) {
@@ -630,6 +656,11 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
 
     private void includeSub() {
         settingsFile << "include 'sub'"
+        subBuildFile << ""
+    }
+
+    private void includeBuild() {
+        settingsFile << "includeBuild './included'"
         subBuildFile << ""
     }
 
