@@ -38,6 +38,7 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
@@ -266,10 +267,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         if (store.constantTimeIsEmpty()) {
             return;
         }
-        Object[] c = toArray();
+        List<T> c = Lists.newArrayList(store.iteratorNoFlush());
         getStore().clear();
-        for (Object o : c) {
-            eventRegister.fireObjectRemoved((T) o);
+        for (T o : c) {
+            eventRegister.fireObjectRemoved(o);
         }
     }
 
