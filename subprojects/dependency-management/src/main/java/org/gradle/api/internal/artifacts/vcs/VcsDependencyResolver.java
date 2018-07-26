@@ -150,7 +150,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             return versionControlSystem.getBranch(spec, constraint.getBranch());
         }
 
-        String version = constraint.getPreferredVersion();
+        String version = constraint.getRequiredVersion();
         VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
         if (versionSelector instanceof LatestVersionSelector && ((LatestVersionSelector)versionSelector).getSelectorStatus().equals("integration")) {
             return versionControlSystem.getDefaultBranch(spec);
@@ -181,7 +181,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         if (constraint.getBranch() != null) {
             return spec.getUniqueId() + ":b:" + constraint.getBranch();
         }
-        return spec.getUniqueId() + ":v:" + constraint.getPreferredVersion();
+        return spec.getUniqueId() + ":v:" + constraint.getRequiredVersion();
     }
 
     @Override

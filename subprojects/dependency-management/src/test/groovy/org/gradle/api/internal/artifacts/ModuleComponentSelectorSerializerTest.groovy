@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.model.NamedObjectInstantiator
@@ -35,16 +36,27 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes"() {
         when:
-        def result = serialize(newSelector(UTIL, new DefaultMutableVersionConstraint(version, rejects), attributes(foo: 'bar')), serializer)
+        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar')), serializer)
 
         then:
-        result == newSelector(UTIL, new DefaultMutableVersionConstraint(version, rejects), attributes(foo: 'bar'))
+        result == newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'))
 
         where:
-        version | rejects
-        '5.0'   | []
-        '5.0'   | ['1.0']
-        '5.0'   | ['1.0', '2.0']
+        version | strict   | rejects
+        '5.0'   | ''       | []
+        '5.0'   | ''       | ['1.0']
+        '5.0'   | ''       | ['1.0', '2.0']
+        '5.0'   | '[1.0,)' | []
+    }
 
+    private static MutableVersionConstraint constraint(String version, String strictVersion, List<String> rejectedVersions) {
+        MutableVersionConstraint constraint = new DefaultMutableVersionConstraint(version)
+        if (strictVersion != null) {
+            constraint.strictly(strictVersion)
+        }
+        for (String reject : rejectedVersions) {
+            constraint.reject(reject)
+        }
+        return constraint
     }
 }

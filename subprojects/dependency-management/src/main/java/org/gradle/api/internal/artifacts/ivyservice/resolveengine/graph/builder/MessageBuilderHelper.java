@@ -20,9 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CompositeVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
 import java.util.Collection;
 import java.util.List;
@@ -75,38 +72,5 @@ abstract class MessageBuilderHelper {
                 accumulator.add(currentPath);
             }
         }
-    }
-
-    static String renderVersionConstraint(ResolvedVersionConstraint constraint) {
-        if (constraint.isRejectAll()) {
-            return "rejects all versions";
-        }
-        VersionSelector preferredSelector = constraint.getPreferredSelector();
-        VersionSelector rejectedSelector = constraint.getRejectedSelector();
-        StringBuilder sb = new StringBuilder("prefers ");
-        sb.append('\'');
-        sb.append(preferredSelector.getSelector());
-        sb.append('\'');
-        if (rejectedSelector != null) {
-            sb.append(", rejects ");
-            if (rejectedSelector instanceof CompositeVersionSelector) {
-                sb.append("any of \"");
-                int i = 0;
-                for (VersionSelector selector : ((CompositeVersionSelector) rejectedSelector).getSelectors()) {
-                    if (i++ > 0) {
-                        sb.append(", ");
-                    }
-                    sb.append('\'');
-                    sb.append(selector.getSelector());
-                    sb.append('\'');
-                }
-                sb.append("\"");
-            } else {
-                sb.append('\'');
-                sb.append(rejectedSelector.getSelector());
-                sb.append('\'');
-            }
-        }
-        return sb.toString();
     }
 }

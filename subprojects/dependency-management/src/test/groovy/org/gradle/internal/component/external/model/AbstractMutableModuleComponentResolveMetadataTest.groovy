@@ -244,15 +244,15 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.variants[0].dependencies.size() == 2
         metadata.variants[0].dependencies[0].group == "g1"
         metadata.variants[0].dependencies[0].module == "m1"
-        metadata.variants[0].dependencies[0].versionConstraint.preferredVersion == "v1"
+        metadata.variants[0].dependencies[0].versionConstraint.requiredVersion == "v1"
         metadata.variants[0].dependencies[1].group == "g2"
         metadata.variants[0].dependencies[1].module == "m2"
-        metadata.variants[0].dependencies[1].versionConstraint.preferredVersion == "v2"
+        metadata.variants[0].dependencies[1].versionConstraint.requiredVersion == "v2"
         metadata.variants[0].dependencies[1].reason == "v2 is tested"
         metadata.variants[1].dependencies.size() == 1
         metadata.variants[1].dependencies[0].group == "g1"
         metadata.variants[1].dependencies[0].module == "m1"
-        metadata.variants[1].dependencies[0].versionConstraint.preferredVersion == "v1"
+        metadata.variants[1].dependencies[0].versionConstraint.requiredVersion == "v1"
 
         def immutable = metadata.asImmutable()
         immutable.variants.size() == 2
