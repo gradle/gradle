@@ -59,6 +59,11 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
          */
         String getBuildPath();
 
+        /**
+         * TODO
+         */
+        long getApplicationId();
+
     }
 
     public interface Result {

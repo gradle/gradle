@@ -61,6 +61,7 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -169,13 +170,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry(buildScopedToolingModelBuilders);
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperationDecorator) {
         PluginTarget target = new RuleBasedPluginTarget(
             project,
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, listenerBuildOperationDecorator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

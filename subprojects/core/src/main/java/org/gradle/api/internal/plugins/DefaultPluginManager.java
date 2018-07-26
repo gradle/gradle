@@ -30,6 +30,7 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -59,13 +60,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperationDecorator) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
         this.buildOperationExecutor = buildOperationExecutor;
+        this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -240,6 +243,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         private final PluginImplementation<?> plugin;
         private final String pluginId;
         private final Class<?> pluginClass;
+        private final long applicationId = listenerBuildOperationDecorator.allocateApplicationId();
 
         private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
             this.adder = adder;
@@ -250,8 +254,13 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         @Override
         public void run(BuildOperationContext context) {
-            addPlugin(adder, plugin, pluginId, pluginClass);
-            context.setResult(OPERATION_RESULT);
+            listenerBuildOperationDecorator.startApplication(applicationId);
+            try {
+                addPlugin(adder, plugin, pluginId, pluginClass);
+                context.setResult(OPERATION_RESULT);
+            } finally {
+                listenerBuildOperationDecorator.finishApplication(applicationId);
+            }
         }
 
         @Override
@@ -269,7 +278,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             String name = "Apply plugin " + pluginIdentifier;
             return BuildOperationDescriptor.displayName(name + " to " + target.toString())
                 .name(name)
-                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier()));
+                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier(), applicationId));
         }
     }
 
@@ -277,10 +286,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         private final PluginImplementation<?> pluginImplementation;
         private final ConfigurationTargetIdentifier targetIdentifier;
+        private final long applicationId;
 
-        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier) {
+        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier, long applicationId) {
             this.pluginImplementation = pluginImplementation;
             this.targetIdentifier = targetIdentifier;
+            this.applicationId = applicationId;
         }
 
         @Nullable
@@ -311,6 +322,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
 
         @Override
+        public long getApplicationId() {
+            return applicationId;
+        }
+
+        @Override
         public Object getCustomOperationTraceSerializableModel() {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("pluginId", getPluginId());
@@ -318,6 +334,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             map.put("targetType", getTargetType());
             map.put("targetPath", getTargetPath());
             map.put("buildPath", getBuildPath());
+            map.put("applicationId", getApplicationId());
             return map;
         }
     }

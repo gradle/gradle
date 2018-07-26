@@ -182,8 +182,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new LocalTaskInfoExecutor(taskExecuterFactory);
     }
 
-    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
-        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, listenerBuildOperations, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
+    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, List<WorkInfoExecutor> workInfoExecutors, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperationDecorator, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
+        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, workInfoExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -204,9 +204,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperationDecorator) {
         PluginTarget target = new ImperativeOnlyPluginTarget<GradleInternal>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, listenerBuildOperationDecorator);
     }
 
     FileContentCacheFactory createFileContentCacheFactory(FileContentCacheFactory globalCacheFactory, ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle, WellKnownFileLocations wellKnownFileLocations) {
