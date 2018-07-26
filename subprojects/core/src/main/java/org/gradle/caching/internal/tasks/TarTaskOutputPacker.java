@@ -284,7 +284,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         parser.rootPath(rootEntry.getName());
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-        builder.preVisitDirectory(stringInterner.intern(propertyRoot.getAbsolutePath()), stringInterner.intern(propertyRoot.getName()));
+        String rootPath = stringInterner.intern(propertyRoot.getAbsolutePath());
+        String rootDirName = stringInterner.intern(propertyRoot.getName());
+        builder.preVisitDirectory(rootPath, rootDirName);
 
         TarArchiveEntry entry;
 
