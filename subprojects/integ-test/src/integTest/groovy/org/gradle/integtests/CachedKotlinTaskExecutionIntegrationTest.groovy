@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires([KOTLIN_SCRIPT])
-class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegrationTest implements DirectoryBuildCacheFixture {
 
     @Override
     protected String getDefaultBuildFileName() {

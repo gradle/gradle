@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
@@ -28,7 +28,7 @@ import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Rule
     Resources resources = new Resources()

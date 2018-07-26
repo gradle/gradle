@@ -26,6 +26,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -106,7 +108,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            ProjectConnection connection -> connection.newBuild().withArguments("-Dorg.gradle.internal.plugins.portal.url.override=${gradlePluginRepositoryMirrorUrl()}").addProgressListener(events).run()
         }
 
         then:

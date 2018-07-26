@@ -33,6 +33,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     @Unroll
     def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
+        disablePluginRepoMirror()
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
         buildFile << """
