@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.scripts.ScriptCompileStage;
 import org.gradle.internal.serialize.Serializer;
 
 /**
@@ -37,6 +38,12 @@ public interface CompileOperation<T> {
      * Used to distinguish between the classes compiled from the same script with different transformers, so should be a valid java identifier.
      */
     String getId();
+
+    /**
+     * The stage of this compile operation.
+     * This is exposed by {@link org.gradle.internal.scripts.CompileScriptBuildOperationType.Details#getStage()}.
+     * */
+    ScriptCompileStage getStage();
 
     Transformer getTransformer();
 
