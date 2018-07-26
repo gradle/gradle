@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.scripts
 
-import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
