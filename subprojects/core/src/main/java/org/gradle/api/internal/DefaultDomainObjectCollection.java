@@ -291,6 +291,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     private boolean doRemove(Object o) {
+        if (o instanceof ProviderInternal) {
+            ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(o);
+            if (getStore().removePending(providerInternal)) {
+                // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
+                return true;
+            } else if (getType().isAssignableFrom(providerInternal.getType())) {
+                // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
+                o = providerInternal.get();
+            }
+            // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider, fallthrough
+        }
+
         if (getStore().remove(o)) {
             @SuppressWarnings("unchecked") T cast = (T) o;
             didRemove(cast);
