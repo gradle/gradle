@@ -87,6 +87,8 @@ ext {
         }
         into('samples') {
             from project(':docs').outputs.samples
+            exclude '**/*.out'
+            exclude '**/*.sample.conf*'
         }
     }
 }

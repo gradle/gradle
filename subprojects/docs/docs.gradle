@@ -152,8 +152,6 @@ def samples = tasks.register("samples", Copy) {
     from samplesSrcDir
     into samplesDir
 
-    exclude '**/*.out'
-    exclude '**/*.sample.conf*'
     exclude '**/readme.xml'
     exclude '**/build/**'
     exclude '**/.gradle/**'
