@@ -29,9 +29,9 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.InputStream;
 
-public class FileSystemSnapshotFilterer {
+public class FileSystemSnapshotFilter {
 
-    private FileSystemSnapshotFilterer() {
+    private FileSystemSnapshotFilter() {
     }
 
     public static FileSystemSnapshot filterSnapshot(final Spec<FileTreeElement> spec, FileSystemSnapshot unfiltered, final FileSystem fileSystem) {

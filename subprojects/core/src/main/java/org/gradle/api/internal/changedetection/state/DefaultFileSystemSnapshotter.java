@@ -24,7 +24,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshotFilterer;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshotFilter;
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
@@ -226,7 +226,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             return snapshot;
         }
         Spec<FileTreeElement> spec = patterns.getAsSpec();
-        return FileSystemSnapshotFilterer.filterSnapshot(spec, snapshot, fileSystem);
+        return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
     }
 
     private String internPath(File file) {
