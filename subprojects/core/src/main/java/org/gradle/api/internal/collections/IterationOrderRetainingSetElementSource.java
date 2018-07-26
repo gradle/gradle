@@ -91,13 +91,13 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean add(T element) {
-        if (added.add(element)) {
-            if (!Iterators.contains(iteratorNoFlush(), element)) {
-                inserted.add(new CachingElement(element));
-            }
-            return true;
-        }
-        return false;
+        inserted.add(new CachingElement(element));
+        return added.add(element);
+    }
+
+    @Override
+    public boolean addRealized(T element) {
+        return added.add(element);
     }
 
     @Override
@@ -155,6 +155,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         }
         return false;
     }
+
     @Override
     public void onRealize(final Action<T> action) {
         this.realizeAction = action;
@@ -201,7 +202,9 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             if (value == null && delegate != null) {
                 value = delegate.get();
                 realized = true;
-                realizeAction.execute(value);
+                if (realizeAction != null) {
+                    realizeAction.execute(value);
+                }
             }
         }
 

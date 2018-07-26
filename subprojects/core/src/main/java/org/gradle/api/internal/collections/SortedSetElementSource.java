@@ -81,6 +81,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
+    public boolean addRealized(T element) {
+        return values.add(element);
+    }
+
+    @Override
     public boolean remove(Object o) {
         return values.remove(o);
     }

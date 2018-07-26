@@ -108,6 +108,11 @@ public class ListElementSource<T> implements IndexedElementSource<T> {
     }
 
     @Override
+    public boolean addRealized(T element) {
+        return values.add(element);
+    }
+
+    @Override
     public void add(int index, T element) {
         values.add(index, element);
     }

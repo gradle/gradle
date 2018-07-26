@@ -213,6 +213,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
+        public boolean addRealized(T element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean remove(Object o) {
             throw new UnsupportedOperationException();
         }

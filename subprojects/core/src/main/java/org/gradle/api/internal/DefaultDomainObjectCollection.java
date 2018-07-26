@@ -57,7 +57,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.store.onRealize(new Action<T>() {
             @Override
             public void execute(T value) {
-                doAdd(value, eventRegister.getAddActions());
+                doAddRealized(value, eventRegister.getAddActions());
             }
         });
     }
@@ -228,6 +228,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
         if (getStore().add(toAdd)) {
+            didAdd(toAdd);
+            notification.execute(toAdd);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
+        if (getStore().addRealized(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);
             return true;

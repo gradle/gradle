@@ -16,22 +16,12 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.Action
 import org.gradle.api.internal.provider.AbstractProvider
 import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
 
 class IterationOrderRetainingSetElementSourceTest extends Specification {
     IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
-
-    def setup() {
-        source.onRealize(new Action<ProviderInternal<? extends String>>() {
-            @Override
-            void execute(ProviderInternal<? extends String> providerInternal) {
-                providerInternal.get()
-            }
-        })
-    }
 
     def "can add a realized element"() {
         when:
