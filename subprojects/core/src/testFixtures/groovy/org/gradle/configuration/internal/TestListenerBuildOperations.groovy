@@ -23,12 +23,12 @@ class TestListenerBuildOperations implements ListenerBuildOperationDecorator {
     private long counter
 
     @Override
-    <T> Action<T> decorate(Action<T> action) {
+    <T> Action<T> decorate(String name, Action<T> action) {
         action
     }
 
     @Override
-    <T> Closure<T> decorate(Closure<T> closure) {
+    <T> Closure<T> decorate(String name, Closure<T> closure) {
         return closure
     }
 

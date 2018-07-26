@@ -163,34 +163,34 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         def configOp = operations.only(ConfigureProjectBuildOperationType, { it.details.projectPath == ':foo' })
         with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify beforeEvaluate listeners of :foo'
-            children*.displayName == ["Execute listener"]
+            children*.displayName == ["Execute beforeEvaluate listener"]
             children.first().children*.displayName == ["Apply script before.gradle to project ':foo'"]
             parentId == configOp.id
         }
         with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify afterEvaluate listeners of :foo'
-            children*.displayName == ["Execute listener"]
+            children*.displayName == ["Execute afterEvaluate listener"]
             children.first().children*.displayName == ["Apply script after.gradle to project ':foo'"]
             parentId == configOp.id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
             displayName == 'Notify task graph whenReady listeners (:buildSrc)'
-            children*.displayName == ["Execute listener"]
+            children*.displayName == ["Execute graphPopulated listener"]
             children.first().children*.displayName == ["Apply script buildSrcWhenReady.gradle to project ':buildSrc'"]
             parentId == operations.first("Run tasks (:buildSrc)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
             displayName == 'Notify task graph whenReady listeners (:included-build)'
-            children*.displayName == ["Execute listener"]
+            children*.displayName == ["Execute graphPopulated listener"]
             children.first().children*.displayName == ["Apply script includedWhenReady.gradle to project ':included-build'"]
             parentId == operations.first("Run tasks (:included-build)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {
             displayName == 'Notify task graph whenReady listeners'
-            children*.displayName == ["Execute listener"]
+            children*.displayName == ["Execute graphPopulated listener"]
             children.first().children*.displayName == ["Apply script whenReady.gradle to project ':foo'"]
             parentId == operations.first("Run tasks").id
         }

@@ -162,7 +162,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperations.decorate(closure)));
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperations.decorate("graphPopulated", closure)));
     }
 
     public void whenReady(final Action<TaskExecutionGraph> action) {

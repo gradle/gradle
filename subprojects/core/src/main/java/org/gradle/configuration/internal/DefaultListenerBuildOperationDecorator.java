@@ -64,15 +64,15 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public <T> Action<T> decorate(Action<T> action) {
+    public <T> Action<T> decorate(String name, Action<T> action) {
         if (action instanceof InternalListener) {
             return action;
         }
-        return new BuildOperationEmittingAction<T>(applicationStack.currentApplication(), action);
+        return new BuildOperationEmittingAction<T>(applicationStack.currentApplication(), name, action);
     }
 
-    public <T> Closure<T> decorate(Closure<T> closure) {
-        return new BuildOperationEmittingClosure<T>(applicationStack.currentApplication(), closure);
+    public <T> Closure<T> decorate(String name, Closure<T> closure) {
+        return new BuildOperationEmittingClosure<T>(applicationStack.currentApplication(), name, closure);
     }
 
     public long allocateApplicationId() {
@@ -114,6 +114,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return false;
     }
 
+    private static BuildOperationDescriptor.Builder opDescriptor(ApplicationStackEntry application, String name) {
+        return BuildOperationDescriptor
+            .displayName("Execute " + name + " listener")
+            .details(new DetailsImpl(application == null ? null : application.parentApplicationId()));
+    }
+
     private abstract class BuildOperationEmitter {
 
         protected final ApplicationStackEntry application;
@@ -123,26 +129,34 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
 
         protected abstract class Operation implements RunnableBuildOperation {
+
+            private final String name;
+
+            protected Operation(String name) {
+                this.name = name;
+            }
+
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return new DetailsImpl(application == null ? null : application.parentApplicationId()).desc();
+                return opDescriptor(application, name);
             }
         }
-
     }
 
-    private class BuildOperationEmittingAction<T> extends BuildOperationEmitter implements Action<T> {
+    private class BuildOperationEmittingAction<T> extends DefaultListenerBuildOperationDecorator.BuildOperationEmitter implements Action<T> {
 
+        private final String name;
         private final Action<T> delegate;
 
-        private BuildOperationEmittingAction(ApplicationStackEntry application, Action<T> delegate) {
+        private BuildOperationEmittingAction(ApplicationStackEntry application, String name, Action<T> delegate) {
             super(application);
             this.delegate = delegate;
+            this.name = name;
         }
 
         @Override
         public void execute(final T arg) {
-            buildOperationExecutor.run(new Operation() {
+            buildOperationExecutor.run(new Operation(name) {
                 @Override
                 public void run(BuildOperationContext context) {
                     long executionId = applicationStack.startListenerExecution(application);
@@ -160,12 +174,14 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     private class BuildOperationEmittingClosure<T> extends Closure<T> {
 
         private final ApplicationStackEntry application;
+        private final String name;
         private final Closure<T> delegate;
 
-        private BuildOperationEmittingClosure(ApplicationStackEntry application, Closure<T> delegate) {
+        private BuildOperationEmittingClosure(ApplicationStackEntry application, String name, Closure<T> delegate) {
             super(delegate.getOwner(), delegate.getThisObject());
             this.application = application;
             this.delegate = delegate;
+            this.name = name;
         }
 
         public void doCall(final Object... args) {
@@ -185,7 +201,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return new DetailsImpl(application == null ? null : application.parentApplicationId()).desc();
+                    return opDescriptor(application, name);
                 }
             });
         }
@@ -228,7 +244,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                 // just execute directly
                 return method.invoke(delegate, args);
             } else {
-                buildOperationExecutor.run(new Operation() {
+                buildOperationExecutor.run(new Operation(methodName) {
                     @Override
                     public void run(BuildOperationContext context) {
                         long executionId = applicationStack.startListenerExecution(application);
@@ -271,8 +287,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         private long startListenerExecution(ApplicationStackEntry parent) {
             long id = allocateApplicationId();
             // this is to support attributing nested listener execution (primarily afterEvaluate at this time)
-//            ApplicationStackEntry currentApplication = currentApplication();
-//            System.out.println("startListenerExecution(): id: " + id + ", parent application: " + parent);
             pushEntry(ApplicationStackEntryType.ListenerExecution, id, parent == null ? null : parent.parentApplicationId());
             return id;
         }
@@ -286,14 +300,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
 
         private void pushEntry(ApplicationStackEntryType type, Long id, Long parentApplicationId) {
-//            System.out.println("Pushing " + new ApplicationStackEntry(type, id, parentApplicationId));
             get().push(new ApplicationStackEntry(type, id, parentApplicationId));
         }
 
         private void popEntry(ApplicationStackEntryType type, Long id) {
             ApplicationStackEntry expected = new ApplicationStackEntry(type, id, null);
             ApplicationStackEntry head = get().pop();
-//            System.out.println("Popped " + head);
             if (!head.equals(expected)) {
                 throw new IllegalStateException("Mismatching application stack, ending " + expected + " but stack had " + head);
             }

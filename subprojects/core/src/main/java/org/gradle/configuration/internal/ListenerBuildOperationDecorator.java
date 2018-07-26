@@ -21,9 +21,9 @@ import org.gradle.api.Action;
 
 public interface ListenerBuildOperationDecorator {
 
-    <T> Action<T> decorate(Action<T> action);
+    <T> Action<T> decorate(String name, Action<T> action);
 
-    <T> Closure<T> decorate(Closure<T> closure);
+    <T> Closure<T> decorate(String name, Closure<T> closure);
 
     <T> T decorate(Class<T> cls, T listener);
 

@@ -54,7 +54,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.startApplication(APPLICATION_ID)
 
         expect:
-        decorator.decorate(action) is action
+        decorator.decorate('foo', action) is action
 
         and:
         decorator.decorate(BuildListener, buildListener) is buildListener
@@ -85,7 +85,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.startApplication(APPLICATION_ID)
 
         when:
-        def decoratedAction = decorator.decorate(action)
+        def decoratedAction = decorator.decorate('foo', action)
 
         then:
         !decoratedAction.is(action)
@@ -97,7 +97,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * action.execute(arg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('foo')
     }
 
     def 'decorates closures of same single arity'() {
@@ -111,7 +111,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.startApplication(APPLICATION_ID)
 
         when:
-        def decoratedClosure = decorator.decorate(closure)
+        def decoratedClosure = decorator.decorate('foo', closure)
 
         then:
         !decoratedClosure.is(closure)
@@ -123,7 +123,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('foo')
     }
 
     def 'decorates closures of same multiple arity'() {
@@ -139,7 +139,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.startApplication(APPLICATION_ID)
 
         when:
-        def decoratedClosure = decorator.decorate(closure)
+        def decoratedClosure = decorator.decorate('foo', closure)
 
         then:
         !decoratedClosure.is(closure)
@@ -151,7 +151,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('foo')
     }
 
     def 'decorates closures of lower arity'() {
@@ -166,7 +166,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.startApplication(APPLICATION_ID)
 
         when:
-        def decoratedClosure = decorator.decorate(closure)
+        def decoratedClosure = decorator.decorate('foo', closure)
 
         then:
         !decoratedClosure.is(closure)
@@ -178,7 +178,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('foo')
     }
 
     def 'decorates closures of zero arity'() {
@@ -191,7 +191,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.startApplication(APPLICATION_ID)
 
         when:
-        def decoratedClosure = decorator.decorate(closure)
+        def decoratedClosure = decorator.decorate('foo', closure)
 
         then:
         !decoratedClosure.is(closure)
@@ -203,7 +203,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('foo')
     }
 
     @Unroll
@@ -248,7 +248,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.projectsLoaded(projectsLoadedArg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('projectsLoaded')
 
         when:
         resetOps()
@@ -258,7 +258,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.projectsEvaluated(projectsEvaluatedArg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('projectsEvaluated')
 
         when:
         resetOps()
@@ -296,7 +296,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.beforeEvaluate(beforeEvaluateArg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('beforeEvaluate')
 
         when:
         resetOps()
@@ -306,7 +306,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.afterEvaluate(afterEvaluateArg1, afterEvaluateArg2)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('afterEvaluate')
 
         where:
         decorateAsObject << [true, false]
@@ -332,7 +332,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.graphPopulated(arg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('graphPopulated')
 
         where:
         decorateAsObject << [true, false]
@@ -369,7 +369,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.projectsLoaded(projectsLoadedArg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('projectsLoaded')
 
         when:
         resetOps()
@@ -379,7 +379,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.beforeEvaluate(beforeEvaluateArg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('beforeEvaluate')
 
         when:
         resetOps()
@@ -389,7 +389,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.graphPopulated(graphPopulatedArg)
 
         and:
-        verifyExpectedOp()
+        verifyExpectedOp('graphPopulated')
 
         when:
         resetOps()
@@ -410,10 +410,10 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         assert buildOperationExecutor.operations.empty
     }
 
-    private void verifyExpectedOp(long expectedApplicationId = APPLICATION_ID) {
+    private void verifyExpectedOp(String expectedName, long expectedApplicationId = APPLICATION_ID) {
         assert buildOperationExecutor.operations.size() == 1
         def op = buildOperationExecutor.operations.first()
-        assert op.displayName == 'Execute listener'
+        assert op.displayName == "Execute $expectedName listener"
         assert (op.details as ExecuteListenerBuildOperationType.Details).applicationId == expectedApplicationId
     }
 }

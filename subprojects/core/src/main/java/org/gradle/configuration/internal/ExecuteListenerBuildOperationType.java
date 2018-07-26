@@ -17,7 +17,6 @@
 package org.gradle.configuration.internal;
 
 
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -48,11 +47,6 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
             return applicationId;
         }
 
-        BuildOperationDescriptor.Builder desc() {
-            return BuildOperationDescriptor
-                .displayName("Execute listener")
-                .details(this);
-        }
     }
 
     static final Result RESULT = new Result() {};
