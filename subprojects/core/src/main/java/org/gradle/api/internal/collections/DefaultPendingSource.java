@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.ProviderInternal;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class DefaultPendingSource<T> implements PendingSource<T> {
@@ -71,6 +72,11 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     @Override
     public void onRealize(Action<ProviderInternal<? extends T>> action) {
         this.flushAction = action;
+    }
+
+    @Override
+    public Iterator<ProviderInternal<? extends T>> iteratorPending() {
+        return pending.iterator();
     }
 
     @Override

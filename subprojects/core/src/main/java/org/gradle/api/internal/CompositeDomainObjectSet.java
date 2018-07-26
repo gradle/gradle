@@ -262,6 +262,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
+        public Iterator<ProviderInternal<? extends T>> iteratorPending() {
+            return Iterators.emptyIterator();
+        }
+
+        @Override
         public void realizePending() {
 
         }

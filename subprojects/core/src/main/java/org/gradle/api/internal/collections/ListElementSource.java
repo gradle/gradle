@@ -61,6 +61,11 @@ public class ListElementSource<T> implements IndexedElementSource<T> {
     }
 
     @Override
+    public Iterator<ProviderInternal<? extends T>> iteratorPending() {
+        return pending.iteratorPending();
+    }
+
+    @Override
     public ListIterator<T> listIterator() {
         return values.listIterator();
     }

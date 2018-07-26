@@ -171,6 +171,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public Iterator<ProviderInternal<? extends S>> iteratorPending() {
+        throw new UnsupportedOperationException(String.format("Cannot iterate over pending element from '%s' as it is a filtered collection", this));
+    }
+
+    @Override
     public void realizePending() {
         realizePending(filter.getType());
     }

@@ -64,6 +64,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
+    public Iterator<ProviderInternal<? extends T>> iteratorPending() {
+        return pending.iteratorPending();
+    }
+
+    @Override
     public boolean contains(Object element) {
         pending.realizePending();
         return values.contains(element);
