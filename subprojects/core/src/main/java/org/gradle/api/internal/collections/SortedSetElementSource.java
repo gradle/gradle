@@ -112,7 +112,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+    public void onRealize(Action<T> action) {
         pending.onRealize(action);
     }
 }

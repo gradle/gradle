@@ -54,10 +54,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onRealize(new Action<ProviderInternal<? extends T>>() {
+        this.store.onRealize(new Action<T>() {
             @Override
-            public void execute(ProviderInternal<? extends T> provider) {
-                doAdd(provider.get(), eventRegister.getAddActions());
+            public void execute(T value) {
+                doAdd(value, eventRegister.getAddActions());
             }
         });
     }

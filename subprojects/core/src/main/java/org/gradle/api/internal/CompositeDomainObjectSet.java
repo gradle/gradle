@@ -282,7 +282,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        public void onRealize(Action<T> action) {
 
         }
     }

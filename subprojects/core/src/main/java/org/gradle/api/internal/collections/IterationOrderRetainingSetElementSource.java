@@ -19,7 +19,6 @@ package org.gradle.api.internal.collections;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import javax.annotation.Nullable;
@@ -40,9 +39,9 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
-    private final List<RealizableProvider<T>> inserted = new ArrayList<RealizableProvider<T>>();
+    private final List<Element<T>> inserted = new ArrayList<Element<T>>();
 
-    private Action<ProviderInternal<? extends T>> realizeAction;
+    private Action<T> realizeAction;
 
     @Override
     public boolean isEmpty() {
@@ -94,7 +93,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     public boolean add(T element) {
         if (added.add(element)) {
             if (!Iterators.contains(iteratorNoFlush(), element)) {
-                inserted.add(new CachingProvider(element));
+                inserted.add(new CachingElement(element));
             }
             return true;
         }
@@ -103,10 +102,10 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean remove(Object o) {
-        Iterator<RealizableProvider<T>> iterator = inserted.iterator();
+        Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
-            RealizableProvider<? extends T> provider = iterator.next();
-            if (provider.isRealized() && provider.get().equals(o)) {
+            Element<? extends T> provider = iterator.next();
+            if (provider.isRealized() && provider.getValue().equals(o)) {
                 iterator.remove();
                 return added.remove(o);
             }
@@ -122,7 +121,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public void realizePending() {
-        for (RealizableProvider<T> provider : inserted) {
+        for (Element<T> provider : inserted) {
             if (!provider.isRealized()) {
                 provider.realize();
             }
@@ -131,8 +130,8 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public void realizePending(Class<?> type) {
-        for (RealizableProvider<T> provider : inserted) {
-            if (!provider.isRealized() && (provider.getDelegateType() == null || type.isAssignableFrom(provider.getDelegateType()))) {
+        for (Element<T> provider : inserted) {
+            if (!provider.isRealized() && (provider.getType() == null || type.isAssignableFrom(provider.getType()))) {
                 provider.realize();
             }
         }
@@ -140,15 +139,15 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
-        inserted.add(new CachingProvider(provider));
+        inserted.add(new CachingElement(provider));
         return true;
     }
 
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
-        Iterator<RealizableProvider<T>> iterator = inserted.iterator();
+        Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
-            RealizableProvider<T> next = iterator.next();
+            Element<T> next = iterator.next();
             if (next.caches(provider)) {
                 iterator.remove();
                 return true;
@@ -156,19 +155,96 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         }
         return false;
     }
-
     @Override
-    public void onRealize(final Action<ProviderInternal<? extends T>> action) {
+    public void onRealize(final Action<T> action) {
         this.realizeAction = action;
     }
 
-    private static class RealizedElementSetIterator<T> implements Iterator<T> {
-        private final ListIterator<RealizableProvider<T>> iterator;
+    protected interface Element<T> {
+        boolean isRealized();
+        boolean caches(ProviderInternal<? extends T> provider);
+        void realize();
+        Class<? extends T> getType();
+        T getValue();
+    }
+
+    protected class CachingElement implements Element<T> {
+        private final ProviderInternal<? extends T> delegate;
+        private T value;
+        private boolean realized;
+
+        CachingElement(final ProviderInternal<? extends T> delegate) {
+            this.delegate = delegate;
+        }
+
+        CachingElement(T value) {
+            this.value = value;
+            this.realized = true;
+            this.delegate = null;
+        }
+
+        public Class<? extends T> getType() {
+            if (delegate != null) {
+                return delegate.getType();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public boolean isRealized() {
+            return realized;
+        }
+
+        @Override
+        public void realize() {
+            if (value == null && delegate != null) {
+                value = delegate.get();
+                realized = true;
+                realizeAction.execute(value);
+            }
+        }
+
+        @Nullable
+        @Override
+        public T getValue() {
+            if (!realized) {
+                realize();
+            }
+            return value;
+        }
+
+        @Override
+        public boolean caches(ProviderInternal<? extends T> provider) {
+            return Objects.equal(delegate, provider);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            IterationOrderRetainingSetElementSource.CachingElement that = (IterationOrderRetainingSetElementSource.CachingElement) o;
+            return Objects.equal(delegate, that.delegate) &&
+                Objects.equal(value, that.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(delegate, value);
+        }
+    }
+
+    protected static class RealizedElementSetIterator<T> implements Iterator<T> {
+        private final ListIterator<Element<T>> iterator;
+        private final Collection<T> values = new HashSet<T>();
         private T next;
-        private Set<T> values = new HashSet<T>();
         private int lastRealizedIndex = -1;
 
-        RealizedElementSetIterator(ListIterator<RealizableProvider<T>> iterator) {
+        RealizedElementSetIterator(ListIterator<IterationOrderRetainingSetElementSource.Element<T>> iterator) {
             this.iterator = iterator;
             this.next = getNext();
         }
@@ -176,9 +252,9 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
         T getNext() {
             while (iterator.hasNext()) {
                 int nextIndex = iterator.nextIndex();
-                RealizableProvider<T> nextCandidate = iterator.next();
+                Element<T> nextCandidate = iterator.next();
                 if (nextCandidate.isRealized()) {
-                    T value = nextCandidate.get();
+                    T value = nextCandidate.getValue();
                     if (values.add(value)) {
                         lastRealizedIndex = nextIndex;
                         return value;
@@ -214,89 +290,6 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             } else {
                 throw new IllegalStateException();
             }
-        }
-    }
-
-    private interface RealizableProvider<T> extends ProviderInternal<T> {
-        boolean isRealized();
-        boolean caches(ProviderInternal<? extends T> provider);
-        void realize();
-        Class<? extends T> getDelegateType();
-    }
-
-    private class CachingProvider extends AbstractProvider<T> implements RealizableProvider<T> {
-        private final ProviderInternal<? extends T> delegate;
-        private T value;
-        private boolean realized;
-
-        CachingProvider(final ProviderInternal<? extends T> delegate) {
-            this.delegate = delegate;
-        }
-
-        CachingProvider(T value) {
-            this.value = value;
-            this.realized = true;
-            this.delegate = null;
-        }
-
-        @Nullable
-        @Override
-        public Class<T> getType() {
-            return null;
-        }
-
-        public Class<? extends T> getDelegateType() {
-            if (delegate != null) {
-                return delegate.getType();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public boolean isRealized() {
-            return realized;
-        }
-
-        @Override
-        public void realize() {
-            if (value == null && delegate != null) {
-                value = delegate.get();
-                realized = true;
-                realizeAction.execute(this);
-            }
-        }
-
-        @Nullable
-        @Override
-        public T getOrNull() {
-            if (!realized) {
-                realize();
-            }
-            return value;
-        }
-
-        @Override
-        public boolean caches(ProviderInternal<? extends T> provider) {
-            return Objects.equal(delegate, provider);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            CachingProvider that = (CachingProvider) o;
-            return Objects.equal(delegate, that.delegate) &&
-                Objects.equal(value, that.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(delegate, value);
         }
     }
 }

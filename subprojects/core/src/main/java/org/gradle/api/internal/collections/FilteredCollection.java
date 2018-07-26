@@ -191,5 +191,5 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends S>> action) { }
+    public void onRealize(Action<S> action) { }
 }
