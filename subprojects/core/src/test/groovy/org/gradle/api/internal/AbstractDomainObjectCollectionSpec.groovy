@@ -726,4 +726,60 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         1 * action.execute(a)
         0 * action.execute(_)
     }
+
+    def "remove action is not executed when clearing unrealized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        container.clear()
+
+        then:
+        1 * action.execute(a)
+        0 * action.execute(_)
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder()
+    }
+
+    def "provider is not queried when clearing"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        container.clear()
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+        result == iterationOrder()
+    }
 }
