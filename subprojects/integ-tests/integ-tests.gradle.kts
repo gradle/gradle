@@ -6,7 +6,8 @@ plugins {
 }
 
 dependencies {
-    compile(project(":test-fixtures"))
+    testImplementation(project(":test-fixtures"))
+    testImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 }
 
 val pluginBundles = listOf(

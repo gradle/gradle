@@ -30,6 +30,17 @@ import org.gradle.kotlin.dsl.*
 class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
 
     /**
+     * Kotlin compilation JVM target.
+     *
+     * Defaults to `1.8`.
+     *
+     * @see [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions.jvmTarget]
+     */
+    val jvmTarget = objects.property<String>().apply {
+        set("1.8")
+    }
+
+    /**
      * Switch for the `kotlin-dsl` plugin `progressive` mode.
      *
      * The `kotlin-dsl` plugin relies on Kotlin compiler's progressive mode and experimental features

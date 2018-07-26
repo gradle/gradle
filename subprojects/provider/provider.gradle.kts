@@ -22,7 +22,6 @@ dependencies {
     }
 
     testCompile(project(":test-fixtures"))
-    testCompile("com.squareup.okhttp3:mockwebserver:3.9.1")
     testCompile("com.tngtech.archunit:archunit:0.8.3")
 }
 

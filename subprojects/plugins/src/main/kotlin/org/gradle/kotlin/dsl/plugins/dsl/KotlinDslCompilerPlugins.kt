@@ -47,6 +47,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         afterEvaluate {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
+                    it.kotlinOptions.jvmTarget = jvmTarget.get()
                     it.applyKotlinDslPluginProgressiveMode(progressive.get())
                 }
             }
