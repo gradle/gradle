@@ -303,7 +303,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             if (isDir) {
                 FileUtils.forceMkdir(outputFile);
                 chmodUnpackedFile(entry, outputFile);
-                builder.preVisitDirectory(stringInterner.intern(outputFile.getAbsolutePath()), stringInterner.intern(parser.getName()));
+                String outputPath = stringInterner.intern(outputFile.getAbsolutePath());
+                String outputDirName = stringInterner.intern(parser.getName());
+                builder.preVisitDirectory(outputPath, outputDirName);
             } else {
                 PhysicalFileSnapshot fileSnapshot = unpackFile(input, entry, outputFile, outputFile.getAbsolutePath(), parser.getName());
                 builder.visit(fileSnapshot);
