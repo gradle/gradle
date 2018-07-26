@@ -23,11 +23,13 @@ val futurePluginVersionsTasks =
         project(it).tasks["writeFuturePluginVersions"] as WriteProperties
     }
 
+val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
 
 tasks.apply {
 
     val testEnvironment = register("testEnvironment") {
+        dependsOn(prepareIntegrationTestFixtures)
         dependsOn(customInstallation)
         pluginBundles.forEach {
             dependsOn(":$it:publishPluginsToTestRepository")

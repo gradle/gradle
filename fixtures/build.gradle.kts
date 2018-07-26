@@ -4,7 +4,7 @@ fun isProjectDir(candidate: File) =
     File(candidate, "settings.gradle.kts").isFile
 
 fun isCompatibleWithJDK(candidate: File) =
-    candidate.name.endsWith("kotlin-1.0") && JavaVersion.current() < JavaVersion.VERSION_1_9
+    candidate.name.endsWith("kotlin-1.1") && JavaVersion.current() < JavaVersion.VERSION_1_9
 
 val subProjectTasks = rootDir
     .listFiles()

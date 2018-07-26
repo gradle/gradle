@@ -181,7 +181,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
+    fun `given a plugin compiled against Kotlin one dot one, it will run against the embedded Kotlin version`() {
 
         assumeJavaLessThan9()
 
@@ -192,7 +192,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     jcenter()
                 }
                 dependencies {
-                    classpath("org.gradle.kotlin.dsl.fixtures:plugin-compiled-against-kotlin-1.0:1.0")
+                    classpath("org.gradle.kotlin.dsl.fixtures:plugin-compiled-against-kotlin-1.1:1.0")
                 }
             }
 

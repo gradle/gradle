@@ -64,11 +64,9 @@ val processResources by tasks.getting(ProcessResources::class) {
 }
 
 // -- Testing ----------------------------------------------------------
-val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
 
 tasks.named("test").configure {
-    dependsOn(prepareIntegrationTestFixtures)
     dependsOn(customInstallation)
 }
 
