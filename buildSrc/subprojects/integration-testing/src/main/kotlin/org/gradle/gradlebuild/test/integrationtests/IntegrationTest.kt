@@ -61,5 +61,4 @@ open class IntegrationTest : DistributionTest() {
             TimeUnit.HOURS.toMillis(2)
         }
     }
-
 }
