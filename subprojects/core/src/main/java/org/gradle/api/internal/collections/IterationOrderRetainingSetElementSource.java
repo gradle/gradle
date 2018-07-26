@@ -92,10 +92,13 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean add(T element) {
-        if (!Iterators.contains(iteratorNoFlush(), element)) {
-            inserted.add(new CachingProvider(element));
+        if (added.add(element)) {
+            if (!Iterators.contains(iteratorNoFlush(), element)) {
+                inserted.add(new CachingProvider(element));
+            }
+            return true;
         }
-        return added.add(element);
+        return false;
     }
 
     @Override
