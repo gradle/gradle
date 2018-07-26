@@ -35,7 +35,8 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
 
     public static final String GROOVY_LANGUAGE = "groovy";
 
-    private static final CompileScriptBuildOperationType.Result RESULT = new CompileScriptBuildOperationType.Result() {};
+    private static final CompileScriptBuildOperationType.Result RESULT = new CompileScriptBuildOperationType.Result() {
+    };
 
     private final DefaultScriptCompilationHandler delegate;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -72,11 +73,11 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
         return delegate.loadFromDir(source, sourceHashCode, classLoader, scriptCacheDir, metadataCacheDir, transformer, scriptBaseClass, classLoaderId);
     }
 
-    private class Details implements CompileScriptBuildOperationType.Details{
+    private class Details implements CompileScriptBuildOperationType.Details {
 
         private final String stage;
 
-        Details(String stage){
+        Details(String stage) {
             this.stage = stage;
         }
 
