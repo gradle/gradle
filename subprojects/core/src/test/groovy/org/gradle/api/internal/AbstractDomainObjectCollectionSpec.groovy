@@ -782,4 +782,129 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * provider2.get()
         result == iterationOrder()
     }
+
+    def "remove action is not executed when not retaining unrealized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        _ * provider2.get() >> b
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        when:
+        def didRetained = container.retainAll([provider2])
+
+        then:
+        didRetained
+
+        and:
+        0 * action.execute(_)
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder(b)
+    }
+
+    def "remove action is executed when not retaining realized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        _ * provider2.get() >> d
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRetained = container.retainAll([provider2])
+
+        then:
+        didRetained
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder(d)
+    }
+
+    def "provider is not queried when not retaining unrealized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        def didRetained = container.retainAll([provider2])
+
+        then:
+        didRetained
+
+        and:
+        0 * provider1.get()
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        1 * provider2.get() >> b
+        result == iterationOrder(b)
+    }
+
+    def "retaining provider is queried when retaining realized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRetained = container.retainAll([provider1])
+
+        then:
+        didRetained
+
+        and:
+        1 * provider1.get() >> a
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+        result == iterationOrder(a)
+    }
 }
