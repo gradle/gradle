@@ -18,6 +18,7 @@ package org.gradle.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.internal.InternalAction;
 
 /**
  * An immutable composite {@link Action} implementation which has set semantics. Optimized for high execute to mutate ratio, and for a small number of actions.
@@ -26,9 +27,11 @@ import org.gradle.api.Action;
  *
  * Actions are executed in order of insertion. Duplicates are ignored. Execution stops on the first failure.
  *
+ * Implements InternalAction as internal delegates should be directly decorated themselves.
+ *
  * @param <T> the type of the subject of the action
  */
-public abstract class ImmutableActionSet<T> implements Action<T> {
+public abstract class ImmutableActionSet<T> implements InternalAction<T> {
     private static final int FEW_VALUES = 5;
     private static final ImmutableActionSet<Object> EMPTY = new EmptySet<Object>();
 

@@ -16,12 +16,12 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
@@ -77,7 +77,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         try {
             gradleLauncher.getGradle().setIdentityPath(getCurrentPrefixForProjectsInChildBuilds());
             final GradleInternal gradle = buildController.getGradle();
-            gradle.rootProject(new Action<Project>() {
+            gradle.rootProject(new InternalAction<Project>() {
                 @Override
                 public void execute(Project rootProject) {
                     settings = gradle.getSettings();

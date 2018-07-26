@@ -576,11 +576,49 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
         operations.none(ExecuteListenerBuildOperationType)
     }
 
-    // TODO:
+    def 'listener registrations in delayed callbacks are tracked correctly'() {
+        given:
+        def addBeforeProjectListeners = { String source -> """
+            project.beforeEvaluate { ignored ->
+                println "project.beforeEvaluate(Closure) from $source"
+            }
+        """}
+        def addAfterProjectListeners = { String source -> """
+            project.afterEvaluate { ignored ->
+                println "project.afterEvaluate(Closure) from $source"
+            }
+        """}
 
-    // rootProject in init script ??
-    // allprojects
-    // others in Gradle interface?
+        and:
+        initFile << """
+            rootProject { project ->
+                ${addBeforeProjectListeners('init file rootProject')}
+            }
+            allprojects { project ->
+                ${addAfterProjectListeners('init file allprojects')}
+            }
+        """
+
+        includeSub()
+
+        when:
+        run()
+
+        then:
+        def rootBeforeEvaluated = operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':' })
+        verifyExpectedNumberOfExecuteListenerChildren(rootBeforeEvaluated, 1)
+        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init file rootProject', ['project.beforeEvaluate(Closure)'])
+
+        and:
+        def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
+        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, 1)
+        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
+
+        and:
+        def subAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
+        verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, 1)
+        verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
+    }
 
     private static void verifyExpectedNumberOfExecuteListenerChildren(BuildOperationRecord op, int expectedChildren) {
         assert op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) }.size() == expectedChildren

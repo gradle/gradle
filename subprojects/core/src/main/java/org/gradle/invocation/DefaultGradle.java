@@ -228,7 +228,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             assert rootProject != null;
             action.execute(rootProject);
         } else {
-            rootProjectActions.add(action);
+            // only need to decorate when this callback is delayed
+            rootProjectActions.add(getListenerBuildOperations().decorate(action));
         }
     }
 
@@ -236,7 +237,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     public void allprojects(final Action<? super Project> action) {
         rootProject(new Action<Project>() {
             public void execute(Project project) {
-                project.allprojects(action);
+                project.allprojects(getListenerBuildOperations().decorate(action));
             }
         });
     }
