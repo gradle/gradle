@@ -68,9 +68,9 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
         String getBuildPath();
 
         /**
-         * TODO
+         * An id for this script application, unique across all script and plugin applications.
+         *
          * @since 4.10
-         * @return a unique application id for this script application
          */
         long getApplicationId();
 

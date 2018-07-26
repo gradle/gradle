@@ -16,12 +16,11 @@
 
 package org.gradle.configuration.internal;
 
-
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * TODO
+ * Details about the execution of a registered listener.
  *
  * @since 4.10
  */
@@ -29,6 +28,13 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
 
     @UsedByScanPlugin
     public interface Details {
+
+        /**
+         * Returns the application id of the registering script or plugin.
+         *
+         * @see org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details#getApplicationId()}
+         * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId
+         */
         Long getApplicationId();
     }
 

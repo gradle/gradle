@@ -60,7 +60,9 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
         String getBuildPath();
 
         /**
-         * TODO
+         * An id for this plugin application, unique across all script and plugin applications.
+         *
+         * @since 4.10
          */
         long getApplicationId();
 
