@@ -598,4 +598,132 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action.execute(a)
         1 * action.execute(b)
     }
+
+    def "provider is not queried when remove unrealized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        def didRemoved = container.remove(provider1)
+
+        then:
+        didRemoved
+
+        and:
+        0 * provider1.get()
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        1 * provider2.get() >> b
+        result == iterationOrder(b)
+    }
+
+    def "provider is queried when removing realized elements"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved = container.remove(provider1)
+
+        then:
+        didRemoved
+
+        and:
+        1 * provider1.get() >> a
+        0 * provider2.get()
+    }
+
+    def "can remove realized elements via instance"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        // Realize all object of type `type`
+        def element = container.withType(type).iterator().next()
+
+        when:
+        def didRemoved = container.remove(element)
+
+        then:
+        didRemoved
+
+        and:
+        0 * provider1.get()
+        0 * provider2.get()
+    }
+
+    def "remove action is not executed when removing provider"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        when:
+        def didRemoved = container.remove(provider1)
+
+        then:
+        didRemoved
+
+        and:
+        0 * action.execute(_)
+    }
+
+    def "remove action is executed when removing provider that was realized"() {
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved = container.remove(provider1)
+
+        then:
+        didRemoved
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
 }
