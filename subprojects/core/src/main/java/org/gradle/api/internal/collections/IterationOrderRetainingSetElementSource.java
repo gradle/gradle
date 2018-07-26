@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -26,8 +27,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
@@ -40,12 +42,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     // or provided.  We construct a correct iteration order from this set.
     private final List<RealizableProvider<T>> inserted = new ArrayList<RealizableProvider<T>>();
 
-    // Represents the pending elements that have not yet been realized.
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
-
-    // Cache the ordered set of values so that we don't have to construct the list every time we need to iterate
-    private final Set<T> orderedValuesCache = new LinkedHashSet<T>();
-    private boolean allElementsRealized;
+    private Action<ProviderInternal<? extends T>> realizeAction;
 
     @Override
     public boolean isEmpty() {
@@ -69,64 +66,36 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public Iterator<T> iterator() {
-        pending.realizePending();
-        if (!allElementsRealized) {
-            for (RealizableProvider<? extends T> provider : inserted) {
-                orderedValuesCache.add(provider.get());
-            }
-            allElementsRealized = true;
-        }
-        return orderedValuesCache.iterator();
+        realizePending();
+        return new RealizedElementSetIterator<T>(inserted.listIterator());
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return allRealizedValues().iterator();
-    }
-
-    private Set<T> allRealizedValues() {
-        if (orderedValuesCache.isEmpty()) {
-            for (RealizableProvider<? extends T> provider : inserted) {
-                if (provider.isRealized()) {
-                    orderedValuesCache.add(provider.get());
-                }
-            }
-        }
-        return orderedValuesCache;
-    }
-
-    private void clearCachedValues() {
-        orderedValuesCache.clear();
-        allElementsRealized = false;
+        return new RealizedElementSetIterator<T>(inserted.listIterator());
     }
 
     @Override
     public boolean contains(Object element) {
-        pending.realizePending();
-        return allRealizedValues().contains(element);
+        return Iterators.contains(iterator(), element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
-        pending.realizePending();
-        return allRealizedValues().containsAll(elements);
+        for (Object e : elements) {
+            if (!contains(e)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public boolean add(T element) {
-        if (allRealizedValues().contains(element)) {
-            // Represents an already inserted value (such as a just-realized provider value)
-            // that may or may not have already been "added".
-            return added.add(element);
-        } else {
-            // A realized element that has not been inserted before.
-            if (added.add(element) && inserted.add(new CachingProvider(element))) {
-                clearCachedValues();
-                return true;
-            } else {
-                return false;
-            }
+        if (!Iterators.contains(iteratorNoFlush(), element)) {
+            inserted.add(new CachingProvider(element));
         }
+        return added.add(element);
     }
 
     @Override
@@ -136,7 +105,6 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             RealizableProvider<? extends T> provider = iterator.next();
             if (provider.isRealized() && provider.get().equals(o)) {
                 iterator.remove();
-                clearCachedValues();
                 return added.remove(o);
             }
         }
@@ -147,29 +115,30 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     public void clear() {
         inserted.clear();
         added.clear();
-        pending.clear();
-        clearCachedValues();
     }
 
     @Override
     public void realizePending() {
-        pending.realizePending();
+        for (RealizableProvider<T> provider : inserted) {
+            if (!provider.isRealized()) {
+                provider.realize();
+            }
+        }
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        pending.realizePending(type);
+        for (RealizableProvider<T> provider : inserted) {
+            if (!provider.isRealized() && (provider.getDelegateType() == null || type.isAssignableFrom(provider.getDelegateType()))) {
+                provider.realize();
+            }
+        }
     }
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
-        if (pending.addPending(provider)) {
-            inserted.add(new CachingProvider(provider));
-            clearCachedValues();
-            return true;
-        } else {
-            return false;
-        }
+        inserted.add(new CachingProvider(provider));
+        return true;
     }
 
     @Override
@@ -179,38 +148,77 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             RealizableProvider<T> next = iterator.next();
             if (next.caches(provider)) {
                 iterator.remove();
-                break;
+                return true;
             }
         }
-        if (pending.removePending(provider)) {
-            clearCachedValues();
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
 
     @Override
     public void onRealize(final Action<ProviderInternal<? extends T>> action) {
-        Action<ProviderInternal<? extends T>> useCachedProviderAction = new Action<ProviderInternal<? extends T>>() {
-            @Override
-            public void execute(ProviderInternal<? extends T> realizedProvider) {
-                // Use the caching provider on realization so that we only call get() once and then cache it
-                for (RealizableProvider<T> provider : inserted) {
-                    if (provider.caches(realizedProvider)) {
-                        clearCachedValues();
-                        action.execute(provider);
-                        return;
+        this.realizeAction = action;
+    }
+
+    private static class RealizedElementSetIterator<T> implements Iterator<T> {
+        private final ListIterator<RealizableProvider<T>> iterator;
+        private T next;
+        private Set<T> values = new HashSet<T>();
+        private int lastRealizedIndex = -1;
+
+        RealizedElementSetIterator(ListIterator<RealizableProvider<T>> iterator) {
+            this.iterator = iterator;
+            this.next = getNext();
+        }
+
+        T getNext() {
+            while (iterator.hasNext()) {
+                int nextIndex = iterator.nextIndex();
+                RealizableProvider<T> nextCandidate = iterator.next();
+                if (nextCandidate.isRealized()) {
+                    T value = nextCandidate.get();
+                    if (values.add(value)) {
+                        lastRealizedIndex = nextIndex;
+                        return value;
                     }
                 }
             }
-        };
-        pending.onRealize(useCachedProviderAction);
+            return null;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public T next() {
+            if (next != null) {
+                T thisNext = next;
+                next = getNext();
+                return thisNext;
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        @Override
+        public void remove() {
+            if (lastRealizedIndex > -1) {
+                while (iterator.previousIndex() >= lastRealizedIndex) {
+                    iterator.previous();
+                }
+                iterator.remove();
+            } else {
+                throw new IllegalStateException();
+            }
+        }
     }
 
     private interface RealizableProvider<T> extends ProviderInternal<T> {
         boolean isRealized();
         boolean caches(ProviderInternal<? extends T> provider);
+        void realize();
+        Class<? extends T> getDelegateType();
     }
 
     private class CachingProvider extends AbstractProvider<T> implements RealizableProvider<T> {
@@ -234,17 +242,33 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             return null;
         }
 
+        public Class<? extends T> getDelegateType() {
+            if (delegate != null) {
+                return delegate.getType();
+            } else {
+                return null;
+            }
+        }
+
         @Override
         public boolean isRealized() {
             return realized;
         }
 
-        @Nullable
         @Override
-        public T getOrNull() {
+        public void realize() {
             if (value == null && delegate != null) {
                 value = delegate.get();
                 realized = true;
+                realizeAction.execute(this);
+            }
+        }
+
+        @Nullable
+        @Override
+        public T getOrNull() {
+            if (!realized) {
+                realize();
             }
             return value;
         }
