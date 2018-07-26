@@ -340,8 +340,6 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
         exclude 'userguide_single.adoc'
     }
     outputDir = userguideIntermediateOutputDir
-    // Verbose mode reports broken links. See asciidoctor/asciidoctor-gradle-plugin#233
-    requires file('src/docs/ruby/verbose-mode.rb')
 
     backends = ['html5']
 
