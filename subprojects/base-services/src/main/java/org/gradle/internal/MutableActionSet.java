@@ -16,7 +16,6 @@
 package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.InternalAction;
 
 /**
  * A mutable composite {@link Action}. Actions are executed in the order added, stopping on the first failure.
@@ -27,7 +26,7 @@ import org.gradle.api.internal.InternalAction;
  *
  * Implements InternalAction as internal delegates should be directly decorated themselves.
  */
-public class MutableActionSet<T> implements InternalAction<T> {
+public class MutableActionSet<T> implements Action<T>, InternalListener {
     private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
 
     public void add(Action<? super T> action) {
