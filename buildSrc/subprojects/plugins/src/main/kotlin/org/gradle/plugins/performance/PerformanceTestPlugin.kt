@@ -85,6 +85,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "java")
 
+        registerEmptyPerformanceReportTask()
+
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -93,13 +95,19 @@ class PerformanceTestPlugin : Plugin<Project> {
         val prepareSamplesTask = createPrepareSamplesTask()
         createCleanSamplesTask()
 
-        val performanceReportTask = createPerformanceReportTask(performanceTestSourceSet)
-        createLocalPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask, performanceReportTask)
-        createDistributedPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask, performanceReportTask)
+        createLocalPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask)
+        createDistributedPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask)
 
         createRebaselineTask(performanceTestSourceSet)
 
         configureIdePlugins(performanceTestSourceSet)
+    }
+
+    private
+    fun Project.registerEmptyPerformanceReportTask() {
+        // Some of CI builds have parameter `-x performanceReport` so simply removing `performanceReport` would result in an error
+        // This task acts as a workaround for transition
+        tasks.register("performanceReport")
     }
 
     private
@@ -217,25 +225,15 @@ class PerformanceTestPlugin : Plugin<Project> {
             delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
         }
 
-    private
-    fun Project.createPerformanceReportTask(performanceTestSourceSet: SourceSet): TaskProvider<PerformanceReport> =
-        tasks.register("performanceReport", PerformanceReport::class.java) {
-            systemProperties(propertiesForPerformanceDb())
-            classpath = performanceTestSourceSet.runtimeClasspath
-            resultStoreClass = "org.gradle.performance.results.AllResultsStore"
-            reportDir = buildDir / Config.performanceTestReportsDir
-            outputs.upToDateWhen { false }
-        }
 
     private
     fun Project.createLocalPerformanceTestTasks(
         performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>,
-        performanceReportTask: TaskProvider<PerformanceReport>
+        prepareSamplesTask: TaskProvider<Task>
     ) {
 
         fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask).configure(configure)
+            createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
         create("performanceTest") {
@@ -257,12 +255,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createDistributedPerformanceTestTasks(
         performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>,
-        performanceReportTask: TaskProvider<PerformanceReport>
+        prepareSamplesTask: TaskProvider<Task>
     ) {
 
         fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask, performanceReportTask).configure(configure)
+            createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
         create("distributedPerformanceTest") {
@@ -313,12 +310,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createDistributedPerformanceTestTask(
         name: String,
         performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>,
-        performanceReportTask: TaskProvider<PerformanceReport>
+        prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<DistributedPerformanceTest> {
 
         val result = tasks.register(name, DistributedPerformanceTest::class.java) {
-            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
+            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             configureForAnyDistributedPerformanceTestTask(this)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
@@ -346,12 +342,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createLocalPerformanceTestTask(
         name: String,
         performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>,
-        performanceReportTask: TaskProvider<PerformanceReport>
+        prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<PerformanceTest> {
 
         val performanceTest = tasks.register(name, PerformanceTest::class.java) {
-            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask, performanceReportTask)
+            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
@@ -368,7 +363,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.getByName("clean${name.capitalize()}") {
             delete(performanceTest)
             dependsOn(testResultsZipTask.map { "clean${it.name.capitalize()}" }) // Avoid realizing because of issue
-            dependsOn(performanceReportTask.map { "clean${it.name.capitalize()}" }) // Avoid realizing because of issue
         }
 
         return performanceTest
@@ -402,8 +396,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.configureForAnyPerformanceTestTask(
         task: PerformanceTest,
         performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>,
-        performanceReportTask: TaskProvider<PerformanceReport>
+        prepareSamplesTask: TaskProvider<Task>
     ) {
 
         task.apply {
@@ -423,17 +416,20 @@ class PerformanceTestPlugin : Plugin<Project> {
             jvmArgs("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError")
 
             dependsOn(prepareSamplesTask)
-            finalizedBy(performanceReportTask)
+
+            configureReportProperties()
 
             mustRunAfter(tasks.withType<ProjectGeneratorTask>())
             mustRunAfter(tasks.withType<RemoteProject>())
             mustRunAfter(tasks.withType<JavaExecProjectGeneratorTask>())
+        }
+    }
 
-            doFirst {
-                channel?.let { channel ->
-                    performanceReportTask.get().systemProperty(PropertyNames.channel, channel)
-                }
-            }
+    private
+    fun PerformanceTest.configureReportProperties(): Unit {
+        reportDir = project.buildDir / Config.performanceTestReportsDir
+        channel?.let { channel ->
+            systemProperty(PropertyNames.channel, channel)
         }
     }
 
@@ -456,23 +452,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             PropertyNames.dbUrl,
             PropertyNames.dbUsername,
             PropertyNames.dbPassword)
-}
-
-
-open class PerformanceReport : JavaExec() {
-
-    @Input
-    lateinit var resultStoreClass: String
-
-    @OutputDirectory
-    lateinit var reportDir: File
-
-    @TaskAction
-    override fun exec() {
-        main = "org.gradle.performance.results.ReportGenerator"
-        args = listOf(resultStoreClass, reportDir.path)
-        super.exec()
-    }
 }
 
 

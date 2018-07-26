@@ -24,6 +24,9 @@ import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Map;
+import org.gradle.api.Action;
+import org.gradle.process.JavaExecSpec;
 
 /**
  * A test that checks execution time and memory consumption.
@@ -36,6 +39,37 @@ public class PerformanceTest extends DistributionTest {
     private String checks;
     private String channel;
     private File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName());
+    private String resultStoreClass = "org.gradle.performance.results.AllResultsStore";
+    private File reportDir;
+    private boolean generatePerformanceReport = true;
+
+    @Input
+    public String getResultStoreClass() {
+        return resultStoreClass;
+    }
+
+    public void setResultStoreClass(String resultStoreClass) {
+        this.resultStoreClass = resultStoreClass;
+    }
+
+    @OutputDirectory
+    public File getReportDir() {
+        return reportDir;
+    }
+
+    public void setReportDir(File reportDir) {
+        this.reportDir = reportDir;
+    }
+
+    @Input
+    public boolean isGeneratePerformanceReport() {
+        return generatePerformanceReport;
+    }
+
+    @Option(option = "performance-report", description = "Indicates if performance report generation is required")
+    public void setGeneratePerformanceReport(boolean generatePerformanceReport) {
+        this.generatePerformanceReport = generatePerformanceReport;
+    }
 
     @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
     public void setScenarios(String scenarios) {
@@ -118,5 +152,27 @@ public class PerformanceTest extends DistributionTest {
     @Option(option = "sampling-interval", description = "How many ms to wait between two samples when profiling")
     public void setSamplingInterval(String samplingInterval) {
         //no-op, remove once build configurations have been adjusted to no longer call this
+    }
+
+    @Override
+    public void executeTests() {
+        try {
+            super.executeTests();
+        } finally {
+            generatePerformanceReport();
+        }
+    }
+
+    private void generatePerformanceReport() {
+        if (generatePerformanceReport) {
+            getProject().javaexec(new Action<JavaExecSpec>() {
+                public void execute(JavaExecSpec spec) {
+                    spec.setMain("org.gradle.performance.results.ReportGenerator");
+                    spec.args(resultStoreClass, reportDir.getPath());
+                    spec.systemProperties(PerformanceTest.this.getSystemProperties());
+                    spec.setClasspath(PerformanceTest.this.getClasspath());
+                }
+            });
+        }
     }
 }
