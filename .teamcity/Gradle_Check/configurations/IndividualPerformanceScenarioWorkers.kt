@@ -40,7 +40,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
             name = "GRADLE_RUNNER"
             tasks = ""
             gradleParams = (
-                    gradleParameters.map { if (it == "--daemon") "--no-daemon" else it }
+                    gradleParameters(daemon = false)
                     + listOf("""clean %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion""",
                             buildScanTag("IndividualPerformanceScenarioWorkers"))
                             + model.parentBuildCache.gradleParameters(OS.linux)
