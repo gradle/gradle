@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
@@ -24,12 +23,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshotFilter;
 import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
@@ -43,7 +40,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -164,51 +160,23 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public FileSystemSnapshot snapshotTree(final FileTreeInternal tree) {
-        final MutableReference<MutablePhysicalSnapshot> root = MutableReference.empty();
+        final FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner);
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                MutablePhysicalSnapshot rootSnapshot = root.get();
-                if (rootSnapshot == null) {
-                    File rootFile = dirDetails.getFile();
-                    for (String ignored : dirDetails.getRelativePath().getSegments()) {
-                        rootFile = rootFile.getParentFile();
-                    }
-                    rootSnapshot = physicalDirectorySnapshot(rootFile);
-                    root.set(rootSnapshot);
-                }
-                rootSnapshot.add(dirDetails.getRelativePath().getSegments(), 0, physicalDirectorySnapshot(dirDetails.getFile()));
+                builder.addDir(dirDetails.getFile(), dirDetails.getRelativePath().getSegments());
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                MutablePhysicalSnapshot rootSnapshot = root.get();
-                if (rootSnapshot == null) {
-                    File rootFile = fileDetails.getFile();
-                    for (String ignored : fileDetails.getRelativePath().getSegments()) {
-                        rootFile = rootFile.getParentFile();
-                    }
-                    rootSnapshot = fileDetails.getRelativePath().length() == 0 ? physicalFileSnapshot(fileDetails) : physicalDirectorySnapshot(rootFile);
-                    root.set(rootSnapshot);
-                }
-                rootSnapshot.add(fileDetails.getRelativePath().getSegments(), 0, physicalFileSnapshot(fileDetails));
-            }
-
-            private MutablePhysicalDirectorySnapshot physicalDirectorySnapshot(File file) {
-                return new MutablePhysicalDirectorySnapshot(stringInterner.intern(file.getAbsolutePath()), file.getName(), stringInterner);
+                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), physicalFileSnapshot(fileDetails));
             }
 
             private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
                 return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), hasher.hash(fileDetails), fileDetails.getLastModified());
             }
         });
-        PhysicalSnapshot rootSnapshot = root.get();
-        if (rootSnapshot != null) {
-            MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-            rootSnapshot.accept(builder);
-            return Preconditions.checkNotNull(builder.getResult());
-        }
-        return FileSystemSnapshot.EMPTY;
+        return builder.build();
     }
 
     private FileSystemSnapshot snapshotAndCache(DirectoryFileTree directoryTree, PatternSet patterns) {

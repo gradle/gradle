@@ -22,7 +22,7 @@ import org.gradle.internal.hash.HashCode;
 /**
  * A file snapshot for a regular file.
  */
-public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements MutablePhysicalSnapshot {
+public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot {
     private final HashCode contentHash;
     private final long lastModified;
 
@@ -54,26 +54,5 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
     @Override
     public void accept(PhysicalSnapshotVisitor visitor) {
         visitor.visit(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * {@link PhysicalFileSnapshot} is a {@link MutablePhysicalSnapshot}, since one can try to add
-     * a child to it. This method then checks if the to be added child is also a {@link PhysicalFileSnapshot}
-     * and then discards the snapshot to be added. In any other case, an exception is thrown.
-     * </p>
-     *
-     */
-    @Override
-    public MutablePhysicalSnapshot add(String[] segments, int offset, MutablePhysicalSnapshot snapshot) {
-        if (segments.length == offset) {
-            if (snapshot.getType() != getType()) {
-                throw new IllegalStateException(String.format("Expected different snapshot type: requested %s, but was: %s", snapshot.getType(), getType()));
-            }
-            return this;
-        }
-        throw new UnsupportedOperationException("Cannot add children of file");
     }
 }
