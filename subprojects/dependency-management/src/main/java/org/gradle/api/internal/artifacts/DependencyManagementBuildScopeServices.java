@@ -125,6 +125,7 @@ import org.gradle.vcs.internal.VcsResolver;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -320,6 +321,7 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
+                                                                ProjectDependencyResolver projectDependencyResolver,
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
@@ -330,6 +332,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
+            projectDependencyResolver,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
@@ -371,38 +374,32 @@ class DependencyManagementBuildScopeServices {
 
     private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
         private final VcsDependencyResolver vcsDependencyResolver;
-        private final ProjectDependencyResolver projectDependencyResolver;
         private final VcsResolver vcsResolver;
 
-        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
+        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
             this.vcsDependencyResolver = vcsDependencyResolver;
-            this.projectDependencyResolver = projectDependencyResolver;
             this.vcsResolver = vcsResolver;
         }
 
         @Override
-        public boolean canCreate(ResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public ComponentResolvers create(ResolveContext context) {
-            return vcsResolver.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
+        public void create(ResolveContext context, Collection<ComponentResolvers> resolvers) {
+            if (vcsResolver.hasRules()) {
+                resolvers.add(vcsDependencyResolver);
+            }
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, versionParser, versionSelectionCache);
+    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot,  LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache) {
+        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, versionParser, versionSelectionCache);
     }
 
-    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
-        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsResolver);
+    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
+        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, vcsResolver);
     }
 
     SimpleMapInterner createStringInterner() {
         return SimpleMapInterner.threadSafe();
     }
-
 
     ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(ImmutableAttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         DesugaringAttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);
