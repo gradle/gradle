@@ -167,9 +167,7 @@ class ApiType(
         get() = delegate.visibleAnnotations.has<Incubating>()
 
     val isSAM: Boolean by lazy(NONE) {
-        delegate.access.isAbstract && delegate.methods.filter { !it.access.isStatic && it.access.isAbstract }.let { methods ->
-            methods.size == 1 && methods[0].access.isPublic
-        }
+        delegate.access.isAbstract && singleAbstractMethodOf(delegate)?.access?.isPublic == true
     }
 
     val typeParameters: List<ApiTypeUsage> by lazy(NONE) {
@@ -179,6 +177,10 @@ class ApiType(
     val functions: List<ApiFunction> by lazy(NONE) {
         delegate.methods.filter(this::isSignificantDeclaration).map { ApiFunction(this, it, context) }
     }
+
+    private
+    fun singleAbstractMethodOf(classNode: ClassNode) =
+        classNode.methods.singleOrNull { it.access.run { !isStatic && isAbstract } }
 
     /**
      * Test if a method is a prime declaration or an overrides that change the signature.
