@@ -124,10 +124,6 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
 
     def "captures shared scripts with different classpath"() {
         given:
-        def somelib = file("lib/somelib.jar")
-        somelib.parentFile.mkdir()
-        jarWithClasses(somelib, Thing: 'class Thing {}')
-
         file("shared.gradle") << "println 'shared.gradle'"
         buildFile << """
             apply from: 'shared.gradle'
@@ -159,7 +155,6 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
             'Compile script build.gradle (BODY)',
             'Compile script shared.gradle (CLASSPATH)',
             'Compile script shared.gradle (BODY)'
-
         ]
     }
 }

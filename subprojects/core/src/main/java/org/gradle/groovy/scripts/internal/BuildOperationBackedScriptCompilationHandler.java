@@ -17,7 +17,6 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
