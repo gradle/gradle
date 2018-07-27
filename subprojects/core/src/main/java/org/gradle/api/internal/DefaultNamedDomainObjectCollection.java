@@ -709,7 +709,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return findByNameLaterWithoutRules(name);
         }
 
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, object, name));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, name));
     }
 
     protected abstract class AbstractDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named {
@@ -742,24 +742,21 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected class ExistingDomainObjectProvider<I extends T> extends AbstractDomainObjectProvider<I> {
-        private final I object;
-
-        public ExistingDomainObjectProvider(I object, String name) {
+        public ExistingDomainObjectProvider(String name) {
             super(name);
-            this.object = object;
         }
 
         public void configure(Action<? super I> action) {
-            action.execute(object);
+            action.execute(get());
         }
 
         @Override
         public boolean isPresent() {
-            return true;
+            return getOrNull() != null;
         }
 
         public I getOrNull() {
-            return object;
+            return Cast.uncheckedCast(findByNameWithoutRules(getName()));
         }
     }
 }
