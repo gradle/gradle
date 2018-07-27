@@ -22,6 +22,7 @@ import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.classPathBytesRepositoryFor
+import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.Attribute
@@ -49,8 +50,6 @@ import java.io.File
 import java.util.ArrayDeque
 
 import javax.annotation.Nullable
-
-import kotlin.LazyThreadSafetyMode.NONE
 
 
 internal
@@ -166,16 +165,16 @@ class ApiType(
     val isIncubating: Boolean
         get() = delegate.visibleAnnotations.has<Incubating>()
 
-    val isSAM: Boolean by lazy(NONE) {
+    val isSAM: Boolean by unsafeLazy {
         delegate.access.isAbstract && singleAbstractMethodOf(delegate)?.access?.isPublic == true
     }
 
-    val typeParameters: List<ApiTypeUsage> by lazy(NONE) {
+    val typeParameters: List<ApiTypeUsage> by unsafeLazy {
         context.apiTypeParametersFor(visitedSignature)
     }
 
-    val functions: List<ApiFunction> by lazy(NONE) {
-        delegate.methods.filter(this::isSignificantDeclaration).map { ApiFunction(this, it, context) }
+    val functions: List<ApiFunction> by unsafeLazy {
+        delegate.methods.filter(::isSignificantDeclaration).map { ApiFunction(this, it, context) }
     }
 
     private
@@ -224,12 +223,12 @@ class ApiType(
     }
 
     private
-    val delegate: ClassNode by lazy(NONE) {
+    val delegate: ClassNode by unsafeLazy {
         delegateSupplier()
     }
 
     private
-    val visitedSignature: ClassSignatureVisitor? by lazy(NONE) {
+    val visitedSignature: ClassSignatureVisitor? by unsafeLazy {
         delegate.signature?.let { signature ->
             ClassSignatureVisitor().also { SignatureReader(signature).accept(it) }
         }
@@ -259,20 +258,20 @@ class ApiFunction(
     val isStatic: Boolean =
         delegate.access.isStatic
 
-    val typeParameters: List<ApiTypeUsage> by lazy(NONE) {
+    val typeParameters: List<ApiTypeUsage> by unsafeLazy {
         context.apiTypeParametersFor(visitedSignature)
     }
 
-    val parameters: List<ApiFunctionParameter> by lazy(NONE) {
+    val parameters: List<ApiFunctionParameter> by unsafeLazy {
         context.apiFunctionParametersFor(this, delegate, visitedSignature)
     }
 
-    val returnType: ApiTypeUsage by lazy(NONE) {
+    val returnType: ApiTypeUsage by unsafeLazy {
         context.apiTypeUsageForReturnType(delegate, visitedSignature?.returnType)
     }
 
     private
-    val visitedSignature: MethodSignatureVisitor? by lazy(NONE) {
+    val visitedSignature: MethodSignatureVisitor? by unsafeLazy {
         delegate.signature?.let { signature ->
             MethodSignatureVisitor().also { visitor -> SignatureReader(signature).accept(visitor) }
         }
@@ -327,7 +326,7 @@ data class ApiFunctionParameter(
     val type: ApiTypeUsage
 ) {
 
-    val name: String? by lazy(NONE) {
+    val name: String? by unsafeLazy {
         nameSupplier()
     }
 }
@@ -378,7 +377,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
     delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
         val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
             ?: Type.getArgumentTypes(delegate.desc).map { it.className }
-        val names by lazy(NONE) {
+        val names by unsafeLazy {
             parameterNamesFor(
                 function.owner.sourceName,
                 function.name,
