@@ -40,7 +40,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resource.TextResource
-import org.gradle.internal.scripts.ScriptCompileStage
+
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -294,8 +294,8 @@ println 'hi'
             }
 
             @Override
-            ScriptCompileStage getStage() {
-                return ScriptCompileStage.BODY
+            String getStage() {
+                return "STAGE"
             }
 
             @Override
@@ -350,8 +350,8 @@ println 'hi'
             }
 
             @Override
-            ScriptCompileStage getStage() {
-                return ScriptCompileStage.BODY
+            String getStage() {
+                return "STAGE"
             }
 
             @Override

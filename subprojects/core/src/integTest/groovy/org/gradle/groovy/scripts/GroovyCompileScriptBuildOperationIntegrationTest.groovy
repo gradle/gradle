@@ -19,11 +19,12 @@ package org.gradle.groovy.scripts
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
-import org.gradle.internal.scripts.ScriptCompileStage
 
 class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
+    final static String CLASSPATH = "CLASSPATH"
+    final static String BODY = "BODY"
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -68,14 +69,14 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
             'groovy'
         ]
         scriptCompiles.details*.stage == [
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name(),
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name(),
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name(),
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name(),
+            CLASSPATH,
+            BODY,
+            CLASSPATH,
+            BODY,
+            CLASSPATH,
+            BODY,
+            CLASSPATH,
+            BODY
         ]
 
         when: // already compiled build scripts
@@ -95,10 +96,9 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
             'Compile script build.gradle (CLASSPATH)',
             'Compile script build.gradle (BODY)'
         ]
-
     }
 
-    def "captures shared scripts"() {
+    def "captures shared scripts with same classpath"() {
         given:
         file("shared.gradle") << "println 'shared.gradle'"
 
@@ -107,54 +107,59 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
             println 'build.gradle'
         """
 
-
-        when:
         succeeds "help"
 
-        then:
+        when: // already compiled shared script
+        file('otherBuild/build.gradle') << "apply from: '../shared.gradle'"
+        executer.usingProjectDirectory(file('otherBuild'))
+        succeeds 'help'
         def scriptCompiles = operations.all(CompileScriptBuildOperationType)
 
+        then:
         scriptCompiles*.displayName == [
+            'Compile script build.gradle (CLASSPATH)',
+            'Compile script build.gradle (BODY)',
+        ]
+    }
+
+    def "captures shared scripts with different classpath"() {
+        given:
+        def somelib = file("lib/somelib.jar")
+        somelib.parentFile.mkdir()
+        jarWithClasses(somelib, Thing: 'class Thing {}')
+
+        file("shared.gradle") << "println 'shared.gradle'"
+        buildFile << """
+            apply from: 'shared.gradle'
+            println 'build.gradle'
+        """
+
+        succeeds "help"
+
+        when: // already compiled shared script with different build classpath
+        file('otherBuild/buildSrc/build.gradle') << """
+        tasks.withType(AbstractCompile){
+            options.compilerArgs = ['-proc:none']
+        }
+        """
+
+        file('otherBuild/buildSrc/src/main/groovy/Thing.groovy') << """
+        class Thing{}"""
+
+        file('otherBuild/build.gradle') << "apply from: '../shared.gradle'"
+        executer.usingProjectDirectory(file('otherBuild'))
+        succeeds 'help'
+        def scriptCompiles = operations.all(CompileScriptBuildOperationType)
+
+        then:
+        scriptCompiles*.displayName == [
+            'Compile script build.gradle (CLASSPATH)',
+            'Compile script build.gradle (BODY)',
             'Compile script build.gradle (CLASSPATH)',
             'Compile script build.gradle (BODY)',
             'Compile script shared.gradle (CLASSPATH)',
             'Compile script shared.gradle (BODY)'
-        ]
 
-        scriptCompiles.details*.language == [
-            'groovy',
-            'groovy',
-            'groovy',
-            'groovy'
-        ]
-        scriptCompiles.details*.stage == [
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name(),
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name()
-        ]
-
-        when: // already compiled build scripts
-        file('otherBuild/build.gradle') << "apply from: '../shared.gradle'"
-
-        executer.usingProjectDirectory(file('otherBuild'))
-        succeeds 'help'
-        scriptCompiles = operations.all(CompileScriptBuildOperationType)
-
-        then:
-        scriptCompiles.details*.language == [
-            'groovy',
-            'groovy'
-        ]
-
-        scriptCompiles.details*.stage == [
-            ScriptCompileStage.CLASSPATH.name(),
-            ScriptCompileStage.BODY.name()
-        ]
-
-        scriptCompiles*.displayName == [
-            'Compile script build.gradle (CLASSPATH)',
-            'Compile script build.gradle (BODY)',
         ]
     }
 }

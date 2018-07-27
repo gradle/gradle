@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
@@ -59,11 +60,11 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
             public BuildOperationDescriptor.Builder description() {
                 final ResourceLocation resourceLocation = source.getResource().getLocation();
                 final File file = resourceLocation.getFile();
-                String stageName = transformer.getStage().name();
-                String name = "Compile script " + (file != null ? file.getName() : source.getDisplayName()) + " (" + stageName + ")";
+                String stage = transformer.getStage();
+                String name = "Compile script " + (file != null ? file.getName() : source.getDisplayName()) + " (" + stage + ")";
                 return BuildOperationDescriptor.displayName(name)
                     .name(name)
-                    .details(new Details(stageName));
+                    .details(new Details(stage));
             }
         });
     }

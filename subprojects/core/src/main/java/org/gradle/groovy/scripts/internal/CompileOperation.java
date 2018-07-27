@@ -17,7 +17,6 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.Transformer;
-import org.gradle.internal.scripts.ScriptCompileStage;
 import org.gradle.internal.serialize.Serializer;
 
 /**
@@ -43,7 +42,7 @@ public interface CompileOperation<T> {
      * The stage of this compile operation.
      * This is exposed by {@link org.gradle.internal.scripts.CompileScriptBuildOperationType.Details#getStage()}.
      * */
-    ScriptCompileStage getStage();
+    String getStage();
 
     Transformer getTransformer();
 

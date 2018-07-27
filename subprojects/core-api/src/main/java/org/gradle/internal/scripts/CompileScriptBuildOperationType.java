@@ -17,11 +17,29 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+
+/**
+ * Details about a build script compilation.
+ *
+ * @since 4.10
+ */
+@UsedByScanPlugin
 public class CompileScriptBuildOperationType implements BuildOperationType<CompileScriptBuildOperationType.Details, CompileScriptBuildOperationType.Result> {
 
     public interface Details {
+        /**
+         * The build script backing language.
+         * */
         String getLanguage();
+
+        /**
+         * The compile stage as a descriptive String.
+         * Build scripts can be processed in multiple stages, depending on the language.
+         * Groovy backed build scripts are processed in two stages.
+         * Kotlin backed build scripts are processed in three stages
+         * */
         String getStage();
     }
 
