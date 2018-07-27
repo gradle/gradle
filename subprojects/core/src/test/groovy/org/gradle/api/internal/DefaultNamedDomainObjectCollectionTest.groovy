@@ -141,6 +141,37 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         0 * rule._
     }
 
+    def "can remove element using named provider"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean')
+
+        then:
+        provider.present
+        provider.orNull == bean
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
     static class Bean {
         public final String name
 
