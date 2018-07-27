@@ -227,7 +227,7 @@ data class MappedApiFunctionParameter(
     val index: Int = original.index,
     val type: ApiTypeUsage = original.type,
     val isVarargs: Boolean = original.isVarargs,
-    val asArguments: String = "${if (original.isVarargs) "*" else ""}`${original.name ?: "p$index"}`"
+    val asArgument: String = "${if (original.isVarargs) "*" else ""}`${original.name ?: "p$index"}`"
 ) {
     val name: String
         get() = original.name ?: "p$index"
@@ -244,9 +244,11 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                     ApiTypeUsage(
                         "Pair",
                         typeArguments = listOf(
-                            ApiTypeUsage("String"), ApiTypeUsage("Any", isNullable = true))))),
+                            ApiTypeUsage("String"),
+                            ApiTypeUsage("Any", isNullable = true)
+                        )))),
             isVarargs = true,
-            asArguments = "mapOf(*${first.asArguments})")
+            asArgument = "mapOf(*${first.asArgument})")
         if (last().type.isSAM) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
         else drop(1) + mappedMapParameter
     } ?: this
@@ -259,15 +261,15 @@ fun List<MappedApiFunctionParameter>.javaClassToKotlinClass() =
             when {
                 isJavaClass -> p.copy(
                     type = toKotlinClass(),
-                    asArguments = "${p.asArguments}.java"
+                    asArgument = "${p.asArgument}.java"
                 )
                 isKotlinArray && typeArguments.single().isJavaClass -> p.copy(
                     type = toArrayOfKotlinClasses(),
-                    asArguments = "${p.asArguments}.map { it.java }.toTypedArray()"
+                    asArgument = "${p.asArgument}.map { it.java }.toTypedArray()"
                 )
                 isKotlinCollection && typeArguments.single().isJavaClass -> p.copy(
                     type = toCollectionOfKotlinClasses(),
-                    asArguments = "${p.asArguments}.map { it.java }"
+                    asArgument = "${p.asArgument}.map { it.java }"
                 )
                 else -> p
             }
@@ -319,35 +321,52 @@ data class KotlinExtensionFunction(
     fun List<MappedApiFunctionParameter>.toDeclarationString(): String =
         takeIf { it.isNotEmpty() }?.let { list ->
             list.mapIndexed { index, p ->
-                if (index == list.size - 1 && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (index == list.size - 2 && list[index + 1].type.isSAM && p.type.isKotlinArray && p.isVarargs) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else "`${p.name}`: ${p.type.toTypeArgumentString()}"
+                when {
+                    index == list.lastIndex && p.isVarargs && p.type.isKotlinArray -> "vararg `${p.name}`: ${singleTypeArgumentStringOf(p)}"
+                    index == list.size - 2 && list[index + 1].type.isSAM && p.type.isKotlinArray && p.isVarargs -> "vararg `${p.name}`: ${singleTypeArgumentStringOf(p)}"
+                    else -> "`${p.name}`: ${p.type.toTypeArgumentString()}"
+                }
             }.joinToString(separator = ", ")
         } ?: ""
 
+    private
+    fun singleTypeArgumentStringOf(p: MappedApiFunctionParameter) =
+        p.type.typeArguments.single().toTypeArgumentString()
 
     private
     fun List<MappedApiFunctionParameter>.toArgumentsString(): String =
         takeIf { it.isNotEmpty() }
             ?.sortedBy { it.original.index }
-            ?.joinToString(separator = ", ") { it.asArguments }
+            ?.joinToString(separator = ", ") { it.asArgument }
             ?: ""
 }
 
 
 private
 fun ApiTypeUsage.toKotlinClass() =
-    ApiTypeUsage(SourceNames.kotlinClass, isNullable, typeArguments = singleTypeArgumentRawToStarProjection())
+    ApiTypeUsage(
+        SourceNames.kotlinClass,
+        isNullable,
+        typeArguments = singleTypeArgumentRawToStarProjection()
+    )
 
 
 private
 fun ApiTypeUsage.toArrayOfKotlinClasses() =
-    ApiTypeUsage(SourceNames.kotlinArray, isNullable, typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().singleTypeArgumentRawToStarProjection())))
+    ApiTypeUsage(
+        SourceNames.kotlinArray,
+        isNullable,
+        typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().singleTypeArgumentRawToStarProjection()))
+    )
 
 
 private
 fun ApiTypeUsage.toCollectionOfKotlinClasses() =
-    ApiTypeUsage(SourceNames.kotlinCollection, isNullable, typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().singleTypeArgumentRawToStarProjection())))
+    ApiTypeUsage(
+        SourceNames.kotlinCollection,
+        isNullable,
+        typeArguments = listOf(ApiTypeUsage(SourceNames.kotlinClass, typeArguments = typeArguments.single().singleTypeArgumentRawToStarProjection()))
+    )
 
 
 private
