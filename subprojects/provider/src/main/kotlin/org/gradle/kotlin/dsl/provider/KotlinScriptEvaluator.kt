@@ -48,6 +48,7 @@ import org.gradle.kotlin.dsl.execution.ProgramId
 
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.kotlinDev
+import org.gradle.kotlin.dsl.kotlinEap
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -292,6 +293,7 @@ fun Settings.addKotlinDevRepository() {
         if (pluginManagement.repositories.isEmpty()) {
             pluginManagement.run {
                 repositories.run {
+                    kotlinEap()
                     kotlinDev()
                     gradlePluginPortal()
                 }
@@ -300,7 +302,9 @@ fun Settings.addKotlinDevRepository() {
     }
 
     gradle.beforeProject { project ->
+        project.buildscript.repositories.kotlinEap()
         project.buildscript.repositories.kotlinDev()
+        project.repositories.kotlinEap()
         project.repositories.kotlinDev()
     }
 }
