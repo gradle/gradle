@@ -141,8 +141,21 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         0 * rule._
     }
 
+    def "can configure domain objects through provider"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        result.configure {
+            it.value = "changed"
+        }
+        then:
+        result.get().value == "changed"
+    }
+
     static class Bean {
         public final String name
+
+        String value = "original"
 
         Bean(String name) {
             this.name = name
