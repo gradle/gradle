@@ -171,9 +171,7 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
                     function.parameters.firstOrNull()?.type?.isGroovyNamedArgumentMap == true
 
                 val javaClassToKotlinClass =
-                    function.parameters.any {
-                        it.type.isJavaClass || (it.type.isKotlinArray && it.type.typeArguments.single().isJavaClass) || (it.type.isKotlinCollection && it.type.typeArguments.single().isJavaClass)
-                    }
+                    function.parameters.any { it.type.hasJavaClass() }
 
                 val extension
                     get() = groovyNamedArgumentsToVarargs || javaClassToKotlinClass
@@ -196,6 +194,13 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
                     parameters = function.newMappedParameters().groovyNamedArgumentsToVarargs().javaClassToKotlinClass(),
                     returnType = function.returnType))
         }
+
+
+private
+fun ApiTypeUsage.hasJavaClass(): Boolean =
+    (isJavaClass
+        || isKotlinArray && typeArguments.single().isJavaClass
+        || isKotlinCollection && typeArguments.single().isJavaClass)
 
 
 private
