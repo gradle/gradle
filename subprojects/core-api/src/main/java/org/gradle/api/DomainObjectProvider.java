@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectProvider;
-import org.gradle.api.Incubating;
-import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
 
 /**
- * Providers a task of the given type.
+ * Provides a domain object of the given type.
  *
- * @param <T> Task type
- * @since 4.8
+ * @param <T> type of domain object
+ * @since 4.10
  */
 @Incubating
-public interface TaskProvider<T extends Task> extends DomainObjectProvider<T> {
+public interface DomainObjectProvider<T> extends Provider<T> {
     /**
-     * Configures the task with the given action. Actions are run in the order added.
+     * Configures the domain object with the given action. Actions are run in the order added.
      *
-     * @param action A {@link Action} that can configure the task when required.
-     * @since 4.8
+     * @param action A {@link Action} that can configure the domain object when required.
+     * @since 4.10
      */
     void configure(Action<? super T> action);
 
@@ -43,7 +40,7 @@ public interface TaskProvider<T extends Task> extends DomainObjectProvider<T> {
      * Must be constant for the life of the object.
      *
      * @return The task name. Never null.
-     * @since 4.9
+     * @since 4.10
      */
     String getName();
 }

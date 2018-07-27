@@ -293,4 +293,26 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         bob.present
         bob.get().name == "bob"
     }
+
+    def "can configure objects via provider"() {
+        given:
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+
+        when:
+        container.register("fred", AgeAwarePerson).configure {
+            it.age = 50
+        }
+        container.create("bob", AgeAwarePerson)
+
+        def fred = container.named("fred")
+        def bob = container.named("bob")
+        bob.configure {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().age == 50
+        bob.present
+        bob.get().age == 50
+    }
 }
