@@ -57,12 +57,12 @@ public class VcsVersionSelectionCache {
     }
 
     @Nullable
-    VersionRef getResolvedVersion(VersionControlSpec spec, VersionConstraint constraint) {
+    public VersionRef getResolvedVersion(VersionControlSpec spec, VersionConstraint constraint) {
         String cacheKey = constraintCacheKey(spec, constraint);
         return resolvedVersions.get(cacheKey);
     }
 
-    void putResolvedVersion(VersionControlSpec spec, VersionConstraint constraint, VersionRef versionRef) {
+    public void putResolvedVersion(VersionControlSpec spec, VersionConstraint constraint, VersionRef versionRef) {
         String cacheKey = constraintCacheKey(spec, constraint);
         resolvedVersions.put(cacheKey, versionRef);
     }
