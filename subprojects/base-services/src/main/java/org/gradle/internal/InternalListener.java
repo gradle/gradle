@@ -16,5 +16,17 @@
 
 package org.gradle.internal;
 
+/**
+ * Interface to be implemented when registering internal actions or listeners that should not emit build
+ * operations.
+ *
+ * <p>
+ *     When registering listeners on Gradle, Project and TaskExecutionGraph instances, user code is
+ *     decorated to emit build operations around the execution of that code. This is to support
+ *     attribution of the time taken etc by those listeners to the script or plugin that registered the
+ *     listener. For gradle internals, we don't want to do that, so we mark internal cases using this
+ *     interface. See also the convenience class/interfaces InternalAction and InternalBuildAdapter.
+ * </p>
+ */
 public interface InternalListener {
 }

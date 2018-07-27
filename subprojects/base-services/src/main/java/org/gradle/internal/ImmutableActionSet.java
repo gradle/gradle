@@ -26,7 +26,7 @@ import org.gradle.api.Action;
  *
  * Actions are executed in order of insertion. Duplicates are ignored. Execution stops on the first failure.
  *
- * Implements InternalAction as internal delegates should be directly decorated themselves.
+ * Implements InternalListener as externally registered delegates should be directly decorated themselves.
  *
  * @param <T> the type of the subject of the action
  */

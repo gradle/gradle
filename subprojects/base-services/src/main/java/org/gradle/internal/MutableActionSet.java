@@ -24,7 +24,7 @@ import org.gradle.api.Action;
  *
  * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
  *
- * Implements InternalAction as internal delegates should be directly decorated themselves.
+ * Implements InternalListener as externally registered delegates should be directly decorated themselves.
  */
 public class MutableActionSet<T> implements Action<T>, InternalListener {
     private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
