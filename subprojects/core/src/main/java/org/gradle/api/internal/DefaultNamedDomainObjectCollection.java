@@ -181,6 +181,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         index.remove(namer.determineName(t));
     }
 
+    @Override
+    protected void didRemove(ProviderInternal<? extends T> t) {
+        if (t instanceof Named) {
+            index.removePending(((Named) t).getName());
+        }
+    }
+
     /**
      * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add an item with the same name as an existing item.</p>
      *
