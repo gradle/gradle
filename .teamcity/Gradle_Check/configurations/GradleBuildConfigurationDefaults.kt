@@ -36,16 +36,17 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
-val gradleParameters = listOf(
+fun gradleParameters(os: OS = OS.linux, daemon: Boolean = true): List<String> =
+    listOf(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
-        "--daemon",
+        if (daemon) "--daemon" else "--no-daemon",
         "--continue",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-        java7Homes[OS.linux]!!,
-        java9Homes[OS.linux]!!,
-        "-Dorg.gradle.internal.tasks.createops"
-)
+        java7Homes[os]!!,
+        java9Homes[os]!!,
+        "-Dorg.gradle.internal.tasks.createops")
+
 
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
@@ -117,15 +118,10 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     applyDefaultSettings(buildType, os, timeout)
 
-    val java7HomeParameter = java7Homes[os]!!
-    val java9HomeParameter = java9Homes[os]!!
-
-    var gradleParameterString = gradleParameters.joinToString(separator = " ")
-            .replace(java7Homes[OS.linux]!!, java7HomeParameter)
-            .replace(java9Homes[OS.linux]!!, java9HomeParameter)
+    var gradleParameterString = gradleParameters(os, daemon).joinToString(separator = " ")
 
     val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
