@@ -30,6 +30,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
@@ -83,18 +84,18 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final BuildOperationExecutor buildOperationExecutor;
 
     private final TaskStatistics statistics;
-    private final ProtectApiService protectApiService;
+    private final CrossProjectConfigurator crossProjectConfigurator;
     private final boolean eagerlyCreateLazyTasks;
     private final Map<String, TaskProvider<? extends Task>> placeholders = Maps.newLinkedHashMap();
 
     private MutableModelNode modelNode;
 
-    public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, ProtectApiService protectApiService) {
+    public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
         super(Task.class, instantiator, project);
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
-        this.protectApiService = protectApiService;
+        this.crossProjectConfigurator = crossProjectConfigurator;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -588,7 +589,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public void configure(final Action<? super I> action) {
             if (task != null) {
                 // Already realized, just run the action now
-                protectApiService.wrap(action).execute(task);
+                crossProjectConfigurator.withCrossProjectConfigurationDisabled(action).execute(task);
                 return;
             }
             // Collect any container level add actions then add the task specific action
@@ -616,7 +617,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                 statistics.lazyTaskRealized(getType());
 
                                 // Register the task
-                                add(task, protectApiService.wrap(onCreate));
+                                add(task, crossProjectConfigurator.withCrossProjectConfigurationDisabled(onCreate));
                                 // TODO removing this stuff from the store should be handled through some sort of decoration
                                 context.setResult(REALIZE_RESULT);
                             } catch (RuntimeException ex) {

@@ -54,6 +54,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+        settingsFile << "rootProject.name = 'root'"
     }
 
     def "task is created and configured when included directly in task graph"() {
@@ -835,6 +836,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         ["Project#subprojects(Action)"     , "subprojects new Action<Project>() { void execute(Project p) {} }"],
         ["Project#allprojects(Closure)"    , "allprojects {}"],
         ["Project#allprojects(Action)"     , "allprojects new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#allprojects(Closure)"    , "gradle.allprojects {}"],
+        ["Project#allprojects(Action)"     , "gradle.allprojects new Action<Project>() { void execute(Project p) {} }"],
         ["Project#project(String, Closure)", "project(':nested') {}"],
         ["Project#project(String, Action)" , "project(':nested', new Action<Project>() { void execute(Project p) {} })"],
     ]
@@ -852,7 +855,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
-        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
+        failure.assertHasCause("$description on root project 'root' cannot be executed under the current context.")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -888,7 +891,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
-        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
+        failure.assertHasCause("$description on root project 'root' cannot be executed under the current context.")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -927,7 +930,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
-        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
+        failure.assertHasCause("$description on root project 'root' cannot be executed under the current context.")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -967,7 +970,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task 'foo' (DefaultTask)")
-        failure.assertHasCause("$description on root project '${temporaryFolder.testDirectory.name}' is protected and cannot be executed under the current context")
+        failure.assertHasCause("$description on root project 'root' cannot be executed under the current context.")
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION

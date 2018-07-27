@@ -30,7 +30,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.ProtectApiService
+
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
@@ -78,7 +78,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
-        _ * serviceRegistry.get(ProtectApiService) >> Stub(ProtectApiService)
 
         gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }

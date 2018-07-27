@@ -54,8 +54,7 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.tasks.DefaultProtectApiService
-import org.gradle.api.internal.tasks.ProtectApiService
+
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.model.ObjectFactory
@@ -261,8 +260,6 @@ class DefaultProjectTest {
 
             allowing(serviceRegistryMock).get((Type) ObjectFactory); will(returnValue(context.mock(ObjectFactory)))
             allowing(serviceRegistryMock).get((Type) DependencyLockingHandler); will(returnValue(context.mock(DependencyLockingHandler)))
-
-            allowing(serviceRegistryMock).get(ProtectApiService); will(returnValue(new DefaultProtectApiService()))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()

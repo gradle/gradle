@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.internal.project
 
 import org.gradle.api.Action
-import org.gradle.api.internal.tasks.DefaultProtectApiService
+import org.gradle.api.Project
+import org.gradle.internal.Actions
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.testing.internal.util.Specification
-import spock.lang.Subject
 
-@Subject(DefaultProtectApiService)
-class DefaultProtectApiServiceTest extends Specification {
-    def service = new DefaultProtectApiService()
+class BuildOperationCrossProjectConfiguratorTest extends Specification {
+    def service = new BuildOperationCrossProjectConfigurator(new TestBuildOperationExecutor())
 
-    def "throws IllegalStateException when calling protected method when disallowed"() {
+    def "throws IllegalStateException when calling a disallowed method when disallowed"() {
         given:
-        def action = service.wrap(newActionThatCallSomeProtectedMethod())
+        def action = service.withCrossProjectConfigurationDisabled(newActionThatCallsDisallowedMethod())
 
         when:
         action.execute(new Object())
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "someProtectedMethod() on someObject is protected and cannot be executed under the current context"
+        ex.message == "someProtectedMethod() on Mock for type 'Project' cannot be executed in the current context."
     }
 
-    def "doesn't throw exception when calling protected method when allowed"() {
+    def "doesn't throw exception when calling disallowed method when allowed"() {
         when:
-        callSomeProtectedMethod()
+        callsDisallowedMethod(new Object())
 
         then:
         noExceptionThrown()
@@ -47,17 +47,17 @@ class DefaultProtectApiServiceTest extends Specification {
 
     def "doesn't protect across thread boundaries"() {
         given:
-        Throwable exceptionThrownInThread = null
-        def action = service.wrap(new Action<Object>() {
+        def innerAction = Mock(Action)
+        def action = service.withCrossProjectConfigurationDisabled(new Action<Object>() {
             @Override
             void execute(Object o) {
                 def thread = new Thread(new Runnable() {
                     @Override
                     void run() {
                         try {
-                            callSomeProtectedMethod()
+                            callsDisallowedMethod(o, innerAction)
                         } catch (Throwable ex) {
-                            exceptionThrownInThread = ex
+                            assert false : "this should never occur"
                         }
                     }
                 })
@@ -71,19 +71,20 @@ class DefaultProtectApiServiceTest extends Specification {
 
         then:
         noExceptionThrown()
-        exceptionThrownInThread == null
+        1 * innerAction.execute(_)
     }
 
-    private Action<Object> newActionThatCallSomeProtectedMethod() {
+    private Action<Object> newActionThatCallsDisallowedMethod() {
         return new Action<Object>() {
             @Override
             void execute(Object o) {
-                callSomeProtectedMethod()
+                callsDisallowedMethod(o)
             }
         }
     }
 
-    private void callSomeProtectedMethod() {
-        service.assertMethodExecutionAllowed("someProtectedMethod()", "someObject")
+    private void callsDisallowedMethod(Object o, Action action = Actions.doNothing()) {
+        action.execute(o)
+        service.assertCrossProjectConfigurationAllowed("someProtectedMethod()", Mock(Project))
     }
 }
