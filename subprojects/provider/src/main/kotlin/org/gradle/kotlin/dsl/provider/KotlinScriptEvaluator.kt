@@ -47,11 +47,10 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.kotlinDev
-import org.gradle.kotlin.dsl.kotlinEap
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.kotlinEap
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -294,7 +293,6 @@ fun Settings.addKotlinDevRepository() {
             pluginManagement.run {
                 repositories.run {
                     kotlinEap()
-                    kotlinDev()
                     gradlePluginPortal()
                 }
             }
@@ -303,9 +301,7 @@ fun Settings.addKotlinDevRepository() {
 
     gradle.beforeProject { project ->
         project.buildscript.repositories.kotlinEap()
-        project.buildscript.repositories.kotlinDev()
         project.repositories.kotlinEap()
-        project.repositories.kotlinDev()
     }
 }
 

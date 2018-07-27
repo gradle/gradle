@@ -313,7 +313,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         withSettingsIn("buildSrc", pluginManagementBlock)
 
         withBuildScriptIn("buildSrc", """
-            import org.gradle.kotlin.dsl.plugins.dsl.*
 
             plugins {
                 `kotlin-dsl`
