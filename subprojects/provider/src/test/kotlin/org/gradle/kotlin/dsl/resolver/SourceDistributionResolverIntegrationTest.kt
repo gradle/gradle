@@ -50,6 +50,7 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         "core/src/main/java", "core/src/main/resources", "core-api/src/main/java",
         "dependency-management/src/main/java", "dependency-management/src/main/resources",
         "diagnostics/src/main/java", "diagnostics/src/main/resources",
+        "docs/src/main/resources",
         "ear/src/main/java", "ear/src/main/resources",
         "ide/src/main/java", "ide/src/main/resources",
         "ide-native/src/main/groovy", "ide-native/src/main/java", "ide-native/src/main/resources",

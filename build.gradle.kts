@@ -23,8 +23,8 @@ allprojects {
     createOpenTestReportTasks()
 }
 
-val publishedPluginsVersion by extra { "0.19.2" }
-val futurePluginsVersion = "0.19.3"
+val publishedPluginsVersion by extra { "0.19.5" }
+val futurePluginsVersion = "0.19.6"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion

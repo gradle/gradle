@@ -82,7 +82,6 @@ fun compileKotlinScriptToDirectory(
 
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 addKotlinSourceRoot(scriptFile.canonicalPath)
-                put(JVM_TARGET, JvmTarget.JVM_1_8)
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
@@ -206,6 +205,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
+        put(JVM_TARGET, JvmTarget.JVM_1_8)
     }
 
 

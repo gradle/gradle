@@ -11,6 +11,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
+import org.hamcrest.Matcher
 
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeTrue
@@ -29,10 +30,12 @@ val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
 open class AbstractIntegrationTest {
 
     @JvmField
-    @Rule val testName = TestName()
+    @Rule
+    val testName = TestName()
 
     @JvmField
-    @Rule val temporaryFolder = ForcefullyDeletedTemporaryFolder()
+    @Rule
+    val temporaryFolder = ForcefullyDeletedTemporaryFolder()
 
     @Before
     fun withDefaultGradleJvmArguments() =
@@ -199,10 +202,14 @@ open class AbstractIntegrationTest {
 fun AbstractIntegrationTest.canPublishBuildScan() {
     assertThat(
         build("tasks", "--scan").output,
-        allOf(
-            containsString("Publishing build scan..."),
-            not(containsString("The build scan plugin was applied after other plugins."))))
+        containsBuildScanPluginOutput())
 }
+
+
+fun containsBuildScanPluginOutput(): Matcher<String> = allOf(
+    containsString("Publishing build scan..."),
+    not(containsString("The build scan plugin was applied after other plugins."))
+)
 
 
 private

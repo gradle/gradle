@@ -1,5 +1,5 @@
 plugins {
-    id 'nebula.kotlin' version '1.0.6'
+    id 'nebula.kotlin' version '1.1.0'
 }
 
 group 'org.gradle.kotlin.dsl.fixtures'
@@ -21,3 +21,7 @@ repositories {
 }
 
 defaultTasks 'uploadArchives'
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    kotlinOptions.jvmTarget = "1.8"
+}
