@@ -289,7 +289,6 @@ data class KotlinExtensionFunction(
     val returnType: ApiTypeUsage
 ) {
 
-
     fun toKotlinString(): String = StringBuilder().apply {
 
         appendln("""
@@ -315,7 +314,6 @@ data class KotlinExtensionFunction(
         appendln("`$name`(${parameters.toArgumentsString()})".prependIndent())
         appendln()
     }.toString()
-
 
     private
     fun List<MappedApiFunctionParameter>.toDeclarationString(): String =
