@@ -678,29 +678,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * provider2.get()
     }
 
-    def "remove action is not executed when removing provider"() {
-        def provider1 = Mock(ProviderInternal)
-        def provider2 = Mock(ProviderInternal)
-        def action = Mock(Action)
-
-        given:
-        _ * provider1.type >> type
-        _ * provider2.type >> type
-        container.addLater(provider1)
-        container.addLater(provider2)
-        container.whenObjectRemoved(action)
-
-        when:
-        def didRemoved = container.remove(provider1)
-
-        then:
-        didRemoved
-
-        and:
-        0 * action.execute(_)
-    }
-
-    def "remove action is executed when removing provider that was realized"() {
+    def "remove action is executed only for realized elements when removing provider"() {
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
         def action = Mock(Action)
@@ -717,17 +695,26 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container.withType(type))
 
         when:
-        def didRemoved = container.remove(provider1)
+        def didRemoved1 = container.remove(provider1)
 
         then:
-        didRemoved
+        didRemoved1
 
         and:
         1 * action.execute(a)
         0 * action.execute(_)
+
+        when:
+        def didRemoved2 = container.remove(provider2)
+
+        then:
+        didRemoved2
+
+        and:
+        0 * action.execute(_)
     }
 
-    def "remove action is not executed when clearing unrealized elements"() {
+    def "remove action is executed only realized elements when clearing the container"() {
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
         def action = Mock(Action)
@@ -783,36 +770,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder()
     }
 
-    def "remove action is not executed when not retaining unrealized elements"() {
-        def provider1 = Mock(ProviderInternal)
-        def provider2 = Mock(ProviderInternal)
-        def action = Mock(Action)
-
-        given:
-        _ * provider1.type >> type
-        _ * provider2.type >> type
-        _ * provider2.get() >> b
-        container.addLater(provider1)
-        container.addLater(provider2)
-        container.whenObjectRemoved(action)
-
-        when:
-        def didRetained = container.retainAll([provider2])
-
-        then:
-        didRetained
-
-        and:
-        0 * action.execute(_)
-
-        when:
-        def result = toList(container)
-
-        then:
-        result == iterationOrder(b)
-    }
-
-    def "remove action is executed when not retaining realized elements"() {
+    def "remove action is executed only for realized elements when not retaining elements"() {
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
         def action = Mock(Action)
@@ -830,7 +788,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container.withType(type))
 
         when:
-        def didRetained = container.retainAll([provider2])
+        def didRetained = container.retainAll([])
 
         then:
         didRetained
@@ -843,7 +801,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result = toList(container)
 
         then:
-        result == iterationOrder(d)
+        result == iterationOrder()
     }
 
     def "provider is not queried when not retaining unrealized elements"() {
@@ -934,7 +892,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(a, b)
     }
 
-    def "remove action is executed when removing element using iterator"() {
+    def "can execute remove action when removing element using iterator"() {
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
         def action = Mock(Action)
