@@ -16,9 +16,50 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-public interface PhysicalDirectorySnapshot extends PhysicalSnapshot {
-    HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
+import java.util.List;
+
+/**
+ * A file snapshot which can have children (i.e. a directory).
+ */
+public class PhysicalDirectorySnapshot extends AbstractPhysicalSnapshot implements PhysicalSnapshot {
+    public static final HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
+
+    private final List<PhysicalSnapshot> children;
+    private final HashCode contentHash;
+
+    public PhysicalDirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children, HashCode contentHash) {
+        super(absolutePath, name);
+        this.children = children;
+        this.contentHash = contentHash;
+    }
+
+    @Override
+    public HashCode getHash() {
+        return contentHash;
+    }
+
+    @Override
+    public FileType getType() {
+        return FileType.Directory;
+    }
+
+    @Override
+    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+        return other instanceof PhysicalDirectorySnapshot;
+    }
+
+    @Override
+    public void accept(PhysicalSnapshotVisitor visitor) {
+        if (!visitor.preVisitDirectory(this)) {
+            return;
+        }
+        for (PhysicalSnapshot child : children) {
+            child.accept(visitor);
+        }
+        visitor.postVisitDirectory(this);
+    }
 }

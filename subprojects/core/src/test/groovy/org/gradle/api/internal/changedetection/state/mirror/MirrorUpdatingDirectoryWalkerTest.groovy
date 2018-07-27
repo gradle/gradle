@@ -129,7 +129,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
     }
 
     private static FileSystemSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker, MutableBoolean actuallyFiltered) {
-        walker.walk(new ImmutablePhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), [], PhysicalDirectorySnapshot.SIGNATURE), patterns, actuallyFiltered)
+        walker.walk(new PhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), [], PhysicalDirectorySnapshot.SIGNATURE), patterns, actuallyFiltered)
     }
 }
 

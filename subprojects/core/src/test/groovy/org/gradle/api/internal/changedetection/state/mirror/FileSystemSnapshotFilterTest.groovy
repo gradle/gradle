@@ -73,7 +73,7 @@ class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
         def root = temporaryFolder.createFile("root")
 
         expect:
-        filteredPaths(new ImmutablePhysicalDirectorySnapshot(root.absolutePath, root.name, [], PhysicalDirectorySnapshot.SIGNATURE), include("different")) == [root] as Set
+        filteredPaths(new PhysicalDirectorySnapshot(root.absolutePath, root.name, [], PhysicalDirectorySnapshot.SIGNATURE), include("different")) == [root] as Set
         filteredPaths(new PhysicalFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234), include("different")) == [root] as Set
     }
 
