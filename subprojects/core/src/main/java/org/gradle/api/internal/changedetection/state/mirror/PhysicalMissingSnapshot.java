@@ -36,7 +36,7 @@ public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
     }
 
     @Override
-    public HashCode getContentHash() {
+    public HashCode getHash() {
         return SIGNATURE;
     }
 

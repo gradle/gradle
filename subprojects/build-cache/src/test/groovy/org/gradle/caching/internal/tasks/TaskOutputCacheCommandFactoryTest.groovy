@@ -109,7 +109,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             PhysicalFileSnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
-            assert snapshot.contentHash == outputFileSnapshot.contentHash
+            assert snapshot.hash == outputFileSnapshot.hash
         }
         1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertyFingerprints, OriginTaskExecutionMetadata metadata ->
             assert propertyFingerprints.keySet() as List == ["outputDir", "outputFile"]

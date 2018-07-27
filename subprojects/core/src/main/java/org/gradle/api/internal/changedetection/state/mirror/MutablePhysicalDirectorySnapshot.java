@@ -38,7 +38,7 @@ public class MutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectoryS
     }
 
     @Override
-    public HashCode getContentHash() {
+    public HashCode getHash() {
         return SIGNATURE;
     }
 

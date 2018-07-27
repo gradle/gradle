@@ -166,7 +166,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         if (FileUtils.hasExtensionIgnoresCase(fileSnapshot.getName(), ".jar")) {
             return snapshotJarContents(fileSnapshot);
         }
-        return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getContentHash());
+        return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
     }
 
     @Nullable

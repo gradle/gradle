@@ -60,13 +60,13 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         visitRoots(new PhysicalSnapshotVisitor() {
             @Override
             public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
-                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getContentHash());
+                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
                 return false;
             }
 
             @Override
             public void visit(PhysicalSnapshot fileSnapshot) {
-                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getContentHash());
+                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
             }
 
             @Override

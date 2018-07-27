@@ -55,7 +55,7 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
                 public void visit(PhysicalSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, IgnoredPathFingerprint.create(fileSnapshot.getType(), fileSnapshot.getContentHash()));
+                        builder.put(absolutePath, IgnoredPathFingerprint.create(fileSnapshot.getType(), fileSnapshot.getHash()));
                     }
                 }
 

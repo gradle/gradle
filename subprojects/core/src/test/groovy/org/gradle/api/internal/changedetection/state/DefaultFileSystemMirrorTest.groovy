@@ -50,7 +50,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         given:
 
         _ * fileSnapshot.absolutePath >> file.path
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(25)
+        _ * fileSnapshot.hash >> HashCode.fromInt(25)
         _ * fileTreeSnapshot.absolutePath >> file.path
 
         expect:
@@ -83,7 +83,7 @@ class DefaultFileSystemMirrorTest extends Specification {
 
         given:
         _ * fileSnapshot.absolutePath >> file.path
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(37)
+        _ * fileSnapshot.hash >> HashCode.fromInt(37)
         _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null

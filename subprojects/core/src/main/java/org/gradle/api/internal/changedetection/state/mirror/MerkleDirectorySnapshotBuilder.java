@@ -90,7 +90,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
         hasher.putHash(PhysicalDirectorySnapshot.SIGNATURE);
         for (PhysicalSnapshot child : children) {
             hasher.putString(child.getName());
-            hasher.putHash(child.getContentHash());
+            hasher.putHash(child.getHash());
         }
         ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(absolutePath, name, children, hasher.hash());
         List<PhysicalSnapshot> siblings = levelHolder.peekLast();

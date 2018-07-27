@@ -30,7 +30,7 @@ public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
     }
 
     public DefaultNormalizedFileSnapshot(String normalizedPath, PhysicalSnapshot snapshot) {
-        this(normalizedPath, snapshot.getType(), snapshot.getType() == FileType.Directory ? PhysicalDirectorySnapshot.SIGNATURE : snapshot.getContentHash());
+        this(normalizedPath, snapshot.getType(), snapshot.getType() == FileType.Directory ? PhysicalDirectorySnapshot.SIGNATURE : snapshot.getHash());
     }
 
     @Override

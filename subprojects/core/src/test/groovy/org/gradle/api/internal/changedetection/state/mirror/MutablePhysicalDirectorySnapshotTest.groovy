@@ -55,7 +55,7 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
 
             @Override
             void visit(PhysicalSnapshot fileSnapshot) {
-                files[fileSnapshot.absolutePath] = fileSnapshot.contentHash
+                files[fileSnapshot.absolutePath] = fileSnapshot.hash
                 relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()

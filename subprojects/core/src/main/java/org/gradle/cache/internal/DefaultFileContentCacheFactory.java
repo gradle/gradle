@@ -118,7 +118,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
                 PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
                 FileType fileType = fileSnapshot.getType();
                 if (fileType == FileType.RegularFile) {
-                    HashCode contentHash = fileSnapshot.getContentHash();
+                    HashCode contentHash = fileSnapshot.getHash();
                     value = contentCache.get(contentHash);
                     if (value == null) {
                         value = calculator.calculate(file, fileType);

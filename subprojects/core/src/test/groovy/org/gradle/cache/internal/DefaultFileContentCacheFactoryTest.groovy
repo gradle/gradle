@@ -71,7 +71,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -122,7 +122,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -135,7 +135,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         0 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         0 * _
     }
 
@@ -153,7 +153,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -167,7 +167,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         0 * _
     }
 
@@ -185,7 +185,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -199,7 +199,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         0 * _
     }
 
@@ -248,7 +248,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(123)
+        _ * fileSnapshot.hash >> HashCode.fromInt(123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
@@ -262,7 +262,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.contentHash >> HashCode.fromInt(321)
+        _ * fileSnapshot.hash >> HashCode.fromInt(321)
         1 * calculator.calculate(file, FileType.RegularFile) >> 10
         0 * _
     }

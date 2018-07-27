@@ -93,7 +93,7 @@ public class IncrementalCompileFilesFactory {
                 // Skip things that aren't files
                 return false;
             }
-            HashCode fileContent = fileSnapshot.getContentHash();
+            HashCode fileContent = fileSnapshot.getHash();
 
             SourceFileState previousState = previous.getState(sourceFile);
 

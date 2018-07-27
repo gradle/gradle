@@ -38,7 +38,7 @@ public class PhysicalFileSnapshot extends AbstractPhysicalSnapshot implements Mu
     }
 
     @Override
-    public HashCode getContentHash() {
+    public HashCode getHash() {
         return contentHash;
     }
 

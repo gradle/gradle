@@ -36,7 +36,7 @@ public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirector
     }
 
     @Override
-    public HashCode getContentHash() {
+    public HashCode getHash() {
         return contentHash;
     }
 }

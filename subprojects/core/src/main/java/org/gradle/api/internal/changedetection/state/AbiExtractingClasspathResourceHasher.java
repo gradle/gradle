@@ -66,7 +66,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
             return hashClassBytes(inputStream);
         } catch (Exception e) {
             LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", fileSnapshot.getName(), e);
-            return fileSnapshot.getContentHash();
+            return fileSnapshot.getHash();
         } finally {
             IoActions.closeQuietly(inputStream);
         }
