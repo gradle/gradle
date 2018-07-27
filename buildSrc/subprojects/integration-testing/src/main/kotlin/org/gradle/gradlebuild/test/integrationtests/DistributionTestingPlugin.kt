@@ -32,7 +32,8 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.withType
 import java.io.File
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -51,7 +52,6 @@ class DistributionTestingPlugin : Plugin<Project> {
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
             configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base)
-            setDedicatedTestOutputDirectoryPerTask(java, reporting)
             addSetUpAndTearDownActions(gradle)
         }
     }
@@ -74,15 +74,6 @@ class DistributionTestingPlugin : Plugin<Project> {
         doLast {
             gradle.removeListener(daemonListener)
         }
-    }
-
-    private
-    fun DistributionTest.setDedicatedTestOutputDirectoryPerTask(java: JavaPluginConvention, reporting: ReportingExtension) {
-        reports.junitXml.destination = File(java.testResultsDir, name)
-        val htmlDirectory = reporting.baseDirectory.dir(this.name)
-
-        // TODO: Replace this with a Provider
-        reports.html.destination = htmlDirectory.get().asFile
     }
 
     private
