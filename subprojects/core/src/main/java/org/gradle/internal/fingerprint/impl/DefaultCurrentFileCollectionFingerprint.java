@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
@@ -32,7 +32,6 @@ import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
-import java.util.List;
 import java.util.Map;
 
 public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
@@ -85,9 +84,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     private boolean hasSameRootHashes(FileCollectionFingerprint oldFingerprint) {
-        List<String> currentRootPaths = Lists.newArrayList(rootHashes.keys());
-        List<String> oldRootPaths = Lists.newArrayList(oldFingerprint.getRootHashes().keys());
-        return currentRootPaths.equals(oldRootPaths) && rootHashes.equals(oldFingerprint.getRootHashes());
+        return Iterables.elementsEqual(rootHashes.entries(), oldFingerprint.getRootHashes().entries());
     }
 
     @Override
