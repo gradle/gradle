@@ -21,7 +21,6 @@ import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
@@ -104,9 +103,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
             return findByNameLaterWithoutRules(name);
         }
 
-        TaskInternal taskInternal = (TaskInternal) task;
-        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task, taskIdentity));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, task.getName()));
     }
 
     protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
@@ -119,48 +116,13 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
 
         @Override
-        public String getName() {
-            return identity.name;
-        }
-
-        @Override
         public Class<I> getType() {
             return identity.type;
         }
 
         @Override
-        public boolean isPresent() {
-            return findTask(identity.name) != null;
-        }
-
-        @Override
         public String toString() {
             return String.format("provider(task %s, %s)", identity.name, identity.type);
-        }
-    }
-
-    // Cannot be private due to reflective instantiation
-    public class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
-
-        private final I task;
-
-        public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
-            super(identity);
-            this.task = task;
-        }
-
-        @Override
-        public void configure(Action<? super I> action) {
-            action.execute(task);
-        }
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        public I getOrNull() {
-            return task;
         }
     }
 }
