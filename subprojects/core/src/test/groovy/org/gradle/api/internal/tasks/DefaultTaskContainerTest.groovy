@@ -37,6 +37,7 @@ import org.gradle.util.Path
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
+import static org.gradle.util.WrapUtil.toList
 
 class DefaultTaskContainerTest extends Specification {
 
@@ -1430,6 +1431,396 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         thrown(UnsupportedOperationException)
+    }
+
+    final CustomTask a = task("a", CustomTask)
+    final CustomTask b = task("b", CustomTask)
+    final CustomTask c = task("c", CustomTask)
+    final OtherCustomTask d = task("d", OtherCustomTask)
+
+    interface OtherCustomTask extends TaskInternal {}
+
+    Class<Task> getType() {
+        return CustomTask
+    }
+
+    Class<Task> getOtherType() {
+        return OtherCustomTask
+    }
+
+    private <U extends TaskInternal> Provider<U> registerTask(String name, Class<U> type) {
+        taskFactory.create(name, type) >> task(name, type)
+        return container.register(name, type)
+    }
+
+    def "provider is not queried when remove unrealized elements"() {
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("b", type)
+
+        when:
+        def didRemoved = container.remove(provider1)
+
+        then:
+        didRemoved
+        container.names.toList() == ['b']
+        !provider1.present
+        provider2.present
+
+        and:
+        0 * taskFactory.create(_ as TaskIdentity)
+    }
+
+    def "provider is queried when removing realized elements"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved = container.remove(provider1)
+
+        then:
+        didRemoved
+        container.names.toList() == ['d']
+
+        and:
+        0 * taskFactory.create(_ as TaskIdentity)
+    }
+
+    def "can remove realized elements via instance"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+
+        // Realize all object of type `type`
+        def element = container.withType(type).iterator().next()
+
+        when:
+        def didRemoved = container.remove(element)
+
+        then:
+        didRemoved
+        container.names.toList() == ['d']
+
+        and:
+        0 * taskFactory.create(_ as TaskIdentity)
+    }
+
+    def "remove action is executed only for realized elements when removing provider"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+        def action = Mock(Action)
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved1 = container.remove(provider1)
+
+        then:
+        didRemoved1
+        container.names.toList() == ['d']
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+
+        when:
+        def didRemoved2 = container.remove(provider2)
+
+        then:
+        didRemoved2
+        container.names.toList() == []
+
+        and:
+        0 * action.execute(_)
+    }
+
+    def "remove action is executed only realized elements when clearing the container"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+        def action = Mock(Action)
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        container.clear()
+
+        then:
+        container.names.toList() == []
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
+
+    def "provider is not queried when clearing"() {
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("b", type)
+
+        when:
+        container.clear()
+
+        then:
+        container.names.toList() == []
+
+        and:
+        0 * taskFactory.create(_ as TaskIdentity)
+    }
+
+    def "remove action is executed only for realized elements when not retaining elements"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+        taskFactory.create(_ as TaskIdentity) >> d
+        def action = Mock(Action)
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRetained = container.retainAll([])
+
+        then:
+        didRetained
+        container.names.toList() == []
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
+
+    def "provider is not queried when not retaining unrealized elements"() {
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("b", type)
+
+        when:
+        def didRetained = container.retainAll([provider2])
+
+        then:
+        didRetained
+        container.names.toList() == ['b']
+
+        and:
+        0 * taskFactory.create(_ as TaskIdentity)
+    }
+
+    def "retaining provider is queried when retaining realized elements"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRetained = container.retainAll([provider1])
+
+        then:
+        didRetained
+        container.names.toList() == ['a']
+
+        and:
+        0 * taskFactory.create(_ as TaskIdentity)
+    }
+
+    def "realize all elements when querying the iterator"() {
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+
+        when:
+        container.withType(type).iterator()
+
+        then:
+        1 * taskFactory.create(_ as TaskIdentity) >> a
+    }
+
+    def "can execute remove action when removing element using iterator"() {
+        1 * taskFactory.create(_ as TaskIdentity) >> a
+        1 * taskFactory.create(_ as TaskIdentity) >> b
+        def action = Mock(Action)
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("b", type)
+        container.whenObjectRemoved(action)
+
+        when:
+        def iterator = container.iterator()
+        println iterator.next()
+        iterator.remove()
+
+        then:
+        container.names.toList() == ['b']
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
+
+    def "can execute remove action only for the realized elements when removing a collection"() {
+        taskFactory.create(_ as TaskIdentity) >> a
+        def action = Mock(Action)
+
+        given:
+        def provider1 = container.register("a", type)
+        def provider2 = container.register("d", otherType)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved = container.removeAll([provider1, provider2])
+
+        then:
+        didRemoved
+        container.empty
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
+
+
+
+
+
+
+    def "can remove unrealized registered element using register provider"() {
+        taskFactory.create(_ as TaskIdentity) >> task('obj')
+
+        when:
+        def provider = container.register('obj')
+
+        then:
+        provider.present
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    def "can remove unrealized registered element using named provider"() {
+        taskFactory.create(_ as TaskIdentity) >> task('obj')
+
+        when:
+        def provider = container.register('obj')
+
+        then:
+        provider.present
+
+        when:
+        container.remove(container.named('obj'))
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    def "can remove realized registered element using register provider"() {
+        taskFactory.create(_ as TaskIdentity) >> task('obj')
+
+        when:
+        def provider = container.register('obj')
+        def obj = provider.get()
+
+        then:
+        provider.present
+        obj == container.getByName('obj')
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    def "can remove realized registered element using named provider"() {
+        taskFactory.create(_ as TaskIdentity) >> task('obj')
+
+        when:
+        def provider = container.register('obj')
+        def obj = provider.get()
+
+        then:
+        provider.present
+        obj == container.getByName('obj')
+
+        when:
+        container.remove(container.named('obj'))
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
