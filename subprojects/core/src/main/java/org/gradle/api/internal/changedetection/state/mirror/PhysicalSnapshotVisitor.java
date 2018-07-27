@@ -36,5 +36,5 @@ public interface PhysicalSnapshotVisitor {
     /**
      * Called when leaving a directory.
      */
-    void postVisitDirectory();
+    void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot);
 }

@@ -62,7 +62,7 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave()
             }
         })

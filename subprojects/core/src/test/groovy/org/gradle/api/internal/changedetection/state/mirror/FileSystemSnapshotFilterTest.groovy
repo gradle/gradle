@@ -105,7 +105,7 @@ class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             }
         })
         return result

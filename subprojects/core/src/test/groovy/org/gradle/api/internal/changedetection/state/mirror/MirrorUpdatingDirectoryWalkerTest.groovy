@@ -151,7 +151,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    void postVisitDirectory() {
+    void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
         relativePath.removeLast()
     }
 

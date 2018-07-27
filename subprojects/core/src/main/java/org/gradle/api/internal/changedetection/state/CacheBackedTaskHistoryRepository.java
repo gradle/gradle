@@ -67,9 +67,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -225,7 +223,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 private MerkleDirectorySnapshotBuilder merkleBuilder;
                 private boolean currentRootFiltered = false;
                 private PhysicalDirectorySnapshot currentRoot;
-                private Deque<PhysicalDirectorySnapshot> dirTracker = new LinkedList<PhysicalDirectorySnapshot>();
 
                 @Override
                 public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
@@ -235,7 +232,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         currentRootFiltered = false;
                     }
                     merkleBuilder.preVisitDirectory(directorySnapshot);
-                    dirTracker.addLast(directorySnapshot);
                     return true;
                 }
 
@@ -254,9 +250,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
 
                 @Override
-                public void postVisitDirectory() {
-                    PhysicalDirectorySnapshot currentDirectory = dirTracker.removeLast();
-                    boolean isOutputDir = isOutputEntry(currentDirectory, beforeExecutionSnapshots, afterPreviousSnapshots);
+                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                    boolean isOutputDir = isOutputEntry(directorySnapshot, beforeExecutionSnapshots, afterPreviousSnapshots);
                     boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
                     if (!includedDir) {
                         currentRootFiltered = true;
@@ -463,7 +458,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void postVisitDirectory() {
+        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
         }
 
         public Map<String, PhysicalSnapshot> getSnapshots() {

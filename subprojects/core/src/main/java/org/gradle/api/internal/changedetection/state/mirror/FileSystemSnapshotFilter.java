@@ -67,7 +67,7 @@ public class FileSystemSnapshotFilter {
             }
 
             @Override
-            public void postVisitDirectory() {
+            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave();
                 builder.postVisitDirectory();
             }

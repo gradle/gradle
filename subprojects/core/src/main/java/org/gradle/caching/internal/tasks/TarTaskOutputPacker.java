@@ -391,7 +391,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         @Override
-        public void postVisitDirectory() {
+        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             relativePathStringTracker.leave();
         }
 

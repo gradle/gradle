@@ -47,6 +47,6 @@ public abstract class AbstractPhysicalDirectorySnapshot extends AbstractPhysical
         for (PhysicalSnapshot child : getChildren()) {
             child.accept(visitor);
         }
-        visitor.postVisitDirectory();
+        visitor.postVisitDirectory(this);
     }
 }

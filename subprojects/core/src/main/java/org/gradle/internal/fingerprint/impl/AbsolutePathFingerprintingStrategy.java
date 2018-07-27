@@ -70,7 +70,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                 }
 
                 @Override
-                public void postVisitDirectory() {
+                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 }
 
             });

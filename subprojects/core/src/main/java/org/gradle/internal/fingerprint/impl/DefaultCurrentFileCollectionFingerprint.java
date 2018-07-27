@@ -70,7 +70,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
             }
 
             @Override
-            public void postVisitDirectory() {
+            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             }
         });
         this.rootHashes = builder.build();

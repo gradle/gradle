@@ -154,7 +154,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public void postVisitDirectory() {
+        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.leave();
             delegate.postVisitDirectory();
         }

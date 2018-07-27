@@ -68,6 +68,10 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     }
 
     @Override
+    public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        postVisitDirectory(true);
+    }
+
     public void postVisitDirectory() {
         postVisitDirectory(true);
     }

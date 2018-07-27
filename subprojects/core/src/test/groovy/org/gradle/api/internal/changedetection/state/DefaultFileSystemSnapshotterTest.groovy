@@ -190,7 +190,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 if (relativePath.isEmpty()) {
                     seenRoot = false
                 } else {
@@ -236,7 +236,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
             }
         })
@@ -336,7 +336,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             }
         })
         return [rootPath, count]

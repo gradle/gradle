@@ -79,7 +79,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 }
 
                 @Override
-                public void postVisitDirectory() {
+                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                     relativePathStringTracker.leave();
                 }
             });

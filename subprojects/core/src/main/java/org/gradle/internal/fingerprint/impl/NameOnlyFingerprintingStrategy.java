@@ -74,7 +74,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 }
 
                 @Override
-                public void postVisitDirectory() {
+                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 }
             });
         }
