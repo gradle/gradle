@@ -133,11 +133,11 @@ data class CIBuildModel (
             GradleSubproject("testingJvm"),
             GradleSubproject("testingJunitPlatform"),
             GradleSubproject("testingNative"),
-            GradleSubproject("toolingApi", crossVersionTests = true, requiresDaemon = false),
+            GradleSubproject("toolingApi", crossVersionTests = true, useDaemon = false),
             GradleSubproject("toolingApiBuilders", functionalTests = false),
             GradleSubproject("versionControl"),
             GradleSubproject("workers"),
-            GradleSubproject("wrapper", crossVersionTests = true, requiresDaemon = false),
+            GradleSubproject("wrapper", crossVersionTests = true, useDaemon = false),
 
             GradleSubproject("soak", unitTests = false, functionalTests = false),
 
@@ -152,7 +152,7 @@ data class CIBuildModel (
             GradleSubproject("smokeTest", unitTests = false, functionalTests = false))
         )
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false, val requiresDaemon: Boolean = true) {
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false, val useDaemon: Boolean = true) {
     fun asDirectoryName(): String {
         return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
     }

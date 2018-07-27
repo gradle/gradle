@@ -7,7 +7,7 @@ import model.Stage
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", requiresDaemon: Boolean = true, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
+class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", useDaemon: Boolean = true, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = testCoverage.asConfigurationId(model, subProject)
     id = AbsoluteId(uuid)
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
@@ -30,7 +30,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
                             + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
                     ).joinToString(separator = " "),
             timeout = testCoverage.testType.timeout,
-            daemon = requiresDaemon)
+            daemon = useDaemon)
 
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.oracle.64bit%")
