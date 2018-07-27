@@ -195,7 +195,6 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         classes.analysisFile.assertIsFile()
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Zinc cannot do incremental compilation on Java 9, yet
     def "stale outputs are cleaned up before the first compilation after loading from cache"() {
         createJavaClass("Class1")
         def source2 = createJavaClass("Class2", "proto")
