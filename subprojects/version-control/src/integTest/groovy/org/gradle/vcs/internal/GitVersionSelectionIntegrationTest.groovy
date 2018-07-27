@@ -157,9 +157,8 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
 
         when:
-        // TODO - shouldn't require either of these
         repo.expectListVersions()
-        repo.expectListVersions()
+        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -212,9 +211,8 @@ Required by:
         result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
 
         when:
-        // TODO - shouldn't require either of these
         repo.expectListVersions()
-        repo.expectListVersions()
+        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -320,8 +318,7 @@ Required by:
 
         when:
         repo.expectListVersions()
-        // TODO - shouldn't require this
-        repo.expectListVersions()
+        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -412,9 +409,8 @@ Required by:
         result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
 
         when:
-        // TODO - should not do this
         repo.expectListVersions()
-        repo.expectListVersions()
+        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -469,8 +465,7 @@ Required by:
 
         when:
         repo.expectListVersions()
-        // TODO - should not require this
-        repo.expectListVersions()
+        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
