@@ -15,9 +15,9 @@
  */
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import spock.lang.Timeout
 
-@IntegrationTestTimeout(300)
+@Timeout(300)
 class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
 
     def setup() {

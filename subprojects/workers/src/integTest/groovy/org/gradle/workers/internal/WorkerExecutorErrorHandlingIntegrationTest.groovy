@@ -16,12 +16,12 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.IsolationMode
+import spock.lang.Timeout
 import spock.lang.Unroll
 
-@IntegrationTestTimeout(120)
+@Timeout(120)
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Unroll
     def "produces a sensible error when there is a failure in the worker runnable in #isolationMode"() {

@@ -16,9 +16,9 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import spock.lang.Timeout
 
-@IntegrationTestTimeout(120)
+@Timeout(120)
 class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     String logSnapshot = ""
 

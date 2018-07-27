@@ -17,11 +17,11 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import spock.lang.Timeout
 
 class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
 
-    @IntegrationTestTimeout(20)
+    @Timeout(20)
     def "can register a listener for JVM and OS memory status update events"() {
         given:
         buildFile << waitForMemoryEventsTask()

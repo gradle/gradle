@@ -16,11 +16,11 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.DefaultConditionalExecutionQueue
+import spock.lang.Timeout
 import spock.lang.Unroll
 
-@IntegrationTestTimeout(120)
+@Timeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll
