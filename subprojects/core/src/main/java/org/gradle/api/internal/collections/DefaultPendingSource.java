@@ -74,6 +74,11 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
+    public void realizeExternal(ProviderInternal<? extends T> provider) {
+        removePending(provider);
+    }
+
+    @Override
     public boolean isEmpty() {
         return pending.isEmpty();
     }

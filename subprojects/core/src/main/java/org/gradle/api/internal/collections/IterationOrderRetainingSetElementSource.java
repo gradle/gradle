@@ -29,14 +29,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
-    // This set represents the elements which have been realized and "added" to the store.  This may
-    // or may not be in the order that elements are inserted.  We track this to know which realized
-    // elements have already had rules fired against them.
-    private final Set<T> added = new HashSet<T>();
-
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
     private final List<Element<T>> inserted = new ArrayList<Element<T>>();
@@ -91,13 +85,17 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean add(T element) {
-        inserted.add(new CachingElement(element));
-        return added.add(element);
+        if (!Iterators.contains(iteratorNoFlush(), element)) {
+            inserted.add(new CachingElement(element));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public boolean addRealized(T element) {
-        return added.add(element);
+        return true;
     }
 
     @Override
@@ -107,7 +105,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
             Element<? extends T> provider = iterator.next();
             if (provider.isRealized() && provider.getValue().equals(o)) {
                 iterator.remove();
-                return added.remove(o);
+                return true;
             }
         }
         return false;
@@ -116,7 +114,11 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     @Override
     public void clear() {
         inserted.clear();
-        added.clear();
+    }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends T> provider) {
+
     }
 
     @Override
@@ -139,8 +141,13 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
-        inserted.add(new CachingElement(provider));
-        return true;
+        CachingElement element = new CachingElement(provider);
+        if (!inserted.contains(element)) {
+            inserted.add(element);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

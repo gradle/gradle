@@ -162,4 +162,9 @@ public class ListElementSource<T> implements IndexedElementSource<T> {
     public void onRealize(Action<T> action) {
         pending.onRealize(action);
     }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends T> provider) {
+        pending.realizeExternal(provider);
+    }
 }

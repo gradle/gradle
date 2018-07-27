@@ -41,6 +41,18 @@ class IterationOrderRetainingSetElementSourceTest extends Specification {
         source.contains("foo")
     }
 
+    def "can add the same provider twice"() {
+        def provider = provider("foo")
+
+        when:
+        source.addPending(provider)
+        source.addPending(provider)
+
+        then:
+        source.size() == 1
+        source.contains("foo")
+    }
+
     def "iterates elements in the order they were added"() {
         when:
         source.addPending(provider("foo"))

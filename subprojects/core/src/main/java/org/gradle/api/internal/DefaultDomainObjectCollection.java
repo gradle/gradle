@@ -67,7 +67,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected void realized(ProviderInternal<? extends T> provider) {
-        getStore().removePending(provider);
+        getStore().realizeExternal(provider);
     }
 
     public Class<? extends T> getType() {
