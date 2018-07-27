@@ -46,6 +46,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
+        useRepositoryMirrors()
     }
 
     def "compileGoodCode"() {

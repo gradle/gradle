@@ -32,6 +32,7 @@ abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersi
         settingsFile << """
             rootProject.name = '${playApp.name}'
         """
+        usePluginRepositoryMirror()
     }
 
     static String playPlatformConfiguration(String version) {

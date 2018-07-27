@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.maven
+package org.gradle.connectivity
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.ONLINE)
-class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenJcenterDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "resolves a minimal dependency from bintray's jcenter"() {
         given:
         buildFile << """
