@@ -196,16 +196,57 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
     }
 
     @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Zinc cannot do incremental compilation on Java 9, yet
-    def "stale outputs are cleanup up for the first compilation after loading from cache"() {
-        def source1 = file('src/main/scala/Class1.java')
-        source1 << 'class Class1 {}'
-        def source2 = file('src/main/scala/Class2.java')
-        source2 << 'class Class2 {}'
-        def source3 = file('src/main/scala/proto/Class3.java')
-        source3 << 'package proto; class Class3 {}'
-        def class2 = file('build/classes/scala/main/Class2.class')
-        def class1 = file('build/classes/scala/main/Class1.class')
-        def class3 = file('build/classes/scala/main/proto/Class3.class')
+    def "stale outputs are cleaned up before the first compilation after loading from cache"() {
+        createJavaClass("Class1")
+        def source2 = createJavaClass("Class2", "proto")
+        def class1 = scalaClassFile('Class1.class')
+        def class2 = scalaClassFile('proto/Class2.class')
+
+        when:
+        withBuildCache().run(compilationTask)
+        then:
+        class1.isFile()
+        class2.isFile()
+        file(compiledFile).isFile()
+
+        when:
+        run("clean")
+        withBuildCache().run(compilationTask)
+        then:
+        skipped(compilationTask)
+
+        when:
+        assert source2.delete()
+        withBuildCache().run(compilationTask)
+        then:
+        executedAndNotSkipped(compilationTask)
+        class1.exists()
+        !class2.exists()
+        !class2.parentFile.exists()
+
+        when:
+        createJavaClass("Class2", "proto")
+        withBuildCache().run(compilationTask)
+        then:
+        skipped(compilationTask)
+
+        when:
+        assert source2.delete()
+        createJavaClass("Class3")
+        withBuildCache().run(compilationTask)
+        then:
+        executedAndNotSkipped(compilationTask)
+        !class2.exists()
+    }
+
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Zinc cannot do incremental compilation on Java 9, yet
+    def "zinc handles removal of stale output files after loading from cache"() {
+        createJavaClass("Class1")
+        def source2 = createJavaClass("Class2")
+        def source3 = createJavaClass("Class3", "proto")
+        def class1 = scalaClassFile('Class1.class')
+        def class2 = scalaClassFile('Class2.class')
+        def class3 = scalaClassFile('proto/Class3.class')
 
         when:
         withBuildCache().run(compilationTask)
@@ -223,8 +264,8 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         when:
         assert source3.delete()
-        run(compilationTask)
-        then:
+        withBuildCache().run(compilationTask)
+        then: 'Gradle cleans up the stale class file'
         executedAndNotSkipped(compilationTask)
         class1.exists()
         class2.exists()
@@ -233,12 +274,18 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         when:
         assert source2.delete()
-        run(compilationTask)
-        then:
+        withBuildCache().run(compilationTask)
+        then: 'Zinc cleans up the stale class file'
         executedAndNotSkipped(compilationTask)
         class1.exists()
         !class2.exists()
         !class3.exists()
+    }
+
+    TestFile createJavaClass(String className, String packageName = null) {
+        TestFile sourceFile = file("src/main/scala/${packageName?.replace('.', '/') ?: ""}/${className}.java")
+        sourceFile.text = "${packageName != null ? "package ${packageName}; " : ""}class ${className} {}"
+        return sourceFile
     }
 
     private void cleanBuildDir() {
