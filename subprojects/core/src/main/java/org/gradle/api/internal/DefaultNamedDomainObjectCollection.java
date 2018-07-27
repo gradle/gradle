@@ -531,6 +531,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public void clear() {
             map.clear();
+            pendingMap.clear();
         }
 
         @Override
