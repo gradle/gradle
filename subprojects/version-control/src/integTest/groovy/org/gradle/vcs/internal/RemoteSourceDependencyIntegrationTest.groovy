@@ -157,44 +157,24 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        // TODO - should do each of these once
         repoA.expectListVersions()
         repoA.expectCloneSomething()
         repoB.expectListVersions()
         repoB.expectCloneSomething()
-
-        repoA.expectListVersions()
-        repoB.expectListVersions()
-        repoA.expectListVersions()
-        repoB.expectListVersions()
-        repoB.expectListVersions()
-        repoB.expectListVersions()
-
         repoC.expectListVersions()
         repoC.expectCloneSomething()
-        repoC.expectListVersions()
-        repoC.expectListVersions()
 
         then:
         succeeds('resolve')
         result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
 
         when:
-        // TODO - should do each of these once
         repoA.expectListVersions()
-        repoA.expectListVersions()
+        repoA.expectUpdateUnchanged()
         repoB.expectListVersions()
-        repoB.expectListVersions()
-        repoA.expectListVersions()
-        repoB.expectListVersions()
-        repoA.expectListVersions()
-        repoB.expectListVersions()
-        repoB.expectListVersions()
-        repoB.expectListVersions()
+        repoB.expectUpdateUnchanged()
         repoC.expectListVersions()
-        repoC.expectListVersions()
-        repoC.expectListVersions()
-        repoC.expectListVersions()
+        repoC.expectUpdateUnchanged()
 
         then:
         succeeds('resolve')

@@ -56,8 +56,6 @@ import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
@@ -69,10 +67,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VersionComparator versionComparator;
     private final BuildStateRegistry buildRegistry;
     private final File baseWorkingDir;
-    private final Map<String, VersionRef> selectedVersionCache = new HashMap<String, VersionRef>();
+    private final VcsVersionSelectionCache versionSelectionCache;
     private final VersionParser versionParser;
 
-    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser) {
+    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache) {
         this.baseWorkingDir = vcsWorkingDirRoot.getDir();
         this.projectDependencyResolver = projectDependencyResolver;
         this.localComponentRegistry = localComponentRegistry;
@@ -82,6 +80,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         this.versionComparator = versionComparator;
         this.buildRegistry = buildRegistry;
         this.versionParser = versionParser;
+        this.versionSelectionCache = versionSelectionCache;
     }
 
     @Override
@@ -89,7 +88,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         if (dependency.getSelector() instanceof ModuleComponentSelector) {
             final ModuleComponentSelector depSelector = (ModuleComponentSelector) dependency.getSelector();
             VersionControlSpec spec = vcsResolver.locateVcsFor(depSelector);
-
             // TODO: Need failure handling, e.g., cannot clone repository
             if (spec != null) {
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
@@ -127,20 +125,26 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     private VersionRef selectVersion(ModuleComponentSelector depSelector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
-        String cacheKey = cacheKey(spec, depSelector.getVersionConstraint());
-        if (selectedVersionCache.containsKey(cacheKey)) {
-            return selectedVersionCache.get(cacheKey);
-        } else {
-            VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersionConstraint());
-            selectedVersionCache.put(cacheKey, selectedVersion);
-            return selectedVersion;
+        VersionRef selectedVersion = versionSelectionCache.getResolvedVersion(spec, depSelector.getVersionConstraint());
+        if (selectedVersion == null) {
+            // TODO - prevent multiple threads from performing the same selection
+            selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersionConstraint());
+            if (selectedVersion != null) {
+                versionSelectionCache.putResolvedVersion(spec, depSelector.getVersionConstraint(), selectedVersion);
+            }
         }
+        return selectedVersion;
     }
 
     private File populateWorkingDirectory(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
-        String repositoryId = HashUtil.createCompactMD5(spec.getUniqueId());
-        File versionDirectory = new File(baseWorkingDir, repositoryId + "-" + selectedVersion.getCanonicalId());
-        return versionControlSystem.populate(versionDirectory, selectedVersion, spec);
+        File checkoutDir = versionSelectionCache.getCheckoutDir(spec, selectedVersion);
+        if (checkoutDir == null) {
+            String repositoryId = HashUtil.createCompactMD5(spec.getUniqueId());
+            File versionDirectory = new File(baseWorkingDir, repositoryId + "-" + selectedVersion.getCanonicalId());
+            checkoutDir = versionControlSystem.populate(versionDirectory, selectedVersion, spec);
+            versionSelectionCache.putCheckoutDir(spec, selectedVersion, checkoutDir);
+        }
+        return checkoutDir;
     }
 
     private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionConstraint constraint) {
@@ -161,7 +165,11 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             return null;
         }
 
-        Set<VersionRef> versions = versionControlSystem.getAvailableVersions(spec);
+        Set<VersionRef> versions = versionSelectionCache.getVersions(spec);
+        if (versions == null) {
+            versions = versionControlSystem.getAvailableVersions(spec);
+            versionSelectionCache.putVersions(spec, versions);
+        }
         Version bestVersion = null;
         VersionRef bestCandidate = null;
         for (VersionRef candidate : versions) {
@@ -177,12 +185,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         return bestCandidate;
     }
 
-    private String cacheKey(VersionControlSpec spec, VersionConstraint constraint) {
-        if (constraint.getBranch() != null) {
-            return spec.getUniqueId() + ":b:" + constraint.getBranch();
-        }
-        return spec.getUniqueId() + ":v:" + constraint.getRequiredVersion();
-    }
 
     @Override
     public DependencyToComponentIdResolver getComponentIdResolver() {
