@@ -145,6 +145,9 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
         @Override
         public I getOrNull() {
+            if (wasElementRemoved()) {
+                return null;
+            }
             if (cause != null) {
                 throw createIllegalStateException();
             }
@@ -160,6 +163,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
                         // Register the domain object
                         add(object, onCreate);
+                        realized(DomainObjectCreatingProvider.this);
                     } catch (RuntimeException ex) {
                         cause = ex;
                         throw createIllegalStateException();
@@ -170,6 +174,18 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
                 }
             }
             return object;
+        }
+
+        private boolean wasElementRemoved() {
+            return wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized();
+        }
+
+        private boolean wasElementRemovedBeforeRealized() {
+            return object == null && findByNameLaterWithoutRules(getName()) == null;
+        }
+
+        private boolean wasElementRemovedAfterRealized() {
+            return object != null && findByNameWithoutRules(getName()) == null;
         }
 
         private IllegalStateException createIllegalStateException() {
