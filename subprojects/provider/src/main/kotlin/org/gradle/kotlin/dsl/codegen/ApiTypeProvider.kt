@@ -290,8 +290,7 @@ data class ApiTypeUsage(
     val bounds: List<ApiTypeUsage> = emptyList()
 ) {
     val isRaw: Boolean
-        get() = typeArguments.isEmpty()
-            && type?.typeParameters?.isEmpty() != false
+        get() = typeArguments.isEmpty() && type?.typeParameters?.isEmpty() != false
 }
 
 
@@ -393,7 +392,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             val typeArguments = signatureParameter?.typeArguments ?: emptyList<TypeSignatureVisitor>()
             ApiFunctionParameter(
                 index = idx,
-                isVarargs = idx == parameterTypesBinaryNames.size - 1 && delegate.access.isVarargs,
+                isVarargs = idx == parameterTypesBinaryNames.lastIndex && delegate.access.isVarargs,
                 nameSupplier = { names?.get(idx) },
                 type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
             )
