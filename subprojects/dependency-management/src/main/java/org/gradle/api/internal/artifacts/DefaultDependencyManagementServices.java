@@ -79,6 +79,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.ProjectAccessListener;
@@ -189,7 +190,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
-                                                                    DependencyLockingProvider dependencyLockingProvider) {
+                                                                    DependencyLockingProvider dependencyLockingProvider,
+                                                                    ProjectStateRegistry projectStateRegistry) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -208,7 +210,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributesFactory,
                 moduleIdentifierFactory,
                 componentSelectorConverter,
-                dependencyLockingProvider
+                dependencyLockingProvider,
+                projectStateRegistry
             );
         }
 

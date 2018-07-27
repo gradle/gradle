@@ -1,9 +1,9 @@
-// START SNIPPET apply-plugins
+// tag::apply-plugins[]
 plugins {
     id 'java-library'
     id 'maven-publish'
 }
-// END SNIPPET apply-plugins
+// end::apply-plugins[]
 
 repositories {
     mavenCentral()
@@ -14,7 +14,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.5'
 }
 
-// START SNIPPET configure-publishing
+// tag::configure-publishing[]
 group = 'org.example'
 version = '1.0'
 
@@ -32,12 +32,12 @@ publishing {
         }
     }
 }
-// END SNIPPET configure-publishing
+// end::configure-publishing[]
 
-// START SNIPPET configure-generate-task
+// tag::configure-generate-task[]
 tasks.withType(GenerateMavenPom).all {
     def matcher = name =~ /generatePomFileFor(\w+)Publication/
     def publicationName = matcher[0][1]
     destination = "$buildDir/poms/${publicationName}-pom.xml"
 }
-// END SNIPPET configure-generate-task
+// end::configure-generate-task[]

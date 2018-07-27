@@ -65,8 +65,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaProjectScopeServices {
-        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter) {
-            return new IncrementalCompilerFactory(fileOperations, streamHasher, fileHasher, compileCaches, buildOperationExecutor, interner, fileSystemSnapshotter);
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter, FileHasher fileHasher) {
+            return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, fileSystemSnapshotter, fileHasher);
         }
     }
 }

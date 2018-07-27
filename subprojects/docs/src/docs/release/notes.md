@@ -12,9 +12,15 @@ Starting with this release, it is now possible to use SNAPSHOT plugin versions i
 
 ### Incremental Java compilation by default
 
-This release fixes the last known issue of the incremental compiler: It now deletes empty package directories when the last class file is removed.
-It's memory usage has also been significantly reduced.
-We are now confident that it is ready to be enabled for everyone, so incremental compilation is the new default setting.
+This release fixes all known issues of the incremental compiler. It now
+
+- deletes empty package directories when the last class file is removed
+- recompiles all classes when module-info files change
+- recompiles all classes in a package when that package's package-info changes
+
+It's memory usage has also been reduced. For our own build, its heap usage dropped from 350MB to just 10MB.
+
+We are now confident that the incremental compiler is ready to be used in every build, so it is now the new default setting.
 
 ### Nested included builds
 
@@ -34,6 +40,10 @@ Caching has always been one of the strong suits of Gradle. Over time, more and m
 - Shared versioned cache directories in `GRADLE_USER_HOME/caches/` (e.g. `jars-*`) are checked periodically (at most every 24 hours) for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
 - Files in shared caches used by the current Gradle version in `GRADLE_USER_HOME/caches/` (e.g. `jars-3` or `modules-2`) are checked periodically (at most every 24 hours) for when they were last accessed. Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
 
+### Authorization for Maven repositories with custom HTTP headers
+
+Now it is possible to define a custom HTTP header to authorize access to a Maven repository. This enables Gradle to access private Gitlab and TFS repositories
+used as Maven repositories or any OAuth2 protected Maven repositories.
 
 ## Promoted features
 
@@ -79,6 +89,10 @@ Instances of this class are intended to be created only by the `base` plugin and
 
 Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
 
+### Adding tasks via TaskContainer.add() and TaskContainer.addAll() 
+
+These methods have been deprecated and the `create()` or `register()` methods should be used instead.
+
 ## Potential breaking changes
 
 ### Kotlin DSL breakages
@@ -116,6 +130,9 @@ We love getting contributions from the Gradle community. For information on cont
 - [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
 - [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
 - [Mike Kobit](https://github.com/mkobit) - Add ability to use `RegularFile` and `Directory` as publishable artifacts (gradle/gradle#5109)
+- [Mészáros Máté Róbert](https://github.com/mrmeszaros) - Fix typo in userguide java plugin configuration image (gradle/gradle#6011)
+- [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
+- [Kenzie Togami](https://github.com/kenzierocks) - Docs are unclear on how JavaExec parses --args (gradle/gradle#6056)
 
 ## Known issues
 

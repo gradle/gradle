@@ -26,6 +26,7 @@ dependencies {
     api project(":messaging")
     api project(":native")
     api project(":resources")
+    api project(":logging")
     api libraries.jcip.coordinates
 
     implementation libraries.commons_collections.coordinates

@@ -48,6 +48,13 @@ import org.gradle.internal.time.Time;
  * </ol>
  */
 public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
+
+    public static final Object NO_OP = new Object() {
+        OutputEventListener createOutputEventListener() {
+            return OutputEventListener.NO_OP;
+        }
+    };
+
     private TextStreamOutputEventListener stdoutListener;
 
     protected final OutputEventRenderer renderer = makeOutputEventRenderer();

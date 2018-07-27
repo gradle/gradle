@@ -4,7 +4,7 @@ group = 'org.gradle.sample'
 version = '1.0'
 
 publishing {
-// START SNIPPET customize-descriptor
+// tag::customize-descriptor[]
     publications {
         ivyCustom(IvyPublication) {
             descriptor {
@@ -23,7 +23,7 @@ publishing {
             }
         }
     }
-// END SNIPPET customize-descriptor
+// end::customize-descriptor[]
     repositories {
         ivy {
             // change to point to your repo, e.g. http://my.org/repo
@@ -31,8 +31,8 @@ publishing {
         }
     }
 }
-// START SNIPPET generate
+// tag::generate[]
 generateDescriptorFileForIvyCustomPublication {
     destination = file("$buildDir/generated-ivy.xml")
 }
-// END SNIPPET generate
+// end::generate[]

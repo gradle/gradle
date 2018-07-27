@@ -18,6 +18,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental
 
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs
+import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceToNameConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

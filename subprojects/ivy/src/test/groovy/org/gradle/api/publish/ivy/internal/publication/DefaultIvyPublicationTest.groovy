@@ -32,7 +32,6 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -134,7 +133,7 @@ class DefaultIvyPublicationTest extends Specification {
         when:
         moduleDependency.group >> "org"
         moduleDependency.name >> "name"
-        moduleDependency.versionConstraint >> DefaultImmutableVersionConstraint.of("version")
+        moduleDependency.version >> "version"
         moduleDependency.targetConfiguration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]

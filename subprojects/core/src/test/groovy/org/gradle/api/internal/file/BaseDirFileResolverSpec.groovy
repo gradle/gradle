@@ -128,10 +128,10 @@ class BaseDirFileResolverSpec extends Specification {
 
     def "normalizes file system roots"() {
         expect:
-        normalize(root) == root
+        normalize(root) == new File(root)
 
         where:
-        root << getFsRoots()
+        root << getFsRoots().collect { it.absolutePath }
     }
 
     @Requires(TestPrecondition.WINDOWS)

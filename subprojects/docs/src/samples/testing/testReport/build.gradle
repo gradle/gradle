@@ -1,8 +1,8 @@
-// START SNIPPET test-report
+// tag::test-report[]
 subprojects {
     apply plugin: 'java'
 
-// END SNIPPET test-report
+// end::test-report[]
     repositories {
         mavenCentral()
     }
@@ -11,7 +11,7 @@ subprojects {
         testCompile 'junit:junit:4.12'
     }
 
-// START SNIPPET test-report
+// tag::test-report[]
     // Disable the test report for the individual test task
     test {
         reports.html.enabled = false
@@ -23,4 +23,4 @@ task testReport(type: TestReport) {
     // Include the results from the `test` task in all subprojects
     reportOn subprojects*.test
 }
-// END SNIPPET test-report
+// end::test-report[]

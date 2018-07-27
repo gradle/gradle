@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalCompone
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
@@ -53,6 +54,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private TaskResolver taskResolver = Mock(TaskResolver)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
+    private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private ImmutableAttributesFactory immutableAttributesFactory = TestUtil.attributesFactory()
@@ -66,7 +68,7 @@ class DefaultConfigurationContainerTest extends Specification {
             resolver, instantiator, new RootScriptDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider)
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

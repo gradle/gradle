@@ -16,11 +16,26 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotWriter;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
+import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.internal.Stash;
 import org.gradle.language.base.internal.compile.Compiler;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Stores the incremental class dependency analysis after compilation has finished.
@@ -28,23 +43,66 @@ import org.gradle.language.base.internal.compile.Compiler;
 class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final ClasspathSnapshotWriter writer;
-    private final ClassSetAnalysisUpdater updater;
-    private final AnnotationProcessorPathStore annotationProcessorPathStore;
+    private final ClasspathSnapshotProvider classpathSnapshotProvider;
+    private final Stash<PreviousCompilationData> stash;
+    private final StringInterner interner;
 
-    public IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotWriter writer, ClassSetAnalysisUpdater updater, AnnotationProcessorPathStore annotationProcessorPathStore) {
+    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash, StringInterner interner) {
         this.delegate = delegate;
-        this.writer = writer;
-        this.updater = updater;
-        this.annotationProcessorPathStore = annotationProcessorPathStore;
+        this.classpathSnapshotProvider = classpathSnapshotProvider;
+        this.stash = stash;
+        this.interner = interner;
     }
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        WorkResult out = delegate.execute(spec);
-        updater.updateAnalysis(spec, out);
-        writer.storeSnapshots(spec.getCompileClasspath());
-        annotationProcessorPathStore.put(spec.getAnnotationProcessorPath());
-        return out;
+        WorkResult result = delegate.execute(spec);
+        if (result instanceof RecompilationNotNecessary) {
+            return result;
+        }
+        storeResult(spec, result);
+        return result;
+    }
+
+    private void storeResult(JavaCompileSpec spec, WorkResult result) {
+        ClasspathSnapshotData classpathSnapshot = classpathSnapshotProvider.getClasspathSnapshot(Iterables.concat(spec.getCompileClasspath(), spec.getModulePath())).getData();
+        AnnotationProcessingData annotationProcessingData = getAnnotationProcessingResult(spec, result);
+        PreviousCompilationData data = new PreviousCompilationData(spec.getDestinationDir(), annotationProcessingData, classpathSnapshot, spec.getAnnotationProcessorPath());
+        stash.put(data);
+    }
+
+    private AnnotationProcessingData getAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result) {
+        Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
+        if (processors == null || processors.isEmpty()) {
+            return new AnnotationProcessingData();
+        }
+        if (result instanceof JdkJavaCompilerResult) {
+            AnnotationProcessingResult processingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
+            return convertProcessingResult(processingResult);
+        }
+        return new AnnotationProcessingData(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), "the chosen compiler did not support incremental annotation processing");
+    }
+
+    private AnnotationProcessingData convertProcessingResult(AnnotationProcessingResult processingResult) {
+        Map<String, Set<String>> generatedTypesByOrigin = processingResult.getGeneratedTypesWithIsolatedOrigin();
+        Set<String> aggregatedTypes = processingResult.getAggregatedTypes();
+        Set<String> aggregatingTypes = processingResult.getGeneratedAggregatingTypes();
+        return new AnnotationProcessingData(intern(generatedTypesByOrigin), intern(aggregatedTypes), intern(aggregatingTypes), processingResult.getFullRebuildCause());
+    }
+
+    private Set<String> intern(Set<String> types) {
+        Set<String> result = Sets.newHashSet();
+        for (String string : types) {
+            result.add(interner.intern(string));
+        }
+        return result;
+    }
+
+    private Map<String, Set<String>> intern(Map<String, Set<String>> types) {
+        Map<String, Set<String>> result = Maps.newHashMap();
+        for (Map.Entry<String, Set<String>> entry : types.entrySet()) {
+            result.put(interner.intern(entry.getKey()), intern(entry.getValue()));
+        }
+        return result;
     }
 }

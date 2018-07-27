@@ -14,7 +14,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-// START SNIPPET custom-src-dirs
+// tag::custom-src-dirs[]
 sourceSets {
     main {
          java {
@@ -28,9 +28,9 @@ sourceSets {
         }
     }
 }
-// END SNIPPET custom-src-dirs
+// end::custom-src-dirs[]
 
-// START SNIPPET custom-extra-src-dir
+// tag::custom-extra-src-dir[]
 sourceSets {
     main {
         java {
@@ -38,16 +38,16 @@ sourceSets {
         }
     }
 }
-// END SNIPPET custom-extra-src-dir
+// end::custom-extra-src-dir[]
 
 
-// START SNIPPET custom-source-set
+// tag::custom-source-set[]
 sourceSets {
     intTest
 }
-// END SNIPPET custom-source-set
+// end::custom-source-set[]
 
-// START SNIPPET custom-report-dirs
+// tag::custom-report-dirs[]
 reporting.baseDir = "my-reports"
 testResultsDirName = "$buildDir/my-test-results"
 
@@ -57,4 +57,4 @@ task showDirs {
         logger.quiet(rootDir.toPath().relativize(project.testResultsDir.toPath()).toString())
     }
 }
-// END SNIPPET custom-report-dirs
+// end::custom-report-dirs[]

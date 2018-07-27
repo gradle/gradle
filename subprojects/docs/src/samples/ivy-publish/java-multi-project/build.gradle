@@ -1,3 +1,4 @@
+// tag::all[]
 subprojects {
     apply plugin: 'java'
     apply plugin: 'ivy-publish'
@@ -8,12 +9,12 @@ subprojects {
     repositories {
         mavenCentral()
     }
-    // START SNIPPET publish-custom-artifact
+    // tag::publish-custom-artifact[]
     task sourcesJar(type: Jar) {
         from sourceSets.main.java
         classifier = 'sources'
     }
-    // END SNIPPET publish-custom-artifact
+    // end::publish-custom-artifact[]
 }
 
 project(':project1') {
@@ -33,16 +34,16 @@ project(':project2') {
 }
 
 subprojects {
-// START SNIPPET publish-custom-artifact
+// tag::publish-custom-artifact[]
     publishing {
-// END SNIPPET publish-custom-artifact
+// end::publish-custom-artifact[]
         repositories {
             ivy {
                 // change to point to your repo, e.g. http://my.org/repo
                 url = "${rootProject.buildDir}/repo"
             }
         }
-// START SNIPPET publish-custom-artifact
+// tag::publish-custom-artifact[]
         publications {
             ivy(IvyPublication) {
                 from components.java
@@ -50,13 +51,14 @@ subprojects {
                     type = 'sources'
                     conf = 'compile'
                 }
-// END SNIPPET publish-custom-artifact
+// end::publish-custom-artifact[]
                 descriptor.description {
                     text = description
                 }
-// START SNIPPET publish-custom-artifact
+// tag::publish-custom-artifact[]
             }
         }
     }
-// END SNIPPET publish-custom-artifact
+// end::publish-custom-artifact[]
 }
+// end::all[]

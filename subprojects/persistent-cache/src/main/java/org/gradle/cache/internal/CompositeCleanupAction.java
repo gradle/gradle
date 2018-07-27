@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
-import org.gradle.internal.time.CountdownTimer;
+import org.gradle.cache.CleanupProgressMonitor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,12 +40,9 @@ public class CompositeCleanupAction implements CleanupAction {
     }
 
     @Override
-    public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
+    public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
         for (CleanupAction action : cleanups) {
-            if (timer.hasExpired()) {
-                break;
-            }
-            action.clean(cleanableStore, timer);
+            action.clean(cleanableStore, progressMonitor);
         }
     }
 
@@ -82,8 +79,8 @@ public class CompositeCleanupAction implements CleanupAction {
         }
 
         @Override
-        public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
-            action.clean(new CleanableSubDir(cleanableStore, baseDir), timer);
+        public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
+            action.clean(new CleanableSubDir(cleanableStore, baseDir), progressMonitor);
         }
     }
 

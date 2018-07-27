@@ -122,6 +122,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
+    private Logger logger = BUILD_LOGGER;
+
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
     private boolean impliesSubProjects;
@@ -146,7 +148,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AbstractTask(TaskInfo taskInfo) {
         if (taskInfo == null) {
-            throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the DSL.", getClass().getName()));
+            throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the Gradle API or DSL.", getClass().getName()));
         }
 
         this.identity = taskInfo.identity;
@@ -481,7 +483,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Logger getLogger() {
-        return BUILD_LOGGER;
+        return logger;
     }
 
     @Override
@@ -490,6 +492,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
         return loggingManager;
+    }
+
+    @Override
+    public void replaceLogger(Logger logger) {
+        this.logger = logger;
     }
 
     @Override

@@ -19,6 +19,8 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -615,7 +617,7 @@ dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
 
         then:
         succeeds "compileJava", "--info"
-        outputContains("Full recompilation is required because class file LocaleElements_zh__PINYIN.class could not be analyzed.")
+        outputContains("Full recompilation is required because LocaleElements_zh__PINYIN.class could not be analyzed for incremental compilation.")
     }
 
     @Issue("GRADLE-3495")
@@ -904,5 +906,54 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
 
         then:
         skipped(':compileJava')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "recompiles when module info changes"() {
+        given:
+        java("""
+            import java.util.logging.Logger;
+            class Foo {
+                Logger logger;
+            }
+        """)
+        def moduleInfo = file("src/main/java/module-info.java")
+        moduleInfo.text = """
+            module foo {
+                requires java.logging;
+            }
+        """
+
+        succeeds'compileJava'
+
+        when:
+        moduleInfo.text = """
+            module foo {
+            }
+        """
+
+        then:
+        fails'compileJava'
+        result.assertHasErrorOutput("package java.util.logging is not visible")
+    }
+
+    def "recompiles all classes in a package if the package-info file changes"() {
+        given:
+        def packageFile = file("src/main/java/foo/package-info.java")
+        packageFile.text = """package foo;"""
+        file("src/main/java/foo/A.java").text = "package foo; class A {}"
+        file("src/main/java/foo/B.java").text = "package foo; public class B {}"
+        file("src/main/java/foo/bar/C.java").text = "package foo.bar; class C {}"
+        file("src/main/java/baz/D.java").text = "package baz; class D {}"
+        file("src/main/java/baz/E.java").text = "package baz; import foo.B; class E extends B {}"
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        packageFile.text = """@Deprecated package foo;"""
+        succeeds 'compileJava'
+
+        then:
+        outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 }

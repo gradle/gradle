@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 /**
  * An immutable snapshot of the state of some Java object or object graph.
  */
-public interface ValueSnapshot extends Snapshot {
+public interface ValueSnapshot extends Hashable {
     /**
      * Takes a snapshot of the given value, using this as a candidate snapshot. If the value is the same as the value represented by this snapshot, this snapshot _must_ be returned.
      */

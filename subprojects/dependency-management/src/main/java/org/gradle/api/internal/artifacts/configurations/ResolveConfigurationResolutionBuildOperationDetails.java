@@ -16,12 +16,23 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
+class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final String configurationName;
     private final boolean isScriptConfiguration;
@@ -37,9 +48,10 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         boolean isScriptConfiguration,
         String configurationDescription,
         String buildPath,
-        String projectPath, boolean isConfigurationVisible,
+        String projectPath,
+        boolean isConfigurationVisible,
         boolean isConfigurationTransitive,
-        List<Repository> repositories
+        List<ResolutionAwareRepository> repositories
     ) {
         this.configurationName = configurationName;
         this.isScriptConfiguration = isScriptConfiguration;
@@ -48,7 +60,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         this.projectPath = projectPath;
         this.isConfigurationVisible = isConfigurationVisible;
         this.isConfigurationTransitive = isConfigurationTransitive;
-        this.repositories = repositories;
+        this.repositories = RepositoryImpl.transform(repositories);
     }
 
     @Override
@@ -91,4 +103,91 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     public List<Repository> getRepositories() {
         return repositories;
     }
+
+    @Override
+    public Object getCustomOperationTraceSerializableModel() {
+        Map<String, Object> model = new HashMap<String, Object>();
+        model.put("configurationName", configurationName);
+        model.put("scriptConfiguration", isScriptConfiguration);
+        model.put("configurationDescription", configurationDescription);
+        model.put("buildPath", buildPath);
+        model.put("projectPath", projectPath);
+        model.put("configurationVisible", isConfigurationVisible);
+        model.put("configurationTransitive", isConfigurationTransitive);
+        ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<Object>();
+        for (Repository repository : repositories) {
+            ImmutableMap.Builder<String, Object> repoMapBuilder = new ImmutableMap.Builder<String, Object>();
+            repoMapBuilder.put("id", repository.getId());
+            repoMapBuilder.put("name", repository.getName());
+            repoMapBuilder.put("type", repository.getType());
+            ImmutableMap.Builder<String, Object> propertiesMapBuilder = new ImmutableMap.Builder<String, Object>();
+            for (Map.Entry<String, ?> property : repository.getProperties().entrySet()) {
+                Object propertyValue;
+                if (property.getValue() instanceof Collection) {
+                    ImmutableList.Builder<Object> listBuilder = new ImmutableList.Builder<Object>();
+                    for (Object inner : (Collection<?>) property.getValue()) {
+                        doSerialize(inner, listBuilder);
+                    }
+                    propertyValue = listBuilder.build();
+                } else if (property.getValue() instanceof File) {
+                    propertyValue = ((File) property.getValue()).getAbsolutePath();
+                } else {
+                    propertyValue = property.getValue();
+                }
+
+                propertiesMapBuilder.put(property.getKey(), propertyValue);
+            }
+            repoMapBuilder.put("properties", propertiesMapBuilder.build());
+            repoBuilder.add(repoMapBuilder.build());
+        }
+        model.put("repositories", repoBuilder.build());
+        return model;
+    }
+
+    private void doSerialize(Object value, ImmutableList.Builder<Object> listBuilder) {
+        if (value instanceof File) {
+            listBuilder.add(((File) value).getAbsolutePath());
+        } else {
+            listBuilder.add(value);
+        }
+    }
+
+    private static class RepositoryImpl implements Repository {
+
+        private final RepositoryDescriptor descriptor;
+
+        private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
+            return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
+                @Override
+                public Repository transform(ResolutionAwareRepository repository) {
+                    return new RepositoryImpl(repository.getDescriptor());
+                }
+            });
+        }
+
+        private RepositoryImpl(RepositoryDescriptor descriptor) {
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public String getId() {
+            return descriptor.name;
+        }
+
+        @Override
+        public String getType() {
+            return descriptor.getType().name();
+        }
+
+        @Override
+        public String getName() {
+            return descriptor.name;
+        }
+
+        @Override
+        public Map<String, ?> getProperties() {
+            return descriptor.getProperties();
+        }
+    }
+
 }

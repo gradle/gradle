@@ -25,10 +25,4 @@ import java.io.Serializable;
  * a given instance may be passed to multiple repository instances.
  */
 public interface ModuleSource extends Serializable {
-
-    /**
-     * Returns the name of the repository used as module source.
-     */
-    String getRepositoryName();
-
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET show-repos-task
+// tag::show-repos-task[]
 repositories{
     mavenCentral()
 }
@@ -26,4 +26,4 @@ repositories{
          }
      }
 }
-// END SNIPPET show-repos-task
+// end::show-repos-task[]

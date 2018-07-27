@@ -1,4 +1,4 @@
-// START SNIPPET use-logger
+// tag::use-logger[]
 logger.quiet('An info log message which is always logged.')
 logger.error('An error log message.')
 logger.warn('A warning log message.')
@@ -6,34 +6,34 @@ logger.lifecycle('A lifecycle info log message.')
 logger.info('An info log message.')
 logger.debug('A debug log message.')
 logger.trace('A trace log message.')
-// END SNIPPET use-logger
+// end::use-logger[]
 
-// START SNIPPET use-logger-placeholder
+// tag::use-logger-placeholder[]
 logger.info('A {} log message', 'info')
-// END SNIPPET use-logger-placeholder
+// end::use-logger-placeholder[]
 
-// START SNIPPET use-println
+// tag::use-println[]
 println 'A message which is logged at QUIET level'
-// END SNIPPET use-println
+// end::use-println[]
 
-// START SNIPPET capture-stdout
+// tag::capture-stdout[]
 logging.captureStandardOutput LogLevel.INFO
 println 'A message which is logged at INFO level'
-// END SNIPPET capture-stdout
+// end::capture-stdout[]
 
-// START SNIPPET task-capture-stdout
+// tag::task-capture-stdout[]
 task logInfo {
     logging.captureStandardOutput LogLevel.INFO
     doFirst {
         println 'A task message which is logged at INFO level'
     }
 }
-// END SNIPPET task-capture-stdout
+// end::task-capture-stdout[]
 
-// START SNIPPET use-slf4j
+// tag::use-slf4j[]
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 Logger slf4jLogger = LoggerFactory.getLogger('some-logger')
 slf4jLogger.info('An info log message logged using SLF4j')
-// END SNIPPET use-slf4j
+// end::use-slf4j[]

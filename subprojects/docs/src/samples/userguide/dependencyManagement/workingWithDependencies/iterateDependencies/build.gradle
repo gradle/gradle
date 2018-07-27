@@ -11,7 +11,7 @@ dependencies {
     scm 'commons-codec:commons-codec:1.7'
 }
 
-//START SNIPPET iteration-task
+// tag::iteration-task[]
 task iterateDeclaredDependencies {
     doLast {
         DependencySet dependencySet = configurations.scm.dependencies
@@ -21,4 +21,4 @@ task iterateDeclaredDependencies {
         }
     }
 }
-//END SNIPPET iteration-task
+// end::iteration-task[]

@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET force-per-configuration
+// tag::force-per-configuration[]
 configurations {
     compileClasspath {
         resolutionStrategy.force 'commons-codec:commons-codec:1.9'
@@ -14,7 +14,7 @@ configurations {
 dependencies {
     implementation 'org.apache.httpcomponents:httpclient:4.5.4'
 }
-//END SNIPPET force-per-configuration
+// end::force-per-configuration[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

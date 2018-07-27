@@ -198,8 +198,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory);
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
     }
 
     ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, LegacyTypesSupport legacyTypesSupport) {

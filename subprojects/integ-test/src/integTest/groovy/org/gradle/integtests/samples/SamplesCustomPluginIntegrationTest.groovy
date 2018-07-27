@@ -15,48 +15,50 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Unroll
 
-class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'customPlugin')
+class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
+    @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    def getProducerDir() {
-        return sample.dir.file('plugin')
-    }
-
-    def getConsumerDir() {
-        return sample.dir.file('consumer')
-    }
-
-    public void canTestPluginAndTaskImplementation() {
+    @UsesSample("customPlugin/plugin")
+    def "can test plugin and task implementation"() {
         when:
-        executer.inDirectory(producerDir).withTasks('check').run()
+        executer.inDirectory(sample.dir).withTasks('check').run()
 
         then:
-        def result = new DefaultTestExecutionResult(producerDir)
+        def result = new DefaultTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
 
-    public void canPublishAndUsePluginAndTestImplementations() {
+    @Unroll
+    @UsesSample("customPlugin")
+    def "can publish and use plugin and test implementations for #producerName producer"() {
         given:
-        using m2 //uploadArchives is leaking to ~/.m2 folder
-        executer.inDirectory(producerDir).withTasks('uploadArchives').run()
+        def producerDir = sample.dir.file(producerName)
+        executer.inDirectory(producerDir).withTasks('publish').run()
+        executer.beforeExecute {
+            inDirectory(sample.dir.file('consumer'))
+            withArgument("-PproducerName=$producerName")
+        }
 
         when:
-        executer.inDirectory(consumerDir)
         succeeds('greeting')
 
         then:
         outputContains('howdy!')
 
         when:
-        executer.inDirectory(consumerDir)
         succeeds('hello')
 
         then:
         outputContains('hello from GreetingTask')
+
+        where:
+        producerName << ['plugin', 'javaGradlePlugin']
     }
 }

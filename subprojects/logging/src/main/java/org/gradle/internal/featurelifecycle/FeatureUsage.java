@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package org.gradle.internal.featurelifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,42 +24,36 @@ import java.util.List;
 /**
  * An immutable description of the usage of a deprecated feature.
  */
-public class FeatureUsage {
-    private final String message;
-    private final String details;
-    private final String advice;
+public abstract class FeatureUsage {
+
+    private final String summary;
     private final Class<?> calledFrom;
     private final Exception traceException;
 
     private List<StackTraceElement> stack;
 
-    public FeatureUsage(String message, String details, String advice, Class<?> calledFrom) {
-        this.message = message;
-        this.details = details;
-        this.advice = advice;
-        this.calledFrom = calledFrom;
-        this.traceException = new Exception();
+    protected FeatureUsage(String summary, Class<?> calledFrom) {
+        this(summary, calledFrom, new Exception());
     }
 
     @VisibleForTesting
-    FeatureUsage(FeatureUsage usage, Exception traceException) {
-        this.message = usage.message;
-        this.details = usage.details;
-        this.advice = usage.advice;
-        this.calledFrom = usage.calledFrom;
-        this.traceException = Preconditions.checkNotNull(traceException);
+    protected FeatureUsage(String summary, Class<?> calledFrom, Exception traceException) {
+        this.summary = summary;
+        this.calledFrom = calledFrom;
+        this.traceException = traceException;
     }
 
-    public String getMessage() {
-        return message;
+    /**
+     * A concise sentence summarising the usage.
+     *
+     * Example: Method Foo.bar() has been deprecated.
+     */
+    public String getSummary() {
+        return summary;
     }
 
-    public String getDetails() {
-        return details;
-    }
-
-    public String getAdvice() {
-        return advice;
+    protected Class<?> getCalledFrom() {
+        return calledFrom;
     }
 
     public List<StackTraceElement> getStack() {
@@ -113,13 +105,7 @@ public class FeatureUsage {
     }
 
     public String formattedMessage() {
-        StringBuilder outputBuilder = new StringBuilder(message);
-        if (!StringUtils.isEmpty(details)) {
-            outputBuilder.append(" ").append(details);
-        }
-        if (!StringUtils.isEmpty(advice)) {
-            outputBuilder.append(" ").append(advice);
-        }
-        return outputBuilder.toString();
+        return summary;
     }
+
 }

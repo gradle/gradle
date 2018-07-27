@@ -18,10 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 
@@ -53,10 +51,8 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     @Override
     public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
-        Snapshot fileSnapshot = fileSystemSnapshotter.snapshotAll(key);
-        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        fileSnapshot.appendToHasher(hasher);
-        return new ClasspathEntrySnapshot(cache.get(hasher.hash(), new Factory<ClasspathEntrySnapshotData>() {
+        HashCode fileContentHash = fileSystemSnapshotter.snapshotAll(key);
+        return new ClasspathEntrySnapshot(cache.get(fileContentHash, new Factory<ClasspathEntrySnapshotData>() {
             public ClasspathEntrySnapshotData create() {
                 return factory.create().getData();
             }

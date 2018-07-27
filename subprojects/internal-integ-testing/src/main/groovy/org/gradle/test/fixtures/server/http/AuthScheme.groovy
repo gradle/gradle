@@ -31,7 +31,8 @@ enum AuthScheme {
     BASIC(new BasicAuthHandler()),
     DIGEST(new DigestAuthHandler()),
     HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler()),
-    NTLM(new NtlmAuthHandler())
+    NTLM(new NtlmAuthHandler()),
+    HEADER(new HttpHeaderAuthHandler())
 
     final AuthSchemeHandler handler
 
@@ -119,6 +120,18 @@ enum AuthScheme {
         @Override
         protected Authenticator getAuthenticator() {
             return new DigestAuthenticator()
+        }
+    }
+
+    private static class HttpHeaderAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return TestHttpHeaderAuthenticator.AUTH_SCHEME_NAME;
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new TestHttpHeaderAuthenticator()
         }
     }
 }

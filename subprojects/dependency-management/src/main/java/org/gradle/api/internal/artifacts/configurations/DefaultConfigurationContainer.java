@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootC
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
@@ -84,7 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          ImmutableAttributesFactory attributesFactory,
                                          final ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                          final ComponentSelectorConverter componentSelectorConverter,
-                                         final DependencyLockingProvider dependencyLockingProvider) {
+                                         final DependencyLockingProvider dependencyLockingProvider,
+                                         ProjectStateRegistry projectStateRegistry) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -104,7 +106,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider);
             }
         };
-        this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, this);
+        this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, this, projectStateRegistry);
     }
 
     @Override

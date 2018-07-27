@@ -6,11 +6,11 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.10'
+    compile 'org.codehaus.groovy:groovy-all:2.4.15'
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET groovy-cross-compilation
+// tag::groovy-cross-compilation[]
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
@@ -36,5 +36,5 @@ tasks.withType(Test) {
 tasks.withType(JavaExec) {
     executable = javaExecutables.java
 }
-// END SNIPPET groovy-cross-compilation
+// end::groovy-cross-compilation[]
 

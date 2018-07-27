@@ -16,11 +16,8 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.internal.changedetection.state.DirContentSnapshot
-import org.gradle.api.internal.changedetection.state.MissingFileContentSnapshot
 import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.cache.PersistentStateCache
-import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.language.nativeplatform.internal.Include
@@ -515,11 +512,6 @@ class IncrementalCompileProcessorTest extends Specification {
 
     private HashCode getContentHash(File file) {
         def self = fileSystemSnapshotter.snapshotSelf(file)
-        switch (self.type) {
-            case FileType.RegularFile: return self.content.contentMd5
-            case FileType.Directory: return DirContentSnapshot.INSTANCE.contentMd5
-            case FileType.Missing: return MissingFileContentSnapshot.INSTANCE.contentMd5
-        }
-        return self.content.contentMd5
+        return self.contentHash
     }
 }

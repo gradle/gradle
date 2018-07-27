@@ -22,38 +22,38 @@ import org.gradle.model.Path
 import org.gradle.model.RuleSource
 import org.gradle.platform.base.*
 
-// START SNIPPET component-registration
-// START SNIPPET binary-registration
-// START SNIPPET binaries-generation
-// START SNIPPET text-tasks-generation
+// tag::component-registration[]
+// tag::binary-registration[]
+// tag::binaries-generation[]
+// tag::text-tasks-generation[]
 class DocumentationPlugin extends RuleSource {
-// END SNIPPET binary-registration
-// END SNIPPET binaries-generation
-// END SNIPPET text-tasks-generation
+// end::binary-registration[]
+// end::binaries-generation[]
+// end::text-tasks-generation[]
     @ComponentType
     void registerComponent(TypeBuilder<DocumentationComponent> builder) {}
-// END SNIPPET component-registration
+// end::component-registration[]
 
-// START SNIPPET binary-registration
+// tag::binary-registration[]
     @ComponentType
     void registerBinary(TypeBuilder<DocumentationBinary> builder) {}
-// END SNIPPET binary-registration
+// end::binary-registration[]
 
-// START SNIPPET text-lang-registration
+// tag::text-lang-registration[]
     @ComponentType
     void registerText(TypeBuilder<TextSourceSet> builder) {}
-// END SNIPPET text-lang-registration
+// end::text-lang-registration[]
 
-// START SNIPPET binaries-generation
+// tag::binaries-generation[]
     @ComponentBinaries
     void generateDocBinaries(ModelMap<DocumentationBinary> binaries, VariantComponentSpec component, @Path("buildDir") File buildDir) {
         binaries.create("exploded") { binary ->
             outputDir = new File(buildDir, "${component.name}/${binary.name}")
         }
     }
-// END SNIPPET binaries-generation
+// end::binaries-generation[]
 
-// START SNIPPET text-tasks-generation
+// tag::text-tasks-generation[]
     @BinaryTasks
     void generateTextTasks(ModelMap<Task> tasks, final DocumentationBinary binary) {
         binary.inputs.withType(TextSourceSet) { textSourceSet ->
@@ -65,11 +65,11 @@ class DocumentationPlugin extends RuleSource {
             }
         }
     }
-// START SNIPPET component-registration
-// START SNIPPET binary-registration
-// START SNIPPET binaries-generation
+// tag::component-registration[]
+// tag::binary-registration[]
+// tag::binaries-generation[]
 }
-// END SNIPPET component-registration
-// END SNIPPET binary-registration
-// END SNIPPET binaries-generation
-// END SNIPPET text-tasks-generation
+// end::component-registration[]
+// end::binary-registration[]
+// end::binaries-generation[]
+// end::text-tasks-generation[]

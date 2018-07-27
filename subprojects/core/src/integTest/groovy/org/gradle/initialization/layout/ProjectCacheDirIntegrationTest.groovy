@@ -18,7 +18,6 @@ package org.gradle.initialization.layout
 
 import org.gradle.cache.internal.VersionSpecificCacheCleanupFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
@@ -26,8 +25,6 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
 class ProjectCacheDirIntegrationTest extends AbstractIntegrationSpec implements VersionSpecificCacheCleanupFixture {
-
-    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "cleans up unused version-specific cache directories from project directory"() {
         given:
@@ -39,9 +36,6 @@ class ProjectCacheDirIntegrationTest extends AbstractIntegrationSpec implements 
         succeeds("tasks")
 
         then:
-        buildOperations.hasOperation("Delete unused version-specific caches in ${cachesDir}")
-
-        and:
         oldButRecentlyUsedCacheDir.assertExists()
         oldCacheDir.assertDoesNotExist()
         currentCacheDir.assertExists()

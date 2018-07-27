@@ -3,7 +3,6 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Task
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
@@ -11,16 +10,6 @@ import org.gradle.api.tasks.TaskProvider
 
 
 // This file contains members intended to be pulled upstream into the next Gradle Kotlin DSL release
-
-
-/**
- * Creates and adds a new extension to this container.
- *
- * @see [ExtensionContainer.create]
- */
-inline
-fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any?): T =
-    create(name, T::class.java, *constructionArguments)
 
 
 /**
@@ -82,7 +71,7 @@ fun <reified T : Any> TaskContainer.getByName(name: String, configure: T.() -> U
 @Suppress("extension_shadowed_by_member")
 inline
 fun <reified T : Task> TaskContainer.register(name: String, noinline configurationAction: T.() -> Unit) =
-    register(name, T::class.java) { configurationAction(it) }
+    register(name, T::class.java) { configurationAction() }
 
 
 inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
@@ -92,7 +81,7 @@ inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
 inline fun <reified T : Any> TaskProvider<out Task>.configureAs(noinline configurationAction: T.() -> Unit) =
     configure {
         configurationAction(
-            it as? T
+            this as? T
                 ?: throw IllegalArgumentException(
-                    "Task of type '${it.javaClass.name}' cannot be cast to '${T::class.qualifiedName}'."))
+                    "Task of type '${javaClass.name}' cannot be cast to '${T::class.qualifiedName}'."))
     }

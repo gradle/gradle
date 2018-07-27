@@ -4,13 +4,13 @@ apply plugin: "ivy-publish"
 group = "org.gradle.sample"
 version = "1.0"
 
-// START SNIPPET custom-artifact
+// tag::custom-artifact[]
 def rpmFile = file("$buildDir/rpms/my-package.rpm")
 def rpmArtifact = artifacts.add("archives", rpmFile) {
     type "rpm"
     builtBy "rpm"
 }
-// END SNIPPET custom-artifact
+// end::custom-artifact[]
 
 task rpm() {
     outputs.file rpmFile
@@ -20,20 +20,20 @@ task rpm() {
     }
 }
 
-// START SNIPPET custom-artifact
+// tag::custom-artifact[]
 publishing {
     publications {
         ivy(IvyPublication) {
             artifact rpmArtifact
         }
     }
-// END SNIPPET custom-artifact
+// end::custom-artifact[]
     repositories {
         // change URLs to point to your repo, e.g. http://my.org/repo
         ivy {
             url "$buildDir/repo"
         }
     }
-// START SNIPPET custom-artifact
+// tag::custom-artifact[]
 }
-// END SNIPPET custom-artifact
+// end::custom-artifact[]

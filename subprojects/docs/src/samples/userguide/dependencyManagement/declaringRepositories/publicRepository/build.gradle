@@ -1,8 +1,8 @@
-//START SNIPPET public-repository
+// tag::public-repository[]
 repositories {
     jcenter()
 }
-//END SNIPPET public-repository
+// end::public-repository[]
 
 configurations {
     libs

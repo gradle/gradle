@@ -1,4 +1,4 @@
-// START SNIPPET custom-plugin-repositories
+// tag::custom-plugin-repositories[]
 pluginManagement {
   repositories {
       maven {
@@ -10,6 +10,6 @@ pluginManagement {
       }
   }
 }
-// END SNIPPET custom-plugin-repositories
+// end::custom-plugin-repositories[]
 
 rootProject.name = 'custom-repositories'

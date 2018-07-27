@@ -69,7 +69,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
             import javax.inject.Inject
             import org.gradle.internal.resource.transport.sftp.SftpClientFactory
             import org.gradle.api.artifacts.repositories.PasswordCredentials
-            import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+            import org.gradle.internal.credentials.DefaultPasswordCredentials
             
             PasswordCredentials creds = new DefaultPasswordCredentials('sftp', 'sftp')
             

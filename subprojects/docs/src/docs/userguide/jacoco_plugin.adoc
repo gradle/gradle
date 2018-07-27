@@ -1,0 +1,205 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[jacoco_plugin]]
+= The JaCoCo Plugin
+
+
+[NOTE]
+====
+
+The JaCoCo plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+
+====
+
+The JaCoCo plugin provides code coverage metrics for Java code via integration with http://www.eclemma.org/jacoco/[JaCoCo].
+
+
+[[sec:jacoco_getting_started]]
+== Getting Started
+
+To get started, apply the JaCoCo plugin to the project you want to calculate code coverage for.
+
+=== Example: Applying the JaCoCo plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/testing/jacoco/quickstart/build.gradle[tag=apply-plugin]
+----
+
+If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created that depends on the `test` task. The report is available at `__$buildDir__/reports/jacoco/test`. By default, a HTML report is generated.
+
+[[sec:configuring_the_jacoco_plugin]]
+== Configuring the JaCoCo Plugin
+
+The JaCoCo plugin adds a project extension named `jacoco` of type link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoPluginExtension.html[JacocoPluginExtension], which allows configuring defaults for JaCoCo usage in your build.
+
+=== Example: Configuring JaCoCo plugin settings
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/testing/jacoco/quickstart/build.gradle[tag=jacoco-configuration]
+----
+
+.Gradle defaults for JaCoCo properties
+[%header%autowidth,compact]
+|===
+| Property | Gradle default
+| reportsDir | `__$buildDir__/reports/jacoco`
+|===
+
+
+[[sec:jacoco_report_configuration]]
+== JaCoCo Report configuration
+
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport] task can be used to generate code coverage reports in different formats. It implements the standard Gradle type link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] and exposes a report container of type link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoReportsContainer.html[JacocoReportsContainer].
+
+=== Example: Configuring test task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/testing/jacoco/quickstart/build.gradle[tag=report-configuration]
+----
+image::jacocoHtmlReport.png[JaCoCo HTML report,903,277]
+
+[[sec:jacoco_report_violation_rules]]
+== Enforcing code coverage metrics
+
+
+[NOTE]
+====
+
+This feature requires the use of JaCoCo version 0.6.3 or higher.
+
+====
+
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoCoverageVerification.html#violationRules-org.gradle.api.Action-[JacocoCoverageVerification.violationRules(org.gradle.api.Action)] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of link:{javadocPath}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
+
+Code coverage requirements can be specified for a project as a whole, for individual files, and for particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example describes the syntax.
+
+=== Example: Configuring violation rules
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/testing/jacoco/quickstart/build.gradle[tag=violation-rules-configuration]
+----
+NOTE: The code for this example can be found at **`samples/testing/jacoco/quickstart`** in the ‘-all’ distribution of Gradle.
+
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task is not a task dependency of the `check` task provided by the Java plugin. There is a good reason for it. The task is currently not incremental as it doesn't declare any outputs. Any violation of the declared rules would automatically result in a failed build when executing the `check` task. This behavior might not be desirable for all users. Future versions of Gradle might change the behavior.
+
+[[sec:jacoco_specific_task_configuration]]
+== JaCoCo specific task configuration
+
+The JaCoCo plugin adds a link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoTaskExtension.html[JacocoTaskExtension] extension to all tasks of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]. This extension allows the configuration of the JaCoCo specific properties of the test task.
+
+=== Example: Configuring test task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/testing/jacoco/quickstart/build.gradle[tag=testtask-configuration]
+----
+
+[NOTE]
+====
+Using the configuration `append = true` (the default) causes the JaCoCo agent to append to a shared output file that may be left over from a different test execution.
+If `append = true`, Gradle disables caching for the Test task since it cannot guarantee the same results each time.
+====
+
+.Default values of the JaCoCo Task extension
+[source,groovy]
+----
+test {
+    jacoco {
+        append = true
+        enabled = true
+        destPath = "$buildDir/jacoco"
+        includes = []
+        excludes = []
+        excludeClassLoaders = []
+        includeNoLocationClasses = false
+        sessionId = "<auto-generated value>"
+        dumpOnExit = true
+        classDumpDir = null
+        output = Output.FILE
+        address = "localhost"
+        port = 6300
+        jmx = false
+    }
+}
+----
+
+While all tasks of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
+
+For example you can configure your build to generate code coverage using the `application` plugin.
+
+=== Example: Using application plugin to generate code coverage data
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/testing/jacoco/application/build.gradle[tag=application-configuration]
+----
+NOTE: The code for this example can be found at **`samples/testing/jacoco/application`** in the ‘-all’ distribution of Gradle.
+
+.Coverage reports generated by applicationCodeCoverageReport
+----
+.
+└── build
+    ├── jacoco
+    │   └── run.exec
+    └── reports
+        └── jacoco
+            └── applicationCodeCoverageReport
+                └── html
+                    └── index.html
+
+----
+
+
+[[sec:jacoco_tasks]]
+== Tasks
+
+For projects that also apply the Java Plugin, the JaCoCo plugin automatically adds the following tasks:
+
+`jacocoTestReport` — link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]::
++
+Generates code coverage report for the test task.
+
+`jacocoTestCoverageVerification` — link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]::
++
+Verifies code coverage metrics based on specified rules for the test task.
+
+
+[[sec:jacoco_dependency_management]]
+== Dependency management
+
+The JaCoCo plugin adds the following dependency configurations:
+
+.JaCoCo plugin - dependency configurations
+[%header%autowidth,compact]
+|===
+| Name          | Meaning
+
+| `jacocoAnt`
+| The JaCoCo Ant library used for running the `JacocoReport`, `JacocoMerge` and `JacocoCoverageVerification` tasks.
+
+| `jacocoAgent`
+| The JaCoCo agent library used for instrumenting the code under test.
+
+|===

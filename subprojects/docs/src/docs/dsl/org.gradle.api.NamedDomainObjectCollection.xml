@@ -37,7 +37,7 @@
                 <td>getByName</td>
             </tr>
             <tr>
-                <td>getAt</td>
+                <td>named</td>
             </tr>
         </table>
     </section>

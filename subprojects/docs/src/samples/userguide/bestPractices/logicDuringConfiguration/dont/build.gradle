@@ -4,7 +4,7 @@ repositories {
     jcenter()
 }
 
-//START SNIPPET config-logic
+// tag::config-logic[]
 dependencies {
     implementation 'log4j:log4j:1.2.17'
 }
@@ -17,4 +17,4 @@ task printArtifactNames {
         logger.quiet libraryNames
     }
 }
-//END SNIPPET config-logic
+// end::config-logic[]

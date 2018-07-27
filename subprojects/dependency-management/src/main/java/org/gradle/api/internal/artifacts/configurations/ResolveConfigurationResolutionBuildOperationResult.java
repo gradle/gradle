@@ -16,20 +16,16 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
 
@@ -56,29 +52,22 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     }
 
     @Override
+    public String getRepositoryId(ResolvedComponentResult resolvedComponentResult) {
+        return ((ResolvedComponentResultInternal) resolvedComponentResult).getRepositoryName();
+    }
+
+    @Override
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
-        final Set<ResolvedComponentResult> alreadySeen = new HashSet<ResolvedComponentResult>();
-        final Map<String, List<Object>> components = new HashMap<String, List<Object>>();
+        final Map<String, Map<String, String>> components = Maps.newHashMap();
         incoming.getResolutionResult(FAIL_SAFE).allComponents(new Action<ResolvedComponentResult>() {
             @Override
-            public void execute(ResolvedComponentResult resolvedComponentResult) {
-                ResolvedComponentResultInternal component = (ResolvedComponentResultInternal) resolvedComponentResult;
-                if (alreadySeen.contains(component)) {
-                    return;
-                }
-                alreadySeen.add(component);
-                String componentDisplayName = component.getId().getDisplayName();
-                List<Object> componentDetails;
-                Set<? extends DependencyResult> dependencies = component.getDependencies();
-                if (components.containsKey(componentDisplayName)) {
-                    componentDetails = components.get(componentDisplayName);
-                } else {
-                    componentDetails = new ArrayList<Object>(dependencies.size() + 1);
-                    components.put(componentDisplayName, componentDetails);
-                }
-                componentDetails.add(Collections.singletonMap("repoName", component.getRepositoryName()));
+            public void execute(ResolvedComponentResult component) {
+                components.put(
+                    component.getId().getDisplayName(),
+                    Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName())
+                );
             }
         });
         model.put("components", components);

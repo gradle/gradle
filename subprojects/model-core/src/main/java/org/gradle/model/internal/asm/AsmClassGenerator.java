@@ -55,6 +55,6 @@ public class AsmClassGenerator {
     }
 
     public <T> Class<T> define(ClassLoader targetClassLoader) {
-       return ClassLoaderUtils.define(targetClassLoader, generatedTypeName, visitor.toByteArray());
+        return ClassLoaderUtils.defineDecorator(targetType, targetClassLoader, generatedTypeName, visitor.toByteArray());
     }
 }

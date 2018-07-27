@@ -64,8 +64,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events.size() == 2
 
         and:
-        events[0].message == 'feature1'
-        events[1].message == 'feature2'
+        events[0].message == 'feature1 removal'
+        events[1].message == 'feature2 removal'
     }
 
     def 'deprecations are logged at WARN level'() {
@@ -77,7 +77,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         and:
         def event = outputEventListener.events[0]
-        event.message == 'feature'
+        event.message == 'feature removal'
         event.logLevel == LogLevel.WARN
     }
 
@@ -99,7 +99,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -108,7 +108,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.GradleScript.foo')
 
         message.contains('SimulatedJavaCallLocation.create')
@@ -144,7 +144,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -153,7 +153,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.GradleScript.foo')
 
         !message.contains('SimulatedJavaCallLocation.create')
@@ -183,7 +183,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -192,7 +192,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.KotlinGradleScript')
 
         !message.contains('SimulatedJavaCallLocation.create')
@@ -222,7 +222,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -231,7 +231,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == 'fake'
+        message == 'fake removal'
 
         where:
         fakeStackTrace = [
@@ -253,7 +253,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -262,7 +262,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == 'fake'
+        message == 'fake removal'
 
         where:
         fakeStackTrace = [
@@ -277,7 +277,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', null, null, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest), mockTraceRootException(fakeStackTrace)))
         def events = outputEventListener.events
 
         then:
@@ -286,7 +286,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake removal\n'))
         message.contains('some.ArbitraryClass.withSource')
 
         where:
@@ -303,14 +303,14 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.featureUsed(new FeatureUsage('fake', null, null, FeatureUsageTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest))
         def events = outputEventListener.events
 
         then:
         events.size() == 1
 
         and:
-        events[0].message == 'fake'
+        events[0].message == 'fake removal'
 
         where:
         deprecationTraceProperty << [true, false]
@@ -329,7 +329,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature')
+        events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature removal')
     }
 
     @Unroll
@@ -397,13 +397,13 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
     }
 
-    private void progressFired(OperationProgressEvent progressEvent, String message) {
+    private static void progressFired(OperationProgressEvent progressEvent, String summary) {
         assert progressEvent.details instanceof DeprecatedUsageProgressDetails
-        progressEvent.details.message == message
+        progressEvent.details.summary == summary
         progressEvent.details.stackTrace.size() > 0
     }
 
-    private static FeatureUsage deprecatedFeatureUsage(String message, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new FeatureUsage(message, null, null, calledFrom)
+    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
+        new DeprecatedFeatureUsage(summary, "removal", null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, calledFrom)
     }
 }

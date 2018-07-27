@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
@@ -39,6 +40,35 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
 
     def setup() {
         container.clear()
+    }
+
+    @NotYetImplemented
+    def "named finds objects created by rules"() {
+        def rule = Mock(Rule)
+        def bean = new Bean("bean")
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.named("bean")
+
+        then:
+        result.present
+        result.get() == bean
+
+        and:
+        1 * rule.apply("bean") >> { container.add(bean) }
+        0 * rule._
+    }
+
+    def "named finds objects added to container"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        then:
+        result.present
+        result.get() == a
     }
 
     def "getNames"() {
@@ -111,8 +141,21 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         0 * rule._
     }
 
+    def "can configure domain objects through provider"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        result.configure {
+            it.value = "changed"
+        }
+        then:
+        result.get().value == "changed"
+    }
+
     static class Bean {
         public final String name
+
+        String value = "original"
 
         Bean(String name) {
             this.name = name

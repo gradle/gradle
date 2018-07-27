@@ -24,7 +24,6 @@ import org.gradle.internal.time.Clock;
 
 public class DeprecatedUsageBuildOperationProgressBroadaster {
 
-
     private final Clock clock;
     private final BuildOperationListener listener;
 
@@ -36,7 +35,7 @@ public class DeprecatedUsageBuildOperationProgressBroadaster {
         this.currentBuildOperationRef = currentBuildOperationRef;
     }
 
-    void progress(FeatureUsage feature) {
+    void progress(DeprecatedFeatureUsage feature) {
         OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
             listener.progress(id,

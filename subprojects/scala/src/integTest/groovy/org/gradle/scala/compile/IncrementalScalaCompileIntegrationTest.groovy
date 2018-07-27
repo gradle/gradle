@@ -26,6 +26,10 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
+    void setup() {
+        useRepositoryMirrors()
+    }
+
     def recompilesSourceWhenPropertiesChange() {
         expect:
         run('compileScala').assertTasksSkipped(':compileJava')

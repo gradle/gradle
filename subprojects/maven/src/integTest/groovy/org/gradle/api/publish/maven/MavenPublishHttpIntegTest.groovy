@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer

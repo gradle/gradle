@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET configuration-definition
+// tag::configuration-definition[]
 configurations {
     smokeTest.extendsFrom testImplementation
 }
@@ -13,7 +13,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     smokeTest 'org.apache.httpcomponents:httpclient:4.5.5'
 }
-//END SNIPPET configuration-definition
+// end::configuration-definition[]
 
 task copyLibs(type: Copy) {
     from configurations.smokeTest

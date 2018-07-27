@@ -63,21 +63,31 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         ResolvedComponentResult getRootComponent();
 
+        /**
+         * If the component was resolved from a repository, its {@link Repository#getId()}.
+         */
+        @Nullable
+        String getRepositoryId(ResolvedComponentResult resolvedComponentResult);
+
     }
 
     /**
-     * A full representation of a repository, with a map of properties that characterize it, such as artifact patterns or whether credentials were set.
+     * A description of a repository potentially used in the resolution.
+     *
+     * Effectively maps to a RepositoryDescriptor.
      */
     @UsedByScanPlugin
     public interface Repository {
 
         /**
-         *  A unique identifier for this repository _within a single repository container_.
+         *  A unique identifier for this repository, used for associating resolved components to their source repository.
          */
         String getId();
 
         /**
-         * Type of the repository. Taken from the name() of RepositoryDetails.RepositoryType.
+         * The type of repository.
+         *
+         * Then name of one of RepositoryDescriptor.Type.
          */
         String getType();
 
@@ -87,9 +97,11 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
         String getName();
 
         /**
-         * Map of properties characterizing this repository.
-         * Key is the name() of RepositoryDetails.RepositoryPropertyType.
-         * Value can be anything, but simple types such as String or List<String> should be preferred.
+         * The properties of the repository.
+         *
+         * See RepositoryDescriptor.getProperties() and the specific properties used by the subtypes.
+         * The properties sent, their names and types, should be kept stable.
+         * Ordered by key lexicographically.
          */
         Map<String, ?> getProperties();
 

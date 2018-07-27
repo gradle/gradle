@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -32,8 +31,8 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryPropertyType;
-import org.gradle.api.internal.artifacts.repositories.RepositoryDetails.RepositoryType;
+import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultGradleModuleMetadataSource;
@@ -50,10 +49,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.authentication.Authentication;
-import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
@@ -65,10 +61,8 @@ import org.gradle.util.CollectionUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
@@ -97,10 +91,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final IsolatableFactory isolatableFactory;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
-
-    private String id;
-    private Map<RepositoryPropertyType, ?> properties;
-
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -163,10 +153,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public void setUrl(URI url) {
+        invalidateDescriptor();
         this.url = url;
     }
 
     public void setUrl(Object url) {
+        invalidateDescriptor();
         this.url = url;
     }
 
@@ -179,15 +171,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public void artifactUrls(Object... urls) {
+        invalidateDescriptor();
         additionalUrls.addAll(Lists.newArrayList(urls));
     }
 
     @Override
     public void setArtifactUrls(Set<URI> urls) {
+        invalidateDescriptor();
         setArtifactUrls((Iterable<?>) urls);
     }
 
     public void setArtifactUrls(Iterable<?> urls) {
+        invalidateDescriptor();
         additionalUrls = Lists.newArrayList(urls);
     }
 
@@ -200,12 +195,19 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public RepositoryDetails getDetails() {
-        return new RepositoryDetails(
-            getName(),
-            getType(),
-            getProperties()
-        );
+    protected RepositoryDescriptor createDescriptor() {
+        URI url = getUrl();
+        return new MavenRepositoryDescriptor.Builder(getName(), url == null ? null : url.toASCIIString())
+            .setAuthenticated(getConfiguredCredentials() != null)
+            .setAuthenticationSchemes(getAuthenticationSchemes())
+            .setMetadataSources(metadataSources.asList())
+            .setArtifactUrls(CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
+                @Override
+                public String transform(URI uri) {
+                    return uri.toASCIIString();
+                }
+            }))
+            .create();
     }
 
     protected MavenResolver createRealResolver() {
@@ -234,6 +236,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public void metadataSources(Action<? super MetadataSources> configureAction) {
+        invalidateDescriptor();
         metadataSources.reset();
         configureAction.execute(metadataSources);
     }
@@ -284,71 +287,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     protected InstantiatorFactory getInstantiatorFactory() {
         return instantiatorFactory;
-    }
-
-    private Map<RepositoryPropertyType, ?> getProperties() {
-        if (properties == null) {
-            properties = computeProperties();
-        }
-        return properties;
-    }
-
-    private Map<RepositoryPropertyType, ?> computeProperties() {
-        ImmutableMap.Builder<RepositoryPropertyType, Object> builder = ImmutableMap.builder();
-
-        computeUrlProperty(builder);
-        computeArtifactUrlsProperty(builder);
-        computeMetadataSourcesProperty(builder);
-        computeAuthenticatedProperty(builder);
-        computeAuthenticationSchemesProperty(builder);
-
-        return builder.build();
-    }
-
-    private void computeAuthenticationSchemesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
-        Collection<Authentication> configuredAuthentication = getConfiguredAuthentication();
-        if (!configuredAuthentication.isEmpty()) {
-            List<String> authenticationTypes = CollectionUtils.collect(configuredAuthentication, new Transformer<String, Authentication>() {
-                @Override
-                public String transform(Authentication authentication) {
-                    return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
-                }
-            });
-            builder.put(RepositoryPropertyType.AUTHENTICATION_SCHEMES, authenticationTypes);
-        }
-    }
-
-    private void computeAuthenticatedProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
-        if (getConfiguredCredentials() != null) {
-            builder.put(RepositoryPropertyType.AUTHENTICATED, true);
-        }
-    }
-
-    private void computeMetadataSourcesProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
-        List<String> metadataSourcesList = metadataSources.asList();
-        if (!metadataSourcesList.isEmpty()) {
-            builder.put(RepositoryPropertyType.METADATA_SOURCES, metadataSourcesList);
-        }
-    }
-
-    private void computeArtifactUrlsProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
-        builder.put(RepositoryPropertyType.ARTIFACT_URLS, CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
-            @Override
-            public String transform(URI uri) {
-                return uri.toASCIIString();
-            }
-        }));
-    }
-
-    private void computeUrlProperty(ImmutableMap.Builder<RepositoryPropertyType, Object> builder) {
-        URI uri = getUrl();
-        if (uri != null) {
-            builder.put(RepositoryPropertyType.URL, uri.toASCIIString());
-        }
-    }
-
-    RepositoryType getType() {
-        return RepositoryType.MAVEN;
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

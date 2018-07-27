@@ -1,4 +1,5 @@
-// START SNIPPET task-rule
+// tag::all[]
+// tag::task-rule[]
 tasks.addRule("Pattern: ping<ID>") { String taskName ->
     if (taskName.startsWith("ping")) {
         task(taskName) {
@@ -8,8 +9,9 @@ tasks.addRule("Pattern: ping<ID>") { String taskName ->
         }
     }
 }
-// END SNIPPET task-rule
+// end::task-rule[]
 
 task groupPing {
     dependsOn pingServer1, pingServer2
 }
+// end::all[]

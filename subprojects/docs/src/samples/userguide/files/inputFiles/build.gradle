@@ -1,4 +1,4 @@
-// START SNIPPET set-input-files
+// tag::set-input-files[]
 task compile(type: JavaCompile)
 
 // Use a File object to specify the source directory
@@ -28,9 +28,9 @@ compile {
         file('src').listFiles().findAll {it.name.endsWith('.zip')}.collect { zipTree(it) }
     }
 }
-// END SNIPPET set-input-files
+// end::set-input-files[]
 
-// START SNIPPET add-input-files
+// tag::add-input-files[]
 compile {
     // Add some source directories use String paths
     source 'src/main/java', 'src/main/groovy'
@@ -41,4 +41,4 @@ compile {
     // Add some source directories using a closure
     source { file('src/test/').listFiles() }
 }
-// END SNIPPET add-input-files
+// end::add-input-files[]

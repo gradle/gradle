@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET type-declaration
+// tag::type-declaration[]
 @Managed interface MyComponent extends ComponentSpec {
     String getPublicData()
     void setPublicData(String data)
@@ -23,18 +23,18 @@
     String getInternalData()
     void setInternalData(String internal)
 }
-// END SNIPPET type-declaration
+// end::type-declaration[]
 
-// START SNIPPET type-registration
-// START SNIPPET internal-view-mutation
+// tag::type-registration[]
+// tag::internal-view-mutation[]
 class MyPlugin extends RuleSource {
-// END SNIPPET internal-view-mutation
+// end::internal-view-mutation[]
     @ComponentType
     void registerMyComponent(TypeBuilder<MyComponent> builder) {
         builder.internalView(MyComponentInternal)
     }
-// END SNIPPET type-registration
-// START SNIPPET internal-view-mutation
+// end::type-registration[]
+// tag::internal-view-mutation[]
     @Mutate
     void mutateMyComponents(ModelMap<MyComponentInternal> components) {
         components.all { component ->
@@ -42,16 +42,16 @@ class MyPlugin extends RuleSource {
             component.internalData = "Some INTERNAL data"
         }
     }
-// START SNIPPET type-registration
+// tag::type-registration[]
 }
-// END SNIPPET type-registration
-// END SNIPPET internal-view-mutation
+// end::type-registration[]
+// end::internal-view-mutation[]
 
-// START SNIPPET build-script
+// tag::build-script[]
 apply plugin: MyPlugin
 model {
     components {
         my(MyComponent)
     }
 }
-// END SNIPPET build-script
+// end::build-script[]

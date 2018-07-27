@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET build-script
+// tag::build-script[]
 import sample.documentation.DocumentationComponent
 import sample.documentation.TextSourceSet
 import sample.markdown.MarkdownSourceSet
@@ -35,4 +35,4 @@ model {
         }
     }
 }
-// END SNIPPET build-script
+// end::build-script[]

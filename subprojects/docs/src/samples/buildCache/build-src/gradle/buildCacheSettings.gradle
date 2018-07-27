@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET configure-build-src-build-cache
+// tag::configure-build-src-build-cache[]
 ext.isCiServer = System.getenv().containsKey("CI")
 
 buildCache {
@@ -26,5 +26,5 @@ buildCache {
         push = isCiServer
     }
 }
-// END SNIPPET configure-build-src-build-cache
+// end::configure-build-src-build-cache[]
 

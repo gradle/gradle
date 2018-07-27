@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.InterningStringSerializer;
 
 import java.io.File;
 
@@ -41,7 +42,7 @@ public class CachingFileHasher implements FileHasher {
     public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
-        this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer(), 400000, true);
+        this.cache = store.createCache(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer(), 400000, true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
     }

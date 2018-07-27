@@ -17,15 +17,12 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 @NonNullApi
 public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
-    @Override
-    TaskInputFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
 
     @Override
     TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends FileNormalizer> normalizer);

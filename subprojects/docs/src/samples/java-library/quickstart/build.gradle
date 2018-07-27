@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'java-library'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 
-// START SNIPPET repo
+// tag::repo[]
 repositories {
     mavenCentral()
 }
-// END SNIPPET repo
+// end::repo[]
 
-// START SNIPPET dependencies
+// tag::dependencies[]
 dependencies {
     api 'commons-httpclient:commons-httpclient:3.1'
     implementation 'org.apache.commons:commons-lang3:3.5'
 }
-// END SNIPPET dependencies
+// end::dependencies[]

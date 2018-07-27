@@ -191,7 +191,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return getError().contains(expectedOutput);
+        return getError().contains(expectedOutput) || getRawError().contains(expectedOutput);
     }
 
     @Override
@@ -211,6 +211,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     public String getError() {
         return error.withNormalizedEol();
+    }
+
+    public String getRawError() {
+        return errorContent.getRawContent().withNormalizedEol();
     }
 
     public List<String> getExecutedTasks() {

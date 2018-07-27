@@ -1,4 +1,4 @@
-// START SNIPPET project-dependencies
+// tag::project-dependencies[]
 project(":lib") {
     apply plugin: "cpp"
     model {
@@ -33,4 +33,4 @@ project(":exe") {
         }
     }
 }
-// END SNIPPET project-dependencies
+// end::project-dependencies[]

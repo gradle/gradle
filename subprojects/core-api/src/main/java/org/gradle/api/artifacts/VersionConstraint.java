@@ -37,12 +37,32 @@ public interface VersionConstraint {
     String getBranch();
 
     /**
-     * The preferred version of a module. The preferred version of a module can typically be upgraded during dependency resolution,
-     * unless further constraints are added.
+     * The required version of a module (which may be an exact version or a version range).
+     *
+     * The required version of a module can typically be upgraded during dependency resolution, but not downgraded.
+     *
+     * @return the required version, or empty string if no required version specified. Never null.
+     */
+    String getRequiredVersion();
+
+    /**
+     * The preferred version of a module (which may be an exact version or a version range).
+     *
+     * The preferred version of a module provides a hint when resolving the version,
+     * but will not be honored in the presence of conflicting constraints.
      *
      * @return the preferred version, or empty string if no preferred version specified. Never null.
      */
     String getPreferredVersion();
+
+    /**
+     * The strictly required version of a module (which may be an exact version or a version range).
+     *
+     * The required version of a module is strictly enforced and cannot be upgraded or downgraded during dependency resolution.
+     *
+     * @return the strict version, or empty string if no required version specified. Never null.
+     */
+    String getStrictVersion();
 
     /**
      * Returns the list of versions that this module rejects  (which may be exact versions, or ranges, anything that fits into a version string).

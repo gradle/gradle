@@ -1,9 +1,9 @@
 apply plugin: 'cpp'
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'visual-studio'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
-// START SNIPPET configure-locations
+// tag::configure-locations[]
 model {
     visualStudio {
         projects.all {
@@ -15,9 +15,9 @@ model {
         }
     }
 }
-// END SNIPPET configure-locations
+// end::configure-locations[]
 
-// START SNIPPET customize-project-files
+// tag::customize-project-files[]
 model {
     visualStudio {
         projects.all { project ->
@@ -28,8 +28,8 @@ model {
         }
     }
 }
-// END SNIPPET customize-project-files
-// START SNIPPET customize-solution-files
+// end::customize-project-files[]
+// tag::customize-solution-files[]
 model {
     visualStudio {
         solution { solution ->
@@ -51,7 +51,7 @@ model {
         }
     }
 }
-// END SNIPPET customize-solution-files
+// end::customize-solution-files[]
 
 model {
     components {

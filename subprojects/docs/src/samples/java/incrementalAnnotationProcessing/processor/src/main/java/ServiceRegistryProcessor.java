@@ -18,12 +18,12 @@ public class ServiceRegistryProcessor extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
-    // START SNIPPET options-of-dynamic-processor
+    // tag::options-of-dynamic-processor[]
     @Override
     public Set<String> getSupportedOptions() {
         return Collections.singleton("org.gradle.annotation.processing.aggregating");
     }
-    // END SNIPPET options-of-dynamic-processor
+    // end::options-of-dynamic-processor[]
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -41,7 +41,7 @@ public class ServiceRegistryProcessor extends AbstractProcessor {
 
     private void createServiceRegistry(TypeElement serviceAnnotation, RoundEnvironment roundEnv) throws IOException {
         Filer filer = processingEnv.getFiler();
-        // START SNIPPET aggregating-annotation-processor
+        // tag::aggregating-annotation-processor[]
         JavaFileObject serviceRegistry = filer.createSourceFile("ServiceRegistry");
         Writer writer = serviceRegistry.openWriter();
         writer.write("public class ServiceRegistry {");
@@ -50,7 +50,7 @@ public class ServiceRegistryProcessor extends AbstractProcessor {
         }
         writer.write("}");
         writer.close();
-        // END SNIPPET aggregating-annotation-processor
+        // end::aggregating-annotation-processor[]
     }
 
     private void addServiceCreationMethod(Writer writer, TypeElement service) throws IOException {

@@ -4,10 +4,8 @@ plugins {
     `java-gradle-plugin`
 }
 
-apply {
-    plugin("org.gradle.kotlin.kotlin-dsl")
-    plugin<PrecompiledScriptPlugins>()
-}
+apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+apply<PrecompiledScriptPlugins>()
 
 dependencies {
     implementation(project(":binaryCompatibility"))

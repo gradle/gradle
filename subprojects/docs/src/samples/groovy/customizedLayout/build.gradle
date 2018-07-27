@@ -5,11 +5,11 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy:2.4.10'
+    compile 'org.codehaus.groovy:groovy:2.4.15'
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET custom-source-locations
+// tag::custom-source-locations[]
 sourceSets {
     main {
         groovy {
@@ -23,4 +23,4 @@ sourceSets {
         }
     }
 }
-// END SNIPPET custom-source-locations
+// end::custom-source-locations[]

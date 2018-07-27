@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET plugin-resolution-strategy
+// tag::plugin-resolution-strategy[]
 pluginManagement {
   resolutionStrategy {
       eachPlugin {
@@ -33,6 +33,6 @@ pluginManagement {
       }
   }
 }
-// END SNIPPET plugin-resolution-strategy
+// end::plugin-resolution-strategy[]
 
 rootProject.name = 'resolution-rules'

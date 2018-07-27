@@ -18,15 +18,19 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.internal.changedetection.state.mirror.logical.NormalizedPathFingerprintCompareStrategy;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
+import org.gradle.internal.file.FilePathUtil;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -39,25 +43,29 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(JarHasher.class);
 
     private final ResourceHasher classpathResourceHasher;
+    private final ResourceFilter classpathResourceFilter;
 
-    public JarHasher(ResourceHasher classpathResourceHasher) {
+    public JarHasher(ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter) {
         this.classpathResourceHasher = classpathResourceHasher;
+        this.classpathResourceFilter = classpathResourceFilter;
     }
 
     @Nullable
     @Override
-    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
-        return hashJarContents(absolutePath, content);
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+        return hashJarContents(fileSnapshot);
     }
 
     @Override
     public void appendConfigurationToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
-        classpathResourceHasher.appendConfigurationToHasher(hasher);        }
+        classpathResourceHasher.appendConfigurationToHasher(hasher);
+        classpathResourceFilter.appendConfigurationToHasher(hasher);
+    }
 
-    private HashCode hashJarContents(String jarFile, FileContentSnapshot content) {
+    private HashCode hashJarContents(PhysicalFileSnapshot jarFileSnapshot) {
         try {
-            List<NormalizedFileSnapshot> snapshots = snapshotZipEntries(jarFile);
+            List<NormalizedFileSnapshot> snapshots = snapshotZipEntries(jarFileSnapshot.getAbsolutePath());
             if (snapshots.isEmpty()) {
                 return null;
             }
@@ -65,7 +73,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
             NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, snapshots);
             return hasher.hash();
         } catch (Exception e) {
-            return hashMalformedZip(new File(jarFile).getName(), content, e);
+            return hashMalformedZip(jarFileSnapshot, e);
         }
     }
 
@@ -77,14 +85,16 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
             fileInputStream = Files.newInputStream(Paths.get(jarFile));
             ZipInputStream zipInput = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
+            RelativePathFactory relativePathFactory = new RelativePathFactory();
 
             while ((zipEntry = zipInput.getNextEntry()) != null) {
-                if (zipEntry.isDirectory()) {
+                relativePathFactory.setZipEntry(zipEntry);
+                if (zipEntry.isDirectory() || classpathResourceFilter.shouldBeIgnored(relativePathFactory)) {
                     continue;
                 }
                 HashCode hash = classpathResourceHasher.hash(zipEntry, zipInput);
                 if (hash != null) {
-                    snapshots.add(new DefaultNormalizedFileSnapshot(zipEntry.getName(), new FileHashSnapshot(hash)));
+                    snapshots.add(new DefaultNormalizedFileSnapshot(zipEntry.getName(), FileType.RegularFile, hash));
                 }
             }
 
@@ -94,9 +104,21 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
+    private static class RelativePathFactory implements Factory<String[]> {
+        private ZipEntry zipEntry;
 
-    private HashCode hashMalformedZip(String jarName, FileContentSnapshot content, Exception e) {
-        LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarName, e);
-        return content.getContentMd5();
+        @Override
+        public String[] create() {
+            return FilePathUtil.getPathSegments(zipEntry.getName());
+        }
+
+        public void setZipEntry(ZipEntry zipEntry) {
+            this.zipEntry = zipEntry;
+        }
+    }
+
+    private HashCode hashMalformedZip(PhysicalFileSnapshot jarFileSnapshot, Exception e) {
+        LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarFileSnapshot.getName(), e);
+        return jarFileSnapshot.getContentHash();
     }
 }

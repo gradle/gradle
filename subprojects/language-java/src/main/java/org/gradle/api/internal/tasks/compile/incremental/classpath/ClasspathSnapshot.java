@@ -33,10 +33,6 @@ public class ClasspathSnapshot {
         this.data = data;
     }
 
-    public ClasspathEntrySnapshot getSnapshot(ClasspathEntry classpathEntry) {
-        return entrySnapshots.get(classpathEntry.file);
-    }
-
     public ClasspathEntrySnapshot getSnapshot(File file) {
         return entrySnapshots.get(file);
     }
@@ -54,7 +50,7 @@ public class ClasspathSnapshot {
         return data;
     }
 
-    public boolean isAnyClassDuplicated(ClasspathEntry classpathEntry) {
+    public boolean isAnyClassDuplicated(File classpathEntry) {
         ClasspathEntrySnapshot snapshot = getSnapshot(classpathEntry);
         return isAnyClassDuplicated(snapshot.getClasses());
     }

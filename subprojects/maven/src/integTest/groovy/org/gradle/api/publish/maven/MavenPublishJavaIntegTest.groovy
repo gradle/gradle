@@ -200,6 +200,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.parsedModuleMetadata.variant('api') {
             dependency('org.springframework:spring-core:2.5.6') {
                 noMoreExcludes()
+                strictly(null)
                 rejects()
             }
             noMoreDependencies()
@@ -208,10 +209,12 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.parsedModuleMetadata.variant('runtime') {
             dependency('commons-collections:commons-collections:3.2.2') {
                 noMoreExcludes()
-                rejects '(3.2.2,)'
+                strictly('3.2.2')
+                rejects()
             }
             dependency('org.springframework:spring-core:2.5.6') {
                 noMoreExcludes()
+                strictly(null)
                 rejects()
             }
             noMoreDependencies()
@@ -289,7 +292,10 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:1.6') { rejects('(1.6,)') }
+            constraint('org.tukaani:xz:1.6') {
+                strictly('1.6')
+                rejects()
+            }
 
             noMoreDependencies()
         }

@@ -9,7 +9,7 @@ task processTemplates(type: ProcessTemplates) {
     outputDir = file("$buildDir/genOutput")
 }
 
-// START SNIPPET ad-hoc-task
+// tag::ad-hoc-task[]
 task processTemplatesAdHoc {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
     inputs.files(fileTree("src/templates"))
@@ -19,19 +19,19 @@ task processTemplatesAdHoc {
 
     doLast {
         // Process the templates here
-// END SNIPPET ad-hoc-task
+// end::ad-hoc-task[]
         copy {
             into "$buildDir/genOutput2"
             from fileTree("src/templates")
             expand([year: 2013])
         }
 
-// START SNIPPET ad-hoc-task
+// tag::ad-hoc-task[]
     }
 }
-// END SNIPPET ad-hoc-task
+// end::ad-hoc-task[]
 
-// START SNIPPET custom-class-runtime-api
+// tag::custom-class-runtime-api[]
 task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
@@ -44,51 +44,51 @@ task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
     inputs.property("templateData.variables", templateData.variables)
     outputs.dir(outputDir)
 }
-// END SNIPPET custom-class-runtime-api
+// end::custom-class-runtime-api[]
 
-// START SNIPPET runtime-api-conf
+// tag::runtime-api-conf[]
 task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
     // ...
-// END SNIPPET runtime-api-conf
+// end::runtime-api-conf[]
     templateEngine = TemplateEngineType.FREEMARKER
     templateData = new TemplateData("test", [year: 2014])
     outputDir = file("$buildDir/genOutput3")
-// START SNIPPET runtime-api-conf
+// tag::runtime-api-conf[]
     sourceFiles = fileTree("src/templates") {
         include "**/*.fm"
     }
 
     inputs.files(sourceFiles).skipWhenEmpty()
     // ...
-// END SNIPPET runtime-api-conf
+// end::runtime-api-conf[]
     inputs.property("engine",templateEngine)
     inputs.property("templateData.name", templateData.name)
     inputs.property("templateData.variables", templateData.variables)
     outputs.dir(outputDir)
-// START SNIPPET runtime-api-conf
+// tag::runtime-api-conf[]
 }
-// END SNIPPET runtime-api-conf
+// end::runtime-api-conf[]
 
-// START SNIPPET inferred-task-dep-via-outputs
+// tag::inferred-task-dep-via-outputs[]
 task packageFiles(type: Zip) {
     from processTemplates.outputs
 }
-// END SNIPPET inferred-task-dep-via-outputs
+// end::inferred-task-dep-via-outputs[]
 
-// START SNIPPET inferred-task-dep-via-task
+// tag::inferred-task-dep-via-task[]
 task packageFiles2(type: Zip) {
     from processTemplates
 }
-// END SNIPPET inferred-task-dep-via-task
+// end::inferred-task-dep-via-task[]
 
 
-// START SNIPPET adhoc-destroyable-task
+// tag::adhoc-destroyable-task[]
 task removeTempDir {
     destroyables.register("$projectDir/tmpDir")
     doLast {
         delete("$projectDir/tmpDir")
     }
 }
-// END SNIPPET adhoc-destroyable-task
+// end::adhoc-destroyable-task[]
 
 build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf

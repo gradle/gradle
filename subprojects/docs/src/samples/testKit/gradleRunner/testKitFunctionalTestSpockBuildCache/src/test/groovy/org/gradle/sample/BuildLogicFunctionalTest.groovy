@@ -25,7 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
-    // START SNIPPET clean-build-cache
+    // tag::clean-build-cache[]
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
     File localBuildCacheDirectory
@@ -41,9 +41,9 @@ class BuildLogicFunctionalTest extends Specification {
         """
         buildFile = testProjectDir.newFile('build.gradle')
     }
-    // END SNIPPET clean-build-cache
+    // end::clean-build-cache[]
 
-    // START SNIPPET functional-test-build-cache
+    // tag::functional-test-build-cache[]
     def "cacheableTask is loaded from cache"() {
         given:
         buildFile << """
@@ -69,7 +69,7 @@ class BuildLogicFunctionalTest extends Specification {
         then:
         result.task(":cacheableTask").outcome == FROM_CACHE
     }
-    // END SNIPPET functional-test-build-cache
+    // end::functional-test-build-cache[]
 
     def runner() {
         return GradleRunner.create()

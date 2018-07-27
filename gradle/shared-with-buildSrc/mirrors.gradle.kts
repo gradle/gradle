@@ -15,18 +15,18 @@
  */
 
 
-val gradleMirrorUrl = findMirrorUrls()["gradle"]
+val repositoryMirrors = findMirrorUrls()
+rootProject.extensions.extraProperties.set("repositoryMirrors", repositoryMirrors)
+
+val gradleMirrorUrl = repositoryMirrors["gradle"]
 if (gradleMirrorUrl != null) {
-    project.buildscript {
-        repositories {
+    project.allprojects {
+        buildscript.repositories {
             maven {
                 name = "gradle-mirror"
                 url = uri(gradleMirrorUrl)
             }
         }
-    }
-
-    project.allprojects {
         repositories {
             maven {
                 name = "gradle-mirror"

@@ -16,23 +16,18 @@
 
 package org.gradle.integtests.samples.dependencymanagement
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrationTest {
 
     private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
-
-    def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-    }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
     def "can use declare and resolve dependency with concrete version"() {

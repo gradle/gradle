@@ -1,4 +1,4 @@
-//START SNIPPET multiple-repositories
+// tag::multiple-repositories[]
 repositories {
     jcenter()
     maven {
@@ -8,7 +8,7 @@ repositories {
         url "https://maven.restlet.com"
     }
 }
-//END SNIPPET multiple-repositories
+// end::multiple-repositories[]
 
 configurations {
     libs

@@ -25,6 +25,7 @@ import java.util.Map;
 public interface ClasspathEntrySnapshotCache extends Cache<File, ClasspathEntrySnapshot> {
     /**
      * Returns the classpath entry snapshots for the given files. The resulting map has the same order as the input.
+     * Fails if no cached data could be found for any of the given files.
      */
     Map<File, ClasspathEntrySnapshot> getClasspathEntrySnapshots(Map<File, HashCode> fileHashes);
 }
