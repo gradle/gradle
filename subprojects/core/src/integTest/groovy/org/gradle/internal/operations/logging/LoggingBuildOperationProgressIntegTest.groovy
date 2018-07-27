@@ -32,7 +32,6 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -140,11 +139,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         operations.parentsOf(downloadEvent).find {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }
-        def downloadProgress = downloadEvent.progress
-        downloadProgress.size() == 1
-        downloadProgress[0].details.logLevel == 'LIFECYCLE'
-        downloadProgress[0].details.category == ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource.name
-        downloadProgress[0].details.description == "Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar"
     }
 
     def "captures output from buildSrc"() {

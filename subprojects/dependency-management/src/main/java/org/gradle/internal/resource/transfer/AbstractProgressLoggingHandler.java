@@ -34,7 +34,6 @@ public class AbstractProgressLoggingHandler {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClazz != null ? loggingClazz : getClass());
         String description = createDescription(operationType, resource);
         progressLogger.setDescription(description);
-        progressLogger.setLoggingHeader(description);
         progressLogger.started();
         String resourceName = createShortDescription(resource);
         return new ResourceOperation(progressLogger, operationType, contentLength, resourceName);

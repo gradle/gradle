@@ -27,7 +27,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'build'
 
         then:
-        assertNoGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
+        file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
     }
 
     def "buildSrc project implicitly forces generation of Gradle API JAR"() {
@@ -40,7 +40,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'build'
 
         then:
-        assertSingleGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
+        file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar").assertExists()
     }
 
     def "Gradle API dependency resolves the expected JAR files"() {
