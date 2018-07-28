@@ -54,6 +54,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+        settingsFile << """
+            rootProject.name = 'root'
+        """
     }
 
     def "task is created and configured when included directly in task graph"() {
@@ -885,5 +888,173 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "foo"
+    }
+
+    private static final def INVALID_CALL_FROM_LAZY_CONFIGURATION = [
+        ["Project#afterEvaluate(Closure)"  , "afterEvaluate {}"],
+        ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
+        ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#subprojects(Closure)"    , "subprojects {}"],
+        ["Project#subprojects(Action)"     , "subprojects new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#allprojects(Closure)"    , "allprojects {}"],
+        ["Project#allprojects(Action)"     , "allprojects new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#project(String, Closure)", "project(':nested') {}"],
+        ["Project#project(String, Action)" , "project(':nested', new Action<Project>() { void execute(Project p) {} })"],
+        ["Project#allprojects(Action)"     , "gradle.allprojects new Action<Project>() { void execute(Project p) {} }"],
+    ]
+
+    @Unroll
+    def "cannot execute #description during lazy task creation action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.register("foo") {
+                ${code}
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description during task creation action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.create("foo") {
+                ${code}
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "cannot execute #description during lazy task configuration action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.register("foo").configure {
+                ${code}
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description during task configuration action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.create("foo")
+            tasks.getByName("foo") {
+                ${code}
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "cannot execute #description on another project during lazy task creation action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.register("foo") {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':other:foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description on another project during task creation action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.create("foo") {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "cannot execute #description on another project during lazy task configuration action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.register("foo").configure {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':other:foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description on another project during task configuration action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.create("foo")
+                tasks.getByName("foo") {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 }

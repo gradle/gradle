@@ -25,12 +25,14 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.ModelRegistry
@@ -53,6 +55,7 @@ class DefaultTaskContainerTest extends Specification {
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
+    private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private container = new DefaultTaskContainerFactory(
         modelRegistry,
         DirectInstantiator.INSTANCE,
@@ -60,7 +63,8 @@ class DefaultTaskContainerTest extends Specification {
         project,
         accessListener,
         new TaskStatistics(),
-        new TestBuildOperationExecutor()
+        buildOperationExecutor,
+        new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ).create()
 
     void 'cannot create task with no name'() {

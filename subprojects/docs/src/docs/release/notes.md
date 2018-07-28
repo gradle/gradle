@@ -99,6 +99,21 @@ These methods have been deprecated and the `create()` or `register()` methods sh
 
 - `project.java.sourceSets` is now `project.sourceSets`
 
+### Restricting cross-configuration and lifecycle hooks from lazy configuration APIs
+
+In Gradle 4.9, we [introduced a new API](https://blog.gradle.org/preview-avoiding-task-configuration-time) for creating and configuring tasks.
+
+The following hooks are disallowed when called from these new APIs:
+
+- `project.afterEvaluate(Action)` and `project.afterEvaluate(Closure)`
+- `project.beforeEvaluate(Action)` and `project.beforeEvaluate(Closure)`
+- `project.subprojects(Action)` and `project.subprojects(Closure)`
+- `project.allprojects(Action)` and `project.allprojects(Closure)`
+- `project.project(String, Action)` and `project.project(String, Closure)`
+- `project.gradle.allprojects(Action)`
+
+If you attempt to call any of these methods an exception will be thrown. Gradle restricts these APIs because mixing these APIs with lazy configuration can cause hard to diagnose build failures and complexity.
+
 ## External contributions
 
 

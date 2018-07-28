@@ -640,11 +640,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Action<? super Project> action) {
+        assertMethodExecutionAllowed("Project#subprojects(Action)");
         getProjectConfigurator().subprojects(getSubprojects(), action);
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
+        assertMethodExecutionAllowed("Project#allprojects(Action)");
         getProjectConfigurator().allprojects(getAllprojects(), action);
     }
 
@@ -976,21 +978,25 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
+        assertMethodExecutionAllowed("Project#beforeEvaluate(Action)");
         evaluationListener.add("beforeEvaluate", action);
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
+        assertMethodExecutionAllowed("Project#afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", action);
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
+        assertMethodExecutionAllowed("Project#beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
+        assertMethodExecutionAllowed("Project#afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
     }
 
@@ -1132,21 +1138,25 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
+        assertMethodExecutionAllowed("Project#subprojects(Closure)");
         getProjectConfigurator().subprojects(getSubprojects(), configureClosure);
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
+        assertMethodExecutionAllowed("Project#allprojects(Closure)");
         getProjectConfigurator().allprojects(getAllprojects(), configureClosure);
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
+        assertMethodExecutionAllowed("Project#project(String, Closure)");
         return getProjectConfigurator().project(project(path), configureClosure);
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
+        assertMethodExecutionAllowed("Project#project(String, Action)");
         return getProjectConfigurator().project(project(path), configureAction);
     }
 
@@ -1403,5 +1413,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return nextBatch.isEmpty()
             ? null
             : nextBatch.getSource();
+    }
+
+    private void assertMethodExecutionAllowed(String methodName) {
+        getProjectConfigurator().assertCrossProjectConfigurationAllowed(methodName, this);
     }
 }
