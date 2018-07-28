@@ -24,11 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.util.GFileUtils;
-import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.internal.VcsDirectoryLayout;
-import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionControlRepository;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
@@ -38,15 +34,13 @@ import java.util.Set;
 public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
-    private final File baseWorkingDir;
     private final VersionParser versionParser;
     private final VcsVersionSelectionCache inMemoryCache;
     private final PersistentVcsMetadataCache persistentCache;
 
-    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VcsDirectoryLayout directoryLayout, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
+    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
-        this.baseWorkingDir = directoryLayout.getCheckoutDir();
         this.versionParser = versionParser;
         this.inMemoryCache = inMemoryCache;
         this.persistentCache = persistentCache;
@@ -54,43 +48,38 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
 
     @Nullable
     @Override
-    public File selectVersion(ModuleComponentSelector selector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
-        VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, selector.getVersionConstraint());
+    public File selectVersion(ModuleComponentSelector selector, VersionControlRepository repository) {
+        VersionRef selectedVersion = selectVersionFromRepository(repository, selector.getVersionConstraint());
         if (selectedVersion == null) {
             return null;
         }
 
-        File workingDir = prepareWorkingDir(baseWorkingDir, spec, versionControlSystem, selectedVersion);
-        persistentCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), selectedVersion, workingDir);
+        File workingDir = prepareWorkingDir(repository, selectedVersion);
+        persistentCache.putVersionForSelector(repository, selector.getVersionConstraint(), selectedVersion);
         return workingDir;
     }
 
-    private File prepareWorkingDir(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
-        // TODO - prevent multiple threads from performing the same checkout at the same time
-        File workingDir = inMemoryCache.getWorkingDirForRevision(spec, selectedVersion);
+    private File prepareWorkingDir(VersionControlRepository repository, VersionRef selectedVersion) {
+        // TODO - prevent multiple threads from performing the same VCS populate operation at the same time
+        File workingDir = inMemoryCache.getWorkingDirForRevision(repository, selectedVersion);
         if (workingDir == null) {
-            String versionId = HashUtil.createCompactMD5(spec.getUniqueId() + "-" + selectedVersion.getCanonicalId());
-            workingDir = new File(baseWorkingDir, versionId + "/" + spec.getRepoName());
-            versionControlSystem.populate(workingDir, selectedVersion, spec);
-
-            // Update timestamp so that working directory is not garbage collected
-            GFileUtils.touch(workingDir.getParentFile());
-            inMemoryCache.putWorkingDirForRevision(spec, selectedVersion, workingDir);
+            workingDir = repository.populate(selectedVersion);
+            inMemoryCache.putWorkingDirForRevision(repository, selectedVersion, workingDir);
         }
         return workingDir;
     }
 
-    private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionConstraint constraint) {
+    private VersionRef selectVersionFromRepository(VersionControlRepository repository, VersionConstraint constraint) {
         // TODO: match with status, order versions correctly
 
         if (constraint.getBranch() != null) {
-            return versionControlSystem.getBranch(spec, constraint.getBranch());
+            return repository.getBranch(constraint.getBranch());
         }
 
         String version = constraint.getRequiredVersion();
         VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
         if (versionSelector instanceof LatestVersionSelector && ((LatestVersionSelector) versionSelector).getSelectorStatus().equals("integration")) {
-            return versionControlSystem.getDefaultBranch(spec);
+            return repository.getDefaultBranch();
         }
 
         if (versionSelector.requiresMetadata()) {
@@ -98,10 +87,10 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
             return null;
         }
 
-        Set<VersionRef> versions = inMemoryCache.getVersionsForRepo(spec);
+        Set<VersionRef> versions = inMemoryCache.getVersionsForRepo(repository);
         if (versions == null) {
-            versions = versionControlSystem.getAvailableVersions(spec);
-            inMemoryCache.putVersionsForRepo(spec, versions);
+            versions = repository.getAvailableVersions();
+            inMemoryCache.putVersionsForRepo(repository, versions);
         }
         Version bestVersion = null;
         VersionRef bestCandidate = null;

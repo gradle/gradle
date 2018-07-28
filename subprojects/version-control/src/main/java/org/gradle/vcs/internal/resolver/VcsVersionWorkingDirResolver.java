@@ -17,8 +17,7 @@
 package org.gradle.vcs.internal.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionControlRepository;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -30,5 +29,5 @@ public interface VcsVersionWorkingDirResolver {
      * @return The working directory or {@code null} if not found.
      */
     @Nullable
-    File selectVersion(ModuleComponentSelector selector, VersionControlSpec spec, VersionControlSystem versionControlSystem);
+    File selectVersion(ModuleComponentSelector selector, VersionControlRepository repository);
 }

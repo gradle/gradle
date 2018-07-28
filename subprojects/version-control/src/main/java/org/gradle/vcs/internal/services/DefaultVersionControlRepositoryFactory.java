@@ -24,15 +24,18 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
 import org.gradle.vcs.internal.VcsDirectoryLayout;
+import org.gradle.vcs.internal.VersionControlRepository;
+import org.gradle.vcs.internal.VersionControlRepositoryFactory;
 import org.gradle.vcs.internal.VersionControlSystem;
-import org.gradle.vcs.internal.VersionControlSystemFactory;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
@@ -42,10 +45,12 @@ import java.util.Set;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
+public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
+    private final VcsDirectoryLayout directoryLayout;
 
-    public DefaultVersionControlSystemFactory(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
+    public DefaultVersionControlRepositoryFactory(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
+        this.directoryLayout = directoryLayout;
         this.vcsWorkingDirCache = cacheRepository
             .cache(directoryLayout.getCheckoutDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
@@ -55,7 +60,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
     }
 
     @Override
-    public VersionControlSystem create(VersionControlSpec spec) {
+    public VersionControlRepository create(VersionControlSpec spec) {
         // TODO: Register these mappings somewhere
         VersionControlSystem vcs;
         if (spec instanceof GitVersionControlSpec) {
@@ -63,7 +68,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         } else {
             throw new IllegalArgumentException(String.format("Don't know how to create a VCS from spec %s.", spec));
         }
-        return new LockingVersionControlSystem(vcs, vcsWorkingDirCache);
+        return new LockingVersionControlRepository(directoryLayout, spec, vcs, vcsWorkingDirCache);
     }
 
     @Override
@@ -71,17 +76,36 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         vcsWorkingDirCache.close();
     }
 
-    private static final class LockingVersionControlSystem implements VersionControlSystem {
+    private static final class LockingVersionControlRepository implements VersionControlRepository {
+        private final VcsDirectoryLayout directoryLayout;
+        private final VersionControlSpec spec;
         private final VersionControlSystem delegate;
         private final CacheAccess cacheAccess;
 
-        private LockingVersionControlSystem(VersionControlSystem delegate, CacheAccess cacheAccess) {
+        private LockingVersionControlRepository(VcsDirectoryLayout directoryLayout, VersionControlSpec spec, VersionControlSystem delegate, CacheAccess cacheAccess) {
+            this.directoryLayout = directoryLayout;
+            this.spec = spec;
             this.delegate = delegate;
             this.cacheAccess = cacheAccess;
         }
 
         @Override
-        public VersionRef getDefaultBranch(VersionControlSpec spec) {
+        public String getDisplayName() {
+            return spec.getDisplayName();
+        }
+
+        @Override
+        public String getRepoName() {
+            return spec.getRepoName();
+        }
+
+        @Override
+        public String getUniqueId() {
+            return spec.getUniqueId();
+        }
+
+        @Override
+        public VersionRef getDefaultBranch() {
             try {
                 return delegate.getDefaultBranch(spec);
             } catch (Exception e) {
@@ -91,7 +115,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
 
         @Nullable
         @Override
-        public VersionRef getBranch(VersionControlSpec spec, String branch) {
+        public VersionRef getBranch(String branch) {
             try {
                 return delegate.getBranch(spec, branch);
             } catch (Exception e) {
@@ -100,7 +124,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         }
 
         @Override
-        public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+        public Set<VersionRef> getAvailableVersions() {
             try {
                 return delegate.getAvailableVersions(spec);
             } catch (Exception e) {
@@ -109,15 +133,21 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         }
 
         @Override
-        public void populate(final File workingDir, final VersionRef ref, final VersionControlSpec spec) {
-            cacheAccess.useCache(new Runnable() {
+        public File populate(final VersionRef ref) {
+            return cacheAccess.useCache(new Factory<File>() {
                 @Override
-                public void run() {
+                public File create() {
                     try {
+                        String versionId = HashUtil.createCompactMD5(getUniqueId() + "-" + ref.getCanonicalId());
+                        File baseDir = new File(directoryLayout.getCheckoutDir(), versionId);
+                        File workingDir = new File(baseDir, getRepoName());
                         GFileUtils.mkdirs(workingDir);
+                        // Update timestamp so that working directory is not garbage collected
+                        GFileUtils.touch(baseDir);
                         delegate.populate(workingDir, ref, spec);
+                        return workingDir;
                     } catch (Exception e) {
-                        throw new GradleException(String.format("Could not populate %s from %s.", workingDir, spec.getDisplayName()), e);
+                        throw new GradleException(String.format("Could not populate working directory from %s.", spec.getDisplayName()), e);
                     }
                 }
             });
