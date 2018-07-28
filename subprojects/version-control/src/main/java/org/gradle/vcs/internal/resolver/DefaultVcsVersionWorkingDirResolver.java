@@ -71,11 +71,8 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         if (workingDir == null) {
             String versionId = HashUtil.createCompactMD5(spec.getUniqueId() + "-" + selectedVersion.getCanonicalId());
             workingDir = new File(baseWorkingDir, versionId + "/" + spec.getRepoName());
-            if (!workingDir.exists()) {
-                versionControlSystem.populate(workingDir, selectedVersion, spec);
-            } else {
-                versionControlSystem.reset(workingDir, selectedVersion, spec);
-            }
+            versionControlSystem.populate(workingDir, selectedVersion, spec);
+
             // Update timestamp so that working directory is not garbage collected
             GFileUtils.touch(workingDir.getParentFile());
             inMemoryCache.putWorkingDirForRevision(spec, selectedVersion, workingDir);

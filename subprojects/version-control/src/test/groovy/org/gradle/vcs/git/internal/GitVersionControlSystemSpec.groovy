@@ -22,6 +22,8 @@ import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.gradle.vcs.internal.VersionRef
@@ -107,13 +109,15 @@ class GitVersionControlSystemSpec extends Specification {
         changed << "changed!"
 
         when:
-        gitVcs.reset(target, repoHead, repoSpec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         removed.text == "Hello world!"
         changed.text == "Goodbye world!"
     }
 
+    // commit() method seems to leak files
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def 'reset a cloned repository with local commits'() {
         given:
         def target = tmpDir.file('versionDir')
@@ -128,11 +132,14 @@ class GitVersionControlSystemSpec extends Specification {
         targetRepo.commit('changes')
 
         when:
-        gitVcs.reset(target, repoHead, repoSpec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         removed.text == "Hello world!"
         changed.text == "Goodbye world!"
+
+        cleanup:
+        targetRepo?.close()
     }
 
     def 'reset a cloned repository with submodules'() {
@@ -149,7 +156,7 @@ class GitVersionControlSystemSpec extends Specification {
         submodule2.text == "changed!"
 
         when:
-        gitVcs.reset(target, repoHead, repoSpec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         submodule.text == "hello from submodule"
