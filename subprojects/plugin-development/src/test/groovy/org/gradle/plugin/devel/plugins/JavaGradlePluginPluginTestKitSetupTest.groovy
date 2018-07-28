@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.Test
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
@@ -41,7 +42,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
         SourceSet pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         SourceSet testSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
         GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, pluginSourceSet, testSourceSet)
-        PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
+        TaskProvider<PluginUnderTestMetadata> pluginUnderTestMetadata = project.tasks.register(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
         when:
@@ -49,8 +50,8 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
 
         then:
         assertTestKitDependency(project, testSourceSet)
-        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.test)
-        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('test'))
+        assertInferredTaskDependency(pluginUnderTestMetadata.get(), project.sourceSets.test)
+        assertTestTaskDependency(pluginUnderTestMetadata.get(), project.tasks.getByPath('test'))
     }
 
     def "can configure single custom main and test source set"() {
@@ -81,7 +82,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
         }
 
         GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, project.sourceSets.customMain, project.sourceSets.functionalTest)
-        PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
+        TaskProvider<PluginUnderTestMetadata> pluginUnderTestMetadata = project.tasks.register(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
         when:
@@ -89,8 +90,8 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
 
         then:
         assertTestKitDependency(project, project.sourceSets.functionalTest)
-        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.functionalTest)
-        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('functionalTest'))
+        assertInferredTaskDependency(pluginUnderTestMetadata.get(), project.sourceSets.functionalTest)
+        assertTestTaskDependency(pluginUnderTestMetadata.get(), project.tasks.getByPath('functionalTest'))
     }
 
     def "can configure multiple custom test source sets"() {
@@ -126,7 +127,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
         }
 
         GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, project.sourceSets.main, project.sourceSets.functionalTest1, project.sourceSets.functionalTest2)
-        PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
+        TaskProvider<PluginUnderTestMetadata> pluginUnderTestMetadata = project.tasks.register(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
         when:
@@ -135,10 +136,10 @@ class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec 
         then:
         assertTestKitDependency(project, project.sourceSets.functionalTest1)
         assertTestKitDependency(project, project.sourceSets.functionalTest2)
-        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.functionalTest1)
-        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.functionalTest2)
-        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('functionalTest1'))
-        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('functionalTest2'))
+        assertInferredTaskDependency(pluginUnderTestMetadata.get(), project.sourceSets.functionalTest1)
+        assertInferredTaskDependency(pluginUnderTestMetadata.get(), project.sourceSets.functionalTest2)
+        assertTestTaskDependency(pluginUnderTestMetadata.get(), project.tasks.getByPath('functionalTest1'))
+        assertTestTaskDependency(pluginUnderTestMetadata.get(), project.tasks.getByPath('functionalTest2'))
     }
 
     private void assertTestKitDependency(Project project, SourceSet testSourceSet) {
