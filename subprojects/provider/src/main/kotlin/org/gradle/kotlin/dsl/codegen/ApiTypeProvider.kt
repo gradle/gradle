@@ -450,9 +450,13 @@ abstract class BaseSignatureVisitor : SignatureVisitor(ASM6) {
     }
 
     override fun visitClassBound(): SignatureVisitor =
-        TypeSignatureVisitor().also { typeParameters[currentTypeParameter]!!.add(it) }
+        visitTypeParameterBound()
 
     override fun visitInterfaceBound(): SignatureVisitor =
+        visitTypeParameterBound()
+
+    private
+    fun visitTypeParameterBound() =
         TypeSignatureVisitor().also { typeParameters[currentTypeParameter]!!.add(it) }
 }
 
