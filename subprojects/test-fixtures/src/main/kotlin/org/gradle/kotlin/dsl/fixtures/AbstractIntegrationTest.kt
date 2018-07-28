@@ -123,6 +123,10 @@ open class AbstractIntegrationTest {
     }
 
     protected
+    fun newDir(relativePath: String): File =
+        existing(relativePath).apply { assert(mkdirs()) }
+
+    protected
     fun newOrExisting(fileName: String) =
         existing(fileName).let {
             when {

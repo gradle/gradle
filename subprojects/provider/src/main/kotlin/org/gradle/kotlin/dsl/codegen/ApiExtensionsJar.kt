@@ -24,26 +24,30 @@ import java.io.File
 
 
 internal
-fun generateApiExtensionsJar(outputFile: File, gradleJars: Collection<File>, onProgress: () -> Unit) {
-    ApiExtensionsJarGenerator(onProgress = onProgress).generate(outputFile, gradleJars)
+fun generateApiExtensionsJar(
+    outputFile: File,
+    gradleJars: Collection<File>,
+    gradleApiMetadataJar: File,
+    onProgress: () -> Unit
+) {
+    ApiExtensionsJarGenerator(
+        gradleJars,
+        gradleApiMetadataJar,
+        onProgress
+    ).generate(outputFile)
 }
 
 
-internal
-interface KotlinFileCompiler {
-    fun compileToDirectory(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>)
-}
-
-
-internal
+private
 class ApiExtensionsJarGenerator(
-    val compiler: KotlinFileCompiler = StandardKotlinFileCompiler,
+    val gradleJars: Collection<File>,
+    val gradleApiMetadataJar: File,
     val onProgress: () -> Unit = {}
 ) {
 
-    fun generate(outputFile: File, gradleJars: Collection<File> = emptyList()) {
+    fun generate(outputFile: File) {
         val tempDir = tempDirFor(outputFile)
-        compileExtensionsTo(tempDir, gradleJars)
+        compileExtensionsTo(tempDir)
         zipTo(outputFile, tempDir)
     }
 
@@ -54,15 +58,28 @@ class ApiExtensionsJarGenerator(
         }
 
     private
-    fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
-        compiler.compileToDirectory(
+    fun compileExtensionsTo(outputDir: File) {
+        compileKotlinApiExtensionsTo(
             outputDir,
-            listOf(builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir)),
-            classPath = gradleJars)
+            sourceFilesFor(outputDir),
+            classPath = gradleJars
+        )
+        onProgress()
     }
 
     private
-    fun builtinPluginIdExtensionsSourceFileFor(gradleJars: Iterable<File>, outputDir: File) =
+    fun sourceFilesFor(outputDir: File) =
+        (gradleApiExtensionsSourceFilesFor(outputDir)
+            + builtinPluginIdExtensionsSourceFileFor(outputDir))
+
+    private
+    fun gradleApiExtensionsSourceFilesFor(outputDir: File) =
+        writeGradleApiKotlinDslExtensionsTo(outputDir, gradleJars, gradleApiMetadataJar).also {
+            onProgress()
+        }
+
+    private
+    fun builtinPluginIdExtensionsSourceFileFor(outputDir: File) =
         generatedSourceFile(outputDir, "BuiltinPluginIdExtensions.kt").apply {
             writeBuiltinPluginIdExtensionsTo(this, gradleJars)
             onProgress()
@@ -76,7 +93,7 @@ class ApiExtensionsJarGenerator(
 
     private
     fun sourceFileName(fileName: String) =
-        packageDir + "/" + fileName
+        "$packageDir/$fileName"
 
     private
     val packageDir = packageName.replace('.', '/')
@@ -84,12 +101,20 @@ class ApiExtensionsJarGenerator(
 
 
 internal
-object StandardKotlinFileCompiler : KotlinFileCompiler {
-    override fun compileToDirectory(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) {
-        compileToDirectory(
-            outputDirectory,
-            sourceFiles,
-            loggerFor<StandardKotlinFileCompiler>(),
-            classPath = classPath)
+fun compileKotlinApiExtensionsTo(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) {
+
+    val success = compileToDirectory(
+        outputDirectory,
+        sourceFiles,
+        loggerFor<ApiExtensionsJarGenerator>(),
+        classPath = classPath
+    )
+
+    if (!success) {
+        throw IllegalStateException(
+            "Unable to compile Gradle Kotlin DSL API Extensions Jar\n" +
+                "\tFrom:\n" +
+                sourceFiles.joinToString("\n\t- ", prefix = "\t- ", postfix = "\n") +
+                "\tSee compiler logs for details.")
     }
 }

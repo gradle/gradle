@@ -9,7 +9,7 @@ import org.gradle.kotlin.dsl.*
 class GreetPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val greeting = extensions.create("greeting", Greeting::class.java)
+        val greeting = extensions.create("greeting", Greeting::class)
         tasks {
             "greet" {
                 doLast {

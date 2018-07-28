@@ -31,8 +31,6 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
         it.apply {
             write(fileHeader)
             write("\n")
-            write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
-            write("import ${PluginDependencySpec::class.qualifiedName}\n")
             pluginIdExtensionDeclarationsFor(gradleJars).forEach {
                 write("\n")
                 write(it)
@@ -45,8 +43,8 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
 
 private
 fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
-    val extendedType = PluginDependenciesSpec::class.simpleName
-    val extensionType = PluginDependencySpec::class.simpleName
+    val extendedType = PluginDependenciesSpec::class.qualifiedName!!
+    val extensionType = PluginDependencySpec::class.qualifiedName!!
     return pluginExtensionsFrom(jars)
         .map { (memberName, pluginId, website, implementationClass) ->
             """

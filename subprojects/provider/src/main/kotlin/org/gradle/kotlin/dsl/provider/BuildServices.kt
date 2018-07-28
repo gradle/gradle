@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.classpath.ModuleRegistry
 
 import org.gradle.cache.internal.GeneratedGradleJarCache
 
@@ -42,6 +43,7 @@ object BuildServices {
 
     @Suppress("unused")
     fun createKotlinScriptClassPathProvider(
+        moduleRegistry: ModuleRegistry,
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
         dependencyFactory: DependencyFactory,
@@ -50,6 +52,7 @@ object BuildServices {
     ) =
 
         KotlinScriptClassPathProvider(
+            moduleRegistry,
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
             gradleApiJarsProviderFor(dependencyFactory),
