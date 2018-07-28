@@ -18,23 +18,32 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
+import org.gradle.vcs.fixtures.GitFileRepository
+import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.git.GitVersionControlSpec
+import org.junit.Rule
 
 class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
+    @Rule
+    GitFileRepository repo = new GitFileRepository(testDirectory)
+    @Rule
+    GitFileRepository repo2 = new GitFileRepository('repo2', testDirectory)
     BuildTestFile buildB
 
     def setup() {
-        buildTestFixture.withBuildInSubDir()
-        buildB = multiProjectBuild("B", ["foo", "bar"]) {
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-
-                    repositories { maven { url "${mavenRepo.uri}" } }
-                }
-            """
-        }
+        buildB = new BuildTestFile(repo.workTree, "B")
+        buildB.settingsFile << """
+            rootProject.name = 'B'
+            include 'foo', 'bar'
+        """
+        buildB.buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.test'
+                version = '1.0'
+            }
+        """
+        repo.commit('initial')
         buildFile << """
             apply plugin: 'base'
             
@@ -111,6 +120,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
                 }
             }
         """
+        repo.commit('updated')
         mappingFor("org.test:foo")
         buildFile << """
             dependencies {
@@ -130,15 +140,19 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
                 }
             }
         """
-        def buildBar = singleProjectBuild("bar") {
-            buildFile << """
-                apply plugin: 'java'
-                version = "2.0"
-            """
-        }
+        repo.commit("update")
+        repo2.file("settings.gradle") << """
+            rootProject.name = "bar"
+        """
+        repo2.file("build.gradle") << """
+            apply plugin: 'java'
+            group = "org.test"
+            version = "2.0"
+        """
+        repo2.commit("initial")
 
-        mappingFor(buildB, "org.test:foo")
-        mappingFor(buildBar, "org.test:bar")
+        mappingFor(repo, "org.test:foo")
+        mappingFor(repo2, "org.test:bar")
         buildFile << """
             dependencies {
                 conf 'org.test:foo:latest.integration'
@@ -156,6 +170,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
                 group = "new.group"
             }
         """
+        repo.commit("updated")
         mappingFor("org.test:foo")
         buildFile << """
             dependencies {
@@ -164,21 +179,21 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         """
         expect:
         fails("resolve")
-        failure.assertHasCause("dir repo ${buildB} did not contain a project publishing the specified dependency.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':resolve'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Git repository at ${repo.url} did not contain a project publishing the specified dependency.")
     }
 
-    void mappingFor(TestFile repo=buildB, String... coords) {
+    void mappingFor(GitRepository gitRepo = repo, String... coords) {
         settingsFile << """
-            import ${DirectoryRepositorySpec.canonicalName}
-
             sourceControl {
                 vcsMappings {
         """
         coords.each { coord ->
             settingsFile << """
                     withModule("${coord}") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("${repo.name}")
+                        from(${GitVersionControlSpec.name}) {
+                            url = uri("$gitRepo.url")
                         }
                     }
             """

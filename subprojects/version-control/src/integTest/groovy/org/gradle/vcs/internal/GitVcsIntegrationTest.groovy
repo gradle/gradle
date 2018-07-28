@@ -48,6 +48,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds('assemble')
+        result.assertTasksExecuted(":dep:processResources", ":dep:compileJava", ":dep:classes", ":dep:jar", ":processResources", ":compileJava", ":classes", ":jar", ":assemble")
+
         // Git repo is cloned
         def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
