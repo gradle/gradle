@@ -9,7 +9,7 @@ version = "1.0"
 
 tasks {
 
-    "uploadArchives"(Upload::class) {
+    getByName<Upload>("uploadArchives") {
 
         repositories {
 
