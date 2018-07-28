@@ -31,7 +31,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         expect:
         spec.repoName == 'foo'
         spec.uniqueId == 'git-repo:file:/tmp/repos/foo'
-        spec.displayName == 'Git Repository at file:/tmp/repos/foo'
+        spec.displayName == 'Git repository at file:/tmp/repos/foo'
     }
 
     def 'handles urls which do not end in .git'() {
@@ -41,7 +41,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         expect:
         spec.repoName == 'gradle-checksum'
         spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum'
-        spec.displayName == 'Git Repository at https://github.com/gradle/gradle-checksum'
+        spec.displayName == 'Git repository at https://github.com/gradle/gradle-checksum'
     }
 
     def 'handles urls which do end in .git'() {
@@ -51,7 +51,6 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         expect:
         spec.repoName == 'gradle-checksum'
         spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum.git'
-        spec.displayName == 'Git Repository at https://github.com/gradle/gradle-checksum.git'
-
+        spec.displayName == 'Git repository at https://github.com/gradle/gradle-checksum.git'
     }
 }
