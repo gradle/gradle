@@ -37,15 +37,15 @@ public interface ClassToKClass {
 
     void collectionOfClasses(Collection<Class<? extends Number>> types);
 
-    <T> void methodParameterizedClass(Class<T> type);
+    <T> T methodParameterizedClass(Class<T> type);
 
-    <T extends Number> void covariantMethodParameterizedClass(Class<T> type);
+    <T extends Number> T covariantMethodParameterizedClass(Class<T> type);
 
-    <T> void methodParameterizedCovariantClass(Class<? extends T> type);
+    <T> T methodParameterizedCovariantClass(Class<? extends T> type);
 
-    <T> void methodParameterizedContravariantClass(Class<? super T> type);
+    <T> T methodParameterizedContravariantClass(Class<? super T> type);
 
-    <T extends Number> void covariantMethodParameterizedCovariantClass(Class<? extends T> type);
+    <T extends Number> T covariantMethodParameterizedCovariantClass(Class<? extends T> type);
 
-    <T extends Number> void covariantMethodParameterizedContravariantClass(Class<? super T> type);
+    <T extends Number> T covariantMethodParameterizedContravariantClass(Class<? super T> type);
 }

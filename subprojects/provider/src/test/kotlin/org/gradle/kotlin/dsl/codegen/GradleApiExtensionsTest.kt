@@ -74,27 +74,27 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     `collectionOfClasses`(`types`.map { it.java })
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): T =
                     `methodParameterizedClass`(`type`.java)
                 """,
                 """
-                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): Unit =
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedClass`(`type`: kotlin.reflect.KClass<T>): T =
                     `covariantMethodParameterizedClass`(`type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): T =
                     `methodParameterizedCovariantClass`(`type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`methodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): T =
                     `methodParameterizedContravariantClass`(`type`.java)
                 """,
                 """
-                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): Unit =
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedCovariantClass`(`type`: kotlin.reflect.KClass<out T>): T =
                     `covariantMethodParameterizedCovariantClass`(`type`.java)
                 """,
                 """
-                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): Unit =
+                inline fun <T : kotlin.Number> org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`covariantMethodParameterizedContravariantClass`(`type`: kotlin.reflect.KClass<in T>): T =
                     `covariantMethodParameterizedContravariantClass`(`type`.java)
                 """
             )
