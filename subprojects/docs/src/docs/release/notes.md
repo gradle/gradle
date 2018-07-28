@@ -110,6 +110,7 @@ The following hooks are disallowed when called from these new APIs:
 - `project.subprojects(Action)` and `project.subprojects(Closure)`
 - `project.allprojects(Action)` and `project.allprojects(Closure)`
 - `project.project(String, Action)` and `project.project(String, Closure)`
+- `project.gradle.allprojects(Action)`
 
 If you attempt to call any of these methods an exception will be thrown. Gradle restricts these APIs because mixing these APIs with lazy configuration can cause hard to diagnose build failures and complexity.
 
