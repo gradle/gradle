@@ -9,6 +9,7 @@ version = "1.0"
 
 tasks {
 
+    // TODO prefer the lazy string invoke once https://github.com/gradle/gradle-native/issues/718 is fixed
     getByName<Upload>("uploadArchives") {
 
         repositories {
