@@ -53,10 +53,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
                         package my
 
-                        val strings = container(NamedString::class.java) { NamedString(it) }
+                        val strings = container(NamedString::class) { NamedString(it) }
                         extensions.add("strings", strings)
 
-                        val longs = container(NamedLong::class.java) { NamedLong(it) }
+                        val longs = container(NamedLong::class) { NamedLong(it) }
                         extensions.add("longs", longs)
 
                         tasks.register("printStringsAndLongs") {
@@ -65,7 +65,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                                 longs.forEach { println("long: " + it) }
                             }
                         }
-                    """.trimIndent())
+                    """)
                 }
             }
         }
@@ -103,10 +103,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                         open class Lib { lateinit var name: String }
                     """)
                     withFile("app.gradle.kts", """
-                        extensions.create("my", my.App::class.java)
+                        extensions.create("my", my.App::class)
                     """)
                     withFile("lib.gradle.kts", """
-                        extensions.create("my", my.Lib::class.java)
+                        extensions.create("my", my.Lib::class)
                     """)
                 }
             }
@@ -150,7 +150,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     """)
                     withFile("app-or-lib.gradle.kts", """
                         val my: String? by project
-                        val extensionType = if (my == "app") my.App::class.java else my.Lib::class.java
+                        val extensionType = if (my == "app") my.App::class else my.Lib::class
                         extensions.create("my", extensionType)
                     """)
                 }
@@ -228,11 +228,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             package my
 
             import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
 
             class DocumentationPlugin : Plugin<Project> {
 
                 override fun apply(project: Project) {
-                    val books = project.container(Book::class.java, ::Book)
+                    val books = project.container(Book::class, ::Book)
                     project.extensions.add("the books", books)
                 }
             }

@@ -69,7 +69,6 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
 }
 
 
-internal
 fun unzipTo(outputDirectory: File, zipFile: File) {
     ZipFile(zipFile).use { zip ->
         val outputDirectoryCanonicalPath = outputDirectory.canonicalPath
@@ -89,6 +88,7 @@ fun unzipEntryTo(outputDirectory: File, outputDirectoryCanonicalPath: String, zi
     if (entry.isDirectory) {
         output.mkdirs()
     } else {
+        output.parentFile.mkdirs()
         zip.getInputStream(entry).use { it.copyTo(output) }
     }
 }

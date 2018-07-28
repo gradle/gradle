@@ -64,6 +64,12 @@ val processResources by tasks.getting(ProcessResources::class) {
 }
 
 // -- Testing ----------------------------------------------------------
+// Disable incremental compilation for Java fixture sources
+// Incremental compilation is causing OOMEs with our low build daemon heap settings
+tasks.withType(JavaCompile::class.java).named("compileTestJava").configure {
+    options.isIncremental = false
+}
+
 val customInstallation by rootProject.tasks
 
 tasks.named("test").configure {

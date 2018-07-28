@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
@@ -51,6 +52,7 @@ fun gradleKotlinDslOf(project: Project): List<File> =
     }
 
 
+internal
 fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
@@ -72,6 +74,7 @@ typealias JarsProvider = () -> Collection<File>
 
 
 class KotlinScriptClassPathProvider(
+    val moduleRegistry: ModuleRegistry,
     val classPathRegistry: ClassPathRegistry,
     val coreAndPluginsScope: ClassLoaderScope,
     val gradleApiJarsProvider: JarsProvider,
@@ -82,10 +85,12 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
+    internal
     val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleKotlinDslJars
     }
 
+    private
     val gradleApi: ClassPath by lazy {
         DefaultClassPath.of(gradleApiJarsProvider())
     }
@@ -93,6 +98,7 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated extensions to the Gradle API.
      */
+    private
     val gradleApiExtensions: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslExtensions())
     }
@@ -100,6 +106,7 @@ class KotlinScriptClassPathProvider(
     /**
      * gradle-kotlin-dsl.jar plus kotlin libraries.
      */
+    internal
     val gradleKotlinDslJars: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslJars())
     }
@@ -132,13 +139,13 @@ class KotlinScriptClassPathProvider(
     private
     fun gradleKotlinDslExtensions(): File =
         produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(outputFile, gradleJars, onProgress)
+            generateApiExtensionsJar(outputFile, gradleJars, gradleApiMetadataJar, onProgress)
         }
 
     private
     fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            progressMonitorFor(outputFile, 1).use { progressMonitor ->
+            progressMonitorFor(outputFile, 3).use { progressMonitor ->
                 generateAtomically(outputFile) { generate(it, progressMonitor::onProgress) }
             }
         }
@@ -172,6 +179,11 @@ class KotlinScriptClassPathProvider(
     }
 
     private
+    val gradleApiMetadataJar by lazy {
+        moduleRegistry.getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
+    }
+
+    private
     val cachedScopeCompilationClassPath = ConcurrentHashMap<ClassLoaderScope, ClassPath>()
 
     private
@@ -191,6 +203,10 @@ fun DependencyFactory.gradleApi(): Dependency =
 
 private
 val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
+
+
+internal
+const val gradleApiMetadataModuleName = "gradle-api-metadata"
 
 
 private

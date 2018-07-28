@@ -58,10 +58,11 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
             package plugin
 
             import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
 
             class TestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.extensions.create("test", TestExtension::class.java)
+                    project.extensions.create("test", TestExtension::class)
                 }
             }
 
