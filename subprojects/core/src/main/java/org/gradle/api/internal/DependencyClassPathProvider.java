@@ -20,8 +20,11 @@ import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
@@ -59,16 +62,16 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath initGradleApi() {
-        ClassPath classpath = ClassPath.EMPTY;
+        LinkedHashSet<File> files = new LinkedHashSet<File>();
         for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
             for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
-                classpath = classpath.plus(module.getClasspath());
+                files.addAll(module.getClasspath().getAsFiles());
             }
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
-            classpath = classpath.plus(pluginModule.getClasspath());
+            files.addAll(pluginModule.getClasspath().getAsFiles());
         }
-        return classpath;
+        return DefaultClassPath.of(files);
     }
 
     private ClassPath gradleTestKit() {
