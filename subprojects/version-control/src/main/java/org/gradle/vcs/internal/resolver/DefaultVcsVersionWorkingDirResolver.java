@@ -65,7 +65,7 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
 
             workingDir = prepareWorkingDir(baseWorkingDir, spec, versionControlSystem, selectedVersion);
             inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
-            persistentCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
+            persistentCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), selectedVersion, workingDir);
         }
         return new File(workingDir, spec.getRootDir());
     }
@@ -79,7 +79,7 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
             if (!workingDir.exists()) {
                 versionControlSystem.populate(workingDir, selectedVersion, spec);
             } else {
-                versionControlSystem.reset(workingDir, spec);
+                versionControlSystem.reset(workingDir, selectedVersion, spec);
             }
             // Update timestamp so that working directory is not garbage collected
             GFileUtils.touch(workingDir.getParentFile());

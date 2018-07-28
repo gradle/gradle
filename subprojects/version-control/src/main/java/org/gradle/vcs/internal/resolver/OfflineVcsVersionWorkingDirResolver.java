@@ -40,13 +40,14 @@ public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         File workingDir = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
         if (workingDir == null) {
             // TODO - prevent multiple threads from performing the same selection at the same time
-            workingDir = persistentCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
-            if (workingDir == null) {
+            PersistentVcsMetadataCache.WorkingDir previousWorkingDir = persistentCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
+            if (previousWorkingDir == null) {
                 throw new ModuleVersionResolveException(selector, String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), spec.getDisplayName()));
             }
 
             // Reuse the same location as last build
-            versionControlSystem.reset(workingDir, spec);
+            workingDir = previousWorkingDir.getWorkingDir();
+            versionControlSystem.reset(workingDir, previousWorkingDir.getSelectedVersion(), spec);
             // Update timestamp so that working directory is not garbage collected
             GFileUtils.touch(workingDir.getParentFile());
             inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);

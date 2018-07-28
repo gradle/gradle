@@ -120,12 +120,12 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         }
 
         @Override
-        public void reset(final File workingDir, final VersionControlSpec spec) {
+        public void reset(final File workingDir, final VersionRef ref,  final VersionControlSpec spec) {
             cacheAccess.useCache(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        delegate.reset(workingDir, spec);
+                        delegate.reset(workingDir, ref, spec);
                     } catch (Exception e) {
                         throw new GradleException(String.format("Could not reset %s for %s.", workingDir, spec.getDisplayName()), e);
                     }

@@ -45,7 +45,7 @@ public interface VersionControlSystem {
     /**
      * Resets the given working directory to its state in the VCS.
      */
-    void reset(File workingDir, VersionControlSpec spec);
+    void reset(File workingDir, VersionRef ref, VersionControlSpec spec);
 
     /**
      * Returns the default revision for this VCS.

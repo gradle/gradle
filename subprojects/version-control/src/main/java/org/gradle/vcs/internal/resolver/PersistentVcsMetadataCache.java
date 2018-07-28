@@ -23,9 +23,13 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.vcs.VersionControlSpec;
+import org.gradle.vcs.git.internal.GitVersionRef;
 import org.gradle.vcs.internal.VcsDirectoryLayout;
+import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -34,7 +38,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class PersistentVcsMetadataCache implements Stoppable {
     private final PersistentCache cache;
-    private final PersistentIndexedCache<String, File> workingDirCache;
+    private final PersistentIndexedCache<String, WorkingDir> workingDirCache;
 
     public PersistentVcsMetadataCache(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository) {
         cache = cacheRepository
@@ -42,7 +46,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
             .withDisplayName("VCS metadata")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
             .open();
-        workingDirCache = cache.createCache("workingDirs", String.class, new BaseSerializerFactory().getSerializerFor(File.class));
+        workingDirCache = cache.createCache("workingDirs", String.class, new WorkingDirSerializer());
     }
 
     @Override
@@ -51,21 +55,21 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     @Nullable
-    public File getWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint) {
-        return cache.useCache(new Factory<File>() {
+    public WorkingDir getWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint) {
+        return cache.useCache(new Factory<WorkingDir>() {
             @Nullable
             @Override
-            public File create() {
+            public WorkingDir create() {
                 return workingDirCache.get(constraintCacheKey(spec, constraint));
             }
         });
     }
 
-    public void putWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint, final File workingDirForVersion) {
+    public void putWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint, final VersionRef selectedVersion, final File workingDirForVersion) {
         cache.useCache(new Runnable() {
             @Override
             public void run() {
-                workingDirCache.put(constraintCacheKey(spec, constraint), workingDirForVersion);
+                workingDirCache.put(constraintCacheKey(spec, constraint), new WorkingDir(selectedVersion, workingDirForVersion));
             }
         });
     }
@@ -75,5 +79,41 @@ public class PersistentVcsMetadataCache implements Stoppable {
             return spec.getUniqueId() + ":b:" + constraint.getBranch();
         }
         return spec.getUniqueId() + ":v:" + constraint.getRequiredVersion();
+    }
+
+    private static class WorkingDirSerializer implements Serializer<WorkingDir> {
+        @Override
+        public void write(Encoder encoder, WorkingDir value) throws Exception {
+            GitVersionRef gitRef = (GitVersionRef) value.selectedVersion;
+            encoder.writeString(gitRef.getVersion());
+            encoder.writeString(gitRef.getCanonicalId());
+            encoder.writeString(value.workingDir.getAbsolutePath());
+        }
+
+        @Override
+        public WorkingDir read(Decoder decoder) throws Exception {
+            String version = decoder.readString();
+            String canonicalId = decoder.readString();
+            String dir = decoder.readString();
+            return new WorkingDir(GitVersionRef.from(version, canonicalId), new File(dir));
+        }
+    }
+
+    public static class WorkingDir {
+        private final VersionRef selectedVersion;
+        private final File workingDir;
+
+        public WorkingDir(VersionRef selectedVersion, File workingDir) {
+            this.selectedVersion = selectedVersion;
+            this.workingDir = workingDir;
+        }
+
+        public VersionRef getSelectedVersion() {
+            return selectedVersion;
+        }
+
+        public File getWorkingDir() {
+            return workingDir;
+        }
     }
 }

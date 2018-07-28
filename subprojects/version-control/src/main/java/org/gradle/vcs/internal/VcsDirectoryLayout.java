@@ -26,7 +26,7 @@ public class VcsDirectoryLayout {
 
     public VcsDirectoryLayout(File projectCacheDir) {
         this.checkoutDir = new File(projectCacheDir, "vcs-1");
-        this.metadataDir = new File(projectCacheDir, GradleVersion.current().getVersion() + "/vcsMetadata");
+        this.metadataDir = new File(projectCacheDir, GradleVersion.current().getVersion() + "/vcsMetadata-1");
     }
 
     public File getCheckoutDir() {
