@@ -82,7 +82,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             try {
                 return delegate.getDefaultBranch(spec);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not locate default branch for '%s'.", spec.getDisplayName()), e);
+                throw new GradleException(String.format("Could not locate default branch for %s.", spec.getDisplayName()), e);
             }
         }
 
@@ -92,7 +92,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             try {
                 return delegate.getBranch(spec, branch);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not locate branch '%s' for '%s'.", branch, spec.getDisplayName()), e);
+                throw new GradleException(String.format("Could not locate branch '%s' for %s.", branch, spec.getDisplayName()), e);
             }
         }
 
@@ -101,7 +101,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             try {
                 return delegate.getAvailableVersions(spec);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not list available versions for '%s'.", spec.getDisplayName()), e);
+                throw new GradleException(String.format("Could not list available versions for %s.", spec.getDisplayName()), e);
             }
         }
 
@@ -116,7 +116,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
                     try {
                         return delegate.populate(versionDir, ref, spec);
                     } catch (Exception e) {
-                        throw new GradleException(String.format("Could not populate %s from '%s'.", versionDir, spec.getDisplayName()), e);
+                        throw new GradleException(String.format("Could not populate %s from %s.", versionDir, spec.getDisplayName()), e);
                     }
                 }
             });

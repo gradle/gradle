@@ -54,7 +54,7 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
 
     @Override
     public String getDisplayName() {
-        return "Git Repository at " + getUrl();
+        return "Git repository at " + getUrl();
     }
 
     @Override
