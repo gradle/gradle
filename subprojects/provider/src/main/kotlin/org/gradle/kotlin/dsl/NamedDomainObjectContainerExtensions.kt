@@ -69,7 +69,7 @@ class NamedDomainObjectContainerScope<T : Any>(
      * @see [NamedDomainObjectContainer.named]
      */
     operator fun String.invoke(configuration: T.() -> Unit): DomainObjectProvider<T> =
-        this().also { it.configure(configuration) }
+        this().apply { configure(configuration) }
 
     /**
      * @see [NamedDomainObjectContainer.named]
@@ -81,7 +81,7 @@ class NamedDomainObjectContainerScope<T : Any>(
      * @see [PolymorphicDomainObjectContainer.named]
      */
     operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): DomainObjectProvider<U> =
-        this(type).also { it.configure(configuration) }
+        this(type).apply { configure(configuration) }
 
     /**
      * @see [PolymorphicDomainObjectContainer.named]
